@@ -1,7 +1,7 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { eq } from "drizzle-orm";
+import { asc, eq } from "drizzle-orm";
 import { db } from "../../db/index.js";
-import { stages, eleves, classes } from "../../db/schema.js";
+import { stages, eleves, classes, professeurs } from "../../db/schema.js";
 import { handleApi, methodNotAllowed } from "../_shared/response.js";
 import { requireRole } from "../_shared/auth.js";
 import { isStageModuleActive } from "../_shared/modules.js";
@@ -9,6 +9,17 @@ import {
   canReadStageForUser,
   getProfesseurIdForUser,
 } from "../_shared/access.js";
+
+function canManageStage(
+  row: { professeurPrincipalId: string | null },
+  userId: string,
+  role: string
+): boolean {
+  return (
+    ["superadmin", "administration"].includes(role) ||
+    row.professeurPrincipalId === userId
+  );
+}
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== "GET") return methodNotAllowed(res, ["GET"]);
@@ -33,20 +44,37 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         classeNiveau: classes.niveau,
         professeurPrincipalId: classes.professeurPrincipalId,
         professeurReferentId: stages.professeurReferentId,
+        professeurReferentNom: professeurs.nom,
+        professeurReferentPrenom: professeurs.prenom,
         statut: stages.statut,
         entrepriseNom: stages.entrepriseNom,
         tuteurTelephone: stages.tuteurTelephone,
       })
       .from(stages)
       .innerJoin(eleves, eq(stages.eleveId, eleves.id))
-      .leftJoin(classes, eq(eleves.classeId, classes.id));
+      .leftJoin(classes, eq(eleves.classeId, classes.id))
+      .leftJoin(professeurs, eq(stages.professeurReferentId, professeurs.id));
+
+    const professeurRows = await db
+      .select({
+        id: professeurs.id,
+        nom: professeurs.nom,
+        prenom: professeurs.prenom,
+        matieres: professeurs.matieres,
+      })
+      .from(professeurs)
+      .orderBy(asc(professeurs.nom), asc(professeurs.prenom));
 
     const stagesList = allStages
       .filter((s) => isStageModuleActive(s.classeNiveau, s.statut))
       .filter((s) => canReadStageForUser(s, user, professeurId))
       .map((s) => ({
         ...s,
-        professeurReferent: null,
+        professeurReferent:
+          s.professeurReferentNom && s.professeurReferentPrenom
+            ? `${s.professeurReferentNom} ${s.professeurReferentPrenom}`
+            : null,
+        canManage: canManageStage(s, user.id, user.role),
       }));
 
     const total = stagesList.length;
@@ -68,6 +96,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     return {
       stages: stagesList,
+      professeurs: professeurRows,
       stats: {
         total,
         avecStage,

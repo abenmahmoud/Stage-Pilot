@@ -1,17 +1,141 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { eq } from "drizzle-orm";
+import { asc, eq } from "drizzle-orm";
 import { db } from "../../db/index.js";
-import { stages, eleves, classes } from "../../db/schema.js";
+import { stages, eleves, classes, professeurs } from "../../db/schema.js";
 import { handleApi, methodNotAllowed } from "../_shared/response.js";
-import { requireRole, HttpError } from "../_shared/auth.js";
+import { requireRole, HttpError, type AuthUser } from "../_shared/auth.js";
 import { isStageModuleActive } from "../_shared/modules.js";
 import {
   canReadStageForUser,
   getProfesseurIdForUser,
 } from "../_shared/access.js";
 
+const STAGE_STATUTS = [
+  "a_completer",
+  "en_cours_saisie",
+  "soumis",
+  "convention_generee",
+  "convention_signee",
+  "stage_en_cours",
+  "stage_termine",
+  "dispense",
+  "accueil_lycee",
+] as const;
+
+type StageUpdateBody = {
+  statut?: string;
+  professeurReferentId?: string | null;
+  entrepriseNom?: string | null;
+  entrepriseAdresse?: string | null;
+  entrepriseTelephone?: string | null;
+  entrepriseEmail?: string | null;
+  entrepriseRepresentant?: string | null;
+  entrepriseQualite?: string | null;
+  entrepriseType?: string | null;
+  tuteurNomQualite?: string | null;
+  tuteurEmail?: string | null;
+  tuteurTelephone?: string | null;
+  faitLe?: string | null;
+};
+
+type StageAccessRow = {
+  professeurPrincipalId: string | null;
+  professeurReferentId: string | null;
+};
+
+function isUuid(value: string): boolean {
+  return /^[0-9a-fA-F-]{36}$/.test(value);
+}
+
+function normalizeText(value: unknown): string | null {
+  if (typeof value !== "string") return null;
+  const trimmed = value.trim();
+  return trimmed.length > 0 ? trimmed : null;
+}
+
+function normalizeOptionalId(value: unknown): string | null {
+  if (value === null || value === undefined || value === "") return null;
+  if (typeof value !== "string" || !isUuid(value)) {
+    throw new HttpError(400, "Identifiant professeur invalide");
+  }
+  return value;
+}
+
+function isStageStatut(value: unknown): value is (typeof STAGE_STATUTS)[number] {
+  return typeof value === "string" && STAGE_STATUTS.includes(value as never);
+}
+
+function canManageStage(row: StageAccessRow, user: AuthUser): boolean {
+  return (
+    ["superadmin", "administration"].includes(user.role) ||
+    row.professeurPrincipalId === user.id
+  );
+}
+
+async function listProfesseurs() {
+  return db
+    .select({
+      id: professeurs.id,
+      nom: professeurs.nom,
+      prenom: professeurs.prenom,
+      matieres: professeurs.matieres,
+    })
+    .from(professeurs)
+    .orderBy(asc(professeurs.nom), asc(professeurs.prenom));
+}
+
+async function loadStage(eleveId: string) {
+  const result = await db
+    .select({
+      id: stages.id,
+      eleveId: stages.eleveId,
+      eleveNom: eleves.nom,
+      elevePrenom: eleves.prenom,
+      classeNom: classes.nom,
+      classeNiveau: classes.niveau,
+      professeurPrincipalId: classes.professeurPrincipalId,
+      statut: stages.statut,
+      professeurReferentId: stages.professeurReferentId,
+      professeurReferentNom: professeurs.nom,
+      professeurReferentPrenom: professeurs.prenom,
+      entrepriseNom: stages.entrepriseNom,
+      entrepriseAdresse: stages.entrepriseAdresse,
+      entrepriseTelephone: stages.entrepriseTelephone,
+      entrepriseEmail: stages.entrepriseEmail,
+      entrepriseRepresentant: stages.entrepriseRepresentant,
+      entrepriseQualite: stages.entrepriseQualite,
+      entrepriseType: stages.entrepriseType,
+      tuteurNomQualite: stages.tuteurNomQualite,
+      tuteurEmail: stages.tuteurEmail,
+      tuteurTelephone: stages.tuteurTelephone,
+      dateDebut: stages.dateDebut,
+      dateFin: stages.dateFin,
+      faitLe: stages.faitLe,
+    })
+    .from(stages)
+    .innerJoin(eleves, eq(stages.eleveId, eleves.id))
+    .leftJoin(classes, eq(eleves.classeId, classes.id))
+    .leftJoin(professeurs, eq(stages.professeurReferentId, professeurs.id))
+    .where(eq(stages.eleveId, eleveId))
+    .limit(1);
+
+  return result[0] ?? null;
+}
+
+function formatStage(stage: NonNullable<Awaited<ReturnType<typeof loadStage>>>) {
+  return {
+    ...stage,
+    professeurReferent:
+      stage.professeurReferentNom && stage.professeurReferentPrenom
+        ? `${stage.professeurReferentNom} ${stage.professeurReferentPrenom}`
+        : null,
+  };
+}
+
 export default async function handler(req: VercelRequest, res: VercelResponse) {
-  if (req.method !== "GET") return methodNotAllowed(res, ["GET"]);
+  if (req.method !== "GET" && req.method !== "PUT") {
+    return methodNotAllowed(res, ["GET", "PUT"]);
+  }
 
   await handleApi(res, async () => {
     const user = await requireRole(req, [
@@ -24,48 +148,102 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const professeurId = await getProfesseurIdForUser(user);
 
     const eleveId = (req.query.id as string) || "";
-    if (!eleveId || !/^[0-9a-fA-F-]{36}$/.test(eleveId)) {
-      throw new HttpError(400, "Identifiant élève invalide");
+    if (!eleveId || !isUuid(eleveId)) {
+      throw new HttpError(400, "Identifiant eleve invalide");
     }
 
-    const result = await db
-      .select({
-        id: stages.id,
-        eleveNom: eleves.nom,
-        elevePrenom: eleves.prenom,
-        classeNom: classes.nom,
-        classeNiveau: classes.niveau,
-        professeurPrincipalId: classes.professeurPrincipalId,
-        statut: stages.statut,
-        professeurReferentId: stages.professeurReferentId,
-        entrepriseNom: stages.entrepriseNom,
-        entrepriseAdresse: stages.entrepriseAdresse,
-        entrepriseTelephone: stages.entrepriseTelephone,
-        entrepriseRepresentant: stages.entrepriseRepresentant,
-        entrepriseQualite: stages.entrepriseQualite,
-        entrepriseType: stages.entrepriseType,
-        tuteurNomQualite: stages.tuteurNomQualite,
-        tuteurEmail: stages.tuteurEmail,
-        tuteurTelephone: stages.tuteurTelephone,
-        dateDebut: stages.dateDebut,
-        dateFin: stages.dateFin,
-      })
-      .from(stages)
-      .innerJoin(eleves, eq(stages.eleveId, eleves.id))
-      .leftJoin(classes, eq(eleves.classeId, classes.id))
-      .where(eq(stages.eleveId, eleveId))
-      .limit(1);
-
-    if (result.length === 0) {
-      throw new HttpError(404, "Stage introuvable pour cet élève");
+    const stage = await loadStage(eleveId);
+    if (!stage) {
+      throw new HttpError(404, "Stage introuvable pour cet eleve");
     }
-    if (!isStageModuleActive(result[0].classeNiveau, result[0].statut)) {
-      throw new HttpError(404, "Stage désactivé pour cet élève");
+    if (!isStageModuleActive(stage.classeNiveau, stage.statut)) {
+      throw new HttpError(404, "Stage desactive pour cet eleve");
     }
-    if (!canReadStageForUser(result[0], user, professeurId)) {
-      throw new HttpError(403, "Accès interdit à ce dossier de stage");
+    if (!canReadStageForUser(stage, user, professeurId)) {
+      throw new HttpError(403, "Acces interdit a ce dossier de stage");
     }
 
-    return { ...result[0], professeurReferent: null };
+    const canManage = canManageStage(stage, user);
+
+    if (req.method === "GET") {
+      return {
+        ...formatStage(stage),
+        canManage,
+        professeurs: await listProfesseurs(),
+      };
+    }
+
+    if (!canManage) {
+      throw new HttpError(
+        403,
+        "Seule l'administration ou le professeur principal peut modifier ce stage"
+      );
+    }
+
+    const body = (req.body ?? {}) as StageUpdateBody;
+    const updateData: Record<string, unknown> = { updatedAt: new Date() };
+
+    const textFields: Array<keyof StageUpdateBody> = [
+      "entrepriseNom",
+      "entrepriseAdresse",
+      "entrepriseTelephone",
+      "entrepriseEmail",
+      "entrepriseRepresentant",
+      "entrepriseQualite",
+      "entrepriseType",
+      "tuteurNomQualite",
+      "tuteurEmail",
+      "tuteurTelephone",
+      "faitLe",
+    ];
+
+    for (const field of textFields) {
+      if (Object.prototype.hasOwnProperty.call(body, field)) {
+        updateData[field] = normalizeText(body[field]);
+      }
+    }
+
+    if (Object.prototype.hasOwnProperty.call(body, "professeurReferentId")) {
+      const professeurReferentId = normalizeOptionalId(body.professeurReferentId);
+      if (professeurReferentId) {
+        const [professeur] = await db
+          .select({ id: professeurs.id })
+          .from(professeurs)
+          .where(eq(professeurs.id, professeurReferentId))
+          .limit(1);
+        if (!professeur) {
+          throw new HttpError(400, "Professeur referent introuvable");
+        }
+      }
+      updateData.professeurReferentId = professeurReferentId;
+    }
+
+    if (Object.prototype.hasOwnProperty.call(body, "statut")) {
+      if (!isStageStatut(body.statut)) {
+        throw new HttpError(400, "Statut de stage invalide");
+      }
+      updateData.statut = body.statut;
+    } else if (
+      stage.statut === "a_completer" &&
+      typeof updateData.entrepriseNom === "string"
+    ) {
+      updateData.statut = "en_cours_saisie";
+    }
+
+    await db
+      .update(stages)
+      .set(updateData as Partial<typeof stages.$inferInsert>)
+      .where(eq(stages.id, stage.id));
+
+    const updatedStage = await loadStage(eleveId);
+    if (!updatedStage) {
+      throw new HttpError(404, "Stage introuvable apres mise a jour");
+    }
+
+    return {
+      ...formatStage(updatedStage),
+      canManage,
+      professeurs: await listProfesseurs(),
+    };
   });
 }
