@@ -42,12 +42,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           classeId: eleves.classeId,
           classeNom: classes.nom,
           classeNiveau: classes.niveau,
-          professeurReferentId: eleves.professeurReferentId,
+          professeurReferentId: stages.professeurReferentId,
           profSpe1Id: fichesGrandOral.profSpe1Id,
           profSpe2Id: fichesGrandOral.profSpe2Id,
         })
         .from(eleves)
         .leftJoin(classes, eq(eleves.classeId, classes.id))
+        .leftJoin(stages, eq(stages.eleveId, eleves.id))
         .leftJoin(
           fichesGrandOral,
           and(
@@ -107,13 +108,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       }
     }
 
-    const [updatedEleve] = await db
-      .update(eleves)
-      .set({ professeurReferentId })
+    // Vérification que l'élève existe
+    const eleveExiste = await db
+      .select({ id: eleves.id })
+      .from(eleves)
       .where(eq(eleves.id, eleveId))
-      .returning({ id: eleves.id });
+      .limit(1);
 
-    if (!updatedEleve) {
+    if (eleveExiste.length === 0) {
       throw new HttpError(404, "Élève introuvable.");
     }
 

@@ -80,9 +80,6 @@ export const eleves = pgTable("eleves", {
   dateNaissance: date("date_naissance"),
   numeroCanditat: text("numero_candidat"),
   codeAcces: text("code_acces").unique(),
-  professeurReferentId: uuid("professeur_referent_id").references(
-    () => professeurs.id
-  ),
   anneeScolaire: text("annee_scolaire").notNull().default("2025-2026"),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow(),
