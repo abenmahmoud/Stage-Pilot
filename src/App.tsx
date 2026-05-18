@@ -14,6 +14,9 @@ import AdminDashboard from "./pages/admin/AdminDashboard";
 import ImportPage from "./pages/admin/ImportPage";
 import ParametresPage from "./pages/admin/ParametresPage";
 import CodesAccesPage from "./pages/admin/CodesAccesPage";
+import CodesProfsPage from "./pages/admin/CodesProfsPage";
+import AffectationsClassesPage from "./pages/admin/AffectationsClassesPage";
+import AffectationsElevesPage from "./pages/admin/AffectationsElevesPage";
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
@@ -57,6 +60,15 @@ export default function App() {
           <Route path="admin" element={<AdminDashboard />} />
           <Route path="admin/import" element={<ImportPage />} />
           <Route path="admin/codes-acces" element={<CodesAccesPage />} />
+          <Route path="admin/codes-profs" element={<CodesProfsPage />} />
+          <Route
+            path="admin/affectations-classes"
+            element={<AffectationsClassesPage />}
+          />
+          <Route
+            path="admin/affectations-eleves"
+            element={<AffectationsElevesPage />}
+          />
           <Route path="admin/parametres" element={<ParametresPage />} />
         </Route>
         <Route path="*" element={<Navigate to="/" replace />} />

@@ -1,19 +1,19 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, type ReactNode } from "react";
+import { useNavigate } from "react-router-dom";
 import { apiFetch } from "../../lib/api";
 import { StatCard } from "../../components/ui/StatCard";
-import { Card, CardContent, CardHeader } from "../../components/ui/Card";
+import { Card, CardContent } from "../../components/ui/Card";
 import {
   Users,
   Briefcase,
   Mic2,
-  CheckCircle2,
   AlertTriangle,
   FileText,
   Upload,
   Settings,
   KeyRound,
+  UsersRound,
 } from "lucide-react";
-import { useNavigate } from "react-router-dom";
 
 interface DashboardStats {
   totalEleves: number;
@@ -23,6 +23,32 @@ interface DashboardStats {
   stagesSansStage: number;
   goFinalise: number;
   goEnAttente: number;
+}
+
+function ActionCard({
+  icon,
+  title,
+  description,
+  onClick,
+}: {
+  icon: ReactNode;
+  title: string;
+  description: string;
+  onClick: () => void;
+}) {
+  return (
+    <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={onClick}>
+      <CardContent className="flex items-center gap-4 py-6">
+        <div className="w-12 h-12 rounded-xl bg-gray-50 flex items-center justify-center">
+          {icon}
+        </div>
+        <div>
+          <h3 className="text-sm font-semibold text-gray-900">{title}</h3>
+          <p className="text-sm text-gray-500">{description}</p>
+        </div>
+      </CardContent>
+    </Card>
+  );
 }
 
 export default function AdminDashboard() {
@@ -43,7 +69,9 @@ export default function AdminDashboard() {
       try {
         const data = await apiFetch<DashboardStats>("admin/stats");
         setStats(data);
-      } catch {}
+      } catch {
+        // Le dashboard reste utilisable même si les statistiques échouent.
+      }
       setLoading(false);
     })();
   }, []);
@@ -112,63 +140,43 @@ export default function AdminDashboard() {
             />
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <Card
-              className="cursor-pointer hover:shadow-md transition-shadow"
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+            <ActionCard
+              title="Import CSV / Excel"
+              description="Importer les listes d'élèves et de professeurs"
+              icon={<Upload className="w-6 h-6 text-blue-600" />}
               onClick={() => navigate("/admin/import")}
-            >
-              <CardContent className="flex items-center gap-4 py-6">
-                <div className="w-12 h-12 rounded-xl bg-blue-50 flex items-center justify-center">
-                  <Upload className="w-6 h-6 text-blue-600" />
-                </div>
-                <div>
-                  <h3 className="text-sm font-semibold text-gray-900">
-                    Import CSV
-                  </h3>
-                  <p className="text-sm text-gray-500">
-                    Importer les listes d'élèves et de professeurs
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card
-              className="cursor-pointer hover:shadow-md transition-shadow"
+            />
+            <ActionCard
+              title="Codes élèves"
+              description="Imprimer les étiquettes pour les élèves"
+              icon={<KeyRound className="w-6 h-6 text-indigo-600" />}
               onClick={() => navigate("/admin/codes-acces")}
-            >
-              <CardContent className="flex items-center gap-4 py-6">
-                <div className="w-12 h-12 rounded-xl bg-indigo-50 flex items-center justify-center">
-                  <KeyRound className="w-6 h-6 text-indigo-600" />
-                </div>
-                <div>
-                  <h3 className="text-sm font-semibold text-gray-900">
-                    Codes d'accès
-                  </h3>
-                  <p className="text-sm text-gray-500">
-                    Imprimer les étiquettes pour les élèves
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card
-              className="cursor-pointer hover:shadow-md transition-shadow"
+            />
+            <ActionCard
+              title="Codes professeurs"
+              description="Imprimer les codes d'accès enseignants"
+              icon={<KeyRound className="w-6 h-6 text-cyan-600" />}
+              onClick={() => navigate("/admin/codes-profs")}
+            />
+            <ActionCard
+              title="Affectations classes"
+              description="Associer les professeurs principaux"
+              icon={<UsersRound className="w-6 h-6 text-emerald-600" />}
+              onClick={() => navigate("/admin/affectations-classes")}
+            />
+            <ActionCard
+              title="Affectations élèves"
+              description="Affecter référents stage et professeurs GO"
+              icon={<UsersRound className="w-6 h-6 text-orange-600" />}
+              onClick={() => navigate("/admin/affectations-eleves")}
+            />
+            <ActionCard
+              title="Paramètres"
+              description="Configuration de l'établissement"
+              icon={<Settings className="w-6 h-6 text-gray-600" />}
               onClick={() => navigate("/admin/parametres")}
-            >
-              <CardContent className="flex items-center gap-4 py-6">
-                <div className="w-12 h-12 rounded-xl bg-gray-100 flex items-center justify-center">
-                  <Settings className="w-6 h-6 text-gray-600" />
-                </div>
-                <div>
-                  <h3 className="text-sm font-semibold text-gray-900">
-                    Paramètres
-                  </h3>
-                  <p className="text-sm text-gray-500">
-                    Configuration de l'établissement
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
+            />
           </div>
         </>
       )}

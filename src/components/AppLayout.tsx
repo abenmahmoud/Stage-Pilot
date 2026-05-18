@@ -1,4 +1,5 @@
 import { Outlet, NavLink, useNavigate } from "react-router-dom";
+import { useState } from "react";
 import { useAuth } from "../lib/auth-context";
 import { ROLE_LABELS } from "../lib/types";
 import {
@@ -13,8 +14,8 @@ import {
   LayoutDashboard,
   ChevronRight,
   KeyRound,
+  UsersRound,
 } from "lucide-react";
-import { useState } from "react";
 
 const navCls = ({ isActive }: { isActive: boolean }) =>
   `flex items-center gap-3 rounded-xl px-4 py-2.5 text-sm font-medium transition-all ${
@@ -55,7 +56,7 @@ export default function AppLayout() {
         </div>
       </div>
 
-      <nav className="flex-1 px-3 py-4 space-y-1">
+      <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
         {!isEleve && (
           <NavLink to="/stages" end className={navCls}>
             <Briefcase className="w-4 h-4" />
@@ -95,11 +96,23 @@ export default function AppLayout() {
             </NavLink>
             <NavLink to="/admin/import" className={navCls}>
               <Upload className="w-4 h-4" />
-              Import CSV
+              Import CSV / Excel
             </NavLink>
             <NavLink to="/admin/codes-acces" className={navCls}>
               <KeyRound className="w-4 h-4" />
-              Codes d'accès
+              Codes élèves
+            </NavLink>
+            <NavLink to="/admin/codes-profs" className={navCls}>
+              <KeyRound className="w-4 h-4" />
+              Codes professeurs
+            </NavLink>
+            <NavLink to="/admin/affectations-classes" className={navCls}>
+              <UsersRound className="w-4 h-4" />
+              Affectations classes
+            </NavLink>
+            <NavLink to="/admin/affectations-eleves" className={navCls}>
+              <UsersRound className="w-4 h-4" />
+              Affectations élèves
             </NavLink>
             <NavLink to="/admin/parametres" className={navCls}>
               <Settings className="w-4 h-4" />
@@ -148,12 +161,10 @@ export default function AppLayout() {
 
   return (
     <div className="flex h-screen overflow-hidden bg-gray-50">
-      {/* Desktop sidebar */}
       <aside className="hidden lg:flex w-64 flex-col bg-primary-500 shrink-0">
         {navContent}
       </aside>
 
-      {/* Mobile overlay */}
       {open && (
         <div
           className="fixed inset-0 z-40 bg-black/50 lg:hidden"
@@ -168,18 +179,19 @@ export default function AppLayout() {
         <button
           onClick={() => setOpen(false)}
           className="absolute top-4 right-4 text-white/70 hover:text-white"
+          aria-label="Fermer le menu"
         >
           <X className="w-5 h-5" />
         </button>
         {navContent}
       </aside>
 
-      {/* Main content */}
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
         <header className="h-14 border-b border-gray-200 bg-white flex items-center gap-3 px-4 lg:px-6 shrink-0">
           <button
             onClick={() => setOpen(true)}
             className="lg:hidden text-gray-500 hover:text-gray-700"
+            aria-label="Ouvrir le menu"
           >
             <Menu className="w-5 h-5" />
           </button>

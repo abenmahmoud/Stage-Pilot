@@ -1,7 +1,8 @@
 import { useState, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
+import Papa from "papaparse";
 import { apiFetch } from "../../lib/api";
 import { Card, CardContent, CardHeader } from "../../components/ui/Card";
-import Papa from "papaparse";
 import {
   Upload,
   FileSpreadsheet,
@@ -10,8 +11,8 @@ import {
   ChevronRight,
   ArrowLeft,
   Info,
+  UserPlus,
 } from "lucide-react";
-import { useNavigate } from "react-router-dom";
 
 type ImportType = "eleves" | "professeurs";
 
@@ -33,13 +34,24 @@ interface MappedRow {
   erreur?: string;
 }
 
+interface ImportResult {
+  imported: number;
+  doublons: number;
+  erreurs: number;
+}
+
+interface GenerateProfAccountsResult {
+  created: number;
+}
+
 const FIELD_ALIASES: Record<string, string[]> = {
-  // SIECLE/STSWEB columns are added in priority (exact match first)
   nom: ["nom", "nom de famille", "surname", "last name", "nom_famille"],
   prenom: ["prenom", "prénom", "first name", "firstname"],
   classe: ["div.", "division", "classe", "class", "div"],
+  email: ["email", "adresse e-mail", "e-mail", "mail", "courriel"],
   emailEleve: [
-    "email",
+    "email élève",
+    "email eleve",
     "adresse e-mail",
     "e-mail",
     "mail",
@@ -78,50 +90,43 @@ const FIELD_ALIASES: Record<string, string[]> = {
 
 function autoMapColumn(csvHeader: string): string | null {
   const lower = csvHeader.toLowerCase().trim();
-  // Exact match first
   for (const [field, aliases] of Object.entries(FIELD_ALIASES)) {
     if (aliases.some((a) => lower === a)) return field;
   }
-  // Substring match as fallback
   for (const [field, aliases] of Object.entries(FIELD_ALIASES)) {
     if (aliases.some((a) => lower.includes(a))) return field;
   }
   return null;
 }
 
-/**
- * Fix the classic SIECLE/Excel bug:
- * When a CSV from SIECLE is opened in Excel, class codes for 2nde GT
- * (named "2E1", "2E2", ..., "2E12" at Lycée Blaise Cendrars) get
- * reinterpreted as scientific notation because Excel reads "2E1" as
- * "2 × 10¹" and reformats it as "2,00E+01" (or "2.00E+01").
- *
- * We restore the original code: "2E" + numeric exponent (no padding).
- *   "2,00E+01" → "2E1"
- *   "2,00E+12" → "2E12"
- *
- * Also handles "2.00E+01" (dot decimal separator).
- */
 function fixSiecleClasse(value: string): string {
   const v = value.trim();
-  // Match patterns like "2,00E+01", "2.00E+12", with optional sign and leading zeros
   const m = v.match(/^2[,.]00E\+0*(\d+)$/i);
   if (!m) return v;
-  const exponent = m[1];
-  // Reconstruct: "2E" + numeric exponent (1, 2, ..., 12)
-  return "2E" + exponent;
+  return "2E" + m[1];
 }
 
-/**
- * Detect file encoding by reading a sample and looking for byte sequences
- * that are invalid in UTF-8 but valid in ISO-8859-1.
- * Returns "UTF-8" or "ISO-8859-1".
- */
+function cellToString(value: unknown): string {
+  if (value === null || value === undefined) return "";
+  if (value instanceof Date) return value.toLocaleDateString("fr-FR");
+  return String(value);
+}
+
+function normalizeSheetRows(rows: Array<Record<string, unknown>>): ParsedRow[] {
+  return rows.map((row) => {
+    const normalized: ParsedRow = {};
+    for (const [key, value] of Object.entries(row)) {
+      const header = key.trim();
+      if (header) normalized[header] = cellToString(value).trim();
+    }
+    return normalized;
+  });
+}
+
 async function detectEncoding(file: File): Promise<string> {
   const sample = await file.slice(0, 4096).arrayBuffer();
   const bytes = new Uint8Array(sample);
 
-  // Try to decode as UTF-8 strictly. If it throws, it's not valid UTF-8.
   try {
     new TextDecoder("utf-8", { fatal: true }).decode(bytes);
     return "UTF-8";
@@ -139,40 +144,85 @@ export default function ImportPage() {
   const [mapping, setMapping] = useState<Record<string, string>>({});
   const [mappedData, setMappedData] = useState<MappedRow[]>([]);
   const [importing, setImporting] = useState(false);
+  const [generatingAccounts, setGeneratingAccounts] = useState(false);
   const [fileInfo, setFileInfo] = useState<{
     encoding: string;
     delimiter: string;
     fixedClasseCount: number;
   } | null>(null);
-  const [result, setResult] = useState<{
-    imported: number;
-    doublons: number;
-    erreurs: number;
-  } | null>(null);
+  const [result, setResult] = useState<ImportResult | null>(null);
+  const [accountResult, setAccountResult] =
+    useState<GenerateProfAccountsResult | null>(null);
   const [error, setError] = useState("");
 
   const handleFile = useCallback(async (file: File) => {
     setError("");
+    setResult(null);
+    setAccountResult(null);
 
-    // Auto-detect encoding (UTF-8 vs ISO-8859-1 from SIECLE/Pronote)
+    const ext = file.name.toLowerCase().split(".").pop();
+
+    if (ext === "xlsx" || ext === "xls") {
+      try {
+        const XLSX = await import("xlsx");
+        const buffer = await file.arrayBuffer();
+        const wb = XLSX.read(buffer, { type: "array" });
+        const sheetName = wb.SheetNames[0];
+        if (!sheetName) {
+          setError("Le fichier est vide.");
+          return;
+        }
+
+        const ws = wb.Sheets[sheetName];
+        const data = normalizeSheetRows(
+          XLSX.utils.sheet_to_json<Record<string, unknown>>(ws, {
+            defval: "",
+            raw: false,
+          })
+        );
+
+        if (data.length === 0) {
+          setError("Le fichier est vide.");
+          return;
+        }
+
+        const headers = Object.keys(data[0]).filter((h) => h && h.length > 0);
+        const autoMap: Record<string, string> = {};
+        for (const h of headers) {
+          const field = autoMapColumn(h);
+          if (field && !autoMap[field]) autoMap[field] = h;
+        }
+
+        setCsvHeaders(headers);
+        setRawData(data);
+        setMapping(autoMap);
+        setFileInfo({
+          encoding: "xlsx (natif)",
+          delimiter: "—",
+          fixedClasseCount: 0,
+        });
+        setStep(1);
+      } catch {
+        setError("Erreur de lecture du fichier Excel.");
+      }
+      return;
+    }
+
     const encoding = await detectEncoding(file);
 
-    Papa.parse(file, {
+    Papa.parse<ParsedRow>(file, {
       header: true,
       skipEmptyLines: true,
       encoding,
-      // Empty string lets papaparse auto-detect the delimiter (; or , or \t)
       delimiter: "",
       transformHeader: (h: string) => h.trim(),
       complete(results) {
-        const data = results.data as ParsedRow[];
+        const data = results.data;
         if (data.length === 0) {
           setError("Le fichier est vide.");
           return;
         }
         const headers = Object.keys(data[0]).filter((h) => h && h.length > 0);
-
-        // Detect delimiter from papaparse meta
         const delimiter = results.meta.delimiter || ";";
 
         setCsvHeaders(headers);
@@ -185,7 +235,6 @@ export default function ImportPage() {
         }
         setMapping(autoMap);
 
-        // Count how many rows have the SIECLE/Excel bug we'll fix
         let fixedClasseCount = 0;
         if (autoMap.classe) {
           for (const row of data) {
@@ -207,7 +256,6 @@ export default function ImportPage() {
     const mapped: MappedRow[] = rawData.map((row) => {
       const nom = (row[mapping.nom] || "").trim();
       const prenom = (row[mapping.prenom] || "").trim();
-      // Fix the SIECLE/Excel scientific notation bug on classe
       const classeRaw = (row[mapping.classe] || "").trim();
       const classe = fixSiecleClasse(classeRaw);
       const email = (row[mapping.emailEleve] || row[mapping.email] || "").trim();
@@ -221,10 +269,6 @@ export default function ImportPage() {
       if (importType === "eleves" && !classe) {
         status = "erreur";
         erreur = (erreur ? erreur + "; " : "") + "Classe manquante";
-      }
-      if (importType === "professeurs" && !email) {
-        status = "erreur";
-        erreur = (erreur ? erreur + "; " : "") + "Email manquant";
       }
 
       return {
@@ -248,13 +292,10 @@ export default function ImportPage() {
   async function handleImport() {
     setImporting(true);
     setError("");
+    setAccountResult(null);
     try {
       const validRows = mappedData.filter((r) => r.status !== "erreur");
-      const res = await apiFetch<{
-        imported: number;
-        doublons: number;
-        erreurs: number;
-      }>(`import/${importType}`, {
+      const res = await apiFetch<ImportResult>(`import/${importType}`, {
         method: "POST",
         body: JSON.stringify({ rows: validRows }),
       });
@@ -264,6 +305,28 @@ export default function ImportPage() {
       setError(e instanceof Error ? e.message : "Erreur lors de l'import");
     }
     setImporting(false);
+  }
+
+  async function handleGenerateProfAccounts() {
+    setGeneratingAccounts(true);
+    setError("");
+    try {
+      const res = await apiFetch<GenerateProfAccountsResult>(
+        "admin/generate-prof-accounts",
+        {
+          method: "POST",
+          body: JSON.stringify({}),
+        }
+      );
+      setAccountResult(res);
+    } catch (e) {
+      setError(
+        e instanceof Error
+          ? e.message
+          : "Erreur lors de la génération des comptes professeurs"
+      );
+    }
+    setGeneratingAccounts(false);
   }
 
   const targetFields =
@@ -280,7 +343,7 @@ export default function ImportPage() {
       : [
           { key: "nom", label: "Nom *" },
           { key: "prenom", label: "Prénom *" },
-          { key: "email", label: "Email *" },
+          { key: "email", label: "Email" },
           { key: "matieres", label: "Matières" },
         ];
 
@@ -296,7 +359,7 @@ export default function ImportPage() {
 
       <div>
         <h1 className="text-2xl font-bold font-heading text-gray-900">
-          Import CSV
+          Import CSV / Excel
         </h1>
         <p className="text-sm text-gray-500 mt-1">
           Importez les listes d'élèves ou de professeurs depuis Pronote / SIECLE
@@ -310,7 +373,6 @@ export default function ImportPage() {
         </div>
       )}
 
-      {/* Step 0: Upload */}
       {step === 0 && (
         <Card>
           <CardContent className="space-y-4 py-6">
@@ -339,14 +401,14 @@ export default function ImportPage() {
             <label className="flex flex-col items-center justify-center gap-3 rounded-2xl border-2 border-dashed border-gray-300 bg-gray-50 p-12 cursor-pointer hover:border-primary-500 hover:bg-primary-50/30 transition-all">
               <FileSpreadsheet className="w-10 h-10 text-gray-400" />
               <p className="text-sm text-gray-500">
-                Glissez un fichier .csv ici ou cliquez pour parcourir
+                Glissez un fichier ici ou cliquez pour parcourir
               </p>
               <p className="text-xs text-gray-400">
-                Compatible SIECLE (séparateur ;, encodage Windows) et Pronote
+                Compatible CSV (SIECLE/Pronote) et Excel (.xlsx)
               </p>
               <input
                 type="file"
-                accept=".csv,.txt"
+                accept=".csv,.txt,.xlsx,.xls"
                 className="hidden"
                 onChange={(e) => {
                   const f = e.target.files?.[0];
@@ -358,7 +420,6 @@ export default function ImportPage() {
         </Card>
       )}
 
-      {/* Step 1: Mapping */}
       {step === 1 && (
         <Card>
           <CardHeader>
@@ -377,7 +438,10 @@ export default function ImportPage() {
                   <div className="space-y-0.5">
                     <p>
                       <strong>Format détecté :</strong> encodage{" "}
-                      <code className="bg-blue-100 px-1 rounded">{fileInfo.encoding}</code>, séparateur{" "}
+                      <code className="bg-blue-100 px-1 rounded">
+                        {fileInfo.encoding}
+                      </code>
+                      , séparateur{" "}
                       <code className="bg-blue-100 px-1 rounded">
                         {fileInfo.delimiter === "\t" ? "tab" : fileInfo.delimiter}
                       </code>
@@ -385,8 +449,7 @@ export default function ImportPage() {
                     {fileInfo.fixedClasseCount > 0 && (
                       <p>
                         <strong>{fileInfo.fixedClasseCount} classes corrigées</strong>{" "}
-                        automatiquement (Excel a converti "201", "202"... en notation scientifique). C'est fréquent
-                        et sera réparé silencieusement.
+                        automatiquement après conversion Excel en notation scientifique.
                       </p>
                     )}
                   </div>
@@ -430,7 +493,6 @@ export default function ImportPage() {
         </Card>
       )}
 
-      {/* Step 2: Preview */}
       {step === 2 && (
         <Card>
           <CardHeader>
@@ -458,11 +520,17 @@ export default function ImportPage() {
                       <th className="px-4 py-2">Classe</th>
                     )}
                     <th className="px-4 py-2">Email</th>
+                    {importType === "professeurs" && (
+                      <th className="px-4 py-2">Matières</th>
+                    )}
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-50">
                   {mappedData.slice(0, 50).map((r, i) => (
-                    <tr key={i} className={r.status === "erreur" ? "bg-red-50/50" : ""}>
+                    <tr
+                      key={`${r.nom}-${r.prenom}-${i}`}
+                      className={r.status === "erreur" ? "bg-red-50/50" : ""}
+                    >
                       <td className="px-4 py-2">
                         {r.status === "ok" ? (
                           <span className="text-green-600 text-xs font-medium">OK</span>
@@ -477,7 +545,10 @@ export default function ImportPage() {
                       {importType === "eleves" && (
                         <td className="px-4 py-2">{r.classe}</td>
                       )}
-                      <td className="px-4 py-2">{r.email || r.emailEleve}</td>
+                      <td className="px-4 py-2">{r.email || r.emailEleve || "—"}</td>
+                      {importType === "professeurs" && (
+                        <td className="px-4 py-2">{r.matieres || "—"}</td>
+                      )}
                     </tr>
                   ))}
                 </tbody>
@@ -497,7 +568,10 @@ export default function ImportPage() {
               </button>
               <button
                 onClick={handleImport}
-                disabled={importing || mappedData.filter((r) => r.status === "ok").length === 0}
+                disabled={
+                  importing ||
+                  mappedData.filter((r) => r.status === "ok").length === 0
+                }
                 className="inline-flex items-center gap-2 rounded-xl bg-green-600 px-6 py-2.5 text-sm font-semibold text-white hover:bg-green-700 transition-all disabled:opacity-50"
               >
                 <Upload className="w-4 h-4" />
@@ -510,7 +584,6 @@ export default function ImportPage() {
         </Card>
       )}
 
-      {/* Step 3: Result */}
       {step === 3 && result && (
         <Card>
           <CardContent className="text-center py-12 space-y-4">
@@ -529,10 +602,36 @@ export default function ImportPage() {
                 {result.erreurs} erreur(s)
               </span>
             </div>
+
+            {importType === "professeurs" && result.imported > 0 && (
+              <div className="mx-auto max-w-md rounded-xl border border-blue-200 bg-blue-50 p-4 text-sm text-blue-800">
+                <p className="mb-3">
+                  Les codes professeurs sont générés. Tu peux maintenant créer ou
+                  relier les comptes Supabase Auth correspondants.
+                </p>
+                <button
+                  onClick={handleGenerateProfAccounts}
+                  disabled={generatingAccounts}
+                  className="inline-flex items-center gap-2 rounded-xl bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-blue-700 transition-all disabled:opacity-50"
+                >
+                  <UserPlus className="w-4 h-4" />
+                  {generatingAccounts
+                    ? "Génération en cours…"
+                    : "Générer comptes profs"}
+                </button>
+                {accountResult && (
+                  <p className="mt-3 font-medium text-blue-900">
+                    {accountResult.created} compte(s) créé(s) ou relié(s).
+                  </p>
+                )}
+              </div>
+            )}
+
             <button
               onClick={() => {
                 setStep(0);
                 setResult(null);
+                setAccountResult(null);
                 setRawData([]);
                 setMappedData([]);
                 setFileInfo(null);
