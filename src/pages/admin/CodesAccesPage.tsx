@@ -120,6 +120,8 @@ export default function CodesAccesPage() {
   const [search, setSearch] = useState("");
   const [filterClasse, setFilterClasse] = useState<string>("all");
   const [filterNiveau, setFilterNiveau] = useState<string>("all");
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(() => new Set());
+  const [printIds, setPrintIds] = useState<Set<string> | null>(null);
 
   useEffect(() => {
     (async () => {
@@ -160,16 +162,76 @@ export default function CodesAccesPage() {
     });
   }, [data, search, filterClasse, filterNiveau]);
 
-  const pageCount = filtered.length === 0 ? 0 : Math.ceil(filtered.length / 8);
+  const selectedVisibleCount = filtered.filter((eleve) =>
+    selectedIds.has(eleve.id)
+  ).length;
+  const printCount = selectedVisibleCount > 0 ? selectedVisibleCount : filtered.length;
+  const pageCount = printCount === 0 ? 0 : Math.ceil(printCount / 8);
+  const printable = useMemo(() => {
+    const activeIds = printIds ?? (selectedVisibleCount > 0 ? selectedIds : null);
+    if (!activeIds) return filtered;
+    return filtered.filter((eleve) => activeIds.has(eleve.id));
+  }, [filtered, printIds, selectedIds, selectedVisibleCount]);
 
-  function handlePrint() {
+  function toggleSelected(id: string) {
+    setSelectedIds((current) => {
+      const next = new Set(current);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
+      return next;
+    });
+  }
+
+  function toggleAllVisible() {
+    setSelectedIds((current) => {
+      const next = new Set(current);
+      const allVisibleSelected =
+        filtered.length > 0 && selectedVisibleCount === filtered.length;
+      for (const eleve of filtered) {
+        if (allVisibleSelected) {
+          next.delete(eleve.id);
+        } else {
+          next.add(eleve.id);
+        }
+      }
+      return next;
+    });
+  }
+
+  function clearSelection() {
+    setSelectedIds(new Set());
+  }
+
+  function printNow(ids: string[] | null) {
+    setPrintIds(ids ? new Set(ids) : null);
     document.body.classList.add("printing-labels");
-    const cleanup = () => document.body.classList.remove("printing-labels");
-    window.addEventListener("afterprint", cleanup, { once: true });
+    const cleanup = () => {
+      document.body.classList.remove("printing-labels");
+      setPrintIds(null);
+      window.removeEventListener("afterprint", cleanup);
+    };
+    window.addEventListener("afterprint", cleanup);
     setTimeout(() => {
       window.print();
       setTimeout(cleanup, 500);
-    }, 100);
+    }, 150);
+  }
+
+  function handlePrint() {
+    const ids =
+      selectedVisibleCount > 0
+        ? filtered
+            .filter((eleve) => selectedIds.has(eleve.id))
+            .map((eleve) => eleve.id)
+        : null;
+    printNow(ids);
+  }
+
+  function handlePrintOne(id: string) {
+    printNow([id]);
   }
 
   function downloadCSV() {
@@ -214,7 +276,7 @@ export default function CodesAccesPage() {
             </h1>
             <p className="text-sm text-gray-500 mt-1">
               {data
-                ? `${filtered.length} etiquettes selectionnees - ${pageCount} page(s) A4`
+                ? `${printCount} etiquette(s) a imprimer - ${pageCount} page(s) A4`
                 : "Chargement..."}
             </p>
           </div>
@@ -233,7 +295,9 @@ export default function CodesAccesPage() {
               className="inline-flex items-center gap-2 rounded-xl bg-primary-500 px-4 py-2.5 text-sm font-semibold text-white hover:bg-primary-600 transition-all disabled:opacity-50"
             >
               <Printer className="w-4 h-4" />
-              Imprimer ({filtered.length})
+              {selectedVisibleCount > 0
+                ? `Imprimer selection (${selectedVisibleCount})`
+                : `Imprimer liste (${filtered.length})`}
             </button>
           </div>
         </div>
@@ -248,9 +312,21 @@ export default function CodesAccesPage() {
           <CardHeader className="space-y-4">
             <div className="rounded-xl bg-blue-50 border border-blue-100 px-4 py-3 text-sm text-blue-900">
               Format pret pour A4 portrait : 8 etiquettes par page, 2 colonnes
-              x 4 lignes. Selectionne une classe avant impression pour eviter
-              les gros paquets de feuilles.
+              x 4 lignes. Coche une ou plusieurs lignes pour imprimer seulement
+              la selection, ou utilise l'icone imprimante sur une ligne.
             </div>
+            {selectedVisibleCount > 0 && (
+              <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-primary-100 bg-primary-50 px-4 py-3 text-sm text-primary-800">
+                <span>{selectedVisibleCount} code(s) selectionne(s).</span>
+                <button
+                  type="button"
+                  onClick={clearSelection}
+                  className="font-semibold text-primary-700 hover:text-primary-900"
+                >
+                  Vider la selection
+                </button>
+              </div>
+            )}
             <div className="flex flex-col sm:flex-row sm:items-center gap-3">
               <div className="relative flex-1">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
@@ -308,14 +384,36 @@ export default function CodesAccesPage() {
                 <table className="w-full text-sm">
                   <thead className="sticky top-0 bg-white border-b">
                     <tr className="text-left text-xs font-medium text-gray-500 uppercase">
+                      <th className="px-4 py-3 w-12">
+                        <input
+                          type="checkbox"
+                          checked={
+                            filtered.length > 0 &&
+                            selectedVisibleCount === filtered.length
+                          }
+                          onChange={toggleAllVisible}
+                          aria-label="Selectionner les eleves visibles"
+                          className="h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+                        />
+                      </th>
                       <th className="px-4 py-3">Eleve</th>
                       <th className="px-4 py-3">Classe</th>
                       <th className="px-4 py-3">Code</th>
+                      <th className="px-4 py-3 text-right">Action</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-50">
                     {filtered.map((eleve) => (
                       <tr key={eleve.id}>
+                        <td className="px-4 py-2.5">
+                          <input
+                            type="checkbox"
+                            checked={selectedIds.has(eleve.id)}
+                            onChange={() => toggleSelected(eleve.id)}
+                            aria-label={`Selectionner ${eleve.nom} ${eleve.prenom}`}
+                            className="h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+                          />
+                        </td>
                         <td className="px-4 py-2.5 font-medium text-gray-900">
                           {eleve.nom} {eleve.prenom}
                         </td>
@@ -326,6 +424,17 @@ export default function CodesAccesPage() {
                           <code className="rounded bg-gray-100 px-2 py-1 text-xs font-mono text-primary-600">
                             {eleve.codeAcces}
                           </code>
+                        </td>
+                        <td className="px-4 py-2.5 text-right">
+                          <button
+                            type="button"
+                            onClick={() => handlePrintOne(eleve.id)}
+                            title={`Imprimer le code de ${eleve.nom} ${eleve.prenom}`}
+                            aria-label={`Imprimer le code de ${eleve.nom} ${eleve.prenom}`}
+                            className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-gray-200 bg-white text-gray-600 hover:border-primary-200 hover:bg-primary-50 hover:text-primary-600 transition-colors"
+                          >
+                            <Printer className="w-4 h-4" />
+                          </button>
                         </td>
                       </tr>
                     ))}
@@ -339,7 +448,7 @@ export default function CodesAccesPage() {
 
       <div className="print-only">
         <div className="label-grid">
-          {filtered.map((eleve) => (
+          {printable.map((eleve) => (
             <div key={eleve.id} className="label-item">
               <p style={{ fontSize: "10pt", color: "#666", marginBottom: 4 }}>
                 Lycee Blaise Cendrars - Sevran
