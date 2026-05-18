@@ -11,6 +11,7 @@ import {
 import {
   AlertCircle,
   ArrowLeft,
+  BookOpen,
   Building2,
   FileText,
   Mail,
@@ -202,6 +203,13 @@ export default function StageDetailPage() {
               {saving ? "Sauvegarde..." : "Enregistrer"}
             </button>
           )}
+          <button
+            onClick={() => navigate(`/stages/${stage.eleveId}/livret`)}
+            className="inline-flex items-center gap-2 rounded-xl bg-white border border-gray-200 px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-all"
+          >
+            <BookOpen className="w-4 h-4" />
+            Livret de suivi
+          </button>
         </div>
       </div>
 
@@ -488,6 +496,21 @@ export default function StageDetailPage() {
               </h2>
             </CardHeader>
             <CardContent className="space-y-3">
+              <button
+                onClick={() => navigate(`/stages/${stage.eleveId}/livret`)}
+                className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-primary-500 px-4 py-2.5 text-sm font-semibold text-white hover:bg-primary-600 transition-all"
+              >
+                <BookOpen className="w-4 h-4" />
+                Ouvrir le livret de suivi
+              </button>
+              <a
+                href="/templates/convention-2ndegt-juin-2026-vierge.docx"
+                download
+                className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-white border border-gray-200 px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-all"
+              >
+                <FileText className="w-4 h-4" />
+                Convention lycee officielle
+              </a>
               {form.statut === "soumis" && (
                 <button className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-indigo-700 transition-all">
                   <FileText className="w-4 h-4" />

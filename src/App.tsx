@@ -7,6 +7,7 @@ import AppLayout from "./components/AppLayout";
 import StagesDashboard from "./pages/stages/StagesDashboard";
 import MonStage from "./pages/stages/MonStage";
 import StageDetail from "./pages/stages/StageDetail";
+import LivretStage from "./pages/stages/LivretStage";
 import GrandOralDashboard from "./pages/grand-oral/GrandOralDashboard";
 import MaFiche from "./pages/grand-oral/MaFiche";
 import FicheDetail from "./pages/grand-oral/FicheDetail";
@@ -53,7 +54,9 @@ export default function App() {
           <Route index element={<DashboardRedirect />} />
           <Route path="dashboard" element={<DashboardRedirect />} />
           <Route path="stages" element={<StagesDashboard />} />
+          <Route path="stages/mon-stage/livret" element={<LivretStage />} />
           <Route path="stages/mon-stage" element={<MonStage />} />
+          <Route path="stages/:eleveId/livret" element={<LivretStage />} />
           <Route path="stages/:eleveId" element={<StageDetail />} />
           <Route path="grand-oral" element={<GrandOralDashboard />} />
           <Route path="grand-oral/ma-fiche" element={<MaFiche />} />

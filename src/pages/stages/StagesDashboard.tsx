@@ -15,6 +15,7 @@ import {
   ChevronDown,
   UserPlus,
   PencilLine,
+  BookOpen,
 } from "lucide-react";
 
 interface ProfesseurOption {
@@ -290,7 +291,7 @@ export default function StagesDashboard() {
                     <th className="px-6 py-3">Entreprise</th>
                     <th className="px-6 py-3">Tel. tuteur</th>
                     <th className="px-6 py-3 min-w-[260px]">Referent</th>
-                    <th className="px-6 py-3 text-right">Dossier</th>
+                    <th className="px-6 py-3 text-right">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-50">
@@ -338,17 +339,30 @@ export default function StagesDashboard() {
                         )}
                       </td>
                       <td className="px-6 py-3.5 text-right">
-                        <button
-                          type="button"
-                          onClick={(event) => {
-                            event.stopPropagation();
-                            navigate(`/stages/${stage.eleveId}`);
-                          }}
-                          className="inline-flex items-center gap-2 rounded-xl bg-white border border-gray-200 px-3 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-50 transition-colors"
-                        >
-                          <PencilLine className="w-3.5 h-3.5" />
-                          Ouvrir
-                        </button>
+                        <div className="flex justify-end gap-2">
+                          <button
+                            type="button"
+                            onClick={(event) => {
+                              event.stopPropagation();
+                              navigate(`/stages/${stage.eleveId}/livret`);
+                            }}
+                            className="inline-flex items-center gap-2 rounded-xl bg-primary-50 px-3 py-2 text-xs font-semibold text-primary-700 hover:bg-primary-100 transition-colors"
+                          >
+                            <BookOpen className="w-3.5 h-3.5" />
+                            Livret
+                          </button>
+                          <button
+                            type="button"
+                            onClick={(event) => {
+                              event.stopPropagation();
+                              navigate(`/stages/${stage.eleveId}`);
+                            }}
+                            className="inline-flex items-center gap-2 rounded-xl bg-white border border-gray-200 px-3 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-50 transition-colors"
+                          >
+                            <PencilLine className="w-3.5 h-3.5" />
+                            Ouvrir
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))}

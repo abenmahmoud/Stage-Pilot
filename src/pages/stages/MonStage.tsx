@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { apiFetch } from "../../lib/api";
 import { ENTREPRISE_TYPES } from "../../lib/types";
 import { StageStatusBadge } from "../../components/ui/StatusBadge";
@@ -13,6 +14,7 @@ import {
   ChevronRight,
   Download,
   AlertCircle,
+  BookOpen,
 } from "lucide-react";
 
 const JOURS = ["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi"] as const;
@@ -52,6 +54,7 @@ const EMPTY_STAGE: Partial<StageData> = {
 };
 
 export default function MonStage() {
+  const navigate = useNavigate();
   const [stage, setStage] = useState<Partial<StageData>>(EMPTY_STAGE);
   const [step, setStep] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -145,9 +148,18 @@ export default function MonStage() {
 
   return (
     <div className="max-w-2xl mx-auto space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold font-heading text-gray-900">Mon stage</h1>
-        <p className="text-sm text-gray-500 mt-1">Stage d'observation — du 15 au 26 juin 2026</p>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-bold font-heading text-gray-900">Mon stage</h1>
+          <p className="text-sm text-gray-500 mt-1">Stage d'observation — du 15 au 26 juin 2026</p>
+        </div>
+        <button
+          onClick={() => navigate("/stages/mon-stage/livret")}
+          className="inline-flex items-center gap-2 rounded-xl bg-white border border-gray-200 px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-all"
+        >
+          <BookOpen className="w-4 h-4" />
+          Livret de suivi
+        </button>
       </div>
 
       {!isPostSubmission && (
