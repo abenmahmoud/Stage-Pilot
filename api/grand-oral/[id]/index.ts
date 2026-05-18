@@ -1,13 +1,21 @@
-import type { Config } from "@netlify/functions";
-import { db } from "../../db/index.js";
-import { fichesGrandOral, eleves, classes, professeurs } from "../../db/schema.js";
+import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { eq } from "drizzle-orm";
+import { db } from "../../../db/index.js";
+import { fichesGrandOral, eleves, classes } from "../../../db/schema.js";
+import { handleApi, methodNotAllowed } from "../../_shared/response.js";
+import { requireUser, HttpError } from "../../_shared/auth.js";
 
-export default async (req: Request, context: { params: { id: string } }) => {
-  const ficheId = parseInt(context.params.id);
-  if (isNaN(ficheId)) return new Response("Invalid ID", { status: 400 });
+export default async function handler(req: VercelRequest, res: VercelResponse) {
+  if (req.method !== "GET") return methodNotAllowed(res, ["GET"]);
 
-  if (req.method === "GET") {
+  await handleApi(res, async () => {
+    await requireUser(req);
+
+    const ficheId = (req.query.id as string) || "";
+    if (!ficheId || !/^[0-9a-fA-F-]{36}$/.test(ficheId)) {
+      throw new HttpError(400, "Identifiant fiche invalide");
+    }
+
     const result = await db
       .select({
         id: fichesGrandOral.id,
@@ -32,16 +40,7 @@ export default async (req: Request, context: { params: { id: string } }) => {
       .where(eq(fichesGrandOral.id, ficheId))
       .limit(1);
 
-    if (result.length === 0) {
-      return new Response("Not found", { status: 404 });
-    }
-
-    return Response.json({ ...result[0], profSpe1: null, profSpe2: null });
-  }
-
-  return new Response("Method not allowed", { status: 405 });
-};
-
-export const config: Config = {
-  path: "/api/grand-oral/:id",
-};
+    if (result.length === 0) throw new HttpError(404, "Fiche introuvable");
+    return { ...result[0], profSpe1: null, profSpe2: null };
+  });
+}

@@ -5,13 +5,16 @@ import {
   integer,
   boolean,
   date,
-  serial,
   jsonb,
   uuid,
 } from "drizzle-orm/pg-core";
+import { sql } from "drizzle-orm";
 
+/**
+ * Établissement scolaire — une seule ligne par déploiement.
+ */
 export const etablissement = pgTable("etablissement", {
-  id: serial("id").primaryKey(),
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
   nom: text("nom").notNull().default("Lycée Blaise Cendrars"),
   adresse: text("adresse").notNull().default("12 avenue Léon Jouhaux"),
   codePostal: text("code_postal").notNull().default("93270"),
@@ -29,35 +32,47 @@ export const etablissement = pgTable("etablissement", {
   dateLimiteConvention: date("date_limite_convention").default("2026-06-01"),
   dateGoDebut: date("date_go_debut").default("2026-06-22"),
   dateGoFin: date("date_go_fin").default("2026-07-01"),
-  updatedAt: timestamp("updated_at").defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow(),
 });
 
+/**
+ * Classes (2nde, 1ère, terminale).
+ * `professeur_principal_id` pointe vers auth.users (UUID) via app_metadata.role='pp'.
+ */
 export const classes = pgTable("classes", {
-  id: serial("id").primaryKey(),
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
   nom: text("nom").notNull(),
   niveau: text("niveau").notNull(),
   anneeScolaire: text("annee_scolaire").notNull().default("2025-2026"),
-  professeurPrincipalId: text("professeur_principal_id"),
-  createdAt: timestamp("created_at").defaultNow(),
+  professeurPrincipalId: uuid("professeur_principal_id"),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
 });
 
+/**
+ * Professeurs — fiche métier reliée optionnellement à un compte auth.
+ * `auth_user_id` est nullable car certains profs peuvent ne pas avoir de compte
+ * (référent invité, prof démissionnaire, etc.).
+ */
 export const professeurs = pgTable("professeurs", {
-  id: serial("id").primaryKey(),
-  identityId: text("identity_id").unique(),
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  authUserId: uuid("auth_user_id").unique(),
   nom: text("nom").notNull(),
   prenom: text("prenom").notNull(),
   email: text("email").notNull().unique(),
   matieres: text("matieres"),
   role: text("role").notNull().default("professeur"),
-  createdAt: timestamp("created_at").defaultNow(),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
 });
 
+/**
+ * Élèves — fiche métier reliée optionnellement à un compte auth.
+ */
 export const eleves = pgTable("eleves", {
-  id: serial("id").primaryKey(),
-  identityId: text("identity_id").unique(),
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  authUserId: uuid("auth_user_id").unique(),
   nom: text("nom").notNull(),
   prenom: text("prenom").notNull(),
-  classeId: integer("classe_id").references(() => classes.id),
+  classeId: uuid("classe_id").references(() => classes.id),
   emailEleve: text("email_eleve"),
   emailFamille: text("email_famille"),
   telephoneFamille: text("telephone_famille"),
@@ -65,15 +80,18 @@ export const eleves = pgTable("eleves", {
   numeroCanditat: text("numero_candidat"),
   codeAcces: text("code_acces").unique(),
   anneeScolaire: text("annee_scolaire").notNull().default("2025-2026"),
-  createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow(),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow(),
 });
 
+/**
+ * Stages — un par élève par année.
+ */
 export const stages = pgTable("stages", {
-  id: serial("id").primaryKey(),
-  eleveId: integer("eleve_id")
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  eleveId: uuid("eleve_id")
     .notNull()
-    .references(() => eleves.id),
+    .references(() => eleves.id, { onDelete: "cascade" }),
   numeroConvention: integer("numero_convention").default(1),
   statut: text("statut").notNull().default("a_completer"),
 
@@ -114,27 +132,30 @@ export const stages = pgTable("stages", {
   dateFin: date("date_fin").default("2026-06-26"),
   faitLe: date("fait_le"),
 
-  professeurReferentId: integer("professeur_referent_id").references(
+  professeurReferentId: uuid("professeur_referent_id").references(
     () => professeurs.id
   ),
 
   conventionPdfUrl: text("convention_pdf_url"),
-  conventionGenereeAt: timestamp("convention_generee_at"),
+  conventionGenereeAt: timestamp("convention_generee_at", { withTimezone: true }),
 
   notesSuivi: text("notes_suivi"),
   dateVisite: date("date_visite"),
   compteRenduVisite: text("compte_rendu_visite"),
 
-  soumisAt: timestamp("soumis_at"),
-  createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow(),
+  soumisAt: timestamp("soumis_at", { withTimezone: true }),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow(),
 });
 
+/**
+ * Fiche Grand Oral — une par élève de terminale.
+ */
 export const fichesGrandOral = pgTable("fiches_grand_oral", {
-  id: serial("id").primaryKey(),
-  eleveId: integer("eleve_id")
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  eleveId: uuid("eleve_id")
     .notNull()
-    .references(() => eleves.id),
+    .references(() => eleves.id, { onDelete: "cascade" }),
   anneeScolaire: text("annee_scolaire").notNull().default("2025-2026"),
 
   numeroCanditat: text("numero_candidat"),
@@ -146,31 +167,34 @@ export const fichesGrandOral = pgTable("fiches_grand_oral", {
   statut: text("statut").notNull().default("brouillon"),
 
   signatureEleveUrl: text("signature_eleve_url"),
-  signeEleveAt: timestamp("signe_eleve_at"),
+  signeEleveAt: timestamp("signe_eleve_at", { withTimezone: true }),
 
-  profSpe1Id: integer("prof_spe1_id").references(() => professeurs.id),
+  profSpe1Id: uuid("prof_spe1_id").references(() => professeurs.id),
   commentaireProf1: text("commentaire_prof1"),
   signatureProf1Url: text("signature_prof1_url"),
-  signeProf1At: timestamp("signe_prof1_at"),
+  signeProf1At: timestamp("signe_prof1_at", { withTimezone: true }),
 
-  profSpe2Id: integer("prof_spe2_id").references(() => professeurs.id),
+  profSpe2Id: uuid("prof_spe2_id").references(() => professeurs.id),
   commentaireProf2: text("commentaire_prof2"),
   signatureProf2Url: text("signature_prof2_url"),
-  signeProf2At: timestamp("signe_prof2_at"),
+  signeProf2At: timestamp("signe_prof2_at", { withTimezone: true }),
 
   signatureProviseurUrl: text("signature_proviseur_url"),
-  cachetApposeAt: timestamp("cachet_appose_at"),
+  cachetApposeAt: timestamp("cachet_appose_at", { withTimezone: true }),
 
   fichePdfUrl: text("fiche_pdf_url"),
-  pdfGenereAt: timestamp("pdf_genere_at"),
+  pdfGenereAt: timestamp("pdf_genere_at", { withTimezone: true }),
 
-  soumisAt: timestamp("soumis_at"),
-  createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow(),
+  soumisAt: timestamp("soumis_at", { withTimezone: true }),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow(),
 });
 
+/**
+ * Journal des imports CSV.
+ */
 export const importLogs = pgTable("import_logs", {
-  id: serial("id").primaryKey(),
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
   type: text("type").notNull(),
   fichierNom: text("fichier_nom"),
   nbImportes: integer("nb_importes").default(0),
@@ -178,28 +202,34 @@ export const importLogs = pgTable("import_logs", {
   nbErreurs: integer("nb_erreurs").default(0),
   detailErreurs: jsonb("detail_erreurs"),
   importePar: text("importe_par"),
-  createdAt: timestamp("created_at").defaultNow(),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
 });
 
+/**
+ * Journal des notifications email.
+ */
 export const notificationsLog = pgTable("notifications_log", {
-  id: serial("id").primaryKey(),
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
   destinataireEmail: text("destinataire_email").notNull(),
   typeNotif: text("type_notif").notNull(),
   module: text("module").notNull(),
-  referenceId: integer("reference_id"),
+  referenceId: uuid("reference_id"),
   envoiOk: boolean("envoi_ok").default(false),
   erreurMessage: text("erreur_message"),
-  createdAt: timestamp("created_at").defaultNow(),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
 });
 
+/**
+ * Templates d'emails et de documents (PDF, etc.) éditables côté admin.
+ */
 export const templatesDocuments = pgTable("templates_documents", {
-  id: serial("id").primaryKey(),
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
   type: text("type").notNull().unique(),
   nom: text("nom").notNull(),
   contenuJson: jsonb("contenu_json").notNull(),
   version: integer("version").notNull().default(1),
   actif: boolean("actif").default(true),
   modifiePar: text("modifie_par"),
-  createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow(),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow(),
 });

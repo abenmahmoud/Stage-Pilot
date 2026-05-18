@@ -68,10 +68,7 @@ export const GO_STATUS = {
     label: "Attente prof spé 1",
     color: "bg-yellow-100 text-yellow-700",
   },
-  valide_prof1: {
-    label: "Prof spé 1 ✓",
-    color: "bg-blue-100 text-blue-700",
-  },
+  valide_prof1: { label: "Prof spé 1 ✓", color: "bg-blue-100 text-blue-700" },
   soumis_prof2: {
     label: "Attente prof spé 2",
     color: "bg-yellow-100 text-yellow-700",
