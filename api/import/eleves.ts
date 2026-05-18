@@ -1,5 +1,5 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { eq, and } from "drizzle-orm";
+import { eq, sql, inArray } from "drizzle-orm";
 import { db } from "../../db/index.js";
 import { eleves, classes, stages, importLogs } from "../../db/schema.js";
 import { handleApi, methodNotAllowed } from "../_shared/response.js";
@@ -15,12 +15,58 @@ type EleveRow = {
   dateNaissance?: string;
 };
 
+/**
+ * Détecte le niveau scolaire à partir du code de classe.
+ *
+ * Règles, dans l'ordre :
+ *   - commence par "T" (TG1, TSTMG2, TMELEC2, TPRO...) → terminale
+ *   - commence par "2" (2E1, 2E12, 2PRO1...)          → seconde
+ *   - commence par "1" (1G3, 1STMG1, 1MELEC2...)      → premiere
+ *   - autre / inconnu                                  → autre
+ *
+ * Important : on regarde le PREMIER caractère, pas une recherche de substring,
+ * sinon "2E1" contenait "1" et était classé en première (bug v1).
+ */
 function detectNiveau(classeNom: string): string {
-  const lc = classeNom.toLowerCase();
-  if (lc.includes("term")) return "terminale";
-  if (lc.includes("1") || lc.includes("première") || lc.includes("premiere"))
-    return "premiere";
-  return "seconde";
+  const c = classeNom.trim().toUpperCase();
+  if (c.startsWith("T")) return "terminale";
+  if (c.startsWith("2")) return "seconde";
+  if (c.startsWith("1")) return "premiere";
+  return "autre";
+}
+
+/**
+ * Convertit une date au format français "JJ/MM/AAAA" en format ISO "AAAA-MM-JJ".
+ * Retourne null si vide ou invalide (pour éviter de casser l'insert).
+ */
+function parseDateFR(dateStr: string | undefined): string | null {
+  if (!dateStr) return null;
+  const s = dateStr.trim();
+  if (!s) return null;
+  // Déjà au format ISO ?
+  if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
+  // Format JJ/MM/AAAA
+  const m = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+  if (!m) return null;
+  const dd = m[1].padStart(2, "0");
+  const mm = m[2].padStart(2, "0");
+  return `${m[3]}-${mm}-${dd}`;
+}
+
+/**
+ * Génère un code d'accès lisible et unique : "NOM-CLASSE-XXXX"
+ * Le NOM est slugifié (ASCII upper, sans accents, sans espaces).
+ */
+function genererCodeAcces(nom: string, classe: string): string {
+  const nomSlug = nom
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "") // retire les accents
+    .toUpperCase()
+    .replace(/[^A-Z0-9]/g, "")
+    .slice(0, 12); // max 12 chars pour rester lisible
+  const classeSlug = classe.replace(/\s+/g, "").toUpperCase();
+  const rand = Math.floor(1000 + Math.random() * 9000);
+  return `${nomSlug}-${classeSlug}-${rand}`;
 }
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
@@ -41,77 +87,98 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     let erreurs = 0;
     const erreursDetails: Array<{ ligne: number; raison: string }> = [];
 
+    // ÉTAPE 1 — pré-calculer toutes les classes uniques et les créer en batch
+    const classesUniques = Array.from(
+      new Set(rows.map((r) => r.classe.trim()).filter(Boolean))
+    );
+
+    // Récupérer les classes existantes en une seule requête
+    const classesExistantes = await db
+      .select()
+      .from(classes)
+      .where(inArray(classes.nom, classesUniques));
+
+    const classeMap = new Map<string, string>(); // nom -> id
+    for (const c of classesExistantes) classeMap.set(c.nom, c.id);
+
+    // Créer les classes manquantes en bulk insert
+    const classesAcreer = classesUniques
+      .filter((nom) => !classeMap.has(nom))
+      .map((nom) => ({ nom, niveau: detectNiveau(nom) }));
+
+    if (classesAcreer.length > 0) {
+      const nouvellesClasses = await db
+        .insert(classes)
+        .values(classesAcreer)
+        .returning();
+      for (const c of nouvellesClasses) classeMap.set(c.nom, c.id);
+    }
+
+    // ÉTAPE 2 — pré-charger les élèves existants (pour détecter doublons en mémoire)
+    const cleDoublon = (r: { nom: string; prenom: string; classeId: string }) =>
+      `${r.nom.toUpperCase()}|${r.prenom.toUpperCase()}|${r.classeId}`;
+
+    const elevesExistants = await db
+      .select({
+        id: eleves.id,
+        nom: eleves.nom,
+        prenom: eleves.prenom,
+        classeId: eleves.classeId,
+      })
+      .from(eleves);
+
+    const elevesExistantsSet = new Set(
+      elevesExistants
+        .filter((e) => e.classeId !== null)
+        .map((e) =>
+          cleDoublon({
+            nom: e.nom,
+            prenom: e.prenom,
+            classeId: e.classeId as string,
+          })
+        )
+    );
+
+    // ÉTAPE 3 — construire les batches d'insert
+    const elevesAcreer: Array<typeof eleves.$inferInsert> = [];
+    const seenInBatch = new Set<string>(); // éviter les doublons dans le CSV lui-même
+
     for (let i = 0; i < rows.length; i++) {
       const row = rows[i];
       try {
-        // Récupérer ou créer la classe
-        let classeRows = await db
-          .select()
-          .from(classes)
-          .where(eq(classes.nom, row.classe))
-          .limit(1);
-
-        if (classeRows.length === 0) {
-          const [newClasse] = await db
-            .insert(classes)
-            .values({ nom: row.classe, niveau: detectNiveau(row.classe) })
-            .returning();
-          classeRows = [newClasse];
-        }
-
-        // Doublon ?
-        const existing = await db
-          .select()
-          .from(eleves)
-          .where(
-            and(
-              eq(eleves.nom, row.nom),
-              eq(eleves.prenom, row.prenom),
-              eq(eleves.classeId, classeRows[0].id)
-            )
-          )
-          .limit(1);
-
-        if (existing.length > 0) {
-          await db
-            .update(eleves)
-            .set({
-              emailEleve: row.emailEleve || existing[0].emailEleve,
-              emailFamille: row.emailFamille || existing[0].emailFamille,
-              telephoneFamille: row.telephoneFamille || existing[0].telephoneFamille,
-              dateNaissance: row.dateNaissance || existing[0].dateNaissance,
-              updatedAt: new Date(),
-            })
-            .where(eq(eleves.id, existing[0].id));
-          doublons++;
-        } else {
-          const code = `${row.nom.toUpperCase()}-${row.classe.replace(
-            /\s+/g,
-            ""
-          )}-${Math.floor(1000 + Math.random() * 9000)}`;
-
-          const [newEleve] = await db
-            .insert(eleves)
-            .values({
-              nom: row.nom,
-              prenom: row.prenom,
-              classeId: classeRows[0].id,
-              emailEleve: row.emailEleve || null,
-              emailFamille: row.emailFamille || null,
-              telephoneFamille: row.telephoneFamille || null,
-              dateNaissance: row.dateNaissance || null,
-              codeAcces: code,
-            })
-            .returning();
-
-          // Créer un stage vide associé
-          await db.insert(stages).values({
-            eleveId: newEleve.id,
-            statut: "a_completer",
+        const classeNom = row.classe.trim();
+        const classeId = classeMap.get(classeNom);
+        if (!classeId) {
+          erreurs++;
+          erreursDetails.push({
+            ligne: i + 1,
+            raison: `Classe inconnue: ${classeNom}`,
           });
-
-          imported++;
+          continue;
         }
+
+        const cle = cleDoublon({
+          nom: row.nom.trim(),
+          prenom: row.prenom.trim(),
+          classeId,
+        });
+
+        if (elevesExistantsSet.has(cle) || seenInBatch.has(cle)) {
+          doublons++;
+          continue;
+        }
+        seenInBatch.add(cle);
+
+        elevesAcreer.push({
+          nom: row.nom.trim(),
+          prenom: row.prenom.trim(),
+          classeId,
+          emailEleve: row.emailEleve?.trim() || null,
+          emailFamille: row.emailFamille?.trim() || null,
+          telephoneFamille: row.telephoneFamille?.trim() || null,
+          dateNaissance: parseDateFR(row.dateNaissance),
+          codeAcces: genererCodeAcces(row.nom, classeNom),
+        });
       } catch (err) {
         erreurs++;
         erreursDetails.push({
@@ -121,6 +188,31 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       }
     }
 
+    // ÉTAPE 4 — insert élèves par batch de 50, puis stages par batch de 50
+    // Postgres supporte facilement des bulk inserts de 1000+ lignes,
+    // mais 50 permet de garder le payload SQL raisonnable.
+    const BATCH_SIZE = 50;
+    const insertedEleveIds: string[] = [];
+
+    for (let i = 0; i < elevesAcreer.length; i += BATCH_SIZE) {
+      const batch = elevesAcreer.slice(i, i + BATCH_SIZE);
+      const inserted = await db
+        .insert(eleves)
+        .values(batch)
+        .returning({ id: eleves.id });
+      for (const e of inserted) insertedEleveIds.push(e.id);
+      imported += inserted.length;
+    }
+
+    // Créer un stage vide pour chaque élève créé (batch)
+    for (let i = 0; i < insertedEleveIds.length; i += BATCH_SIZE) {
+      const batch = insertedEleveIds.slice(i, i + BATCH_SIZE);
+      await db
+        .insert(stages)
+        .values(batch.map((eleveId) => ({ eleveId, statut: "a_completer" })));
+    }
+
+    // ÉTAPE 5 — journal d'import
     await db.insert(importLogs).values({
       type: "eleves",
       fichierNom: "csv_import",
@@ -131,6 +223,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       importePar: user.email,
     });
 
-    return { imported, doublons, erreurs };
+    return {
+      imported,
+      doublons,
+      erreurs,
+      detailErreurs: erreursDetails.slice(0, 10), // top 10 erreurs pour debug
+    };
   });
 }
