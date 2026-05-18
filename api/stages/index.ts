@@ -5,18 +5,23 @@ import { stages, eleves, classes } from "../../db/schema.js";
 import { handleApi, methodNotAllowed } from "../_shared/response.js";
 import { requireRole } from "../_shared/auth.js";
 import { isStageModuleActive } from "../_shared/modules.js";
+import {
+  canReadStageForUser,
+  getProfesseurIdForUser,
+} from "../_shared/access.js";
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== "GET") return methodNotAllowed(res, ["GET"]);
 
   await handleApi(res, async () => {
-    await requireRole(req, [
+    const user = await requireRole(req, [
       "superadmin",
       "administration",
       "pp",
       "professeur",
       "proviseur",
     ]);
+    const professeurId = await getProfesseurIdForUser(user);
 
     const allStages = await db
       .select({
@@ -26,6 +31,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         elevePrenom: eleves.prenom,
         classeNom: classes.nom,
         classeNiveau: classes.niveau,
+        professeurPrincipalId: classes.professeurPrincipalId,
+        professeurReferentId: stages.professeurReferentId,
         statut: stages.statut,
         entrepriseNom: stages.entrepriseNom,
         tuteurTelephone: stages.tuteurTelephone,
@@ -36,6 +43,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     const stagesList = allStages
       .filter((s) => isStageModuleActive(s.classeNiveau, s.statut))
+      .filter((s) => canReadStageForUser(s, user, professeurId))
       .map((s) => ({
         ...s,
         professeurReferent: null,

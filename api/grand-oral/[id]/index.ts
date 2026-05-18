@@ -5,12 +5,17 @@ import { fichesGrandOral, eleves, classes } from "../../../db/schema.js";
 import { handleApi, methodNotAllowed } from "../../_shared/response.js";
 import { requireUser, HttpError } from "../../_shared/auth.js";
 import { isGrandOralModuleActive } from "../../_shared/modules.js";
+import {
+  canReadGrandOralForUser,
+  getProfesseurIdForUser,
+} from "../../_shared/access.js";
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== "GET") return methodNotAllowed(res, ["GET"]);
 
   await handleApi(res, async () => {
-    await requireUser(req);
+    const user = await requireUser(req);
+    const professeurId = await getProfesseurIdForUser(user);
 
     const ficheId = (req.query.id as string) || "";
     if (!ficheId || !/^[0-9a-fA-F-]{36}$/.test(ficheId)) {
@@ -22,10 +27,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         id: fichesGrandOral.id,
         eleveNom: eleves.nom,
         elevePrenom: eleves.prenom,
+        eleveAuthUserId: eleves.authUserId,
         classeNom: classes.nom,
         classeNiveau: classes.niveau,
+        professeurPrincipalId: classes.professeurPrincipalId,
         numeroCanditat: fichesGrandOral.numeroCanditat,
         statut: fichesGrandOral.statut,
+        profSpe1Id: fichesGrandOral.profSpe1Id,
+        profSpe2Id: fichesGrandOral.profSpe2Id,
         question1: fichesGrandOral.question1,
         specialitesQuestion1: fichesGrandOral.specialitesQuestion1,
         question2: fichesGrandOral.question2,
@@ -45,6 +54,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (result.length === 0) throw new HttpError(404, "Fiche introuvable");
     if (!isGrandOralModuleActive(result[0].classeNiveau, result[0].statut)) {
       throw new HttpError(404, "Grand Oral désactivé pour cet élève");
+    }
+    if (!canReadGrandOralForUser(result[0], user, professeurId)) {
+      throw new HttpError(403, "Accès interdit à cette fiche Grand Oral");
     }
     return { ...result[0], profSpe1: null, profSpe2: null };
   });

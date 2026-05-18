@@ -5,18 +5,23 @@ import { fichesGrandOral, eleves, classes } from "../../db/schema.js";
 import { handleApi, methodNotAllowed } from "../_shared/response.js";
 import { requireRole } from "../_shared/auth.js";
 import { isGrandOralModuleActive } from "../_shared/modules.js";
+import {
+  canReadGrandOralForUser,
+  getProfesseurIdForUser,
+} from "../_shared/access.js";
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== "GET") return methodNotAllowed(res, ["GET"]);
 
   await handleApi(res, async () => {
-    await requireRole(req, [
+    const user = await requireRole(req, [
       "superadmin",
       "administration",
       "pp",
       "professeur",
       "proviseur",
     ]);
+    const professeurId = await getProfesseurIdForUser(user);
 
     const allFiches = await db
       .select({
@@ -24,9 +29,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         eleveId: fichesGrandOral.eleveId,
         eleveNom: eleves.nom,
         elevePrenom: eleves.prenom,
+        eleveAuthUserId: eleves.authUserId,
         classeNom: classes.nom,
         classeNiveau: classes.niveau,
+        professeurPrincipalId: classes.professeurPrincipalId,
         statut: fichesGrandOral.statut,
+        profSpe1Id: fichesGrandOral.profSpe1Id,
+        profSpe2Id: fichesGrandOral.profSpe2Id,
         question1: fichesGrandOral.question1,
         soumisAt: fichesGrandOral.soumisAt,
       })
@@ -36,6 +45,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     const fichesList = allFiches
       .filter((f) => isGrandOralModuleActive(f.classeNiveau, f.statut))
+      .filter((f) => canReadGrandOralForUser(f, user, professeurId))
       .map((f) => ({
         ...f,
         specialites: null,
