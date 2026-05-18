@@ -11,6 +11,7 @@ import {
   FileText,
   Upload,
   Settings,
+  KeyRound,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
@@ -111,7 +112,7 @@ export default function AdminDashboard() {
             />
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <Card
               className="cursor-pointer hover:shadow-md transition-shadow"
               onClick={() => navigate("/admin/import")}
@@ -126,6 +127,25 @@ export default function AdminDashboard() {
                   </h3>
                   <p className="text-sm text-gray-500">
                     Importer les listes d'élèves et de professeurs
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card
+              className="cursor-pointer hover:shadow-md transition-shadow"
+              onClick={() => navigate("/admin/codes-acces")}
+            >
+              <CardContent className="flex items-center gap-4 py-6">
+                <div className="w-12 h-12 rounded-xl bg-indigo-50 flex items-center justify-center">
+                  <KeyRound className="w-6 h-6 text-indigo-600" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-semibold text-gray-900">
+                    Codes d'accès
+                  </h3>
+                  <p className="text-sm text-gray-500">
+                    Imprimer les étiquettes pour les élèves
                   </p>
                 </div>
               </CardContent>

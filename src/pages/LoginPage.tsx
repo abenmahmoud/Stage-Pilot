@@ -2,13 +2,44 @@ import { useState, type FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../lib/auth-context";
 import { ROLE_HOME } from "../lib/types";
-import { GraduationCap, Eye, EyeOff, AlertCircle } from "lucide-react";
+import {
+  GraduationCap,
+  Eye,
+  EyeOff,
+  AlertCircle,
+  User,
+  School,
+  KeyRound,
+} from "lucide-react";
+
+type Mode = "eleve" | "staff";
+
+/**
+ * On convertit un code d'accès élève (NOM-CLASSE-XXXX) en pseudo-email + mot de passe
+ * pour utiliser le système d'auth Supabase standard.
+ * À l'import, chaque élève reçoit un compte auth.users avec :
+ *   email = code-acces (en minuscules, slashs remplacés) + "@eleve.lyceegest.local"
+ *   password = code-acces (en majuscules, format original)
+ *
+ * Cf. /api/admin/generate-eleve-accounts pour la création.
+ */
+function codeToCredentials(code: string): { email: string; password: string } {
+  const clean = code.trim().toUpperCase();
+  const slug = clean.toLowerCase().replace(/[^a-z0-9-]/g, "");
+  return {
+    email: `${slug}@eleve.lyceegest.local`,
+    password: clean,
+  };
+}
 
 export default function LoginPage() {
   const { login, user } = useAuth();
   const navigate = useNavigate();
+
+  const [mode, setMode] = useState<Mode>("eleve");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [code, setCode] = useState("");
   const [showPw, setShowPw] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -18,7 +49,7 @@ export default function LoginPage() {
     return null;
   }
 
-  async function handleSubmit(e: FormEvent) {
+  async function handleStaffSubmit(e: FormEvent) {
     e.preventDefault();
     setError("");
     setLoading(true);
@@ -34,9 +65,26 @@ export default function LoginPage() {
     }
   }
 
+  async function handleEleveSubmit(e: FormEvent) {
+    e.preventDefault();
+    setError("");
+    setLoading(true);
+    try {
+      const { email: e_, password: p_ } = codeToCredentials(code);
+      await login(e_, p_);
+      navigate("/dashboard", { replace: true });
+    } catch {
+      setError(
+        "Code d'accès incorrect. Vérifie l'orthographe (ex: AMIAR-2E1-7842) ou contacte ton professeur principal."
+      );
+    } finally {
+      setLoading(false);
+    }
+  }
+
   return (
     <div className="flex min-h-screen">
-      {/* Left panel */}
+      {/* Left panel — branding */}
       <div className="hidden lg:flex lg:w-1/2 bg-primary-500 flex-col justify-between p-12 text-white relative overflow-hidden">
         <div className="absolute inset-0 opacity-10">
           <div className="absolute top-20 -left-10 w-72 h-72 rounded-full bg-white/20 blur-3xl" />
@@ -61,99 +109,199 @@ export default function LoginPage() {
             <br />
             des stages et du
             <br />
-            <span className="text-accent-400">Grand Oral</span>
+            <span className="text-accent-300">Grand Oral</span>
           </h2>
-          <p className="text-lg text-white/80 max-w-md">
+          <p className="text-white/80 text-lg max-w-md">
             Collecte des données, circuit de validation et génération
             automatique des conventions et fiches — tout au même endroit.
           </p>
         </div>
-        <div className="relative z-10 text-sm text-white/50">
+        <div className="relative z-10 text-xs text-white/50">
           12 avenue Léon Jouhaux, 93270 Sevran — Année scolaire 2025-2026
         </div>
       </div>
 
-      {/* Right panel — login form */}
-      <div className="flex-1 flex items-center justify-center p-8">
-        <div className="w-full max-w-md">
-          <div className="lg:hidden flex items-center gap-3 mb-10">
-            <div className="w-11 h-11 rounded-xl bg-primary-500 flex items-center justify-center text-white">
+      {/* Right panel — login forms */}
+      <div className="flex w-full lg:w-1/2 flex-col justify-center px-6 sm:px-12 py-12 bg-white">
+        <div className="mx-auto w-full max-w-md space-y-6">
+          {/* Header for mobile */}
+          <div className="lg:hidden flex items-center gap-3 mb-6">
+            <div className="w-10 h-10 rounded-xl bg-primary-500 flex items-center justify-center text-white">
               <GraduationCap className="w-6 h-6" />
             </div>
             <div>
-              <h1 className="text-xl font-bold font-heading text-primary-500">
+              <h1 className="text-xl font-bold font-heading text-gray-900">
                 LycéeGest
               </h1>
-              <p className="text-xs text-gray-500">Blaise Cendrars</p>
+              <p className="text-xs text-gray-500">Blaise Cendrars — Sevran</p>
             </div>
           </div>
 
-          <h2 className="text-2xl font-heading font-bold text-gray-900 mb-1">
-            Connexion
-          </h2>
-          <p className="text-gray-500 mb-8">
-            Accédez à votre espace avec votre adresse email.
-          </p>
+          {/* Tabs */}
+          <div className="grid grid-cols-2 gap-2 p-1 bg-gray-100 rounded-2xl">
+            <button
+              type="button"
+              onClick={() => {
+                setMode("eleve");
+                setError("");
+              }}
+              className={`flex items-center justify-center gap-2 rounded-xl py-3 text-sm font-medium transition-all ${
+                mode === "eleve"
+                  ? "bg-white text-primary-600 shadow-sm"
+                  : "text-gray-500 hover:text-gray-700"
+              }`}
+            >
+              <User className="w-4 h-4" />
+              Je suis élève
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setMode("staff");
+                setError("");
+              }}
+              className={`flex items-center justify-center gap-2 rounded-xl py-3 text-sm font-medium transition-all ${
+                mode === "staff"
+                  ? "bg-white text-primary-600 shadow-sm"
+                  : "text-gray-500 hover:text-gray-700"
+              }`}
+            >
+              <School className="w-4 h-4" />
+              Personnel du lycée
+            </button>
+          </div>
 
-          {error && (
-            <div className="mb-6 flex items-start gap-3 rounded-xl bg-red-50 border border-red-200 p-4 text-sm text-red-700">
-              <AlertCircle className="w-5 h-5 shrink-0 mt-0.5" />
-              <span>{error}</span>
-            </div>
+          {/* Élève form */}
+          {mode === "eleve" && (
+            <form onSubmit={handleEleveSubmit} className="space-y-5">
+              <div>
+                <h2 className="text-2xl font-bold font-heading text-gray-900">
+                  Bienvenue !
+                </h2>
+                <p className="text-sm text-gray-500 mt-1">
+                  Saisis ton code d'accès personnel (donné par ton professeur
+                  principal).
+                </p>
+              </div>
+
+              {error && (
+                <div className="flex items-start gap-3 rounded-xl bg-red-50 border border-red-200 p-4 text-sm text-red-700">
+                  <AlertCircle className="w-5 h-5 shrink-0 mt-0.5" />
+                  <span>{error}</span>
+                </div>
+              )}
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Code d'accès
+                </label>
+                <div className="relative">
+                  <KeyRound className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                  <input
+                    type="text"
+                    value={code}
+                    onChange={(e) => setCode(e.target.value.toUpperCase())}
+                    required
+                    autoComplete="username"
+                    autoCapitalize="characters"
+                    placeholder="EX: AMIAR-2E1-7842"
+                    className="w-full rounded-xl border border-gray-300 bg-white py-3 pl-10 pr-4 text-sm outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 tracking-wider font-mono uppercase"
+                  />
+                </div>
+                <p className="text-xs text-gray-400 mt-1.5">
+                  Format : NOM-CLASSE-CODE (4 chiffres)
+                </p>
+              </div>
+
+              <button
+                type="submit"
+                disabled={loading || !code.trim()}
+                className="w-full rounded-xl bg-primary-500 py-3 text-sm font-semibold text-white hover:bg-primary-600 transition-all disabled:opacity-50"
+              >
+                {loading ? "Connexion…" : "Se connecter"}
+              </button>
+
+              <p className="text-center text-xs text-gray-400">
+                Code perdu ? Contacte ton professeur principal.
+              </p>
+            </form>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-5">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                Adresse email
-              </label>
-              <input
-                type="email"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="nom@ac-creteil.fr"
-                className="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm outline-none transition-all focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                Mot de passe
-              </label>
-              <div className="relative">
-                <input
-                  type={showPw ? "text" : "password"}
-                  required
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="••••••••"
-                  className="w-full rounded-xl border border-gray-300 px-4 py-3 pr-11 text-sm outline-none transition-all focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPw(!showPw)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                >
-                  {showPw ? (
-                    <EyeOff className="w-5 h-5" />
-                  ) : (
-                    <Eye className="w-5 h-5" />
-                  )}
-                </button>
+          {/* Staff form */}
+          {mode === "staff" && (
+            <form onSubmit={handleStaffSubmit} className="space-y-5">
+              <div>
+                <h2 className="text-2xl font-bold font-heading text-gray-900">
+                  Connexion
+                </h2>
+                <p className="text-sm text-gray-500 mt-1">
+                  Espace réservé au personnel du lycée (administration,
+                  enseignants, direction).
+                </p>
               </div>
-            </div>
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full rounded-xl bg-primary-500 py-3 text-sm font-semibold text-white transition-all hover:bg-primary-600 active:scale-[0.98] disabled:opacity-60"
-            >
-              {loading ? "Connexion en cours…" : "Se connecter"}
-            </button>
-          </form>
 
-          <p className="mt-8 text-center text-xs text-gray-400">
-            Mot de passe oublié ? Contactez l'administration du lycée.
-          </p>
+              {error && (
+                <div className="flex items-start gap-3 rounded-xl bg-red-50 border border-red-200 p-4 text-sm text-red-700">
+                  <AlertCircle className="w-5 h-5 shrink-0 mt-0.5" />
+                  <span>{error}</span>
+                </div>
+              )}
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Adresse email
+                </label>
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                  autoComplete="username"
+                  placeholder="nom@ac-creteil.fr"
+                  className="w-full rounded-xl border border-gray-300 bg-white py-3 px-4 text-sm outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Mot de passe
+                </label>
+                <div className="relative">
+                  <input
+                    type={showPw ? "text" : "password"}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                    autoComplete="current-password"
+                    className="w-full rounded-xl border border-gray-300 bg-white py-3 px-4 pr-10 text-sm outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPw(!showPw)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                  >
+                    {showPw ? (
+                      <EyeOff className="w-4 h-4" />
+                    ) : (
+                      <Eye className="w-4 h-4" />
+                    )}
+                  </button>
+                </div>
+              </div>
+
+              <button
+                type="submit"
+                disabled={loading || !email || !password}
+                className="w-full rounded-xl bg-primary-500 py-3 text-sm font-semibold text-white hover:bg-primary-600 transition-all disabled:opacity-50"
+              >
+                {loading ? "Connexion…" : "Se connecter"}
+              </button>
+
+              <p className="text-center text-xs text-gray-400">
+                Mot de passe oublié ? Contactez l'administration du lycée.
+              </p>
+            </form>
+          )}
         </div>
       </div>
     </div>

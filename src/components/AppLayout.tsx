@@ -12,6 +12,7 @@ import {
   X,
   LayoutDashboard,
   ChevronRight,
+  KeyRound,
 } from "lucide-react";
 import { useState } from "react";
 
@@ -95,6 +96,10 @@ export default function AppLayout() {
             <NavLink to="/admin/import" className={navCls}>
               <Upload className="w-4 h-4" />
               Import CSV
+            </NavLink>
+            <NavLink to="/admin/codes-acces" className={navCls}>
+              <KeyRound className="w-4 h-4" />
+              Codes d'accès
             </NavLink>
             <NavLink to="/admin/parametres" className={navCls}>
               <Settings className="w-4 h-4" />

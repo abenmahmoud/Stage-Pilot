@@ -13,6 +13,7 @@ import FicheDetail from "./pages/grand-oral/FicheDetail";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import ImportPage from "./pages/admin/ImportPage";
 import ParametresPage from "./pages/admin/ParametresPage";
+import CodesAccesPage from "./pages/admin/CodesAccesPage";
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
@@ -55,6 +56,7 @@ export default function App() {
           <Route path="grand-oral/:ficheId" element={<FicheDetail />} />
           <Route path="admin" element={<AdminDashboard />} />
           <Route path="admin/import" element={<ImportPage />} />
+          <Route path="admin/codes-acces" element={<CodesAccesPage />} />
           <Route path="admin/parametres" element={<ParametresPage />} />
         </Route>
         <Route path="*" element={<Navigate to="/" replace />} />
