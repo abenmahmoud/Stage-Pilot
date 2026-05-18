@@ -1,10 +1,22 @@
-import type { Config } from "@netlify/functions";
+import type { VercelRequest, VercelResponse } from "@vercel/node";
+import { eq } from "drizzle-orm";
 import { db } from "../../db/index.js";
 import { fichesGrandOral, eleves, classes } from "../../db/schema.js";
-import { eq } from "drizzle-orm";
+import { handleApi, methodNotAllowed } from "../_shared/response.js";
+import { requireRole } from "../_shared/auth.js";
 
-export default async (req: Request) => {
-  if (req.method === "GET") {
+export default async function handler(req: VercelRequest, res: VercelResponse) {
+  if (req.method !== "GET") return methodNotAllowed(res, ["GET"]);
+
+  await handleApi(res, async () => {
+    await requireRole(req, [
+      "superadmin",
+      "administration",
+      "pp",
+      "professeur",
+      "proviseur",
+    ]);
+
     const allFiches = await db
       .select({
         id: fichesGrandOral.id,
@@ -32,15 +44,9 @@ export default async (req: Request) => {
     const finalises = fichesList.filter((f) => f.statut === "finalise").length;
     const enAttente = total - brouillons - finalises;
 
-    return Response.json({
+    return {
       fiches: fichesList,
       stats: { total, brouillons, enAttente, finalises },
-    });
-  }
-
-  return new Response("Method not allowed", { status: 405 });
-};
-
-export const config: Config = {
-  path: "/api/grand-oral",
-};
+    };
+  });
+}

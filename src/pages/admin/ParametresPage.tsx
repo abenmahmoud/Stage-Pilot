@@ -5,7 +5,7 @@ import { ArrowLeft, Save, School } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 interface EtablissementData {
-  id: number;
+  id: string;
   nom: string;
   adresse: string;
   codePostal: string;

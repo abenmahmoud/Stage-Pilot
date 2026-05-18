@@ -8,18 +8,18 @@ import type { GOStatut } from "../../lib/types";
 import { ArrowLeft, CheckCircle2, Stamp, MessageSquare } from "lucide-react";
 
 interface FicheDetail {
-  id: number;
+  id: string;
   eleveNom: string;
   elevePrenom: string;
-  classeNom: string;
-  numeroCanditat: string;
+  classeNom: string | null;
+  numeroCanditat: string | null;
   statut: GOStatut;
-  question1: string;
-  specialitesQuestion1: string;
-  question2: string;
-  specialitesQuestion2: string;
-  profSpe1: string;
-  profSpe2: string;
+  question1: string | null;
+  specialitesQuestion1: string | null;
+  question2: string | null;
+  specialitesQuestion2: string | null;
+  profSpe1: string | null;
+  profSpe2: string | null;
   commentaireProf1: string | null;
   commentaireProf2: string | null;
   signeProf1At: string | null;
@@ -28,7 +28,7 @@ interface FicheDetail {
 }
 
 export default function FicheDetailPage() {
-  const { ficheId } = useParams();
+  const { ficheId } = useParams<{ ficheId: string }>();
   const navigate = useNavigate();
   const { user } = useAuth();
   const [fiche, setFiche] = useState<FicheDetail | null>(null);
@@ -37,16 +37,20 @@ export default function FicheDetailPage() {
   const [signing, setSigning] = useState(false);
 
   useEffect(() => {
+    if (!ficheId) return;
     (async () => {
       try {
         const data = await apiFetch<FicheDetail>(`grand-oral/${ficheId}`);
         setFiche(data);
-      } catch {}
+      } catch {
+        setFiche(null);
+      }
       setLoading(false);
     })();
   }, [ficheId]);
 
   async function handleSign() {
+    if (!ficheId) return;
     setSigning(true);
     try {
       const res = await apiFetch<FicheDetail>(`grand-oral/${ficheId}/sign`, {
@@ -59,6 +63,7 @@ export default function FicheDetailPage() {
   }
 
   async function handleCachet() {
+    if (!ficheId) return;
     setSigning(true);
     try {
       const res = await apiFetch<FicheDetail>(`grand-oral/${ficheId}/cachet`, {
@@ -77,9 +82,7 @@ export default function FicheDetailPage() {
     );
 
   if (!fiche)
-    return (
-      <div className="text-center py-24 text-gray-400">Fiche introuvable</div>
-    );
+    return <div className="text-center py-24 text-gray-400">Fiche introuvable</div>;
 
   const canSign =
     user?.role === "professeur" &&
@@ -103,7 +106,7 @@ export default function FicheDetailPage() {
             {fiche.eleveNom} {fiche.elevePrenom}
           </h1>
           <p className="text-sm text-gray-500">
-            {fiche.classeNom}
+            {fiche.classeNom ?? "—"}
             {fiche.numeroCanditat && ` — N° ${fiche.numeroCanditat}`}
           </p>
         </div>
@@ -116,9 +119,7 @@ export default function FicheDetailPage() {
             <h3 className="text-sm font-semibold text-gray-900">Question 1</h3>
           </CardHeader>
           <CardContent>
-            <p className="text-sm text-gray-700 mb-2">
-              {fiche.question1 || "—"}
-            </p>
+            <p className="text-sm text-gray-700 mb-2">{fiche.question1 || "—"}</p>
             <p className="text-xs text-gray-500">
               Spécialité(s) : {fiche.specialitesQuestion1 || "—"}
             </p>
@@ -130,9 +131,7 @@ export default function FicheDetailPage() {
             <h3 className="text-sm font-semibold text-gray-900">Question 2</h3>
           </CardHeader>
           <CardContent>
-            <p className="text-sm text-gray-700 mb-2">
-              {fiche.question2 || "—"}
-            </p>
+            <p className="text-sm text-gray-700 mb-2">{fiche.question2 || "—"}</p>
             <p className="text-xs text-gray-500">
               Spécialité(s) : {fiche.specialitesQuestion2 || "—"}
             </p>
@@ -142,17 +141,14 @@ export default function FicheDetailPage() {
 
       <Card>
         <CardHeader>
-          <h3 className="text-sm font-semibold text-gray-900">
-            Circuit de validation
-          </h3>
+          <h3 className="text-sm font-semibold text-gray-900">Circuit de validation</h3>
         </CardHeader>
         <CardContent className="space-y-3 text-sm">
           <div className="flex items-center justify-between">
             <span className="text-gray-600">Prof spé 1 : {fiche.profSpe1 || "—"}</span>
             {fiche.signeProf1At ? (
               <span className="text-green-600 font-medium flex items-center gap-1">
-                <CheckCircle2 className="w-4 h-4" />
-                Signé
+                <CheckCircle2 className="w-4 h-4" />Signé
               </span>
             ) : (
               <span className="text-gray-400">En attente</span>
@@ -162,8 +158,7 @@ export default function FicheDetailPage() {
             <span className="text-gray-600">Prof spé 2 : {fiche.profSpe2 || "—"}</span>
             {fiche.signeProf2At ? (
               <span className="text-green-600 font-medium flex items-center gap-1">
-                <CheckCircle2 className="w-4 h-4" />
-                Signé
+                <CheckCircle2 className="w-4 h-4" />Signé
               </span>
             ) : (
               <span className="text-gray-400">En attente</span>
@@ -173,8 +168,7 @@ export default function FicheDetailPage() {
             <span className="text-gray-600">Chef d'établissement</span>
             {fiche.cachetApposeAt ? (
               <span className="text-green-600 font-medium flex items-center gap-1">
-                <Stamp className="w-4 h-4" />
-                Cachet apposé
+                <Stamp className="w-4 h-4" />Cachet apposé
               </span>
             ) : (
               <span className="text-gray-400">En attente</span>
@@ -186,12 +180,9 @@ export default function FicheDetailPage() {
       {canSign && (
         <Card>
           <CardHeader>
-            <h3 className="text-sm font-semibold text-gray-900">
-              Signer cette fiche
-            </h3>
+            <h3 className="text-sm font-semibold text-gray-900">Signer cette fiche</h3>
             <p className="text-xs text-gray-500">
-              Votre signature atteste que cette fiche est transmise selon le
-              circuit administratif prévu.
+              Votre signature atteste que cette fiche est transmise selon le circuit administratif prévu.
             </p>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -223,12 +214,8 @@ export default function FicheDetailPage() {
       {canCachet && (
         <Card>
           <CardHeader>
-            <h3 className="text-sm font-semibold text-gray-900">
-              Apposer le cachet
-            </h3>
-            <p className="text-xs text-gray-500">
-              Validation du chef d'établissement
-            </p>
+            <h3 className="text-sm font-semibold text-gray-900">Apposer le cachet</h3>
+            <p className="text-xs text-gray-500">Validation du chef d'établissement</p>
           </CardHeader>
           <CardContent>
             <button

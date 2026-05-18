@@ -18,7 +18,7 @@ import {
 const JOURS = ["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi"] as const;
 
 interface StageData {
-  id: number;
+  id: string | null;
   statut: StageStatut;
   entrepriseNom: string;
   entrepriseRepresentant: string;
@@ -62,15 +62,10 @@ export default function MonStage() {
       try {
         const data = await apiFetch<StageData>("stages/mine");
         setStage(data);
-        if (
-          data.statut &&
-          !["a_completer", "en_cours_saisie"].includes(data.statut)
-        ) {
+        if (data.statut && !["a_completer", "en_cours_saisie"].includes(data.statut)) {
           setStep(4);
         }
-      } catch {
-        // new stage
-      }
+      } catch {}
       setLoading(false);
     })();
   }, []);
@@ -125,15 +120,10 @@ export default function MonStage() {
   return (
     <div className="max-w-2xl mx-auto space-y-6">
       <div>
-        <h1 className="text-2xl font-bold font-heading text-gray-900">
-          Mon stage
-        </h1>
-        <p className="text-sm text-gray-500 mt-1">
-          Stage d'observation — du 15 au 26 juin 2026
-        </p>
+        <h1 className="text-2xl font-bold font-heading text-gray-900">Mon stage</h1>
+        <p className="text-sm text-gray-500 mt-1">Stage d'observation — du 15 au 26 juin 2026</p>
       </div>
 
-      {/* Stepper */}
       {!isPostSubmission && (
         <div className="flex items-center gap-2">
           {steps.map((s, i) => {
@@ -150,9 +140,7 @@ export default function MonStage() {
                   <Icon className="w-4 h-4 shrink-0" />
                   <span className="hidden sm:inline">{s.label}</span>
                 </button>
-                {i < steps.length - 1 && (
-                  <ChevronRight className="w-4 h-4 text-gray-300 shrink-0" />
-                )}
+                {i < steps.length - 1 && <ChevronRight className="w-4 h-4 text-gray-300 shrink-0" />}
               </div>
             );
           })}
@@ -166,50 +154,37 @@ export default function MonStage() {
         </div>
       )}
 
-      {/* Step 1: Entreprise */}
       {step === 0 && !isPostSubmission && (
         <Card>
           <CardHeader>
             <h2 className="text-lg font-bold font-heading">L'entreprise</h2>
-            <p className="text-sm text-gray-500">
-              Informations sur l'organisme d'accueil
-            </p>
+            <p className="text-sm text-gray-500">Informations sur l'organisme d'accueil</p>
           </CardHeader>
           <CardContent className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Nom de l'entreprise / organisme *
-              </label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Nom de l'entreprise / organisme *</label>
               <input
-                type="text"
-                value={stage.entrepriseNom || ""}
+                type="text" value={stage.entrepriseNom || ""}
                 onChange={(e) => update("entrepriseNom", e.target.value)}
                 className="w-full rounded-xl border border-gray-300 px-4 py-2.5 text-sm outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20"
                 placeholder="Ex: Mairie de Sevran"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Type de structure *
-              </label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Type de structure *</label>
               <select
                 value={stage.entrepriseType || ""}
                 onChange={(e) => update("entrepriseType", e.target.value)}
                 className="w-full rounded-xl border border-gray-300 px-4 py-2.5 text-sm outline-none focus:border-primary-500"
               >
                 <option value="">Choisir…</option>
-                {ENTREPRISE_TYPES.map((t) => (
-                  <option key={t} value={t}>{t}</option>
-                ))}
+                {ENTREPRISE_TYPES.map((t) => <option key={t} value={t}>{t}</option>)}
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Adresse complète *
-              </label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Adresse complète *</label>
               <input
-                type="text"
-                value={stage.entrepriseAdresse || ""}
+                type="text" value={stage.entrepriseAdresse || ""}
                 onChange={(e) => update("entrepriseAdresse", e.target.value)}
                 className="w-full rounded-xl border border-gray-300 px-4 py-2.5 text-sm outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20"
                 placeholder="Rue, code postal, ville"
@@ -217,47 +192,35 @@ export default function MonStage() {
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Téléphone
-                </label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Téléphone</label>
                 <input
-                  type="tel"
-                  value={stage.entrepriseTelephone || ""}
+                  type="tel" value={stage.entrepriseTelephone || ""}
                   onChange={(e) => update("entrepriseTelephone", e.target.value)}
                   className="w-full rounded-xl border border-gray-300 px-4 py-2.5 text-sm outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Email
-                </label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
                 <input
-                  type="email"
-                  value={stage.entrepriseEmail || ""}
+                  type="email" value={stage.entrepriseEmail || ""}
                   onChange={(e) => update("entrepriseEmail", e.target.value)}
                   className="w-full rounded-xl border border-gray-300 px-4 py-2.5 text-sm outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20"
                 />
               </div>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Représentant (M. / Mme) *
-              </label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Représentant (M. / Mme) *</label>
               <input
-                type="text"
-                value={stage.entrepriseRepresentant || ""}
+                type="text" value={stage.entrepriseRepresentant || ""}
                 onChange={(e) => update("entrepriseRepresentant", e.target.value)}
                 className="w-full rounded-xl border border-gray-300 px-4 py-2.5 text-sm outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20"
                 placeholder="Nom du responsable"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Qualité du représentant *
-              </label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Qualité du représentant *</label>
               <input
-                type="text"
-                value={stage.entrepriseQualite || ""}
+                type="text" value={stage.entrepriseQualite || ""}
                 onChange={(e) => update("entrepriseQualite", e.target.value)}
                 className="w-full rounded-xl border border-gray-300 px-4 py-2.5 text-sm outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20"
                 placeholder="Ex: Chef d'entreprise, Directeur"
@@ -268,86 +231,62 @@ export default function MonStage() {
                 onClick={() => { save(); setStep(1); }}
                 className="inline-flex items-center gap-2 rounded-xl bg-primary-500 px-6 py-2.5 text-sm font-semibold text-white hover:bg-primary-600 transition-all"
               >
-                Suivant
-                <ChevronRight className="w-4 h-4" />
+                Suivant<ChevronRight className="w-4 h-4" />
               </button>
             </div>
           </CardContent>
         </Card>
       )}
 
-      {/* Step 2: Tuteur */}
       {step === 1 && !isPostSubmission && (
         <Card>
           <CardHeader>
             <h2 className="text-lg font-bold font-heading">Le tuteur</h2>
-            <p className="text-sm text-gray-500">
-              Personne responsable au sein de l'organisme d'accueil
-            </p>
+            <p className="text-sm text-gray-500">Personne responsable au sein de l'organisme d'accueil</p>
           </CardHeader>
           <CardContent className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Nom et qualité du tuteur *
-              </label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Nom et qualité du tuteur *</label>
               <input
-                type="text"
-                value={stage.tuteurNomQualite || ""}
+                type="text" value={stage.tuteurNomQualite || ""}
                 onChange={(e) => update("tuteurNomQualite", e.target.value)}
                 className="w-full rounded-xl border border-gray-300 px-4 py-2.5 text-sm outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20"
                 placeholder="Ex: M. Dupont, Ingénieur"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Email du tuteur
-              </label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Email du tuteur</label>
               <input
-                type="email"
-                value={stage.tuteurEmail || ""}
+                type="email" value={stage.tuteurEmail || ""}
                 onChange={(e) => update("tuteurEmail", e.target.value)}
                 className="w-full rounded-xl border border-gray-300 px-4 py-2.5 text-sm outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Téléphone du tuteur
-              </label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Téléphone du tuteur</label>
               <input
-                type="tel"
-                value={stage.tuteurTelephone || ""}
+                type="tel" value={stage.tuteurTelephone || ""}
                 onChange={(e) => update("tuteurTelephone", e.target.value)}
                 className="w-full rounded-xl border border-gray-300 px-4 py-2.5 text-sm outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20"
               />
             </div>
             <div className="flex justify-between pt-2">
-              <button
-                onClick={() => setStep(0)}
-                className="inline-flex items-center gap-2 rounded-xl bg-gray-100 px-5 py-2.5 text-sm font-medium text-gray-600 hover:bg-gray-200 transition-all"
-              >
-                <ChevronLeft className="w-4 h-4" />
-                Retour
+              <button onClick={() => setStep(0)} className="inline-flex items-center gap-2 rounded-xl bg-gray-100 px-5 py-2.5 text-sm font-medium text-gray-600 hover:bg-gray-200 transition-all">
+                <ChevronLeft className="w-4 h-4" />Retour
               </button>
-              <button
-                onClick={() => { save(); setStep(2); }}
-                className="inline-flex items-center gap-2 rounded-xl bg-primary-500 px-6 py-2.5 text-sm font-semibold text-white hover:bg-primary-600 transition-all"
-              >
-                Suivant
-                <ChevronRight className="w-4 h-4" />
+              <button onClick={() => { save(); setStep(2); }} className="inline-flex items-center gap-2 rounded-xl bg-primary-500 px-6 py-2.5 text-sm font-semibold text-white hover:bg-primary-600 transition-all">
+                Suivant<ChevronRight className="w-4 h-4" />
               </button>
             </div>
           </CardContent>
         </Card>
       )}
 
-      {/* Step 3: Horaires */}
       {step === 2 && !isPostSubmission && (
         <Card>
           <CardHeader>
             <h2 className="text-lg font-bold font-heading">Les horaires</h2>
-            <p className="text-sm text-gray-500">
-              Horaires de présence du lundi au vendredi
-            </p>
+            <p className="text-sm text-gray-500">Horaires de présence du lundi au vendredi</p>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="rounded-xl bg-red-50 border border-red-200 p-3 text-sm text-red-700 font-medium text-center">
@@ -367,36 +306,24 @@ export default function MonStage() {
                     <tr key={jour}>
                       <td className="py-2.5 px-2 font-medium text-gray-700">{jour}</td>
                       <td className="py-2 px-1">
-                        <input
-                          type="time"
-                          value={(stage.horaires as Record<string, string>)?.[`${jour.toLowerCase()}_matin_debut`] || ""}
+                        <input type="time" value={(stage.horaires as Record<string, string>)?.[`${jour.toLowerCase()}_matin_debut`] || ""}
                           onChange={(e) => updateHoraire(jour.toLowerCase(), "matin", "debut", e.target.value)}
-                          className="w-full rounded-lg border border-gray-200 px-2 py-1.5 text-xs outline-none focus:border-primary-500"
-                        />
+                          className="w-full rounded-lg border border-gray-200 px-2 py-1.5 text-xs outline-none focus:border-primary-500" />
                       </td>
                       <td className="py-2 px-1">
-                        <input
-                          type="time"
-                          value={(stage.horaires as Record<string, string>)?.[`${jour.toLowerCase()}_matin_fin`] || ""}
+                        <input type="time" value={(stage.horaires as Record<string, string>)?.[`${jour.toLowerCase()}_matin_fin`] || ""}
                           onChange={(e) => updateHoraire(jour.toLowerCase(), "matin", "fin", e.target.value)}
-                          className="w-full rounded-lg border border-gray-200 px-2 py-1.5 text-xs outline-none focus:border-primary-500"
-                        />
+                          className="w-full rounded-lg border border-gray-200 px-2 py-1.5 text-xs outline-none focus:border-primary-500" />
                       </td>
                       <td className="py-2 px-1">
-                        <input
-                          type="time"
-                          value={(stage.horaires as Record<string, string>)?.[`${jour.toLowerCase()}_apm_debut`] || ""}
+                        <input type="time" value={(stage.horaires as Record<string, string>)?.[`${jour.toLowerCase()}_apm_debut`] || ""}
                           onChange={(e) => updateHoraire(jour.toLowerCase(), "apm", "debut", e.target.value)}
-                          className="w-full rounded-lg border border-gray-200 px-2 py-1.5 text-xs outline-none focus:border-primary-500"
-                        />
+                          className="w-full rounded-lg border border-gray-200 px-2 py-1.5 text-xs outline-none focus:border-primary-500" />
                       </td>
                       <td className="py-2 px-1">
-                        <input
-                          type="time"
-                          value={(stage.horaires as Record<string, string>)?.[`${jour.toLowerCase()}_apm_fin`] || ""}
+                        <input type="time" value={(stage.horaires as Record<string, string>)?.[`${jour.toLowerCase()}_apm_fin`] || ""}
                           onChange={(e) => updateHoraire(jour.toLowerCase(), "apm", "fin", e.target.value)}
-                          className="w-full rounded-lg border border-gray-200 px-2 py-1.5 text-xs outline-none focus:border-primary-500"
-                        />
+                          className="w-full rounded-lg border border-gray-200 px-2 py-1.5 text-xs outline-none focus:border-primary-500" />
                       </td>
                     </tr>
                   ))}
@@ -404,33 +331,22 @@ export default function MonStage() {
               </table>
             </div>
             <div className="flex justify-between pt-2">
-              <button
-                onClick={() => setStep(1)}
-                className="inline-flex items-center gap-2 rounded-xl bg-gray-100 px-5 py-2.5 text-sm font-medium text-gray-600 hover:bg-gray-200 transition-all"
-              >
-                <ChevronLeft className="w-4 h-4" />
-                Retour
+              <button onClick={() => setStep(1)} className="inline-flex items-center gap-2 rounded-xl bg-gray-100 px-5 py-2.5 text-sm font-medium text-gray-600 hover:bg-gray-200 transition-all">
+                <ChevronLeft className="w-4 h-4" />Retour
               </button>
-              <button
-                onClick={() => { save(); setStep(3); }}
-                className="inline-flex items-center gap-2 rounded-xl bg-primary-500 px-6 py-2.5 text-sm font-semibold text-white hover:bg-primary-600 transition-all"
-              >
-                Suivant
-                <ChevronRight className="w-4 h-4" />
+              <button onClick={() => { save(); setStep(3); }} className="inline-flex items-center gap-2 rounded-xl bg-primary-500 px-6 py-2.5 text-sm font-semibold text-white hover:bg-primary-600 transition-all">
+                Suivant<ChevronRight className="w-4 h-4" />
               </button>
             </div>
           </CardContent>
         </Card>
       )}
 
-      {/* Step 4: Confirmation */}
       {step === 3 && !isPostSubmission && (
         <Card>
           <CardHeader>
             <h2 className="text-lg font-bold font-heading">Récapitulatif</h2>
-            <p className="text-sm text-gray-500">
-              Vérifiez vos informations avant de soumettre
-            </p>
+            <p className="text-sm text-gray-500">Vérifiez vos informations avant de soumettre</p>
           </CardHeader>
           <CardContent className="space-y-5">
             <div className="rounded-xl bg-gray-50 p-4 space-y-3">
@@ -452,23 +368,16 @@ export default function MonStage() {
               </div>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Fait le (date de signature souhaitée)
-              </label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Fait le (date de signature souhaitée)</label>
               <input
-                type="date"
-                value={stage.faitLe || ""}
+                type="date" value={stage.faitLe || ""}
                 onChange={(e) => update("faitLe", e.target.value)}
                 className="w-full rounded-xl border border-gray-300 px-4 py-2.5 text-sm outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20"
               />
             </div>
             <div className="flex justify-between pt-2">
-              <button
-                onClick={() => setStep(2)}
-                className="inline-flex items-center gap-2 rounded-xl bg-gray-100 px-5 py-2.5 text-sm font-medium text-gray-600 hover:bg-gray-200 transition-all"
-              >
-                <ChevronLeft className="w-4 h-4" />
-                Retour
+              <button onClick={() => setStep(2)} className="inline-flex items-center gap-2 rounded-xl bg-gray-100 px-5 py-2.5 text-sm font-medium text-gray-600 hover:bg-gray-200 transition-all">
+                <ChevronLeft className="w-4 h-4" />Retour
               </button>
               <button
                 onClick={() => save(true)}
@@ -483,7 +392,6 @@ export default function MonStage() {
         </Card>
       )}
 
-      {/* Step 5: Post-submission status */}
       {(step === 4 || isPostSubmission) && (
         <Card>
           <CardHeader>
@@ -495,7 +403,6 @@ export default function MonStage() {
               <StageStatusBadge status={(stage.statut as StageStatut) || "a_completer"} />
             </div>
 
-            {/* Timeline */}
             <div className="flex items-center gap-0">
               {[
                 { label: "Saisie", done: true },
@@ -505,9 +412,7 @@ export default function MonStage() {
               ].map((t, i) => (
                 <div key={i} className="flex items-center gap-0 flex-1">
                   <div className="flex flex-col items-center gap-1 flex-1">
-                    <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold ${
-                      t.done ? "bg-green-500 text-white" : "bg-gray-200 text-gray-400"
-                    }`}>
+                    <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold ${t.done ? "bg-green-500 text-white" : "bg-gray-200 text-gray-400"}`}>
                       {t.done ? "✓" : i + 1}
                     </div>
                     <span className="text-[11px] text-gray-500 text-center">{t.label}</span>
@@ -519,15 +424,12 @@ export default function MonStage() {
 
             {["convention_generee", "convention_signee", "stage_en_cours", "stage_termine"].includes(stage.statut || "") && (
               <div className="rounded-xl bg-blue-50 border border-blue-200 p-4 space-y-3">
-                <p className="text-sm text-blue-800 font-medium">
-                  Votre convention est prête !
-                </p>
+                <p className="text-sm text-blue-800 font-medium">Votre convention est prête !</p>
                 <p className="text-sm text-blue-700">
                   Imprimez cette convention en 4 exemplaires. Faites-la signer par l'entreprise, votre famille et remettez un exemplaire à votre professeur principal.
                 </p>
                 <button className="inline-flex items-center gap-2 rounded-xl bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700 transition-all">
-                  <Download className="w-4 h-4" />
-                  Télécharger ma convention PDF
+                  <Download className="w-4 h-4" />Télécharger ma convention PDF
                 </button>
               </div>
             )}

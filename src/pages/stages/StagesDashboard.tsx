@@ -1,5 +1,4 @@
 import { useState, useEffect, useCallback } from "react";
-import { useAuth } from "../../lib/auth-context";
 import { apiFetch } from "../../lib/api";
 import { StageStatusBadge } from "../../components/ui/StatusBadge";
 import { StatCard } from "../../components/ui/StatCard";
@@ -17,11 +16,11 @@ import {
 import { useNavigate } from "react-router-dom";
 
 interface StageRow {
-  id: number;
-  eleveId: number;
+  id: string;
+  eleveId: string;
   eleveNom: string;
   elevePrenom: string;
-  classeNom: string;
+  classeNom: string | null;
   statut: StageStatut;
   entrepriseNom: string | null;
   tuteurTelephone: string | null;
@@ -37,7 +36,6 @@ interface StatsData {
 }
 
 export default function StagesDashboard() {
-  const { user } = useAuth();
   const navigate = useNavigate();
   const [stages, setStages] = useState<StageRow[]>([]);
   const [stats, setStats] = useState<StatsData>({
@@ -90,12 +88,7 @@ export default function StagesDashboard() {
             Séquences d'observation en milieu professionnel — Juin 2026
           </p>
         </div>
-        <button
-          onClick={() =>
-            apiFetch("stages/export").then(() => {})
-          }
-          className="inline-flex items-center gap-2 rounded-xl bg-white border border-gray-200 px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-all"
-        >
+        <button className="inline-flex items-center gap-2 rounded-xl bg-white border border-gray-200 px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-all">
           <Download className="w-4 h-4" />
           Exporter CSV
         </button>
@@ -195,7 +188,7 @@ export default function StagesDashboard() {
                         {s.eleveNom} {s.elevePrenom}
                       </td>
                       <td className="px-6 py-3.5 text-gray-600">
-                        {s.classeNom}
+                        {s.classeNom ?? "—"}
                       </td>
                       <td className="px-6 py-3.5">
                         <StageStatusBadge status={s.statut} />

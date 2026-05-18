@@ -1,44 +1,46 @@
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader } from "../../components/ui/Card";
 import { StageStatusBadge } from "../../components/ui/StatusBadge";
 import { useState, useEffect } from "react";
 import { apiFetch } from "../../lib/api";
 import type { StageStatut } from "../../lib/types";
 import { ArrowLeft, FileText, Mail } from "lucide-react";
-import { useNavigate } from "react-router-dom";
 
 interface StageDetail {
-  id: number;
+  id: string;
   eleveNom: string;
   elevePrenom: string;
-  classeNom: string;
+  classeNom: string | null;
   statut: StageStatut;
-  entrepriseNom: string;
-  entrepriseAdresse: string;
-  entrepriseTelephone: string;
-  entrepriseRepresentant: string;
-  entrepriseQualite: string;
-  entrepriseType: string;
-  tuteurNomQualite: string;
-  tuteurEmail: string;
-  tuteurTelephone: string;
-  professeurReferent: string;
-  dateDebut: string;
-  dateFin: string;
+  entrepriseNom: string | null;
+  entrepriseAdresse: string | null;
+  entrepriseTelephone: string | null;
+  entrepriseRepresentant: string | null;
+  entrepriseQualite: string | null;
+  entrepriseType: string | null;
+  tuteurNomQualite: string | null;
+  tuteurEmail: string | null;
+  tuteurTelephone: string | null;
+  professeurReferent: string | null;
+  dateDebut: string | null;
+  dateFin: string | null;
 }
 
 export default function StageDetailPage() {
-  const { eleveId } = useParams();
+  const { eleveId } = useParams<{ eleveId: string }>();
   const navigate = useNavigate();
   const [stage, setStage] = useState<StageDetail | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    if (!eleveId) return;
     (async () => {
       try {
         const data = await apiFetch<StageDetail>(`stages/${eleveId}`);
         setStage(data);
-      } catch {}
+      } catch {
+        setStage(null);
+      }
       setLoading(false);
     })();
   }, [eleveId]);
@@ -51,11 +53,7 @@ export default function StageDetailPage() {
     );
 
   if (!stage)
-    return (
-      <div className="text-center py-24 text-gray-400">
-        Stage introuvable
-      </div>
-    );
+    return <div className="text-center py-24 text-gray-400">Stage introuvable</div>;
 
   return (
     <div className="max-w-3xl mx-auto space-y-6">
@@ -72,7 +70,7 @@ export default function StageDetailPage() {
           <h1 className="text-2xl font-bold font-heading text-gray-900">
             {stage.eleveNom} {stage.elevePrenom}
           </h1>
-          <p className="text-sm text-gray-500">{stage.classeNom}</p>
+          <p className="text-sm text-gray-500">{stage.classeNom ?? "—"}</p>
         </div>
         <StageStatusBadge status={stage.statut} />
       </div>

@@ -1,5 +1,4 @@
 import { useState, useEffect, useCallback } from "react";
-import { useAuth } from "../../lib/auth-context";
 import { apiFetch } from "../../lib/api";
 import { GoStatusBadge } from "../../components/ui/StatusBadge";
 import { StatCard } from "../../components/ui/StatCard";
@@ -17,11 +16,11 @@ import {
 import { useNavigate } from "react-router-dom";
 
 interface FicheRow {
-  id: number;
-  eleveId: number;
+  id: string;
+  eleveId: string;
   eleveNom: string;
   elevePrenom: string;
-  classeNom: string;
+  classeNom: string | null;
   statut: GOStatut;
   question1: string | null;
   specialites: string | null;
@@ -38,7 +37,6 @@ interface StatsData {
 }
 
 export default function GrandOralDashboard() {
-  const { user } = useAuth();
   const navigate = useNavigate();
   const [fiches, setFiches] = useState<FicheRow[]>([]);
   const [stats, setStats] = useState<StatsData>({
@@ -69,9 +67,6 @@ export default function GrandOralDashboard() {
     load();
   }, [load]);
 
-  const isProfView = user?.role === "professeur" || user?.role === "pp";
-  const isProviseurView = user?.role === "proviseur";
-
   const filtered = fiches.filter((f) => {
     const matchSearch =
       !search ||
@@ -100,29 +95,10 @@ export default function GrandOralDashboard() {
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard
-          label="Total fiches"
-          value={stats.total}
-          icon={<Mic2 className="w-5 h-5" />}
-        />
-        <StatCard
-          label="Brouillons"
-          value={stats.brouillons}
-          icon={<Clock className="w-5 h-5" />}
-          color="bg-gray-100 text-gray-600"
-        />
-        <StatCard
-          label="En attente"
-          value={stats.enAttente}
-          icon={<Stamp className="w-5 h-5" />}
-          color="bg-yellow-50 text-yellow-600"
-        />
-        <StatCard
-          label="Finalisées"
-          value={stats.finalises}
-          icon={<CheckCircle2 className="w-5 h-5" />}
-          color="bg-green-50 text-green-600"
-        />
+        <StatCard label="Total fiches" value={stats.total} icon={<Mic2 className="w-5 h-5" />} />
+        <StatCard label="Brouillons" value={stats.brouillons} icon={<Clock className="w-5 h-5" />} color="bg-gray-100 text-gray-600" />
+        <StatCard label="En attente" value={stats.enAttente} icon={<Stamp className="w-5 h-5" />} color="bg-yellow-50 text-yellow-600" />
+        <StatCard label="Finalisées" value={stats.finalises} icon={<CheckCircle2 className="w-5 h-5" />} color="bg-green-50 text-green-600" />
       </div>
 
       <Card>
@@ -192,21 +168,11 @@ export default function GrandOralDashboard() {
                       <td className="px-6 py-3.5 font-medium text-gray-900">
                         {f.eleveNom} {f.elevePrenom}
                       </td>
-                      <td className="px-6 py-3.5 text-gray-600">
-                        {f.classeNom}
-                      </td>
-                      <td className="px-6 py-3.5">
-                        <GoStatusBadge status={f.statut} />
-                      </td>
-                      <td className="px-6 py-3.5 text-gray-600 max-w-xs truncate">
-                        {f.question1 || "—"}
-                      </td>
-                      <td className="px-6 py-3.5 text-gray-600">
-                        {f.profSpe1 || "—"}
-                      </td>
-                      <td className="px-6 py-3.5 text-gray-600">
-                        {f.profSpe2 || "—"}
-                      </td>
+                      <td className="px-6 py-3.5 text-gray-600">{f.classeNom ?? "—"}</td>
+                      <td className="px-6 py-3.5"><GoStatusBadge status={f.statut} /></td>
+                      <td className="px-6 py-3.5 text-gray-600 max-w-xs truncate">{f.question1 || "—"}</td>
+                      <td className="px-6 py-3.5 text-gray-600">{f.profSpe1 || "—"}</td>
+                      <td className="px-6 py-3.5 text-gray-600">{f.profSpe2 || "—"}</td>
                     </tr>
                   ))}
                 </tbody>

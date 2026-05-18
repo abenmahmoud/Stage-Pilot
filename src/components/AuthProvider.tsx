@@ -1,35 +1,28 @@
 import { useState, useEffect, useCallback, type ReactNode } from "react";
-import {
-  login as identityLogin,
-  logout as identityLogout,
-  getUser,
-  handleAuthCallback,
-} from "@netlify/identity";
+import type { Session, User } from "@supabase/supabase-js";
+import { supabase } from "../lib/supabase-browser";
 import { AuthContext } from "../lib/auth-context";
 import type { AppUser, UserRole } from "../lib/types";
 
-function mapIdentityUser(user: Record<string, unknown>): AppUser {
-  const meta = (user.app_metadata ?? user.appMetadata ?? {}) as Record<
-    string,
-    unknown
-  >;
-  const userMeta = (user.user_metadata ?? user.userMetadata ?? {}) as Record<
-    string,
-    unknown
-  >;
-  const roles = (meta.roles ?? []) as string[];
-  const role: UserRole = (roles[0] as UserRole) || "eleve";
+function mapSupabaseUser(user: User): AppUser {
+  const appMeta = (user.app_metadata ?? {}) as Record<string, unknown>;
+  const userMeta = (user.user_metadata ?? {}) as Record<string, unknown>;
+
+  const role: UserRole =
+    typeof appMeta.role === "string" ? (appMeta.role as UserRole) : "eleve";
+
   const name =
-    (userMeta.full_name as string) ||
-    (userMeta.name as string) ||
-    (user.email as string) ||
+    (typeof userMeta.full_name === "string" && userMeta.full_name) ||
+    (typeof userMeta.name === "string" && userMeta.name) ||
+    user.email ||
     "";
+
   return {
-    id: user.id as string,
-    email: user.email as string,
+    id: user.id,
+    email: user.email ?? "",
     name,
     role,
-    metadata: meta,
+    metadata: appMeta,
   };
 }
 
@@ -38,25 +31,52 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    (async () => {
-      try {
-        await handleAuthCallback();
-      } catch {}
-      try {
-        const current = await getUser();
-        if (current) setUser(mapIdentityUser(current as unknown as Record<string, unknown>));
-      } catch {}
-      setLoading(false);
-    })();
+    let mounted = true;
+
+    // Récupérer la session actuelle au démarrage
+    supabase.auth
+      .getSession()
+      .then(({ data }: { data: { session: Session | null } }) => {
+        if (!mounted) return;
+        if (data.session?.user) {
+          setUser(mapSupabaseUser(data.session.user));
+        }
+        setLoading(false);
+      })
+      .catch(() => {
+        if (mounted) setLoading(false);
+      });
+
+    // Écouter les changements d'état (login, logout, refresh token)
+    const { data: subscription } = supabase.auth.onAuthStateChange(
+      (_event: string, session: Session | null) => {
+        if (!mounted) return;
+        if (session?.user) {
+          setUser(mapSupabaseUser(session.user));
+        } else {
+          setUser(null);
+        }
+      }
+    );
+
+    return () => {
+      mounted = false;
+      subscription.subscription.unsubscribe();
+    };
   }, []);
 
   const login = useCallback(async (email: string, password: string) => {
-    const u = await identityLogin(email, password);
-    setUser(mapIdentityUser(u as unknown as Record<string, unknown>));
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+    if (error) throw new Error(error.message);
+    if (data.user) setUser(mapSupabaseUser(data.user));
   }, []);
 
   const logout = useCallback(async () => {
-    await identityLogout();
+    const { error } = await supabase.auth.signOut();
+    if (error) throw new Error(error.message);
     setUser(null);
   }, []);
 
