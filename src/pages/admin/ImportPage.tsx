@@ -9,6 +9,7 @@ import {
   AlertCircle,
   ChevronRight,
   ArrowLeft,
+  Info,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
@@ -33,22 +34,100 @@ interface MappedRow {
 }
 
 const FIELD_ALIASES: Record<string, string[]> = {
+  // SIECLE/STSWEB columns are added in priority (exact match first)
   nom: ["nom", "nom de famille", "surname", "last name", "nom_famille"],
   prenom: ["prenom", "prénom", "first name", "firstname"],
-  classe: ["classe", "division", "class"],
-  emailEleve: ["email", "adresse e-mail", "e-mail", "mail", "email_eleve"],
-  emailFamille: ["email représentant légal 1", "email famille", "email_famille", "email parent"],
-  telephoneFamille: ["téléphone famille", "tel. responsable", "telephone_famille", "tel famille"],
-  dateNaissance: ["date de naissance", "ddn", "birth date", "date_naissance"],
+  classe: ["div.", "division", "classe", "class", "div"],
+  emailEleve: [
+    "email",
+    "adresse e-mail",
+    "e-mail",
+    "mail",
+    "email_eleve",
+    "courriel élève",
+    "courriel eleve",
+  ],
+  emailFamille: [
+    "email représentant légal 1",
+    "email famille",
+    "email_famille",
+    "email parent",
+    "courriel resp1",
+    "courriel resp. 1",
+  ],
+  telephoneFamille: [
+    "téléphone famille",
+    "tel. responsable",
+    "telephone_famille",
+    "tel famille",
+    "tel. resp1",
+    "tel. resp. 1",
+  ],
+  dateNaissance: [
+    "ne(e) le",
+    "né(e) le",
+    "nee le",
+    "née le",
+    "date de naissance",
+    "ddn",
+    "birth date",
+    "date_naissance",
+  ],
   matieres: ["discipline", "matière", "matieres", "matiere", "subject"],
 };
 
 function autoMapColumn(csvHeader: string): string | null {
   const lower = csvHeader.toLowerCase().trim();
+  // Exact match first
   for (const [field, aliases] of Object.entries(FIELD_ALIASES)) {
-    if (aliases.some((a) => lower === a || lower.includes(a))) return field;
+    if (aliases.some((a) => lower === a)) return field;
+  }
+  // Substring match as fallback
+  for (const [field, aliases] of Object.entries(FIELD_ALIASES)) {
+    if (aliases.some((a) => lower.includes(a))) return field;
   }
   return null;
+}
+
+/**
+ * Fix the classic SIECLE/Excel bug:
+ * When a CSV from SIECLE is opened in Excel, class codes for 2nde GT
+ * (named "2E1", "2E2", ..., "2E12" at Lycée Blaise Cendrars) get
+ * reinterpreted as scientific notation because Excel reads "2E1" as
+ * "2 × 10¹" and reformats it as "2,00E+01" (or "2.00E+01").
+ *
+ * We restore the original code: "2E" + numeric exponent (no padding).
+ *   "2,00E+01" → "2E1"
+ *   "2,00E+12" → "2E12"
+ *
+ * Also handles "2.00E+01" (dot decimal separator).
+ */
+function fixSiecleClasse(value: string): string {
+  const v = value.trim();
+  // Match patterns like "2,00E+01", "2.00E+12", with optional sign and leading zeros
+  const m = v.match(/^2[,.]00E\+0*(\d+)$/i);
+  if (!m) return v;
+  const exponent = m[1];
+  // Reconstruct: "2E" + numeric exponent (1, 2, ..., 12)
+  return "2E" + exponent;
+}
+
+/**
+ * Detect file encoding by reading a sample and looking for byte sequences
+ * that are invalid in UTF-8 but valid in ISO-8859-1.
+ * Returns "UTF-8" or "ISO-8859-1".
+ */
+async function detectEncoding(file: File): Promise<string> {
+  const sample = await file.slice(0, 4096).arrayBuffer();
+  const bytes = new Uint8Array(sample);
+
+  // Try to decode as UTF-8 strictly. If it throws, it's not valid UTF-8.
+  try {
+    new TextDecoder("utf-8", { fatal: true }).decode(bytes);
+    return "UTF-8";
+  } catch {
+    return "ISO-8859-1";
+  }
 }
 
 export default function ImportPage() {
@@ -60,6 +139,11 @@ export default function ImportPage() {
   const [mapping, setMapping] = useState<Record<string, string>>({});
   const [mappedData, setMappedData] = useState<MappedRow[]>([]);
   const [importing, setImporting] = useState(false);
+  const [fileInfo, setFileInfo] = useState<{
+    encoding: string;
+    delimiter: string;
+    fixedClasseCount: number;
+  } | null>(null);
   const [result, setResult] = useState<{
     imported: number;
     doublons: number;
@@ -67,44 +151,65 @@ export default function ImportPage() {
   } | null>(null);
   const [error, setError] = useState("");
 
-  const handleFile = useCallback(
-    (file: File) => {
-      setError("");
-      Papa.parse(file, {
-        header: true,
-        skipEmptyLines: true,
-        encoding: "UTF-8",
-        complete(results) {
-          const data = results.data as ParsedRow[];
-          if (data.length === 0) {
-            setError("Le fichier est vide.");
-            return;
-          }
-          const headers = Object.keys(data[0]);
-          setCsvHeaders(headers);
-          setRawData(data);
+  const handleFile = useCallback(async (file: File) => {
+    setError("");
 
-          const autoMap: Record<string, string> = {};
-          for (const h of headers) {
-            const field = autoMapColumn(h);
-            if (field) autoMap[field] = h;
+    // Auto-detect encoding (UTF-8 vs ISO-8859-1 from SIECLE/Pronote)
+    const encoding = await detectEncoding(file);
+
+    Papa.parse(file, {
+      header: true,
+      skipEmptyLines: true,
+      encoding,
+      // Empty string lets papaparse auto-detect the delimiter (; or , or \t)
+      delimiter: "",
+      transformHeader: (h: string) => h.trim(),
+      complete(results) {
+        const data = results.data as ParsedRow[];
+        if (data.length === 0) {
+          setError("Le fichier est vide.");
+          return;
+        }
+        const headers = Object.keys(data[0]).filter((h) => h && h.length > 0);
+
+        // Detect delimiter from papaparse meta
+        const delimiter = results.meta.delimiter || ";";
+
+        setCsvHeaders(headers);
+        setRawData(data);
+
+        const autoMap: Record<string, string> = {};
+        for (const h of headers) {
+          const field = autoMapColumn(h);
+          if (field && !autoMap[field]) autoMap[field] = h;
+        }
+        setMapping(autoMap);
+
+        // Count how many rows have the SIECLE/Excel bug we'll fix
+        let fixedClasseCount = 0;
+        if (autoMap.classe) {
+          for (const row of data) {
+            const v = row[autoMap.classe] || "";
+            if (v !== fixSiecleClasse(v)) fixedClasseCount++;
           }
-          setMapping(autoMap);
-          setStep(1);
-        },
-        error() {
-          setError("Erreur de lecture du fichier.");
-        },
-      });
-    },
-    []
-  );
+        }
+
+        setFileInfo({ encoding, delimiter, fixedClasseCount });
+        setStep(1);
+      },
+      error() {
+        setError("Erreur de lecture du fichier.");
+      },
+    });
+  }, []);
 
   function applyMapping() {
     const mapped: MappedRow[] = rawData.map((row) => {
       const nom = (row[mapping.nom] || "").trim();
       const prenom = (row[mapping.prenom] || "").trim();
-      const classe = (row[mapping.classe] || "").trim();
+      // Fix the SIECLE/Excel scientific notation bug on classe
+      const classeRaw = (row[mapping.classe] || "").trim();
+      const classe = fixSiecleClasse(classeRaw);
       const email = (row[mapping.emailEleve] || row[mapping.email] || "").trim();
 
       let status: MappedRow["status"] = "ok";
@@ -236,9 +341,12 @@ export default function ImportPage() {
               <p className="text-sm text-gray-500">
                 Glissez un fichier .csv ici ou cliquez pour parcourir
               </p>
+              <p className="text-xs text-gray-400">
+                Compatible SIECLE (séparateur ;, encodage Windows) et Pronote
+              </p>
               <input
                 type="file"
-                accept=".csv"
+                accept=".csv,.txt"
                 className="hidden"
                 onChange={(e) => {
                   const f = e.target.files?.[0];
@@ -258,10 +366,33 @@ export default function ImportPage() {
               Correspondance des colonnes
             </h2>
             <p className="text-sm text-gray-500">
-              {rawData.length} lignes détectées. Associez chaque champ.
+              {rawData.length} lignes détectées. Vérifiez l'association de chaque champ.
             </p>
           </CardHeader>
           <CardContent className="space-y-4">
+            {fileInfo && (
+              <div className="rounded-xl bg-blue-50 border border-blue-200 p-3 text-sm text-blue-700 space-y-1">
+                <div className="flex items-start gap-2">
+                  <Info className="w-4 h-4 shrink-0 mt-0.5" />
+                  <div className="space-y-0.5">
+                    <p>
+                      <strong>Format détecté :</strong> encodage{" "}
+                      <code className="bg-blue-100 px-1 rounded">{fileInfo.encoding}</code>, séparateur{" "}
+                      <code className="bg-blue-100 px-1 rounded">
+                        {fileInfo.delimiter === "\t" ? "tab" : fileInfo.delimiter}
+                      </code>
+                    </p>
+                    {fileInfo.fixedClasseCount > 0 && (
+                      <p>
+                        <strong>{fileInfo.fixedClasseCount} classes corrigées</strong>{" "}
+                        automatiquement (Excel a converti "201", "202"... en notation scientifique). C'est fréquent
+                        et sera réparé silencieusement.
+                      </p>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
             {targetFields.map((f) => (
               <div key={f.key} className="flex items-center gap-4">
                 <span className="w-36 text-sm font-medium text-gray-700">
@@ -352,6 +483,11 @@ export default function ImportPage() {
                 </tbody>
               </table>
             </div>
+            {mappedData.length > 50 && (
+              <p className="text-xs text-gray-400 text-center py-2">
+                Affichage des 50 premières lignes sur {mappedData.length}.
+              </p>
+            )}
             <div className="flex justify-between p-4 border-t border-gray-100">
               <button
                 onClick={() => setStep(1)}
@@ -399,6 +535,7 @@ export default function ImportPage() {
                 setResult(null);
                 setRawData([]);
                 setMappedData([]);
+                setFileInfo(null);
               }}
               className="inline-flex items-center gap-2 rounded-xl bg-primary-500 px-6 py-2.5 text-sm font-semibold text-white hover:bg-primary-600 transition-all"
             >
