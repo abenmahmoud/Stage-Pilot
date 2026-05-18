@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
 import { apiFetch } from "../../lib/api";
 import { GoStatusBadge } from "../../components/ui/StatusBadge";
 import { StatCard } from "../../components/ui/StatCard";
@@ -13,10 +14,9 @@ import {
   Download,
   ChevronDown,
 } from "lucide-react";
-import { useNavigate } from "react-router-dom";
 
 interface FicheRow {
-  id: string;
+  id: string | null;
   eleveId: string;
   eleveNom: string;
   elevePrenom: string;
@@ -34,6 +34,10 @@ interface StatsData {
   brouillons: number;
   enAttente: number;
   finalises: number;
+}
+
+function csvCell(value: string | null | undefined): string {
+  return `"${(value ?? "").replaceAll('"', '""')}"`;
 }
 
 export default function GrandOralDashboard() {
@@ -70,12 +74,40 @@ export default function GrandOralDashboard() {
   const filtered = fiches.filter((f) => {
     const matchSearch =
       !search ||
-      `${f.eleveNom} ${f.elevePrenom} ${f.question1 ?? ""}`
+      `${f.eleveNom} ${f.elevePrenom} ${f.classeNom ?? ""} ${
+        f.question1 ?? ""
+      }`
         .toLowerCase()
         .includes(search.toLowerCase());
     const matchStatut = filterStatut === "all" || f.statut === filterStatut;
     return matchSearch && matchStatut;
   });
+
+  function downloadCSV() {
+    const csv = [
+      ["Nom", "Prenom", "Classe", "Statut", "Question 1", "Prof spe 1", "Prof spe 2"].join(";"),
+      ...filtered.map((f) =>
+        [
+          csvCell(f.eleveNom),
+          csvCell(f.elevePrenom),
+          csvCell(f.classeNom),
+          csvCell(f.statut),
+          csvCell(f.question1),
+          csvCell(f.profSpe1),
+          csvCell(f.profSpe2),
+        ].join(";")
+      ),
+    ].join("\n");
+    const blob = new Blob(["\uFEFF" + csv], {
+      type: "text/csv;charset=utf-8",
+    });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `grand-oral-${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
 
   return (
     <div className="space-y-6">
@@ -85,20 +117,43 @@ export default function GrandOralDashboard() {
             Grand Oral
           </h1>
           <p className="text-sm text-gray-500 mt-1">
-            Fiches de l'épreuve terminale — Baccalauréat Général — Session 2026
+            Suivi des eleves actifs Grand Oral - Session 2026
           </p>
         </div>
-        <button className="inline-flex items-center gap-2 rounded-xl bg-white border border-gray-200 px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-all">
+        <button
+          onClick={downloadCSV}
+          disabled={!filtered.length}
+          className="inline-flex items-center gap-2 rounded-xl bg-white border border-gray-200 px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-all disabled:opacity-50"
+        >
           <Download className="w-4 h-4" />
           Exporter CSV
         </button>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard label="Total fiches" value={stats.total} icon={<Mic2 className="w-5 h-5" />} />
-        <StatCard label="Brouillons" value={stats.brouillons} icon={<Clock className="w-5 h-5" />} color="bg-gray-100 text-gray-600" />
-        <StatCard label="En attente" value={stats.enAttente} icon={<Stamp className="w-5 h-5" />} color="bg-yellow-50 text-yellow-600" />
-        <StatCard label="Finalisées" value={stats.finalises} icon={<CheckCircle2 className="w-5 h-5" />} color="bg-green-50 text-green-600" />
+        <StatCard
+          label="Eleves GO"
+          value={stats.total}
+          icon={<Mic2 className="w-5 h-5" />}
+        />
+        <StatCard
+          label="Brouillons"
+          value={stats.brouillons}
+          icon={<Clock className="w-5 h-5" />}
+          color="bg-gray-100 text-gray-600"
+        />
+        <StatCard
+          label="En attente"
+          value={stats.enAttente}
+          icon={<Stamp className="w-5 h-5" />}
+          color="bg-yellow-50 text-yellow-600"
+        />
+        <StatCard
+          label="Finalisees"
+          value={stats.finalises}
+          icon={<CheckCircle2 className="w-5 h-5" />}
+          color="bg-green-50 text-green-600"
+        />
       </div>
 
       <Card>
@@ -107,7 +162,7 @@ export default function GrandOralDashboard() {
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
             <input
               type="text"
-              placeholder="Rechercher un élève ou une question…"
+              placeholder="Rechercher un eleve, une classe ou une question..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="w-full rounded-xl border border-gray-200 bg-gray-50 py-2.5 pl-10 pr-4 text-sm outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20"
@@ -121,12 +176,13 @@ export default function GrandOralDashboard() {
             >
               <option value="all">Tous les statuts</option>
               <option value="brouillon">Brouillon</option>
-              <option value="soumis_prof1">Attente prof spé 1</option>
-              <option value="valide_prof1">Prof spé 1 ✓</option>
-              <option value="soumis_prof2">Attente prof spé 2</option>
-              <option value="valide_prof2">Prof spé 2 ✓</option>
+              <option value="soumis_prof1">Attente prof spe 1</option>
+              <option value="valide_prof1">Prof spe 1 OK</option>
+              <option value="soumis_prof2">Attente prof spe 2</option>
+              <option value="valide_prof2">Prof spe 2 OK</option>
               <option value="soumis_proviseur">Attente cachet</option>
-              <option value="finalise">Finalisé</option>
+              <option value="valide_proviseur">Cachet appose</option>
+              <option value="finalise">Finalise</option>
             </select>
             <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
           </div>
@@ -141,8 +197,8 @@ export default function GrandOralDashboard() {
               <Mic2 className="w-10 h-10 mx-auto mb-3 opacity-40" />
               <p className="text-sm">
                 {fiches.length === 0
-                  ? "Aucune fiche Grand Oral enregistrée."
-                  : "Aucun résultat pour cette recherche."}
+                  ? "Aucun eleve Grand Oral actif pour le moment."
+                  : "Aucun resultat pour cette recherche."}
               </p>
             </div>
           ) : (
@@ -150,31 +206,50 @@ export default function GrandOralDashboard() {
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b border-gray-100 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    <th className="px-6 py-3">Élève</th>
+                    <th className="px-6 py-3">Eleve</th>
                     <th className="px-6 py-3">Classe</th>
                     <th className="px-6 py-3">Statut</th>
-                    <th className="px-6 py-3">Question 1 (aperçu)</th>
-                    <th className="px-6 py-3">Prof spé 1</th>
-                    <th className="px-6 py-3">Prof spé 2</th>
+                    <th className="px-6 py-3">Question 1</th>
+                    <th className="px-6 py-3">Prof spe 1</th>
+                    <th className="px-6 py-3">Prof spe 2</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-50">
-                  {filtered.map((f) => (
-                    <tr
-                      key={f.id}
-                      className="hover:bg-gray-50/70 cursor-pointer transition-colors"
-                      onClick={() => navigate(`/grand-oral/${f.id}`)}
-                    >
-                      <td className="px-6 py-3.5 font-medium text-gray-900">
-                        {f.eleveNom} {f.elevePrenom}
-                      </td>
-                      <td className="px-6 py-3.5 text-gray-600">{f.classeNom ?? "—"}</td>
-                      <td className="px-6 py-3.5"><GoStatusBadge status={f.statut} /></td>
-                      <td className="px-6 py-3.5 text-gray-600 max-w-xs truncate">{f.question1 || "—"}</td>
-                      <td className="px-6 py-3.5 text-gray-600">{f.profSpe1 || "—"}</td>
-                      <td className="px-6 py-3.5 text-gray-600">{f.profSpe2 || "—"}</td>
-                    </tr>
-                  ))}
+                  {filtered.map((f) => {
+                    const canOpen = Boolean(f.id);
+                    return (
+                      <tr
+                        key={f.id ?? f.eleveId}
+                        className={
+                          canOpen
+                            ? "hover:bg-gray-50/70 cursor-pointer transition-colors"
+                            : "bg-gray-50/40 text-gray-500"
+                        }
+                        onClick={() => {
+                          if (f.id) navigate(`/grand-oral/${f.id}`);
+                        }}
+                      >
+                        <td className="px-6 py-3.5 font-medium text-gray-900">
+                          {f.eleveNom} {f.elevePrenom}
+                        </td>
+                        <td className="px-6 py-3.5 text-gray-600">
+                          {f.classeNom ?? "-"}
+                        </td>
+                        <td className="px-6 py-3.5">
+                          <GoStatusBadge status={f.statut} />
+                        </td>
+                        <td className="px-6 py-3.5 text-gray-600 max-w-xs truncate">
+                          {f.question1 || (canOpen ? "-" : "Fiche non commencee")}
+                        </td>
+                        <td className="px-6 py-3.5 text-gray-600">
+                          {f.profSpe1 || "-"}
+                        </td>
+                        <td className="px-6 py-3.5 text-gray-600">
+                          {f.profSpe2 || "-"}
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>

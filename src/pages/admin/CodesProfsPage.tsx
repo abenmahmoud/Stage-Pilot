@@ -26,13 +26,99 @@ interface CodesProfsResponse {
   parMatiere: Array<{ nom: string; nb: number }>;
 }
 
+const PRINT_STYLES = `
+  @media print {
+    @page {
+      size: A4 portrait;
+      margin: 8mm;
+    }
+
+    html,
+    body {
+      background: white !important;
+      width: 210mm;
+      min-height: 297mm;
+    }
+
+    body.printing-labels * {
+      visibility: hidden !important;
+    }
+
+    body.printing-labels aside,
+    body.printing-labels header,
+    body.printing-labels .no-print {
+      display: none !important;
+    }
+
+    body.printing-labels main {
+      padding: 0 !important;
+      overflow: visible !important;
+    }
+
+    body.printing-labels .print-only,
+    body.printing-labels .print-only * {
+      visibility: visible !important;
+    }
+
+    body.printing-labels .print-only {
+      display: block !important;
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 100%;
+      background: white;
+    }
+
+    body.printing-labels .label-grid {
+      display: grid !important;
+      grid-template-columns: 1fr 1fr;
+      grid-auto-rows: 69mm;
+      gap: 0;
+      align-items: stretch;
+    }
+
+    body.printing-labels .label-item {
+      height: 69mm;
+      border: 1px dashed #9ca3af;
+      box-sizing: border-box;
+      padding: 7mm 8mm;
+      page-break-inside: avoid;
+      break-inside: avoid;
+      overflow: hidden;
+      display: flex !important;
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    body.printing-labels .label-item:nth-child(8n) {
+      page-break-after: always;
+      break-after: page;
+    }
+
+    body.printing-labels .label-item:last-child {
+      page-break-after: auto;
+      break-after: auto;
+    }
+  }
+
+  @media screen {
+    .print-only {
+      display: none;
+    }
+  }
+`;
+
 function splitMatieres(value: string | null): string[] {
-  if (!value) return ["—"];
+  if (!value) return ["-"];
   const parts = value
     .split(/[,;/|]+/)
     .map((part) => part.trim())
     .filter(Boolean);
-  return parts.length > 0 ? parts : ["—"];
+  return parts.length > 0 ? parts : ["-"];
+}
+
+function csvCell(value: string | null | undefined): string {
+  return `"${(value ?? "").replaceAll('"', '""')}"`;
 }
 
 export default function CodesProfsPage() {
@@ -80,25 +166,29 @@ export default function CodesProfsPage() {
     });
   }, [data, filterMatiere, search]);
 
+  const pageCount = filtered.length === 0 ? 0 : Math.ceil(filtered.length / 8);
+
   function handlePrint() {
     document.body.classList.add("printing-labels");
+    const cleanup = () => document.body.classList.remove("printing-labels");
+    window.addEventListener("afterprint", cleanup, { once: true });
     setTimeout(() => {
       window.print();
-      document.body.classList.remove("printing-labels");
+      setTimeout(cleanup, 500);
     }, 100);
   }
 
   function downloadCSV() {
     const csv = [
-      ["Nom", "Prénom", "Matière(s)", "Email", "Code d'accès"].join(","),
+      ["Nom", "Prenom", "Matieres", "Email", "Code d'acces"].join(";"),
       ...filtered.map((prof) =>
         [
-          `"${prof.nom}"`,
-          `"${prof.prenom}"`,
-          `"${prof.matieres ?? ""}"`,
-          `"${prof.email ?? ""}"`,
-          `"${prof.codeAcces ?? ""}"`,
-        ].join(",")
+          csvCell(prof.nom),
+          csvCell(prof.prenom),
+          csvCell(prof.matieres),
+          csvCell(prof.email),
+          csvCell(prof.codeAcces),
+        ].join(";")
       ),
     ].join("\n");
     const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8" });
@@ -112,40 +202,7 @@ export default function CodesProfsPage() {
 
   return (
     <div className="max-w-5xl mx-auto space-y-6">
-      <style>{`
-        @media print {
-          body.printing-labels {
-            background: white;
-          }
-          body.printing-labels .no-print {
-            display: none !important;
-          }
-          body.printing-labels .print-only {
-            display: block !important;
-          }
-          body.printing-labels .label-grid {
-            display: grid !important;
-            grid-template-columns: 1fr 1fr;
-            gap: 0;
-            page-break-inside: auto;
-          }
-          body.printing-labels .label-item {
-            border: 1px dashed #999;
-            padding: 10mm 8mm;
-            page-break-inside: avoid;
-            break-inside: avoid;
-            min-height: 67mm;
-            display: flex !important;
-            flex-direction: column;
-            justify-content: center;
-          }
-          @page {
-            size: A4 portrait;
-            margin: 8mm;
-          }
-        }
-        .print-only { display: none; }
-      `}</style>
+      <style>{PRINT_STYLES}</style>
 
       <div className="no-print space-y-6">
         <button
@@ -159,12 +216,12 @@ export default function CodesProfsPage() {
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
             <h1 className="text-2xl font-bold font-heading text-gray-900">
-              Codes d'accès professeurs
+              Codes professeurs
             </h1>
             <p className="text-sm text-gray-500 mt-1">
               {data
-                ? `${data.total} professeurs au total — imprime les étiquettes au format A4`
-                : "Chargement…"}
+                ? `${filtered.length} etiquettes selectionnees - ${pageCount} page(s) A4`
+                : "Chargement..."}
             </p>
           </div>
           <div className="flex gap-2">
@@ -194,34 +251,40 @@ export default function CodesProfsPage() {
         )}
 
         <Card>
-          <CardHeader className="flex flex-col sm:flex-row sm:items-center gap-3">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-              <input
-                type="text"
-                placeholder="Rechercher un professeur ou un code…"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                className="w-full rounded-xl border border-gray-200 bg-gray-50 py-2.5 pl-10 pr-4 text-sm outline-none focus:border-primary-500"
-              />
+          <CardHeader className="space-y-4">
+            <div className="rounded-xl bg-blue-50 border border-blue-100 px-4 py-3 text-sm text-blue-900">
+              Format pret pour A4 portrait : 8 etiquettes par page, 2 colonnes
+              x 4 lignes. Le filtre matiere aide a imprimer par lots.
             </div>
-            <div className="relative">
-              <select
-                value={filterMatiere}
-                onChange={(e) => setFilterMatiere(e.target.value)}
-                className="appearance-none rounded-xl border border-gray-200 bg-gray-50 py-2.5 pl-4 pr-10 text-sm outline-none focus:border-primary-500 min-w-[180px]"
-              >
-                <option value="all">Toutes matières</option>
-                {data?.parMatiere
-                  .filter((m) => m.nom !== "—")
-                  .map((m) => (
-                    <option key={m.nom} value={m.nom}>
-                      {m.nom} ({m.nb})
-                    </option>
-                  ))}
-              </select>
-              <Filter className="absolute right-8 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
-              <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+            <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                <input
+                  type="text"
+                  placeholder="Rechercher un professeur, une matiere ou un code..."
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  className="w-full rounded-xl border border-gray-200 bg-gray-50 py-2.5 pl-10 pr-4 text-sm outline-none focus:border-primary-500"
+                />
+              </div>
+              <div className="relative">
+                <select
+                  value={filterMatiere}
+                  onChange={(e) => setFilterMatiere(e.target.value)}
+                  className="appearance-none rounded-xl border border-gray-200 bg-gray-50 py-2.5 pl-4 pr-10 text-sm outline-none focus:border-primary-500 min-w-[200px]"
+                >
+                  <option value="all">Toutes matieres</option>
+                  {data?.parMatiere
+                    .filter((matiere) => matiere.nom !== "-")
+                    .map((matiere) => (
+                      <option key={matiere.nom} value={matiere.nom}>
+                        {matiere.nom} ({matiere.nb})
+                      </option>
+                    ))}
+                </select>
+                <Filter className="absolute right-8 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+                <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+              </div>
             </div>
           </CardHeader>
           <CardContent className="p-0">
@@ -231,26 +294,26 @@ export default function CodesProfsPage() {
               </div>
             ) : filtered.length === 0 ? (
               <p className="text-center text-sm text-gray-400 py-16">
-                Aucun professeur ne correspond à ce filtre.
+                Aucun professeur ne correspond a ce filtre.
               </p>
             ) : (
-              <div className="overflow-x-auto max-h-[500px]">
+              <div className="overflow-x-auto max-h-[520px]">
                 <table className="w-full text-sm">
                   <thead className="sticky top-0 bg-white border-b">
                     <tr className="text-left text-xs font-medium text-gray-500 uppercase">
                       <th className="px-4 py-3">Professeur</th>
-                      <th className="px-4 py-3">Matière(s)</th>
-                      <th className="px-4 py-3">Code d'accès</th>
+                      <th className="px-4 py-3">Matieres</th>
+                      <th className="px-4 py-3">Code</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-50">
-                    {filtered.slice(0, 100).map((prof) => (
+                    {filtered.map((prof) => (
                       <tr key={prof.id}>
                         <td className="px-4 py-2.5 font-medium text-gray-900">
                           {prof.nom} {prof.prenom}
                         </td>
                         <td className="px-4 py-2.5 text-gray-600">
-                          {prof.matieres ?? "—"}
+                          {prof.matieres ?? "-"}
                         </td>
                         <td className="px-4 py-2.5">
                           <code className="rounded bg-gray-100 px-2 py-1 text-xs font-mono text-primary-600">
@@ -261,11 +324,6 @@ export default function CodesProfsPage() {
                     ))}
                   </tbody>
                 </table>
-                {filtered.length > 100 && (
-                  <p className="text-xs text-gray-400 text-center py-2">
-                    100 premiers affichés sur {filtered.length}.
-                  </p>
-                )}
               </div>
             )}
           </CardContent>
@@ -277,7 +335,7 @@ export default function CodesProfsPage() {
           {filtered.map((prof) => (
             <div key={prof.id} className="label-item">
               <p style={{ fontSize: "10pt", color: "#666", marginBottom: 4 }}>
-                Lycée Blaise Cendrars — Sevran
+                Lycee Blaise Cendrars - Sevran
               </p>
               <p
                 style={{
@@ -288,20 +346,20 @@ export default function CodesProfsPage() {
               >
                 {prof.nom} {prof.prenom}
               </p>
-              <p style={{ fontSize: "11pt", color: "#444", marginBottom: 12 }}>
-                Matière(s) : <strong>{prof.matieres ?? "—"}</strong>
+              <p style={{ fontSize: "11pt", color: "#444", marginBottom: 10 }}>
+                Matiere(s) : <strong>{prof.matieres ?? "-"}</strong>
               </p>
               <p style={{ fontSize: "10pt", color: "#666", marginBottom: 4 }}>
-                Code d'accès professeur :
+                Code d'acces professeur :
               </p>
               <p
                 style={{
-                  fontSize: "14pt",
+                  fontSize: "15pt",
                   fontFamily: "monospace",
                   fontWeight: "bold",
                   color: "#1e40af",
                   letterSpacing: "1px",
-                  marginBottom: 12,
+                  marginBottom: 10,
                   border: "1px solid #1e40af",
                   padding: "6px 10px",
                   display: "inline-block",
@@ -310,11 +368,10 @@ export default function CodesProfsPage() {
               >
                 {prof.codeAcces}
               </p>
-              <p style={{ fontSize: "9pt", color: "#666", lineHeight: 1.4 }}>
-                Connecte-toi sur :<br />
-                <strong>gestion.lycee-blaise-cendrars-sevran.fr</strong>
+              <p style={{ fontSize: "8.5pt", color: "#666", lineHeight: 1.35 }}>
+                gestion.lycee-blaise-cendrars-sevran.fr
                 <br />
-                Onglet "Je suis professeur" → saisis ton code.
+                Onglet "Je suis professeur" - saisis ton code.
               </p>
             </div>
           ))}

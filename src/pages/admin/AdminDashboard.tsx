@@ -13,6 +13,7 @@ import {
   Settings,
   KeyRound,
   UsersRound,
+  FolderOpen,
 } from "lucide-react";
 
 interface DashboardStats {
@@ -170,6 +171,12 @@ export default function AdminDashboard() {
               description="Affecter référents stage et professeurs GO"
               icon={<UsersRound className="w-6 h-6 text-orange-600" />}
               onClick={() => navigate("/admin/affectations-eleves")}
+            />
+            <ActionCard
+              title="Documents PDF"
+              description="Retrouver les conventions et fiches par classe"
+              icon={<FolderOpen className="w-6 h-6 text-violet-600" />}
+              onClick={() => navigate("/admin/documents-classes")}
             />
             <ActionCard
               title="Paramètres"

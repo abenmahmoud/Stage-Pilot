@@ -15,6 +15,7 @@ import {
   ChevronRight,
   KeyRound,
   UsersRound,
+  FolderOpen,
 } from "lucide-react";
 
 const navCls = ({ isActive }: { isActive: boolean }) =>
@@ -113,6 +114,10 @@ export default function AppLayout() {
             <NavLink to="/admin/affectations-eleves" className={navCls}>
               <UsersRound className="w-4 h-4" />
               Affectations élèves
+            </NavLink>
+            <NavLink to="/admin/documents-classes" className={navCls}>
+              <FolderOpen className="w-4 h-4" />
+              Documents PDF
             </NavLink>
             <NavLink to="/admin/parametres" className={navCls}>
               <Settings className="w-4 h-4" />

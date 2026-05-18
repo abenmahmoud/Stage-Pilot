@@ -1,5 +1,5 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { eq, sql } from "drizzle-orm";
+import { and, eq, sql } from "drizzle-orm";
 import { db } from "../../db/index.js";
 import {
   eleves,
@@ -14,6 +14,8 @@ import {
   isGrandOralModuleActive,
   isStageModuleActive,
 } from "../_shared/modules.js";
+
+const ANNEE_SCOLAIRE = "2025-2026";
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== "GET") return methodNotAllowed(res, ["GET"]);
@@ -54,16 +56,20 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         statut: fichesGrandOral.statut,
         classeNiveau: classes.niveau,
       })
-      .from(fichesGrandOral)
-      .innerJoin(eleves, eq(fichesGrandOral.eleveId, eleves.id))
-      .leftJoin(classes, eq(eleves.classeId, classes.id));
+      .from(eleves)
+      .leftJoin(classes, eq(eleves.classeId, classes.id))
+      .leftJoin(
+        fichesGrandOral,
+        and(
+          eq(fichesGrandOral.eleveId, eleves.id),
+          eq(fichesGrandOral.anneeScolaire, ANNEE_SCOLAIRE)
+        )
+      );
     const activeFiches = allFiches.filter((f) =>
       isGrandOralModuleActive(f.classeNiveau, f.statut)
     );
     const goFinalise = activeFiches.filter((f) => f.statut === "finalise").length;
-    const goEnAttente = activeFiches.filter(
-      (f) => !["brouillon", "finalise"].includes(f.statut)
-    ).length;
+    const goEnAttente = activeFiches.length - goFinalise;
 
     return {
       totalEleves: Number(eleveCount.count),

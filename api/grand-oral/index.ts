@@ -1,5 +1,5 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { eq } from "drizzle-orm";
+import { and, asc, eq } from "drizzle-orm";
 import { db } from "../../db/index.js";
 import { fichesGrandOral, eleves, classes } from "../../db/schema.js";
 import { handleApi, methodNotAllowed } from "../_shared/response.js";
@@ -9,6 +9,8 @@ import {
   canReadGrandOralForUser,
   getProfesseurIdForUser,
 } from "../_shared/access.js";
+
+const ANNEE_SCOLAIRE = "2025-2026";
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== "GET") return methodNotAllowed(res, ["GET"]);
@@ -23,10 +25,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     ]);
     const professeurId = await getProfesseurIdForUser(user);
 
-    const allFiches = await db
+    const allRows = await db
       .select({
         id: fichesGrandOral.id,
-        eleveId: fichesGrandOral.eleveId,
+        eleveId: eleves.id,
         eleveNom: eleves.nom,
         elevePrenom: eleves.prenom,
         eleveAuthUserId: eleves.authUserId,
@@ -39,15 +41,23 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         question1: fichesGrandOral.question1,
         soumisAt: fichesGrandOral.soumisAt,
       })
-      .from(fichesGrandOral)
-      .innerJoin(eleves, eq(fichesGrandOral.eleveId, eleves.id))
-      .leftJoin(classes, eq(eleves.classeId, classes.id));
+      .from(eleves)
+      .leftJoin(classes, eq(eleves.classeId, classes.id))
+      .leftJoin(
+        fichesGrandOral,
+        and(
+          eq(fichesGrandOral.eleveId, eleves.id),
+          eq(fichesGrandOral.anneeScolaire, ANNEE_SCOLAIRE)
+        )
+      )
+      .orderBy(asc(classes.nom), asc(eleves.nom), asc(eleves.prenom));
 
-    const fichesList = allFiches
+    const fichesList = allRows
       .filter((f) => isGrandOralModuleActive(f.classeNiveau, f.statut))
       .filter((f) => canReadGrandOralForUser(f, user, professeurId))
       .map((f) => ({
         ...f,
+        statut: f.statut ?? "brouillon",
         specialites: null,
         profSpe1: null,
         profSpe2: null,

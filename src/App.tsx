@@ -17,6 +17,7 @@ import CodesAccesPage from "./pages/admin/CodesAccesPage";
 import CodesProfsPage from "./pages/admin/CodesProfsPage";
 import AffectationsClassesPage from "./pages/admin/AffectationsClassesPage";
 import AffectationsElevesPage from "./pages/admin/AffectationsElevesPage";
+import DocumentsClassesPage from "./pages/admin/DocumentsClassesPage";
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
@@ -68,6 +69,10 @@ export default function App() {
           <Route
             path="admin/affectations-eleves"
             element={<AffectationsElevesPage />}
+          />
+          <Route
+            path="admin/documents-classes"
+            element={<DocumentsClassesPage />}
           />
           <Route path="admin/parametres" element={<ParametresPage />} />
         </Route>
