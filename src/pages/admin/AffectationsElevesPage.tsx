@@ -21,6 +21,8 @@ interface EleveAffectation {
   professeurReferentId: string | null;
   profSpe1Id: string | null;
   profSpe2Id: string | null;
+  stageActif: boolean;
+  grandOralActif: boolean;
 }
 
 interface ClasseOption {
@@ -46,6 +48,8 @@ interface DraftAffectation {
   professeurReferentId: string;
   profSpe1Id: string;
   profSpe2Id: string;
+  stageActif: boolean;
+  grandOralActif: boolean;
 }
 
 const PAGE_SIZE = 50;
@@ -55,6 +59,8 @@ function draftFromEleve(eleve: EleveAffectation): DraftAffectation {
     professeurReferentId: eleve.professeurReferentId ?? "",
     profSpe1Id: eleve.profSpe1Id ?? "",
     profSpe2Id: eleve.profSpe2Id ?? "",
+    stageActif: eleve.stageActif,
+    grandOralActif: eleve.grandOralActif,
   };
 }
 
@@ -122,7 +128,7 @@ export default function AffectationsElevesPage() {
   function updateDraft(
     eleve: EleveAffectation,
     field: keyof DraftAffectation,
-    value: string
+    value: string | boolean
   ) {
     setDrafts((prev) => ({
       ...prev,
@@ -146,6 +152,8 @@ export default function AffectationsElevesPage() {
           professeurReferentId: draft.professeurReferentId || null,
           profSpe1Id: draft.profSpe1Id || null,
           profSpe2Id: draft.profSpe2Id || null,
+          stageActif: draft.stageActif,
+          grandOralActif: draft.grandOralActif,
         }),
       });
 
@@ -160,6 +168,8 @@ export default function AffectationsElevesPage() {
                   professeurReferentId: draft.professeurReferentId || null,
                   profSpe1Id: draft.profSpe1Id || null,
                   profSpe2Id: draft.profSpe2Id || null,
+                  stageActif: draft.stageActif,
+                  grandOralActif: draft.grandOralActif,
                 }
               : item
           ),
@@ -276,11 +286,13 @@ export default function AffectationsElevesPage() {
             </p>
           ) : (
             <div className="overflow-x-auto max-h-[680px]">
-              <table className="w-full min-w-[1120px] text-sm">
+              <table className="w-full min-w-[1320px] text-sm">
                 <thead className="sticky top-0 bg-white border-b">
                   <tr className="text-left text-xs font-medium text-gray-500 uppercase">
                     <th className="px-4 py-3">Élève</th>
                     <th className="px-4 py-3">Classe</th>
+                    <th className="px-4 py-3">Stage</th>
+                    <th className="px-4 py-3">Grand Oral</th>
                     <th className="px-4 py-3">Référent stage</th>
                     <th className="px-4 py-3">Prof spé 1 GO</th>
                     <th className="px-4 py-3">Prof spé 2 GO</th>
@@ -297,6 +309,36 @@ export default function AffectationsElevesPage() {
                         </td>
                         <td className="px-4 py-3 text-gray-600">
                           {eleve.classeNom ?? "—"}
+                        </td>
+                        <td className="px-4 py-3">
+                          <label className="inline-flex items-center gap-2 text-sm text-gray-700">
+                            <input
+                              type="checkbox"
+                              checked={draft.stageActif}
+                              onChange={(e) =>
+                                updateDraft(eleve, "stageActif", e.target.checked)
+                              }
+                              className="h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+                            />
+                            Actif
+                          </label>
+                        </td>
+                        <td className="px-4 py-3">
+                          <label className="inline-flex items-center gap-2 text-sm text-gray-700">
+                            <input
+                              type="checkbox"
+                              checked={draft.grandOralActif}
+                              onChange={(e) =>
+                                updateDraft(
+                                  eleve,
+                                  "grandOralActif",
+                                  e.target.checked
+                                )
+                              }
+                              className="h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+                            />
+                            Actif
+                          </label>
                         </td>
                         <td className="px-4 py-3">
                           <select

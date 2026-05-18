@@ -4,6 +4,7 @@ import { db } from "../../db/index.js";
 import { stages, eleves, classes } from "../../db/schema.js";
 import { handleApi, methodNotAllowed } from "../_shared/response.js";
 import { requireRole } from "../_shared/auth.js";
+import { isStageModuleActive } from "../_shared/modules.js";
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== "GET") return methodNotAllowed(res, ["GET"]);
@@ -24,6 +25,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         eleveNom: eleves.nom,
         elevePrenom: eleves.prenom,
         classeNom: classes.nom,
+        classeNiveau: classes.niveau,
         statut: stages.statut,
         entrepriseNom: stages.entrepriseNom,
         tuteurTelephone: stages.tuteurTelephone,
@@ -32,10 +34,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       .innerJoin(eleves, eq(stages.eleveId, eleves.id))
       .leftJoin(classes, eq(eleves.classeId, classes.id));
 
-    const stagesList = allStages.map((s) => ({
-      ...s,
-      professeurReferent: null,
-    }));
+    const stagesList = allStages
+      .filter((s) => isStageModuleActive(s.classeNiveau, s.statut))
+      .map((s) => ({
+        ...s,
+        professeurReferent: null,
+      }));
 
     const total = stagesList.length;
     const avecStage = stagesList.filter(

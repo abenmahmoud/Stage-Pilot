@@ -1,5 +1,5 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { sql } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import { db } from "../../db/index.js";
 import {
   eleves,
@@ -10,6 +10,10 @@ import {
 } from "../../db/schema.js";
 import { handleApi, methodNotAllowed } from "../_shared/response.js";
 import { requireRole } from "../_shared/auth.js";
+import {
+  isGrandOralModuleActive,
+  isStageModuleActive,
+} from "../_shared/modules.js";
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== "GET") return methodNotAllowed(res, ["GET"]);
@@ -27,19 +31,37 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       .select({ count: sql<number>`count(*)::int` })
       .from(classes);
 
-    const allStages = await db.select({ statut: stages.statut }).from(stages);
-    const stagesComplete = allStages.filter((s) =>
+    const allStages = await db
+      .select({
+        statut: stages.statut,
+        classeNiveau: classes.niveau,
+      })
+      .from(stages)
+      .innerJoin(eleves, eq(stages.eleveId, eleves.id))
+      .leftJoin(classes, eq(eleves.classeId, classes.id));
+    const activeStages = allStages.filter((s) =>
+      isStageModuleActive(s.classeNiveau, s.statut)
+    );
+    const stagesComplete = activeStages.filter((s) =>
       ["convention_signee", "stage_en_cours", "stage_termine"].includes(s.statut)
     ).length;
-    const stagesSansStage = allStages.filter(
+    const stagesSansStage = activeStages.filter(
       (s) => s.statut === "a_completer"
     ).length;
 
     const allFiches = await db
-      .select({ statut: fichesGrandOral.statut })
-      .from(fichesGrandOral);
-    const goFinalise = allFiches.filter((f) => f.statut === "finalise").length;
-    const goEnAttente = allFiches.filter(
+      .select({
+        statut: fichesGrandOral.statut,
+        classeNiveau: classes.niveau,
+      })
+      .from(fichesGrandOral)
+      .innerJoin(eleves, eq(fichesGrandOral.eleveId, eleves.id))
+      .leftJoin(classes, eq(eleves.classeId, classes.id));
+    const activeFiches = allFiches.filter((f) =>
+      isGrandOralModuleActive(f.classeNiveau, f.statut)
+    );
+    const goFinalise = activeFiches.filter((f) => f.statut === "finalise").length;
+    const goEnAttente = activeFiches.filter(
       (f) => !["brouillon", "finalise"].includes(f.statut)
     ).length;
 

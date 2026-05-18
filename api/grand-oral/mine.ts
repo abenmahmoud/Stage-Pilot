@@ -1,9 +1,10 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { eq } from "drizzle-orm";
 import { db } from "../../db/index.js";
-import { fichesGrandOral, eleves } from "../../db/schema.js";
+import { fichesGrandOral, eleves, classes } from "../../db/schema.js";
 import { handleApi, methodNotAllowed } from "../_shared/response.js";
-import { requireUser } from "../_shared/auth.js";
+import { requireUser, HttpError } from "../_shared/auth.js";
+import { isGrandOralModuleActive } from "../_shared/modules.js";
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== "GET" && req.method !== "POST") {
@@ -14,8 +15,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const user = await requireUser(req);
 
     const eleveRows = await db
-      .select()
+      .select({
+        id: eleves.id,
+        classeNiveau: classes.niveau,
+      })
       .from(eleves)
+      .leftJoin(classes, eq(eleves.classeId, classes.id))
       .where(eq(eleves.authUserId, user.id))
       .limit(1);
 
@@ -32,23 +37,46 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
 
     const eleve = eleveRows[0];
+    const ficheRows = await db
+      .select()
+      .from(fichesGrandOral)
+      .where(eq(fichesGrandOral.eleveId, eleve.id))
+      .limit(1);
+
+    const existingFiche = ficheRows[0] ?? null;
+    const moduleActif = isGrandOralModuleActive(
+      eleve.classeNiveau,
+      existingFiche?.statut
+    );
 
     if (req.method === "GET") {
-      const ficheRows = await db
-        .select()
-        .from(fichesGrandOral)
-        .where(eq(fichesGrandOral.eleveId, eleve.id))
-        .limit(1);
-
-      if (ficheRows.length === 0) {
+      if (!moduleActif) {
         return {
+          moduleActif: false,
+          id: existingFiche?.id ?? null,
+          statut: "module_desactive",
+          question1: "",
+          question2: "",
+        };
+      }
+
+      if (!existingFiche) {
+        return {
+          moduleActif: true,
           id: null,
           statut: "brouillon",
           question1: "",
           question2: "",
         };
       }
-      return ficheRows[0];
+      return { ...existingFiche, moduleActif: true };
+    }
+
+    if (!moduleActif) {
+      throw new HttpError(
+        403,
+        "Le module Grand Oral n'est pas activé pour cet élève."
+      );
     }
 
     // POST
@@ -68,17 +96,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       soumisAt: submit ? new Date() : null,
     };
 
-    const existing = await db
-      .select({ id: fichesGrandOral.id })
-      .from(fichesGrandOral)
-      .where(eq(fichesGrandOral.eleveId, eleve.id))
-      .limit(1);
-
-    if (existing.length > 0) {
+    if (existingFiche) {
       const [updated] = await db
         .update(fichesGrandOral)
         .set(ficheData)
-        .where(eq(fichesGrandOral.id, existing[0].id))
+        .where(eq(fichesGrandOral.id, existingFiche.id))
         .returning();
       return updated;
     }

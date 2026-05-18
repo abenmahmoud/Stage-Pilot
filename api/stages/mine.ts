@@ -1,9 +1,10 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { eq } from "drizzle-orm";
 import { db } from "../../db/index.js";
-import { stages, eleves } from "../../db/schema.js";
+import { stages, eleves, classes } from "../../db/schema.js";
 import { handleApi, methodNotAllowed } from "../_shared/response.js";
-import { requireUser } from "../_shared/auth.js";
+import { requireUser, HttpError } from "../_shared/auth.js";
+import { isStageModuleActive } from "../_shared/modules.js";
 
 const JOURS = ["lundi", "mardi", "mercredi", "jeudi", "vendredi"] as const;
 const PERIODES = ["matin", "apm"] as const;
@@ -29,8 +30,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     // Récupérer la fiche élève liée à ce compte auth
     const eleveRows = await db
-      .select()
+      .select({
+        id: eleves.id,
+        classeNiveau: classes.niveau,
+      })
       .from(eleves)
+      .leftJoin(classes, eq(eleves.classeId, classes.id))
       .where(eq(eleves.authUserId, user.id))
       .limit(1);
 
@@ -45,19 +50,40 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
 
     const eleve = eleveRows[0];
+    const existing = await db
+      .select()
+      .from(stages)
+      .where(eq(stages.eleveId, eleve.id))
+      .limit(1);
+
+    const existingStage = existing[0] ?? null;
+    const moduleActif = isStageModuleActive(
+      eleve.classeNiveau,
+      existingStage?.statut
+    );
 
     if (req.method === "GET") {
-      const stageRows = await db
-        .select()
-        .from(stages)
-        .where(eq(stages.eleveId, eleve.id))
-        .limit(1);
-
-      if (stageRows.length === 0) {
-        return { id: null, statut: "a_completer", entrepriseNom: "", horaires: {} };
+      if (!moduleActif) {
+        return {
+          moduleActif: false,
+          id: existingStage?.id ?? null,
+          statut: "module_desactive",
+          entrepriseNom: "",
+          horaires: {},
+        };
       }
 
-      const s = stageRows[0];
+      if (!existingStage) {
+        return {
+          moduleActif: true,
+          id: null,
+          statut: "a_completer",
+          entrepriseNom: "",
+          horaires: {},
+        };
+      }
+
+      const s = existingStage;
       const horaires: Record<string, string> = {};
       for (const jour of JOURS) {
         for (const periode of PERIODES) {
@@ -70,7 +96,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           }
         }
       }
-      return { ...s, horaires };
+      return { ...s, moduleActif: true, horaires };
+    }
+
+    if (!moduleActif) {
+      throw new HttpError(403, "Le module Stage n'est pas activé pour cet élève.");
     }
 
     // POST
@@ -106,17 +136,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       }
     }
 
-    const existing = await db
-      .select({ id: stages.id })
-      .from(stages)
-      .where(eq(stages.eleveId, eleve.id))
-      .limit(1);
-
-    if (existing.length > 0) {
+    if (existingStage) {
       const [updated] = await db
         .update(stages)
         .set(stageData)
-        .where(eq(stages.id, existing[0].id))
+        .where(eq(stages.id, existingStage.id))
         .returning();
       return updated;
     }

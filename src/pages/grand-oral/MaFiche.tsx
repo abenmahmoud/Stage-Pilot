@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 
 interface FicheData {
+  moduleActif?: boolean;
   id: string | null;
   statut: GOStatut;
   numeroCanditat: string;
@@ -98,6 +99,33 @@ export default function MaFiche() {
   ];
 
   const isPostSubmission = fiche.statut && fiche.statut !== "brouillon";
+
+  if (fiche.moduleActif === false) {
+    return (
+      <div className="max-w-2xl mx-auto space-y-6">
+        <div>
+          <h1 className="text-2xl font-bold font-heading text-gray-900">
+            Ma fiche Grand Oral
+          </h1>
+          <p className="text-sm text-gray-500 mt-1">
+            Baccalauréat Général — Session 2026
+          </p>
+        </div>
+        <Card>
+          <CardContent className="py-10 text-center space-y-3">
+            <AlertCircle className="w-10 h-10 text-gray-400 mx-auto" />
+            <h2 className="text-lg font-bold font-heading text-gray-900">
+              Module Grand Oral désactivé
+            </h2>
+            <p className="text-sm text-gray-500 max-w-md mx-auto">
+              Ce module n'est pas ouvert pour ton compte. L'administration peut
+              l'activer individuellement si nécessaire.
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-2xl mx-auto space-y-6">

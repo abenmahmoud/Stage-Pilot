@@ -33,6 +33,7 @@ export const ROLE_HOME: Record<UserRole, string> = {
 };
 
 export const STAGE_STATUS = {
+  module_desactive: { label: "Désactivé", color: "bg-gray-100 text-gray-500" },
   a_completer: { label: "Rien saisi", color: "bg-red-100 text-red-700" },
   en_cours_saisie: {
     label: "En cours",
@@ -63,6 +64,7 @@ export const STAGE_STATUS = {
 } as const;
 
 export const GO_STATUS = {
+  module_desactive: { label: "Désactivé", color: "bg-gray-100 text-gray-500" },
   brouillon: { label: "Brouillon", color: "bg-gray-100 text-gray-600" },
   soumis_prof1: {
     label: "Attente prof spé 1",

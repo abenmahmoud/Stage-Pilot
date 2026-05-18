@@ -4,6 +4,7 @@ import { db } from "../../db/index.js";
 import { stages, eleves, classes } from "../../db/schema.js";
 import { handleApi, methodNotAllowed } from "../_shared/response.js";
 import { requireRole, HttpError } from "../_shared/auth.js";
+import { isStageModuleActive } from "../_shared/modules.js";
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== "GET") return methodNotAllowed(res, ["GET"]);
@@ -28,6 +29,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         eleveNom: eleves.nom,
         elevePrenom: eleves.prenom,
         classeNom: classes.nom,
+        classeNiveau: classes.niveau,
         statut: stages.statut,
         entrepriseNom: stages.entrepriseNom,
         entrepriseAdresse: stages.entrepriseAdresse,
@@ -49,6 +51,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     if (result.length === 0) {
       throw new HttpError(404, "Stage introuvable pour cet élève");
+    }
+    if (!isStageModuleActive(result[0].classeNiveau, result[0].statut)) {
+      throw new HttpError(404, "Stage désactivé pour cet élève");
     }
 
     return { ...result[0], professeurReferent: null };

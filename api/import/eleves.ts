@@ -99,7 +99,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       .where(inArray(classes.nom, classesUniques));
 
     const classeMap = new Map<string, string>(); // nom -> id
-    for (const c of classesExistantes) classeMap.set(c.nom, c.id);
+    const classeNiveauMap = new Map<string, string>(); // id -> niveau
+    for (const c of classesExistantes) {
+      classeMap.set(c.nom, c.id);
+      classeNiveauMap.set(c.id, c.niveau);
+    }
 
     // Créer les classes manquantes en bulk insert
     const classesAcreer = classesUniques
@@ -111,7 +115,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         .insert(classes)
         .values(classesAcreer)
         .returning();
-      for (const c of nouvellesClasses) classeMap.set(c.nom, c.id);
+      for (const c of nouvellesClasses) {
+        classeMap.set(c.nom, c.id);
+        classeNiveauMap.set(c.id, c.niveau);
+      }
     }
 
     // ÉTAPE 2 — pré-charger les élèves existants (pour détecter doublons en mémoire)
@@ -192,21 +199,27 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     // Postgres supporte facilement des bulk inserts de 1000+ lignes,
     // mais 50 permet de garder le payload SQL raisonnable.
     const BATCH_SIZE = 50;
-    const insertedEleveIds: string[] = [];
+    const insertedElevesPourStage: Array<{
+      id: string;
+      classeId: string | null;
+    }> = [];
 
     for (let i = 0; i < elevesAcreer.length; i += BATCH_SIZE) {
       const batch = elevesAcreer.slice(i, i + BATCH_SIZE);
       const inserted = await db
         .insert(eleves)
         .values(batch)
-        .returning({ id: eleves.id });
-      for (const e of inserted) insertedEleveIds.push(e.id);
+        .returning({ id: eleves.id, classeId: eleves.classeId });
+      for (const e of inserted) insertedElevesPourStage.push(e);
       imported += inserted.length;
     }
 
-    // Créer un stage vide pour chaque élève créé (batch)
-    for (let i = 0; i < insertedEleveIds.length; i += BATCH_SIZE) {
-      const batch = insertedEleveIds.slice(i, i + BATCH_SIZE);
+    // Créer un stage vide uniquement pour les secondes.
+    const insertedEleveIdsStage = insertedElevesPourStage
+      .filter((e) => e.classeId && classeNiveauMap.get(e.classeId) === "seconde")
+      .map((e) => e.id);
+    for (let i = 0; i < insertedEleveIdsStage.length; i += BATCH_SIZE) {
+      const batch = insertedEleveIdsStage.slice(i, i + BATCH_SIZE);
       await db
         .insert(stages)
         .values(batch.map((eleveId) => ({ eleveId, statut: "a_completer" })));

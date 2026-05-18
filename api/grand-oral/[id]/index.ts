@@ -4,6 +4,7 @@ import { db } from "../../../db/index.js";
 import { fichesGrandOral, eleves, classes } from "../../../db/schema.js";
 import { handleApi, methodNotAllowed } from "../../_shared/response.js";
 import { requireUser, HttpError } from "../../_shared/auth.js";
+import { isGrandOralModuleActive } from "../../_shared/modules.js";
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== "GET") return methodNotAllowed(res, ["GET"]);
@@ -22,6 +23,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         eleveNom: eleves.nom,
         elevePrenom: eleves.prenom,
         classeNom: classes.nom,
+        classeNiveau: classes.niveau,
         numeroCanditat: fichesGrandOral.numeroCanditat,
         statut: fichesGrandOral.statut,
         question1: fichesGrandOral.question1,
@@ -41,6 +43,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       .limit(1);
 
     if (result.length === 0) throw new HttpError(404, "Fiche introuvable");
+    if (!isGrandOralModuleActive(result[0].classeNiveau, result[0].statut)) {
+      throw new HttpError(404, "Grand Oral désactivé pour cet élève");
+    }
     return { ...result[0], profSpe1: null, profSpe2: null };
   });
 }

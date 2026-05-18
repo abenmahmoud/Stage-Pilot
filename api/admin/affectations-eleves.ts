@@ -10,6 +10,12 @@ import {
 } from "../../db/schema.js";
 import { handleApi, methodNotAllowed } from "../_shared/response.js";
 import { requireRole, HttpError } from "../_shared/auth.js";
+import {
+  MODULE_DESACTIVE,
+  isGrandOralModuleActive,
+  isStageModuleActive,
+  stageStatusWhenActivated,
+} from "../_shared/modules.js";
 
 const ANNEE_SCOLAIRE = "2025-2026";
 
@@ -18,6 +24,8 @@ type UpdateBody = {
   professeurReferentId?: string | null;
   profSpe1Id?: string | null;
   profSpe2Id?: string | null;
+  stageActif?: boolean;
+  grandOralActif?: boolean;
 };
 
 function normalizeId(value: string | null | undefined): string | null {
@@ -43,8 +51,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           classeNom: classes.nom,
           classeNiveau: classes.niveau,
           professeurReferentId: stages.professeurReferentId,
+          stageStatut: stages.statut,
           profSpe1Id: fichesGrandOral.profSpe1Id,
           profSpe2Id: fichesGrandOral.profSpe2Id,
+          goStatut: fichesGrandOral.statut,
         })
         .from(eleves)
         .leftJoin(classes, eq(eleves.classeId, classes.id))
@@ -78,7 +88,17 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         .orderBy(asc(professeurs.nom), asc(professeurs.prenom));
 
       return {
-        eleves: eleveRows,
+        eleves: eleveRows.map((eleve) => ({
+          ...eleve,
+          stageActif: isStageModuleActive(
+            eleve.classeNiveau,
+            eleve.stageStatut
+          ),
+          grandOralActif: isGrandOralModuleActive(
+            eleve.classeNiveau,
+            eleve.goStatut
+          ),
+        })),
         classes: classeRows,
         professeurs: profRows,
       };
@@ -108,38 +128,62 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       }
     }
 
-    // Vérification que l'élève existe
-    const eleveExiste = await db
-      .select({ id: eleves.id })
+    const [targetEleve] = await db
+      .select({
+        id: eleves.id,
+        classeNiveau: classes.niveau,
+      })
       .from(eleves)
+      .leftJoin(classes, eq(eleves.classeId, classes.id))
       .where(eq(eleves.id, eleveId))
       .limit(1);
 
-    if (eleveExiste.length === 0) {
+    if (!targetEleve) {
       throw new HttpError(404, "Élève introuvable.");
     }
 
     const existingStage = await db
-      .select({ id: stages.id })
+      .select({ id: stages.id, statut: stages.statut })
       .from(stages)
       .where(eq(stages.eleveId, eleveId))
       .limit(1);
 
     if (existingStage.length > 0) {
+      const nextStageStatut =
+        body.stageActif === false
+          ? MODULE_DESACTIVE
+          : body.stageActif === true &&
+              !isStageModuleActive(
+                targetEleve.classeNiveau,
+                existingStage[0].statut
+              )
+            ? stageStatusWhenActivated(targetEleve.classeNiveau)
+            : undefined;
+
       await db
         .update(stages)
-        .set({ professeurReferentId })
+        .set({
+          professeurReferentId,
+          ...(nextStageStatut ? { statut: nextStageStatut } : {}),
+        })
         .where(eq(stages.id, existingStage[0].id));
     } else {
-      await db.insert(stages).values({
-        eleveId,
-        statut: "a_completer",
-        professeurReferentId,
-      });
+      const shouldCreateStage =
+        body.stageActif !== false || targetEleve.classeNiveau === "seconde";
+      if (shouldCreateStage) {
+        await db.insert(stages).values({
+          eleveId,
+          statut:
+            body.stageActif === false
+              ? MODULE_DESACTIVE
+              : stageStatusWhenActivated(targetEleve.classeNiveau),
+          professeurReferentId,
+        });
+      }
     }
 
     const existingFiche = await db
-      .select({ id: fichesGrandOral.id })
+      .select({ id: fichesGrandOral.id, statut: fichesGrandOral.statut })
       .from(fichesGrandOral)
       .where(
         and(
@@ -150,22 +194,39 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       .limit(1);
 
     if (existingFiche.length > 0) {
+      const nextGoStatut =
+        body.grandOralActif === false
+          ? MODULE_DESACTIVE
+          : body.grandOralActif === true &&
+              !isGrandOralModuleActive(
+                targetEleve.classeNiveau,
+                existingFiche[0].statut
+              )
+            ? "brouillon"
+            : undefined;
+
       await db
         .update(fichesGrandOral)
         .set({
-          profSpe1Id,
-          profSpe2Id,
+          profSpe1Id: body.grandOralActif === false ? null : profSpe1Id,
+          profSpe2Id: body.grandOralActif === false ? null : profSpe2Id,
+          ...(nextGoStatut ? { statut: nextGoStatut } : {}),
           updatedAt: new Date(),
         })
         .where(eq(fichesGrandOral.id, existingFiche[0].id));
     } else {
-      await db.insert(fichesGrandOral).values({
-        eleveId,
-        anneeScolaire: ANNEE_SCOLAIRE,
-        profSpe1Id,
-        profSpe2Id,
-        statut: "brouillon",
-      });
+      const shouldCreateFiche =
+        body.grandOralActif !== false ||
+        targetEleve.classeNiveau === "terminale";
+      if (shouldCreateFiche) {
+        await db.insert(fichesGrandOral).values({
+          eleveId,
+          anneeScolaire: ANNEE_SCOLAIRE,
+          profSpe1Id: body.grandOralActif === false ? null : profSpe1Id,
+          profSpe2Id: body.grandOralActif === false ? null : profSpe2Id,
+          statut: body.grandOralActif === false ? MODULE_DESACTIVE : "brouillon",
+        });
+      }
     }
 
     return { ok: true };

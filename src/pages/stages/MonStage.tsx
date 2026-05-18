@@ -18,6 +18,7 @@ import {
 const JOURS = ["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi"] as const;
 
 interface StageData {
+  moduleActif?: boolean;
   id: string | null;
   statut: StageStatut;
   entrepriseNom: string;
@@ -116,6 +117,31 @@ export default function MonStage() {
   ];
 
   const isPostSubmission = stage.statut && !["a_completer", "en_cours_saisie"].includes(stage.statut);
+
+  if (stage.moduleActif === false) {
+    return (
+      <div className="max-w-2xl mx-auto space-y-6">
+        <div>
+          <h1 className="text-2xl font-bold font-heading text-gray-900">Mon stage</h1>
+          <p className="text-sm text-gray-500 mt-1">
+            Stage d'observation — du 15 au 26 juin 2026
+          </p>
+        </div>
+        <Card>
+          <CardContent className="py-10 text-center space-y-3">
+            <AlertCircle className="w-10 h-10 text-gray-400 mx-auto" />
+            <h2 className="text-lg font-bold font-heading text-gray-900">
+              Module Stage désactivé
+            </h2>
+            <p className="text-sm text-gray-500 max-w-md mx-auto">
+              Ce module n'est pas ouvert pour ton compte. L'administration peut
+              l'activer individuellement si nécessaire.
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-2xl mx-auto space-y-6">
