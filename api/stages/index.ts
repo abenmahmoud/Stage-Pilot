@@ -21,6 +21,13 @@ function canManageStage(
   );
 }
 
+function effectiveStageStatut(
+  statut: string,
+  entrepriseNom: string | null
+): string {
+  return statut === "a_completer" && entrepriseNom ? "en_cours_saisie" : statut;
+}
+
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== "GET") return methodNotAllowed(res, ["GET"]);
 
@@ -68,14 +75,18 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const stagesList = allStages
       .filter((s) => isStageModuleActive(s.classeNiveau, s.statut))
       .filter((s) => canReadStageForUser(s, user, professeurId))
-      .map((s) => ({
-        ...s,
-        professeurReferent:
-          s.professeurReferentNom && s.professeurReferentPrenom
-            ? `${s.professeurReferentNom} ${s.professeurReferentPrenom}`
-            : null,
-        canManage: canManageStage(s, user.id, user.role),
-      }));
+      .map((s) => {
+        const statut = effectiveStageStatut(s.statut, s.entrepriseNom);
+        return {
+          ...s,
+          statut,
+          professeurReferent:
+            s.professeurReferentNom && s.professeurReferentPrenom
+              ? `${s.professeurReferentNom} ${s.professeurReferentPrenom}`
+              : null,
+          canManage: canManageStage(s, user.id, user.role),
+        };
+      });
 
     const total = stagesList.length;
     const avecStage = stagesList.filter(

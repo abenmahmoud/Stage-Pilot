@@ -123,13 +123,29 @@ async function loadStage(eleveId: string) {
 }
 
 function formatStage(stage: NonNullable<Awaited<ReturnType<typeof loadStage>>>) {
+  const effectiveStatut =
+    stage.statut === "a_completer" && stage.entrepriseNom
+      ? "en_cours_saisie"
+      : stage.statut;
+
   return {
     ...stage,
+    statut: effectiveStatut,
     professeurReferent:
       stage.professeurReferentNom && stage.professeurReferentPrenom
         ? `${stage.professeurReferentNom} ${stage.professeurReferentPrenom}`
         : null,
   };
+}
+
+function hasEntrepriseAfterUpdate(
+  stage: NonNullable<Awaited<ReturnType<typeof loadStage>>>,
+  updateData: Record<string, unknown>
+): boolean {
+  if (Object.prototype.hasOwnProperty.call(updateData, "entrepriseNom")) {
+    return typeof updateData.entrepriseNom === "string";
+  }
+  return Boolean(stage.entrepriseNom);
 }
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
@@ -218,15 +234,17 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       updateData.professeurReferentId = professeurReferentId;
     }
 
+    const hasEntreprise = hasEntrepriseAfterUpdate(stage, updateData);
+
     if (Object.prototype.hasOwnProperty.call(body, "statut")) {
       if (!isStageStatut(body.statut)) {
         throw new HttpError(400, "Statut de stage invalide");
       }
-      updateData.statut = body.statut;
-    } else if (
-      stage.statut === "a_completer" &&
-      typeof updateData.entrepriseNom === "string"
-    ) {
+      updateData.statut =
+        body.statut === "a_completer" && hasEntreprise
+          ? "en_cours_saisie"
+          : body.statut;
+    } else if (stage.statut === "a_completer" && hasEntreprise) {
       updateData.statut = "en_cours_saisie";
     }
 

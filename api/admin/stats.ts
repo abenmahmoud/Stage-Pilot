@@ -36,6 +36,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const allStages = await db
       .select({
         statut: stages.statut,
+        entrepriseNom: stages.entrepriseNom,
         classeNiveau: classes.niveau,
       })
       .from(stages)
@@ -48,7 +49,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       ["convention_signee", "stage_en_cours", "stage_termine"].includes(s.statut)
     ).length;
     const stagesSansStage = activeStages.filter(
-      (s) => s.statut === "a_completer"
+      (s) => s.statut === "a_completer" && !s.entrepriseNom
     ).length;
 
     const allFiches = await db
