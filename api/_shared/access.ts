@@ -38,7 +38,10 @@ export function canReadStageForUser(
 ): boolean {
   if (isGlobalStaff(user.role)) return true;
   if (row.professeurPrincipalId === user.id) return true;
-  return Boolean(professeurId && row.professeurReferentId === professeurId);
+  return Boolean(
+    row.professeurReferentId === user.id ||
+      (professeurId && row.professeurReferentId === professeurId)
+  );
 }
 
 export function canReadGrandOralForUser(

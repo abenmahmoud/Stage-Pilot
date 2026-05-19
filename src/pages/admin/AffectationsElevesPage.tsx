@@ -33,6 +33,7 @@ interface ClasseOption {
 
 interface ProfOption {
   id: string;
+  authUserId: string | null;
   nom: string;
   prenom: string;
   matieres: string | null;
@@ -66,6 +67,10 @@ function draftFromEleve(eleve: EleveAffectation): DraftAffectation {
 
 function buildDrafts(eleves: EleveAffectation[]): Record<string, DraftAffectation> {
   return Object.fromEntries(eleves.map((eleve) => [eleve.id, draftFromEleve(eleve)]));
+}
+
+function stageReferentValue(prof: ProfOption): string {
+  return prof.authUserId ?? prof.id;
 }
 
 export default function AffectationsElevesPage() {
@@ -354,7 +359,7 @@ export default function AffectationsElevesPage() {
                           >
                             <option value="">— Aucun —</option>
                             {data?.professeurs.map((prof) => (
-                              <option key={prof.id} value={prof.id}>
+                              <option key={prof.id} value={stageReferentValue(prof)}>
                                 {prof.nom} {prof.prenom}
                                 {prof.matieres ? ` — ${prof.matieres}` : ""}
                               </option>

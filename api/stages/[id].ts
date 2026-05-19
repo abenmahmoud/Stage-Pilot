@@ -1,5 +1,5 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { asc, eq } from "drizzle-orm";
+import { asc, eq, or } from "drizzle-orm";
 import { db } from "../../db/index.js";
 import { stages, eleves, classes, professeurs } from "../../db/schema.js";
 import { handleApi, methodNotAllowed } from "../_shared/response.js";
@@ -76,6 +76,7 @@ async function listProfesseurs() {
   return db
     .select({
       id: professeurs.id,
+      authUserId: professeurs.authUserId,
       nom: professeurs.nom,
       prenom: professeurs.prenom,
       matieres: professeurs.matieres,
@@ -96,6 +97,7 @@ async function loadStage(eleveId: string) {
       professeurPrincipalId: classes.professeurPrincipalId,
       statut: stages.statut,
       professeurReferentId: stages.professeurReferentId,
+      professeurReferentAuthUserId: professeurs.authUserId,
       professeurReferentNom: professeurs.nom,
       professeurReferentPrenom: professeurs.prenom,
       entrepriseNom: stages.entrepriseNom,
@@ -115,7 +117,13 @@ async function loadStage(eleveId: string) {
     .from(stages)
     .innerJoin(eleves, eq(stages.eleveId, eleves.id))
     .leftJoin(classes, eq(eleves.classeId, classes.id))
-    .leftJoin(professeurs, eq(stages.professeurReferentId, professeurs.id))
+    .leftJoin(
+      professeurs,
+      or(
+        eq(stages.professeurReferentId, professeurs.id),
+        eq(stages.professeurReferentId, professeurs.authUserId)
+      )
+    )
     .where(eq(stages.eleveId, eleveId))
     .limit(1);
 
@@ -131,11 +139,78 @@ function formatStage(stage: NonNullable<Awaited<ReturnType<typeof loadStage>>>) 
   return {
     ...stage,
     statut: effectiveStatut,
+    professeurReferentId:
+      stage.professeurReferentAuthUserId ?? stage.professeurReferentId,
     professeurReferent:
       stage.professeurReferentNom && stage.professeurReferentPrenom
         ? `${stage.professeurReferentNom} ${stage.professeurReferentPrenom}`
         : null,
   };
+}
+
+async function resolveProfesseurReference(value: unknown): Promise<string[]> {
+  const normalized = normalizeOptionalId(value);
+  if (!normalized) return [""];
+
+  const [professeur] = await db
+    .select({
+      id: professeurs.id,
+      authUserId: professeurs.authUserId,
+    })
+    .from(professeurs)
+    .where(
+      or(
+        eq(professeurs.id, normalized),
+        eq(professeurs.authUserId, normalized)
+      )
+    )
+    .limit(1);
+
+  if (!professeur) {
+    throw new HttpError(400, "Professeur referent introuvable");
+  }
+
+  return Array.from(
+    new Set([professeur.authUserId, professeur.id].filter(Boolean))
+  ) as string[];
+}
+
+async function updateStageWithReferentFallback(
+  stageId: string,
+  updateData: Record<string, unknown>,
+  professeurReferentCandidates: string[] | null
+): Promise<void> {
+  if (!professeurReferentCandidates) {
+    await db
+      .update(stages)
+      .set(updateData as Partial<typeof stages.$inferInsert>)
+      .where(eq(stages.id, stageId));
+    return;
+  }
+
+  let lastError: unknown = null;
+  for (const candidate of professeurReferentCandidates) {
+    try {
+      await db
+        .update(stages)
+        .set({
+          ...(updateData as Partial<typeof stages.$inferInsert>),
+          professeurReferentId: candidate || null,
+        })
+        .where(eq(stages.id, stageId));
+      return;
+    } catch (error) {
+      lastError = error;
+    }
+  }
+
+  if (lastError instanceof Error) {
+    throw new HttpError(
+      400,
+      `Affectation du professeur impossible : ${lastError.message}`
+    );
+  }
+  throw new HttpError(400, "Affectation du professeur impossible");
 }
 
 function hasEntrepriseAfterUpdate(
@@ -198,6 +273,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     const body = (req.body ?? {}) as StageUpdateBody;
     const updateData: Record<string, unknown> = { updatedAt: new Date() };
+    let professeurReferentCandidates: string[] | null = null;
 
     const textFields: Array<keyof StageUpdateBody> = [
       "entrepriseNom",
@@ -220,18 +296,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
 
     if (Object.prototype.hasOwnProperty.call(body, "professeurReferentId")) {
-      const professeurReferentId = normalizeOptionalId(body.professeurReferentId);
-      if (professeurReferentId) {
-        const [professeur] = await db
-          .select({ id: professeurs.id })
-          .from(professeurs)
-          .where(eq(professeurs.id, professeurReferentId))
-          .limit(1);
-        if (!professeur) {
-          throw new HttpError(400, "Professeur referent introuvable");
-        }
-      }
-      updateData.professeurReferentId = professeurReferentId;
+      professeurReferentCandidates = await resolveProfesseurReference(
+        body.professeurReferentId
+      );
     }
 
     const hasEntreprise = hasEntrepriseAfterUpdate(stage, updateData);
@@ -248,10 +315,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       updateData.statut = "en_cours_saisie";
     }
 
-    await db
-      .update(stages)
-      .set(updateData as Partial<typeof stages.$inferInsert>)
-      .where(eq(stages.id, stage.id));
+    await updateStageWithReferentFallback(
+      stage.id,
+      updateData,
+      professeurReferentCandidates
+    );
 
     const updatedStage = await loadStage(eleveId);
     if (!updatedStage) {

@@ -1,5 +1,5 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { eq } from "drizzle-orm";
+import { eq, or } from "drizzle-orm";
 import { db } from "../../db/index.js";
 import { stages, eleves, classes, professeurs } from "../../db/schema.js";
 import { handleApi, methodNotAllowed } from "../_shared/response.js";
@@ -292,7 +292,13 @@ async function loadStage(eleveId: string): Promise<StageLivretRow | null> {
     .from(stages)
     .innerJoin(eleves, eq(stages.eleveId, eleves.id))
     .leftJoin(classes, eq(eleves.classeId, classes.id))
-    .leftJoin(professeurs, eq(stages.professeurReferentId, professeurs.id))
+    .leftJoin(
+      professeurs,
+      or(
+        eq(stages.professeurReferentId, professeurs.id),
+        eq(stages.professeurReferentId, professeurs.authUserId)
+      )
+    )
     .where(eq(stages.eleveId, eleveId))
     .limit(1);
 
@@ -362,6 +368,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const canEditSuivi =
       isGlobalStaff(user.role) ||
       stage.professeurPrincipalId === user.id ||
+      stage.professeurReferentId === user.id ||
       Boolean(professeurId && stage.professeurReferentId === professeurId);
 
     const currentLivret = parseLivret(

@@ -20,6 +20,7 @@ import {
 
 interface ProfesseurOption {
   id: string;
+  authUserId: string | null;
   nom: string;
   prenom: string;
   matieres: string | null;
@@ -98,7 +99,12 @@ export default function StagesDashboard() {
   }, [load]);
 
   const professeursById = useMemo(() => {
-    return new Map(professeurs.map((prof) => [prof.id, prof]));
+    const map = new Map<string, ProfesseurOption>();
+    for (const prof of professeurs) {
+      map.set(prof.id, prof);
+      if (prof.authUserId) map.set(prof.authUserId, prof);
+    }
+    return map;
   }, [professeurs]);
 
   const filtered = stages.filter((stage) => {
@@ -329,7 +335,10 @@ export default function StagesDashboard() {
                           >
                             <option value="">Affecter un professeur</option>
                             {professeurs.map((prof) => (
-                              <option key={prof.id} value={prof.id}>
+                              <option
+                                key={prof.id}
+                                value={prof.authUserId ?? prof.id}
+                              >
                                 {profLabel(prof)}
                               </option>
                             ))}

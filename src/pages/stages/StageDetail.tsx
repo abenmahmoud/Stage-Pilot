@@ -22,6 +22,7 @@ import {
 
 interface ProfesseurOption {
   id: string;
+  authUserId: string | null;
   nom: string;
   prenom: string;
   matieres: string | null;
@@ -434,7 +435,7 @@ export default function StageDetailPage() {
                 >
                   <option value="">Affecter un professeur</option>
                   {stage.professeurs.map((prof) => (
-                    <option key={prof.id} value={prof.id}>
+                    <option key={prof.id} value={prof.authUserId ?? prof.id}>
                       {profLabel(prof)}
                     </option>
                   ))}

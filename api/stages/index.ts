@@ -1,5 +1,5 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { asc, eq } from "drizzle-orm";
+import { asc, eq, or } from "drizzle-orm";
 import { db } from "../../db/index.js";
 import { stages, eleves, classes, professeurs } from "../../db/schema.js";
 import { handleApi, methodNotAllowed } from "../_shared/response.js";
@@ -51,6 +51,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         classeNiveau: classes.niveau,
         professeurPrincipalId: classes.professeurPrincipalId,
         professeurReferentId: stages.professeurReferentId,
+        professeurReferentAuthUserId: professeurs.authUserId,
         professeurReferentNom: professeurs.nom,
         professeurReferentPrenom: professeurs.prenom,
         statut: stages.statut,
@@ -60,11 +61,18 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       .from(stages)
       .innerJoin(eleves, eq(stages.eleveId, eleves.id))
       .leftJoin(classes, eq(eleves.classeId, classes.id))
-      .leftJoin(professeurs, eq(stages.professeurReferentId, professeurs.id));
+      .leftJoin(
+        professeurs,
+        or(
+          eq(stages.professeurReferentId, professeurs.id),
+          eq(stages.professeurReferentId, professeurs.authUserId)
+        )
+      );
 
     const professeurRows = await db
       .select({
         id: professeurs.id,
+        authUserId: professeurs.authUserId,
         nom: professeurs.nom,
         prenom: professeurs.prenom,
         matieres: professeurs.matieres,
@@ -80,6 +88,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         return {
           ...s,
           statut,
+          professeurReferentId:
+            s.professeurReferentAuthUserId ?? s.professeurReferentId,
           professeurReferent:
             s.professeurReferentNom && s.professeurReferentPrenom
               ? `${s.professeurReferentNom} ${s.professeurReferentPrenom}`
