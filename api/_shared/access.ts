@@ -15,6 +15,14 @@ type GrandOralAccessRow = {
   eleveAuthUserId?: string | null;
 };
 
+type GrandOralSignRow = GrandOralAccessRow & {
+  statut: string | null;
+  signeProf1At?: Date | string | null;
+  signeProf2At?: Date | string | null;
+};
+
+export type GrandOralUserRole = "prof_spe1" | "prof_spe2" | null;
+
 export function isGlobalStaff(role: string): boolean {
   return ["superadmin", "administration", "proviseur"].includes(role);
 }
@@ -56,6 +64,44 @@ export function canReadStageForUser(
   );
 }
 
+function matchesProfessorReference(
+  value: string | null,
+  user: AuthUser,
+  professeurId: string | null
+): boolean {
+  return Boolean(value && (value === user.id || value === professeurId));
+}
+
+export function getGrandOralRoleForUser(
+  row: Pick<GrandOralAccessRow, "profSpe1Id" | "profSpe2Id">,
+  user: AuthUser,
+  professeurId: string | null
+): GrandOralUserRole {
+  if (matchesProfessorReference(row.profSpe1Id, user, professeurId)) {
+    return "prof_spe1";
+  }
+  if (matchesProfessorReference(row.profSpe2Id, user, professeurId)) {
+    return "prof_spe2";
+  }
+  return null;
+}
+
+export function canSignGrandOralForUser(
+  row: GrandOralSignRow,
+  user: AuthUser,
+  professeurId: string | null
+): boolean {
+  const role = getGrandOralRoleForUser(row, user, professeurId);
+  return (
+    (role === "prof_spe1" &&
+      row.statut === "soumis_prof1" &&
+      !row.signeProf1At) ||
+    (role === "prof_spe2" &&
+      row.statut === "soumis_prof2" &&
+      !row.signeProf2At)
+  );
+}
+
 export function canReadGrandOralForUser(
   row: GrandOralAccessRow,
   user: AuthUser,
@@ -64,10 +110,5 @@ export function canReadGrandOralForUser(
   if (isGlobalStaff(user.role)) return true;
   if (row.eleveAuthUserId === user.id) return true;
   if (row.professeurPrincipalId === user.id) return true;
-  return Boolean(
-    row.profSpe1Id === user.id ||
-      row.profSpe2Id === user.id ||
-      (professeurId &&
-        (row.profSpe1Id === professeurId || row.profSpe2Id === professeurId))
-  );
+  return Boolean(getGrandOralRoleForUser(row, user, professeurId));
 }
