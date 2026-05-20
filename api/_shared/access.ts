@@ -1,4 +1,4 @@
-import { eq } from "drizzle-orm";
+import { eq, or } from "drizzle-orm";
 import { db } from "../../db/index.js";
 import { professeurs } from "../../db/schema.js";
 import type { AuthUser } from "./auth.js";
@@ -22,13 +22,25 @@ export function isGlobalStaff(role: string): boolean {
 export async function getProfesseurIdForUser(
   user: AuthUser
 ): Promise<string | null> {
+  const metadataProfId =
+    typeof user.appMetadata.prof_id === "string"
+      ? user.appMetadata.prof_id
+      : null;
+
   const [prof] = await db
     .select({ id: professeurs.id })
     .from(professeurs)
-    .where(eq(professeurs.authUserId, user.id))
+    .where(
+      metadataProfId
+        ? or(
+            eq(professeurs.authUserId, user.id),
+            eq(professeurs.id, metadataProfId)
+          )
+        : eq(professeurs.authUserId, user.id)
+    )
     .limit(1);
 
-  return prof?.id ?? null;
+  return prof?.id ?? metadataProfId;
 }
 
 export function canReadStageForUser(
