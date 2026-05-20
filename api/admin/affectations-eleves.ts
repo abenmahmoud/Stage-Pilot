@@ -1,5 +1,5 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { and, asc, eq, inArray, or } from "drizzle-orm";
+import { and, asc, eq, or } from "drizzle-orm";
 import { db } from "../../db/index.js";
 import {
   classes,
@@ -52,9 +52,21 @@ function normalizeReferentForUi(
   return professeur ? professeur.authUserId ?? professeur.id : value;
 }
 
-async function resolveStageReferentCandidates(
-  value: string | null
-): Promise<string[] | null> {
+function normalizeGrandOralProfForUi(
+  value: string | null,
+  professeursRows: ProfesseurOption[]
+): string | null {
+  if (!value) return null;
+  const professeur = professeursRows.find(
+    (prof) => prof.id === value || prof.authUserId === value
+  );
+  return professeur ? professeur.id : value;
+}
+
+async function resolveProfesseurCandidates(
+  value: string | null,
+  notFoundMessage: string
+): Promise<string[]> {
   if (!value) return [""];
 
   const [professeur] = await db
@@ -67,12 +79,30 @@ async function resolveStageReferentCandidates(
     .limit(1);
 
   if (!professeur) {
-    throw new HttpError(400, "Un des professeurs selectionnes est introuvable.");
+    throw new HttpError(400, notFoundMessage);
   }
 
   return Array.from(
     new Set([professeur.authUserId, professeur.id].filter(Boolean))
   ) as string[];
+}
+
+async function resolveStageReferentCandidates(
+  value: string | null
+): Promise<string[] | null> {
+  return resolveProfesseurCandidates(
+    value,
+    "Un des professeurs selectionnes est introuvable."
+  );
+}
+
+async function resolveGrandOralProfCandidates(
+  value: string | null
+): Promise<string[]> {
+  return resolveProfesseurCandidates(
+    value,
+    "Un des professeurs de specialite selectionnes est introuvable."
+  );
 }
 
 async function updateStageWithReferentFallback(
@@ -141,6 +171,72 @@ async function insertStageWithReferentFallback(
   throw new HttpError(400, "Affectation du professeur impossible.");
 }
 
+async function updateGrandOralWithProfFallback(
+  ficheId: string,
+  updateData: Partial<typeof fichesGrandOral.$inferInsert>,
+  profSpe1Candidates: string[],
+  profSpe2Candidates: string[]
+): Promise<void> {
+  let lastError: unknown = null;
+
+  for (const profSpe1Candidate of profSpe1Candidates) {
+    for (const profSpe2Candidate of profSpe2Candidates) {
+      try {
+        await db
+          .update(fichesGrandOral)
+          .set({
+            ...updateData,
+            profSpe1Id: profSpe1Candidate || null,
+            profSpe2Id: profSpe2Candidate || null,
+          })
+          .where(eq(fichesGrandOral.id, ficheId));
+        return;
+      } catch (error) {
+        lastError = error;
+      }
+    }
+  }
+
+  if (lastError instanceof Error) {
+    throw new HttpError(
+      400,
+      `Affectation Grand Oral impossible : ${lastError.message}`
+    );
+  }
+  throw new HttpError(400, "Affectation Grand Oral impossible.");
+}
+
+async function insertGrandOralWithProfFallback(
+  insertData: typeof fichesGrandOral.$inferInsert,
+  profSpe1Candidates: string[],
+  profSpe2Candidates: string[]
+): Promise<void> {
+  let lastError: unknown = null;
+
+  for (const profSpe1Candidate of profSpe1Candidates) {
+    for (const profSpe2Candidate of profSpe2Candidates) {
+      try {
+        await db.insert(fichesGrandOral).values({
+          ...insertData,
+          profSpe1Id: profSpe1Candidate || null,
+          profSpe2Id: profSpe2Candidate || null,
+        });
+        return;
+      } catch (error) {
+        lastError = error;
+      }
+    }
+  }
+
+  if (lastError instanceof Error) {
+    throw new HttpError(
+      400,
+      `Affectation Grand Oral impossible : ${lastError.message}`
+    );
+  }
+  throw new HttpError(400, "Affectation Grand Oral impossible.");
+}
+
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== "GET" && req.method !== "PUT") {
     return methodNotAllowed(res, ["GET", "PUT"]);
@@ -203,6 +299,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             eleve.professeurReferentId,
             profRows
           ),
+          profSpe1Id: normalizeGrandOralProfForUi(eleve.profSpe1Id, profRows),
+          profSpe2Id: normalizeGrandOralProfForUi(eleve.profSpe2Id, profRows),
           stageActif: isStageModuleActive(
             eleve.classeNiveau,
             eleve.stageStatut
@@ -235,19 +333,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       ? await resolveStageReferentCandidates(professeurReferentId)
       : null;
 
-    const profIds = Array.from(
-      new Set([profSpe1Id, profSpe2Id].filter(Boolean))
-    ) as string[];
-
-    if (profIds.length > 0) {
-      const existing = await db
-        .select({ id: professeurs.id })
-        .from(professeurs)
-        .where(inArray(professeurs.id, profIds));
-      if (existing.length !== profIds.length) {
-        throw new HttpError(400, "Un des professeurs sélectionnés est introuvable.");
-      }
-    }
+    const profSpe1Candidates =
+      body.grandOralActif === false
+        ? [""]
+        : await resolveGrandOralProfCandidates(profSpe1Id);
+    const profSpe2Candidates =
+      body.grandOralActif === false
+        ? [""]
+        : await resolveGrandOralProfCandidates(profSpe2Id);
 
     const [targetEleve] = await db
       .select({
@@ -332,27 +425,30 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             ? "brouillon"
             : undefined;
 
-      await db
-        .update(fichesGrandOral)
-        .set({
-          profSpe1Id: body.grandOralActif === false ? null : profSpe1Id,
-          profSpe2Id: body.grandOralActif === false ? null : profSpe2Id,
+      await updateGrandOralWithProfFallback(
+        existingFiche[0].id,
+        {
           ...(nextGoStatut ? { statut: nextGoStatut } : {}),
           updatedAt: new Date(),
-        })
-        .where(eq(fichesGrandOral.id, existingFiche[0].id));
+        },
+        profSpe1Candidates,
+        profSpe2Candidates
+      );
     } else {
       const shouldCreateFiche =
         body.grandOralActif !== false ||
         targetEleve.classeNiveau === "terminale";
       if (shouldCreateFiche) {
-        await db.insert(fichesGrandOral).values({
-          eleveId,
-          anneeScolaire: ANNEE_SCOLAIRE,
-          profSpe1Id: body.grandOralActif === false ? null : profSpe1Id,
-          profSpe2Id: body.grandOralActif === false ? null : profSpe2Id,
-          statut: body.grandOralActif === false ? MODULE_DESACTIVE : "brouillon",
-        });
+        await insertGrandOralWithProfFallback(
+          {
+            eleveId,
+            anneeScolaire: ANNEE_SCOLAIRE,
+            statut:
+              body.grandOralActif === false ? MODULE_DESACTIVE : "brouillon",
+          },
+          profSpe1Candidates,
+          profSpe2Candidates
+        );
       }
     }
 

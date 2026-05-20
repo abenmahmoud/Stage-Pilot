@@ -53,7 +53,9 @@ export function canReadGrandOralForUser(
   if (row.eleveAuthUserId === user.id) return true;
   if (row.professeurPrincipalId === user.id) return true;
   return Boolean(
-    professeurId &&
-      (row.profSpe1Id === professeurId || row.profSpe2Id === professeurId)
+    row.profSpe1Id === user.id ||
+      row.profSpe2Id === user.id ||
+      (professeurId &&
+        (row.profSpe1Id === professeurId || row.profSpe2Id === professeurId))
   );
 }

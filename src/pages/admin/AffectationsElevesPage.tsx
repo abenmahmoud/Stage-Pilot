@@ -290,7 +290,7 @@ export default function AffectationsElevesPage() {
               Aucun élève ne correspond à ces filtres.
             </p>
           ) : (
-            <div className="overflow-x-auto max-h-[680px]">
+            <div className="overflow-x-auto max-h-[680px] relative">
               <table className="w-full min-w-[1320px] text-sm">
                 <thead className="sticky top-0 bg-white border-b">
                   <tr className="text-left text-xs font-medium text-gray-500 uppercase">
@@ -301,7 +301,9 @@ export default function AffectationsElevesPage() {
                     <th className="px-4 py-3">Référent stage</th>
                     <th className="px-4 py-3">Prof spé 1 GO</th>
                     <th className="px-4 py-3">Prof spé 2 GO</th>
-                    <th className="px-4 py-3 w-36">Action</th>
+                    <th className="sticky right-0 z-30 bg-white px-4 py-3 w-44 text-center shadow-[-10px_0_16px_-16px_rgba(15,23,42,0.7)]">
+                      Action
+                    </th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-50">
@@ -400,11 +402,11 @@ export default function AffectationsElevesPage() {
                             ))}
                           </select>
                         </td>
-                        <td className="px-4 py-3">
+                        <td className="sticky right-0 z-20 bg-white px-4 py-3 text-center shadow-[-10px_0_16px_-16px_rgba(15,23,42,0.7)]">
                           <button
                             onClick={() => saveEleve(eleve)}
                             disabled={savingId === eleve.id}
-                            className="inline-flex items-center justify-center gap-2 rounded-xl bg-primary-500 px-4 py-2 text-sm font-semibold text-white hover:bg-primary-600 transition-all disabled:opacity-50"
+                            className="inline-flex min-w-32 items-center justify-center gap-2 rounded-xl bg-primary-500 px-4 py-2 text-sm font-semibold text-white hover:bg-primary-600 transition-all disabled:opacity-50"
                           >
                             {savedId === eleve.id ? (
                               <CheckCircle2 className="w-4 h-4" />
