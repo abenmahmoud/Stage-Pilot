@@ -73,12 +73,28 @@ function stageReferentValue(prof: ProfOption): string {
   return prof.authUserId ?? prof.id;
 }
 
+function isDraftDirty(
+  eleve: EleveAffectation,
+  draft: DraftAffectation | undefined
+): boolean {
+  if (!draft) return false;
+  const original = draftFromEleve(eleve);
+  return (
+    draft.professeurReferentId !== original.professeurReferentId ||
+    draft.profSpe1Id !== original.profSpe1Id ||
+    draft.profSpe2Id !== original.profSpe2Id ||
+    draft.stageActif !== original.stageActif ||
+    draft.grandOralActif !== original.grandOralActif
+  );
+}
+
 export default function AffectationsElevesPage() {
   const navigate = useNavigate();
   const [data, setData] = useState<AffectationsElevesResponse | null>(null);
   const [drafts, setDrafts] = useState<Record<string, DraftAffectation>>({});
   const [loading, setLoading] = useState(true);
   const [savingId, setSavingId] = useState<string | null>(null);
+  const [savingAll, setSavingAll] = useState(false);
   const [savedId, setSavedId] = useState<string | null>(null);
   const [error, setError] = useState("");
   const [search, setSearch] = useState("");
@@ -129,6 +145,10 @@ export default function AffectationsElevesPage() {
 
   const pageCount = Math.max(1, Math.ceil(filteredEleves.length / PAGE_SIZE));
   const pageEleves = filteredEleves.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+  const dirtyEleves = useMemo(() => {
+    if (!data) return [];
+    return data.eleves.filter((eleve) => isDraftDirty(eleve, drafts[eleve.id]));
+  }, [data, drafts]);
 
   function updateDraft(
     eleve: EleveAffectation,
@@ -144,48 +164,73 @@ export default function AffectationsElevesPage() {
     }));
   }
 
+  async function persistEleve(
+    eleve: EleveAffectation,
+    draft: DraftAffectation
+  ) {
+    await apiFetch("admin/affectations-eleves", {
+      method: "PUT",
+      body: JSON.stringify({
+        eleveId: eleve.id,
+        professeurReferentId: draft.professeurReferentId || null,
+        profSpe1Id: draft.profSpe1Id || null,
+        profSpe2Id: draft.profSpe2Id || null,
+        stageActif: draft.stageActif,
+        grandOralActif: draft.grandOralActif,
+      }),
+    });
+
+    setData((prev) => {
+      if (!prev) return prev;
+      return {
+        ...prev,
+        eleves: prev.eleves.map((item) =>
+          item.id === eleve.id
+            ? {
+                ...item,
+                professeurReferentId: draft.professeurReferentId || null,
+                profSpe1Id: draft.profSpe1Id || null,
+                profSpe2Id: draft.profSpe2Id || null,
+                stageActif: draft.stageActif,
+                grandOralActif: draft.grandOralActif,
+              }
+            : item
+        ),
+      };
+    });
+  }
+
   async function saveEleve(eleve: EleveAffectation) {
     const draft = drafts[eleve.id] ?? draftFromEleve(eleve);
     setSavingId(eleve.id);
     setSavedId(null);
     setError("");
     try {
-      await apiFetch("admin/affectations-eleves", {
-        method: "PUT",
-        body: JSON.stringify({
-          eleveId: eleve.id,
-          professeurReferentId: draft.professeurReferentId || null,
-          profSpe1Id: draft.profSpe1Id || null,
-          profSpe2Id: draft.profSpe2Id || null,
-          stageActif: draft.stageActif,
-          grandOralActif: draft.grandOralActif,
-        }),
-      });
-
-      setData((prev) => {
-        if (!prev) return prev;
-        return {
-          ...prev,
-          eleves: prev.eleves.map((item) =>
-            item.id === eleve.id
-              ? {
-                  ...item,
-                  professeurReferentId: draft.professeurReferentId || null,
-                  profSpe1Id: draft.profSpe1Id || null,
-                  profSpe2Id: draft.profSpe2Id || null,
-                  stageActif: draft.stageActif,
-                  grandOralActif: draft.grandOralActif,
-                }
-              : item
-          ),
-        };
-      });
+      await persistEleve(eleve, draft);
       setSavedId(eleve.id);
       window.setTimeout(() => setSavedId(null), 1800);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Erreur d'enregistrement");
     }
     setSavingId(null);
+  }
+
+  async function saveAllDirty() {
+    if (dirtyEleves.length === 0) return;
+    setSavingAll(true);
+    setSavedId(null);
+    setError("");
+    try {
+      for (const eleve of dirtyEleves) {
+        setSavingId(eleve.id);
+        await persistEleve(eleve, drafts[eleve.id] ?? draftFromEleve(eleve));
+      }
+      setSavingId(null);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Erreur d'enregistrement");
+    }
+    setSavingId(null);
+    setSavingAll(false);
   }
 
   return (
@@ -279,6 +324,21 @@ export default function AffectationsElevesPage() {
               </button>
             </div>
           </div>
+          {dirtyEleves.length > 0 && (
+            <div className="flex flex-col gap-3 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900 sm:flex-row sm:items-center sm:justify-between">
+              <span className="font-medium">
+                {dirtyEleves.length} modification(s) à enregistrer
+              </span>
+              <button
+                onClick={saveAllDirty}
+                disabled={savingAll}
+                className="inline-flex items-center justify-center gap-2 rounded-xl bg-primary-500 px-4 py-2 text-sm font-semibold text-white hover:bg-primary-600 transition-all disabled:opacity-50"
+              >
+                <Save className="w-4 h-4" />
+                {savingAll ? "Enregistrement..." : "Tout enregistrer"}
+              </button>
+            </div>
+          )}
         </CardHeader>
         <CardContent className="p-0">
           {loading ? (
@@ -290,29 +350,51 @@ export default function AffectationsElevesPage() {
               Aucun élève ne correspond à ces filtres.
             </p>
           ) : (
-            <div className="overflow-x-auto max-h-[680px] relative">
-              <table className="w-full min-w-[1320px] text-sm">
+            <div className="overflow-x-auto max-h-[680px]">
+              <table className="w-full min-w-[1220px] text-sm">
                 <thead className="sticky top-0 bg-white border-b">
                   <tr className="text-left text-xs font-medium text-gray-500 uppercase">
-                    <th className="px-4 py-3">Élève</th>
+                    <th className="px-4 py-3 w-64">Élève</th>
                     <th className="px-4 py-3">Classe</th>
                     <th className="px-4 py-3">Stage</th>
                     <th className="px-4 py-3">Grand Oral</th>
                     <th className="px-4 py-3">Référent stage</th>
                     <th className="px-4 py-3">Prof spé 1 GO</th>
                     <th className="px-4 py-3">Prof spé 2 GO</th>
-                    <th className="sticky right-0 z-30 bg-white px-4 py-3 w-44 text-center shadow-[-10px_0_16px_-16px_rgba(15,23,42,0.7)]">
-                      Action
-                    </th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-50">
                   {pageEleves.map((eleve) => {
                     const draft = drafts[eleve.id] ?? draftFromEleve(eleve);
+                    const dirty = isDraftDirty(eleve, draft);
                     return (
-                      <tr key={eleve.id}>
-                        <td className="px-4 py-3 font-semibold text-gray-900">
-                          {eleve.nom} {eleve.prenom}
+                      <tr
+                        key={eleve.id}
+                        className={dirty ? "bg-amber-50/40" : undefined}
+                      >
+                        <td className="px-4 py-3">
+                          <div className="space-y-2">
+                            <div className="font-semibold text-gray-900">
+                              {eleve.nom} {eleve.prenom}
+                            </div>
+                            {dirty ? (
+                              <button
+                                onClick={() => saveEleve(eleve)}
+                                disabled={savingId === eleve.id || savingAll}
+                                className="inline-flex items-center gap-1.5 rounded-lg bg-primary-500 px-3 py-1.5 text-xs font-semibold text-white hover:bg-primary-600 transition-all disabled:opacity-50"
+                              >
+                                <Save className="w-3.5 h-3.5" />
+                                {savingId === eleve.id
+                                  ? "..."
+                                  : "Enregistrer"}
+                              </button>
+                            ) : savedId === eleve.id ? (
+                              <span className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-700">
+                                <CheckCircle2 className="w-3.5 h-3.5" />
+                                OK
+                              </span>
+                            ) : null}
+                          </div>
                         </td>
                         <td className="px-4 py-3 text-gray-600">
                           {eleve.classeNom ?? "—"}
@@ -401,24 +483,6 @@ export default function AffectationsElevesPage() {
                               </option>
                             ))}
                           </select>
-                        </td>
-                        <td className="sticky right-0 z-20 bg-white px-4 py-3 text-center shadow-[-10px_0_16px_-16px_rgba(15,23,42,0.7)]">
-                          <button
-                            onClick={() => saveEleve(eleve)}
-                            disabled={savingId === eleve.id}
-                            className="inline-flex min-w-32 items-center justify-center gap-2 rounded-xl bg-primary-500 px-4 py-2 text-sm font-semibold text-white hover:bg-primary-600 transition-all disabled:opacity-50"
-                          >
-                            {savedId === eleve.id ? (
-                              <CheckCircle2 className="w-4 h-4" />
-                            ) : (
-                              <Save className="w-4 h-4" />
-                            )}
-                            {savingId === eleve.id
-                              ? "..."
-                              : savedId === eleve.id
-                                ? "OK"
-                                : "Enregistrer"}
-                          </button>
                         </td>
                       </tr>
                     );
