@@ -116,6 +116,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         signeProf1At: fichesGrandOral.signeProf1At,
         signeProf2At: fichesGrandOral.signeProf2At,
         cachetApposeAt: fichesGrandOral.cachetApposeAt,
+        signatureProviseurUrl: fichesGrandOral.signatureProviseurUrl,
+        fichePdfUrl: fichesGrandOral.fichePdfUrl,
+        pdfGenereAt: fichesGrandOral.pdfGenereAt,
       })
       .from(fichesGrandOral)
       .innerJoin(eleves, eq(fichesGrandOral.eleveId, eleves.id))

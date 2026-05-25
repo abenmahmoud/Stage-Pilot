@@ -31,9 +31,18 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       );
     }
 
+    const now = new Date();
+    const pdfUrl = `/api/grand-oral/${ficheId}/pdf`;
+
     const [updated] = await db
       .update(fichesGrandOral)
-      .set({ statut: "finalise", cachetApposeAt: new Date() })
+      .set({
+        statut: "finalise",
+        cachetApposeAt: now,
+        signatureProviseurUrl: "signature-proviseur-lyceegest",
+        fichePdfUrl: pdfUrl,
+        pdfGenereAt: now,
+      })
       .where(eq(fichesGrandOral.id, ficheId))
       .returning();
 

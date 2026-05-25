@@ -2,13 +2,14 @@ import { useCallback, useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader } from "../../components/ui/Card";
 import { GoStatusBadge } from "../../components/ui/StatusBadge";
-import { apiFetch } from "../../lib/api";
+import { apiFetch, openApiFile } from "../../lib/api";
 import { useAuth } from "../../lib/auth-context";
 import type { GOStatut } from "../../lib/types";
 import {
   AlertCircle,
   ArrowLeft,
   CheckCircle2,
+  Download,
   MessageSquare,
   Stamp,
   UserCheck,
@@ -34,6 +35,9 @@ interface FicheDetail {
   signeProf1At: string | null;
   signeProf2At: string | null;
   cachetApposeAt: string | null;
+  signatureProviseurUrl: string | null;
+  fichePdfUrl: string | null;
+  pdfGenereAt: string | null;
   currentUserGoRole: CurrentUserGoRole;
   canSign: boolean;
   actionMessage: string | null;
@@ -97,15 +101,34 @@ export default function FicheDetailPage() {
 
   async function handleCachet() {
     if (!ficheId) return;
+    const popup = window.open("about:blank", "_blank");
     setSigning(true);
     setError("");
     try {
-      await apiFetch(`grand-oral/${ficheId}/cachet`, { method: "POST" });
+      const updated = await apiFetch<{ fichePdfUrl?: string | null }>(
+        `grand-oral/${ficheId}/cachet`,
+        { method: "POST" }
+      );
       await loadFiche();
+      if (updated.fichePdfUrl) {
+        await openApiFile(updated.fichePdfUrl, popup);
+      } else if (popup) {
+        popup.close();
+      }
     } catch (e) {
+      if (popup) popup.close();
       setError(e instanceof Error ? e.message : "Erreur de validation");
     }
     setSigning(false);
+  }
+
+  async function handleOpenPdf(url: string) {
+    setError("");
+    try {
+      await openApiFile(url);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Erreur d'ouverture du PDF");
+    }
   }
 
   if (loading) {
@@ -123,9 +146,11 @@ export default function FicheDetailPage() {
   }
 
   const canCachet =
-    user?.role === "proviseur" && fiche.statut === "soumis_proviseur";
+    (user?.role === "proviseur" || user?.role === "superadmin") &&
+    fiche.statut === "soumis_proviseur";
   const canValidate = fiche.canSign && hasQuestions(fiche);
   const assignedRole = roleLabel(fiche.currentUserGoRole);
+  const pdfUrl = fiche.fichePdfUrl;
 
   return (
     <div className="max-w-4xl mx-auto space-y-6">
@@ -344,7 +369,37 @@ export default function FicheDetailPage() {
               className="inline-flex items-center gap-2 rounded-xl bg-teal-600 px-6 py-2.5 text-sm font-semibold text-white hover:bg-teal-700 transition-all disabled:opacity-50"
             >
               <Stamp className="w-4 h-4" />
-              {signing ? "Traitement..." : "Apposer le cachet et finaliser"}
+              {signing
+                ? "Traitement..."
+                : "Signer, cacheter et générer le PDF"}
+            </button>
+          </CardContent>
+        </Card>
+      )}
+
+      {pdfUrl && (
+        <Card>
+          <CardHeader>
+            <h3 className="text-sm font-semibold text-gray-900">
+              Fiche finalisée
+            </h3>
+            <p className="text-xs text-gray-500">
+              Cachet et signature numérique visuelle apposés
+              {fiche.pdfGenereAt
+                ? ` le ${new Intl.DateTimeFormat("fr-FR").format(
+                    new Date(fiche.pdfGenereAt)
+                  )}`
+                : ""}.
+            </p>
+          </CardHeader>
+          <CardContent>
+            <button
+              type="button"
+              onClick={() => handleOpenPdf(pdfUrl)}
+              className="inline-flex items-center gap-2 rounded-xl bg-primary-500 px-5 py-2.5 text-sm font-semibold text-white hover:bg-primary-600 transition-colors"
+            >
+              <Download className="w-4 h-4" />
+              Ouvrir la fiche PDF
             </button>
           </CardContent>
         </Card>

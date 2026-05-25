@@ -10,7 +10,7 @@ import {
   Mic2,
   Search,
 } from "lucide-react";
-import { apiFetch } from "../../lib/api";
+import { apiFetch, openApiFile } from "../../lib/api";
 import { Card, CardContent, CardHeader } from "../../components/ui/Card";
 
 type DocumentType = "stage" | "grand_oral";
@@ -123,6 +123,15 @@ export default function DocumentsClassesPage() {
     (sum, classe) => sum + classe.documents.length,
     0
   );
+
+  async function openDocument(doc: PdfDocument) {
+    setError("");
+    try {
+      await openApiFile(doc.pdfUrl);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Erreur d'ouverture du PDF");
+    }
+  }
 
   return (
     <div className="max-w-6xl mx-auto space-y-6">
@@ -304,15 +313,14 @@ export default function DocumentsClassesPage() {
                               {formatDate(doc.generatedAt)}
                             </td>
                             <td className="px-6 py-3.5 text-right">
-                              <a
-                                href={doc.pdfUrl}
-                                target="_blank"
-                                rel="noreferrer"
+                              <button
+                                type="button"
+                                onClick={() => openDocument(doc)}
                                 className="inline-flex items-center gap-2 rounded-xl bg-primary-500 px-3 py-2 text-xs font-semibold text-white hover:bg-primary-600 transition-colors"
                               >
                                 Ouvrir
                                 <ExternalLink className="w-3.5 h-3.5" />
-                              </a>
+                              </button>
                             </td>
                           </tr>
                         ))}
