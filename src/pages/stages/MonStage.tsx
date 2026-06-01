@@ -197,7 +197,7 @@ export default function MonStage() {
             return (
               <div key={i} className="flex items-center gap-2 flex-1">
                 <button
-                  onClick={() => i <= step && setStep(i)}
+                  onClick={() => setStep(i)}
                   className={`flex items-center gap-2 rounded-xl px-3 py-2 text-xs font-medium transition-all w-full
                     ${active ? "bg-primary-500 text-white shadow-md" : done ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-400"}`}
                 >
@@ -232,6 +232,20 @@ export default function MonStage() {
             <p className="text-sm text-gray-500">Informations sur l'organisme d'accueil</p>
           </CardHeader>
           <CardContent className="space-y-4">
+            {stage.tuteurNomQualite && (
+              <div className="flex flex-col gap-3 rounded-xl border border-blue-200 bg-blue-50 p-3 text-sm text-blue-800 sm:flex-row sm:items-center sm:justify-between">
+                <span>
+                  Un tuteur est deja renseigne : {stage.tuteurNomQualite}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setStep(1)}
+                  className="inline-flex items-center justify-center rounded-lg bg-white px-3 py-1.5 text-xs font-semibold text-blue-700 hover:bg-blue-100"
+                >
+                  Voir le tuteur
+                </button>
+              </div>
+            )}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Nom de l'entreprise / organisme *</label>
               <input
@@ -300,7 +314,7 @@ export default function MonStage() {
             <div className="flex justify-end pt-2">
               <button
                 onClick={() => saveAndGo(1)}
-                disabled={!entrepriseStepReady || saving}
+                disabled={saving}
                 className="inline-flex items-center gap-2 rounded-xl bg-primary-500 px-6 py-2.5 text-sm font-semibold text-white hover:bg-primary-600 transition-all disabled:opacity-50"
               >
                 {saving ? "Enregistrement..." : "Suivant"}
@@ -349,7 +363,7 @@ export default function MonStage() {
               </button>
               <button
                 onClick={() => saveAndGo(2)}
-                disabled={!tuteurStepReady || saving}
+                disabled={saving}
                 className="inline-flex items-center gap-2 rounded-xl bg-primary-500 px-6 py-2.5 text-sm font-semibold text-white hover:bg-primary-600 transition-all disabled:opacity-50"
               >
                 {saving ? "Enregistrement..." : "Suivant"}
