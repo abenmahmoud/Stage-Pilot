@@ -60,6 +60,7 @@ export default function MonStage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
 
   useEffect(() => {
     (async () => {
@@ -75,10 +76,12 @@ export default function MonStage() {
   }, []);
 
   function update(field: string, value: string) {
+    setSuccess("");
     setStage((prev) => ({ ...prev, [field]: value }));
   }
 
   function updateHoraire(jour: string, periode: string, bound: string, value: string) {
+    setSuccess("");
     setStage((prev) => ({
       ...prev,
       horaires: {
@@ -88,9 +91,10 @@ export default function MonStage() {
     }));
   }
 
-  async function save(submit = false) {
+  async function save(submit = false): Promise<boolean> {
     setSaving(true);
     setError("");
+    setSuccess("");
     try {
       const body = { ...stage, submit };
       const res = await apiFetch<StageData>("stages/mine", {
@@ -98,11 +102,24 @@ export default function MonStage() {
         body: JSON.stringify(body),
       });
       setStage(res);
+      setSuccess(
+        submit
+          ? "Dossier envoye a l'administration et au professeur principal pour verification."
+          : "Brouillon enregistre."
+      );
       if (submit) setStep(4);
+      return true;
     } catch (e) {
       setError(e instanceof Error ? e.message : "Erreur de sauvegarde");
+      return false;
+    } finally {
+      setSaving(false);
     }
-    setSaving(false);
+  }
+
+  async function saveAndGo(nextStep: number) {
+    const ok = await save(false);
+    if (ok) setStep(nextStep);
   }
 
   if (loading)
@@ -120,6 +137,15 @@ export default function MonStage() {
   ];
 
   const isPostSubmission = stage.statut && !["a_completer", "en_cours_saisie"].includes(stage.statut);
+  const entrepriseStepReady = Boolean(
+    stage.entrepriseNom &&
+      stage.entrepriseType &&
+      stage.entrepriseAdresse &&
+      stage.entrepriseRepresentant &&
+      stage.entrepriseQualite
+  );
+  const tuteurStepReady = Boolean(stage.tuteurNomQualite);
+  const canSubmit = entrepriseStepReady && tuteurStepReady;
 
   if (stage.moduleActif === false) {
     return (
@@ -189,6 +215,13 @@ export default function MonStage() {
         <div className="flex items-start gap-3 rounded-xl bg-red-50 border border-red-200 p-4 text-sm text-red-700">
           <AlertCircle className="w-5 h-5 shrink-0 mt-0.5" />
           <span>{error}</span>
+        </div>
+      )}
+
+      {success && !isPostSubmission && (
+        <div className="flex items-start gap-3 rounded-xl bg-green-50 border border-green-200 p-4 text-sm text-green-700">
+          <CheckCircle2 className="w-5 h-5 shrink-0 mt-0.5" />
+          <span>{success}</span>
         </div>
       )}
 
@@ -266,10 +299,12 @@ export default function MonStage() {
             </div>
             <div className="flex justify-end pt-2">
               <button
-                onClick={() => { save(); setStep(1); }}
-                className="inline-flex items-center gap-2 rounded-xl bg-primary-500 px-6 py-2.5 text-sm font-semibold text-white hover:bg-primary-600 transition-all"
+                onClick={() => saveAndGo(1)}
+                disabled={!entrepriseStepReady || saving}
+                className="inline-flex items-center gap-2 rounded-xl bg-primary-500 px-6 py-2.5 text-sm font-semibold text-white hover:bg-primary-600 transition-all disabled:opacity-50"
               >
-                Suivant<ChevronRight className="w-4 h-4" />
+                {saving ? "Enregistrement..." : "Suivant"}
+                <ChevronRight className="w-4 h-4" />
               </button>
             </div>
           </CardContent>
@@ -312,8 +347,13 @@ export default function MonStage() {
               <button onClick={() => setStep(0)} className="inline-flex items-center gap-2 rounded-xl bg-gray-100 px-5 py-2.5 text-sm font-medium text-gray-600 hover:bg-gray-200 transition-all">
                 <ChevronLeft className="w-4 h-4" />Retour
               </button>
-              <button onClick={() => { save(); setStep(2); }} className="inline-flex items-center gap-2 rounded-xl bg-primary-500 px-6 py-2.5 text-sm font-semibold text-white hover:bg-primary-600 transition-all">
-                Suivant<ChevronRight className="w-4 h-4" />
+              <button
+                onClick={() => saveAndGo(2)}
+                disabled={!tuteurStepReady || saving}
+                className="inline-flex items-center gap-2 rounded-xl bg-primary-500 px-6 py-2.5 text-sm font-semibold text-white hover:bg-primary-600 transition-all disabled:opacity-50"
+              >
+                {saving ? "Enregistrement..." : "Suivant"}
+                <ChevronRight className="w-4 h-4" />
               </button>
             </div>
           </CardContent>
@@ -372,8 +412,13 @@ export default function MonStage() {
               <button onClick={() => setStep(1)} className="inline-flex items-center gap-2 rounded-xl bg-gray-100 px-5 py-2.5 text-sm font-medium text-gray-600 hover:bg-gray-200 transition-all">
                 <ChevronLeft className="w-4 h-4" />Retour
               </button>
-              <button onClick={() => { save(); setStep(3); }} className="inline-flex items-center gap-2 rounded-xl bg-primary-500 px-6 py-2.5 text-sm font-semibold text-white hover:bg-primary-600 transition-all">
-                Suivant<ChevronRight className="w-4 h-4" />
+              <button
+                onClick={() => saveAndGo(3)}
+                disabled={saving}
+                className="inline-flex items-center gap-2 rounded-xl bg-primary-500 px-6 py-2.5 text-sm font-semibold text-white hover:bg-primary-600 transition-all disabled:opacity-50"
+              >
+                {saving ? "Enregistrement..." : "Suivant"}
+                <ChevronRight className="w-4 h-4" />
               </button>
             </div>
           </CardContent>
@@ -384,7 +429,10 @@ export default function MonStage() {
         <Card>
           <CardHeader>
             <h2 className="text-lg font-bold font-heading">Récapitulatif</h2>
-            <p className="text-sm text-gray-500">Vérifiez vos informations avant de soumettre</p>
+            <p className="text-sm text-gray-500">
+              L'envoi bloque ensuite les modifications eleve : le dossier passe
+              en verification administration / professeur principal.
+            </p>
           </CardHeader>
           <CardContent className="space-y-5">
             <div className="rounded-xl bg-gray-50 p-4 space-y-3">
@@ -419,11 +467,11 @@ export default function MonStage() {
               </button>
               <button
                 onClick={() => save(true)}
-                disabled={saving}
+                disabled={saving || !canSubmit}
                 className="inline-flex items-center gap-2 rounded-xl bg-green-600 px-6 py-2.5 text-sm font-semibold text-white hover:bg-green-700 transition-all disabled:opacity-50"
               >
                 <CheckCircle2 className="w-4 h-4" />
-                {saving ? "Envoi…" : "Soumettre ma saisie"}
+                {saving ? "Envoi..." : "Envoyer pour verification"}
               </button>
             </div>
           </CardContent>
@@ -441,17 +489,24 @@ export default function MonStage() {
               <StageStatusBadge status={(stage.statut as StageStatut) || "a_completer"} />
             </div>
 
+            {stage.statut === "soumis" && (
+              <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800">
+                Votre saisie a ete envoyee. Elle est maintenant en attente de
+                verification par l'administration ou votre professeur principal.
+              </div>
+            )}
+
             <div className="flex items-center gap-0">
               {[
-                { label: "Saisie", done: true },
-                { label: "Convention générée", done: ["convention_generee", "convention_signee", "stage_en_cours", "stage_termine"].includes(stage.statut || "") },
-                { label: "Convention signée", done: ["convention_signee", "stage_en_cours", "stage_termine"].includes(stage.statut || "") },
-                { label: "Stage validé", done: ["stage_termine"].includes(stage.statut || "") },
+                { label: "Envoye", done: true },
+                { label: "Verifie", done: ["convention_generee", "convention_signee", "stage_en_cours", "stage_termine"].includes(stage.statut || "") },
+                { label: "Convention", done: ["convention_generee", "convention_signee", "stage_en_cours", "stage_termine"].includes(stage.statut || "") },
+                { label: "Stage valide", done: ["stage_termine"].includes(stage.statut || "") },
               ].map((t, i) => (
                 <div key={i} className="flex items-center gap-0 flex-1">
                   <div className="flex flex-col items-center gap-1 flex-1">
                     <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold ${t.done ? "bg-green-500 text-white" : "bg-gray-200 text-gray-400"}`}>
-                      {t.done ? "✓" : i + 1}
+                      {t.done ? "OK" : i + 1}
                     </div>
                     <span className="text-[11px] text-gray-500 text-center">{t.label}</span>
                   </div>

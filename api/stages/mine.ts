@@ -9,6 +9,17 @@ import { isStageModuleActive } from "../_shared/modules.js";
 const JOURS = ["lundi", "mardi", "mercredi", "jeudi", "vendredi"] as const;
 const PERIODES = ["matin", "apm"] as const;
 const BOUNDS = ["debut", "fin"] as const;
+const EDITABLE_STATUTS = ["a_completer", "en_cours_saisie"] as const;
+const REQUIRED_SUBMIT_FIELDS = [
+  "entrepriseNom",
+  "entrepriseType",
+  "entrepriseAdresse",
+  "entrepriseRepresentant",
+  "entrepriseQualite",
+  "tuteurNomQualite",
+] as const;
+
+type StageSelect = typeof stages.$inferSelect;
 
 function capitalize(s: string): string {
   return s.charAt(0).toUpperCase() + s.slice(1);
@@ -18,6 +29,32 @@ function horaireDbKey(jour: string, periode: string, bound: string): string {
   const periodePart = periode === "matin" ? "Matin" : "Apm";
   const boundPart = bound === "debut" ? "Debut" : "Fin";
   return `horaire${capitalize(jour)}${periodePart}${boundPart}`;
+}
+
+function normalizeText(value: unknown): string | null {
+  if (typeof value !== "string") return null;
+  const trimmed = value.trim();
+  return trimmed.length > 0 ? trimmed : null;
+}
+
+function serializeStage(stage: StageSelect, moduleActif = true) {
+  const horaires: Record<string, string> = {};
+  for (const jour of JOURS) {
+    for (const periode of PERIODES) {
+      for (const bound of BOUNDS) {
+        const key = horaireDbKey(jour, periode, bound);
+        const val = (stage as Record<string, unknown>)[key];
+        if (typeof val === "string" && val) {
+          horaires[`${jour}_${periode}_${bound}`] = val;
+        }
+      }
+    }
+  }
+  return { ...stage, moduleActif, horaires };
+}
+
+function isEditableByEleve(statut: string | null | undefined): boolean {
+  return EDITABLE_STATUTS.includes(statut as (typeof EDITABLE_STATUTS)[number]);
 }
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
@@ -83,20 +120,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         };
       }
 
-      const s = existingStage;
-      const horaires: Record<string, string> = {};
-      for (const jour of JOURS) {
-        for (const periode of PERIODES) {
-          for (const bound of BOUNDS) {
-            const key = horaireDbKey(jour, periode, bound);
-            const val = (s as Record<string, unknown>)[key];
-            if (typeof val === "string" && val) {
-              horaires[`${jour}_${periode}_${bound}`] = val;
-            }
-          }
-        }
-      }
-      return { ...s, moduleActif: true, horaires };
+      return serializeStage(existingStage, true);
     }
 
     if (!moduleActif) {
@@ -107,23 +131,42 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const body = (req.body ?? {}) as Record<string, unknown>;
     const submit = body.submit === true;
 
+    if (existingStage && !isEditableByEleve(existingStage.statut)) {
+      throw new HttpError(
+        400,
+        "Le dossier a deja ete envoye pour verification. Seuls l'administration ou le professeur principal peuvent le modifier."
+      );
+    }
+
     const stageData: Record<string, unknown> = {
       eleveId: eleve.id,
       statut: submit ? "soumis" : "en_cours_saisie",
-      entrepriseNom: (body.entrepriseNom as string) || null,
-      entrepriseRepresentant: (body.entrepriseRepresentant as string) || null,
-      entrepriseQualite: (body.entrepriseQualite as string) || null,
-      entrepriseAdresse: (body.entrepriseAdresse as string) || null,
-      entrepriseTelephone: (body.entrepriseTelephone as string) || null,
-      entrepriseEmail: (body.entrepriseEmail as string) || null,
-      entrepriseType: (body.entrepriseType as string) || null,
-      tuteurNomQualite: (body.tuteurNomQualite as string) || null,
-      tuteurEmail: (body.tuteurEmail as string) || null,
-      tuteurTelephone: (body.tuteurTelephone as string) || null,
-      faitLe: (body.faitLe as string) || null,
+      entrepriseNom: normalizeText(body.entrepriseNom),
+      entrepriseRepresentant: normalizeText(body.entrepriseRepresentant),
+      entrepriseQualite: normalizeText(body.entrepriseQualite),
+      entrepriseAdresse: normalizeText(body.entrepriseAdresse),
+      entrepriseTelephone: normalizeText(body.entrepriseTelephone),
+      entrepriseEmail: normalizeText(body.entrepriseEmail),
+      entrepriseType: normalizeText(body.entrepriseType),
+      tuteurNomQualite: normalizeText(body.tuteurNomQualite),
+      tuteurEmail: normalizeText(body.tuteurEmail),
+      tuteurTelephone: normalizeText(body.tuteurTelephone),
+      faitLe: normalizeText(body.faitLe),
+      updatedAt: new Date(),
     };
 
-    if (submit) stageData.soumisAt = new Date();
+    if (submit) {
+      const missingFields = REQUIRED_SUBMIT_FIELDS.filter(
+        (field) => !stageData[field]
+      );
+      if (missingFields.length > 0) {
+        throw new HttpError(
+          400,
+          "Complete les informations obligatoires avant d'envoyer le dossier."
+        );
+      }
+      stageData.soumisAt = new Date();
+    }
 
     const horaires = (body.horaires ?? {}) as Record<string, string>;
     for (const jour of JOURS) {
@@ -142,13 +185,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         .set(stageData)
         .where(eq(stages.id, existingStage.id))
         .returning();
-      return updated;
+      return serializeStage(updated, true);
     }
 
     const [inserted] = await db
       .insert(stages)
       .values(stageData as typeof stages.$inferInsert)
       .returning();
-    return inserted;
+    return serializeStage(inserted, true);
   });
 }

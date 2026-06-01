@@ -39,7 +39,7 @@ export const STAGE_STATUS = {
     label: "En cours",
     color: "bg-yellow-100 text-yellow-700",
   },
-  soumis: { label: "Soumis", color: "bg-blue-100 text-blue-700" },
+  soumis: { label: "A verifier", color: "bg-yellow-100 text-yellow-700" },
   convention_generee: {
     label: "PDF prêt",
     color: "bg-indigo-100 text-indigo-700",

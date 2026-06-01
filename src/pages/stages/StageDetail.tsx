@@ -227,6 +227,13 @@ export default function StageDetailPage() {
         </div>
       )}
 
+      {form.statut === "soumis" && canManage && (
+        <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800">
+          Dossier envoye par l'eleve : verifiez les informations entreprise et
+          tuteur, corrigez si necessaire, puis changez le statut du dossier.
+        </div>
+      )}
+
       <div className="grid gap-6 lg:grid-cols-[1fr_360px]">
         <div className="space-y-6">
           <Card>

@@ -261,7 +261,7 @@ export default function StagesDashboard() {
               <option value="all">Tous les statuts</option>
               <option value="a_completer">Rien saisi</option>
               <option value="en_cours_saisie">En cours</option>
-              <option value="soumis">Soumis</option>
+              <option value="soumis">A verifier</option>
               <option value="convention_generee">PDF pret</option>
               <option value="convention_signee">Dossier complet</option>
               <option value="stage_en_cours">Stage en cours</option>
