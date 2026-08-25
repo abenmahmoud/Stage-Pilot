@@ -22,6 +22,7 @@ import {
   Inbox,
   KeyRound,
   Laptop,
+  Languages,
   LifeBuoy,
   Mail,
   MapPin,
@@ -37,6 +38,7 @@ import {
   Settings2,
   ShieldCheck,
   Sparkles,
+  Smartphone,
   TicketCheck,
   UserRound,
   Users,
@@ -118,6 +120,17 @@ const identityStatusLabels: Record<IdentityStatus, string> = {
   non_verifiee: "Coordonnées déclarées",
   contact_verifie: "Moyen de contact vérifié",
   identite_confirmee: "Identité confirmée par le lycée",
+};
+
+const languagePreferenceLabels: Record<string, string> = {
+  francais_simple: "Français simple",
+  francais: "Français",
+  arabe: "Arabe",
+  anglais: "Anglais",
+  espagnol: "Espagnol",
+  portugais: "Portugais",
+  turc: "Turc",
+  autre: "Autre langue",
 };
 
 function supportCategoryLabel(value: string): string {
@@ -666,7 +679,7 @@ function HelpDeskView({
   const welcomeMessage: AssistantChatMessage = {
     id: "welcome",
     role: "assistant",
-    content: "Bonjour, je suis l’assistant du lycée. Écrivez simplement ce qui vous arrive. Vous pouvez joindre une photo ou un document. Ne donnez jamais votre mot de passe.",
+    content: "Bonjour, je suis l’assistant du lycée. Écrivez simplement ce qui vous arrive, même dans votre langue. Vous pouvez joindre une photo ou un document. Ne donnez jamais votre mot de passe.",
   };
   const [chatMessages, setChatMessages] = useState<AssistantChatMessage[]>(() => [
     welcomeMessage,
@@ -819,6 +832,8 @@ function HelpDeskView({
             phone,
             preferredChannel,
             fallbackAllowed: form.get("fallbackAllowed") === "on",
+            languagePreference: form.get("languagePreference"),
+            communicationSupport: form.get("communicationSupport") === "on",
             website: form.get("website"),
           }),
         });
@@ -853,7 +868,8 @@ function HelpDeskView({
         <h1>Votre dossier est créé.</h1>
         <p>La conversation et les documents sont réunis. Un agent du lycée peut maintenant vous répondre sans vous faire recommencer.</p>
         <div className="lycee-ticket-code"><span>Numéro de demande</span><strong>{ticketCode}</strong></div>
-        <div className="lycee-confirmation-note"><Mail aria-hidden="true" /><span>Vous recevrez la réponse par le moyen choisi. Le suivi reste également disponible sur cet appareil.</span></div>
+        <div className="lycee-confirmation-note"><Smartphone aria-hidden="true" /><span>Le suivi reste disponible sur cet appareil. Si vous avez indiqué une adresse email, vous recevez aussi un lien sécurisé pour retrouver le dossier depuis un autre appareil.</span></div>
+        <div className="lycee-confirmation-note"><Mail aria-hidden="true" /><span>Conservez l’email du lycée : il garde une trace de la demande, du numéro de dossier et des réponses.</span></div>
         <div className="lycee-confirmation-note"><BadgeCheck aria-hidden="true" /><span>Pour une demande sensible, le lycée vérifie votre identité avant de transmettre un code ou une donnée personnelle.</span></div>
         {attachmentWarning ? <div className="lycee-form-error" role="alert"><CircleAlert aria-hidden="true" />{attachmentWarning}</div> : null}
         <div className="lycee-confirmation-actions">
@@ -869,12 +885,12 @@ function HelpDeskView({
       <PageIntro
         eyebrow="Assistant du lycée"
         title="Dites simplement ce qu’il vous faut"
-        description="Une conversation libre, une demande bien classée et un suivi jusqu’à la réponse."
+        description="Écrivez avec vos mots, dans la langue qui vous convient. Le lycée garde la conversation jusqu’à la réponse."
         onBack={onBack}
       />
 
       <div className="lycee-guided-chat">
-        <div className="lycee-guided-chat-head"><span><Bot aria-hidden="true" /></span><div><strong>Assistant Blaise</strong><small>Comprend, prépare et transmet au bon agent</small></div><em><span /> Disponible</em></div>
+        <div className="lycee-guided-chat-head"><span><Bot aria-hidden="true" /></span><div><strong>Assistant Blaise</strong><small>Comprend, reformule et transmet au bon agent</small></div><em><span /> Disponible</em></div>
         <div className="lycee-guided-thread" ref={threadRef} aria-live="polite">
           {chatMessages.map((message) => (
             <div data-speaker={message.role} key={message.id}>
@@ -886,6 +902,7 @@ function HelpDeskView({
         </div>
 
         <div className="lycee-chat-workspace">
+          <div className="lycee-language-help"><Languages aria-hidden="true" /><span><strong>Le français est difficile ?</strong><small>Écrivez dans votre langue ou avec des mots simples. L’assistant vous aide sans vous juger.</small></span></div>
           {insight ? (
             <div className="lycee-live-analysis">
               <WandSparkles aria-hidden="true" />
@@ -928,13 +945,16 @@ function HelpDeskView({
                 {profile === "eleve" || profile === "parent" ? <label><span>Classe, si connue</span><input name="className" type="text" placeholder="Ex. 2GT4" /></label> : null}
                 {profile === "professeur" || profile === "personnel" ? <label><span>Matière ou service</span><input name="subjectArea" type="text" placeholder="Ex. Mathématiques, intendance" /></label> : null}
                 {profile === "professeur" ? <label><span>Voie</span><select name="schoolTrack"><option value="">Non précisée</option><option value="general">Générale et technologique</option><option value="professionnel">Professionnelle</option><option value="les_deux">Les deux</option></select></label> : null}
-                <label><span>Adresse email</span><input name="email" type="email" autoComplete="email" placeholder="nom@exemple.fr" /></label>
-                <label><span>Téléphone</span><input name="phone" type="tel" autoComplete="tel" placeholder="06 00 00 00 00" /></label>
-                <label><span>Réponse souhaitée</span><select name="preferredChannel" defaultValue="email"><option value="email">Par email</option><option value="phone">Par téléphone</option><option value="web">Dans l’application</option></select></label>
+                <label><span>Adresse email recommandée</span><input name="email" type="email" autoComplete="email" placeholder="nom@exemple.fr" /><small>Pour garder une trace et retrouver la demande sur un autre appareil.</small></label>
+                <label><span>Téléphone</span><input name="phone" type="tel" autoComplete="tel" placeholder="06 00 00 00 00" /><small>Pour un rappel si l’email ne suffit pas.</small></label>
+                <label><span>Moyen de contact principal</span><select name="preferredChannel" defaultValue="email"><option value="email">Email, recommandé</option><option value="phone">Téléphone</option></select></label>
+                <label><span>Langue souhaitée</span><select name="languagePreference" defaultValue="francais_simple"><option value="francais_simple">Français simple</option><option value="francais">Français</option><option value="arabe">Arabe</option><option value="anglais">Anglais</option><option value="espagnol">Espagnol</option><option value="portugais">Portugais</option><option value="turc">Turc</option><option value="autre">Autre langue, précisée dans le message</option></select></label>
                 <label className="lycee-fallback-choice"><input name="fallbackAllowed" type="checkbox" defaultChecked /><span>Utiliser l’autre moyen de contact si nécessaire</span></label>
+                <label className="lycee-fallback-choice"><input name="communicationSupport" type="checkbox" /><span>J’ai besoin d’un rappel pour mieux comprendre la réponse</span></label>
                 {classicForm ? <label className="is-wide"><span>Votre demande</span><textarea value={classicDescription} onChange={(event) => setClassicDescription(event.target.value)} rows={5} maxLength={5000} placeholder="Expliquez ce dont vous avez besoin." required /></label> : null}
                 <label className="lycee-honeypot" aria-hidden="true"><span>Site web</span><input name="website" type="text" tabIndex={-1} autoComplete="off" /></label>
               </div>
+              <div className="lycee-contact-guidance"><Smartphone aria-hidden="true" /><span><strong>Deux moyens pour ne pas perdre la demande</strong><small>Le suivi sur cet appareil est toujours actif. L’email ajoute une copie durable et un accès depuis un autre téléphone ou ordinateur.</small></span></div>
               <div className="lycee-ai-summary"><WandSparkles aria-hidden="true" /><span><strong>{selectedCategory?.label}</strong><small>Conversation et pièces jointes conservées dans le même dossier</small></span></div>
               <div className="lycee-case-security"><BadgeCheck aria-hidden="true" /><span><strong>Vérification adaptée à la demande</strong><small>Le lien reçu par email vérifie votre adresse. Pour un code ENT ou une messagerie académique, un agent confirme aussi votre identité dans la liste officielle du lycée.</small></span></div>
               {submitError ? <div className="lycee-form-error" role="alert"><CircleAlert aria-hidden="true" />{submitError}</div> : null}
@@ -1162,11 +1182,11 @@ function ConnectedRequestsView({ ticketCode, onBack }: { ticketCode: string | nu
 
   return (
     <div className="lycee-page">
-      <PageIntro eyebrow="Suivi" title="Mes demandes" description="Retrouvez les réponses du lycée et continuez l’échange ici." onBack={onBack} />
+      <PageIntro eyebrow="Suivi" title="Mes demandes" description="Retrouvez les réponses sur cet appareil. Le lien reçu par email permet de reprendre depuis un autre téléphone ou ordinateur." onBack={onBack} />
       {error ? <div className="lycee-form-error" role="alert"><CircleAlert aria-hidden="true" />{error}</div> : null}
       {loading ? <div className="lycee-loading-state"><Clock3 aria-hidden="true" /> Chargement des demandes…</div> : null}
       {!loading && requests.length === 0 ? (
-        <section className="lycee-empty-state"><TicketCheck aria-hidden="true" /><h2>Aucune demande sur cet appareil</h2><p>Une demande apparaîtra ici dès son enregistrement.</p><button type="button" onClick={onBack}>Retour à l’accueil</button></section>
+        <section className="lycee-empty-state"><TicketCheck aria-hidden="true" /><h2>Aucune demande sur cet appareil</h2><p>Si vous aviez déjà créé une demande ailleurs, ouvrez le lien sécurisé reçu par email.</p><button type="button" onClick={onBack}>Retour à l’accueil</button></section>
       ) : null}
       {requests.length > 0 ? (
         <div className="lycee-track-grid">
@@ -1188,7 +1208,7 @@ function ConnectedRequestsView({ ticketCode, onBack }: { ticketCode: string | nu
                 <div><span>{detail.request.publicCode}</span><h2>{detail.request.subject}</h2></div>
                 <div className="lycee-ticket-head-actions"><em>{supportStatusLabels[detail.request.status] ?? detail.request.status}</em><button className="lycee-refresh-button" type="button" onClick={() => selectedCode && void loadDetail(selectedCode)} title="Actualiser la conversation"><RefreshCw aria-hidden="true" /><span>Actualiser</span></button></div>
               </div>
-              <div className="lycee-ticket-meta"><span><Users aria-hidden="true" /> {requesterProfileLabels[detail.request.requesterType] ?? detail.request.requesterType}</span><span><Mail aria-hidden="true" /> Réponse par {channelLabels[detail.request.preferredChannel] ?? detail.request.preferredChannel}</span></div>
+              <div className="lycee-ticket-meta"><span><Users aria-hidden="true" /> {requesterProfileLabels[detail.request.requesterType] ?? detail.request.requesterType}</span><span><Smartphone aria-hidden="true" /> Suivi sur cet appareil</span><span><Mail aria-hidden="true" /> Contact principal : {channelLabels[detail.request.preferredChannel] ?? detail.request.preferredChannel}</span></div>
               <section className="lycee-identity-status" data-status={detail.request.identityStatus}>
                 <BadgeCheck aria-hidden="true" />
                 <span><strong>{identityStatusLabels[detail.request.identityStatus]}</strong><small>{detail.request.identityStatus === "identite_confirmee" ? "Le lycée a rapproché la personne d’une source officielle." : detail.request.identityStatus === "contact_verifie" ? detail.request.identityMethod === "phone_callback" ? "Un agent a vérifié le numéro de téléphone par rappel, sans confirmer encore l’identité scolaire." : "Le lien sécurisé confirme l’accès à l’adresse email, sans confirmer encore l’identité scolaire." : "La demande est enregistrée. Aucune donnée sensible ne sera transmise avant vérification."}</small></span>
@@ -1552,7 +1572,7 @@ function ConnectedAgentView({ onBack }: { onBack: () => void }) {
               <section className="lycee-agent-identity" data-sensitive={["ent", "email_academique"].includes(selected.category)}><BadgeCheck aria-hidden="true" /><span><strong>{identityStatusLabels[selected.identityStatus]}</strong><small>{["ent", "email_academique"].includes(selected.category) ? "Demande sensible : ne transmettre aucun identifiant avant rapprochement avec une liste officielle." : "Adaptez le contrôle au niveau de sensibilité de la réponse."}</small></span><select aria-label="Niveau de vérification de l’identité" value={selected.identityStatus} disabled={saving} onChange={(event) => { const identityStatus = event.target.value as IdentityStatus; const identityMethod = identityStatus === "identite_confirmee" ? "official_roster" : identityStatus === "contact_verifie" ? (detail.contacts.some((contact) => contact.channel === "email" && contact.isVerified) ? "email_magic_link" : "phone_callback") : undefined; void updateRequest({ identityStatus, identityMethod }); }}><option value="non_verifiee">Coordonnées déclarées</option><option value="contact_verifie">Contact vérifié</option><option value="identite_confirmee">Identité confirmée dans la liste</option></select></section>
               <div className="lycee-agent-thread">{detail.messages.map((message) => <div data-direction={message.direction} key={message.id}><span><strong>{message.authorLabel ?? "Utilisateur"}</strong><small>{supportDate(message.createdAt)} · {supportDeliveryLabel(message.deliveryStatus)}</small></span><p>{message.bodyText}</p></div>)}</div>
               {detail.attachments.length > 0 ? <div className="lycee-tracked-files">{detail.attachments.map((attachment) => <div key={attachment.id}><FileText aria-hidden="true" /><span><strong>{attachment.originalName}</strong><small>{attachment.scanStatus === "clean" ? "Vérifié" : "Contrôle en cours"}</small></span>{attachment.scanStatus === "clean" ? <button type="button" onClick={() => void openAgentAttachment(attachment.id)} aria-label={`Ouvrir ${attachment.originalName}`}><ExternalLink aria-hidden="true" /></button> : null}</div>)}</div> : null}
-              <section className="lycee-agent-ai"><div><WandSparkles aria-hidden="true" /><span><span className="lycee-eyebrow">Aide au traitement</span><h3>{supportCategoryLabel(selected.category)} · priorité {selected.priority.toUpperCase()}</h3></span></div><dl><div><dt>Personne</dt><dd>{selected.beneficiaryType === "self" ? "Demandeur" : `${selected.beneficiaryFirstName ?? ""} ${selected.beneficiaryLastName ?? ""}`}</dd></div><div><dt>Canal disponible</dt><dd>{detail.contacts.map((contact) => channelLabels[contact.channel] ?? contact.channel).join(" + ")}</dd></div><div><dt>Pièces</dt><dd>{detail.attachments.length} {detail.attachments.length > 1 ? "documents" : "document"}</dd></div></dl></section>
+              <section className="lycee-agent-ai"><div><WandSparkles aria-hidden="true" /><span><span className="lycee-eyebrow">Aide au traitement</span><h3>{supportCategoryLabel(selected.category)} · priorité {selected.priority.toUpperCase()}</h3></span></div><dl><div><dt>Personne</dt><dd>{selected.beneficiaryType === "self" ? "Demandeur" : `${selected.beneficiaryFirstName ?? ""} ${selected.beneficiaryLastName ?? ""}`}</dd></div><div><dt>Canal disponible</dt><dd>{detail.contacts.map((contact) => channelLabels[contact.channel] ?? contact.channel).join(" + ")}</dd></div><div><dt>Langue souhaitée</dt><dd>{languagePreferenceLabels[selected.subjectContext.languagePreference] ?? "Non précisée"}</dd></div><div><dt>Aide à la compréhension</dt><dd>{selected.subjectContext.communicationSupport ?? "Réponse écrite"}</dd></div><div><dt>Pièces</dt><dd>{detail.attachments.length} {detail.attachments.length > 1 ? "documents" : "document"}</dd></div></dl></section>
               <section className="lycee-reply-box"><div><span><Sparkles aria-hidden="true" /> Réponse à valider</span><button type="button" onClick={() => setReply("Bonjour, votre demande a bien été prise en charge. Nous revenons vers vous dès que la vérification est terminée.")}>Proposer</button></div><textarea aria-label="Réponse à envoyer" rows={5} value={reply} onChange={(event) => setReply(event.target.value)} placeholder="Écrivez une réponse claire. Aucun mot de passe ne doit être demandé." /><div><button className="lycee-secondary-action" type="button" disabled><Paperclip aria-hidden="true" /> Joindre</button><button className="lycee-primary-action" type="button" disabled={saving || !reply.trim()} onClick={() => void sendAgentReply()}><Send aria-hidden="true" /> {saving ? "Enregistrement…" : "Valider et envoyer"}</button></div></section>
             </>
           ) : <div className="lycee-loading-state"><Clock3 aria-hidden="true" /> Sélectionnez une demande</div>}

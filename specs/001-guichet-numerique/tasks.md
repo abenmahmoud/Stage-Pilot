@@ -87,11 +87,19 @@ voir sa réponse dans le dossier. L'agent traite tout depuis une seule file.
   au centre de l'identité visuelle de l'accueil.
 - [x] **T036E** Présenter les huit spécialités générales avec photos, explications
   et compétences développées sur ordinateur et téléphone.
+- [x] **T036F** Rendre le suivi appareil + email explicite, recommander l'email
+  comme trace durable et conserver le téléphone comme secours.
+- [x] **T036G** Recueillir la langue souhaitée et le besoin de rappel, adapter la
+  réponse de l'assistant et rendre ces besoins visibles dans l'espace agent.
+- [ ] **T036H** Reprendre et faire valider toutes les rubriques de l'ancien site
+  selon `content-migration.md` avant toute bascule du domaine principal.
 - [ ] **T037** Ajouter les mentions d'information, durées et procédure d'exercice
   des droits.
 - [ ] **T038** Exécuter tests mobile, desktop, clavier, charge et sécurité.
 - [x] **T038A** Relire les textes du parcours demandeur et agent, remplacer les
   codes internes par des libellés français et vérifier les principaux écrans.
+- [x] **T038B** Vérifier le nouveau parcours d'aide sur ordinateur et téléphone,
+  sans débordement horizontal et avec les aides de compréhension visibles.
 - [ ] **T039** Déployer une preview Vercel protégée et la faire valider.
 - [x] **T039A** Déployer la preview protégée et terminer sa validation technique
   mobile/ordinateur, API, base, email sortant et fichier sain.

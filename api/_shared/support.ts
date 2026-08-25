@@ -153,6 +153,11 @@ export function parseSupportRequest(body: unknown): SupportRequestInput {
       className: contextValue(input.className, "Classe"),
       subjectArea: contextValue(input.subjectArea, "Matière ou service"),
       schoolTrack: contextValue(input.schoolTrack, "Voie"),
+      languagePreference: contextValue(input.languagePreference, "Langue souhaitée"),
+      communicationSupport:
+        input.communicationSupport === true
+          ? "Rappel téléphonique souhaité pour faciliter la compréhension"
+          : undefined,
     }).filter((entry): entry is [string, string] => Boolean(entry[1]))
   );
 

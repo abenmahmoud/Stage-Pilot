@@ -52,6 +52,14 @@ et ne clôture pas un dossier sans validation humaine.
 18. Les huit spécialités générales proposées par l'établissement sont présentées
     avec leur intitulé, une explication simple, les compétences développées et un
     visuel significatif.
+19. Le suivi sur l'appareil est toujours actif. Lorsqu'une adresse email est
+    fournie, le lien sécurisé par email constitue un second accès et la trace
+    durable recommandée ; le téléphone reste un canal de rappel ou de secours.
+20. Une personne peut écrire dans sa langue ou demander un français simple. Ce
+    besoin est conservé dans le dossier et visible par l'agent sans diminuer le
+    niveau de vérification d'identité.
+21. Le site officiel ne peut être remplacé qu'après reprise, correction et
+    validation de toutes ses rubriques utiles, de ses documents et de ses liens.
 
 ## 3. Acteurs
 
@@ -77,8 +85,9 @@ et ne clôture pas un dossier sans validation humaine.
 5. La personne indique si la demande la concerne ou concerne une autre personne.
 6. Elle renseigne l'identité scolaire minimale du bénéficiaire.
 7. Elle peut déposer jusqu'à cinq fichiers dans le même parcours.
-8. Elle fournit au moins un moyen de réponse : email ou téléphone, choisit son
-   canal préféré et peut autoriser un canal de secours.
+8. Elle fournit au moins un moyen de réponse : email ou téléphone. Le suivi sur
+   l'appareil reste actif, l'email est recommandé pour garder une trace et elle
+   peut autoriser le téléphone comme canal de secours.
 9. L'API crée le dossier, son premier événement et le job de notification dans
    une seule transaction Postgres.
 10. L'écran affiche immédiatement un numéro `BC-AAAA-NNNNNN` et propose de
