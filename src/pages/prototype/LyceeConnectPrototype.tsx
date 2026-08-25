@@ -180,6 +180,65 @@ const services = [
   },
 ];
 
+const specialties = [
+  {
+    acronym: "HGGSP",
+    title: "Histoire-géographie, géopolitique et sciences politiques",
+    summary: "Comprendre les rapports de force, les territoires et les grands enjeux contemporains.",
+    focus: "Analyser · argumenter · croiser les sources",
+    image: "/specialties/hggsp.webp",
+  },
+  {
+    acronym: "HLP",
+    title: "Humanités, littérature et philosophie",
+    summary: "Explorer les grandes questions humaines par les textes, les idées et la réflexion.",
+    focus: "Lire · penser · construire un raisonnement",
+    image: "/specialties/hlp.webp",
+  },
+  {
+    acronym: "LLCE",
+    title: "Langues, littératures et cultures étrangères",
+    summary: "Approfondir une langue et découvrir les cultures, les œuvres et les sociétés qui la portent.",
+    focus: "Communiquer · interpréter · s'ouvrir au monde",
+    image: "/specialties/llce.webp",
+  },
+  {
+    acronym: "MATHS",
+    title: "Mathématiques",
+    summary: "Développer l'abstraction, la modélisation et les outils nécessaires aux sciences.",
+    focus: "Démontrer · modéliser · résoudre",
+    image: "/specialties/mathematiques.webp",
+  },
+  {
+    acronym: "NSI",
+    title: "Numérique et sciences informatiques",
+    summary: "Comprendre les données, les algorithmes, les réseaux et la programmation.",
+    focus: "Coder · concevoir · comprendre le numérique",
+    image: "/specialties/nsi.webp",
+  },
+  {
+    acronym: "PHYSIQUE-CHIMIE",
+    title: "Physique-chimie",
+    summary: "Observer la matière et les phénomènes, expérimenter puis construire des modèles.",
+    focus: "Expérimenter · mesurer · expliquer",
+    image: "/specialties/physique-chimie.webp",
+  },
+  {
+    acronym: "SVT",
+    title: "Sciences de la vie et de la Terre",
+    summary: "Étudier le vivant, la planète, la santé et les grands équilibres environnementaux.",
+    focus: "Observer · expérimenter · relier les échelles",
+    image: "/specialties/svt.webp",
+  },
+  {
+    acronym: "SES",
+    title: "Sciences économiques et sociales",
+    summary: "Décoder l'économie, les comportements sociaux et les transformations de la société.",
+    focus: "Enquêter · interpréter · débattre",
+    image: "/specialties/ses.webp",
+  },
+] as const;
+
 export default function LyceeConnectPrototype() {
   const [view, setView] = useState<View>(() => {
     const requested = new URLSearchParams(window.location.search).get("view");
@@ -233,10 +292,10 @@ export default function LyceeConnectPrototype() {
     <div className="lycee-connect">
       <aside className="lycee-sidebar">
         <div className="lycee-brand">
-          <img src="/lycee-blaise-logo.png" alt="Lycée Blaise Cendrars" />
+          <img src="/blaise-cendrars-portrait.webp" alt="Portrait de Blaise Cendrars" />
           <div>
-            <strong>Blaise Cendrars</strong>
-            <span>Sevran</span>
+            <strong>Lycée Blaise Cendrars</strong>
+            <span>Sevran · 93</span>
           </div>
         </div>
 
@@ -288,8 +347,11 @@ export default function LyceeConnectPrototype() {
             <Menu aria-hidden="true" />
           </button>
           <div className="lycee-mobile-brand">
-            <strong>Blaise Cendrars</strong>
-            <span>Mon lycée</span>
+            <img src="/blaise-cendrars-portrait.webp" alt="" />
+            <div>
+              <strong>Blaise Cendrars</strong>
+              <span>Lycée polyvalent</span>
+            </div>
           </div>
           <div className="lycee-top-actions">
             <button className="lycee-top-tool" type="button" onClick={() => changeView("school")} title="Voir les informations de rentrée"><Newspaper aria-hidden="true" /><span>À la une</span></button>
@@ -327,10 +389,14 @@ export default function LyceeConnectPrototype() {
         <section className="lycee-hero">
           <img src="/lycee-blaise-facade.png" alt="Façade du Lycée Blaise Cendrars à Sevran" />
           <div className="lycee-hero-shade" />
+          <img className="lycee-hero-portrait" src="/blaise-cendrars-portrait.webp" alt="Portrait de Blaise Cendrars avec sa cigarette, signature historique du lycée" />
           <div className="lycee-hero-copy">
-            <span>Bonjour</span>
-            <h1>Tout votre lycée, dans une seule application.</h1>
-            <p>Services scolaires, informations et assistance, sur téléphone comme sur ordinateur.</p>
+            <span>Lycée polyvalent · Sevran</span>
+            <h1>Blaise Cendrars</h1>
+            <p>Un lycée pour construire son parcours, de la voie générale aux formations technologiques et professionnelles.</p>
+            <div className="lycee-hero-tracks" aria-label="Parcours proposés">
+              <span>Général</span><span>Technologique</span><span>Professionnel</span><span>CAP</span>
+            </div>
           </div>
         </section>
 
@@ -395,6 +461,29 @@ export default function LyceeConnectPrototype() {
             </div>
           </section>
 
+          <section className="lycee-specialties-preview" aria-labelledby="specialties-preview-title">
+            <div className="lycee-section-title">
+              <div>
+                <span className="lycee-eyebrow">Voie générale</span>
+                <h2 id="specialties-preview-title">Choisir parmi 8 spécialités</h2>
+              </div>
+              <button type="button" onClick={() => changeView("school")}>Toutes les spécialités <ChevronRight aria-hidden="true" /></button>
+            </div>
+            <div className="lycee-specialties-preview-grid">
+              {specialties.slice(0, 4).map((specialty) => (
+                <button type="button" key={specialty.acronym} onClick={() => changeView("school")}>
+                  <span className="lycee-specialty-preview-image">
+                    <img src={specialty.image} alt="" loading="lazy" />
+                    <em>{specialty.acronym}</em>
+                  </span>
+                  <strong>{specialty.title}</strong>
+                  <small>{specialty.summary}</small>
+                  <ChevronRight aria-hidden="true" />
+                </button>
+              ))}
+            </div>
+          </section>
+
           <section className="lycee-lower-grid">
             <article className="lycee-news">
               <span><BarChart3 aria-hidden="true" /> LyceeGest</span>
@@ -419,7 +508,7 @@ export default function LyceeConnectPrototype() {
           <section className="lycee-formations-band">
             <div><span className="lycee-eyebrow">Lycée polyvalent</span><h2>Général, technologique et professionnel</h2><p>Des parcours de la seconde au baccalauréat, avec CAP, spécialités générales, STL, STMG, MELEC et PCEPC.</p></div>
             <div className="lycee-track-pills"><span>Voie générale</span><span>STL</span><span>STMG</span><span>Voie pro</span><span>CAP</span></div>
-            <button type="button" onClick={() => changeView("school")}>Découvrir les formations <ChevronRight aria-hidden="true" /></button>
+            <button type="button" onClick={() => changeView("school")}>Découvrir toutes les formations <ChevronRight aria-hidden="true" /></button>
           </section>
         </div>
           </>
@@ -1156,12 +1245,34 @@ function SchoolView({ onBack }: { onBack: () => void }) {
   ];
   return (
     <div className="lycee-page">
-      <PageIntro eyebrow="Blaise Cendrars" title="Le lycée et ses formations" description="Retrouvez l’essentiel de la rentrée, les parcours et les accès utiles sur téléphone comme sur ordinateur." onBack={onBack} />
+      <PageIntro eyebrow="Lycée polyvalent" title="Blaise Cendrars, Sevran" description="Découvrez les spécialités, les voies de formation et les accès utiles de l'établissement." onBack={onBack} />
       <section className="lycee-school-feature">
-        <img src="/lycee-blaise-facade.png" alt="Lycée Blaise Cendrars" />
-        <div><span className="lycee-eyebrow">À la une</span><h2>Organisation de la rentrée</h2><p>Horaires, affectations, documents et accès numériques: l’assistant vous oriente si une information manque.</p><button type="button" onClick={() => window.scrollTo({ top: document.body.scrollHeight, behavior: "smooth" })}>Voir les informations utiles <ChevronRight aria-hidden="true" /></button></div>
+        <img src="/blaise-cendrars-portrait.webp" alt="Portrait de Blaise Cendrars avec sa cigarette" />
+        <div><span className="lycee-eyebrow">Une identité, plusieurs parcours</span><h2>Un lycée ouvert sur les sciences, les humanités et les métiers</h2><p>À Sevran, les voies générale, technologique et professionnelle se rencontrent dans un même établissement.</p><button type="button" onClick={() => document.getElementById("specialites")?.scrollIntoView({ behavior: "smooth" })}>Voir les spécialités <ChevronRight aria-hidden="true" /></button></div>
       </section>
-      <div className="lycee-school-stats"><div><strong>Polyvalent</strong><span>général, techno et pro</span></div><div><strong>15</strong><span>formations référencées</span></div><div><strong>86 %</strong><span>réussite globale 2025</span></div><div><strong>90 %</strong><span>réussite bac STL 2025</span></div></div>
+      <div className="lycee-school-stats"><div><strong>Polyvalent</strong><span>général, techno et pro</span></div><div><strong>8</strong><span>spécialités générales</span></div><div><strong>15</strong><span>formations référencées</span></div><div><strong>Euro</strong><span>section européenne anglais</span></div></div>
+      <section className="lycee-specialties" id="specialites" aria-labelledby="specialites-title">
+        <div className="lycee-section-title">
+          <div><span className="lycee-eyebrow">Première et terminale générales</span><h2 id="specialites-title">Les spécialités proposées</h2></div>
+          <a href="https://lycee-blaise-cendrars-sevran.fr/specialites/" target="_blank" rel="noreferrer">Informations officielles <ExternalLink aria-hidden="true" /></a>
+        </div>
+        <p className="lycee-specialties-intro">En première, chaque élève choisit trois spécialités puis en conserve deux en terminale. Le choix se construit selon ses goûts, ses points forts et son projet d'études.</p>
+        <div className="lycee-specialties-grid">
+          {specialties.map((specialty) => (
+            <article key={specialty.acronym}>
+              <div className="lycee-specialty-image">
+                <img src={specialty.image} alt={`Univers de la spécialité ${specialty.title}`} loading="lazy" />
+                <span>{specialty.acronym}</span>
+              </div>
+              <div>
+                <h3>{specialty.title}</h3>
+                <p>{specialty.summary}</p>
+                <small>{specialty.focus}</small>
+              </div>
+            </article>
+          ))}
+        </div>
+      </section>
       <section className="lycee-formations" aria-labelledby="formations-title">
         <div className="lycee-section-title"><div><span className="lycee-eyebrow">Choisir son parcours</span><h2 id="formations-title">Les formations du lycée</h2></div><a href="https://lycee-blaise-cendrars-sevran.fr/formations/" target="_blank" rel="noreferrer">Site du lycée <ExternalLink aria-hidden="true" /></a></div>
         <div>{formations.map((formation) => <article key={formation.title}><span><formation.icon aria-hidden="true" /></span><div><h3>{formation.title}</h3><p>{formation.description}</p><small>{formation.items}</small></div></article>)}</div>

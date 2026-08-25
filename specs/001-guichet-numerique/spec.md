@@ -38,6 +38,12 @@ et ne clôture pas un dossier sans validation humaine.
     rapide destiné aux urgences de rentrée.
 13. L'identité de lycée polyvalent et les formations générale, technologique,
     professionnelle et CAP restent visibles dans la PWA.
+14. L'accueil met en avant le nom Lycée Blaise Cendrars et utilise le portrait
+    historique de l'écrivain avec sa cigarette comme signature visuelle demandée
+    par la direction, sans présenter le tabac comme un produit.
+15. Les huit spécialités générales proposées par l'établissement sont présentées
+    avec leur intitulé, une explication simple, les compétences développées et un
+    visuel significatif.
 
 ## 3. Acteurs
 
@@ -254,6 +260,9 @@ L'IA peut suggérer la priorité. Seul un agent peut confirmer P1 ou clôturer.
     de renseigner son identité ou une catégorie.
 16. Les formations et les priorités de rentrée sont lisibles sur mobile sans
     masquer l'accès au Webmail et au suivi des demandes.
+17. Le portrait et les cartes des spécialités restent lisibles sans débordement à
+    390 px et 1440 px ; les images sont optimisées et ne provoquent pas de rupture
+    de mise en page.
 
 ## 12. Hors V1
 

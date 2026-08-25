@@ -79,6 +79,10 @@ voir sa réponse dans le dossier. L'agent traite tout depuis une seule file.
   besoins de rentrée : aide, inscription, classe, documents et codes d'accès.
 - [x] **T036C** Faire du texte libre le parcours principal et conserver le
   formulaire classique comme option secondaire après la conversation.
+- [x] **T036D** Mettre le nom Lycée Blaise Cendrars et le portrait avec cigarette
+  au centre de l'identité visuelle de l'accueil.
+- [x] **T036E** Présenter les huit spécialités générales avec photos, explications
+  et compétences développées sur ordinateur et téléphone.
 - [ ] **T037** Ajouter les mentions d'information, durées et procédure d'exercice
   des droits.
 - [ ] **T038** Exécuter tests mobile, desktop, clavier, charge et sécurité.
