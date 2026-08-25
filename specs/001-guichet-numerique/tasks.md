@@ -40,7 +40,7 @@ quarantaine. Une panne d'envoi externe n'affecte pas le dossier.
   chaque fichier.
 - [ ] **T015** Ajouter IndexedDB pour brouillons et liste des dossiers du terminal.
 - [x] **T016** Construire la page de suivi sécurisée et le fil de messages.
-- [ ] **T017** Construire la file agent paginée avec filtres, SLA et assignation.
+- [x] **T017** Construire la file agent paginée avec filtres, SLA et assignation.
 - [ ] **T018** Ajouter réponses, notes internes, transfert et clôture motivée.
 - [ ] **T019** Ajouter les modèles de réponse et variables autorisées.
 - [ ] **T020** Installer `pgmq`, la Basic Queue transactionnelle, le worker et la

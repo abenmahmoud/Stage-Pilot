@@ -420,14 +420,16 @@
 .lycee-agent-stats strong { font-size: 20px; }
 .lycee-agent-stats small { color: var(--lc-muted); font-size: 9px; }
 .lycee-agent-workspace { display: grid; grid-template-columns: 370px minmax(0,1fr); min-height: 680px; border: 1px solid var(--lc-line); border-radius: 8px; background: #fff; overflow: hidden; }
-.lycee-agent-queue { border-right: 1px solid var(--lc-line); }
+.lycee-agent-queue { min-width: 0; display: flex; flex-direction: column; border-right: 1px solid var(--lc-line); }
 .lycee-agent-toolbar { display: grid; grid-template-columns: 1fr 40px; gap: 7px; padding: 12px; border-bottom: 1px solid var(--lc-line); }
 .lycee-agent-toolbar > button { display: grid; place-items: center; border: 1px solid #ccd6e2; border-radius: 7px; background: #fff; color: var(--lc-muted); }
+.lycee-agent-toolbar > button.is-active { border-color: var(--lc-blue); background: #edf2ff; color: var(--lc-blue); }
 .lycee-agent-toolbar > button svg { width: 17px; }
 .lycee-agent-tabs { display: flex; gap: 16px; padding: 0 14px; border-bottom: 1px solid var(--lc-line); }
 .lycee-agent-tabs button { min-height: 43px; display: flex; align-items: center; gap: 6px; padding: 0; border: 0; border-bottom: 2px solid transparent; background: transparent; color: var(--lc-muted); font-size: 10px; font-weight: 800; }
 .lycee-agent-tabs button.is-active { border-bottom-color: var(--lc-blue); color: var(--lc-blue); }
 .lycee-agent-tabs span { min-width: 19px; padding: 3px 5px; border-radius: 999px; background: #edf2ff; text-align: center; }
+.lycee-agent-list { min-height: 0; max-height: 560px; overflow-y: auto; }
 .lycee-agent-list > button { position: relative; width: 100%; min-height: 100px; display: grid; grid-template-columns: 38px minmax(0,1fr); align-items: start; gap: 10px; padding: 14px; border: 0; border-bottom: 1px solid var(--lc-line); border-left: 3px solid transparent; background: #fff; color: var(--lc-ink); text-align: left; }
 .lycee-agent-list > button.is-selected { border-left-color: var(--lc-blue); background: #f2f6ff; }
 .lycee-request-avatar { width: 36px; height: 36px; display: grid; place-items: center; border-radius: 50%; background: #e8efff; color: var(--lc-blue); font-size: 10px; font-weight: 900; }
@@ -436,6 +438,13 @@
 .lycee-agent-list small { color: #53657a; font-size: 10px; }
 .lycee-agent-list em { color: #8995a5; font-size: 9px; font-style: normal; }
 .lycee-agent-list b { position: absolute; right: 10px; bottom: 11px; padding: 4px 6px; border-radius: 999px; background: #fff0ed; color: var(--lc-coral); font-size: 8px; }
+.lycee-agent-list-empty { padding: 32px 18px; color: var(--lc-muted); font-size: 11px; line-height: 1.5; text-align: center; }
+.lycee-agent-pagination { min-height: 58px; display: grid; grid-template-columns: 34px minmax(0,1fr) 34px; align-items: center; gap: 8px; margin-top: auto; padding: 9px 12px; border-top: 1px solid var(--lc-line); background: #f8fafc; }
+.lycee-agent-pagination > button { width: 34px; height: 34px; display: grid; place-items: center; border: 1px solid #ccd6e2; border-radius: 7px; background: #fff; color: var(--lc-blue); }
+.lycee-agent-pagination > button:disabled { color: #a7b2c0; background: #eef1f5; }
+.lycee-agent-pagination svg { width: 15px; }
+.lycee-agent-pagination > span { min-width: 0; display: flex; flex-direction: column; color: var(--lc-ink); font-size: 10px; font-weight: 800; text-align: center; }
+.lycee-agent-pagination small { margin-top: 2px; color: var(--lc-muted); font-size: 8px; font-weight: 650; }
 .lycee-agent-detail { min-width: 0; padding: 20px; }
 .lycee-agent-detail-head { display: flex; justify-content: space-between; gap: 14px; padding-bottom: 16px; border-bottom: 1px solid var(--lc-line); }
 .lycee-agent-detail-head > div > span { color: var(--lc-blue); font-size: 9px; font-weight: 900; }
@@ -520,7 +529,7 @@
   .lycee-agent-workspace { display: block; min-height: auto; overflow: visible; border: 0; background: transparent; }
   .lycee-agent-queue, .lycee-agent-detail { border: 1px solid var(--lc-line); border-radius: 8px; background: #fff; }
   .lycee-agent-queue { border-right: 1px solid var(--lc-line); }
-  .lycee-agent-list > button:not(.is-selected) { display: none; }
+  .lycee-agent-list { max-height: 340px; }
   .lycee-agent-detail { margin-top: 10px; padding: 14px; }
   .lycee-agent-detail-head { flex-direction: column; }
   .lycee-agent-controls { width: 100%; }

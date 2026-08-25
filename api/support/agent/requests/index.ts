@@ -1,18 +1,56 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { desc, sql } from "drizzle-orm";
+import { and, desc, eq, ilike, or, sql, type SQL } from "drizzle-orm";
 import { db } from "../../../../db/index.js";
 import { supportRequests } from "../../../../db/schema.js";
 import { requireRole } from "../../../_shared/auth.js";
 import { handleApi, methodNotAllowed } from "../../../_shared/response.js";
 
 const AGENT_ROLES = ["superadmin", "administration", "proviseur"];
+const VALID_STATUSES = new Set([
+  "nouveau",
+  "a_qualifier",
+  "assigne",
+  "en_cours",
+  "attente_demandeur",
+  "attente_interne",
+  "resolu",
+  "clos",
+  "indesirable",
+]);
+
+function queryValue(value: string | string[] | undefined): string {
+  return Array.isArray(value) ? value[0] ?? "" : value ?? "";
+}
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== "GET") return methodNotAllowed(res, ["GET"]);
 
   return handleApi(res, async () => {
-    await requireRole(req, AGENT_ROLES);
-    const requests = await db
+    const user = await requireRole(req, AGENT_ROLES);
+    const page = Math.max(1, Number.parseInt(queryValue(req.query.page), 10) || 1);
+    const pageSize = Math.min(50, Math.max(10, Number.parseInt(queryValue(req.query.pageSize), 10) || 30));
+    const search = queryValue(req.query.q).trim().slice(0, 80);
+    const status = queryValue(req.query.status);
+    const urgentOnly = queryValue(req.query.urgent) === "true";
+    const mineOnly = queryValue(req.query.assigned) === "me";
+    const filters: SQL[] = [];
+
+    if (search) {
+      const pattern = `%${search.replace(/[%_]/g, "\\$&")}%`;
+      const searchFilter = or(
+        ilike(supportRequests.publicCode, pattern),
+        ilike(supportRequests.requesterFirstName, pattern),
+        ilike(supportRequests.requesterLastName, pattern),
+        ilike(supportRequests.subject, pattern)
+      );
+      if (searchFilter) filters.push(searchFilter);
+    }
+    if (VALID_STATUSES.has(status)) filters.push(eq(supportRequests.status, status));
+    if (urgentOnly) filters.push(sql`${supportRequests.priority} in ('p1', 'p2')`);
+    if (mineOnly) filters.push(eq(supportRequests.assignedTo, user.id));
+
+    const where = filters.length > 0 ? and(...filters) : undefined;
+    const requestQuery = db
       .select({
         publicCode: supportRequests.publicCode,
         requesterType: supportRequests.requesterType,
@@ -32,19 +70,34 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         updatedAt: supportRequests.updatedAt,
       })
       .from(supportRequests)
+      .where(where)
       .orderBy(
         sql`case ${supportRequests.priority} when 'p1' then 1 when 'p2' then 2 when 'p3' then 3 else 4 end`,
         desc(supportRequests.createdAt)
       )
-      .limit(200);
+      .limit(pageSize)
+      .offset((page - 1) * pageSize);
 
-    const stats = {
-      new: requests.filter((request) => ["nouveau", "a_qualifier"].includes(request.status)).length,
-      urgent: requests.filter((request) => ["p1", "p2"].includes(request.priority) && request.status !== "clos").length,
-      active: requests.filter((request) => ["assigne", "en_cours", "attente_interne"].includes(request.status)).length,
-      waitingRequester: requests.filter((request) => request.status === "attente_demandeur").length,
+    const totalQuery = db
+      .select({ count: sql<number>`count(*)::int` })
+      .from(supportRequests)
+      .where(where);
+
+    const statsQuery = db.select({
+      total: sql<number>`count(*)::int`,
+      new: sql<number>`count(*) filter (where ${supportRequests.status} in ('nouveau', 'a_qualifier'))::int`,
+      urgent: sql<number>`count(*) filter (where ${supportRequests.priority} in ('p1', 'p2') and ${supportRequests.status} <> 'clos')::int`,
+      active: sql<number>`count(*) filter (where ${supportRequests.status} in ('assigne', 'en_cours', 'attente_interne'))::int`,
+      waitingRequester: sql<number>`count(*) filter (where ${supportRequests.status} = 'attente_demandeur')::int`,
+    }).from(supportRequests);
+
+    const [requests, [totalRow], [statsRow]] = await Promise.all([requestQuery, totalQuery, statsQuery]);
+    const total = totalRow?.count ?? 0;
+
+    return {
+      requests,
+      stats: statsRow ?? { total: 0, new: 0, urgent: 0, active: 0, waitingRequester: 0 },
+      pagination: { page, pageSize, total, totalPages: Math.max(1, Math.ceil(total / pageSize)) },
     };
-
-    return { requests, stats };
   });
 }

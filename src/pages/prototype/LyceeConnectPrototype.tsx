@@ -717,6 +717,14 @@ function supportDate(value: string): string {
   }).format(new Date(value));
 }
 
+function supportSlaLabel(value: string | null): string {
+  if (!value) return "Sans échéance";
+  const remainingMinutes = Math.round((new Date(value).getTime() - Date.now()) / 60000);
+  if (remainingMinutes <= 0) return "SLA dépassé";
+  if (remainingMinutes < 60) return `SLA ${remainingMinutes} min`;
+  return `SLA ${Math.ceil(remainingMinutes / 60)} h`;
+}
+
 function RequestsView({ ticketCode, onBack }: { ticketCode: string | null; onBack: () => void }) {
   if (!SUPPORT_API_ENABLED) return <DemoRequestsView ticketCode={ticketCode} onBack={onBack} />;
   return <ConnectedRequestsView ticketCode={ticketCode} onBack={onBack} />;
@@ -968,6 +976,9 @@ type AgentRequestDetail = {
   attachments: Array<{ id: string; originalName: string; scanStatus: string; sizeBytes: number; createdAt: string }>;
 };
 
+type AgentQueueStats = { total: number; new: number; urgent: number; active: number; waitingRequester: number };
+type AgentQueuePagination = { page: number; pageSize: number; total: number; totalPages: number };
+
 function AgentView({ onBack }: { onBack: () => void }) {
   if (!SUPPORT_API_ENABLED) return <DemoAgentView onBack={onBack} />;
   return <ConnectedAgentView onBack={onBack} />;
@@ -975,7 +986,10 @@ function AgentView({ onBack }: { onBack: () => void }) {
 
 function ConnectedAgentView({ onBack }: { onBack: () => void }) {
   const [requests, setRequests] = useState<AgentRequest[]>([]);
-  const [stats, setStats] = useState({ new: 0, urgent: 0, active: 0, waitingRequester: 0 });
+  const [stats, setStats] = useState<AgentQueueStats>({ total: 0, new: 0, urgent: 0, active: 0, waitingRequester: 0 });
+  const [pagination, setPagination] = useState<AgentQueuePagination>({ page: 1, pageSize: 30, total: 0, totalPages: 1 });
+  const [queueMode, setQueueMode] = useState<"all" | "urgent" | "mine">("all");
+  const [page, setPage] = useState(1);
   const [selectedCode, setSelectedCode] = useState<string | null>(null);
   const [detail, setDetail] = useState<AgentRequestDetail | null>(null);
   const [query, setQuery] = useState("");
@@ -985,17 +999,26 @@ function ConnectedAgentView({ onBack }: { onBack: () => void }) {
 
   async function loadQueue() {
     try {
-      const payload = await apiFetch<{ requests: AgentRequest[]; stats: typeof stats }>("support/agent/requests");
+      const params = new URLSearchParams({ page: String(page), pageSize: "30" });
+      if (query.trim()) params.set("q", query.trim());
+      if (queueMode === "urgent") params.set("urgent", "true");
+      if (queueMode === "mine") params.set("assigned", "me");
+      const payload = await apiFetch<{ requests: AgentRequest[]; stats: AgentQueueStats; pagination: AgentQueuePagination }>(`support/agent/requests?${params}`);
       setRequests(payload.requests);
       setStats(payload.stats);
-      setSelectedCode((current) => current ?? payload.requests[0]?.publicCode ?? null);
+      setPagination(payload.pagination);
+      setSelectedCode((current) => payload.requests.some((request) => request.publicCode === current) ? current : payload.requests[0]?.publicCode ?? null);
+      if (payload.requests.length === 0) setDetail(null);
       setError(null);
     } catch (loadError) {
       setError(loadError instanceof Error ? loadError.message : "Impossible de charger les demandes");
     }
   }
 
-  useEffect(() => { void loadQueue(); }, []);
+  useEffect(() => {
+    const timer = window.setTimeout(() => void loadQueue(), 250);
+    return () => window.clearTimeout(timer);
+  }, [page, query, queueMode]);
   useEffect(() => {
     if (!selectedCode) return;
     apiFetch<AgentRequestDetail>(`support/agent/requests/${selectedCode}`)
@@ -1051,9 +1074,6 @@ function ConnectedAgentView({ onBack }: { onBack: () => void }) {
     }
   }
 
-  const visibleRequests = requests.filter((request) =>
-    `${request.publicCode} ${request.requesterFirstName} ${request.requesterLastName} ${request.subject}`.toLowerCase().includes(query.toLowerCase())
-  );
   const selected = detail?.request;
 
   return (
@@ -1068,17 +1088,19 @@ function ConnectedAgentView({ onBack }: { onBack: () => void }) {
       </div>
       <div className="lycee-agent-workspace">
         <section className="lycee-agent-queue">
-          <div className="lycee-agent-toolbar"><label><Search aria-hidden="true" /><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Nom, numéro ou objet" /></label><button type="button" aria-label="Filtrer"><Filter aria-hidden="true" /></button></div>
-          <div className="lycee-agent-tabs"><button className="is-active" type="button">Toutes <span>{requests.length}</span></button><button type="button">Urgentes <span>{stats.urgent}</span></button></div>
+          <div className="lycee-agent-toolbar"><label><Search aria-hidden="true" /><input value={query} onChange={(event) => { setQuery(event.target.value); setPage(1); }} placeholder="Nom, numéro ou objet" /></label><button className={queueMode === "mine" ? "is-active" : ""} type="button" aria-label="Afficher mes demandes" aria-pressed={queueMode === "mine"} title="Afficher mes demandes" onClick={() => { setQueueMode((current) => current === "mine" ? "all" : "mine"); setPage(1); }}><Filter aria-hidden="true" /></button></div>
+          <div className="lycee-agent-tabs"><button className={queueMode === "all" ? "is-active" : ""} type="button" onClick={() => { setQueueMode("all"); setPage(1); }}>Toutes <span>{stats.total}</span></button><button className={queueMode === "urgent" ? "is-active" : ""} type="button" onClick={() => { setQueueMode("urgent"); setPage(1); }}>Urgentes <span>{stats.urgent}</span></button></div>
           <div className="lycee-agent-list">
-            {visibleRequests.map((request) => (
+            {requests.map((request) => (
               <button className={selectedCode === request.publicCode ? "is-selected" : ""} type="button" key={request.publicCode} onClick={() => setSelectedCode(request.publicCode)}>
                 <span className="lycee-request-avatar">{`${request.requesterFirstName[0] ?? ""}${request.requesterLastName[0] ?? ""}`}</span>
-                <span><strong>{request.subject}</strong><small>{request.requesterFirstName} {request.requesterLastName} · {request.requesterType}</small><em>{request.category} · {supportDate(request.createdAt)}</em></span>
+                <span><strong>{request.subject}</strong><small>{request.requesterFirstName} {request.requesterLastName} · {request.requesterType}</small><em>{request.category} · {supportSlaLabel(request.slaDueAt)}</em></span>
                 {["p1", "p2"].includes(request.priority) ? <b>Urgent</b> : null}
               </button>
             ))}
+            {requests.length === 0 ? <div className="lycee-agent-list-empty">Aucune demande ne correspond à ce filtre.</div> : null}
           </div>
+          <div className="lycee-agent-pagination"><button type="button" aria-label="Page précédente" disabled={page <= 1} onClick={() => setPage((current) => Math.max(1, current - 1))}><ArrowLeft aria-hidden="true" /></button><span>Page {pagination.page} sur {pagination.totalPages}<small>{pagination.total} dossier(s)</small></span><button type="button" aria-label="Page suivante" disabled={page >= pagination.totalPages} onClick={() => setPage((current) => current + 1)}><ChevronRight aria-hidden="true" /></button></div>
         </section>
         <article className="lycee-agent-detail">
           {selected && detail ? (
