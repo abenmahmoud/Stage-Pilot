@@ -22,7 +22,6 @@ export async function handleApi(
     console.error("[api] unexpected error", err);
     res.status(500).json({
       error: "Erreur serveur",
-      detail: err instanceof Error ? err.message : String(err),
     });
   }
 }

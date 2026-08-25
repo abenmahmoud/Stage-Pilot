@@ -94,16 +94,22 @@ Contraintes uniques partielles sur `provider + provider_message_id`.
 - `document_type text not null`
 - `note text`
 - `original_name text not null`
-- `detected_mime text not null`
+- `declared_mime text not null`
+- `detected_mime text`
 - `size_bytes bigint not null`
-- `sha256 text not null`
+- `sha256 text`
 - `storage_bucket text not null`
 - `storage_path text not null unique`
-- `scan_status text not null default 'quarantine'`
+- `scan_status text not null default 'awaiting_upload'`
 - `scan_detail text`
 - `uploaded_by_session uuid`
 - `retention_until timestamptz not null`
+- `uploaded_at timestamptz`
 - `created_at timestamptz not null default now()`
+
+Le navigateur ne recoit qu'une autorisation temporaire pour un chemin unique.
+Apres l'envoi, le serveur recalcule la taille, le type et l'empreinte du fichier,
+puis le conserve en quarantaine jusqu'au controle antivirus.
 
 ### `support_events`
 
@@ -137,13 +143,19 @@ Aucune politique UPDATE ou DELETE pour les agents.
 ### `support_device_sessions`
 
 - `id uuid primary key`
-- `request_id uuid not null references support_requests on delete cascade`
 - `session_hash text unique not null`
 - `label text`
 - `last_used_at timestamptz not null default now()`
 - `expires_at timestamptz not null`
 - `revoked_at timestamptz`
 - `created_at timestamptz not null default now()`
+
+### `support_session_requests`
+
+- `session_id uuid references support_device_sessions on delete cascade`
+- `request_id uuid references support_requests on delete cascade`
+- `granted_at timestamptz not null default now()`
+- clé primaire `(session_id, request_id)`
 
 Le cookie contient le jeton brut ; la base ne contient que son hash.
 
