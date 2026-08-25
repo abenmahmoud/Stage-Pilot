@@ -1,3 +1,4 @@
+import { lazy, Suspense } from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "./components/AuthProvider";
 import { useAuth } from "./lib/auth-context";
@@ -19,6 +20,8 @@ import CodesProfsPage from "./pages/admin/CodesProfsPage";
 import AffectationsClassesPage from "./pages/admin/AffectationsClassesPage";
 import AffectationsElevesPage from "./pages/admin/AffectationsElevesPage";
 import DocumentsClassesPage from "./pages/admin/DocumentsClassesPage";
+
+const LyceeConnectPrototype = lazy(() => import("./pages/prototype/LyceeConnectPrototype"));
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
@@ -42,6 +45,14 @@ export default function App() {
   return (
     <AuthProvider>
       <Routes>
+        <Route
+          path="/prototype"
+          element={
+            <Suspense fallback={<div className="min-h-screen bg-slate-50" />}>
+              <LyceeConnectPrototype />
+            </Suspense>
+          }
+        />
         <Route path="/login" element={<LoginPage />} />
         <Route
           path="/"
