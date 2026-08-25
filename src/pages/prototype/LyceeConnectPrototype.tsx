@@ -287,7 +287,7 @@ export default function LyceeConnectPrototype() {
                 <span className="lycee-eyebrow">Assistant du lycée</span>
                 <h2 id="lycee-assistant-title">De quoi avez-vous besoin&nbsp;?</h2>
               </div>
-              <span className="lycee-ai-status"><Sparkles aria-hidden="true" /> IA active</span>
+              <span className="lycee-ai-status"><Sparkles aria-hidden="true" /> Assistant actif</span>
             </div>
             <p>Expliquez votre situation avec vos mots. L’assistant vous guide et prépare la demande pour le bon service.</p>
             <div className="lycee-composer">
@@ -304,7 +304,7 @@ export default function LyceeConnectPrototype() {
                 onClick={() => changeView("help")}
               >
                 <Send aria-hidden="true" />
-                <span>Commencer</span>
+                <span>Envoyer</span>
               </button>
             </div>
             <div className="lycee-trust-row">
@@ -447,15 +447,36 @@ function HelpDeskView({
     { value: "ordinateur", label: "Ordinateur ou logiciel", icon: Laptop },
     { value: "autre", label: "Autre demande", icon: MessageCircleMore },
   ];
+  const detectedCategory = /\b(ent|educonnect|connexion|connecter|code|identifiant)\b/i.test(description)
+    ? "ent"
+    : /\b(email|mail|webmail|zimbra|academique|académique)\b/i.test(description)
+      ? "email_academique"
+      : /\b(pc|ordinateur|portable|logiciel|wifi)\b/i.test(description)
+        ? "ordinateur"
+        : "autre";
+  const availableCategories = categories.filter(
+    (item) => item.value !== "email_academique" || profile === "professeur" || profile === "personnel"
+  );
+  const suggestedCategory = availableCategories.some((item) => item.value === detectedCategory)
+    ? detectedCategory
+    : "autre";
+  const selectedProfile = profiles.find((item) => item.value === profile);
+  const selectedCategory = categories.find((item) => item.value === category);
 
   async function submitRequest(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!profile || !category || !description.trim()) return;
+    const form = new FormData(event.currentTarget);
+    const email = String(form.get("email") ?? "").trim();
+    const phone = String(form.get("phone") ?? "").trim();
+    if (!email && !phone) {
+      setSubmitError("Indiquez un email ou un téléphone pour recevoir la réponse.");
+      return;
+    }
+
     setSubmitting(true);
     setSubmitError(null);
-
     try {
-      const form = new FormData(event.currentTarget);
       let publicCode = "BC-2026-0042";
 
       if (SUPPORT_API_ENABLED) {
@@ -536,7 +557,7 @@ function HelpDeskView({
         </div>
         {attachmentWarning ? <div className="lycee-form-error" role="alert"><CircleAlert aria-hidden="true" />{attachmentWarning}</div> : null}
         <div className="lycee-confirmation-actions">
-          <button className="lycee-primary-action" type="button" onClick={onTrack}>Suivre ma demande <ChevronRight aria-hidden="true" /></button>
+          <button className="lycee-primary-action" type="button" onClick={onTrack}>Continuer la conversation <ChevronRight aria-hidden="true" /></button>
           <button className="lycee-secondary-action" type="button" onClick={onBack}>Retour à l’accueil</button>
         </div>
       </div>
@@ -546,48 +567,52 @@ function HelpDeskView({
   return (
     <div className="lycee-page">
       <PageIntro
-        eyebrow="Guichet numérique"
-        title="Obtenir de l’aide simplement"
-        description="Répondez à quelques questions. L’assistant prépare une demande claire et l’envoie au bon agent."
+        eyebrow="Assistant du lycée"
+        title="Expliquez, nous nous occupons du reste"
+        description="La conversation devient votre dossier. Vous pourrez revenir ici pour lire la réponse et continuer l’échange."
         onBack={onBack}
       />
 
-      <div className="lycee-help-layout">
-        <aside className="lycee-help-ai">
-          <div className="lycee-help-ai-title"><Bot aria-hidden="true" /><span><strong>Assistant Blaise</strong><small>Disponible maintenant</small></span></div>
-          <div className="lycee-chat-bubble">Bonjour, je vais vous aider. Aucun mot de passe ne vous sera demandé.</div>
-          {profile ? <div className="lycee-chat-bubble">Très bien, vous êtes {profile === "eleve" ? "élève" : profile}. Quel service faut-il contacter&nbsp;?</div> : null}
-          {category ? <div className="lycee-chat-bubble is-highlight">J’ai classé votre besoin dans «&nbsp;{categories.find((item) => item.value === category)?.label}&nbsp;».</div> : null}
-          <div className="lycee-ai-guardrail"><ShieldCheck aria-hidden="true" /><span><strong>Réponse humaine</strong><small>L’IA organise. Un agent valide la réponse.</small></span></div>
-        </aside>
+      <div className="lycee-guided-chat">
+        <div className="lycee-guided-chat-head"><span><Bot aria-hidden="true" /></span><div><strong>Assistant Blaise</strong><small>En ligne · réponse suivie par un agent</small></div><em><span /> Disponible</em></div>
+        <div className="lycee-guided-thread" aria-live="polite">
+          <div data-speaker="assistant"><span><Bot aria-hidden="true" /></span><p>Bonjour. Décrivez votre besoin normalement, sans mot de passe. Je prépare le dossier avec vous et je reste dans cette conversation.</p></div>
+          {initialMessage.trim() ? <div data-speaker="requester"><p>{initialMessage.trim()}</p></div> : null}
+          <div data-speaker="assistant"><span><Bot aria-hidden="true" /></span><p>{initialMessage.trim() ? "J’ai bien reçu votre message. Pour l’envoyer au bon agent, dites-moi simplement qui vous êtes." : "Commençons par vous identifier pour adapter les questions."}</p></div>
+          {profile ? <div data-speaker="requester"><p>Je suis {profile === "eleve" ? "élève" : profile === "professeur" ? "professeur" : profile === "personnel" ? "membre du personnel" : "parent"}.</p></div> : null}
+          {profile && !category ? <div data-speaker="assistant"><span><Bot aria-hidden="true" /></span><p>Merci. D’après votre message, je pense à « {categories.find((item) => item.value === suggestedCategory)?.label} ». Confirmez ou choisissez une autre catégorie.</p></div> : null}
+          {category ? <><div data-speaker="requester"><p>{selectedCategory?.label}</p></div><div data-speaker="assistant"><span><Bot aria-hidden="true" /></span><p>Parfait. J’ai seulement besoin des coordonnées utiles pour vous répondre et des informations liées à la personne concernée.</p></div></> : null}
+        </div>
 
-        <form className="lycee-request-form" onSubmit={submitRequest}>
-          <section>
-            <div className="lycee-form-heading"><span>1</span><div><h2>Qui êtes-vous&nbsp;?</h2><p>Pour adapter les informations demandées.</p></div></div>
-            <div className="lycee-profile-grid">
-              {profiles.map((item) => (
-                <button className={profile === item.value ? "is-selected" : ""} type="button" key={item.value} onClick={() => setProfile(item.value)}>
-                  <item.icon aria-hidden="true" />{item.label}
-                </button>
-              ))}
-            </div>
-          </section>
+        <form className="lycee-conversation-form" onSubmit={submitRequest}>
+          {!profile ? (
+            <fieldset className="lycee-chat-choices">
+              <legend>Vous êtes</legend>
+              <div className="lycee-profile-grid">
+                {profiles.map((item) => (
+                  <button type="button" key={item.value} onClick={() => setProfile(item.value)}><item.icon aria-hidden="true" />{item.label}</button>
+                ))}
+              </div>
+            </fieldset>
+          ) : null}
 
-          <section className={!profile ? "is-muted" : ""}>
-            <div className="lycee-form-heading"><span>2</span><div><h2>Quel est votre besoin&nbsp;?</h2><p>Choisissez la catégorie la plus proche.</p></div></div>
-            <div className="lycee-category-grid">
-              {categories
-                .filter((item) => item.value !== "email_academique" || profile === "professeur" || profile === "personnel")
-                .map((item) => (
-                  <button className={category === item.value ? "is-selected" : ""} disabled={!profile} type="button" key={item.value} onClick={() => setCategory(item.value)}>
-                    <item.icon aria-hidden="true" /><span>{item.label}</span><CheckCircle2 aria-hidden="true" />
+          {profile && !category ? (
+            <fieldset className="lycee-chat-choices">
+              <legend>Votre demande concerne</legend>
+              <div className="lycee-category-grid">
+                {availableCategories.map((item) => (
+                  <button className={item.value === suggestedCategory ? "is-suggested" : ""} type="button" key={item.value} onClick={() => setCategory(item.value)}>
+                    <item.icon aria-hidden="true" /><span>{item.label}</span>{item.value === suggestedCategory ? <small>Suggéré</small> : <ChevronRight aria-hidden="true" />}
                   </button>
                 ))}
-            </div>
-          </section>
+              </div>
+              <button className="lycee-chat-change" type="button" onClick={() => setProfile("")}><ArrowLeft aria-hidden="true" /> Modifier mon profil</button>
+            </fieldset>
+          ) : null}
 
-          <section className={!category ? "is-muted" : ""}>
-            <div className="lycee-form-heading"><span>3</span><div><h2>Vos informations</h2><p>Seulement ce qui permet de vous répondre.</p></div></div>
+          {profile && category ? (
+          <section className="lycee-chat-details">
+            <div className="lycee-chat-selection"><button type="button" onClick={() => { setProfile(""); setCategory(""); }}>{selectedProfile?.label}</button><ChevronRight aria-hidden="true" /><button type="button" onClick={() => setCategory("")}>{selectedCategory?.label}</button></div>
             <div className="lycee-fields-grid">
               <label><span>Votre prénom</span><input name="requesterFirstName" type="text" autoComplete="given-name" placeholder="Votre prénom" disabled={!category} required /></label>
               <label><span>Votre nom</span><input name="requesterLastName" type="text" autoComplete="family-name" placeholder="Votre nom" disabled={!category} required /></label>
@@ -641,16 +666,17 @@ function HelpDeskView({
               </div>
             ) : null}
           </section>
-
-          {profile && category && description.trim() ? (
-            <div className="lycee-ai-summary"><WandSparkles aria-hidden="true" /><span><strong>Résumé automatique prêt</strong><small>{categories.find((item) => item.value === category)?.label} · demande standard · réponse par email</small></span></div>
           ) : null}
 
-          {submitError ? <div className="lycee-form-error" role="alert"><CircleAlert aria-hidden="true" />{submitError}</div> : null}
-
-          <button className="lycee-primary-action lycee-submit-request" type="submit" disabled={submitting || !profile || !category || !description.trim()}>
-            {submitting ? "Enregistrement…" : "Envoyer ma demande"} <Send aria-hidden="true" />
-          </button>
+          {profile && category ? <>
+            {description.trim() ? (
+              <div className="lycee-ai-summary"><WandSparkles aria-hidden="true" /><span><strong>Dossier prêt à être transmis</strong><small>{selectedCategory?.label} · conversation conservée · réponse dans le suivi</small></span></div>
+            ) : null}
+            {submitError ? <div className="lycee-form-error" role="alert"><CircleAlert aria-hidden="true" />{submitError}</div> : null}
+            <button className="lycee-primary-action lycee-submit-request" type="submit" disabled={submitting || !description.trim()}>
+              {submitting ? "Enregistrement…" : "Créer la demande et continuer"} <Send aria-hidden="true" />
+            </button>
+          </> : null}
         </form>
       </div>
     </div>
@@ -862,6 +888,24 @@ function ConnectedRequestsView({ ticketCode, onBack }: { ticketCode: string | nu
 }
 
 function DemoRequestsView({ ticketCode, onBack }: { ticketCode: string | null; onBack: () => void }) {
+  const [demoReply, setDemoReply] = useState("");
+  const [demoMessages, setDemoMessages] = useState([
+    { id: "request", direction: "is-requester", author: "Vous", date: "Aujourd’hui à 09:12", body: "Je n’arrive pas à me connecter et je n’ai pas reçu les codes." },
+    { id: "agent", direction: "is-agent", author: "Assistant Blaise", date: "Aujourd’hui à 09:13", body: "Votre demande est enregistrée et classée dans les accès ENT. Un agent du lycée la vérifie maintenant." },
+  ]);
+
+  function sendDemoReply(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const message = demoReply.trim();
+    if (!message) return;
+    setDemoMessages((current) => [
+      ...current,
+      { id: crypto.randomUUID(), direction: "is-requester", author: "Vous", date: "Maintenant", body: message },
+      { id: crypto.randomUUID(), direction: "is-agent", author: "Assistant Blaise", date: "Maintenant", body: "Merci, votre précision est ajoutée au dossier. L’agent qui traite la demande la verra immédiatement." },
+    ]);
+    setDemoReply("");
+  }
+
   return (
     <div className="lycee-page">
       <PageIntro eyebrow="Suivi" title="Mes demandes" description="Consultez l’avancement et les réponses du lycée sans appeler plusieurs services." onBack={onBack} />
@@ -882,13 +926,18 @@ function DemoRequestsView({ ticketCode, onBack }: { ticketCode: string | null; o
             <em>En cours de traitement</em>
           </div>
           <div className="lycee-ticket-meta"><span><Users aria-hidden="true" /> Parent d’élève</span><span><Mail aria-hidden="true" /> Réponse par email</span></div>
-          <div className="lycee-timeline">
-            <div className="is-done"><span><CheckCircle2 aria-hidden="true" /></span><div><strong>Demande reçue</strong><small>Aujourd’hui à 09:12</small><p>Votre demande a bien été enregistrée.</p></div></div>
-            <div className="is-current"><span><Sparkles aria-hidden="true" /></span><div><strong>Classée automatiquement</strong><small>Aujourd’hui à 09:13</small><p>Catégorie : accès ENT · priorité normale.</p></div></div>
-            <div><span><Clock3 aria-hidden="true" /></span><div><strong>Traitement par un agent</strong><small>En cours</small><p>Une réponse est en préparation.</p></div></div>
-            <div><span><Mail aria-hidden="true" /></span><div><strong>Réponse envoyée</strong><small>À venir</small></div></div>
+          <div className="lycee-conversation" aria-label="Conversation de démonstration">
+            {demoMessages.map((message) => (
+              <div className={message.direction} key={message.id}>
+                <span><strong>{message.author}</strong><small>{message.date}</small></span>
+                <p>{message.body}</p>
+              </div>
+            ))}
           </div>
-          <div className="lycee-ticket-message"><Bot aria-hidden="true" /><span><strong>Vous n’avez rien à refaire.</strong><p>Vous recevrez une notification dès que l’agent aura répondu.</p></span></div>
+          <form className="lycee-followup-form" onSubmit={sendDemoReply}>
+            <label><span>Continuer la conversation</span><textarea rows={3} value={demoReply} onChange={(event) => setDemoReply(event.target.value)} placeholder="Ajoutez une précision ou répondez à l’agent." maxLength={5000} /></label>
+            <button className="lycee-primary-action" type="submit" disabled={!demoReply.trim()}>Envoyer <Send aria-hidden="true" /></button>
+          </form>
         </article>
       </div>
     </div>

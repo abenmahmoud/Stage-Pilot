@@ -1,7 +1,7 @@
 # Feature 001 - Guichet numérique et agent de support
 
 **Projet** : LyceeGest - Lycée Blaise Cendrars, Sevran
-**Statut** : conception prête pour implémentation
+**Statut** : V1 en implémentation, preview disponible
 **Date** : 2026-08-25
 **Priorité** : rentrée scolaire
 
@@ -30,6 +30,8 @@ et ne clôture pas un dossier sans validation humaine.
 9. Les modules Stages, Grand Oral, formations et informations du lycée sont
    conservés. Le guichet s'ajoute à LyceeGest, il ne les remplace pas.
 10. Le système doit absorber un pic de 200 créations de demandes sans perte.
+11. Le message adressé à l'assistant reçoit une réponse dans le même parcours :
+    aucune redirection sèche vers un formulaire séparé.
 
 ## 3. Acteurs
 
@@ -46,17 +48,21 @@ et ne clôture pas un dossier sans validation humaine.
 
 ### P1 - Créer une demande sans compte
 
-1. La personne choisit son profil.
-2. Elle indique si la demande la concerne ou concerne une autre personne.
-3. Elle renseigne l'identité scolaire minimale du bénéficiaire.
-4. Elle choisit ENT, email académique, ordinateur, logiciel ou autre besoin.
-5. Elle décrit le problème et peut déposer jusqu'à cinq fichiers.
-6. Elle fournit au moins un moyen de réponse : email ou téléphone.
-7. Elle choisit son canal préféré et autorise un canal de secours.
-8. L'API crée le dossier, son premier événement et le job de notification dans
+1. La personne décrit son problème avec ses propres mots.
+2. L'assistant accuse réception immédiatement et conserve le message dans le fil.
+3. Il demande le profil puis suggère une catégorie que la personne confirme ou
+   corrige sans quitter la conversation.
+4. Il demande uniquement les informations encore nécessaires.
+5. La personne indique si la demande la concerne ou concerne une autre personne.
+6. Elle renseigne l'identité scolaire minimale du bénéficiaire.
+7. Elle peut déposer jusqu'à cinq fichiers dans le même parcours.
+8. Elle fournit au moins un moyen de réponse : email ou téléphone, choisit son
+   canal préféré et peut autoriser un canal de secours.
+9. L'API crée le dossier, son premier événement et le job de notification dans
    une seule transaction Postgres.
-9. L'écran affiche immédiatement un numéro `BC-AAAA-NNNNNN`.
-10. Le système envoie ensuite le lien sécurisé de suivi de manière asynchrone.
+10. L'écran affiche immédiatement un numéro `BC-AAAA-NNNNNN` et propose de
+    continuer la conversation.
+11. Le système envoie ensuite le lien sécurisé de suivi de manière asynchrone.
 
 ### P2 - Reprendre depuis le même appareil
 

@@ -35,7 +35,7 @@ quarantaine. Une panne d'envoi externe n'affecte pas le dossier.
 
 ## Jour 2 - Conversation et travail agent
 
-- [x] **T013** Relier le formulaire du prototype aux vraies API.
+- [x] **T013** Relier la conversation guidée du prototype aux vraies API.
 - [x] **T014** Ajouter la distinction demandeur/bénéficiaire et le contexte de
   chaque fichier.
 - [ ] **T015** Ajouter IndexedDB pour brouillons et liste des dossiers du terminal.
