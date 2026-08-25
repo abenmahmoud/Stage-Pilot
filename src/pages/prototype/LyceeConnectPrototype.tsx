@@ -387,9 +387,8 @@ export default function LyceeConnectPrototype() {
         {view === "home" && (
           <>
         <section className="lycee-hero">
-          <img src="/lycee-blaise-facade.png" alt="Façade du Lycée Blaise Cendrars à Sevran" />
+          <img src="/lycee-blaise-hero.webp" alt="Façade du Lycée Blaise Cendrars à Sevran avec la silhouette de l'écrivain" />
           <div className="lycee-hero-shade" />
-          <img className="lycee-hero-portrait" src="/blaise-cendrars-portrait.webp" alt="Portrait de Blaise Cendrars avec sa cigarette, signature historique du lycée" />
           <div className="lycee-hero-copy">
             <span>Lycée polyvalent · Sevran</span>
             <h1>Blaise Cendrars</h1>
