@@ -32,6 +32,8 @@ et ne clôture pas un dossier sans validation humaine.
 10. Le système doit absorber un pic de 200 créations de demandes sans perte.
 11. Le message adressé à l'assistant reçoit une réponse dans le même parcours :
     aucune redirection sèche vers un formulaire séparé.
+12. LyceeGest et le Webmail du lycée restent des modules de premier niveau,
+    accessibles depuis l'accueil, la navigation permanente et les services.
 
 ## 3. Acteurs
 

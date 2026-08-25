@@ -48,6 +48,9 @@ type View = "home" | "services" | "help" | "requests" | "school" | "agent";
 type RequesterProfile = "eleve" | "parent" | "professeur" | "personnel" | "";
 
 const SUPPORT_API_ENABLED = import.meta.env.VITE_SUPPORT_API_ENABLED === "true";
+const LYCEEGEST_URL = "/login";
+const WEBMAIL_URL = "https://mail.lycee-blaise-cendrars-sevran.fr/";
+const WEBMAIL_ADMIN_URL = `${WEBMAIL_URL}admin`;
 const MAX_SUPPORT_FILES = 5;
 const MAX_SUPPORT_FILE_BYTES = 10 * 1024 * 1024;
 const SUPPORT_FILE_TYPES = [
@@ -205,6 +208,11 @@ export default function LyceeConnectPrototype() {
           ))}
         </nav>
 
+        <div className="lycee-sidebar-tools">
+          <a href={LYCEEGEST_URL}><BarChart3 aria-hidden="true" /><span><strong>LyceeGest</strong><small>Stages et Grand Oral</small></span><ChevronRight aria-hidden="true" /></a>
+          <a href={WEBMAIL_URL} target="_blank" rel="noreferrer"><Mail aria-hidden="true" /><span><strong>Webmail du lycée</strong><small>Messagerie et diffusion</small></span><ExternalLink aria-hidden="true" /></a>
+        </div>
+
         <button className="lycee-agent-link" type="button" onClick={() => changeView("agent")}>
           <Headphones aria-hidden="true" />
           <span>
@@ -239,6 +247,8 @@ export default function LyceeConnectPrototype() {
             <span>Mon lycée</span>
           </div>
           <div className="lycee-top-actions">
+            <a className="lycee-top-tool" href={LYCEEGEST_URL} title="Ouvrir LyceeGest"><BarChart3 aria-hidden="true" /><span>LyceeGest</span></a>
+            <a className="lycee-top-tool" href={WEBMAIL_URL} target="_blank" rel="noreferrer" title="Ouvrir le Webmail"><Mail aria-hidden="true" /><span>Webmail</span></a>
             <button className="lycee-icon-button" type="button" aria-label="Notifications">
               <Bell aria-hidden="true" />
               <span />
@@ -280,6 +290,11 @@ export default function LyceeConnectPrototype() {
         </section>
 
         <div className="lycee-content">
+          <section className="lycee-core-tools" aria-label="Outils principaux du lycée">
+            <a href={LYCEEGEST_URL} data-tool="gest"><span><BarChart3 aria-hidden="true" /></span><div><strong>LyceeGest</strong><small>Stages, Grand Oral et outils de gestion</small></div><em>Ouvrir <ChevronRight aria-hidden="true" /></em></a>
+            <a href={WEBMAIL_URL} target="_blank" rel="noreferrer" data-tool="mail"><span><Mail aria-hidden="true" /></span><div><strong>Webmail du lycée</strong><small>Messagerie, contacts et diffusion</small></div><em>Ouvrir <ExternalLink aria-hidden="true" /></em></a>
+          </section>
+
           <section className="lycee-assistant" aria-labelledby="lycee-assistant-title">
             <div className="lycee-assistant-heading">
               <span className="lycee-ai-icon"><Bot aria-hidden="true" /></span>
@@ -946,26 +961,28 @@ function DemoRequestsView({ ticketCode, onBack }: { ticketCode: string | null; o
 
 function ServicesView({ onHelp, onBack }: { onHelp: () => void; onBack: () => void }) {
   const serviceGroups = [
-    { title: "Stages de seconde", description: "Convention et suivi du stage du 15 au 26 juin 2026", icon: BriefcaseBusiness, color: "blue", progress: "68 % complétés", action: "Ouvrir Stages" },
-    { title: "Grand Oral", description: "Questions, validations des professeurs et fiche officielle", icon: Mic2, color: "green", progress: "42 % finalisés", action: "Ouvrir Grand Oral" },
-    { title: "Accès ENT et EduConnect", description: "Liens directs et demande de nouveaux codes", icon: KeyRound, color: "gold", progress: "Service disponible", action: "Accéder à l’ENT" },
-    { title: "Assistance numérique", description: "Codes, email académique, ordinateur et logiciels", icon: LifeBuoy, color: "coral", progress: "Réponse suivie", action: "Demander de l’aide" },
+    { title: "LyceeGest", description: "Stages, Grand Oral et outils de gestion du lycée", icon: BarChart3, color: "blue", progress: "Application complète", action: "Ouvrir LyceeGest", href: LYCEEGEST_URL },
+    { title: "Webmail du lycée", description: "Messagerie, contacts et diffusion lorsque Créteil est perturbé", icon: Mail, color: "green", progress: "Communication disponible", action: "Ouvrir le Webmail", href: WEBMAIL_URL, external: true },
+    { title: "Stages de seconde", description: "Convention, entreprise, livret et suivi du stage", icon: BriefcaseBusiness, color: "gold", progress: "Module LyceeGest", action: "Ouvrir Stages", href: "/stages" },
+    { title: "Grand Oral", description: "Questions, validations des professeurs et fiche officielle", icon: Mic2, color: "green", progress: "Module LyceeGest", action: "Ouvrir Grand Oral", href: "/grand-oral" },
+    { title: "Accès ENT et EduConnect", description: "Accès direct et demande de nouveaux codes", icon: KeyRound, color: "blue", progress: "Service externe", action: "Accéder à l’ENT", href: "https://ent.iledefrance.fr/auth/login", external: true },
+    { title: "Assistance numérique", description: "Codes, email académique, ordinateur et autres demandes", icon: LifeBuoy, color: "coral", progress: "Conversation suivie", action: "Demander de l’aide", help: true },
   ];
   return (
     <div className="lycee-page">
       <PageIntro eyebrow="Application lycée" title="Mes services" description="Les outils déjà présents dans Gest et les nouveaux services du lycée, réunis au même endroit." onBack={onBack} />
       <div className="lycee-services-catalog">
-        {serviceGroups.map((service, index) => (
+        {serviceGroups.map((service) => (
           <article data-tone={service.color} key={service.title}>
             <span className="lycee-catalog-icon"><service.icon aria-hidden="true" /></span>
             <div><h2>{service.title}</h2><p>{service.description}</p><small>{service.progress}</small></div>
-            <button type="button" onClick={index === 3 ? onHelp : undefined}>{service.action}<ChevronRight aria-hidden="true" /></button>
+            {service.help ? <button type="button" onClick={onHelp}>{service.action}<ChevronRight aria-hidden="true" /></button> : <a href={service.href} target={service.external ? "_blank" : undefined} rel={service.external ? "noreferrer" : undefined}>{service.action}{service.external ? <ExternalLink aria-hidden="true" /> : <ChevronRight aria-hidden="true" />}</a>}
           </article>
         ))}
       </div>
       <section className="lycee-mail-bridge">
-        <div><Mail aria-hidden="true" /><span><span className="lycee-eyebrow">Direction</span><h2>Messagerie du lycée</h2><p>Diffuser une information aux personnels même lorsque le webmail académique est indisponible.</p></span></div>
-        <a href="https://mail.lycee-blaise-cendrars-sevran.fr/admin" target="_blank" rel="noreferrer">Ouvrir la messagerie <ExternalLink aria-hidden="true" /></a>
+        <div><Headphones aria-hidden="true" /><span><span className="lycee-eyebrow">Besoin d’aide</span><h2>Une seule conversation jusqu’à la réponse</h2><p>Expliquez le problème, ajoutez vos documents et suivez le traitement sans recommencer.</p></span></div>
+        <button type="button" onClick={onHelp}>Parler à l’assistant <MessageCircleMore aria-hidden="true" /></button>
       </section>
     </div>
   );
@@ -1164,7 +1181,7 @@ function ConnectedAgentView({ onBack }: { onBack: () => void }) {
           ) : <div className="lycee-loading-state"><Clock3 aria-hidden="true" /> Sélectionnez une demande</div>}
         </article>
       </div>
-      <section className="lycee-agent-mail"><div><Mail aria-hidden="true" /><span><strong>Communication direction</strong><small>Envoyer une information aux professeurs et personnels depuis la messagerie du lycée.</small></span></div><a href="https://mail.lycee-blaise-cendrars-sevran.fr/admin" target="_blank" rel="noreferrer">Ouvrir <ExternalLink aria-hidden="true" /></a></section>
+      <section className="lycee-agent-mail"><div><Mail aria-hidden="true" /><span><strong>Communication direction</strong><small>Envoyer une information aux professeurs et personnels depuis la messagerie du lycée.</small></span></div><a href={WEBMAIL_ADMIN_URL} target="_blank" rel="noreferrer">Ouvrir <ExternalLink aria-hidden="true" /></a></section>
     </div>
   );
 }
@@ -1204,7 +1221,7 @@ function DemoAgentView({ onBack }: { onBack: () => void }) {
           <section className="lycee-reply-box"><div><span><Sparkles aria-hidden="true" /> Réponse proposée</span><button type="button" onClick={() => setReply("Bonjour, votre demande est prise en charge. Nous vérifions votre accès et vous répondrons dans la journée.")}>Régénérer</button></div><textarea rows={5} value={reply} onChange={(event) => setReply(event.target.value)} /><div><button className="lycee-secondary-action" type="button"><Paperclip aria-hidden="true" /> Joindre</button><button className="lycee-primary-action" type="button" onClick={() => setStatus("Résolu")}><Send aria-hidden="true" /> Valider et envoyer</button></div></section>
         </article>
       </div>
-      <section className="lycee-agent-mail"><div><Mail aria-hidden="true" /><span><strong>Communication direction</strong><small>Envoyer une information aux professeurs et personnels depuis la messagerie du lycée.</small></span></div><a href="https://mail.lycee-blaise-cendrars-sevran.fr/admin" target="_blank" rel="noreferrer">Ouvrir <ExternalLink aria-hidden="true" /></a></section>
+      <section className="lycee-agent-mail"><div><Mail aria-hidden="true" /><span><strong>Communication direction</strong><small>Envoyer une information aux professeurs et personnels depuis la messagerie du lycée.</small></span></div><a href={WEBMAIL_ADMIN_URL} target="_blank" rel="noreferrer">Ouvrir <ExternalLink aria-hidden="true" /></a></section>
     </div>
   );
 }

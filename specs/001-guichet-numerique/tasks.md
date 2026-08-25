@@ -71,6 +71,8 @@ voir sa réponse dans le dossier. L'agent traite tout depuis une seule file.
 - [ ] **T035** Ajouter le formulaire de collecte des emails personnels avec double
   vérification et validation agent.
 - [ ] **T036** Restaurer dans la navigation les formations et informations du lycée.
+- [x] **T036A** Rendre LyceeGest et le Webmail accessibles depuis l'accueil,
+  la navigation permanente et le catalogue des services.
 - [ ] **T037** Ajouter les mentions d'information, durées et procédure d'exercice
   des droits.
 - [ ] **T038** Exécuter tests mobile, desktop, clavier, charge et sécurité.
