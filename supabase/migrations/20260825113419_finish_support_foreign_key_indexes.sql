@@ -1,0 +1,10 @@
+create index support_failed_jobs_retried_by_idx
+  on public.support_failed_jobs (retried_by);
+create index support_messages_author_idx
+  on public.support_messages (author_user_id);
+create index support_messages_validator_idx
+  on public.support_messages (validated_by);
+create index support_templates_creator_idx
+  on public.support_templates (created_by);
+create index support_templates_updater_idx
+  on public.support_templates (updated_by);

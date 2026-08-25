@@ -1,18 +1,6 @@
 begin;
 
--- Existing role lookup is safe as an invoker function and should not expose
--- elevated execution rights through the public Data API. A clean local database
--- does not have this legacy function yet, hence the guarded alteration.
-do $$
-begin
-  if to_regprocedure('public.get_role()') is not null then
-    execute 'alter function public.get_role() security invoker';
-    execute 'alter function public.get_role() set search_path = pg_catalog';
-  end if;
-end
-$$;
-
-create or replace function public.set_updated_at()
+create or replace function public.support_set_updated_at()
 returns trigger
 language plpgsql
 set search_path = pg_catalog
@@ -312,11 +300,11 @@ create index support_callbacks_queue_idx
 
 create trigger support_requests_set_updated_at
 before update on public.support_requests
-for each row execute function public.set_updated_at();
+for each row execute function public.support_set_updated_at();
 
 create trigger support_templates_set_updated_at
 before update on public.support_templates
-for each row execute function public.set_updated_at();
+for each row execute function public.support_set_updated_at();
 
 insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
 values

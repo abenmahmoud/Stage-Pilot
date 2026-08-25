@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "../lib/auth-context";
 import { ROLE_HOME } from "../lib/types";
 import {
@@ -39,6 +39,12 @@ function codeProfToCredentials(code: string): { email: string; password: string 
 export default function LoginPage() {
   const { login, user } = useAuth();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const requestedReturn = searchParams.get("returnTo");
+  const returnTo =
+    requestedReturn?.startsWith("/") && !requestedReturn.startsWith("//")
+      ? requestedReturn
+      : null;
 
   const [mode, setMode] = useState<Mode>("eleve");
   const [email, setEmail] = useState("");
@@ -49,7 +55,7 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
 
   if (user) {
-    navigate(ROLE_HOME[user.role], { replace: true });
+    navigate(returnTo ?? ROLE_HOME[user.role], { replace: true });
     return null;
   }
 
@@ -59,7 +65,7 @@ export default function LoginPage() {
     setLoading(true);
     try {
       await login(email, password);
-      navigate("/dashboard", { replace: true });
+      navigate(returnTo ?? "/dashboard", { replace: true });
     } catch (err: unknown) {
       const msg =
         err instanceof Error ? err.message : "Identifiants incorrects";
@@ -76,7 +82,7 @@ export default function LoginPage() {
     try {
       const { email: e_, password: p_ } = codeToCredentials(code);
       await login(e_, p_);
-      navigate("/dashboard", { replace: true });
+      navigate(returnTo ?? "/dashboard", { replace: true });
     } catch {
       setError(
         "Code d'accès incorrect. Vérifie l'orthographe (ex: AMIAR-2E1-7842) ou contacte ton professeur principal."
@@ -93,7 +99,7 @@ export default function LoginPage() {
     try {
       const { email: e_, password: p_ } = codeProfToCredentials(code);
       await login(e_, p_);
-      navigate("/dashboard", { replace: true });
+      navigate(returnTo ?? "/dashboard", { replace: true });
     } catch {
       setError(
         "Code d'accès professeur incorrect. Vérifie l'orthographe ou contacte l'administration."
