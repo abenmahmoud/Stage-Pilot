@@ -21,7 +21,8 @@ Le VPS a un rôle utile mais ne devient pas le point de panne principal.
 ### Environnement de validation actif au 25 août 2026
 
 - branche Supabase sans données de production : `guichet-lycee-preview` ;
-- preview Vercel protégée : `lyceegest-87rijlnkg-safe-scol.vercel.app` ;
+- preview Vercel protégée :
+  `lyceegest-git-codex-lycee-connect-prototype-safe-scol.vercel.app` ;
 - workers VPS isolés dans `/opt/lycee-support-preview` ;
 - minuteurs séparés pour les emails sortants et l'antivirus ;
 - production Supabase, DNS du lycée et site WordPress inchangés.
