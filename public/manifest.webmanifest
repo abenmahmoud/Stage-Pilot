@@ -2,13 +2,35 @@
   "name": "Lycée Blaise Cendrars",
   "short_name": "Blaise Cendrars",
   "description": "Services, informations et assistance du Lycée Blaise Cendrars de Sevran.",
+  "id": "/prototype",
   "start_url": "/prototype",
   "scope": "/",
   "display": "standalone",
   "background_color": "#f4f7fb",
   "theme_color": "#155eef",
   "lang": "fr",
+  "orientation": "any",
   "categories": ["education", "productivity"],
+  "shortcuts": [
+    {
+      "name": "Demander de l'aide",
+      "short_name": "Aide",
+      "url": "/prototype?view=help",
+      "icons": [{ "src": "/pwa-icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Suivre mes demandes",
+      "short_name": "Suivi",
+      "url": "/prototype?view=requests",
+      "icons": [{ "src": "/pwa-icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Informations du lycée",
+      "short_name": "Le lycée",
+      "url": "/prototype?view=school",
+      "icons": [{ "src": "/pwa-icon-192.png", "sizes": "192x192" }]
+    }
+  ],
   "icons": [
     {
       "src": "/pwa-icon-192.png",

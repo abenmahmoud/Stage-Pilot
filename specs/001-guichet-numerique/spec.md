@@ -31,9 +31,13 @@ et ne clôture pas un dossier sans validation humaine.
    conservés. Le guichet s'ajoute à LyceeGest, il ne les remplace pas.
 10. Le système doit absorber un pic de 200 créations de demandes sans perte.
 11. Le message adressé à l'assistant reçoit une réponse dans le même parcours :
-    aucune redirection sèche vers un formulaire séparé.
-12. LyceeGest et le Webmail du lycée restent des modules de premier niveau,
-    accessibles depuis l'accueil, la navigation permanente et les services.
+    aucune redirection sèche vers un formulaire séparé et aucune série de cases
+    profil/catégorie n'est imposée avant de pouvoir écrire.
+12. Le Webmail et les informations de rentrée sont au premier niveau. LyceeGest
+    reste accessible depuis la navigation et les services, sans occuper un accès
+    rapide destiné aux urgences de rentrée.
+13. L'identité de lycée polyvalent et les formations générale, technologique,
+    professionnelle et CAP restent visibles dans la PWA.
 
 ## 3. Acteurs
 
@@ -52,9 +56,10 @@ et ne clôture pas un dossier sans validation humaine.
 
 1. La personne décrit son problème avec ses propres mots.
 2. L'assistant accuse réception immédiatement et conserve le message dans le fil.
-3. Il demande le profil puis suggère une catégorie que la personne confirme ou
-   corrige sans quitter la conversation.
-4. Il demande uniquement les informations encore nécessaires.
+3. Il comprend le profil et la catégorie depuis le texte lorsqu'ils sont présents,
+   sans obliger la personne à cliquer dans une grille de choix.
+4. Il répond utilement, pose au plus une question importante à la fois, puis
+   demande uniquement les coordonnées encore nécessaires à la création.
 5. La personne indique si la demande la concerne ou concerne une autre personne.
 6. Elle renseigne l'identité scolaire minimale du bénéficiaire.
 7. Elle peut déposer jusqu'à cinq fichiers dans le même parcours.
@@ -155,6 +160,10 @@ et ne clôture pas un dossier sans validation humaine.
 - service affecté ;
 - pièces jointes documentées.
 
+Catégories V1 : inscription, affectation/classe, documents de scolarité,
+ENT/EduConnect, email académique, ordinateur, logiciel, restauration/bourse,
+orientation/formation, vie scolaire et autre.
+
 ## 6. Statuts et priorités
 
 ### Statuts
@@ -185,7 +194,8 @@ L'IA peut suggérer la priorité. Seul un agent peut confirmer P1 ou clôturer.
 - Fonctionne derrière un interrupteur global et par fonctionnalité.
 - Reçoit un texte pseudonymisé : noms, emails, téléphones et identifiants sont
   retirés avant l'appel externe.
-- Ne reçoit aucune pièce jointe automatiquement.
+- Ne reçoit aucun contenu de pièce jointe. Seuls un numéro de document,
+  l'extension, le type et une taille approximative peuvent être transmis.
 - Produit un JSON validé : catégorie, priorité suggérée, résumé, informations
   manquantes, réponse proposée, confiance et drapeaux de risque.
 - Si la confiance est faible, le dossier reste `a_qualifier`.
@@ -209,6 +219,8 @@ L'IA peut suggérer la priorité. Seul un agent peut confirmer P1 ou clôturer.
 - Mention d'information claire pour les élèves et parents.
 - Durées de conservation configurables et purge automatique vérifiable.
 - AIPD et validation DPO avant activation de l'IA sur des données d'élèves.
+- L'aperçu public masque les emails, téléphones, noms déclarés et secrets avant
+  l'appel externe, utilise `store: false` et conserve un repli local sans IA.
 
 ## 10. Durées proposées à valider par la direction et le DPO
 
@@ -238,6 +250,10 @@ L'IA peut suggérer la priorité. Seul un agent peut confirmer P1 ou clôturer.
 12. Les modules existants conservent leur comportement après déploiement.
 13. Chaque réponse, affectation, export et consultation sensible est auditée.
 14. Les alertes de sécurité Supabase existantes sont corrigées avant ouverture.
+15. Une personne peut commencer par une phrase libre et joindre un fichier avant
+    de renseigner son identité ou une catégorie.
+16. Les formations et les priorités de rentrée sont lisibles sur mobile sans
+    masquer l'accès au Webmail et au suivi des demandes.
 
 ## 12. Hors V1
 

@@ -7,6 +7,9 @@
     "api/import/*.ts": {
       "maxDuration": 300
     },
+    "api/support/assistant.ts": {
+      "maxDuration": 30
+    },
     "api/cron/support-worker.ts": {
       "maxDuration": 60
     }

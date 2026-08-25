@@ -3,6 +3,7 @@ import {
   ArrowLeft,
   BarChart3,
   Bell,
+  BookOpenCheck,
   Bot,
   BriefcaseBusiness,
   CheckCircle2,
@@ -12,6 +13,7 @@ import {
   Clock3,
   ExternalLink,
   FileText,
+  FolderCheck,
   Filter,
   GraduationCap,
   Headphones,
@@ -45,9 +47,10 @@ import { apiFetch } from "../../lib/api";
 import "./lycee-connect.css";
 
 type View = "home" | "services" | "help" | "requests" | "school" | "agent";
-type RequesterProfile = "eleve" | "parent" | "professeur" | "personnel" | "";
+type RequesterProfile = "eleve" | "parent" | "professeur" | "personnel" | "autre" | "";
 
 const SUPPORT_API_ENABLED = import.meta.env.VITE_SUPPORT_API_ENABLED === "true";
+const AI_ASSISTANT_ENABLED = import.meta.env.VITE_AI_ASSISTANT_ENABLED !== "false";
 const LYCEEGEST_URL = "/login";
 const WEBMAIL_URL = "https://mail.lycee-blaise-cendrars-sevran.fr/";
 const WEBMAIL_ADMIN_URL = `${WEBMAIL_URL}admin`;
@@ -64,6 +67,22 @@ const SUPPORT_FILE_TYPES = [
   "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
   "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
 ];
+
+const supportCategories = [
+  { value: "inscription", label: "Inscription ou réinscription" },
+  { value: "affectation_classe", label: "Classe ou emploi du temps" },
+  { value: "documents_scolarite", label: "Document ou dossier incomplet" },
+  { value: "ent", label: "ENT ou EduConnect" },
+  { value: "email_academique", label: "Email académique" },
+  { value: "ordinateur", label: "Ordinateur ou équipement" },
+  { value: "logiciel", label: "Logiciel ou accès numérique" },
+  { value: "restauration_bourse", label: "Restauration, bourse ou intendance" },
+  { value: "orientation_formation", label: "Orientation ou formation" },
+  { value: "vie_scolaire", label: "Vie scolaire" },
+  { value: "autre", label: "Autre demande" },
+] as const;
+
+type SupportCategory = (typeof supportCategories)[number]["value"];
 
 async function readApiResponse<T>(responseInput: Response | Promise<Response>): Promise<T> {
   const response = await responseInput;
@@ -119,37 +138,42 @@ const navigation = [
 
 const services = [
   {
-    title: "Stages de seconde",
-    detail: "Convention, entreprise et suivi",
-    icon: BriefcaseBusiness,
-    tone: "blue",
-    target: "services" as View,
-  },
-  {
-    title: "Grand Oral",
-    detail: "Questions, validations et fiche finale",
-    icon: Mic2,
-    tone: "green",
-    target: "services" as View,
-  },
-  {
-    title: "Demander de l'aide",
-    detail: "ENT, email, ordinateur ou autre besoin",
+    title: "Demander de l’aide",
+    detail: "Expliquez librement votre situation",
     icon: MessageCircleMore,
-    tone: "coral",
-    target: "help" as View,
+    tone: "blue",
+    prompt: "",
   },
   {
-    title: "Messagerie du lycée",
-    detail: "Communication lorsque le webmail est perturbé",
-    icon: Mail,
+    title: "Inscription ou dossier",
+    detail: "Inscription, réinscription ou pièce manquante",
+    icon: FolderCheck,
+    tone: "green",
+    prompt: "J’ai besoin d’aide pour une inscription ou un dossier incomplet.",
+  },
+  {
+    title: "Classe et rentrée",
+    detail: "Affectation, emploi du temps ou information",
+    icon: UsersRound,
+    tone: "coral",
+    prompt: "J’ai une question sur ma classe, mon emploi du temps ou la rentrée.",
+  },
+  {
+    title: "Codes de connexion",
+    detail: "ENT, EduConnect ou email académique",
+    icon: KeyRound,
     tone: "gold",
-    target: "services" as View,
+    prompt: "Je n’ai pas reçu mes codes ou je n’arrive pas à me connecter.",
   },
 ];
 
 export default function LyceeConnectPrototype() {
-  const [view, setView] = useState<View>("home");
+  const [view, setView] = useState<View>(() => {
+    const requested = new URLSearchParams(window.location.search).get("view");
+    return ["home", "services", "help", "requests", "school", "agent"].includes(requested ?? "")
+      ? requested as View
+      : "home";
+  });
   const [message, setMessage] = useState("");
   const [menuOpen, setMenuOpen] = useState(false);
   const [ticketCreated, setTicketCreated] = useState<string | null>(null);
@@ -180,7 +204,16 @@ export default function LyceeConnectPrototype() {
   function changeView(nextView: View) {
     setView(nextView);
     setMenuOpen(false);
+    const url = new URL(window.location.href);
+    if (nextView === "home") url.searchParams.delete("view");
+    else url.searchParams.set("view", nextView);
+    window.history.replaceState({}, "", url);
     window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  function startHelp(prompt = "") {
+    setMessage(prompt);
+    changeView("help");
   }
 
   return (
@@ -247,7 +280,7 @@ export default function LyceeConnectPrototype() {
             <span>Mon lycée</span>
           </div>
           <div className="lycee-top-actions">
-            <a className="lycee-top-tool" href={LYCEEGEST_URL} title="Ouvrir LyceeGest"><BarChart3 aria-hidden="true" /><span>LyceeGest</span></a>
+            <button className="lycee-top-tool" type="button" onClick={() => changeView("school")} title="Voir les informations de rentrée"><Newspaper aria-hidden="true" /><span>À la une</span></button>
             <a className="lycee-top-tool" href={WEBMAIL_URL} target="_blank" rel="noreferrer" title="Ouvrir le Webmail"><Mail aria-hidden="true" /><span>Webmail</span></a>
             <button className="lycee-icon-button" type="button" aria-label="Notifications">
               <Bell aria-hidden="true" />
@@ -291,7 +324,7 @@ export default function LyceeConnectPrototype() {
 
         <div className="lycee-content">
           <section className="lycee-core-tools" aria-label="Outils principaux du lycée">
-            <a href={LYCEEGEST_URL} data-tool="gest"><span><BarChart3 aria-hidden="true" /></span><div><strong>LyceeGest</strong><small>Stages, Grand Oral et outils de gestion</small></div><em>Ouvrir <ChevronRight aria-hidden="true" /></em></a>
+            <button type="button" data-tool="news" onClick={() => changeView("school")}><span><Newspaper aria-hidden="true" /></span><div><strong>À la une</strong><small>Rentrée, formations et informations du lycée</small></div><em>Consulter <ChevronRight aria-hidden="true" /></em></button>
             <a href={WEBMAIL_URL} target="_blank" rel="noreferrer" data-tool="mail"><span><Mail aria-hidden="true" /></span><div><strong>Webmail du lycée</strong><small>Messagerie, contacts et diffusion</small></div><em>Ouvrir <ExternalLink aria-hidden="true" /></em></a>
           </section>
 
@@ -316,7 +349,7 @@ export default function LyceeConnectPrototype() {
               <button
                 type="button"
                 disabled={!message.trim()}
-                onClick={() => changeView("help")}
+                onClick={() => startHelp(message)}
               >
                 <Send aria-hidden="true" />
                 <span>Envoyer</span>
@@ -338,7 +371,7 @@ export default function LyceeConnectPrototype() {
             </div>
             <div className="lycee-service-grid">
               {services.map((service) => (
-                <button type="button" data-tone={service.tone} key={service.title} onClick={() => changeView(service.target)}>
+                <button type="button" data-tone={service.tone} key={service.title} onClick={() => startHelp(service.prompt)}>
                   <span className="lycee-service-icon"><service.icon aria-hidden="true" /></span>
                   <span className="lycee-service-copy">
                     <strong>{service.title}</strong>
@@ -352,10 +385,10 @@ export default function LyceeConnectPrototype() {
 
           <section className="lycee-lower-grid">
             <article className="lycee-news">
-              <span><Newspaper aria-hidden="true" /> À la une</span>
-              <h2>La rentrée à Blaise Cendrars</h2>
-              <p>Horaires, accès rapides et informations importantes du lycée.</p>
-              <button type="button" onClick={() => changeView("school")}>Voir les informations <ChevronRight aria-hidden="true" /></button>
+              <span><BarChart3 aria-hidden="true" /> LyceeGest</span>
+              <h2>Stages et Grand Oral</h2>
+              <p>Les outils de suivi restent disponibles dans l’application de gestion du lycée.</p>
+              <a href={LYCEEGEST_URL}>Ouvrir LyceeGest <ChevronRight aria-hidden="true" /></a>
             </article>
             <article className="lycee-status-panel">
               <div>
@@ -370,6 +403,12 @@ export default function LyceeConnectPrototype() {
               </div>
             </article>
           </section>
+
+          <section className="lycee-formations-band">
+            <div><span className="lycee-eyebrow">Lycée polyvalent</span><h2>Général, technologique et professionnel</h2><p>Des parcours de la seconde au baccalauréat, avec CAP, spécialités générales, STL, STMG, MELEC et PCEPC.</p></div>
+            <div className="lycee-track-pills"><span>Voie générale</span><span>STL</span><span>STMG</span><span>Voie pro</span><span>CAP</span></div>
+            <button type="button" onClick={() => changeView("school")}>Découvrir les formations <ChevronRight aria-hidden="true" /></button>
+          </section>
         </div>
           </>
         )}
@@ -383,7 +422,7 @@ export default function LyceeConnectPrototype() {
           />
         )}
         {view === "requests" && <RequestsView ticketCode={ticketCreated} onBack={() => changeView("home")} />}
-        {view === "services" && <ServicesView onHelp={() => changeView("help")} onBack={() => changeView("home")} />}
+        {view === "services" && <ServicesView onHelp={() => startHelp()} onBack={() => changeView("home")} />}
         {view === "school" && <SchoolView onBack={() => changeView("home")} />}
         {view === "agent" && <AgentView onBack={() => changeView("home")} />}
 
@@ -428,6 +467,64 @@ function PageIntro({
   );
 }
 
+type AssistantChatMessage = {
+  id: string;
+  role: "assistant" | "requester";
+  content: string;
+};
+
+type AssistantInsight = {
+  reply: string;
+  category: SupportCategory;
+  requesterType: "eleve" | "parent" | "professeur" | "personnel" | "autre" | "inconnu";
+  urgency: "faible" | "normale" | "urgente";
+  missingInformation: string[];
+  suggestedDocuments: string[];
+  readyToCreate: boolean;
+  safetyNotice: string | null;
+  usedAi: boolean;
+};
+
+function inferSupportCategory(text: string): SupportCategory {
+  if (/\b(inscription|réinscription|reinscription|inscrire)\b/i.test(text)) return "inscription";
+  if (/\b(classe|affectation|emploi du temps|edt)\b/i.test(text)) return "affectation_classe";
+  if (/\b(document|pièce|piece|dossier|justificatif|manque)\b/i.test(text)) return "documents_scolarite";
+  if (/\b(ent|educonnect|connexion|connecter|identifiant|code)\b/i.test(text)) return "ent";
+  if (/\b(email|mail|webmail|zimbra|académique|academique)\b/i.test(text)) return "email_academique";
+  if (/\b(pc|ordinateur|portable|tablette|chargeur)\b/i.test(text)) return "ordinateur";
+  if (/\b(logiciel|application|wifi|réseau|reseau)\b/i.test(text)) return "logiciel";
+  if (/\b(cantine|restauration|bourse|intendance|paiement)\b/i.test(text)) return "restauration_bourse";
+  if (/\b(orientation|formation|spécialité|specialite|parcoursup)\b/i.test(text)) return "orientation_formation";
+  if (/\b(absence|retard|vie scolaire|cpe|surveillant)\b/i.test(text)) return "vie_scolaire";
+  return "autre";
+}
+
+function localAssistantFallback(messages: AssistantChatMessage[], files: File[]): AssistantInsight {
+  const text = messages.filter((message) => message.role === "requester").map((message) => message.content).join("\n");
+  const category = inferSupportCategory(text);
+  const label = supportCategories.find((item) => item.value === category)?.label ?? "Autre demande";
+  const requesterType = /\b(parent|mère|mere|père|pere)\b/i.test(text)
+    ? "parent"
+    : /\b(prof|professeur|enseignant)\b/i.test(text)
+      ? "professeur"
+      : /\b(élève|eleve|lycéen|lyceen)\b/i.test(text)
+        ? "eleve"
+        : /\b(personnel|agent|administration)\b/i.test(text)
+          ? "personnel"
+          : "inconnu";
+  return {
+    reply: `J’ai compris. Je classe votre besoin dans « ${label} ». ${files.length ? `Je vois aussi ${files.length} fichier${files.length > 1 ? "s" : ""} à joindre au dossier. ` : ""}Expliquez-moi ce qui bloque et ce que vous avez déjà essayé; ensuite je préparerai la demande pour le bon agent.`,
+    category,
+    requesterType,
+    urgency: /\b(urgent|aujourd'hui|bloqué|bloque|impossible)\b/i.test(text) ? "urgente" : "normale",
+    missingInformation: ["Identité de la personne concernée", "Email ou téléphone de réponse"],
+    suggestedDocuments: files.length ? files.map((file) => file.name) : [],
+    readyToCreate: text.trim().length >= 35,
+    safetyNotice: null,
+    usedAi: false,
+  };
+}
+
 function HelpDeskView({
   initialMessage,
   onBack,
@@ -439,48 +536,120 @@ function HelpDeskView({
   onTicketCreated: (code: string) => void;
   onTrack: () => void;
 }) {
+  const welcomeMessage: AssistantChatMessage = {
+    id: "welcome",
+    role: "assistant",
+    content: "Bonjour, je suis l’assistant du lycée. Écrivez simplement ce qui vous arrive. Vous pouvez joindre une photo ou un document; ne donnez jamais votre mot de passe.",
+  };
+  const [chatMessages, setChatMessages] = useState<AssistantChatMessage[]>(() => [
+    welcomeMessage,
+    ...(initialMessage.trim()
+      ? [{ id: crypto.randomUUID(), role: "requester" as const, content: initialMessage.trim() }]
+      : []),
+  ]);
+  const [chatInput, setChatInput] = useState("");
+  const [insight, setInsight] = useState<AssistantInsight | null>(null);
+  const [assistantBusy, setAssistantBusy] = useState(false);
+  const [showDetails, setShowDetails] = useState(false);
+  const [classicForm, setClassicForm] = useState(false);
   const [profile, setProfile] = useState<RequesterProfile>("");
-  const [category, setCategory] = useState("");
-  const [description, setDescription] = useState(initialMessage);
+  const [category, setCategory] = useState<SupportCategory>(() => inferSupportCategory(initialMessage));
+  const [classicDescription, setClassicDescription] = useState(initialMessage);
   const [ticketCode, setTicketCode] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [attachmentWarning, setAttachmentWarning] = useState<string | null>(null);
   const [files, setFiles] = useState<File[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const threadRef = useRef<HTMLDivElement>(null);
+  const initialAnalysisStarted = useRef(false);
   const [requestKey] = useState(() => crypto.randomUUID());
 
-  const profiles = [
-    { value: "eleve", label: "Élève", icon: GraduationCap },
-    { value: "parent", label: "Parent", icon: UsersRound },
-    { value: "professeur", label: "Professeur", icon: UserRound },
-    { value: "personnel", label: "Personnel", icon: CircleUserRound },
-  ] as const;
-  const categories = [
-    { value: "ent", label: "Codes ou accès ENT", icon: KeyRound },
-    { value: "email_academique", label: "Email académique", icon: Mail },
-    { value: "ordinateur", label: "Ordinateur ou logiciel", icon: Laptop },
-    { value: "autre", label: "Autre demande", icon: MessageCircleMore },
-  ];
-  const detectedCategory = /\b(ent|educonnect|connexion|connecter|code|identifiant)\b/i.test(description)
-    ? "ent"
-    : /\b(email|mail|webmail|zimbra|academique|académique)\b/i.test(description)
-      ? "email_academique"
-      : /\b(pc|ordinateur|portable|logiciel|wifi)\b/i.test(description)
-        ? "ordinateur"
-        : "autre";
-  const availableCategories = categories.filter(
-    (item) => item.value !== "email_academique" || profile === "professeur" || profile === "personnel"
-  );
-  const suggestedCategory = availableCategories.some((item) => item.value === detectedCategory)
-    ? detectedCategory
-    : "autre";
-  const selectedProfile = profiles.find((item) => item.value === profile);
-  const selectedCategory = categories.find((item) => item.value === category);
+  const requesterMessages = chatMessages.filter((message) => message.role === "requester");
+  const conversationDescription = requesterMessages.map((message) => message.content).join("\n\n").trim();
+  const selectedCategory = supportCategories.find((item) => item.value === category);
+
+  useEffect(() => {
+    threadRef.current?.scrollTo({ top: threadRef.current.scrollHeight, behavior: "smooth" });
+  }, [chatMessages, assistantBusy]);
+
+  useEffect(() => {
+    if (!initialMessage.trim() || initialAnalysisStarted.current) return;
+    initialAnalysisStarted.current = true;
+    void askAssistant(chatMessages);
+  }, []);
+
+  async function askAssistant(nextMessages: AssistantChatMessage[]) {
+    setAssistantBusy(true);
+    setSubmitError(null);
+    let result = localAssistantFallback(nextMessages, files);
+    if (AI_ASSISTANT_ENABLED) {
+      try {
+        result = await readApiResponse<AssistantInsight>(
+          fetch("/api/support/assistant", {
+            method: "POST",
+            credentials: "include",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              messages: nextMessages.slice(-10).map(({ role, content }) => ({ role, content })),
+              attachments: files.map((file) => ({ name: file.name, type: file.type, size: file.size })),
+            }),
+          })
+        );
+      } catch {
+        result = localAssistantFallback(nextMessages, files);
+      }
+    }
+    setInsight(result);
+    setCategory(result.category);
+    if (result.requesterType !== "inconnu" && !profile) setProfile(result.requesterType);
+    setChatMessages((current) => [
+      ...current,
+      { id: crypto.randomUUID(), role: "assistant", content: result.reply },
+    ]);
+    setAssistantBusy(false);
+  }
+
+  function sendChatMessage(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const content = chatInput.trim();
+    if (!content || assistantBusy) return;
+    const nextMessages = [
+      ...chatMessages,
+      { id: crypto.randomUUID(), role: "requester" as const, content },
+    ];
+    setChatMessages(nextMessages);
+    setChatInput("");
+    void askAssistant(nextMessages);
+  }
+
+  function selectFiles(event: React.ChangeEvent<HTMLInputElement>) {
+    const selected = Array.from(event.target.files ?? []);
+    const invalid = selected.find(
+      (file) => !SUPPORT_FILE_TYPES.includes(file.type) || file.size > MAX_SUPPORT_FILE_BYTES
+    );
+    if (invalid) {
+      setSubmitError("Formats acceptés : PDF, image, texte, Word ou Excel, jusqu’à 10 Mo.");
+      event.target.value = "";
+      return;
+    }
+    const next = [...files, ...selected].slice(0, MAX_SUPPORT_FILES);
+    setFiles(next);
+    setSubmitError(
+      files.length + selected.length > MAX_SUPPORT_FILES
+        ? "Vous pouvez joindre au maximum 5 fichiers."
+        : null
+    );
+    event.target.value = "";
+  }
 
   async function submitRequest(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (!profile || !category || !description.trim()) return;
+    const description = (classicForm ? classicDescription : conversationDescription).trim();
+    if (!profile || !description) {
+      setSubmitError("Indiquez votre profil et expliquez votre demande avant de continuer.");
+      return;
+    }
     const form = new FormData(event.currentTarget);
     const email = String(form.get("email") ?? "").trim();
     const phone = String(form.get("phone") ?? "").trim();
@@ -488,12 +657,14 @@ function HelpDeskView({
       setSubmitError("Indiquez un email ou un téléphone pour recevoir la réponse.");
       return;
     }
+    let preferredChannel = String(form.get("preferredChannel") ?? "email");
+    if (preferredChannel === "email" && !email) preferredChannel = "phone";
+    if (preferredChannel === "phone" && !phone) preferredChannel = "email";
 
     setSubmitting(true);
     setSubmitError(null);
     try {
       let publicCode = "BC-2026-0042";
-
       if (SUPPORT_API_ENABLED) {
         const response = await fetch("/api/support/requests", {
           method: "POST",
@@ -507,45 +678,35 @@ function HelpDeskView({
             requesterFirstName: form.get("requesterFirstName"),
             requesterLastName: form.get("requesterLastName"),
             beneficiaryType: profile === "parent" ? "eleve" : "self",
-            beneficiaryFirstName:
-              profile === "parent" ? form.get("beneficiaryFirstName") : null,
-            beneficiaryLastName:
-              profile === "parent" ? form.get("beneficiaryLastName") : null,
+            beneficiaryFirstName: profile === "parent" ? form.get("beneficiaryFirstName") : null,
+            beneficiaryLastName: profile === "parent" ? form.get("beneficiaryLastName") : null,
             className: form.get("className"),
             subjectArea: form.get("subjectArea"),
             schoolTrack: form.get("schoolTrack"),
             category,
-            subject: categories.find((item) => item.value === category)?.label,
+            subject: selectedCategory?.label ?? "Demande au lycée",
             description,
-            email: form.get("email"),
-            phone: form.get("phone"),
-            preferredChannel: form.get("preferredChannel"),
+            email,
+            phone,
+            preferredChannel,
             fallbackAllowed: form.get("fallbackAllowed") === "on",
             website: form.get("website"),
           }),
         });
-        const payload = (await response.json()) as {
-          request?: { publicCode?: string };
-          error?: string;
-        };
+        const payload = (await response.json()) as { request?: { publicCode?: string }; error?: string };
         if (!response.ok || !payload.request?.publicCode) {
-          throw new Error(payload.error ?? "La demande n'a pas pu être enregistrée");
+          throw new Error(payload.error ?? "La demande n’a pas pu être enregistrée");
         }
         publicCode = payload.request.publicCode;
 
         if (files.length > 0) {
-          const uploads = await Promise.allSettled(
-            files.map((file) => uploadSupportFile(publicCode, file))
-          );
+          const uploads = await Promise.allSettled(files.map((file) => uploadSupportFile(publicCode, file)));
           const failedCount = uploads.filter((result) => result.status === "rejected").length;
           if (failedCount > 0) {
-            setAttachmentWarning(
-              `La demande est enregistrée, mais ${failedCount} fichier${failedCount > 1 ? "s" : ""} n'a pas été joint. Vous pourrez le renvoyer depuis le suivi.`
-            );
+            setAttachmentWarning(`La demande est enregistrée, mais ${failedCount} fichier${failedCount > 1 ? "s" : ""} n’a pas été joint. Vous pourrez le renvoyer depuis le suivi.`);
           }
         }
       }
-
       setTicketCode(publicCode);
       onTicketCreated(publicCode);
     } catch (error) {
@@ -561,18 +722,12 @@ function HelpDeskView({
         <div className="lycee-confirmation-mark"><CheckCircle2 aria-hidden="true" /></div>
         <span className="lycee-eyebrow">Demande transmise</span>
         <h1>Votre dossier est créé.</h1>
-        <p>Un agent du lycée va le traiter. Vous pourrez suivre chaque étape avec le numéro ci-dessous.</p>
-        <div className="lycee-ticket-code">
-          <span>Numéro de demande</span>
-          <strong>{ticketCode}</strong>
-        </div>
-        <div className="lycee-confirmation-note">
-          <Mail aria-hidden="true" />
-          <span>La confirmation et le lien de suivi seront envoyés par email. Le téléphone reste utilisé seulement si nécessaire.</span>
-        </div>
+        <p>La conversation et les documents sont réunis. Un agent du lycée peut maintenant vous répondre sans vous faire recommencer.</p>
+        <div className="lycee-ticket-code"><span>Numéro de demande</span><strong>{ticketCode}</strong></div>
+        <div className="lycee-confirmation-note"><Mail aria-hidden="true" /><span>Vous recevrez la réponse par le moyen choisi. Le suivi reste également disponible sur cet appareil.</span></div>
         {attachmentWarning ? <div className="lycee-form-error" role="alert"><CircleAlert aria-hidden="true" />{attachmentWarning}</div> : null}
         <div className="lycee-confirmation-actions">
-          <button className="lycee-primary-action" type="button" onClick={onTrack}>Continuer la conversation <ChevronRight aria-hidden="true" /></button>
+          <button className="lycee-primary-action" type="button" onClick={onTrack}>Suivre et continuer <ChevronRight aria-hidden="true" /></button>
           <button className="lycee-secondary-action" type="button" onClick={onBack}>Retour à l’accueil</button>
         </div>
       </div>
@@ -583,116 +738,79 @@ function HelpDeskView({
     <div className="lycee-page">
       <PageIntro
         eyebrow="Assistant du lycée"
-        title="Expliquez, nous nous occupons du reste"
-        description="La conversation devient votre dossier. Vous pourrez revenir ici pour lire la réponse et continuer l’échange."
+        title="Dites simplement ce qu’il vous faut"
+        description="Une conversation libre, une demande bien classée et un suivi jusqu’à la réponse."
         onBack={onBack}
       />
 
       <div className="lycee-guided-chat">
-        <div className="lycee-guided-chat-head"><span><Bot aria-hidden="true" /></span><div><strong>Assistant Blaise</strong><small>En ligne · réponse suivie par un agent</small></div><em><span /> Disponible</em></div>
-        <div className="lycee-guided-thread" aria-live="polite">
-          <div data-speaker="assistant"><span><Bot aria-hidden="true" /></span><p>Bonjour. Décrivez votre besoin normalement, sans mot de passe. Je prépare le dossier avec vous et je reste dans cette conversation.</p></div>
-          {initialMessage.trim() ? <div data-speaker="requester"><p>{initialMessage.trim()}</p></div> : null}
-          <div data-speaker="assistant"><span><Bot aria-hidden="true" /></span><p>{initialMessage.trim() ? "J’ai bien reçu votre message. Pour l’envoyer au bon agent, dites-moi simplement qui vous êtes." : "Commençons par vous identifier pour adapter les questions."}</p></div>
-          {profile ? <div data-speaker="requester"><p>Je suis {profile === "eleve" ? "élève" : profile === "professeur" ? "professeur" : profile === "personnel" ? "membre du personnel" : "parent"}.</p></div> : null}
-          {profile && !category ? <div data-speaker="assistant"><span><Bot aria-hidden="true" /></span><p>Merci. D’après votre message, je pense à « {categories.find((item) => item.value === suggestedCategory)?.label} ». Confirmez ou choisissez une autre catégorie.</p></div> : null}
-          {category ? <><div data-speaker="requester"><p>{selectedCategory?.label}</p></div><div data-speaker="assistant"><span><Bot aria-hidden="true" /></span><p>Parfait. J’ai seulement besoin des coordonnées utiles pour vous répondre et des informations liées à la personne concernée.</p></div></> : null}
+        <div className="lycee-guided-chat-head"><span><Bot aria-hidden="true" /></span><div><strong>Assistant Blaise</strong><small>Comprend, prépare et transmet au bon agent</small></div><em><span /> Disponible</em></div>
+        <div className="lycee-guided-thread" ref={threadRef} aria-live="polite">
+          {chatMessages.map((message) => (
+            <div data-speaker={message.role} key={message.id}>
+              {message.role === "assistant" ? <span><Bot aria-hidden="true" /></span> : null}
+              <p>{message.content}</p>
+            </div>
+          ))}
+          {assistantBusy ? <div data-speaker="assistant" className="is-thinking"><span><Bot aria-hidden="true" /></span><p><i /><i /><i /><b>J’analyse votre demande…</b></p></div> : null}
         </div>
 
-        <form className="lycee-conversation-form" onSubmit={submitRequest}>
-          {!profile ? (
-            <fieldset className="lycee-chat-choices">
-              <legend>Vous êtes</legend>
-              <div className="lycee-profile-grid">
-                {profiles.map((item) => (
-                  <button type="button" key={item.value} onClick={() => setProfile(item.value)}><item.icon aria-hidden="true" />{item.label}</button>
-                ))}
-              </div>
-            </fieldset>
-          ) : null}
-
-          {profile && !category ? (
-            <fieldset className="lycee-chat-choices">
-              <legend>Votre demande concerne</legend>
-              <div className="lycee-category-grid">
-                {availableCategories.map((item) => (
-                  <button className={item.value === suggestedCategory ? "is-suggested" : ""} type="button" key={item.value} onClick={() => setCategory(item.value)}>
-                    <item.icon aria-hidden="true" /><span>{item.label}</span>{item.value === suggestedCategory ? <small>Suggéré</small> : <ChevronRight aria-hidden="true" />}
-                  </button>
-                ))}
-              </div>
-              <button className="lycee-chat-change" type="button" onClick={() => setProfile("")}><ArrowLeft aria-hidden="true" /> Modifier mon profil</button>
-            </fieldset>
-          ) : null}
-
-          {profile && category ? (
-          <section className="lycee-chat-details">
-            <div className="lycee-chat-selection"><button type="button" onClick={() => { setProfile(""); setCategory(""); }}>{selectedProfile?.label}</button><ChevronRight aria-hidden="true" /><button type="button" onClick={() => setCategory("")}>{selectedCategory?.label}</button></div>
-            <div className="lycee-fields-grid">
-              <label><span>Votre prénom</span><input name="requesterFirstName" type="text" autoComplete="given-name" placeholder="Votre prénom" disabled={!category} required /></label>
-              <label><span>Votre nom</span><input name="requesterLastName" type="text" autoComplete="family-name" placeholder="Votre nom" disabled={!category} required /></label>
-              {profile === "parent" ? <><label><span>Prénom de l’élève</span><input name="beneficiaryFirstName" type="text" placeholder="Prénom de l’élève" disabled={!category} required /></label><label><span>Nom de l’élève</span><input name="beneficiaryLastName" type="text" placeholder="Nom de l’élève" disabled={!category} required /></label></> : null}
-              {profile === "eleve" || profile === "parent" ? <label><span>Classe</span><input name="className" type="text" placeholder="Ex. 2GT4" disabled={!category} required /></label> : null}
-              {profile === "professeur" || profile === "personnel" ? <label><span>Matière ou service</span><input name="subjectArea" type="text" placeholder="Ex. Mathématiques, intendance" disabled={!category} required /></label> : null}
-              {profile === "professeur" ? <label><span>Voie</span><select name="schoolTrack" disabled={!category} required><option value="">Sélectionner</option><option value="general">Générale et technologique</option><option value="professionnel">Professionnelle</option><option value="les_deux">Les deux</option></select></label> : null}
-              <label><span>Email personnel</span><input name="email" type="email" autoComplete="email" placeholder="nom@exemple.fr" disabled={!category} /></label>
-              <label><span>Téléphone</span><input name="phone" type="tel" autoComplete="tel" placeholder="06 00 00 00 00" disabled={!category} /></label>
-              <label><span>Réponse souhaitée</span><select name="preferredChannel" disabled={!category} defaultValue="email"><option value="email">Par email</option><option value="phone">Par téléphone</option><option value="web">Dans l’application</option></select></label>
-              <label className="lycee-fallback-choice"><input name="fallbackAllowed" type="checkbox" disabled={!category} /><span>Utiliser l’autre moyen de contact si le premier échoue</span></label>
-              <label className="is-wide"><span>Expliquez votre demande</span><textarea value={description} onChange={(event) => setDescription(event.target.value)} rows={5} disabled={!category} placeholder="Décrivez ce qui bloque et ce que vous avez déjà essayé." required /></label>
-              <label className="lycee-honeypot" aria-hidden="true"><span>Site web</span><input name="website" type="text" tabIndex={-1} autoComplete="off" /></label>
+        <div className="lycee-chat-workspace">
+          {insight ? (
+            <div className="lycee-live-analysis">
+              <WandSparkles aria-hidden="true" />
+              <span><strong>{selectedCategory?.label}</strong><small>Priorité {insight.urgency}{insight.usedAi ? " · analyse IA" : " · analyse locale"}</small></span>
+              {insight.suggestedDocuments.length > 0 ? <em>{insight.suggestedDocuments.length} pièce(s) repérée(s)</em> : null}
             </div>
-            <input
-              ref={fileInputRef}
-              className="lycee-file-input"
-              type="file"
-              multiple
-              accept={SUPPORT_FILE_TYPES.join(",")}
-              onChange={(event) => {
-                const selected = Array.from(event.target.files ?? []);
-                const invalid = selected.find(
-                  (file) => !SUPPORT_FILE_TYPES.includes(file.type) || file.size > MAX_SUPPORT_FILE_BYTES
-                );
-                if (invalid) {
-                  setSubmitError("Formats acceptés : PDF, image, texte, Word ou Excel, jusqu'à 10 Mo.");
-                  event.target.value = "";
-                  return;
-                }
-                const next = [...files, ...selected].slice(0, MAX_SUPPORT_FILES);
-                setFiles(next);
-                setSubmitError(
-                  files.length + selected.length > MAX_SUPPORT_FILES
-                    ? "Vous pouvez joindre au maximum 5 fichiers."
-                    : null
-                );
-                event.target.value = "";
-              }}
-            />
-            <button className="lycee-attachment-button" type="button" disabled={!category || files.length >= MAX_SUPPORT_FILES} onClick={() => fileInputRef.current?.click()}><Paperclip aria-hidden="true" /> Ajouter une capture ou un document</button>
-            {files.length > 0 ? (
-              <div className="lycee-selected-files" aria-label="Fichiers à envoyer">
-                {files.map((file, index) => (
-                  <div key={`${file.name}-${file.lastModified}`}>
-                    <FileText aria-hidden="true" />
-                    <span><strong>{file.name}</strong><small>{(file.size / 1024 / 1024).toFixed(1)} Mo</small></span>
-                    <button type="button" onClick={() => setFiles((current) => current.filter((_, fileIndex) => fileIndex !== index))}>Retirer</button>
-                  </div>
-                ))}
-              </div>
-            ) : null}
-          </section>
           ) : null}
 
-          {profile && category ? <>
-            {description.trim() ? (
-              <div className="lycee-ai-summary"><WandSparkles aria-hidden="true" /><span><strong>Dossier prêt à être transmis</strong><small>{selectedCategory?.label} · conversation conservée · réponse dans le suivi</small></span></div>
-            ) : null}
-            {submitError ? <div className="lycee-form-error" role="alert"><CircleAlert aria-hidden="true" />{submitError}</div> : null}
-            <button className="lycee-primary-action lycee-submit-request" type="submit" disabled={submitting || !description.trim()}>
-              {submitting ? "Enregistrement…" : "Créer la demande et continuer"} <Send aria-hidden="true" />
-            </button>
-          </> : null}
-        </form>
+          <form className="lycee-chat-composer" onSubmit={sendChatMessage}>
+            <textarea value={chatInput} onChange={(event) => setChatInput(event.target.value)} rows={2} maxLength={1500} placeholder="Écrivez comme si vous parliez à l’accueil du lycée…" aria-label="Votre message" />
+            <input ref={fileInputRef} className="lycee-file-input" type="file" multiple accept={SUPPORT_FILE_TYPES.join(",")} onChange={selectFiles} />
+            <button className="lycee-chat-attach" type="button" aria-label="Joindre un document" title="Joindre un document" disabled={files.length >= MAX_SUPPORT_FILES} onClick={() => fileInputRef.current?.click()}><Paperclip aria-hidden="true" /></button>
+            <button className="lycee-chat-send" type="submit" aria-label="Envoyer le message" title="Envoyer" disabled={!chatInput.trim() || assistantBusy}><Send aria-hidden="true" /></button>
+          </form>
+
+          {files.length > 0 ? (
+            <div className="lycee-selected-files lycee-chat-files" aria-label="Fichiers à envoyer">
+              {files.map((file, index) => (
+                <div key={`${file.name}-${file.lastModified}`}><FileText aria-hidden="true" /><span><strong>{file.name}</strong><small>{(file.size / 1024 / 1024).toFixed(1)} Mo</small></span><button type="button" onClick={() => setFiles((current) => current.filter((_, fileIndex) => fileIndex !== index))}>Retirer</button></div>
+              ))}
+            </div>
+          ) : null}
+
+          {requesterMessages.length > 0 && !showDetails ? (
+            <div className="lycee-chat-next">
+              <button className="lycee-primary-action" type="button" onClick={() => setShowDetails(true)}>Créer ma demande <ChevronRight aria-hidden="true" /></button>
+              <button type="button" onClick={() => { setClassicForm(true); setShowDetails(true); }}>Je préfère remplir le formulaire</button>
+            </div>
+          ) : null}
+
+          {showDetails ? (
+            <form className="lycee-case-form" onSubmit={submitRequest}>
+              <div className="lycee-case-form-head"><span><ShieldCheck aria-hidden="true" /></span><div><h2>{classicForm ? "Formulaire classique" : "Une dernière étape"}</h2><p>{classicForm ? "Tous les champs sont visibles pour ceux qui préfèrent écrire leur demande directement." : "Vos coordonnées permettent au lycée de vous répondre et de retrouver la bonne personne."}</p></div><button type="button" aria-label="Fermer" onClick={() => setShowDetails(false)}>Fermer</button></div>
+              <div className="lycee-fields-grid">
+                <label><span>Vous êtes</span><select value={profile} onChange={(event) => setProfile(event.target.value as RequesterProfile)} required><option value="">Sélectionner</option><option value="eleve">Élève</option><option value="parent">Parent</option><option value="professeur">Professeur</option><option value="personnel">Personnel</option><option value="autre">Autre</option></select></label>
+                {classicForm ? <label><span>Votre demande concerne</span><select value={category} onChange={(event) => setCategory(event.target.value as SupportCategory)}>{supportCategories.map((item) => <option value={item.value} key={item.value}>{item.label}</option>)}</select></label> : null}
+                <label><span>Votre prénom</span><input name="requesterFirstName" type="text" autoComplete="given-name" placeholder="Prénom" required /></label>
+                <label><span>Votre nom</span><input name="requesterLastName" type="text" autoComplete="family-name" placeholder="Nom" required /></label>
+                {profile === "parent" ? <><label><span>Prénom de l’élève</span><input name="beneficiaryFirstName" type="text" required /></label><label><span>Nom de l’élève</span><input name="beneficiaryLastName" type="text" required /></label></> : null}
+                {profile === "eleve" || profile === "parent" ? <label><span>Classe, si connue</span><input name="className" type="text" placeholder="Ex. 2GT4" /></label> : null}
+                {profile === "professeur" || profile === "personnel" ? <label><span>Matière ou service</span><input name="subjectArea" type="text" placeholder="Ex. Mathématiques, intendance" /></label> : null}
+                {profile === "professeur" ? <label><span>Voie</span><select name="schoolTrack"><option value="">Non précisée</option><option value="general">Générale et technologique</option><option value="professionnel">Professionnelle</option><option value="les_deux">Les deux</option></select></label> : null}
+                <label><span>Email</span><input name="email" type="email" autoComplete="email" placeholder="nom@exemple.fr" /></label>
+                <label><span>Téléphone</span><input name="phone" type="tel" autoComplete="tel" placeholder="06 00 00 00 00" /></label>
+                <label><span>Réponse souhaitée</span><select name="preferredChannel" defaultValue="email"><option value="email">Par email</option><option value="phone">Par téléphone</option><option value="web">Dans l’application</option></select></label>
+                <label className="lycee-fallback-choice"><input name="fallbackAllowed" type="checkbox" defaultChecked /><span>Utiliser l’autre moyen de contact si nécessaire</span></label>
+                {classicForm ? <label className="is-wide"><span>Votre demande</span><textarea value={classicDescription} onChange={(event) => setClassicDescription(event.target.value)} rows={5} maxLength={5000} placeholder="Expliquez ce dont vous avez besoin." required /></label> : null}
+                <label className="lycee-honeypot" aria-hidden="true"><span>Site web</span><input name="website" type="text" tabIndex={-1} autoComplete="off" /></label>
+              </div>
+              <div className="lycee-ai-summary"><WandSparkles aria-hidden="true" /><span><strong>{selectedCategory?.label}</strong><small>Conversation et pièces jointes conservées dans le même dossier</small></span></div>
+              {submitError ? <div className="lycee-form-error" role="alert"><CircleAlert aria-hidden="true" />{submitError}</div> : null}
+              <button className="lycee-primary-action lycee-submit-request" type="submit" disabled={submitting || (!classicForm && !conversationDescription)}>{submitting ? "Enregistrement…" : "Envoyer au lycée"} <Send aria-hidden="true" /></button>
+            </form>
+          ) : submitError ? <div className="lycee-form-error" role="alert"><CircleAlert aria-hidden="true" />{submitError}</div> : null}
+        </div>
       </div>
     </div>
   );
@@ -961,12 +1079,13 @@ function DemoRequestsView({ ticketCode, onBack }: { ticketCode: string | null; o
 
 function ServicesView({ onHelp, onBack }: { onHelp: () => void; onBack: () => void }) {
   const serviceGroups = [
-    { title: "LyceeGest", description: "Stages, Grand Oral et outils de gestion du lycée", icon: BarChart3, color: "blue", progress: "Application complète", action: "Ouvrir LyceeGest", href: LYCEEGEST_URL },
+    { title: "Assistance du lycée", description: "Une conversation libre pour toute question de rentrée, de scolarité ou d’accès", icon: LifeBuoy, color: "coral", progress: "Conversation suivie", action: "Demander de l’aide", help: true },
     { title: "Webmail du lycée", description: "Messagerie, contacts et diffusion lorsque Créteil est perturbé", icon: Mail, color: "green", progress: "Communication disponible", action: "Ouvrir le Webmail", href: WEBMAIL_URL, external: true },
+    { title: "Inscriptions et dossiers", description: "Réinscription, pièces manquantes, classe et documents de scolarité", icon: FolderCheck, color: "gold", progress: "Priorité rentrée", action: "Préparer une demande", help: true },
+    { title: "Accès ENT et EduConnect", description: "Connexion directe ou demande d’aide pour retrouver son accès", icon: KeyRound, color: "blue", progress: "Service de rentrée", action: "Accéder à l’ENT", href: "https://ent.iledefrance.fr/auth/login", external: true },
+    { title: "LyceeGest", description: "Stages, Grand Oral et outils de gestion du lycée", icon: BarChart3, color: "blue", progress: "Application complète", action: "Ouvrir LyceeGest", href: LYCEEGEST_URL },
     { title: "Stages de seconde", description: "Convention, entreprise, livret et suivi du stage", icon: BriefcaseBusiness, color: "gold", progress: "Module LyceeGest", action: "Ouvrir Stages", href: "/stages" },
     { title: "Grand Oral", description: "Questions, validations des professeurs et fiche officielle", icon: Mic2, color: "green", progress: "Module LyceeGest", action: "Ouvrir Grand Oral", href: "/grand-oral" },
-    { title: "Accès ENT et EduConnect", description: "Accès direct et demande de nouveaux codes", icon: KeyRound, color: "blue", progress: "Service externe", action: "Accéder à l’ENT", href: "https://ent.iledefrance.fr/auth/login", external: true },
-    { title: "Assistance numérique", description: "Codes, email académique, ordinateur et autres demandes", icon: LifeBuoy, color: "coral", progress: "Conversation suivie", action: "Demander de l’aide", help: true },
   ];
   return (
     <div className="lycee-page">
@@ -995,14 +1114,44 @@ function SchoolView({ onBack }: { onBack: () => void }) {
     { label: "Parcoursup", href: "https://parcoursup.gouv.fr", icon: FileText },
     { label: "E-sidoc", href: "https://0932048w.esidoc.fr/", icon: Newspaper },
   ];
+  const formations = [
+    {
+      title: "Voie générale",
+      icon: BookOpenCheck,
+      description: "Seconde générale et technologique, première et terminale générales.",
+      items: "HGGSP, HLP, LLCE, Mathématiques, NSI, Physique-Chimie, SVT et SES",
+    },
+    {
+      title: "Voie technologique",
+      icon: GraduationCap,
+      description: "Des parcours scientifiques et tertiaires jusqu’au baccalauréat.",
+      items: "STL Sciences physiques et chimiques en laboratoire, STMG gestion-finance, mercatique ou RH-communication",
+    },
+    {
+      title: "Voie professionnelle",
+      icon: Settings2,
+      description: "Des formations concrètes dans l’énergie, les procédés et la maintenance.",
+      items: "2de MTNE, 2de MPMIA, Bac pro MELEC et Bac pro PCEPC",
+    },
+    {
+      title: "CAP",
+      icon: BriefcaseBusiness,
+      description: "Une formation professionnalisante proposée au lycée.",
+      items: "CAP Agent de la qualité de l’eau",
+    },
+  ];
   return (
     <div className="lycee-page">
-      <PageIntro eyebrow="Blaise Cendrars" title="Vie du lycée" description="Les informations essentielles du site du lycée dans une expérience adaptée au téléphone." onBack={onBack} />
+      <PageIntro eyebrow="Blaise Cendrars" title="Le lycée et ses formations" description="Retrouvez l’essentiel de la rentrée, les parcours et les accès utiles sur téléphone comme sur ordinateur." onBack={onBack} />
       <section className="lycee-school-feature">
         <img src="/lycee-blaise-facade.png" alt="Lycée Blaise Cendrars" />
-        <div><span className="lycee-eyebrow">Information importante</span><h2>Organisation de la rentrée</h2><p>Consultez les horaires par niveau et recevez les prochaines mises à jour directement dans l’application.</p><button type="button">Lire l’information <ChevronRight aria-hidden="true" /></button></div>
+        <div><span className="lycee-eyebrow">À la une</span><h2>Organisation de la rentrée</h2><p>Horaires, affectations, documents et accès numériques: l’assistant vous oriente si une information manque.</p><button type="button" onClick={() => window.scrollTo({ top: document.body.scrollHeight, behavior: "smooth" })}>Voir les informations utiles <ChevronRight aria-hidden="true" /></button></div>
       </section>
-      <div className="lycee-school-stats"><div><strong>1 172</strong><span>élèves</span></div><div><strong>84 %</strong><span>réussite bac général</span></div><div><strong>90 %</strong><span>réussite bac STL</span></div><div><strong>95 %</strong><span>réussite CAP ETL</span></div></div>
+      <div className="lycee-school-stats"><div><strong>Polyvalent</strong><span>général, techno et pro</span></div><div><strong>15</strong><span>formations référencées</span></div><div><strong>86 %</strong><span>réussite globale 2025</span></div><div><strong>90 %</strong><span>réussite bac STL 2025</span></div></div>
+      <section className="lycee-formations" aria-labelledby="formations-title">
+        <div className="lycee-section-title"><div><span className="lycee-eyebrow">Choisir son parcours</span><h2 id="formations-title">Les formations du lycée</h2></div><a href="https://lycee-blaise-cendrars-sevran.fr/formations/" target="_blank" rel="noreferrer">Site du lycée <ExternalLink aria-hidden="true" /></a></div>
+        <div>{formations.map((formation) => <article key={formation.title}><span><formation.icon aria-hidden="true" /></span><div><h3>{formation.title}</h3><p>{formation.description}</p><small>{formation.items}</small></div></article>)}</div>
+      </section>
       <section className="lycee-quick-links"><div className="lycee-section-title"><div><span className="lycee-eyebrow">Liens utiles</span><h2>Accès rapides</h2></div></div><div>{links.map((link) => <a href={link.href} target="_blank" rel="noreferrer" key={link.label}><link.icon aria-hidden="true" /><span>{link.label}</span><ExternalLink aria-hidden="true" /></a>)}</div></section>
       <section className="lycee-contact-band"><div><MapPin aria-hidden="true" /><span><strong>12 avenue Léon Jouhaux</strong><small>93270 Sevran</small></span></div><div><Phone aria-hidden="true" /><span><strong>01 49 36 20 50</strong><small>Accueil du lycée</small></span></div></section>
     </div>

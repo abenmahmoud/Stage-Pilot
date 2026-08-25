@@ -27,10 +27,16 @@ const beneficiaryTypes = new Set([
   "autre",
 ]);
 const categories = new Set([
+  "inscription",
+  "affectation_classe",
+  "documents_scolarite",
   "ent",
   "email_academique",
   "ordinateur",
   "logiciel",
+  "restauration_bourse",
+  "orientation_formation",
+  "vie_scolaire",
   "autre",
 ]);
 const channels = new Set(["email", "phone", "web"]);

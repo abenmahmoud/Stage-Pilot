@@ -35,7 +35,7 @@ quarantaine. Une panne d'envoi externe n'affecte pas le dossier.
 
 ## Jour 2 - Conversation et travail agent
 
-- [x] **T013** Relier la conversation guidée du prototype aux vraies API.
+- [x] **T013** Relier la conversation libre du prototype aux vraies API.
 - [x] **T014** Ajouter la distinction demandeur/bénéficiaire et le contexte de
   chaque fichier.
 - [ ] **T015** Ajouter IndexedDB pour brouillons et liste des dossiers du terminal.
@@ -70,9 +70,13 @@ voir sa réponse dans le dossier. L'agent traite tout depuis une seule file.
 - [ ] **T034** Ajouter tableau de santé, file d'échec et bouton de reprise.
 - [ ] **T035** Ajouter le formulaire de collecte des emails personnels avec double
   vérification et validation agent.
-- [ ] **T036** Restaurer dans la navigation les formations et informations du lycée.
-- [x] **T036A** Rendre LyceeGest et le Webmail accessibles depuis l'accueil,
+- [x] **T036** Restaurer dans la navigation les formations et informations du lycée.
+- [x] **T036A** Rendre le Webmail prioritaire et garder LyceeGest accessible depuis
   la navigation permanente et le catalogue des services.
+- [x] **T036B** Remplacer les raccourcis Stages/Grand Oral de l'accueil par les
+  besoins de rentrée : aide, inscription, classe, documents et codes d'accès.
+- [x] **T036C** Faire du texte libre le parcours principal et conserver le
+  formulaire classique comme option secondaire après la conversation.
 - [ ] **T037** Ajouter les mentions d'information, durées et procédure d'exercice
   des droits.
 - [ ] **T038** Exécuter tests mobile, desktop, clavier, charge et sécurité.
@@ -86,14 +90,16 @@ Le support continue à fonctionner si l'IA est coupée.
 
 ## Étape IA après décision sur la clé et validation DPO
 
-- [ ] **T041** Choisir le fournisseur et confirmer la clé dédiée ou existante.
+- [x] **T041** Choisir OpenAI `gpt-5.6-luna` et confirmer la réutilisation de la
+  clé existante pour l'aperçu protégé.
 - [ ] **T042** Ajouter le pseudonymiseur et ses tests de non-fuite.
-- [ ] **T043** Définir le schéma de sortie classification/résumé/réponse/risque.
-- [ ] **T044** Implémenter l'adaptateur IA serveur derrière feature flag.
+- [x] **T043** Définir le schéma de sortie classification/réponse/urgence/pièces.
+- [x] **T044** Implémenter l'adaptateur IA serveur, `store: false`, avec repli local.
 - [ ] **T045** Ajouter seuils de confiance et retour aux règles déterministes.
 - [ ] **T046** Journaliser coût, durée, version et validation humaine.
 - [ ] **T047** Tester les injections de consignes dans descriptions et fichiers.
-- [ ] **T048** Activer d'abord pour les agents, jamais directement pour le public.
+- [x] **T048** Activer dans l'aperçu public protégé avec masquage préalable,
+  limites de débit, aucune action sensible et validation humaine du dossier.
 
 ## Après V1
 
