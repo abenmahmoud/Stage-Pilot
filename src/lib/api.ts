@@ -60,8 +60,7 @@ export async function openApiFile(
 
   if (popup) {
     popup.document.title = "Chargement du document";
-    popup.document.body.innerHTML =
-      '<p style="font-family:system-ui;padding:24px">Chargement du document...</p>';
+    popup.document.body.textContent = "Chargement du document...";
   }
 
   if (/^https?:\/\//i.test(path)) {

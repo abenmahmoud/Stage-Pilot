@@ -60,6 +60,10 @@ et ne clôture pas un dossier sans validation humaine.
     niveau de vérification d'identité.
 21. Le site officiel ne peut être remplacé qu'après reprise, correction et
     validation de toutes ses rubriques utiles, de ses documents et de ses liens.
+22. Une page de confiance explique en langage simple les données demandées, les
+    protections réellement actives, les secrets à ne jamais transmettre et le
+    caractère de préproduction tant que la direction et le DPO n'ont pas validé
+    les mentions définitives et les durées de conservation.
 
 ## 3. Acteurs
 
@@ -249,6 +253,9 @@ L'IA peut suggérer la priorité. Seul un agent peut confirmer P1 ou clôturer.
 - AIPD et validation DPO avant activation de l'IA sur des données d'élèves.
 - L'aperçu public masque les emails, téléphones, noms déclarés et secrets avant
   l'appel externe, utilise `store: false` et conserve un repli local sans IA.
+- Les réponses du portail définissent une politique de sécurité du contenu,
+  interdisent l'intégration dans un autre site, réduisent les informations de
+  provenance transmises et désactivent le cache des API et du service worker.
 
 ## 10. Durées proposées à valider par la direction et le DPO
 

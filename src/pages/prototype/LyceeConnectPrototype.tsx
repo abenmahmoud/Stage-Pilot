@@ -50,7 +50,7 @@ import { supabase } from "../../lib/supabase-browser";
 import { apiFetch } from "../../lib/api";
 import "./lycee-connect.css";
 
-type View = "home" | "services" | "help" | "requests" | "school" | "agent";
+type View = "home" | "services" | "help" | "requests" | "school" | "agent" | "trust";
 type RequesterProfile = "eleve" | "parent" | "professeur" | "personnel" | "autre" | "";
 
 const SUPPORT_API_ENABLED = import.meta.env.VITE_SUPPORT_API_ENABLED === "true";
@@ -282,7 +282,7 @@ const specialties = [
 export default function LyceeConnectPrototype() {
   const [view, setView] = useState<View>(() => {
     const requested = new URLSearchParams(window.location.search).get("view");
-    return ["home", "services", "help", "requests", "school", "agent"].includes(requested ?? "")
+    return ["home", "services", "help", "requests", "school", "agent", "trust"].includes(requested ?? "")
       ? requested as View
       : "home";
   });
@@ -356,6 +356,7 @@ export default function LyceeConnectPrototype() {
         <div className="lycee-sidebar-tools">
           <a href={LYCEEGEST_URL}><BarChart3 aria-hidden="true" /><span><strong>LyceeGest</strong><small>Stages et Grand Oral</small></span><ChevronRight aria-hidden="true" /></a>
           <a href={WEBMAIL_URL} target="_blank" rel="noreferrer"><Mail aria-hidden="true" /><span><strong>Webmail du lycée</strong><small>Messagerie et diffusion</small></span><ExternalLink aria-hidden="true" /></a>
+          <button type="button" onClick={() => changeView("trust")}><ShieldCheck aria-hidden="true" /><span><strong>Confidentialité</strong><small>Protection et utilisation des données</small></span><ChevronRight aria-hidden="true" /></button>
         </div>
 
         <button className="lycee-agent-link" type="button" onClick={() => changeView("agent")}>
@@ -415,6 +416,10 @@ export default function LyceeConnectPrototype() {
                 {item.label}
               </button>
             ))}
+            <button type="button" onClick={() => changeView("trust")}>
+              <ShieldCheck aria-hidden="true" />
+              Confidentialité et sécurité
+            </button>
           </nav>
         )}
 
@@ -473,7 +478,7 @@ export default function LyceeConnectPrototype() {
               </button>
             </div>
             <div className="lycee-trust-row">
-              <span><ShieldCheck aria-hidden="true" /> Données protégées</span>
+              <button type="button" onClick={() => changeView("trust")}><ShieldCheck aria-hidden="true" /> Confidentialité et sécurité</button>
               <span><Users aria-hidden="true" /> Réponse validée par un agent</span>
             </div>
           </section>
@@ -565,6 +570,7 @@ export default function LyceeConnectPrototype() {
         {view === "services" && <ServicesView onHelp={() => startHelp()} onBack={() => changeView("home")} />}
         {view === "school" && <SchoolView onBack={() => changeView("home")} onHelp={startHelp} />}
         {view === "agent" && <AgentView onBack={() => changeView("home")} />}
+        {view === "trust" && <TrustView onBack={() => changeView("home")} />}
 
         <nav className="lycee-bottom-nav" aria-label="Navigation mobile">
           {navigation.slice(0, 4).map((item, index) => (
@@ -604,6 +610,70 @@ function PageIntro({
         <p>{description}</p>
       </div>
     </header>
+  );
+}
+
+function TrustView({ onBack }: { onBack: () => void }) {
+  return (
+    <div className="lycee-page lycee-trust-page">
+      <PageIntro
+        eyebrow="Confiance numérique"
+        title="Confidentialité et sécurité"
+        description="Ce que l'application utilise, ce qu'elle protège et les précautions à respecter pour suivre une demande."
+        onBack={onBack}
+      />
+
+      <section className="lycee-trust-lead" aria-labelledby="trust-lead-title">
+        <ShieldCheck aria-hidden="true" />
+        <div>
+          <span className="lycee-eyebrow">Préproduction sécurisée</span>
+          <h2 id="trust-lead-title">Des informations limitées au traitement de votre demande</h2>
+          <p>Cette version sert encore aux essais. Utilisez des données fictives jusqu'à la validation officielle de la direction et du délégué à la protection des données.</p>
+        </div>
+      </section>
+
+      <div className="lycee-trust-grid">
+        <article>
+          <span><UserRound aria-hidden="true" /></span>
+          <div><h2>Informations demandées</h2><p>Identité, moyen de réponse, description du besoin et, seulement si nécessaire, documents utiles au dossier.</p></div>
+        </article>
+        <article>
+          <span><KeyRound aria-hidden="true" /></span>
+          <div><h2>Secrets interdits</h2><p>Ne transmettez jamais votre mot de passe ENT, EduConnect, académique ou personnel. Un agent n'en a pas besoin pour vous aider.</p></div>
+        </article>
+        <article>
+          <span><FileText aria-hidden="true" /></span>
+          <div><h2>Documents contrôlés</h2><p>Les fichiers sont déposés dans un espace privé, mis en quarantaine puis accessibles par un lien temporaire après contrôle.</p></div>
+        </article>
+        <article>
+          <span><BadgeCheck aria-hidden="true" /></span>
+          <div><h2>Décision humaine</h2><p>L'assistant peut guider, résumer et proposer. Un agent autorisé reste responsable des réponses et des actions sensibles.</p></div>
+        </article>
+        <article>
+          <span><Smartphone aria-hidden="true" /></span>
+          <div><h2>Suivi protégé</h2><p>Le suivi reste disponible sur l'appareil. L'email est recommandé pour conserver une trace et reprendre la demande ailleurs.</p></div>
+        </article>
+        <article>
+          <span><Clock3 aria-hidden="true" /></span>
+          <div><h2>Conservation encadrée</h2><p>Les durées définitives et la procédure d'exercice des droits seront publiées après validation par la direction et le DPO.</p></div>
+        </article>
+      </div>
+
+      <section className="lycee-trust-contact" aria-labelledby="trust-contact-title">
+        <div>
+          <Mail aria-hidden="true" />
+          <span>
+            <span className="lycee-eyebrow">Données personnelles</span>
+            <h2 id="trust-contact-title">Délégué à la protection des données de l'académie</h2>
+            <p>Pour une question sur vos droits ou l'utilisation de vos données, consultez les informations officielles de l'académie de Créteil.</p>
+          </span>
+        </div>
+        <div className="lycee-trust-actions">
+          <a href="mailto:dpd@ac-creteil.fr">Écrire au DPO <Mail aria-hidden="true" /></a>
+          <a href="https://www.ac-creteil.fr/donnees-personnelles-et-cookies-121642" target="_blank" rel="noreferrer">Informations officielles <ExternalLink aria-hidden="true" /></a>
+        </div>
+      </section>
+    </div>
   );
 }
 

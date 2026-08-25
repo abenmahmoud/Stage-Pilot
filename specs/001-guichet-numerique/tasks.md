@@ -97,6 +97,8 @@ voir sa réponse dans le dossier. L'agent traite tout depuis une seule file.
   CAP, ainsi que les accès CDI, UNSS, mini-stages et informations pratiques.
 - [ ] **T037** Ajouter les mentions d'information, durées et procédure d'exercice
   des droits.
+- [x] **T037A** Ajouter la page de confiance de préproduction, le contact DPO, les
+  interdictions de partage de mots de passe et les protections HTTP du portail.
 - [ ] **T038** Exécuter tests mobile, desktop, clavier, charge et sécurité.
 - [x] **T038A** Relire les textes du parcours demandeur et agent, remplacer les
   codes internes par des libellés français et vérifier les principaux écrans.
