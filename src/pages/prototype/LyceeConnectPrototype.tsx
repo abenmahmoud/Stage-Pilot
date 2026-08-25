@@ -68,6 +68,19 @@ const SUPPORT_FILE_TYPES = [
   "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
 ];
 
+function supportAssistantSessionId(): string {
+  const storageKey = "bc_support_assistant_session";
+  try {
+    const existing = window.localStorage.getItem(storageKey);
+    if (existing && /^[a-zA-Z0-9-]{16,80}$/.test(existing)) return existing;
+    const created = crypto.randomUUID();
+    window.localStorage.setItem(storageKey, created);
+    return created;
+  } catch {
+    return crypto.randomUUID();
+  }
+}
+
 const supportCategories = [
   { value: "inscription", label: "Inscription ou réinscription" },
   { value: "affectation_classe", label: "Classe ou emploi du temps" },
@@ -564,6 +577,7 @@ function HelpDeskView({
   const threadRef = useRef<HTMLDivElement>(null);
   const initialAnalysisStarted = useRef(false);
   const [requestKey] = useState(() => crypto.randomUUID());
+  const [assistantSessionId] = useState(supportAssistantSessionId);
 
   const requesterMessages = chatMessages.filter((message) => message.role === "requester");
   const conversationDescription = requesterMessages.map((message) => message.content).join("\n\n").trim();
@@ -591,6 +605,7 @@ function HelpDeskView({
             credentials: "include",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
+              sessionId: assistantSessionId,
               messages: nextMessages.slice(-10).map(({ role, content }) => ({ role, content })),
               attachments: files.map((file) => ({ name: file.name, type: file.type, size: file.size })),
             }),

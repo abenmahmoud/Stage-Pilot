@@ -16,7 +16,7 @@ Dernière vérification : 2026-08-25
 | Données envoyées | Dix messages maximum après masquage des emails, téléphones, noms déclarés et secrets; extension, type et taille approximative des fichiers |
 | Données non envoyées | Contenu des fichiers, coordonnées structurées du formulaire, mots de passe et codes secrets |
 | Réponse attendue | JSON structuré : réponse, catégorie, urgence, informations manquantes et documents suggérés |
-| Limites applicatives | 20 analyses par navigateur et adresse réseau sur 10 minutes; 8 000 caractères par conversation |
+| Limites applicatives | 30 analyses par appareil et 300 par adresse réseau sur 10 minutes dans l'aperçu; 8 000 caractères par conversation |
 | Repli | Classification locale déterministe, sans appel payant |
 | Budget | Aperçu protégé uniquement; plafond fournisseur et suivi de coût obligatoires avant ouverture publique |
 | Conservation | Requête envoyée avec `store: false`; revérifier les contrôles du projet OpenAI avant la production |
@@ -27,5 +27,7 @@ Dernière vérification : 2026-08-25
 
 - Créer une clé dédiée à cette application et à son environnement.
 - Fixer un plafond mensuel et des alertes dans le compte fournisseur.
+- Remplacer la limite mémoire de l'aperçu par un quota distribué et le pare-feu
+  Vercel avant l'ouverture publique.
 - Faire valider l’information aux usagers et le traitement des données par le responsable du lycée.
 - Vérifier le repli local, les réponses mal formées, les quotas et l’absence du secret dans le navigateur et les journaux.

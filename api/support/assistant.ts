@@ -9,7 +9,8 @@ import {
 } from "../_shared/support-agent.js";
 
 const RATE_WINDOW_MS = 10 * 60 * 1000;
-const RATE_LIMIT = 20;
+const SESSION_RATE_LIMIT = 30;
+const NETWORK_RATE_LIMIT = 300;
 const requestWindows = new Map<string, { count: number; resetAt: number }>();
 
 function cleanMessages(value: unknown): SupportAgentMessage[] {
@@ -49,21 +50,29 @@ function cleanAttachments(value: unknown): SupportAttachmentHint[] {
   });
 }
 
-function clientKey(req: VercelRequest): string {
+function clientKeys(req: VercelRequest, sessionId: string): { session: string; network: string } {
   const forwarded = req.headers["x-forwarded-for"];
   const ip = (Array.isArray(forwarded) ? forwarded[0] : forwarded?.split(",")[0])?.trim() || "unknown";
   const salt = process.env.SUPPORT_HASH_SECRET || process.env.OPENAI_API_KEY || "lycee-preview";
-  return createHash("sha256").update(`${salt}:${ip}`).digest("hex").slice(0, 32);
+  return {
+    session: createHash("sha256").update(`${salt}:${ip}:${sessionId}`).digest("hex").slice(0, 32),
+    network: createHash("sha256").update(`${salt}:${ip}`).digest("hex").slice(0, 32),
+  };
 }
 
-function enforceRateLimit(key: string) {
+function enforceRateLimit(key: string, limit: number) {
   const now = Date.now();
+  if (requestWindows.size > 10_000) {
+    for (const [windowKey, value] of requestWindows) {
+      if (value.resetAt <= now) requestWindows.delete(windowKey);
+    }
+  }
   const current = requestWindows.get(key);
   if (!current || current.resetAt <= now) {
     requestWindows.set(key, { count: 1, resetAt: now + RATE_WINDOW_MS });
     return;
   }
-  if (current.count >= RATE_LIMIT) throw new HttpError(429, "Trop de messages envoyés. Réessayez dans quelques minutes.");
+  if (current.count >= limit) throw new HttpError(429, "Trop de messages envoyés. Réessayez dans quelques minutes.");
   current.count += 1;
 }
 
@@ -72,12 +81,16 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   return handleApi(res, async () => {
     if (!req.body || typeof req.body !== "object" || Array.isArray(req.body)) throw new HttpError(400, "La demande est invalide");
     const input = req.body as Record<string, unknown>;
-    const key = clientKey(req);
-    enforceRateLimit(key);
+    if (typeof input.sessionId !== "string" || !/^[a-zA-Z0-9-]{16,80}$/.test(input.sessionId)) {
+      throw new HttpError(400, "La session est invalide");
+    }
+    const keys = clientKeys(req, input.sessionId);
+    enforceRateLimit(`session:${keys.session}`, SESSION_RATE_LIMIT);
+    enforceRateLimit(`network:${keys.network}`, NETWORK_RATE_LIMIT);
     return analyzeSupportConversation({
       messages: cleanMessages(input.messages),
       attachments: cleanAttachments(input.attachments),
-      safetyIdentifier: key,
+      safetyIdentifier: keys.session,
     });
   });
 }
