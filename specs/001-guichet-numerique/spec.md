@@ -1,0 +1,241 @@
+# Feature 001 - Guichet numérique et agent de support
+
+**Projet** : LyceeGest - Lycée Blaise Cendrars, Sevran
+**Statut** : conception prête pour implémentation
+**Date** : 2026-08-25
+**Priorité** : rentrée scolaire
+
+## 1. Vision
+
+Créer dans LyceeGest un guichet numérique unique pour les élèves, parents,
+professeurs et personnels. Une personne peut demander de l'aide même si son ENT
+ou son email académique ne fonctionne plus. Elle reçoit un numéro de dossier,
+peut poursuivre la conversation depuis son téléphone ou son ordinateur, joindre
+des documents, et être recontactée par le canal qu'elle a choisi.
+
+L'agent du lycée dispose d'une file de travail qui classe, regroupe, assigne et
+priorise les demandes. L'IA assiste l'agent, mais n'envoie pas de réponse sensible
+et ne clôture pas un dossier sans validation humaine.
+
+## 2. Garanties non négociables
+
+1. Une demande acceptée par l'API est enregistrée avant tout envoi d'email.
+2. Un échec Brevo, IA ou réseau ne supprime jamais la demande.
+3. Chaque modification importante laisse une trace horodatée et attribuée.
+4. Le numéro public d'un dossier ne donne jamais accès aux données personnelles.
+5. Aucun mot de passe ENT, académique ou personnel n'est demandé ni stocké.
+6. Les pièces jointes restent privées, contrôlées et liées au bon dossier.
+7. Les réponses IA sont des propositions visibles et modifiables par un agent.
+8. Le service reste utilisable sans IA, sans SMS et pendant une panne du webmail.
+9. Les modules Stages, Grand Oral, formations et informations du lycée sont
+   conservés. Le guichet s'ajoute à LyceeGest, il ne les remplace pas.
+10. Le système doit absorber un pic de 200 créations de demandes sans perte.
+
+## 3. Acteurs
+
+- **Demandeur public** : élève, parent, professeur ou personnel sans connexion.
+- **Utilisateur connecté** : personne déjà authentifiée dans LyceeGest.
+- **Bénéficiaire** : personne concernée par le problème, différente du demandeur
+  lorsqu'un parent agit pour son enfant ou qu'un personnel aide quelqu'un.
+- **Agent** : traite les dossiers et répond.
+- **Direction** : supervise, réattribue, consulte les indicateurs et les audits.
+- **Administrateur** : configure catégories, modèles, canaux et droits.
+- **Assistant IA** : résume et propose, sans autorité de décision.
+
+## 4. Parcours indispensables en V1
+
+### P1 - Créer une demande sans compte
+
+1. La personne choisit son profil.
+2. Elle indique si la demande la concerne ou concerne une autre personne.
+3. Elle renseigne l'identité scolaire minimale du bénéficiaire.
+4. Elle choisit ENT, email académique, ordinateur, logiciel ou autre besoin.
+5. Elle décrit le problème et peut déposer jusqu'à cinq fichiers.
+6. Elle fournit au moins un moyen de réponse : email ou téléphone.
+7. Elle choisit son canal préféré et autorise un canal de secours.
+8. L'API crée le dossier, son premier événement et le job de notification dans
+   une seule transaction Postgres.
+9. L'écran affiche immédiatement un numéro `BC-AAAA-NNNNNN`.
+10. Le système envoie ensuite le lien sécurisé de suivi de manière asynchrone.
+
+### P2 - Reprendre depuis le même appareil
+
+- Le navigateur conserve seulement le numéro public et une session sécurisée.
+- La session réelle est portée par un cookie `HttpOnly`, `Secure`, `SameSite=Lax`.
+- Un brouillon non envoyé est conservé localement et peut être renvoyé après une
+  coupure de réseau avec la même clé d'idempotence.
+- Les données sensibles et les jetons bruts ne sont jamais écrits dans
+  `localStorage`.
+
+### P3 - Reprendre depuis un autre appareil
+
+- La personne ouvre le lien magique reçu par email ou saisit un code ponctuel.
+- Le jeton à usage unique est échangé contre une nouvelle session d'appareil.
+- Un numéro de dossier seul ne permet pas d'ouvrir le dossier.
+- Après plusieurs tentatives invalides, l'accès est temporairement bloqué.
+
+### P4 - Conversation web et email
+
+- Chaque dossier possède un fil chronologique unique.
+- Une réponse de l'agent apparaît dans l'application et part par le canal choisi.
+- Chaque email sortant utilise une adresse de réponse propre au dossier.
+- Une réponse envoyée depuis Gmail, Outlook ou le webmail est reçue par Brevo,
+  ajoutée au fil puis notifiée à l'agent.
+- Les pièces jointes d'une réponse email sont placées en quarantaine avant d'être
+  visibles ou téléchargeables.
+- Les statuts envoyé, livré, différé, rejeté et spam sont enregistrés.
+
+### P5 - Traiter efficacement 200 demandes
+
+- La file affiche les nouvelles demandes, urgences, retards et dossiers assignés.
+- Les filtres portent sur profil, catégorie, statut, priorité, classe, agent,
+  canal, date et absence de réponse.
+- L'agent peut s'assigner un dossier, le transférer et ajouter une note interne.
+- L'agent voit le résumé, les informations manquantes et une réponse proposée.
+- Les actions répétitives utilisent des modèles avec champs variables.
+- Les demandes probablement identiques sont signalées, jamais fusionnées sans
+  validation humaine.
+- La réponse, le changement de statut et le job durable sont enregistrés dans la
+  même transaction avant l'envoi externe.
+- Un dossier ne peut être clôturé qu'après une réponse ou un motif explicite.
+
+### P6 - Déposer des documents et photos
+
+- Glisser-déposer, appareil photo mobile et sélecteur de fichiers sont supportés.
+- Pour chaque fichier, la personne indique : personne concernée, type de document
+  et commentaire facultatif.
+- Formats V1 : PDF, JPEG, PNG, HEIC et DOCX.
+- Limites V1 : 10 Mo par fichier, cinq fichiers et 30 Mo par demande.
+- Les exécutables, archives, macros et types incohérents sont refusés.
+- Un fichier est d'abord `en_quarantaine`, puis `sain`, `bloqué` ou `erreur_scan`.
+- Les agents ne téléchargent pas un fichier tant qu'il n'est pas déclaré sain.
+
+### P7 - Collecter les contacts personnels manquants
+
+- Un formulaire public distinct collecte nom, prénom, profil, matière ou service,
+  voie générale/professionnelle, email personnel et téléphone facultatif.
+- L'email personnel reçoit un lien de vérification.
+- Un contact non vérifié n'est pas utilisé pour des informations sensibles.
+- L'agent rapproche le contact de la fiche professeur/personnel existante.
+- Toute validation, correction ou désactivation est auditée.
+- Le numéro de téléphone sert au rappel et aux notifications seulement selon le
+  choix présenté à la personne.
+
+## 5. Données demandées
+
+### Demandeur
+
+- profil ;
+- prénom et nom ;
+- email personnel et/ou téléphone ;
+- canal préféré ;
+- autorisation d'utiliser le canal de secours.
+
+### Bénéficiaire
+
+- soi-même, enfant, élève, professeur, personnel ou autre ;
+- prénom, nom et classe pour un élève ;
+- matière, service et voie pour un professeur ou personnel ;
+- aucun justificatif d'identité demandé par défaut.
+
+### Demande
+
+- catégorie et sous-catégorie ;
+- objet ;
+- description libre ;
+- niveau d'urgence déclaré et raison ;
+- service affecté ;
+- pièces jointes documentées.
+
+## 6. Statuts et priorités
+
+### Statuts
+
+`brouillon`, `nouveau`, `a_qualifier`, `assigne`, `en_cours`,
+`attente_demandeur`, `attente_interne`, `resolu`, `clos`, `indesirable`.
+
+### Priorités
+
+- **P1 critique** : incident collectif, sécurité ou blocage direction.
+- **P2 urgente** : accès indispensable bloqué avec échéance proche.
+- **P3 normale** : aide individuelle sans échéance immédiate.
+- **P4 faible** : information ou amélioration.
+
+L'IA peut suggérer la priorité. Seul un agent peut confirmer P1 ou clôturer.
+
+## 7. Notifications
+
+- Email : actif en V1, suivi de délivrabilité obligatoire.
+- Notification dans la PWA : active pour les sessions connues.
+- Téléphone : création d'une tâche de rappel en V1.
+- SMS Brevo : activable ensuite, avec crédits et consentement adaptés.
+- WhatsApp : sert d'abord à diffuser le lien public, pas le contenu d'un dossier.
+- Chaque échec crée une relance par un autre canal autorisé ou une alerte agent.
+
+## 8. Règles de l'assistant IA
+
+- Fonctionne derrière un interrupteur global et par fonctionnalité.
+- Reçoit un texte pseudonymisé : noms, emails, téléphones et identifiants sont
+  retirés avant l'appel externe.
+- Ne reçoit aucune pièce jointe automatiquement.
+- Produit un JSON validé : catégorie, priorité suggérée, résumé, informations
+  manquantes, réponse proposée, confiance et drapeaux de risque.
+- Si la confiance est faible, le dossier reste `a_qualifier`.
+- Ne communique jamais un mot de passe existant.
+- Ne change jamais directement un code ENT ou académique.
+- Ne répond jamais seul à une demande de sécurité, santé, conflit ou donnée
+  sensible.
+- Chaque proposition et chaque validation humaine sont conservées dans l'audit.
+
+## 9. Exigences de sécurité et de confidentialité
+
+- MFA obligatoire pour direction et administrateurs.
+- Rôles séparés : administrateur, direction, agent, lecture seule.
+- RLS sur toutes les nouvelles tables exposées.
+- Clé `service_role`, clé Brevo et future clé IA uniquement côté serveur.
+- Limitation de débit sans bloquer un établissement partageant la même IP.
+- Champ piège et défi anti-robot seulement en cas de comportement suspect.
+- Journaux techniques sans texte des demandes, email complet ni téléphone complet.
+- URLs de fichiers signées et courtes ; bucket Supabase privé.
+- Chiffrement en transit ; sauvegardes secondaires chiffrées.
+- Mention d'information claire pour les élèves et parents.
+- Durées de conservation configurables et purge automatique vérifiable.
+- AIPD et validation DPO avant activation de l'IA sur des données d'élèves.
+
+## 10. Durées proposées à valider par la direction et le DPO
+
+- Brouillons locaux : 30 jours.
+- Sessions d'appareil public : 30 jours, renouvelables.
+- Jetons à usage unique : 30 minutes.
+- Dossiers actifs : pendant le traitement.
+- Dossiers résolus : 12 mois, puis anonymisation ou suppression.
+- Pièces jointes : 90 jours après clôture, sauf conservation justifiée.
+- Journaux d'accès et de sécurité : 12 mois.
+- Événements de délivrabilité : 6 mois.
+- Données IA détaillées : 30 jours ; métriques anonymisées plus longtemps.
+
+## 11. Critères d'acceptation
+
+1. Un test de 200 créations concurrentes produit 200 dossiers uniques.
+2. Une double soumission avec la même clé produit un seul dossier.
+3. Une panne Brevo laisse le dossier visible et l'envoi passe en relance.
+4. Une réponse email arrive dans le bon dossier une seule fois.
+5. Un webhook rejoué dix fois ne crée qu'un message.
+6. Un jeton expiré ou réutilisé ne donne pas accès au dossier.
+7. Un agent non autorisé ne peut pas lire les dossiers d'un autre périmètre.
+8. Aucun fichier en quarantaine ne peut être téléchargé.
+9. Une perte de connexion conserve le brouillon sur le téléphone.
+10. La page reste utilisable à 320 px, 768 px, 1440 px et au clavier.
+11. Une demande peut être créée et suivie sans IA.
+12. Les modules existants conservent leur comportement après déploiement.
+13. Chaque réponse, affectation, export et consultation sensible est auditée.
+14. Les alertes de sécurité Supabase existantes sont corrigées avant ouverture.
+
+## 12. Hors V1
+
+- Remplacement complet de l'ENT ou du webmail académique.
+- Réinitialisation automatique des mots de passe académiques.
+- Envoi autonome de réponses sensibles par l'IA.
+- WhatsApp bidirectionnel contenant des données scolaires.
+- Application mobile native séparée de la PWA.
+- CRM généraliste ou centre d'appel complet.
