@@ -1,18 +1,20 @@
 # Support workers
 
-`support-file-worker.mjs` runs on the lycée VPS, not in the browser or in a
-Vercel function. It consumes the private `support_file_scan` queue, downloads
-quarantined files, calls ClamAV through `clamdscan`, and moves only clean files
-to the private `support-clean` bucket.
+The workers run on the lycée VPS, not in the browser or in a Vercel function.
+
+- `support-file-worker.mjs` consumes `support_file_scan`, scans quarantined
+  files with ClamAV, and moves only clean files to `support-clean`.
+- `support-email-worker.mjs` consumes `support_jobs`, sends transactional email
+  through Brevo, records each attempt, and archives repeated failures.
 
 Required environment variables:
 
 - `DATABASE_URL`
 - `NEXT_PUBLIC_SUPABASE_URL` or `VITE_SUPABASE_URL`
 - `SUPABASE_SERVICE_ROLE_KEY`
-- `BREVO_API_KEY` for inbound email attachments
+- `BREVO_API_KEY` for email delivery and inbound email attachments
 - `CLAMDSCAN_PATH` only when `clamdscan` is not on `PATH`
 
-Run one bounded batch with `node workers/support-file-worker.mjs`. The VPS
-scheduler can invoke it every minute; queue visibility and dead-letter handling
-make repeated execution safe.
+Each script runs one bounded batch and exits. The VPS systemd timers invoke them
+every minute; queue visibility and dead-letter handling make repeated execution
+safe. Deployment units live in `deploy/lycee-support-*-worker.*`.

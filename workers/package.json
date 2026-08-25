@@ -1,0 +1,10 @@
+{
+  "name": "lycee-support-workers",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "@supabase/supabase-js": "2.105.4",
+    "postgres": "3.4.9",
+    "ws": "8.21.3"
+  }
+}

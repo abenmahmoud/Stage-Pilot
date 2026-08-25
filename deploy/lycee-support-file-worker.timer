@@ -1,0 +1,12 @@
+[Unit]
+Description=Run the lycee support attachment scanner every minute
+
+[Timer]
+OnBootSec=2min
+OnUnitActiveSec=1min
+AccuracySec=10s
+Persistent=true
+Unit=lycee-support-file-worker.service
+
+[Install]
+WantedBy=timers.target

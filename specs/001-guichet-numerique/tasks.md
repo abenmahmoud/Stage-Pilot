@@ -7,9 +7,11 @@ des tests et une vérification visuelle mobile/ordinateur. Aucun changement de
 production n'est appliqué directement sans preview et sauvegarde.
 
 État au 25 août 2026 : le socle API, les sessions, le suivi public, la file agent,
-les messages, les pièces jointes en quarantaine, les workers Brevo/antivirus et
-les webhooks sont codés. Les cases encore ouvertes comprennent soit une partie
-restante, soit une configuration externe ou une validation de bout en bout.
+les messages et les pièces jointes sont branchés à une base Supabase de preview
+isolée. Les workers VPS Brevo et ClamAV tournent chaque minute. Une demande, une
+réponse, un email réel et un fichier sain déplacé vers le stockage privé ont été
+validés de bout en bout. Les cases encore ouvertes comprennent soit une partie
+restante, soit une configuration externe ou une validation par la direction.
 
 ## Jour 1 - Socle qui ne perd rien
 
@@ -43,7 +45,7 @@ quarantaine. Une panne d'envoi externe n'affecte pas le dossier.
 - [x] **T017** Construire la file agent paginée avec filtres, SLA et assignation.
 - [ ] **T018** Ajouter réponses, notes internes, transfert et clôture motivée.
 - [ ] **T019** Ajouter les modèles de réponse et variables autorisées.
-- [ ] **T020** Installer `pgmq`, la Basic Queue transactionnelle, le worker et la
+- [x] **T020** Installer `pgmq`, la Basic Queue transactionnelle, le worker et la
   file d'échec administrable.
 - [x] **T021** Implémenter l'envoi Brevo avec idempotence et `Reply-To` dossier.
 - [x] **T022** Recevoir les événements Brevo livré/rejeté/différé/spam.
@@ -62,10 +64,10 @@ voir sa réponse dans le dossier. L'agent traite tout depuis une seule file.
 - [ ] **T027** Ajouter règles déterministes de classement, priorité et attribution.
 - [ ] **T028** Ajouter détection et validation manuelle des doublons.
 - [ ] **T029** Ajouter relances automatiques et surveillance des SLA.
-- [ ] **T030** Installer le worker antivirus VPS et le déplacement quarantine/clean.
+- [x] **T030** Installer le worker antivirus VPS et le déplacement quarantine/clean.
 - [ ] **T031** Mettre en place la sauvegarde chiffrée DB + Storage et un test de
   restauration.
-- [ ] **T032** Finaliser PWA : hors-ligne limité, mise à jour, icônes, installation.
+- [x] **T032** Finaliser PWA : hors-ligne limité, mise à jour, icônes, installation.
 - [ ] **T033** Ajouter notifications PWA pour les sessions actives.
 - [ ] **T034** Ajouter tableau de santé, file d'échec et bouton de reprise.
 - [ ] **T035** Ajouter le formulaire de collecte des emails personnels avec double
@@ -81,6 +83,8 @@ voir sa réponse dans le dossier. L'agent traite tout depuis une seule file.
   des droits.
 - [ ] **T038** Exécuter tests mobile, desktop, clavier, charge et sécurité.
 - [ ] **T039** Déployer une preview Vercel protégée et la faire valider.
+- [x] **T039A** Déployer la preview protégée et terminer sa validation technique
+  mobile/ordinateur, API, base, email sortant et fichier sain.
 - [ ] **T040** Basculer les DNS seulement après validation fonctionnelle.
 
 ### Sortie Jour 3

@@ -6,6 +6,7 @@ import { basename, join } from "node:path";
 import { promisify } from "node:util";
 import { createClient } from "@supabase/supabase-js";
 import postgres from "postgres";
+import WebSocket from "ws";
 
 const execFileAsync = promisify(execFile);
 const databaseUrl = process.env.DATABASE_URL;
@@ -19,6 +20,7 @@ if (!databaseUrl || !supabaseUrl || !serviceRoleKey) {
 const sql = postgres(databaseUrl, { prepare: false, max: 2, idle_timeout: 20 });
 const storage = createClient(supabaseUrl, serviceRoleKey, {
   auth: { autoRefreshToken: false, persistSession: false },
+  realtime: { transport: WebSocket },
 }).storage;
 const maxBytes = 10 * 1024 * 1024;
 
@@ -32,7 +34,7 @@ function safeName(value) {
 
 async function downloadBrowserAttachment(job) {
   const [attachment] = await sql`
-    select id, storage_bucket, storage_path, original_name
+    select id, storage_bucket, storage_path, original_name, detected_mime, declared_mime
     from public.support_attachments
     where id = ${job.attachment_id} and request_id = ${job.request_id}
     limit 1
@@ -45,6 +47,7 @@ async function downloadBrowserAttachment(job) {
     bucket: attachment.storage_bucket,
     path: attachment.storage_path,
     name: attachment.original_name,
+    mimeType: attachment.detected_mime ?? attachment.declared_mime,
     bytes: Buffer.from(await data.arrayBuffer()),
   };
 }
@@ -87,6 +90,7 @@ async function downloadInboundAttachment(job) {
     bucket: "support-quarantine",
     path,
     name,
+    mimeType: job.mime_type ?? "application/octet-stream",
     bytes,
   };
 }
@@ -97,7 +101,7 @@ async function clamScan(bytes, name) {
   try {
     await writeFile(filePath, bytes, { flag: "wx" });
     try {
-      await execFileAsync(process.env.CLAMDSCAN_PATH ?? "clamdscan", ["--no-summary", filePath], {
+      await execFileAsync(process.env.CLAMDSCAN_PATH ?? "clamdscan", ["--stream", "--no-summary", filePath], {
         timeout: 120000,
         windowsHide: true,
       });
@@ -128,7 +132,7 @@ async function scanJob(job) {
 
   const { error: cleanUploadError } = await storage
     .from("support-clean")
-    .upload(file.path, file.bytes, { upsert: true });
+    .upload(file.path, file.bytes, { contentType: file.mimeType, upsert: true });
   if (cleanUploadError) throw new Error("clean_storage_upload_failed");
   const { error: quarantineDeleteError } = await storage.from(file.bucket).remove([file.path]);
   if (quarantineDeleteError) throw new Error("quarantine_delete_failed");

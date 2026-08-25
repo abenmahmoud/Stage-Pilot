@@ -18,6 +18,18 @@ Cette répartition évite de reconstruire Supabase sur le VPS et évite aussi de
 faire dépendre la conservation des demandes d'une fonction Vercel temporaire.
 Le VPS a un rôle utile mais ne devient pas le point de panne principal.
 
+### Environnement de validation actif au 25 août 2026
+
+- branche Supabase sans données de production : `guichet-lycee-preview` ;
+- preview Vercel protégée : `lyceegest-87rijlnkg-safe-scol.vercel.app` ;
+- workers VPS isolés dans `/opt/lycee-support-preview` ;
+- minuteurs séparés pour les emails sortants et l'antivirus ;
+- production Supabase, DNS du lycée et site WordPress inchangés.
+
+La branche Supabase est facturée environ 0,01344 USD par heure. Elle devra être
+supprimée après validation ou remplacée par l'environnement définitif afin de ne
+pas conserver un coût d'aperçu inutile.
+
 ### Domaines proposés
 
 - `app.lycee-blaise-cendrars-sevran.fr` : LyceeGest/PWA sur Vercel.
@@ -51,7 +63,8 @@ En cas de doute réseau, il renvoie la même clé et récupère le même dossier
 - Une clé d'idempotence existe par destinataire, canal et version du message.
 - Relances : immédiate, 1 min, 5 min, 15 min, 1 h, puis file d'échec.
 - La file d'échec est visible dans l'espace direction avec bouton de reprise.
-- Un cron vérifie les tâches bloquées, les SLA et les notifications non livrées.
+- Les workers VPS traitent les emails et fichiers chaque minute. Un contrôle
+  ultérieur vérifiera aussi les SLA et les notifications non livrées.
 
 ## 3. Jetons, mémoire et accès multi-appareil
 

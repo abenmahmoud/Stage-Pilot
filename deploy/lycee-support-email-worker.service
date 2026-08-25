@@ -1,0 +1,24 @@
+[Unit]
+Description=Lycee support email worker (preview)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=lycee-support
+Group=lycee-support
+WorkingDirectory=/opt/lycee-support-preview
+EnvironmentFile=/etc/lycee-support-preview/email-worker.env
+ExecStart=/usr/bin/node /opt/lycee-support-preview/support-email-worker.mjs
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+LockPersonality=true
+
+[Install]
+WantedBy=multi-user.target

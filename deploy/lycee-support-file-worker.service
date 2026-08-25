@@ -1,0 +1,25 @@
+[Unit]
+Description=Lycee support attachment antivirus worker (preview)
+After=network-online.target clamav-daemon.service
+Wants=network-online.target clamav-daemon.service
+
+[Service]
+Type=oneshot
+User=lycee-support
+Group=lycee-support
+SupplementaryGroups=clamav
+WorkingDirectory=/opt/lycee-support-preview
+EnvironmentFile=/etc/lycee-support-preview/file-worker.env
+ExecStart=/usr/bin/node /opt/lycee-support-preview/support-file-worker.mjs
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+LockPersonality=true
+
+[Install]
+WantedBy=multi-user.target
