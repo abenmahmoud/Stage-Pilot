@@ -25,6 +25,9 @@ const STATUSES = new Set([
   "indesirable",
 ]);
 const PRIORITIES = new Set(["p1", "p2", "p3", "p4"]);
+const IDENTITY_STATUSES = new Set(["non_verifiee", "contact_verifie", "identite_confirmee"]);
+const IDENTITY_METHODS = new Set(["email_magic_link", "phone_callback", "official_roster"]);
+const SENSITIVE_CATEGORIES = new Set(["ent", "email_academique"]);
 
 function publicCode(req: VercelRequest): string {
   const code = Array.isArray(req.query.code) ? req.query.code[0] : req.query.code;
@@ -51,10 +54,32 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     if (req.method === "PATCH") {
       const body = (req.body ?? {}) as Record<string, unknown>;
+      const currentContext = (request.subjectContext ?? {}) as Record<string, unknown>;
+      const currentIdentityStatus = typeof currentContext.identityStatus === "string" && IDENTITY_STATUSES.has(currentContext.identityStatus)
+        ? currentContext.identityStatus
+        : "non_verifiee";
       const nextStatus = typeof body.status === "string" ? body.status : request.status;
       const nextPriority = typeof body.priority === "string" ? body.priority : request.priority;
+      const nextIdentityStatus = typeof body.identityStatus === "string" ? body.identityStatus : currentIdentityStatus;
       if (!STATUSES.has(nextStatus)) throw new HttpError(400, "Statut invalide");
       if (!PRIORITIES.has(nextPriority)) throw new HttpError(400, "Priorité invalide");
+      if (!IDENTITY_STATUSES.has(nextIdentityStatus)) throw new HttpError(400, "Niveau de vérification invalide");
+
+      const requestedIdentityMethod = typeof body.identityMethod === "string" ? body.identityMethod : typeof currentContext.identityMethod === "string" ? currentContext.identityMethod : null;
+      const nextIdentityMethod = nextIdentityStatus === "non_verifiee" ? null : requestedIdentityMethod;
+      if (nextIdentityMethod && !IDENTITY_METHODS.has(nextIdentityMethod)) {
+        throw new HttpError(400, "Méthode de vérification invalide");
+      }
+      if (nextIdentityStatus !== "non_verifiee" && !nextIdentityMethod) {
+        throw new HttpError(400, "Indiquez la méthode de vérification");
+      }
+      if (
+        SENSITIVE_CATEGORIES.has(request.category) &&
+        ["resolu", "clos"].includes(nextStatus) &&
+        nextIdentityStatus !== "identite_confirmee"
+      ) {
+        throw new HttpError(409, "Confirmez l’identité avec une liste officielle avant de résoudre cette demande sensible");
+      }
 
       const now = new Date();
       const [updated] = await db.transaction(async (tx) => {
@@ -63,6 +88,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           .set({
             status: nextStatus,
             priority: nextPriority,
+            subjectContext: {
+              ...currentContext,
+              identityStatus: nextIdentityStatus,
+              identityMethod: nextIdentityMethod,
+              identityVerifiedAt: nextIdentityStatus === "non_verifiee" ? null : now.toISOString(),
+              identityVerifiedBy: nextIdentityStatus === "non_verifiee" ? null : user.id,
+            },
             assignedTo: body.assignToMe === true ? user.id : request.assignedTo,
             resolvedAt:
               nextStatus === "resolu" || nextStatus === "clos"
@@ -77,8 +109,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           eventType: "request.updated",
           actorType: "agent",
           actorId: user.id,
-          fromValue: { status: request.status, priority: request.priority, assignedTo: request.assignedTo },
-          toValue: { status: nextStatus, priority: nextPriority, assignedTo: saved.assignedTo },
+          fromValue: { status: request.status, priority: request.priority, identityStatus: currentIdentityStatus, assignedTo: request.assignedTo },
+          toValue: { status: nextStatus, priority: nextPriority, identityStatus: nextIdentityStatus, identityMethod: nextIdentityMethod, assignedTo: saved.assignedTo },
           correlationId: randomUUID(),
         });
         return [saved];
@@ -117,6 +149,25 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         .where(eq(supportAttachments.requestId, request.id)),
     ]);
 
-    return { request, contacts, messages, attachments };
+    const identityContext = (request.subjectContext ?? {}) as Record<string, unknown>;
+    const contextIdentityStatus = typeof identityContext.identityStatus === "string" && IDENTITY_STATUSES.has(identityContext.identityStatus)
+      ? identityContext.identityStatus
+      : null;
+    const identityStatus = contextIdentityStatus === "identite_confirmee"
+      ? "identite_confirmee"
+      : contextIdentityStatus === "contact_verifie" || contacts.some((contact) => contact.isVerified)
+        ? "contact_verifie"
+        : "non_verifiee";
+    return {
+      request: {
+        ...request,
+        identityStatus,
+        identityMethod: typeof identityContext.identityMethod === "string" ? identityContext.identityMethod : contacts.some((contact) => contact.isVerified) ? "email_magic_link" : null,
+        identityVerifiedAt: typeof identityContext.identityVerifiedAt === "string" ? identityContext.identityVerifiedAt : null,
+      },
+      contacts,
+      messages,
+      attachments,
+    };
   });
 }

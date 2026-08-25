@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import {
   ArrowLeft,
+  BadgeCheck,
   BarChart3,
   Bell,
   BookOpenCheck,
@@ -30,6 +31,7 @@ import {
   Newspaper,
   Paperclip,
   Phone,
+  RefreshCw,
   Search,
   Send,
   Settings2,
@@ -96,6 +98,31 @@ const supportCategories = [
 ] as const;
 
 type SupportCategory = (typeof supportCategories)[number]["value"];
+type IdentityStatus = "non_verifiee" | "contact_verifie" | "identite_confirmee";
+
+const requesterProfileLabels: Record<string, string> = {
+  eleve: "Élève",
+  parent: "Parent ou responsable légal",
+  professeur: "Professeur",
+  personnel: "Personnel",
+  autre: "Autre personne",
+};
+
+const channelLabels: Record<string, string> = {
+  email: "email",
+  phone: "téléphone",
+  web: "application",
+};
+
+const identityStatusLabels: Record<IdentityStatus, string> = {
+  non_verifiee: "Coordonnées déclarées",
+  contact_verifie: "Moyen de contact vérifié",
+  identite_confirmee: "Identité confirmée par le lycée",
+};
+
+function supportCategoryLabel(value: string): string {
+  return supportCategories.find((category) => category.value === value)?.label ?? "Autre demande";
+}
 
 async function readApiResponse<T>(responseInput: Response | Promise<Response>): Promise<T> {
   const response = await responseInput;
@@ -292,7 +319,7 @@ export default function LyceeConnectPrototype() {
     <div className="lycee-connect">
       <aside className="lycee-sidebar">
         <div className="lycee-brand">
-          <img src="/lycee-blaise-logo.png" alt="Portrait dessiné de Blaise Cendrars" />
+          <img src="/blaise-cendrars-portrait.webp" alt="Portrait de Blaise Cendrars" />
           <div>
             <strong>Lycée Blaise Cendrars</strong>
             <span>Sevran · 93</span>
@@ -347,7 +374,7 @@ export default function LyceeConnectPrototype() {
             <Menu aria-hidden="true" />
           </button>
           <div className="lycee-mobile-brand">
-            <img src="/lycee-blaise-logo.png" alt="" />
+            <img src="/blaise-cendrars-portrait.webp" alt="" />
             <div>
               <strong>Blaise Cendrars</strong>
               <span>Lycée polyvalent</span>
@@ -387,9 +414,8 @@ export default function LyceeConnectPrototype() {
         {view === "home" && (
           <>
         <section className="lycee-hero">
-          <img src="/lycee-blaise-facade-premium.webp" alt="Façade du Lycée Blaise Cendrars à Sevran" />
+          <img src="/lycee-blaise-hero.webp" alt="Façade du Lycée Blaise Cendrars à Sevran avec le portrait de l’écrivain" />
           <div className="lycee-hero-shade" />
-          <img className="lycee-hero-sketch" src="/lycee-blaise-logo.png" alt="" />
           <div className="lycee-hero-copy">
             <span>Lycée polyvalent · Sevran</span>
             <h1>Blaise Cendrars</h1>
@@ -614,7 +640,7 @@ function localAssistantFallback(messages: AssistantChatMessage[], files: File[])
           ? "personnel"
           : "inconnu";
   return {
-    reply: `J’ai compris. Je classe votre besoin dans « ${label} ». ${files.length ? `Je vois aussi ${files.length} fichier${files.length > 1 ? "s" : ""} à joindre au dossier. ` : ""}Expliquez-moi ce qui bloque et ce que vous avez déjà essayé; ensuite je préparerai la demande pour le bon agent.`,
+    reply: `J’ai compris. Je classe votre besoin dans « ${label} ». ${files.length ? `Je vois aussi ${files.length} fichier${files.length > 1 ? "s" : ""} à joindre au dossier. ` : ""}Expliquez-moi ce qui bloque et ce que vous avez déjà essayé. Je préparerai ensuite la demande pour le bon agent.`,
     category,
     requesterType,
     urgency: /\b(urgent|aujourd'hui|bloqué|bloque|impossible)\b/i.test(text) ? "urgente" : "normale",
@@ -640,7 +666,7 @@ function HelpDeskView({
   const welcomeMessage: AssistantChatMessage = {
     id: "welcome",
     role: "assistant",
-    content: "Bonjour, je suis l’assistant du lycée. Écrivez simplement ce qui vous arrive. Vous pouvez joindre une photo ou un document; ne donnez jamais votre mot de passe.",
+    content: "Bonjour, je suis l’assistant du lycée. Écrivez simplement ce qui vous arrive. Vous pouvez joindre une photo ou un document. Ne donnez jamais votre mot de passe.",
   };
   const [chatMessages, setChatMessages] = useState<AssistantChatMessage[]>(() => [
     welcomeMessage,
@@ -828,6 +854,7 @@ function HelpDeskView({
         <p>La conversation et les documents sont réunis. Un agent du lycée peut maintenant vous répondre sans vous faire recommencer.</p>
         <div className="lycee-ticket-code"><span>Numéro de demande</span><strong>{ticketCode}</strong></div>
         <div className="lycee-confirmation-note"><Mail aria-hidden="true" /><span>Vous recevrez la réponse par le moyen choisi. Le suivi reste également disponible sur cet appareil.</span></div>
+        <div className="lycee-confirmation-note"><BadgeCheck aria-hidden="true" /><span>Pour une demande sensible, le lycée vérifie votre identité avant de transmettre un code ou une donnée personnelle.</span></div>
         {attachmentWarning ? <div className="lycee-form-error" role="alert"><CircleAlert aria-hidden="true" />{attachmentWarning}</div> : null}
         <div className="lycee-confirmation-actions">
           <button className="lycee-primary-action" type="button" onClick={onTrack}>Suivre et continuer <ChevronRight aria-hidden="true" /></button>
@@ -863,7 +890,7 @@ function HelpDeskView({
             <div className="lycee-live-analysis">
               <WandSparkles aria-hidden="true" />
               <span><strong>{selectedCategory?.label}</strong><small>Priorité {insight.urgency}{insight.usedAi ? " · analyse IA" : " · analyse locale"}</small></span>
-              {insight.suggestedDocuments.length > 0 ? <em>{insight.suggestedDocuments.length} pièce(s) repérée(s)</em> : null}
+              {insight.suggestedDocuments.length > 0 ? <em>{insight.suggestedDocuments.length} {insight.suggestedDocuments.length > 1 ? "pièces repérées" : "pièce repérée"}</em> : null}
             </div>
           ) : null}
 
@@ -901,7 +928,7 @@ function HelpDeskView({
                 {profile === "eleve" || profile === "parent" ? <label><span>Classe, si connue</span><input name="className" type="text" placeholder="Ex. 2GT4" /></label> : null}
                 {profile === "professeur" || profile === "personnel" ? <label><span>Matière ou service</span><input name="subjectArea" type="text" placeholder="Ex. Mathématiques, intendance" /></label> : null}
                 {profile === "professeur" ? <label><span>Voie</span><select name="schoolTrack"><option value="">Non précisée</option><option value="general">Générale et technologique</option><option value="professionnel">Professionnelle</option><option value="les_deux">Les deux</option></select></label> : null}
-                <label><span>Email</span><input name="email" type="email" autoComplete="email" placeholder="nom@exemple.fr" /></label>
+                <label><span>Adresse email</span><input name="email" type="email" autoComplete="email" placeholder="nom@exemple.fr" /></label>
                 <label><span>Téléphone</span><input name="phone" type="tel" autoComplete="tel" placeholder="06 00 00 00 00" /></label>
                 <label><span>Réponse souhaitée</span><select name="preferredChannel" defaultValue="email"><option value="email">Par email</option><option value="phone">Par téléphone</option><option value="web">Dans l’application</option></select></label>
                 <label className="lycee-fallback-choice"><input name="fallbackAllowed" type="checkbox" defaultChecked /><span>Utiliser l’autre moyen de contact si nécessaire</span></label>
@@ -909,6 +936,7 @@ function HelpDeskView({
                 <label className="lycee-honeypot" aria-hidden="true"><span>Site web</span><input name="website" type="text" tabIndex={-1} autoComplete="off" /></label>
               </div>
               <div className="lycee-ai-summary"><WandSparkles aria-hidden="true" /><span><strong>{selectedCategory?.label}</strong><small>Conversation et pièces jointes conservées dans le même dossier</small></span></div>
+              <div className="lycee-case-security"><BadgeCheck aria-hidden="true" /><span><strong>Vérification adaptée à la demande</strong><small>Le lien reçu par email vérifie votre adresse. Pour un code ENT ou une messagerie académique, un agent confirme aussi votre identité dans la liste officielle du lycée.</small></span></div>
               {submitError ? <div className="lycee-form-error" role="alert"><CircleAlert aria-hidden="true" />{submitError}</div> : null}
               <button className="lycee-primary-action lycee-submit-request" type="submit" disabled={submitting || (!classicForm && !conversationDescription)}>{submitting ? "Enregistrement…" : "Envoyer au lycée"} <Send aria-hidden="true" /></button>
             </form>
@@ -925,6 +953,7 @@ type SupportRequestSummary = {
   category: string;
   status: string;
   priority: string;
+  identityStatus?: IdentityStatus;
   createdAt: string;
   updatedAt: string;
 };
@@ -935,6 +964,9 @@ type SupportRequestDetail = {
     beneficiaryType: string;
     preferredChannel: string;
     subjectContext: Record<string, string>;
+    identityStatus: IdentityStatus;
+    identityMethod: string | null;
+    identityVerifiedAt: string | null;
     resolvedAt: string | null;
   };
   messages: Array<{
@@ -959,12 +991,12 @@ type SupportRequestDetail = {
 };
 
 const supportStatusLabels: Record<string, string> = {
-  nouveau: "Nouvelle",
+  nouveau: "Nouvelle demande",
   a_qualifier: "À classer",
   assigne: "Assignée",
   en_cours: "En cours",
   attente_demandeur: "Votre réponse attendue",
-  attente_interne: "En attente",
+  attente_interne: "Vérification interne",
   resolu: "Résolue",
   clos: "Fermée",
   indesirable: "Classée sans suite",
@@ -982,9 +1014,22 @@ function supportDate(value: string): string {
 function supportSlaLabel(value: string | null): string {
   if (!value) return "Sans échéance";
   const remainingMinutes = Math.round((new Date(value).getTime() - Date.now()) / 60000);
-  if (remainingMinutes <= 0) return "SLA dépassé";
-  if (remainingMinutes < 60) return `SLA ${remainingMinutes} min`;
-  return `SLA ${Math.ceil(remainingMinutes / 60)} h`;
+  if (remainingMinutes <= 0) return "Échéance dépassée";
+  if (remainingMinutes < 60) return `Échéance dans ${remainingMinutes} min`;
+  return `Échéance dans ${Math.ceil(remainingMinutes / 60)} h`;
+}
+
+function supportDeliveryLabel(value: string): string {
+  const labels: Record<string, string> = {
+    stored: "Enregistré",
+    queued: "En attente d’envoi",
+    sent: "Envoyé",
+    delivered: "Distribué",
+    deferred: "Envoi différé",
+    bounced: "Adresse inaccessible",
+    callback_required: "Rappel à effectuer",
+  };
+  return labels[value] ?? value;
 }
 
 function RequestsView({ ticketCode, onBack }: { ticketCode: string | null; onBack: () => void }) {
@@ -1001,21 +1046,43 @@ function ConnectedRequestsView({ ticketCode, onBack }: { ticketCode: string | nu
   const [error, setError] = useState<string | null>(null);
   const [reply, setReply] = useState("");
   const [replying, setReplying] = useState(false);
+  const [followupFiles, setFollowupFiles] = useState<File[]>([]);
+  const followupFileInputRef = useRef<HTMLInputElement>(null);
+
+  async function loadRequests(showLoading = false) {
+    if (showLoading) setLoading(true);
+    try {
+      const payload = await readApiResponse<{ requests: SupportRequestSummary[] }>(
+        fetch("/api/support/requests", { credentials: "include" })
+      );
+      setRequests(payload.requests);
+      setSelectedCode((current) => current ?? payload.requests[0]?.publicCode ?? null);
+      setError(null);
+    } catch (requestError) {
+      if (showLoading) setError(requestError instanceof Error ? requestError.message : "Impossible de charger les demandes");
+    } finally {
+      if (showLoading) setLoading(false);
+    }
+  }
+
+  async function loadDetail(code: string) {
+    try {
+      const payload = await readApiResponse<SupportRequestDetail>(
+        fetch(`/api/support/requests/${code}`, { credentials: "include" })
+      );
+      setDetail(payload);
+      setError(null);
+    } catch (requestError) {
+      setError(requestError instanceof Error ? requestError.message : "Impossible d’actualiser la demande");
+    }
+  }
 
   useEffect(() => {
-    let active = true;
-    setLoading(true);
-    readApiResponse<{ requests: SupportRequestSummary[] }>(
-      fetch("/api/support/requests", { credentials: "include" })
-    )
-      .then((payload) => {
-        if (!active) return;
-        setRequests(payload.requests);
-        setSelectedCode((current) => current ?? payload.requests[0]?.publicCode ?? null);
-      })
-      .catch((requestError: Error) => active && setError(requestError.message))
-      .finally(() => active && setLoading(false));
-    return () => { active = false; };
+    void loadRequests(true);
+    const timer = window.setInterval(() => {
+      if (!document.hidden) void loadRequests();
+    }, 20_000);
+    return () => window.clearInterval(timer);
   }, []);
 
   useEffect(() => {
@@ -1023,15 +1090,33 @@ function ConnectedRequestsView({ ticketCode, onBack }: { ticketCode: string | nu
       setDetail(null);
       return;
     }
-    let active = true;
-    setError(null);
-    readApiResponse<SupportRequestDetail>(
-      fetch(`/api/support/requests/${selectedCode}`, { credentials: "include" })
-    )
-      .then((payload) => active && setDetail(payload))
-      .catch((requestError: Error) => active && setError(requestError.message));
-    return () => { active = false; };
+    void loadDetail(selectedCode);
+    const timer = window.setInterval(() => {
+      if (!document.hidden) void loadDetail(selectedCode);
+    }, 12_000);
+    return () => window.clearInterval(timer);
   }, [selectedCode]);
+
+  function selectFollowupFiles(event: React.ChangeEvent<HTMLInputElement>) {
+    const selected = Array.from(event.target.files ?? []);
+    const invalid = selected.find(
+      (file) => !SUPPORT_FILE_TYPES.includes(file.type) || file.size > MAX_SUPPORT_FILE_BYTES
+    );
+    if (invalid) {
+      setError("Formats acceptés : PDF, image, texte, Word ou Excel, jusqu’à 10 Mo.");
+      event.target.value = "";
+      return;
+    }
+    const availableSlots = Math.max(0, MAX_SUPPORT_FILES - (detail?.attachments.length ?? 0));
+    const next = [...followupFiles, ...selected].slice(0, availableSlots);
+    setFollowupFiles(next);
+    if (followupFiles.length + selected.length > availableSlots) {
+      setError("Une demande peut contenir au maximum 5 fichiers.");
+    } else {
+      setError(null);
+    }
+    event.target.value = "";
+  }
 
   async function sendReply(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -1039,6 +1124,7 @@ function ConnectedRequestsView({ ticketCode, onBack }: { ticketCode: string | nu
     setReplying(true);
     setError(null);
     try {
+      let uploadWarning: string | null = null;
       await readApiResponse(
         await fetch(`/api/support/requests/${selectedCode}/messages`, {
           method: "POST",
@@ -1051,11 +1137,18 @@ function ConnectedRequestsView({ ticketCode, onBack }: { ticketCode: string | nu
         })
       );
       setReply("");
-      setDetail(
-        await readApiResponse<SupportRequestDetail>(
-          await fetch(`/api/support/requests/${selectedCode}`, { credentials: "include" })
-        )
-      );
+      if (followupFiles.length > 0) {
+        const uploads = await Promise.allSettled(
+          followupFiles.map((file) => uploadSupportFile(selectedCode, file))
+        );
+        const failedCount = uploads.filter((result) => result.status === "rejected").length;
+        if (failedCount > 0) {
+          uploadWarning = `Votre message est enregistré, mais ${failedCount} fichier${failedCount > 1 ? "s" : ""} n’a pas été joint.`;
+        }
+        setFollowupFiles([]);
+      }
+      await Promise.all([loadDetail(selectedCode), loadRequests()]);
+      if (uploadWarning) setError(uploadWarning);
     } catch (replyError) {
       setError(replyError instanceof Error ? replyError.message : "Le message n'a pas été envoyé");
     } finally {
@@ -1093,9 +1186,13 @@ function ConnectedRequestsView({ ticketCode, onBack }: { ticketCode: string | nu
             <article className="lycee-ticket-detail">
               <div className="lycee-ticket-detail-head">
                 <div><span>{detail.request.publicCode}</span><h2>{detail.request.subject}</h2></div>
-                <em>{supportStatusLabels[detail.request.status] ?? detail.request.status}</em>
+                <div className="lycee-ticket-head-actions"><em>{supportStatusLabels[detail.request.status] ?? detail.request.status}</em><button className="lycee-refresh-button" type="button" onClick={() => selectedCode && void loadDetail(selectedCode)} title="Actualiser la conversation"><RefreshCw aria-hidden="true" /><span>Actualiser</span></button></div>
               </div>
-              <div className="lycee-ticket-meta"><span><Users aria-hidden="true" /> {detail.request.requesterType}</span><span><Mail aria-hidden="true" /> Réponse par {detail.request.preferredChannel}</span></div>
+              <div className="lycee-ticket-meta"><span><Users aria-hidden="true" /> {requesterProfileLabels[detail.request.requesterType] ?? detail.request.requesterType}</span><span><Mail aria-hidden="true" /> Réponse par {channelLabels[detail.request.preferredChannel] ?? detail.request.preferredChannel}</span></div>
+              <section className="lycee-identity-status" data-status={detail.request.identityStatus}>
+                <BadgeCheck aria-hidden="true" />
+                <span><strong>{identityStatusLabels[detail.request.identityStatus]}</strong><small>{detail.request.identityStatus === "identite_confirmee" ? "Le lycée a rapproché la personne d’une source officielle." : detail.request.identityStatus === "contact_verifie" ? detail.request.identityMethod === "phone_callback" ? "Un agent a vérifié le numéro de téléphone par rappel, sans confirmer encore l’identité scolaire." : "Le lien sécurisé confirme l’accès à l’adresse email, sans confirmer encore l’identité scolaire." : "La demande est enregistrée. Aucune donnée sensible ne sera transmise avant vérification."}</small></span>
+              </section>
               <div className="lycee-conversation" aria-label="Conversation">
                 {detail.messages.map((message) => (
                   <div className={message.direction === "outbound" ? "is-agent" : "is-requester"} key={message.id}>
@@ -1113,7 +1210,9 @@ function ConnectedRequestsView({ ticketCode, onBack }: { ticketCode: string | nu
               ) : null}
               <form className="lycee-followup-form" onSubmit={sendReply}>
                 <label><span>Ajouter un message</span><textarea rows={3} value={reply} onChange={(event) => setReply(event.target.value)} placeholder="Précisez votre demande ou répondez à l’agent." maxLength={5000} /></label>
-                <button className="lycee-primary-action" type="submit" disabled={replying || !reply.trim()}>{replying ? "Envoi…" : "Envoyer"}<Send aria-hidden="true" /></button>
+                <input ref={followupFileInputRef} className="lycee-file-input" type="file" multiple accept={SUPPORT_FILE_TYPES.join(",")} onChange={selectFollowupFiles} />
+                {followupFiles.length > 0 ? <div className="lycee-selected-files lycee-followup-files">{followupFiles.map((file, index) => <div key={`${file.name}-${file.lastModified}`}><FileText aria-hidden="true" /><span><strong>{file.name}</strong><small>{(file.size / 1024 / 1024).toFixed(1)} Mo</small></span><button type="button" onClick={() => setFollowupFiles((current) => current.filter((_, fileIndex) => fileIndex !== index))}>Retirer</button></div>)}</div> : null}
+                <div className="lycee-followup-actions"><button className="lycee-secondary-action" type="button" disabled={(detail.attachments.length + followupFiles.length) >= MAX_SUPPORT_FILES} onClick={() => followupFileInputRef.current?.click()}><Paperclip aria-hidden="true" /> Joindre</button><button className="lycee-primary-action" type="submit" disabled={replying || !reply.trim()}>{replying ? "Envoi…" : "Envoyer"}<Send aria-hidden="true" /></button></div>
               </form>
             </article>
           ) : null}
@@ -1247,7 +1346,7 @@ function SchoolView({ onBack }: { onBack: () => void }) {
     <div className="lycee-page">
       <PageIntro eyebrow="Lycée polyvalent" title="Blaise Cendrars, Sevran" description="Découvrez les spécialités, les voies de formation et les accès utiles de l'établissement." onBack={onBack} />
       <section className="lycee-school-feature">
-        <img className="lycee-school-sketch" src="/lycee-blaise-logo.png" alt="Portrait dessiné de Blaise Cendrars" />
+        <img src="/blaise-cendrars-portrait.webp" alt="Portrait de Blaise Cendrars" />
         <div><span className="lycee-eyebrow">Une identité, plusieurs parcours</span><h2>Un lycée ouvert sur les sciences, les humanités et les métiers</h2><p>À Sevran, les voies générale, technologique et professionnelle se rencontrent dans un même établissement.</p><button type="button" onClick={() => document.getElementById("specialites")?.scrollIntoView({ behavior: "smooth" })}>Voir les spécialités <ChevronRight aria-hidden="true" /></button></div>
       </section>
       <div className="lycee-school-stats"><div><strong>Polyvalent</strong><span>général, techno et pro</span></div><div><strong>8</strong><span>spécialités générales</span></div><div><strong>15</strong><span>formations référencées</span></div><div><strong>Euro</strong><span>section européenne anglais</span></div></div>
@@ -1303,6 +1402,9 @@ type AgentRequest = {
   subject: string;
   status: string;
   priority: string;
+  identityStatus: IdentityStatus;
+  identityMethod?: string | null;
+  identityVerifiedAt?: string | null;
   assignedTo: string | null;
   slaDueAt: string | null;
   createdAt: string;
@@ -1366,7 +1468,7 @@ function ConnectedAgentView({ onBack }: { onBack: () => void }) {
       .catch((loadError: Error) => setError(loadError.message));
   }, [selectedCode]);
 
-  async function updateRequest(changes: { status?: string; priority?: string; assignToMe?: boolean }) {
+  async function updateRequest(changes: { status?: string; priority?: string; identityStatus?: IdentityStatus; identityMethod?: string; assignToMe?: boolean }) {
     if (!selectedCode) return;
     setSaving(true);
     try {
@@ -1424,7 +1526,7 @@ function ConnectedAgentView({ onBack }: { onBack: () => void }) {
         <div><span><Inbox aria-hidden="true" /></span><strong>{stats.new}</strong><small>Nouvelles</small></div>
         <div><span><CircleAlert aria-hidden="true" /></span><strong>{stats.urgent}</strong><small>Urgentes</small></div>
         <div><span><Clock3 aria-hidden="true" /></span><strong>{stats.active}</strong><small>En cours</small></div>
-        <div><span><MessageCircleMore aria-hidden="true" /></span><strong>{stats.waitingRequester}</strong><small>Attente usager</small></div>
+        <div><span><MessageCircleMore aria-hidden="true" /></span><strong>{stats.waitingRequester}</strong><small>Réponse attendue</small></div>
       </div>
       <div className="lycee-agent-workspace">
         <section className="lycee-agent-queue">
@@ -1434,22 +1536,23 @@ function ConnectedAgentView({ onBack }: { onBack: () => void }) {
             {requests.map((request) => (
               <button className={selectedCode === request.publicCode ? "is-selected" : ""} type="button" key={request.publicCode} onClick={() => setSelectedCode(request.publicCode)}>
                 <span className="lycee-request-avatar">{`${request.requesterFirstName[0] ?? ""}${request.requesterLastName[0] ?? ""}`}</span>
-                <span><strong>{request.subject}</strong><small>{request.requesterFirstName} {request.requesterLastName} · {request.requesterType}</small><em>{request.category} · {supportSlaLabel(request.slaDueAt)}</em></span>
+                <span><strong>{request.subject}</strong><small>{request.requesterFirstName} {request.requesterLastName} · {requesterProfileLabels[request.requesterType] ?? request.requesterType}</small><em>{supportCategoryLabel(request.category)} · {supportSlaLabel(request.slaDueAt)}</em></span>
                 {["p1", "p2"].includes(request.priority) ? <b>Urgent</b> : null}
               </button>
             ))}
             {requests.length === 0 ? <div className="lycee-agent-list-empty">Aucune demande ne correspond à ce filtre.</div> : null}
           </div>
-          <div className="lycee-agent-pagination"><button type="button" aria-label="Page précédente" disabled={page <= 1} onClick={() => setPage((current) => Math.max(1, current - 1))}><ArrowLeft aria-hidden="true" /></button><span>Page {pagination.page} sur {pagination.totalPages}<small>{pagination.total} dossier(s)</small></span><button type="button" aria-label="Page suivante" disabled={page >= pagination.totalPages} onClick={() => setPage((current) => current + 1)}><ChevronRight aria-hidden="true" /></button></div>
+          <div className="lycee-agent-pagination"><button type="button" aria-label="Page précédente" disabled={page <= 1} onClick={() => setPage((current) => Math.max(1, current - 1))}><ArrowLeft aria-hidden="true" /></button><span>Page {pagination.page} sur {pagination.totalPages}<small>{pagination.total} {pagination.total > 1 ? "dossiers" : "dossier"}</small></span><button type="button" aria-label="Page suivante" disabled={page >= pagination.totalPages} onClick={() => setPage((current) => current + 1)}><ChevronRight aria-hidden="true" /></button></div>
         </section>
         <article className="lycee-agent-detail">
           {selected && detail ? (
             <>
-              <div className="lycee-agent-detail-head"><div><span>{selected.publicCode}</span><h2>{selected.subject}</h2><p>{selected.requesterFirstName} {selected.requesterLastName} · {selected.requesterType}</p></div><div className="lycee-agent-controls"><select aria-label="Priorité" value={selected.priority} disabled={saving} onChange={(event) => void updateRequest({ priority: event.target.value })}><option value="p1">P1 critique</option><option value="p2">P2 urgente</option><option value="p3">P3 normale</option><option value="p4">P4 faible</option></select><select aria-label="Statut" value={selected.status} disabled={saving} onChange={(event) => void updateRequest({ status: event.target.value })}><option value="nouveau">Nouvelle</option><option value="a_qualifier">À classer</option><option value="assigne">Assignée</option><option value="en_cours">En cours</option><option value="attente_demandeur">Attente usager</option><option value="attente_interne">Attente interne</option><option value="resolu">Résolue</option><option value="clos">Fermée</option></select></div></div>
-              <div className="lycee-agent-contact-row">{detail.contacts.map((contact) => <span key={contact.id}>{contact.channel === "email" ? <Mail aria-hidden="true" /> : <Phone aria-hidden="true" />}{contact.value}</span>)}<button type="button" disabled={saving || Boolean(selected.assignedTo)} onClick={() => void updateRequest({ assignToMe: true })}>{selected.assignedTo ? "Déjà attribuée" : "Prendre la demande"}</button></div>
-              <div className="lycee-agent-thread">{detail.messages.map((message) => <div data-direction={message.direction} key={message.id}><span><strong>{message.authorLabel ?? "Usager"}</strong><small>{supportDate(message.createdAt)} · {message.deliveryStatus}</small></span><p>{message.bodyText}</p></div>)}</div>
+              <div className="lycee-agent-detail-head"><div><span>{selected.publicCode}</span><h2>{selected.subject}</h2><p>{selected.requesterFirstName} {selected.requesterLastName} · {requesterProfileLabels[selected.requesterType] ?? selected.requesterType}</p></div><div className="lycee-agent-controls"><select aria-label="Priorité" value={selected.priority} disabled={saving} onChange={(event) => void updateRequest({ priority: event.target.value })}><option value="p1">P1 critique</option><option value="p2">P2 urgente</option><option value="p3">P3 normale</option><option value="p4">P4 faible</option></select><select aria-label="Statut" value={selected.status} disabled={saving} onChange={(event) => void updateRequest({ status: event.target.value })}><option value="nouveau">Nouvelle demande</option><option value="a_qualifier">À classer</option><option value="assigne">Assignée</option><option value="en_cours">En cours</option><option value="attente_demandeur">En attente de l’utilisateur</option><option value="attente_interne">Vérification interne</option><option value="resolu">Résolue</option><option value="clos">Fermée</option></select></div></div>
+              <div className="lycee-agent-contact-row">{detail.contacts.map((contact) => <span className={contact.isVerified ? "is-verified" : ""} key={contact.id}>{contact.channel === "email" ? <Mail aria-hidden="true" /> : <Phone aria-hidden="true" />}{contact.value}{contact.isVerified ? " · vérifié" : ""}</span>)}<button type="button" disabled={saving || Boolean(selected.assignedTo)} onClick={() => void updateRequest({ assignToMe: true })}>{selected.assignedTo ? "Déjà attribuée" : "Prendre la demande"}</button></div>
+              <section className="lycee-agent-identity" data-sensitive={["ent", "email_academique"].includes(selected.category)}><BadgeCheck aria-hidden="true" /><span><strong>{identityStatusLabels[selected.identityStatus]}</strong><small>{["ent", "email_academique"].includes(selected.category) ? "Demande sensible : ne transmettre aucun identifiant avant rapprochement avec une liste officielle." : "Adaptez le contrôle au niveau de sensibilité de la réponse."}</small></span><select aria-label="Niveau de vérification de l’identité" value={selected.identityStatus} disabled={saving} onChange={(event) => { const identityStatus = event.target.value as IdentityStatus; const identityMethod = identityStatus === "identite_confirmee" ? "official_roster" : identityStatus === "contact_verifie" ? (detail.contacts.some((contact) => contact.channel === "email" && contact.isVerified) ? "email_magic_link" : "phone_callback") : undefined; void updateRequest({ identityStatus, identityMethod }); }}><option value="non_verifiee">Coordonnées déclarées</option><option value="contact_verifie">Contact vérifié</option><option value="identite_confirmee">Identité confirmée dans la liste</option></select></section>
+              <div className="lycee-agent-thread">{detail.messages.map((message) => <div data-direction={message.direction} key={message.id}><span><strong>{message.authorLabel ?? "Utilisateur"}</strong><small>{supportDate(message.createdAt)} · {supportDeliveryLabel(message.deliveryStatus)}</small></span><p>{message.bodyText}</p></div>)}</div>
               {detail.attachments.length > 0 ? <div className="lycee-tracked-files">{detail.attachments.map((attachment) => <div key={attachment.id}><FileText aria-hidden="true" /><span><strong>{attachment.originalName}</strong><small>{attachment.scanStatus === "clean" ? "Vérifié" : "Contrôle en cours"}</small></span>{attachment.scanStatus === "clean" ? <button type="button" onClick={() => void openAgentAttachment(attachment.id)} aria-label={`Ouvrir ${attachment.originalName}`}><ExternalLink aria-hidden="true" /></button> : null}</div>)}</div> : null}
-              <section className="lycee-agent-ai"><div><WandSparkles aria-hidden="true" /><span><span className="lycee-eyebrow">Aide au traitement</span><h3>{selected.category} · priorité {selected.priority.toUpperCase()}</h3></span></div><dl><div><dt>Personne</dt><dd>{selected.beneficiaryType === "self" ? "Demandeur" : `${selected.beneficiaryFirstName ?? ""} ${selected.beneficiaryLastName ?? ""}`}</dd></div><div><dt>Canal disponible</dt><dd>{detail.contacts.map((contact) => contact.channel).join(" + ")}</dd></div><div><dt>Pièces</dt><dd>{detail.attachments.length} document(s)</dd></div></dl></section>
+              <section className="lycee-agent-ai"><div><WandSparkles aria-hidden="true" /><span><span className="lycee-eyebrow">Aide au traitement</span><h3>{supportCategoryLabel(selected.category)} · priorité {selected.priority.toUpperCase()}</h3></span></div><dl><div><dt>Personne</dt><dd>{selected.beneficiaryType === "self" ? "Demandeur" : `${selected.beneficiaryFirstName ?? ""} ${selected.beneficiaryLastName ?? ""}`}</dd></div><div><dt>Canal disponible</dt><dd>{detail.contacts.map((contact) => channelLabels[contact.channel] ?? contact.channel).join(" + ")}</dd></div><div><dt>Pièces</dt><dd>{detail.attachments.length} {detail.attachments.length > 1 ? "documents" : "document"}</dd></div></dl></section>
               <section className="lycee-reply-box"><div><span><Sparkles aria-hidden="true" /> Réponse à valider</span><button type="button" onClick={() => setReply("Bonjour, votre demande a bien été prise en charge. Nous revenons vers vous dès que la vérification est terminée.")}>Proposer</button></div><textarea aria-label="Réponse à envoyer" rows={5} value={reply} onChange={(event) => setReply(event.target.value)} placeholder="Écrivez une réponse claire. Aucun mot de passe ne doit être demandé." /><div><button className="lycee-secondary-action" type="button" disabled><Paperclip aria-hidden="true" /> Joindre</button><button className="lycee-primary-action" type="button" disabled={saving || !reply.trim()} onClick={() => void sendAgentReply()}><Send aria-hidden="true" /> {saving ? "Enregistrement…" : "Valider et envoyer"}</button></div></section>
             </>
           ) : <div className="lycee-loading-state"><Clock3 aria-hidden="true" /> Sélectionnez une demande</div>}

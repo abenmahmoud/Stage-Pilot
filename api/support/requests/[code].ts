@@ -1,8 +1,9 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { and, asc, eq, ne } from "drizzle-orm";
+import { and, asc, eq, isNull, ne } from "drizzle-orm";
 import { db } from "../../../db/index.js";
 import {
   supportAttachments,
+  supportContacts,
   supportMessages,
   supportRequests,
 } from "../../../db/schema.js";
@@ -39,8 +40,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       .where(eq(supportRequests.id, access.requestId))
       .limit(1);
 
-    const messages = await db
-      .select({
+    const [messages, attachments, verifiedContacts] = await Promise.all([
+      db.select({
         id: supportMessages.id,
         direction: supportMessages.direction,
         channel: supportMessages.channel,
@@ -56,10 +57,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           ne(supportMessages.direction, "internal")
         )
       )
-      .orderBy(asc(supportMessages.createdAt));
-
-    const attachments = await db
-      .select({
+      .orderBy(asc(supportMessages.createdAt)),
+      db.select({
         id: supportAttachments.id,
         messageId: supportAttachments.messageId,
         documentType: supportAttachments.documentType,
@@ -70,8 +69,33 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         createdAt: supportAttachments.createdAt,
       })
       .from(supportAttachments)
-      .where(eq(supportAttachments.requestId, access.requestId));
+      .where(eq(supportAttachments.requestId, access.requestId)),
+      db.select({ id: supportContacts.id })
+        .from(supportContacts)
+        .where(
+          and(
+            eq(supportContacts.requestId, access.requestId),
+            eq(supportContacts.isVerified, true),
+            isNull(supportContacts.disabledAt)
+          )
+        ),
+    ]);
 
-    return { request, messages, attachments };
+    const identityContext = (request.subjectContext ?? {}) as Record<string, unknown>;
+    const contextIdentityStatus = identityContext.identityStatus;
+    const identityStatus = contextIdentityStatus === "identite_confirmee" || contextIdentityStatus === "contact_verifie"
+      ? contextIdentityStatus
+      : verifiedContacts.length > 0 ? "contact_verifie" : "non_verifiee";
+
+    return {
+      request: {
+        ...request,
+        identityStatus,
+        identityMethod: typeof identityContext.identityMethod === "string" ? identityContext.identityMethod : verifiedContacts.length > 0 ? "email_magic_link" : null,
+        identityVerifiedAt: typeof identityContext.identityVerifiedAt === "string" ? identityContext.identityVerifiedAt : null,
+      },
+      messages,
+      attachments,
+    };
   });
 }

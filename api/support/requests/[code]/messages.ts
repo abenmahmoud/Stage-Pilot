@@ -1,8 +1,8 @@
 import { randomUUID } from "node:crypto";
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { eq, sql } from "drizzle-orm";
+import { and, eq, sql } from "drizzle-orm";
 import { db } from "../../../../db/index.js";
-import { supportEvents, supportMessages } from "../../../../db/schema.js";
+import { supportEvents, supportMessages, supportRequests } from "../../../../db/schema.js";
 import { HttpError } from "../../../_shared/auth.js";
 import { handleApi, methodNotAllowed } from "../../../_shared/response.js";
 import {
@@ -54,12 +54,23 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         return { ...existing, duplicate: true };
       }
 
+      const [reopened] = await tx
+        .update(supportRequests)
+        .set({ status: "en_cours" })
+        .where(
+          and(
+            eq(supportRequests.id, access.requestId),
+            eq(supportRequests.status, "attente_demandeur")
+          )
+        )
+        .returning({ id: supportRequests.id });
+
       await tx.insert(supportEvents).values({
         requestId: access.requestId,
         eventType: "message.received",
         actorType: "requester",
         actorId: access.sessionId,
-        toValue: { messageId: created.id, channel: "web" },
+        toValue: { messageId: created.id, channel: "web", status: reopened ? "en_cours" : undefined },
         correlationId,
       });
 

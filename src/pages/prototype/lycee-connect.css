@@ -32,7 +32,7 @@
 }
 
 .lycee-brand { display: flex; align-items: center; gap: 12px; min-height: 74px; padding: 4px 8px 18px; border-bottom: 1px solid var(--lc-line); }
-.lycee-brand img { width: 46px; height: 54px; flex: 0 0 46px; object-fit: contain; border-radius: 7px; background: #fff; }
+.lycee-brand img { width: 46px; height: 54px; flex: 0 0 46px; object-fit: cover; object-position: 31% 32%; border-radius: 7px; filter: grayscale(1) contrast(1.08); }
 .lycee-brand div, .lycee-mobile-brand > div, .lycee-sidebar-status div { min-width: 0; display: flex; flex-direction: column; }
 .lycee-brand strong { font-size: 15px; line-height: 1.15; }
 .lycee-brand span, .lycee-mobile-brand span, .lycee-sidebar-status span { margin-top: 3px; color: var(--lc-muted); font-size: 12px; }
@@ -72,16 +72,15 @@
 .lycee-icon-button svg, .lycee-profile-button svg { width: 18px; height: 18px; }
 .lycee-profile-button { min-height: 42px; display: flex; align-items: center; gap: 8px; padding: 0 13px; border-radius: 8px; font-size: 13px; font-weight: 750; }
 .lycee-menu-button, .lycee-mobile-brand, .lycee-mobile-menu, .lycee-bottom-nav { display: none; }
-.lycee-mobile-brand > img { width: 35px; height: 40px; flex: 0 0 35px; object-fit: contain; border-radius: 6px; background: #fff; }
+.lycee-mobile-brand > img { width: 35px; height: 40px; flex: 0 0 35px; object-fit: cover; object-position: 31% 32%; border-radius: 6px; filter: grayscale(1) contrast(1.08); }
 
 .lycee-service-banner { min-height: 38px; display: flex; align-items: center; gap: 8px; padding: 8px 32px; background: #e7f7f1; color: #076958; font-size: 12px; font-weight: 700; }
 .lycee-service-banner svg { width: 16px; height: 16px; }
 .lycee-service-banner strong { margin-left: auto; padding: 4px 9px; border-radius: 999px; background: var(--lc-green); color: #fff; font-size: 10px; text-transform: uppercase; }
 
 .lycee-hero { position: relative; min-height: 360px; display: flex; align-items: flex-end; overflow: hidden; background: #0a1728; }
-.lycee-hero > img:first-child { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center 58%; filter: saturate(.88) contrast(1.05); }
-.lycee-hero-shade { position: absolute; inset: 0; z-index: 1; background: linear-gradient(90deg, rgba(6,18,34,.88), rgba(10,29,51,.62) 49%, rgba(8,24,43,.22)); }
-.lycee-hero-sketch { position: absolute; z-index: 2; right: 7%; bottom: -20%; width: min(31vw,330px); height: 116%; object-fit: contain; opacity: .34; filter: invert(1) grayscale(1) contrast(1.55) blur(.35px); mix-blend-mode: screen; pointer-events: none; user-select: none; -webkit-mask-image: linear-gradient(to bottom, transparent 1%, #000 12%, #000 78%, transparent 97%); mask-image: linear-gradient(to bottom, transparent 1%, #000 12%, #000 78%, transparent 97%); }
+.lycee-hero > img:first-child { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center 54%; filter: saturate(.95) contrast(1.03); }
+.lycee-hero-shade { position: absolute; inset: 0; z-index: 1; background: linear-gradient(90deg, rgba(6,18,34,.86), rgba(10,29,51,.58) 50%, rgba(8,24,43,.12)); }
 .lycee-hero-copy { position: relative; z-index: 3; width: min(700px, 64%); padding: 48px; color: #fff; animation: lycee-copy-in 620ms cubic-bezier(.2,.8,.2,1) both; }
 .lycee-hero-copy > span, .lycee-eyebrow { display: block; color: #708095; font-size: 11px; font-weight: 800; text-transform: uppercase; }
 .lycee-hero-copy > span { margin-bottom: 9px; color: #a9dfd3; }
@@ -211,9 +210,8 @@
   .lycee-service-banner span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .lycee-service-banner strong { display: none; }
   .lycee-hero { min-height: 315px; }
-  .lycee-hero > img:first-child { object-position: 51% 58%; }
-  .lycee-hero-shade { background: linear-gradient(0deg,rgba(9,25,47,.9),rgba(9,25,47,.25)); }
-  .lycee-hero-sketch { right: -6%; bottom: -14%; width: 58%; height: 105%; opacity: .23; }
+  .lycee-hero > img:first-child { object-position: 78% 54%; }
+  .lycee-hero-shade { background: linear-gradient(0deg,rgba(9,25,47,.88),rgba(9,25,47,.18)); }
   .lycee-hero-copy { width: 100%; padding: 32px 18px 50px; }
   .lycee-hero-copy h1 { font-size: 34px; }
   .lycee-hero-copy p { font-size: 13px; line-height: 1.45; }
@@ -423,6 +421,11 @@
 .lycee-ai-summary span { display: flex; flex-direction: column; }
 .lycee-ai-summary strong { font-size: 12px; }
 .lycee-ai-summary small { margin-top: 2px; color: #4e7e75; font-size: 10px; }
+.lycee-case-security { display: flex; align-items: flex-start; gap: 10px; padding: 12px 14px; border: 1px solid #c8d5e5; border-radius: 8px; background: #fff; color: #40556e; }
+.lycee-case-security > svg { width: 19px; flex: 0 0 19px; color: var(--lc-blue); }
+.lycee-case-security > span { display: flex; flex-direction: column; gap: 3px; }
+.lycee-case-security strong { font-size: 11px; }
+.lycee-case-security small { color: var(--lc-muted); font-size: 10px; line-height: 1.45; }
 .lycee-submit-request { justify-self: end; min-width: 210px; }
 .lycee-form-error { display: flex; align-items: center; gap: 8px; padding: 12px 14px; border: 1px solid #f0b8ad; border-radius: 8px; background: #fff1ee; color: #9b3022; font-size: 12px; font-weight: 700; }
 .lycee-form-error svg { width: 18px; flex: 0 0 18px; }
@@ -457,10 +460,22 @@
 .lycee-ticket-detail-head { display: flex; justify-content: space-between; gap: 16px; padding-bottom: 18px; border-bottom: 1px solid var(--lc-line); }
 .lycee-ticket-detail-head > div > span { color: var(--lc-blue); font-size: 10px; font-weight: 900; }
 .lycee-ticket-detail-head h2 { margin: 5px 0 0; font-size: 19px; }
-.lycee-ticket-detail-head > em { height: fit-content; padding: 6px 9px; border-radius: 999px; background: #fff4d5; color: #915f00; font-size: 9px; font-style: normal; font-weight: 800; }
+.lycee-ticket-head-actions { display: flex; align-items: center; gap: 7px; }
+.lycee-ticket-head-actions > em { height: fit-content; padding: 6px 9px; border-radius: 999px; background: #fff4d5; color: #915f00; font-size: 9px; font-style: normal; font-weight: 800; }
+.lycee-refresh-button { min-height: 30px; display: inline-flex; align-items: center; gap: 5px; padding: 0 8px; border: 1px solid var(--lc-line); border-radius: 7px; background: #fff; color: #52667d; font-size: 9px; font-weight: 800; }
+.lycee-refresh-button svg { width: 13px; }
 .lycee-ticket-meta { display: flex; gap: 18px; padding: 13px 0; color: var(--lc-muted); font-size: 10px; }
 .lycee-ticket-meta span { display: inline-flex; align-items: center; gap: 6px; }
 .lycee-ticket-meta svg { width: 14px; }
+.lycee-identity-status { display: flex; align-items: flex-start; gap: 9px; margin-bottom: 6px; padding: 11px 12px; border: 1px solid #d7e0eb; border-radius: 7px; background: #f8fafc; }
+.lycee-identity-status > svg { width: 18px; flex: 0 0 18px; color: #75869a; }
+.lycee-identity-status > span { display: flex; flex-direction: column; gap: 3px; }
+.lycee-identity-status strong { color: #3f5269; font-size: 10px; }
+.lycee-identity-status small { color: var(--lc-muted); font-size: 9px; line-height: 1.4; }
+.lycee-identity-status[data-status="contact_verifie"] { border-color: #bfd8f5; background: #eef5ff; }
+.lycee-identity-status[data-status="contact_verifie"] > svg { color: var(--lc-blue); }
+.lycee-identity-status[data-status="identite_confirmee"] { border-color: #bde3d8; background: #edf9f5; }
+.lycee-identity-status[data-status="identite_confirmee"] > svg { color: var(--lc-green); }
 .lycee-timeline { padding-top: 4px; }
 .lycee-timeline > div { position: relative; display: grid; grid-template-columns: 32px minmax(0,1fr); gap: 11px; min-height: 80px; }
 .lycee-timeline > div:not(:last-child)::after { content: ""; position: absolute; left: 15px; top: 32px; bottom: 0; width: 2px; background: #dbe3ec; }
@@ -500,7 +515,8 @@
 .lycee-followup-form label > span { color: #4c5c70; font-size: 10px; font-weight: 800; }
 .lycee-followup-form textarea { width: 100%; resize: vertical; padding: 10px 11px; border: 1px solid #cbd5e1; border-radius: 7px; outline: 0; color: var(--lc-ink); font: inherit; font-size: 12px; line-height: 1.45; }
 .lycee-followup-form textarea:focus { border-color: var(--lc-blue); box-shadow: 0 0 0 3px rgba(21,94,239,.1); }
-.lycee-followup-form button { justify-self: end; }
+.lycee-followup-files { margin: 0; }
+.lycee-followup-actions { display: flex; justify-content: flex-end; gap: 8px; }
 
 .lycee-services-catalog { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 12px; }
 .lycee-services-catalog article { min-height: 180px; display: grid; grid-template-columns: 52px minmax(0,1fr); gap: 14px; padding: 20px; border: 1px solid var(--lc-line); border-top: 4px solid var(--lc-blue); border-radius: 8px; background: #fff; }
@@ -523,8 +539,7 @@
 .lycee-mail-bridge a svg, .lycee-mail-bridge > button svg { width: 15px; }
 
 .lycee-school-feature { min-height: 250px; display: grid; grid-template-columns: minmax(280px,.9fr) minmax(0,1.1fr); overflow: hidden; border-radius: 8px; background: #18314f; color: #fff; }
-.lycee-school-feature img { width: 100%; height: 100%; object-fit: cover; }
-.lycee-school-feature .lycee-school-sketch { object-fit: contain; padding: 16px 22px 0; background: #fff; filter: grayscale(1) contrast(1.05); }
+.lycee-school-feature img { width: 100%; height: 100%; object-fit: cover; object-position: 29% 29%; filter: grayscale(1) contrast(1.05); }
 .lycee-school-feature > div { display: flex; flex-direction: column; justify-content: center; padding: 30px; }
 .lycee-school-feature h2 { margin: 7px 0 0; font-size: 25px; }
 .lycee-school-feature p { margin: 10px 0 17px; color: rgba(255,255,255,.7); font-size: 12px; line-height: 1.5; }
@@ -619,6 +634,14 @@
 .lycee-agent-contact-row span svg { width: 14px; flex: 0 0 14px; color: var(--lc-blue); }
 .lycee-agent-contact-row button { min-height: 34px; margin-left: auto; padding: 0 10px; border: 1px solid var(--lc-blue); border-radius: 7px; background: #fff; color: var(--lc-blue); font-size: 9px; font-weight: 800; }
 .lycee-agent-contact-row button:disabled { border-color: var(--lc-line); color: var(--lc-muted); }
+.lycee-agent-contact-row span.is-verified { color: #14705f; font-weight: 750; }
+.lycee-agent-identity { display: grid; grid-template-columns: 28px minmax(0,1fr) minmax(180px,auto); align-items: center; gap: 9px; margin-top: 12px; padding: 12px; border: 1px solid #d7e0eb; border-radius: 8px; background: #f8fafc; }
+.lycee-agent-identity > svg { width: 20px; color: var(--lc-blue); }
+.lycee-agent-identity > span { display: flex; flex-direction: column; gap: 3px; }
+.lycee-agent-identity strong { font-size: 11px; }
+.lycee-agent-identity small { color: var(--lc-muted); font-size: 9px; line-height: 1.35; }
+.lycee-agent-identity select { min-height: 36px; padding: 0 8px; border: 1px solid #cbd5e1; border-radius: 7px; background: #fff; color: var(--lc-ink); font-size: 10px; font-weight: 750; }
+.lycee-agent-identity[data-sensitive="true"] { border-color: #efcf8d; background: #fff9ea; }
 .lycee-agent-thread { display: flex; flex-direction: column; gap: 9px; padding: 15px 0; }
 .lycee-agent-thread > div { max-width: 88%; padding: 11px 12px; border-radius: 7px; background: #f1f4f8; }
 .lycee-agent-thread > div[data-direction="outbound"] { align-self: flex-end; background: #eaf1ff; }
@@ -687,9 +710,13 @@
   .lycee-confirmation-actions { flex-direction: column; }
   .lycee-ticket-detail { padding: 16px; }
   .lycee-ticket-detail-head { flex-direction: column; }
-  .lycee-ticket-detail-head > em { width: fit-content; }
+  .lycee-ticket-head-actions { justify-content: space-between; }
+  .lycee-refresh-button span { display: none; }
   .lycee-conversation > div { max-width: 92%; }
   .lycee-followup-form button { width: 100%; justify-self: stretch; }
+  .lycee-followup-actions { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); }
+  .lycee-agent-identity { grid-template-columns: 26px minmax(0,1fr); }
+  .lycee-agent-identity select { grid-column: 1 / -1; width: 100%; }
   .lycee-mail-bridge { align-items: flex-start; flex-direction: column; }
   .lycee-school-feature { grid-template-columns: 1fr; }
   .lycee-school-feature img { height: 190px; }

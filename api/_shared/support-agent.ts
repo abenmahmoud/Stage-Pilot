@@ -126,7 +126,7 @@ function localFallback(messages: SupportAgentMessage[], attachments: SupportAtta
           ? "personnel"
           : "inconnu";
   return {
-    reply: `J’ai compris votre besoin et je le classe dans « ${CATEGORY_LABELS[category]} ». ${attachments.length ? `Les ${attachments.length} pièce(s) sélectionnée(s) seront jointes au dossier. ` : ""}Ajoutez ce qui bloque et ce que vous avez déjà essayé; un agent pourra ensuite reprendre la conversation sans vous faire recommencer.`,
+    reply: `J’ai compris votre besoin et je le classe dans « ${CATEGORY_LABELS[category]} ». ${attachments.length ? `Les ${attachments.length} pièces sélectionnées seront jointes au dossier. ` : ""}Ajoutez ce qui bloque et ce que vous avez déjà essayé. Un agent pourra ensuite reprendre la conversation sans vous faire recommencer.`,
     category,
     requesterType,
     urgency: /\b(urgent|aujourd'hui|bloqué|bloque|impossible)\b/i.test(text) ? "urgente" : "normale",

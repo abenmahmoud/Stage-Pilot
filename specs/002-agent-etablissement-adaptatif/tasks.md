@@ -15,6 +15,8 @@
 - [ ] T008 Créer les migrations `institutions`, adhésions, compétences, versions et sources.
 - [ ] T009 Ajouter actions, validations, intégrations et évaluations avec politiques d'accès.
 - [ ] T010 Ajouter `institution_id` et le niveau de vérification d'identité aux demandes `001` si nécessaire.
+- [x] T010A Exposer dès le pilote les états coordonnées déclarées, contact vérifié
+  et identité confirmée, avec un verrou sur les réponses contenant des codes.
 - [ ] T011 Implémenter le parseur et le validateur du format de compétence.
 - [ ] T012 Refuser la publication d'une compétence sans propriétaire, sources, révision et tests valides.
 - [ ] T013 Construire l'écran de publication, désactivation et retour à une version précédente.
@@ -59,6 +61,8 @@
 - [ ] T040 Relier LycéeGest pour les stages par lien contextuel, sans duplication.
 - [ ] T041 Ajouter les liens officiels Scolarité Services et PRONOTE.
 - [ ] T042 Piloter les données locales avec imports limités, datés et révocables.
+- [ ] T042A Importer la liste validée des professeurs et leurs emplois du temps,
+  puis tester le rapprochement sans exposer l'annuaire au public.
 - [ ] T043 Ajouter le connecteur ou export PRONOTE officiel après autorisation écrite.
 - [ ] T044 Terminer les courriels entrants et sortants avec preuve de livraison disponible.
 - [ ] T045 Ajouter SMS uniquement après validation du consentement, des usages et du budget.

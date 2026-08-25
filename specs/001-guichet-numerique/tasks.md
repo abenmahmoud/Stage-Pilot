@@ -42,6 +42,10 @@ quarantaine. Une panne d'envoi externe n'affecte pas le dossier.
   chaque fichier.
 - [ ] **T015** Ajouter IndexedDB pour brouillons et liste des dossiers du terminal.
 - [x] **T016** Construire la page de suivi sécurisée et le fil de messages.
+- [x] **T016A** Actualiser automatiquement le fil et permettre l'ajout de pièces
+  jointes après la création du dossier.
+- [x] **T016B** Afficher les trois niveaux de vérification et bloquer la résolution
+  des demandes ENT ou email académique sans identité confirmée.
 - [x] **T017** Construire la file agent paginée avec filtres, SLA et assignation.
 - [ ] **T018** Ajouter réponses, notes internes, transfert et clôture motivée.
 - [ ] **T019** Ajouter les modèles de réponse et variables autorisées.
@@ -86,6 +90,8 @@ voir sa réponse dans le dossier. L'agent traite tout depuis une seule file.
 - [ ] **T037** Ajouter les mentions d'information, durées et procédure d'exercice
   des droits.
 - [ ] **T038** Exécuter tests mobile, desktop, clavier, charge et sécurité.
+- [x] **T038A** Relire les textes du parcours demandeur et agent, remplacer les
+  codes internes par des libellés français et vérifier les principaux écrans.
 - [ ] **T039** Déployer une preview Vercel protégée et la faire valider.
 - [x] **T039A** Déployer la preview protégée et terminer sa validation technique
   mobile/ordinateur, API, base, email sortant et fichier sain.

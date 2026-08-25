@@ -33,11 +33,25 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const rawAccessToken = opaqueToken();
 
     const [request] = await db
-      .select({ id: supportRequests.id, subject: supportRequests.subject })
+      .select({
+        id: supportRequests.id,
+        subject: supportRequests.subject,
+        category: supportRequests.category,
+        subjectContext: supportRequests.subjectContext,
+      })
       .from(supportRequests)
       .where(eq(supportRequests.publicCode, code))
       .limit(1);
     if (!request) throw new HttpError(404, "Demande introuvable");
+    const containsCredential = /\b(?:mot de passe|identifiant|code(?: d['’]accès)?)\s*(?:est|:|=)\s*[A-Za-z0-9@!#$%_+.-]{4,}/i.test(messageText);
+    const identityContext = (request.subjectContext ?? {}) as Record<string, unknown>;
+    if (
+      ["ent", "email_academique"].includes(request.category) &&
+      identityContext.identityStatus !== "identite_confirmee" &&
+      containsCredential
+    ) {
+      throw new HttpError(409, "Confirmez l’identité dans une liste officielle avant d’envoyer un identifiant ou un code");
+    }
     const contacts = await db
       .select({ id: supportContacts.id, channel: supportContacts.channel })
       .from(supportContacts)

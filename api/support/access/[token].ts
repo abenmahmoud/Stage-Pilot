@@ -1,8 +1,11 @@
+import { randomUUID } from "node:crypto";
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { and, eq, gt, isNull } from "drizzle-orm";
 import { db } from "../../../db/index.js";
 import {
+  supportContacts,
   supportDeviceSessions,
+  supportEvents,
   supportMagicTokens,
   supportRequests,
   supportSessionRequests,
@@ -70,13 +73,43 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           .returning({ id: supportDeviceSessions.id });
       }
 
+      const now = new Date();
       await tx
         .insert(supportSessionRequests)
         .values({ sessionId: session.id, requestId: magic.requestId })
         .onConflictDoNothing();
+
+      const verifiedContacts = await tx
+        .update(supportContacts)
+        .set({
+          isVerified: true,
+          verificationSource: "email_magic_link",
+          verifiedAt: now,
+        })
+        .where(
+          and(
+            eq(supportContacts.requestId, magic.requestId),
+            eq(supportContacts.channel, "email"),
+            eq(supportContacts.isVerified, false),
+            isNull(supportContacts.disabledAt)
+          )
+        )
+        .returning({ id: supportContacts.id });
+
+      if (verifiedContacts.length > 0) {
+        await tx.insert(supportEvents).values({
+          requestId: magic.requestId,
+          eventType: "identity.contact_verified",
+          actorType: "requester",
+          actorId: session.id,
+          toValue: { identityStatus: "contact_verifie", method: "email_magic_link" },
+          correlationId: randomUUID(),
+        });
+      }
+
       await tx
         .update(supportMagicTokens)
-        .set({ usedAt: new Date(), attemptCount: 1 })
+        .set({ usedAt: now, attemptCount: 1 })
         .where(eq(supportMagicTokens.id, magic.id));
       return { publicCode: magic.publicCode };
     });

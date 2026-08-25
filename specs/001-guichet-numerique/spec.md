@@ -39,9 +39,17 @@ et ne clôture pas un dossier sans validation humaine.
 13. L'identité de lycée polyvalent et les formations générale, technologique,
     professionnelle et CAP restent visibles dans la PWA.
 14. L'accueil met en avant le nom Lycée Blaise Cendrars et utilise le portrait
-    historique de l'écrivain avec sa cigarette comme signature visuelle demandée
-    par la direction, sans présenter le tabac comme un produit.
-15. Les huit spécialités générales proposées par l'établissement sont présentées
+    historique de l'écrivain avec sa cigarette comme signature visuelle demandée,
+    avec l'ancien logo photographique noir dans la navigation, conformément au
+    choix de la direction et sans présenter le tabac comme un produit.
+15. La vérification comporte trois états visibles et audités : coordonnées
+    déclarées, moyen de contact vérifié, puis identité confirmée par rapprochement
+    avec une source officielle du lycée.
+16. Une demande ENT ou de messagerie académique ne peut pas être résolue et aucun
+    identifiant ne peut être envoyé tant que l'identité n'est pas confirmée.
+17. Après l'enregistrement, la conversation reste unique : les réponses et pièces
+    ajoutées depuis le web ou l'email rejoignent le même dossier sans ressaisie.
+18. Les huit spécialités générales proposées par l'établissement sont présentées
     avec leur intitulé, une explication simple, les compétences développées et un
     visuel significatif.
 
@@ -90,6 +98,8 @@ et ne clôture pas un dossier sans validation humaine.
 
 - La personne ouvre le lien magique reçu par email ou saisit un code ponctuel.
 - Le jeton à usage unique est échangé contre une nouvelle session d'appareil.
+- L'ouverture du lien prouve le contrôle de l'adresse email, mais ne suffit pas
+  pour transmettre un code ENT ou une donnée scolaire personnelle.
 - Un numéro de dossier seul ne permet pas d'ouvrir le dossier.
 - Après plusieurs tentatives invalides, l'accès est temporairement bloqué.
 
@@ -97,6 +107,9 @@ et ne clôture pas un dossier sans validation humaine.
 
 - Chaque dossier possède un fil chronologique unique.
 - Une réponse de l'agent apparaît dans l'application et part par le canal choisi.
+- Le fil s'actualise automatiquement pendant sa consultation et accepte de
+  nouvelles pièces jointes dans la limite du dossier.
+- Quand la personne répond, un dossier en attente repasse en cours de traitement.
 - Chaque email sortant utilise une adresse de réponse propre au dossier.
 - Une réponse envoyée depuis Gmail, Outlook ou le webmail est reçue par Brevo,
   ajoutée au fil puis notifiée à l'agent.
