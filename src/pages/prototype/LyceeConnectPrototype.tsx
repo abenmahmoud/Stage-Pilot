@@ -292,7 +292,7 @@ export default function LyceeConnectPrototype() {
     <div className="lycee-connect">
       <aside className="lycee-sidebar">
         <div className="lycee-brand">
-          <img src="/blaise-cendrars-portrait.webp" alt="Portrait de Blaise Cendrars" />
+          <img src="/lycee-blaise-logo.png" alt="Portrait dessiné de Blaise Cendrars" />
           <div>
             <strong>Lycée Blaise Cendrars</strong>
             <span>Sevran · 93</span>
@@ -347,7 +347,7 @@ export default function LyceeConnectPrototype() {
             <Menu aria-hidden="true" />
           </button>
           <div className="lycee-mobile-brand">
-            <img src="/blaise-cendrars-portrait.webp" alt="" />
+            <img src="/lycee-blaise-logo.png" alt="" />
             <div>
               <strong>Blaise Cendrars</strong>
               <span>Lycée polyvalent</span>
@@ -387,8 +387,9 @@ export default function LyceeConnectPrototype() {
         {view === "home" && (
           <>
         <section className="lycee-hero">
-          <img src="/lycee-blaise-hero.webp" alt="Façade du Lycée Blaise Cendrars à Sevran avec la silhouette de l'écrivain" />
+          <img src="/lycee-blaise-facade-premium.webp" alt="Façade du Lycée Blaise Cendrars à Sevran" />
           <div className="lycee-hero-shade" />
+          <img className="lycee-hero-sketch" src="/lycee-blaise-logo.png" alt="" />
           <div className="lycee-hero-copy">
             <span>Lycée polyvalent · Sevran</span>
             <h1>Blaise Cendrars</h1>
@@ -1246,7 +1247,7 @@ function SchoolView({ onBack }: { onBack: () => void }) {
     <div className="lycee-page">
       <PageIntro eyebrow="Lycée polyvalent" title="Blaise Cendrars, Sevran" description="Découvrez les spécialités, les voies de formation et les accès utiles de l'établissement." onBack={onBack} />
       <section className="lycee-school-feature">
-        <img src="/blaise-cendrars-portrait.webp" alt="Portrait de Blaise Cendrars avec sa cigarette" />
+        <img className="lycee-school-sketch" src="/lycee-blaise-logo.png" alt="Portrait dessiné de Blaise Cendrars" />
         <div><span className="lycee-eyebrow">Une identité, plusieurs parcours</span><h2>Un lycée ouvert sur les sciences, les humanités et les métiers</h2><p>À Sevran, les voies générale, technologique et professionnelle se rencontrent dans un même établissement.</p><button type="button" onClick={() => document.getElementById("specialites")?.scrollIntoView({ behavior: "smooth" })}>Voir les spécialités <ChevronRight aria-hidden="true" /></button></div>
       </section>
       <div className="lycee-school-stats"><div><strong>Polyvalent</strong><span>général, techno et pro</span></div><div><strong>8</strong><span>spécialités générales</span></div><div><strong>15</strong><span>formations référencées</span></div><div><strong>Euro</strong><span>section européenne anglais</span></div></div>

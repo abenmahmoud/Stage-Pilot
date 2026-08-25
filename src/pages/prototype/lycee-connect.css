@@ -32,7 +32,7 @@
 }
 
 .lycee-brand { display: flex; align-items: center; gap: 12px; min-height: 74px; padding: 4px 8px 18px; border-bottom: 1px solid var(--lc-line); }
-.lycee-brand img { width: 46px; height: 54px; flex: 0 0 46px; object-fit: cover; object-position: 31% 32%; border-radius: 7px; filter: grayscale(1) contrast(1.08); }
+.lycee-brand img { width: 46px; height: 54px; flex: 0 0 46px; object-fit: contain; border-radius: 7px; background: #fff; }
 .lycee-brand div, .lycee-mobile-brand > div, .lycee-sidebar-status div { min-width: 0; display: flex; flex-direction: column; }
 .lycee-brand strong { font-size: 15px; line-height: 1.15; }
 .lycee-brand span, .lycee-mobile-brand span, .lycee-sidebar-status span { margin-top: 3px; color: var(--lc-muted); font-size: 12px; }
@@ -72,15 +72,16 @@
 .lycee-icon-button svg, .lycee-profile-button svg { width: 18px; height: 18px; }
 .lycee-profile-button { min-height: 42px; display: flex; align-items: center; gap: 8px; padding: 0 13px; border-radius: 8px; font-size: 13px; font-weight: 750; }
 .lycee-menu-button, .lycee-mobile-brand, .lycee-mobile-menu, .lycee-bottom-nav { display: none; }
-.lycee-mobile-brand > img { width: 35px; height: 40px; flex: 0 0 35px; object-fit: cover; object-position: 31% 32%; border-radius: 6px; filter: grayscale(1) contrast(1.08); }
+.lycee-mobile-brand > img { width: 35px; height: 40px; flex: 0 0 35px; object-fit: contain; border-radius: 6px; background: #fff; }
 
 .lycee-service-banner { min-height: 38px; display: flex; align-items: center; gap: 8px; padding: 8px 32px; background: #e7f7f1; color: #076958; font-size: 12px; font-weight: 700; }
 .lycee-service-banner svg { width: 16px; height: 16px; }
 .lycee-service-banner strong { margin-left: auto; padding: 4px 9px; border-radius: 999px; background: var(--lc-green); color: #fff; font-size: 10px; text-transform: uppercase; }
 
 .lycee-hero { position: relative; min-height: 360px; display: flex; align-items: flex-end; overflow: hidden; background: #0a1728; }
-.lycee-hero > img:first-child { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center 54%; filter: saturate(.95) contrast(1.03); }
-.lycee-hero-shade { position: absolute; inset: 0; z-index: 1; background: linear-gradient(90deg, rgba(6,18,34,.86), rgba(10,29,51,.58) 50%, rgba(8,24,43,.12)); }
+.lycee-hero > img:first-child { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center 58%; filter: saturate(.88) contrast(1.05); }
+.lycee-hero-shade { position: absolute; inset: 0; z-index: 1; background: linear-gradient(90deg, rgba(6,18,34,.88), rgba(10,29,51,.62) 49%, rgba(8,24,43,.22)); }
+.lycee-hero-sketch { position: absolute; z-index: 2; right: 7%; bottom: -20%; width: min(31vw,330px); height: 116%; object-fit: contain; opacity: .34; filter: invert(1) grayscale(1) contrast(1.55) blur(.35px); mix-blend-mode: screen; pointer-events: none; user-select: none; -webkit-mask-image: linear-gradient(to bottom, transparent 1%, #000 12%, #000 78%, transparent 97%); mask-image: linear-gradient(to bottom, transparent 1%, #000 12%, #000 78%, transparent 97%); }
 .lycee-hero-copy { position: relative; z-index: 3; width: min(700px, 64%); padding: 48px; color: #fff; animation: lycee-copy-in 620ms cubic-bezier(.2,.8,.2,1) both; }
 .lycee-hero-copy > span, .lycee-eyebrow { display: block; color: #708095; font-size: 11px; font-weight: 800; text-transform: uppercase; }
 .lycee-hero-copy > span { margin-bottom: 9px; color: #a9dfd3; }
@@ -210,8 +211,9 @@
   .lycee-service-banner span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .lycee-service-banner strong { display: none; }
   .lycee-hero { min-height: 315px; }
-  .lycee-hero > img:first-child { object-position: 78% 54%; }
-  .lycee-hero-shade { background: linear-gradient(0deg,rgba(9,25,47,.88),rgba(9,25,47,.18)); }
+  .lycee-hero > img:first-child { object-position: 51% 58%; }
+  .lycee-hero-shade { background: linear-gradient(0deg,rgba(9,25,47,.9),rgba(9,25,47,.25)); }
+  .lycee-hero-sketch { right: -6%; bottom: -14%; width: 58%; height: 105%; opacity: .23; }
   .lycee-hero-copy { width: 100%; padding: 32px 18px 50px; }
   .lycee-hero-copy h1 { font-size: 34px; }
   .lycee-hero-copy p { font-size: 13px; line-height: 1.45; }
@@ -521,7 +523,8 @@
 .lycee-mail-bridge a svg, .lycee-mail-bridge > button svg { width: 15px; }
 
 .lycee-school-feature { min-height: 250px; display: grid; grid-template-columns: minmax(280px,.9fr) minmax(0,1.1fr); overflow: hidden; border-radius: 8px; background: #18314f; color: #fff; }
-.lycee-school-feature img { width: 100%; height: 100%; object-fit: cover; object-position: 29% 29%; filter: grayscale(1) contrast(1.05); }
+.lycee-school-feature img { width: 100%; height: 100%; object-fit: cover; }
+.lycee-school-feature .lycee-school-sketch { object-fit: contain; padding: 16px 22px 0; background: #fff; filter: grayscale(1) contrast(1.05); }
 .lycee-school-feature > div { display: flex; flex-direction: column; justify-content: center; padding: 30px; }
 .lycee-school-feature h2 { margin: 7px 0 0; font-size: 25px; }
 .lycee-school-feature p { margin: 10px 0 17px; color: rgba(255,255,255,.7); font-size: 12px; line-height: 1.5; }
