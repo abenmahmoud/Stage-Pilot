@@ -6,6 +6,7 @@ import {
   supportContacts,
   supportDeviceSessions,
   supportEvents,
+  supportMagicTokens,
   supportMessages,
   supportRequests,
   supportSessionRequests,
@@ -64,7 +65,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       const input = parseSupportRequest(req.body);
       const idempotencyHash = sha256(idempotencyKey(req));
       const correlationId = randomUUID();
-      const jobId = randomUUID();
+      const requesterJobId = randomUUID();
+      const agentJobId = randomUUID();
+      const rawAccessToken = opaqueToken();
 
       const result = await db.transaction(async (tx) => {
         const session = await getOrCreateDeviceSession(tx, req);
@@ -183,15 +186,37 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           .insert(supportSessionRequests)
           .values({ sessionId: session.id, requestId: created.id });
 
+        await tx.insert(supportMagicTokens).values({
+          requestId: created.id,
+          tokenHash: sha256(rawAccessToken),
+          purpose: "support_access",
+          expiresAt: new Date(Date.now() + SUPPORT_SESSION_DAYS * 24 * 60 * 60 * 1000),
+        });
+
         await tx.execute(sql`
           select pgmq.send(
             'support_jobs',
             jsonb_build_object(
-              'job_id', ${jobId},
-              'job_type', 'notify_request_created',
-              'request_id', ${created.id},
-              'message_id', ${message.id},
-              'idempotency_key', ${`request-created:${created.id}`},
+              'job_id', ${requesterJobId}::uuid,
+              'job_type', 'notify_requester_request_created',
+              'request_id', ${created.id}::uuid,
+              'message_id', ${message.id}::uuid,
+              'access_token', ${rawAccessToken}::text,
+              'idempotency_key', ${`requester-request-created:${created.id}`}::text,
+              'attempt', 0
+            )
+          )
+        `);
+
+        await tx.execute(sql`
+          select pgmq.send(
+            'support_jobs',
+            jsonb_build_object(
+              'job_id', ${agentJobId}::uuid,
+              'job_type', 'notify_agent_request_created',
+              'request_id', ${created.id}::uuid,
+              'message_id', ${message.id}::uuid,
+              'idempotency_key', ${`agent-request-created:${created.id}`}::text,
               'attempt', 0
             )
           )

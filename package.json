@@ -3,6 +3,9 @@
   "version": "1.0.0",
   "description": "LyceeGest - Gestion stages 2nde et Grand Oral - Lycée Blaise Cendrars Sevran",
   "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
   "scripts": {
     "dev": "vite",
     "build": "tsc --noEmit && vite build",

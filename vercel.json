@@ -6,6 +6,9 @@
   "functions": {
     "api/import/*.ts": {
       "maxDuration": 300
+    },
+    "api/cron/support-worker.ts": {
+      "maxDuration": 60
     }
   },
   "rewrites": [

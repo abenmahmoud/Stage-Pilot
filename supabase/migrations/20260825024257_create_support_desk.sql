@@ -25,6 +25,7 @@ $$;
 
 create extension if not exists pgmq;
 select pgmq.create('support_jobs');
+select pgmq.create('support_file_scan');
 
 create sequence public.support_request_number_seq;
 

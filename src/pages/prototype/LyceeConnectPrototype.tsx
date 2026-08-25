@@ -41,6 +41,7 @@ import {
   Wifi,
 } from "lucide-react";
 import { supabase } from "../../lib/supabase-browser";
+import { apiFetch } from "../../lib/api";
 import "./lycee-connect.css";
 
 type View = "home" | "services" | "help" | "requests" | "school" | "agent";
@@ -149,6 +150,29 @@ export default function LyceeConnectPrototype() {
   const [message, setMessage] = useState("");
   const [menuOpen, setMenuOpen] = useState(false);
   const [ticketCreated, setTicketCreated] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!SUPPORT_API_ENABLED) return;
+    const url = new URL(window.location.href);
+    const token = url.searchParams.get("support_token");
+    if (!token) return;
+    readApiResponse<{ request: { publicCode: string } }>(
+      fetch(`/api/support/access/${encodeURIComponent(token)}`, {
+        method: "POST",
+        credentials: "include",
+      })
+    )
+      .then((payload) => {
+        setTicketCreated(payload.request.publicCode);
+        setView("requests");
+        url.searchParams.delete("support_token");
+        window.history.replaceState({}, "", url);
+      })
+      .catch(() => {
+        url.searchParams.delete("support_token");
+        window.history.replaceState({}, "", url);
+      });
+  }, []);
 
   function changeView(nextView: View) {
     setView(nextView);
@@ -674,12 +698,14 @@ type SupportRequestDetail = {
 
 const supportStatusLabels: Record<string, string> = {
   nouveau: "Nouvelle",
-  qualifie: "Classée",
+  a_qualifier: "À classer",
+  assigne: "Assignée",
   en_cours: "En cours",
-  attente_usager: "Votre réponse attendue",
-  attente_tiers: "En attente",
+  attente_demandeur: "Votre réponse attendue",
+  attente_interne: "En attente",
   resolu: "Résolue",
-  ferme: "Fermée",
+  clos: "Fermée",
+  indesirable: "Classée sans suite",
 };
 
 function supportDate(value: string): string {
@@ -916,7 +942,163 @@ const agentRequests = [
   { id: "BC-2026-0039", name: "Sarah M.", role: "Élève · TSTMG2", subject: "Question Grand Oral", category: "Grand Oral", priority: "Normal", age: "Il y a 1 h" },
 ];
 
+type AgentRequest = {
+  publicCode: string;
+  requesterType: string;
+  requesterFirstName: string;
+  requesterLastName: string;
+  beneficiaryType: string;
+  beneficiaryFirstName: string | null;
+  beneficiaryLastName: string | null;
+  subjectContext: Record<string, string>;
+  category: string;
+  subject: string;
+  status: string;
+  priority: string;
+  assignedTo: string | null;
+  slaDueAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+};
+
+type AgentRequestDetail = {
+  request: AgentRequest & { description: string };
+  contacts: Array<{ id: string; channel: string; value: string; isPrimary: boolean; isVerified: boolean }>;
+  messages: Array<{ id: string; direction: string; authorLabel: string | null; bodyText: string; deliveryStatus: string; createdAt: string }>;
+  attachments: Array<{ id: string; originalName: string; scanStatus: string; sizeBytes: number; createdAt: string }>;
+};
+
 function AgentView({ onBack }: { onBack: () => void }) {
+  if (!SUPPORT_API_ENABLED) return <DemoAgentView onBack={onBack} />;
+  return <ConnectedAgentView onBack={onBack} />;
+}
+
+function ConnectedAgentView({ onBack }: { onBack: () => void }) {
+  const [requests, setRequests] = useState<AgentRequest[]>([]);
+  const [stats, setStats] = useState({ new: 0, urgent: 0, active: 0, waitingRequester: 0 });
+  const [selectedCode, setSelectedCode] = useState<string | null>(null);
+  const [detail, setDetail] = useState<AgentRequestDetail | null>(null);
+  const [query, setQuery] = useState("");
+  const [reply, setReply] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
+
+  async function loadQueue() {
+    try {
+      const payload = await apiFetch<{ requests: AgentRequest[]; stats: typeof stats }>("support/agent/requests");
+      setRequests(payload.requests);
+      setStats(payload.stats);
+      setSelectedCode((current) => current ?? payload.requests[0]?.publicCode ?? null);
+      setError(null);
+    } catch (loadError) {
+      setError(loadError instanceof Error ? loadError.message : "Impossible de charger les demandes");
+    }
+  }
+
+  useEffect(() => { void loadQueue(); }, []);
+  useEffect(() => {
+    if (!selectedCode) return;
+    apiFetch<AgentRequestDetail>(`support/agent/requests/${selectedCode}`)
+      .then((payload) => { setDetail(payload); setError(null); })
+      .catch((loadError: Error) => setError(loadError.message));
+  }, [selectedCode]);
+
+  async function updateRequest(changes: { status?: string; priority?: string; assignToMe?: boolean }) {
+    if (!selectedCode) return;
+    setSaving(true);
+    try {
+      await apiFetch(`support/agent/requests/${selectedCode}`, {
+        method: "PATCH",
+        body: JSON.stringify(changes),
+      });
+      setDetail(await apiFetch<AgentRequestDetail>(`support/agent/requests/${selectedCode}`));
+      await loadQueue();
+    } catch (saveError) {
+      setError(saveError instanceof Error ? saveError.message : "Modification impossible");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function sendAgentReply() {
+    if (!selectedCode || !reply.trim()) return;
+    setSaving(true);
+    try {
+      await apiFetch(`support/agent/requests/${selectedCode}/reply`, {
+        method: "POST",
+        headers: { "Idempotency-Key": crypto.randomUUID() },
+        body: JSON.stringify({ message: reply }),
+      });
+      setReply("");
+      setDetail(await apiFetch<AgentRequestDetail>(`support/agent/requests/${selectedCode}`));
+      await loadQueue();
+    } catch (sendError) {
+      setError(sendError instanceof Error ? sendError.message : "Réponse non enregistrée");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function openAgentAttachment(id: string) {
+    const popup = window.open("about:blank", "_blank");
+    try {
+      const payload = await apiFetch<{ url: string }>(`support/agent/attachments/${id}`);
+      if (popup) popup.location.href = payload.url;
+      else window.open(payload.url, "_blank", "noopener,noreferrer");
+    } catch (openError) {
+      popup?.close();
+      setError(openError instanceof Error ? openError.message : "Fichier indisponible");
+    }
+  }
+
+  const visibleRequests = requests.filter((request) =>
+    `${request.publicCode} ${request.requesterFirstName} ${request.requesterLastName} ${request.subject}`.toLowerCase().includes(query.toLowerCase())
+  );
+  const selected = detail?.request;
+
+  return (
+    <div className="lycee-page lycee-agent-page">
+      <PageIntro eyebrow="Espace agent" title="Demandes du lycée" description="Classez, répondez et gardez chaque échange dans le même dossier." onBack={onBack} />
+      {error ? <div className="lycee-form-error" role="alert"><CircleAlert aria-hidden="true" />{error}{error.toLowerCase().includes("auth") ? <a href="/login">Se connecter</a> : null}</div> : null}
+      <div className="lycee-agent-stats">
+        <div><span><Inbox aria-hidden="true" /></span><strong>{stats.new}</strong><small>Nouvelles</small></div>
+        <div><span><CircleAlert aria-hidden="true" /></span><strong>{stats.urgent}</strong><small>Urgentes</small></div>
+        <div><span><Clock3 aria-hidden="true" /></span><strong>{stats.active}</strong><small>En cours</small></div>
+        <div><span><MessageCircleMore aria-hidden="true" /></span><strong>{stats.waitingRequester}</strong><small>Attente usager</small></div>
+      </div>
+      <div className="lycee-agent-workspace">
+        <section className="lycee-agent-queue">
+          <div className="lycee-agent-toolbar"><label><Search aria-hidden="true" /><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Nom, numéro ou objet" /></label><button type="button" aria-label="Filtrer"><Filter aria-hidden="true" /></button></div>
+          <div className="lycee-agent-tabs"><button className="is-active" type="button">Toutes <span>{requests.length}</span></button><button type="button">Urgentes <span>{stats.urgent}</span></button></div>
+          <div className="lycee-agent-list">
+            {visibleRequests.map((request) => (
+              <button className={selectedCode === request.publicCode ? "is-selected" : ""} type="button" key={request.publicCode} onClick={() => setSelectedCode(request.publicCode)}>
+                <span className="lycee-request-avatar">{`${request.requesterFirstName[0] ?? ""}${request.requesterLastName[0] ?? ""}`}</span>
+                <span><strong>{request.subject}</strong><small>{request.requesterFirstName} {request.requesterLastName} · {request.requesterType}</small><em>{request.category} · {supportDate(request.createdAt)}</em></span>
+                {["p1", "p2"].includes(request.priority) ? <b>Urgent</b> : null}
+              </button>
+            ))}
+          </div>
+        </section>
+        <article className="lycee-agent-detail">
+          {selected && detail ? (
+            <>
+              <div className="lycee-agent-detail-head"><div><span>{selected.publicCode}</span><h2>{selected.subject}</h2><p>{selected.requesterFirstName} {selected.requesterLastName} · {selected.requesterType}</p></div><div className="lycee-agent-controls"><select aria-label="Priorité" value={selected.priority} disabled={saving} onChange={(event) => void updateRequest({ priority: event.target.value })}><option value="p1">P1 critique</option><option value="p2">P2 urgente</option><option value="p3">P3 normale</option><option value="p4">P4 faible</option></select><select aria-label="Statut" value={selected.status} disabled={saving} onChange={(event) => void updateRequest({ status: event.target.value })}><option value="nouveau">Nouvelle</option><option value="a_qualifier">À classer</option><option value="assigne">Assignée</option><option value="en_cours">En cours</option><option value="attente_demandeur">Attente usager</option><option value="attente_interne">Attente interne</option><option value="resolu">Résolue</option><option value="clos">Fermée</option></select></div></div>
+              <div className="lycee-agent-contact-row">{detail.contacts.map((contact) => <span key={contact.id}>{contact.channel === "email" ? <Mail aria-hidden="true" /> : <Phone aria-hidden="true" />}{contact.value}</span>)}<button type="button" disabled={saving || Boolean(selected.assignedTo)} onClick={() => void updateRequest({ assignToMe: true })}>{selected.assignedTo ? "Déjà attribuée" : "Prendre la demande"}</button></div>
+              <div className="lycee-agent-thread">{detail.messages.map((message) => <div data-direction={message.direction} key={message.id}><span><strong>{message.authorLabel ?? "Usager"}</strong><small>{supportDate(message.createdAt)} · {message.deliveryStatus}</small></span><p>{message.bodyText}</p></div>)}</div>
+              {detail.attachments.length > 0 ? <div className="lycee-tracked-files">{detail.attachments.map((attachment) => <div key={attachment.id}><FileText aria-hidden="true" /><span><strong>{attachment.originalName}</strong><small>{attachment.scanStatus === "clean" ? "Vérifié" : "Contrôle en cours"}</small></span>{attachment.scanStatus === "clean" ? <button type="button" onClick={() => void openAgentAttachment(attachment.id)} aria-label={`Ouvrir ${attachment.originalName}`}><ExternalLink aria-hidden="true" /></button> : null}</div>)}</div> : null}
+              <section className="lycee-agent-ai"><div><WandSparkles aria-hidden="true" /><span><span className="lycee-eyebrow">Aide au traitement</span><h3>{selected.category} · priorité {selected.priority.toUpperCase()}</h3></span></div><dl><div><dt>Personne</dt><dd>{selected.beneficiaryType === "self" ? "Demandeur" : `${selected.beneficiaryFirstName ?? ""} ${selected.beneficiaryLastName ?? ""}`}</dd></div><div><dt>Canal disponible</dt><dd>{detail.contacts.map((contact) => contact.channel).join(" + ")}</dd></div><div><dt>Pièces</dt><dd>{detail.attachments.length} document(s)</dd></div></dl></section>
+              <section className="lycee-reply-box"><div><span><Sparkles aria-hidden="true" /> Réponse à valider</span><button type="button" onClick={() => setReply("Bonjour, votre demande a bien été prise en charge. Nous revenons vers vous dès que la vérification est terminée.")}>Proposer</button></div><textarea aria-label="Réponse à envoyer" rows={5} value={reply} onChange={(event) => setReply(event.target.value)} placeholder="Écrivez une réponse claire. Aucun mot de passe ne doit être demandé." /><div><button className="lycee-secondary-action" type="button" disabled><Paperclip aria-hidden="true" /> Joindre</button><button className="lycee-primary-action" type="button" disabled={saving || !reply.trim()} onClick={() => void sendAgentReply()}><Send aria-hidden="true" /> {saving ? "Enregistrement…" : "Valider et envoyer"}</button></div></section>
+            </>
+          ) : <div className="lycee-loading-state"><Clock3 aria-hidden="true" /> Sélectionnez une demande</div>}
+        </article>
+      </div>
+      <section className="lycee-agent-mail"><div><Mail aria-hidden="true" /><span><strong>Communication direction</strong><small>Envoyer une information aux professeurs et personnels depuis la messagerie du lycée.</small></span></div><a href="https://mail.lycee-blaise-cendrars-sevran.fr/admin" target="_blank" rel="noreferrer">Ouvrir <ExternalLink aria-hidden="true" /></a></section>
+    </div>
+  );
+}
+
+function DemoAgentView({ onBack }: { onBack: () => void }) {
   const [selectedId, setSelectedId] = useState(agentRequests[0].id);
   const [status, setStatus] = useState("Nouveau");
   const [reply, setReply] = useState("Bonjour Madame, votre demande concernant l’accès ENT a bien été prise en charge. Nous vérifions le compte de votre enfant et revenons vers vous aujourd’hui.");

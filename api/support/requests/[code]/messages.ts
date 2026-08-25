@@ -67,11 +67,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         select pgmq.send(
           'support_jobs',
           jsonb_build_object(
-            'job_id', ${jobId},
+            'job_id', ${jobId}::uuid,
             'job_type', 'notify_agent_message_received',
-            'request_id', ${access.requestId},
-            'message_id', ${created.id},
-            'idempotency_key', ${`message-received:${created.id}`},
+            'request_id', ${access.requestId}::uuid,
+            'message_id', ${created.id}::uuid,
+            'idempotency_key', ${`message-received:${created.id}`}::text,
             'attempt', 0
           )
         )

@@ -6,22 +6,27 @@ La V1 doit être utile sans IA. Chaque étape se termine par un commit, un build
 des tests et une vérification visuelle mobile/ordinateur. Aucun changement de
 production n'est appliqué directement sans preview et sauvegarde.
 
+État au 25 août 2026 : le socle API, les sessions, le suivi public, la file agent,
+les messages, les pièces jointes en quarantaine, les workers Brevo/antivirus et
+les webhooks sont codés. Les cases encore ouvertes comprennent soit une partie
+restante, soit une configuration externe ou une validation de bout en bout.
+
 ## Jour 1 - Socle qui ne perd rien
 
 - [ ] **T001** Corriger les alertes Supabase critiques : `get_role`,
   `set_updated_at`, mots de passe compromis et politiques RLS concernées.
-- [ ] **T002** Supprimer le détail brut des erreurs 500 renvoyé par l'API.
-- [ ] **T003** Ajouter la migration des tables support, index et contraintes.
-- [ ] **T004** Créer les buckets privés `support-quarantine` et `support-clean`.
-- [ ] **T005** Écrire et tester les politiques RLS par rôle.
-- [ ] **T006** Créer `POST /api/support/requests` avec validation stricte,
+- [x] **T002** Supprimer le détail brut des erreurs 500 renvoyé par l'API.
+- [x] **T003** Ajouter la migration des tables support, index et contraintes.
+- [x] **T004** Créer les buckets privés `support-quarantine` et `support-clean`.
+- [x] **T005** Écrire et tester les politiques RLS par rôle.
+- [x] **T006** Créer `POST /api/support/requests` avec validation stricte,
   transaction et idempotence.
-- [ ] **T007** Créer l'échange jeton magique vers session HttpOnly.
-- [ ] **T008** Créer `GET /api/support/requests/:code` limité à la session.
-- [ ] **T009** Créer le dépôt direct signé vers la quarantaine.
-- [ ] **T010** Ajouter le journal append-only et les identifiants de corrélation.
+- [x] **T007** Créer l'échange jeton magique vers session HttpOnly.
+- [x] **T008** Créer `GET /api/support/requests/:code` limité à la session.
+- [x] **T009** Créer le dépôt direct signé vers la quarantaine.
+- [x] **T010** Ajouter le journal append-only et les identifiants de corrélation.
 - [ ] **T011** Ajouter tests unitaires, RLS et intégration de création concurrente.
-- [ ] **T012** Vérifier 200 créations, zéro perte et zéro doublon.
+- [x] **T012** Vérifier 200 créations, zéro perte et zéro doublon.
 
 ### Sortie Jour 1
 
@@ -30,18 +35,18 @@ quarantaine. Une panne d'envoi externe n'affecte pas le dossier.
 
 ## Jour 2 - Conversation et travail agent
 
-- [ ] **T013** Relier le formulaire du prototype aux vraies API.
-- [ ] **T014** Ajouter la distinction demandeur/bénéficiaire et le contexte de
+- [x] **T013** Relier le formulaire du prototype aux vraies API.
+- [x] **T014** Ajouter la distinction demandeur/bénéficiaire et le contexte de
   chaque fichier.
 - [ ] **T015** Ajouter IndexedDB pour brouillons et liste des dossiers du terminal.
-- [ ] **T016** Construire la page de suivi sécurisée et le fil de messages.
+- [x] **T016** Construire la page de suivi sécurisée et le fil de messages.
 - [ ] **T017** Construire la file agent paginée avec filtres, SLA et assignation.
 - [ ] **T018** Ajouter réponses, notes internes, transfert et clôture motivée.
 - [ ] **T019** Ajouter les modèles de réponse et variables autorisées.
 - [ ] **T020** Installer `pgmq`, la Basic Queue transactionnelle, le worker et la
   file d'échec administrable.
-- [ ] **T021** Implémenter l'envoi Brevo avec idempotence et `Reply-To` dossier.
-- [ ] **T022** Recevoir les événements Brevo livré/rejeté/différé/spam.
+- [x] **T021** Implémenter l'envoi Brevo avec idempotence et `Reply-To` dossier.
+- [x] **T022** Recevoir les événements Brevo livré/rejeté/différé/spam.
 - [ ] **T023** Configurer le domaine entrant Brevo et son webhook secret.
 - [ ] **T024** Recevoir réponses et pièces jointes email dans le bon dossier.
 - [ ] **T025** Ajouter tâches de rappel téléphonique et résultat d'appel.

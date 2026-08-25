@@ -101,13 +101,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       if (accepted) {
         await tx.execute(sql`
           select pgmq.send(
-            'support_jobs',
+            'support_file_scan',
             jsonb_build_object(
-              'job_id', ${jobId},
+              'job_id', ${jobId}::uuid,
               'job_type', 'scan_attachment',
-              'request_id', ${access.requestId},
-              'attachment_id', ${attachment.id},
-              'idempotency_key', ${`scan-attachment:${attachment.id}`},
+              'request_id', ${access.requestId}::uuid,
+              'attachment_id', ${attachment.id}::uuid,
+              'idempotency_key', ${`scan-attachment:${attachment.id}`}::text,
               'attempt', 0
             )
           )

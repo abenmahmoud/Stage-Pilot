@@ -9,6 +9,7 @@ export async function handleApi(
   res: VercelResponse,
   fn: () => Promise<unknown>
 ): Promise<void> {
+  res.setHeader("Cache-Control", "no-store, max-age=0");
   try {
     const data = await fn();
     if (res.headersSent) return;

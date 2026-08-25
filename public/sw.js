@@ -1,4 +1,4 @@
-const CACHE_NAME = "blaise-cendrars-connect-v1";
+const CACHE_NAME = "blaise-cendrars-connect-v2";
 const APP_SHELL = [
   "/prototype",
   "/manifest.webmanifest",
@@ -22,7 +22,24 @@ self.addEventListener("activate", (event) => {
 });
 
 self.addEventListener("fetch", (event) => {
-  if (event.request.method !== "GET" || new URL(event.request.url).origin !== self.location.origin) return;
+  const url = new URL(event.request.url);
+  if (
+    event.request.method !== "GET" ||
+    url.origin !== self.location.origin ||
+    url.pathname.startsWith("/api/")
+  ) return;
+
+  if (event.request.mode === "navigate") {
+    event.respondWith(
+      fetch(event.request).catch(() => caches.match("/prototype"))
+    );
+    return;
+  }
+
+  const cacheableDestination = ["script", "style", "image", "font"].includes(
+    event.request.destination
+  );
+  if (!cacheableDestination && !APP_SHELL.includes(url.pathname)) return;
 
   event.respondWith(
     fetch(event.request)
@@ -31,6 +48,6 @@ self.addEventListener("fetch", (event) => {
         caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy));
         return response;
       })
-      .catch(() => caches.match(event.request).then((cached) => cached ?? caches.match("/prototype")))
+      .catch(() => caches.match(event.request))
   );
 });
