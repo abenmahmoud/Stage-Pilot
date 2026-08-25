@@ -1,0 +1,4 @@
+interface:
+  display_name: "Referent numerique lycee"
+  short_description: "Piloter le portail, l'assistance et l'agent du lycee"
+  default_prompt: "Utilise la memoire du poste de referent numerique et les specifications du lycee pour continuer le travail sans melanger les projets."
