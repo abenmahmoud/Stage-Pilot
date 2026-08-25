@@ -265,7 +265,6 @@ export default function LyceeConnectPrototype() {
             <strong>Espace agent</strong>
             <small>Traiter les demandes</small>
           </span>
-          <span className="lycee-agent-count">8</span>
         </button>
 
         <div className="lycee-sidebar-status">
@@ -301,7 +300,7 @@ export default function LyceeConnectPrototype() {
             </button>
             <button className="lycee-profile-button" type="button" onClick={() => changeView("agent")}>
               <CircleUserRound aria-hidden="true" />
-              <span>Aperçu agent</span>
+              <span>Espace agent</span>
             </button>
           </div>
         </header>

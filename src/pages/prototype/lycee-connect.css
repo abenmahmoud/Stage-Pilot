@@ -252,7 +252,6 @@
 .lycee-agent-link > span:nth-child(2) { min-width: 0; display: flex; flex-direction: column; }
 .lycee-agent-link strong { font-size: 12px; }
 .lycee-agent-link small { margin-top: 2px; color: var(--lc-muted); font-size: 10px; }
-.lycee-agent-count { min-width: 24px; padding: 4px 6px; border-radius: 999px; background: var(--lc-coral); color: #fff; font-size: 10px; font-weight: 800; text-align: center; }
 
 .lycee-page { width: min(1180px, calc(100% - 64px)); margin: 0 auto; padding: 38px 0 52px; }
 .lycee-page-intro { display: flex; align-items: flex-start; gap: 16px; margin-bottom: 28px; }
