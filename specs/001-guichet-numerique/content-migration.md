@@ -20,14 +20,14 @@ rubriques par la direction.
 | --- | --- | --- |
 | Actualités et informations de rentrée | partiel | créer une vraie rubrique administrable et archiver les informations périmées |
 | Présentation du lycée | résumé | réécrire et faire valider les chiffres, langues et sections |
-| Bac technologique STMG et STL | résumé | créer les pages détaillées et vérifier chaque enseignement |
-| Bac professionnel MELEC et PCEPC | résumé | créer les pages détaillées et valider les parcours actuels |
-| CAP Agent de la qualité de l'eau | résumé | créer la page complète et vérifier l'intitulé officiel actuel |
-| Mini-stages découverte | absent | reprendre l'inscription, les dates et le contact responsable |
-| Vie du lycée | absent | reprendre les activités et responsables à jour |
-| CDI | absent | reprendre les horaires, services et liens documentaires |
-| UNSS | absent | reprendre seulement les horaires et documents validés de l'année en cours |
-| Localisation et transports | partiel | ajouter la carte, le bus, le RER et vérifier les itinéraires |
+| Bac technologique STMG et STL | première version intégrée | vérifier chaque enseignement avec les équipes |
+| Bac professionnel MELEC et PCEPC | première version intégrée | valider les parcours et descriptions actuels |
+| CAP Agent de la qualité de l'eau | première version intégrée | vérifier l'intitulé officiel actuel |
+| Mini-stages découverte | accès d'aide intégré | ajouter l'inscription, les dates et le contact responsable |
+| Vie du lycée | première structure intégrée | reprendre les activités et responsables à jour |
+| CDI | accès E-sidoc intégré | ajouter les horaires et services validés |
+| UNSS | accès d'aide intégré | reprendre seulement les horaires et documents validés de l'année en cours |
+| Localisation et transports | intégré | vérifier une dernière fois les itinéraires |
 | Résultats et chiffres du lycée | absent | importer uniquement les chiffres datés et validés par la direction |
 | Documents téléchargeables | partiel | inventorier, dater et remplacer les documents périmés |
 | Mentions légales, confidentialité et accessibilité | incomplet | rédiger et faire valider avant production |

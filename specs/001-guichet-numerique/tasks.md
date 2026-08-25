@@ -93,6 +93,8 @@ voir sa réponse dans le dossier. L'agent traite tout depuis une seule file.
   réponse de l'assistant et rendre ces besoins visibles dans l'espace agent.
 - [ ] **T036H** Reprendre et faire valider toutes les rubriques de l'ancien site
   selon `content-migration.md` avant toute bascule du domaine principal.
+- [x] **T036I** Ajouter les premières pages détaillées STMG, STL, MELEC, PCEPC et
+  CAP, ainsi que les accès CDI, UNSS, mini-stages et informations pratiques.
 - [ ] **T037** Ajouter les mentions d'information, durées et procédure d'exercice
   des droits.
 - [ ] **T038** Exécuter tests mobile, desktop, clavier, charge et sécurité.

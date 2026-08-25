@@ -563,7 +563,7 @@ export default function LyceeConnectPrototype() {
         )}
         {view === "requests" && <RequestsView ticketCode={ticketCreated} onBack={() => changeView("home")} />}
         {view === "services" && <ServicesView onHelp={() => startHelp()} onBack={() => changeView("home")} />}
-        {view === "school" && <SchoolView onBack={() => changeView("home")} />}
+        {view === "school" && <SchoolView onBack={() => changeView("home")} onHelp={startHelp} />}
         {view === "agent" && <AgentView onBack={() => changeView("home")} />}
 
         <nav className="lycee-bottom-nav" aria-label="Navigation mobile">
@@ -1329,7 +1329,7 @@ function ServicesView({ onHelp, onBack }: { onHelp: () => void; onBack: () => vo
   );
 }
 
-function SchoolView({ onBack }: { onBack: () => void }) {
+function SchoolView({ onBack, onHelp }: { onBack: () => void; onHelp: (prompt?: string) => void }) {
   const links = [
     { label: "Monlycée.net", href: "https://ent.iledefrance.fr/auth/login", icon: GraduationCap },
     { label: "EduConnect", href: "https://educonnect.education.gouv.fr/", icon: KeyRound },
@@ -1362,6 +1362,74 @@ function SchoolView({ onBack }: { onBack: () => void }) {
       items: "CAP Agent de la qualité de l’eau",
     },
   ];
+  const detailedPrograms = [
+    {
+      family: "Voie technologique",
+      title: "STMG",
+      name: "Sciences et technologies du management et de la gestion",
+      description: "Un parcours pour comprendre le fonctionnement des organisations, le management, le droit, l’économie et les sciences de gestion.",
+      path: "Après une seconde générale et technologique · première et terminale STMG",
+    },
+    {
+      family: "Voie technologique",
+      title: "STL",
+      name: "Sciences et technologies de laboratoire",
+      description: "Une formation scientifique fondée sur l’expérimentation, les mesures et les sciences physiques et chimiques en laboratoire.",
+      path: "Après une seconde générale et technologique · spécialité SPCL",
+    },
+    {
+      family: "Voie professionnelle",
+      title: "MELEC",
+      name: "Métiers de l’électricité et de ses environnements connectés",
+      description: "Préparer, réaliser et maintenir des installations électriques et des équipements communicants dans des environnements variés.",
+      path: "Seconde famille MTNE · baccalauréat professionnel en trois ans",
+    },
+    {
+      family: "Voie professionnelle",
+      title: "PCEPC",
+      name: "Procédés de la chimie, de l’eau et des papiers-cartons",
+      description: "Piloter et surveiller des procédés industriels, contrôler la qualité et intervenir dans les domaines de la chimie et de l’eau.",
+      path: "Seconde famille MPMIA · baccalauréat professionnel en trois ans",
+    },
+    {
+      family: "Certificat d’aptitude professionnelle",
+      title: "CAP AQE",
+      name: "Agent de la qualité de l’eau",
+      description: "Participer au traitement, au contrôle et à la distribution de l’eau, avec une formation pratique tournée vers les installations.",
+      path: "Formation professionnalisante · périodes de formation en entreprise",
+    },
+  ];
+  const schoolLife = [
+    {
+      title: "CDI et ressources documentaires",
+      description: "Rechercher des documents, préparer un travail et accéder au portail documentaire du lycée.",
+      detail: "Les horaires 2026-2027 seront publiés après validation du CDI.",
+      action: "Ouvrir E-sidoc",
+      href: "https://0932048w.esidoc.fr/",
+      icon: BookOpenCheck,
+    },
+    {
+      title: "Association sportive et UNSS",
+      description: "Découvrir les activités sportives et les modalités d’inscription proposées aux élèves.",
+      detail: "Activités, horaires et autorisation parentale en cours de validation pour l’année.",
+      action: "Poser une question",
+      prompt: "Je souhaite des informations à jour sur l’UNSS et les activités sportives du lycée.",
+      icon: UsersRound,
+    },
+    {
+      title: "Mini-stages de découverte",
+      description: "Découvrir une formation technologique, professionnelle ou le CAP avant de faire son choix.",
+      detail: "Les dates et le formulaire seront publiés après confirmation des équipes responsables.",
+      action: "Demander une information",
+      prompt: "Je souhaite des informations sur les mini-stages de découverte du lycée.",
+      icon: BriefcaseBusiness,
+    },
+  ];
+
+  function scrollToSchoolSection(id: string) {
+    document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+
   return (
     <div className="lycee-page">
       <PageIntro eyebrow="Lycée polyvalent" title="Blaise Cendrars, Sevran" description="Découvrez les spécialités, les voies de formation et les accès utiles de l'établissement." onBack={onBack} />
@@ -1370,6 +1438,12 @@ function SchoolView({ onBack }: { onBack: () => void }) {
         <div><span className="lycee-eyebrow">Une identité, plusieurs parcours</span><h2>Un lycée ouvert sur les sciences, les humanités et les métiers</h2><p>À Sevran, les voies générale, technologique et professionnelle se rencontrent dans un même établissement.</p><button type="button" onClick={() => document.getElementById("specialites")?.scrollIntoView({ behavior: "smooth" })}>Voir les spécialités <ChevronRight aria-hidden="true" /></button></div>
       </section>
       <div className="lycee-school-stats"><div><strong>Polyvalent</strong><span>général, techno et pro</span></div><div><strong>8</strong><span>spécialités générales</span></div><div><strong>15</strong><span>formations référencées</span></div><div><strong>Euro</strong><span>section européenne anglais</span></div></div>
+      <nav className="lycee-school-nav" aria-label="Rubriques du lycée">
+        <button type="button" onClick={() => scrollToSchoolSection("specialites")}>Spécialités</button>
+        <button type="button" onClick={() => scrollToSchoolSection("formations-detaillees")}>Formations</button>
+        <button type="button" onClick={() => scrollToSchoolSection("vie-lycee")}>Vie du lycée</button>
+        <button type="button" onClick={() => scrollToSchoolSection("infos-pratiques")}>Infos pratiques</button>
+      </nav>
       <section className="lycee-specialties" id="specialites" aria-labelledby="specialites-title">
         <div className="lycee-section-title">
           <div><span className="lycee-eyebrow">Première et terminale générales</span><h2 id="specialites-title">Les spécialités proposées</h2></div>
@@ -1396,8 +1470,44 @@ function SchoolView({ onBack }: { onBack: () => void }) {
         <div className="lycee-section-title"><div><span className="lycee-eyebrow">Choisir son parcours</span><h2 id="formations-title">Les formations du lycée</h2></div><a href="https://lycee-blaise-cendrars-sevran.fr/formations/" target="_blank" rel="noreferrer">Site du lycée <ExternalLink aria-hidden="true" /></a></div>
         <div>{formations.map((formation) => <article key={formation.title}><span><formation.icon aria-hidden="true" /></span><div><h3>{formation.title}</h3><p>{formation.description}</p><small>{formation.items}</small></div></article>)}</div>
       </section>
+      <section className="lycee-programs" id="formations-detaillees" aria-labelledby="programs-title">
+        <div className="lycee-section-title"><div><span className="lycee-eyebrow">Technologique, professionnel et CAP</span><h2 id="programs-title">Les parcours en détail</h2></div></div>
+        <p className="lycee-specialties-intro">Des formations qui associent enseignements généraux, projets, expérimentation et découverte progressive des métiers.</p>
+        <div className="lycee-programs-grid">
+          {detailedPrograms.map((program) => (
+            <article key={program.title}>
+              <span>{program.title}</span>
+              <small>{program.family}</small>
+              <h3>{program.name}</h3>
+              <p>{program.description}</p>
+              <strong>{program.path}</strong>
+            </article>
+          ))}
+        </div>
+      </section>
+      <section className="lycee-school-life" id="vie-lycee" aria-labelledby="school-life-title">
+        <div className="lycee-section-title"><div><span className="lycee-eyebrow">Au quotidien</span><h2 id="school-life-title">Vie du lycée</h2></div></div>
+        <div className="lycee-school-life-grid">
+          {schoolLife.map((item) => (
+            <article key={item.title}>
+              <span><item.icon aria-hidden="true" /></span>
+              <div><h3>{item.title}</h3><p>{item.description}</p><small>{item.detail}</small></div>
+              {item.href ? <a href={item.href} target="_blank" rel="noreferrer">{item.action}<ExternalLink aria-hidden="true" /></a> : <button type="button" onClick={() => onHelp(item.prompt)}>{item.action}<ChevronRight aria-hidden="true" /></button>}
+            </article>
+          ))}
+        </div>
+      </section>
+      <section className="lycee-practical" id="infos-pratiques" aria-labelledby="practical-title">
+        <div className="lycee-section-title"><div><span className="lycee-eyebrow">Venir et contacter</span><h2 id="practical-title">Informations pratiques</h2></div></div>
+        <div className="lycee-practical-grid">
+          <a href="https://maps.app.goo.gl/qoEq5cf4UwTm5diC7" target="_blank" rel="noreferrer"><MapPin aria-hidden="true" /><span><strong>12 avenue Léon Jouhaux</strong><small>93270 Sevran · ouvrir l’itinéraire</small></span><ExternalLink aria-hidden="true" /></a>
+          <a href="tel:+33149362050"><Phone aria-hidden="true" /><span><strong>01 49 36 20 50</strong><small>Accueil du lycée</small></span><ChevronRight aria-hidden="true" /></a>
+          <a href="mailto:ce.0932048w@ac-creteil.fr"><Mail aria-hidden="true" /><span><strong>ce.0932048w@ac-creteil.fr</strong><small>Adresse académique officielle</small></span><ChevronRight aria-hidden="true" /></a>
+          <div><GraduationCap aria-hidden="true" /><span><strong>RER B · Sevran-Livry</strong><small>Bus 618 · arrêt Collège Georges Brassens</small></span></div>
+        </div>
+        <div className="lycee-publication-note"><BadgeCheck aria-hidden="true" /><span><strong>Informations contrôlées avant publication</strong><small>Les dates, horaires et documents annuels seront ajoutés uniquement après validation du service responsable.</small></span></div>
+      </section>
       <section className="lycee-quick-links"><div className="lycee-section-title"><div><span className="lycee-eyebrow">Liens utiles</span><h2>Accès rapides</h2></div></div><div>{links.map((link) => <a href={link.href} target="_blank" rel="noreferrer" key={link.label}><link.icon aria-hidden="true" /><span>{link.label}</span><ExternalLink aria-hidden="true" /></a>)}</div></section>
-      <section className="lycee-contact-band"><div><MapPin aria-hidden="true" /><span><strong>12 avenue Léon Jouhaux</strong><small>93270 Sevran</small></span></div><div><Phone aria-hidden="true" /><span><strong>01 49 36 20 50</strong><small>Accueil du lycée</small></span></div></section>
     </div>
   );
 }
