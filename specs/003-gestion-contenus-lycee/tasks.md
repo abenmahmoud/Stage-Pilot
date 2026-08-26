@@ -32,4 +32,4 @@
 - [ ] T019 Tester rôles, statuts, limites, données invalides et absence d'accès public aux brouillons.
 - [x] T020 Vérifier build, sécurité, audit des dépendances et conseillers Supabase.
 - [x] T021 Vérifier à 320 px et sur ordinateur.
-- [ ] T022 Déployer uniquement sur la preview et documenter le jalon.
+- [x] T022 Déployer uniquement sur la preview et documenter le jalon.
