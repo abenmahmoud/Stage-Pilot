@@ -20,14 +20,18 @@ restante, soit une configuration externe ou une validation par la direction.
 - [ ] **T001B** Activer la protection des mots de passe compromis dans Supabase
   Auth et la confirmer avec un nouveau rapport des conseillers de sécurité.
 - [x] **T002** Supprimer le détail brut des erreurs 500 renvoyé par l'API.
-- [x] **T003** Ajouter la migration des tables support, index et contraintes.
+- [x] **T003** Ajouter la migration des tables support, index et contraintes, et
+  restaurer dans Git les trois migrations historiques LyceeGest présentes dans
+  le journal Supabase.
 - [x] **T004** Créer les buckets privés `support-quarantine` et `support-clean`.
 - [x] **T005** Écrire et tester les politiques RLS par rôle.
 - [x] **T006** Créer `POST /api/support/requests` avec validation stricte,
   transaction et idempotence.
-- [x] **T007** Créer l'échange jeton magique vers session HttpOnly.
+- [x] **T007** Créer l'échange jeton magique vers session HttpOnly, limiter les
+  tentatives par réseau et faire vérifier uniquement l'adresse destinataire.
 - [x] **T008** Créer `GET /api/support/requests/:code` limité à la session.
-- [x] **T009** Créer le dépôt direct signé vers la quarantaine.
+- [x] **T009** Créer le dépôt direct signé vers la quarantaine et sérialiser la
+  réservation pour empêcher de dépasser cinq fichiers par concurrence.
 - [x] **T010** Ajouter le journal append-only et les identifiants de corrélation.
 - [ ] **T011** Ajouter tests unitaires, RLS et intégration de création concurrente.
 - [x] **T012** Vérifier 200 créations, zéro perte et zéro doublon.
@@ -48,19 +52,23 @@ quarantaine. Une panne d'envoi externe n'affecte pas le dossier.
 - [x] **T016** Construire la page de suivi sécurisée et le fil de messages.
 - [x] **T016A** Actualiser automatiquement le fil et permettre l'ajout de pièces
   jointes après la création du dossier.
-- [x] **T016B** Afficher les trois niveaux de vérification et bloquer la résolution
-  des demandes ENT ou email académique sans identité confirmée.
+- [x] **T016B** Afficher les trois niveaux de vérification, exiger le lien avec
+  une liste officielle pour confirmer une identité et bloquer la résolution des
+  demandes ENT ou email académique sans cette confirmation.
 - [x] **T017** Construire la file agent paginée avec filtres, SLA et assignation.
 - [ ] **T018** Ajouter réponses, notes internes, transfert et clôture motivée.
 - [ ] **T019** Ajouter les modèles de réponse et variables autorisées.
 - [x] **T020** Installer `pgmq`, la Basic Queue transactionnelle, le worker et la
   file d'échec administrable.
 - [x] **T021** Implémenter l'envoi Brevo avec idempotence et `Reply-To` dossier.
+  La file lie explicitement le destinataire et le jeton au même contact.
 - [x] **T022** Recevoir les événements Brevo livré/rejeté/différé/spam.
 - [ ] **T023** Configurer le domaine entrant Brevo et son webhook secret.
 - [ ] **T024** Recevoir réponses et pièces jointes email dans le bon dossier.
 - [ ] **T025** Ajouter tâches de rappel téléphonique et résultat d'appel.
-- [ ] **T026** Tester les rejouements de webhooks et les pannes Brevo.
+- [ ] **T026** Tester les rejouements de webhooks et les pannes Brevo. La réception
+  est maintenant atomique afin qu'une panne n'enregistre pas un reçu définitif
+  avant le message et sa notification.
 
 ### Sortie Jour 2
 

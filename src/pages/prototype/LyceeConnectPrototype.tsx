@@ -1620,6 +1620,7 @@ type AgentRequestDetail = {
 
 type AgentQueueStats = { total: number; new: number; urgent: number; active: number; waitingRequester: number };
 type AgentQueuePagination = { page: number; pageSize: number; total: number; totalPages: number };
+const IDENTITY_VERIFICATION_REPLY = "Bonjour, pour protéger vos accès, nous devons d’abord confirmer votre identité avec une source officielle du lycée. Ne transmettez aucun mot de passe ni aucun code reçu par SMS. Nous revenons vers vous dès que la vérification est terminée.";
 
 function AgentView({ onBack }: { onBack: () => void }) {
   if (!SUPPORT_API_ENABLED) return <DemoAgentView onBack={onBack} />;
@@ -1686,13 +1687,23 @@ function ConnectedAgentView({ onBack }: { onBack: () => void }) {
   }
 
   async function sendAgentReply() {
-    if (!selectedCode || !reply.trim()) return;
+    const request = detail?.request;
+    const requiresSafeTemplate = Boolean(
+      request &&
+      ["ent", "email_academique"].includes(request.category) &&
+      request.identityStatus !== "identite_confirmee"
+    );
+    const outgoingMessage = requiresSafeTemplate ? IDENTITY_VERIFICATION_REPLY : reply.trim();
+    if (!selectedCode || !outgoingMessage) return;
     setSaving(true);
     try {
       await apiFetch(`support/agent/requests/${selectedCode}/reply`, {
         method: "POST",
         headers: { "Idempotency-Key": crypto.randomUUID() },
-        body: JSON.stringify({ message: reply }),
+        body: JSON.stringify({
+          message: outgoingMessage,
+          ...(requiresSafeTemplate ? { safeTemplate: "identity_verification" } : {}),
+        }),
       });
       setReply("");
       setDetail(await apiFetch<AgentRequestDetail>(`support/agent/requests/${selectedCode}`));
@@ -1717,6 +1728,11 @@ function ConnectedAgentView({ onBack }: { onBack: () => void }) {
   }
 
   const selected = detail?.request;
+  const requiresSafeIdentityReply = Boolean(
+    selected &&
+    ["ent", "email_academique"].includes(selected.category) &&
+    selected.identityStatus !== "identite_confirmee"
+  );
 
   return (
     <div className="lycee-page lycee-agent-page">
@@ -1753,7 +1769,7 @@ function ConnectedAgentView({ onBack }: { onBack: () => void }) {
               <div className="lycee-agent-thread">{detail.messages.map((message) => <div data-direction={message.direction} key={message.id}><span><strong>{message.authorLabel ?? "Utilisateur"}</strong><small>{supportDate(message.createdAt)} · {supportDeliveryLabel(message.deliveryStatus)}</small></span><p>{message.bodyText}</p></div>)}</div>
               {detail.attachments.length > 0 ? <div className="lycee-tracked-files">{detail.attachments.map((attachment) => <div key={attachment.id}><FileText aria-hidden="true" /><span><strong>{attachment.originalName}</strong><small>{attachment.scanStatus === "clean" ? "Vérifié" : "Contrôle en cours"}</small></span>{attachment.scanStatus === "clean" ? <button type="button" onClick={() => void openAgentAttachment(attachment.id)} aria-label={`Ouvrir ${attachment.originalName}`}><ExternalLink aria-hidden="true" /></button> : null}</div>)}</div> : null}
               <section className="lycee-agent-ai"><div><WandSparkles aria-hidden="true" /><span><span className="lycee-eyebrow">Aide au traitement</span><h3>{supportCategoryLabel(selected.category)} · priorité {selected.priority.toUpperCase()}</h3></span></div><dl><div><dt>Personne</dt><dd>{selected.beneficiaryType === "self" ? "Demandeur" : `${selected.beneficiaryFirstName ?? ""} ${selected.beneficiaryLastName ?? ""}`}</dd></div><div><dt>Canal disponible</dt><dd>{detail.contacts.map((contact) => channelLabels[contact.channel] ?? contact.channel).join(" + ")}</dd></div><div><dt>Langue souhaitée</dt><dd>{languagePreferenceLabels[selected.subjectContext.languagePreference] ?? "Non précisée"}</dd></div><div><dt>Aide à la compréhension</dt><dd>{selected.subjectContext.communicationSupport ?? "Réponse écrite"}</dd></div><div><dt>Pièces</dt><dd>{detail.attachments.length} {detail.attachments.length > 1 ? "documents" : "document"}</dd></div></dl></section>
-              <section className="lycee-reply-box"><div><span><Sparkles aria-hidden="true" /> Réponse à valider</span><button type="button" onClick={() => setReply("Bonjour, votre demande a bien été prise en charge. Nous revenons vers vous dès que la vérification est terminée.")}>Proposer</button></div><textarea aria-label="Réponse à envoyer" rows={5} value={reply} onChange={(event) => setReply(event.target.value)} placeholder="Écrivez une réponse claire. Aucun mot de passe ne doit être demandé." /><div><button className="lycee-secondary-action" type="button" disabled><Paperclip aria-hidden="true" /> Joindre</button><button className="lycee-primary-action" type="button" disabled={saving || !reply.trim()} onClick={() => void sendAgentReply()}><Send aria-hidden="true" /> {saving ? "Enregistrement…" : "Valider et envoyer"}</button></div></section>
+              <section className="lycee-reply-box"><div><span><Sparkles aria-hidden="true" /> {requiresSafeIdentityReply ? "Consigne de vérification sécurisée" : "Réponse à valider"}</span>{requiresSafeIdentityReply ? null : <button type="button" onClick={() => setReply("Bonjour, votre demande a bien été prise en charge. Nous revenons vers vous dès que la vérification est terminée.")}>Proposer</button>}</div><textarea aria-label="Réponse à envoyer" rows={5} value={requiresSafeIdentityReply ? IDENTITY_VERIFICATION_REPLY : reply} readOnly={requiresSafeIdentityReply} onChange={(event) => setReply(event.target.value)} placeholder="Écrivez une réponse claire. Aucun mot de passe ne doit être demandé." /><div><button className="lycee-secondary-action" type="button" disabled><Paperclip aria-hidden="true" /> Joindre</button><button className="lycee-primary-action" type="button" disabled={saving || (!requiresSafeIdentityReply && !reply.trim())} onClick={() => void sendAgentReply()}><Send aria-hidden="true" /> {saving ? "Enregistrement…" : "Valider et envoyer"}</button></div></section>
             </>
           ) : <div className="lycee-loading-state"><Clock3 aria-hidden="true" /> Sélectionnez une demande</div>}
         </article>

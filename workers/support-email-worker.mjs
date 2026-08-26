@@ -3,13 +3,13 @@ import postgres from "postgres";
 
 const databaseUrl = process.env.DATABASE_URL;
 const brevoApiKey = process.env.BREVO_API_KEY;
-if (!databaseUrl || !brevoApiKey) {
-  throw new Error("DATABASE_URL and BREVO_API_KEY are required");
+const senderEmail = process.env.SUPPORT_FROM_EMAIL;
+if (!databaseUrl || !brevoApiKey || !senderEmail) {
+  throw new Error("DATABASE_URL, BREVO_API_KEY and SUPPORT_FROM_EMAIL are required");
 }
 
 const sql = postgres(databaseUrl, { prepare: false, max: 2, idle_timeout: 20 });
 const brevoEndpoint = "https://api.brevo.com/v3/smtp/email";
-const senderEmail = process.env.SUPPORT_FROM_EMAIL ?? "blaise.cendrars.contact@gmail.com";
 const senderName = process.env.SUPPORT_FROM_NAME ?? "Lycee Blaise Cendrars";
 const agentEmail = process.env.SUPPORT_AGENT_EMAIL;
 const publicUrl = (process.env.SUPPORT_PUBLIC_URL ?? "").replace(/\/$/, "");
@@ -68,7 +68,7 @@ async function sendEmail({ to, subject, textContent, htmlContent, idempotencyKey
   throw new Error(payload.code || `brevo_http_${response.status}`);
 }
 
-async function loadContext(requestId) {
+async function loadContext(requestId, contactId) {
   const [request] = await sql`
     select id, public_code, requester_type, requester_first_name,
            requester_last_name, category, subject
@@ -80,7 +80,9 @@ async function loadContext(requestId) {
   const [contact] = await sql`
     select value
     from public.support_contacts
-    where request_id = ${requestId} and channel = 'email'
+    where request_id = ${requestId}
+      and channel = 'email'
+      and (${contactId ?? null}::uuid is null or id = ${contactId ?? null}::uuid)
     order by is_primary desc, created_at asc
     limit 1
   `;
@@ -88,7 +90,7 @@ async function loadContext(requestId) {
 }
 
 async function deliver(job) {
-  const context = await loadContext(job.request_id);
+  const context = await loadContext(job.request_id, job.contact_id);
   const request = context.request;
   const requesterName = `${request.requester_first_name} ${request.requester_last_name}`;
   if (isTestAddress(context.email)) return "skipped:test_address";

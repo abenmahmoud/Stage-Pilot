@@ -15,6 +15,7 @@ import { handleApi, methodNotAllowed } from "../../../../_shared/response.js";
 import { idempotencyKey, opaqueToken, sha256 } from "../../../../_shared/support.js";
 
 const AGENT_ROLES = ["superadmin", "administration", "proviseur"];
+const IDENTITY_VERIFICATION_MESSAGE = "Bonjour, pour protéger vos accès, nous devons d’abord confirmer votre identité avec une source officielle du lycée. Ne transmettez aucun mot de passe ni aucun code reçu par SMS. Nous revenons vers vous dès que la vérification est terminée.";
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== "POST") return methodNotAllowed(res, ["POST"]);
@@ -27,7 +28,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
     const body = (req.body ?? {}) as Record<string, unknown>;
     if (typeof body.message !== "string") throw new HttpError(400, "Message requis");
-    const messageText = body.message.replace(/[\u0000-\u001F]/g, "").trim();
+    let messageText = body.message.replace(/[\u0000-\u001F]/g, "").trim();
     if (!messageText || messageText.length > 10000) throw new HttpError(400, "Message invalide");
     const idempotencyHash = sha256(idempotencyKey(req));
     const rawAccessToken = opaqueToken();
@@ -43,14 +44,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       .where(eq(supportRequests.publicCode, code))
       .limit(1);
     if (!request) throw new HttpError(404, "Demande introuvable");
-    const containsCredential = /\b(?:mot de passe|identifiant|code(?: d['’]accès)?)\s*(?:est|:|=)\s*[A-Za-z0-9@!#$%_+.-]{4,}/i.test(messageText);
     const identityContext = (request.subjectContext ?? {}) as Record<string, unknown>;
     if (
       ["ent", "email_academique"].includes(request.category) &&
-      identityContext.identityStatus !== "identite_confirmee" &&
-      containsCredential
+      identityContext.identityStatus !== "identite_confirmee"
     ) {
-      throw new HttpError(409, "Confirmez l’identité dans une liste officielle avant d’envoyer un identifiant ou un code");
+      if (body.safeTemplate !== "identity_verification") {
+        throw new HttpError(409, "Avant la confirmation d’identité, utilisez uniquement le message sécurisé de vérification");
+      }
+      messageText = IDENTITY_VERIFICATION_MESSAGE;
     }
     const contacts = await db
       .select({ id: supportContacts.id, channel: supportContacts.channel })
@@ -92,6 +94,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       if (email) {
         await tx.insert(supportMagicTokens).values({
           requestId: request.id,
+          contactId: email.id,
           tokenHash: sha256(rawAccessToken),
           purpose: "support_access",
           expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
@@ -104,6 +107,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
               'job_type', 'send_requester_reply',
               'request_id', ${request.id}::uuid,
               'message_id', ${created.id}::uuid,
+              'contact_id', ${email.id}::uuid,
               'access_token', ${rawAccessToken}::text,
               'idempotency_key', ${`requester-reply:${created.id}`}::text,
               'attempt', 0

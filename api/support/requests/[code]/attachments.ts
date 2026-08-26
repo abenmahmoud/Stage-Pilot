@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { eq } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import { db } from "../../../../db/index.js";
 import { supportAttachments } from "../../../../db/schema.js";
 import { HttpError, supabaseAdmin } from "../../../_shared/auth.js";
@@ -60,15 +60,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       throw new HttpError(400, "Ce type de fichier n'est pas accepté");
     }
 
-    const existing = await db
-      .select({ id: supportAttachments.id })
-      .from(supportAttachments)
-      .where(eq(supportAttachments.requestId, access.requestId))
-      .limit(MAX_FILES_PER_REQUEST);
-    if (existing.length >= MAX_FILES_PER_REQUEST) {
-      throw new HttpError(400, "Une demande peut contenir au maximum 5 fichiers");
-    }
-
     const attachmentId = randomUUID();
     const storagePath = `${access.requestId}/${attachmentId}/${safeFileName(originalName)}`;
     const { data: signed, error: signingError } = await supabaseAdmin.storage
@@ -78,26 +69,40 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       throw new HttpError(503, "Le dépôt de fichiers est momentanément indisponible");
     }
 
-    await db.insert(supportAttachments).values({
-      id: attachmentId,
-      requestId: access.requestId,
-      concernsType: requiredText(body.concernsType ?? "demande", "Personne concernée", 50),
-      concernsLabel:
-        typeof body.concernsLabel === "string" && body.concernsLabel.trim()
-          ? body.concernsLabel.trim().slice(0, 180)
-          : null,
-      documentType: requiredText(body.documentType ?? "justificatif", "Type de document", 80),
-      note:
-        typeof body.note === "string" && body.note.trim()
-          ? body.note.trim().slice(0, 500)
-          : null,
-      originalName,
-      declaredMime,
-      sizeBytes,
-      storageBucket: QUARANTINE_BUCKET,
-      storagePath,
-      uploadedBySession: access.sessionId,
-      retentionUntil: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000),
+    await db.transaction(async (tx) => {
+      await tx.execute(sql`
+        select pg_advisory_xact_lock(hashtextextended(${access.requestId}::text, 0))
+      `);
+      const existing = await tx
+        .select({ id: supportAttachments.id })
+        .from(supportAttachments)
+        .where(eq(supportAttachments.requestId, access.requestId))
+        .limit(MAX_FILES_PER_REQUEST);
+      if (existing.length >= MAX_FILES_PER_REQUEST) {
+        throw new HttpError(400, "Une demande peut contenir au maximum 5 fichiers");
+      }
+
+      await tx.insert(supportAttachments).values({
+        id: attachmentId,
+        requestId: access.requestId,
+        concernsType: requiredText(body.concernsType ?? "demande", "Personne concernée", 50),
+        concernsLabel:
+          typeof body.concernsLabel === "string" && body.concernsLabel.trim()
+            ? body.concernsLabel.trim().slice(0, 180)
+            : null,
+        documentType: requiredText(body.documentType ?? "justificatif", "Type de document", 80),
+        note:
+          typeof body.note === "string" && body.note.trim()
+            ? body.note.trim().slice(0, 500)
+            : null,
+        originalName,
+        declaredMime,
+        sizeBytes,
+        storageBucket: QUARANTINE_BUCKET,
+        storagePath,
+        uploadedBySession: access.sessionId,
+        retentionUntil: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000),
+      });
     });
 
     res.status(201);

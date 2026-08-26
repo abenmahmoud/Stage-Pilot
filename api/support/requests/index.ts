@@ -64,10 +64,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method === "POST") {
     return handleApi(res, async () => {
       const input = parseSupportRequest(req.body);
-      const sourceIpHash = requestIpHash(req) ?? personalHash("network:unknown");
+      const networkKeyHash = requestIpHash(req) ?? personalHash("network:unknown");
       await enforceSupportRateLimit({
         scope: "request_network",
-        keyHash: sourceIpHash,
+        keyHash: networkKeyHash,
         limit: 1000,
         windowSeconds: 10 * 60,
       });
@@ -115,7 +115,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             description: input.description,
             preferredChannel: input.preferredChannel,
             fallbackAllowed: input.fallbackAllowed,
-            sourceIpHash,
             slaDueAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
           })
           .onConflictDoNothing({ target: supportRequests.idempotencyKeyHash })
@@ -168,7 +167,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             : null,
         ].filter((contact): contact is NonNullable<typeof contact> => Boolean(contact));
 
-        if (contacts.length > 0) await tx.insert(supportContacts).values(contacts);
+        const insertedContacts = contacts.length > 0
+          ? await tx
+              .insert(supportContacts)
+              .values(contacts)
+              .returning({ id: supportContacts.id, channel: supportContacts.channel })
+          : [];
+        const emailContact = insertedContacts.find((contact) => contact.channel === "email");
 
         const [message] = await tx
           .insert(supportMessages)
@@ -194,27 +199,31 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           .insert(supportSessionRequests)
           .values({ sessionId: session.id, requestId: created.id });
 
-        await tx.insert(supportMagicTokens).values({
-          requestId: created.id,
-          tokenHash: sha256(rawAccessToken),
-          purpose: "support_access",
-          expiresAt: new Date(Date.now() + SUPPORT_SESSION_DAYS * 24 * 60 * 60 * 1000),
-        });
+        if (emailContact) {
+          await tx.insert(supportMagicTokens).values({
+            requestId: created.id,
+            contactId: emailContact.id,
+            tokenHash: sha256(rawAccessToken),
+            purpose: "support_access",
+            expiresAt: new Date(Date.now() + SUPPORT_SESSION_DAYS * 24 * 60 * 60 * 1000),
+          });
 
-        await tx.execute(sql`
-          select pgmq.send(
-            'support_jobs',
-            jsonb_build_object(
-              'job_id', ${requesterJobId}::uuid,
-              'job_type', 'notify_requester_request_created',
-              'request_id', ${created.id}::uuid,
-              'message_id', ${message.id}::uuid,
-              'access_token', ${rawAccessToken}::text,
-              'idempotency_key', ${`requester-request-created:${created.id}`}::text,
-              'attempt', 0
+          await tx.execute(sql`
+            select pgmq.send(
+              'support_jobs',
+              jsonb_build_object(
+                'job_id', ${requesterJobId}::uuid,
+                'job_type', 'notify_requester_request_created',
+                'request_id', ${created.id}::uuid,
+                'message_id', ${message.id}::uuid,
+                'contact_id', ${emailContact.id}::uuid,
+                'access_token', ${rawAccessToken}::text,
+                'idempotency_key', ${`requester-request-created:${created.id}`}::text,
+                'attempt', 0
+              )
             )
-          )
-        `);
+          `);
+        }
 
         await tx.execute(sql`
           select pgmq.send(

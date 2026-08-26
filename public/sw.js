@@ -1,4 +1,4 @@
-const CACHE_NAME = "blaise-cendrars-connect-v4";
+const CACHE_NAME = "blaise-cendrars-connect-v5";
 const APP_SHELL = [
   "/prototype",
   "/manifest.webmanifest",

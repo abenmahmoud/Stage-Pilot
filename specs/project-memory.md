@@ -81,6 +81,17 @@ sa specification.
   dossier.
 - Limiteur atomique partage entre les instances Vercel pour l'assistant, la
   creation de demandes et les messages; seules des empreintes HMAC sont stockees.
+- Une empreinte reseau n'est plus conservee dans le dossier : elle expire dans
+  le limiteur distribue et sert uniquement a contenir les abus.
+- Un lien de suivi email ne valide que son adresse destinataire et son usage est
+  limite par reseau.
+- La confirmation d'identite scolaire exige maintenant un rapprochement reel
+  avec un eleve ou un professeur de la liste officielle; avant cela, une demande
+  ENT ou email academique ne peut recevoir qu'une consigne de verification sure.
+- La reception email est atomique : le reçu, le message, l'evenement et la mise
+  en file sont valides ensemble, ce qui permet une reprise apres panne.
+- Les trois migrations historiques LyceeGest ont ete recuperees depuis le
+  journal Supabase et replacees dans Git, sans aucune donnee utilisateur.
 
 ### Concu ou partiellement branche
 
@@ -94,6 +105,8 @@ sa specification.
   leur etat doit etre recontrole avant chaque mise en service reelle.
 - Le rapport complet securite/durabilite/charge est conserve dans
   `docs/operations/SECURITY_DURABILITY_SCALE_AUDIT_2026-08-26.md`.
+- L'audit externe Claude et sa contre-verification factuelle sont conserves dans
+  `docs/audits/CLAUDE_AUDIT_ADJUDICATION_2026-08-26.md`.
 - Le nouveau test de charge nettoyable n'a pas ete relance sur ce poste, faute
   d'URL de connexion directe a la base de preview dans l'environnement local.
 - L'agent V2 possede une specification, un plan et des taches. Hormis certains
@@ -157,6 +170,8 @@ sa specification.
   autres alertes de securite techniques visees par le jalon du 26 aout sont
   fermees dans la preview.
 - Terminer reponse agent, note interne, transfert, cloture motivee et modeles.
+- Ajouter le rapprochement agent explicite avec les listes officielles, avec
+  journal et controle de concurrence, avant toute remise de code.
 - Terminer le domaine email entrant, les reponses email et leurs pieces dans le
   bon dossier.
 - Ajouter rappels telephoniques, relances SLA, doublons, tableau de sante et file

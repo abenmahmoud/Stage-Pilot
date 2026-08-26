@@ -58,7 +58,11 @@ cartographie oriente la recherche, elle n'autorise aucune mutation.
   si et seulement si les droits `anon` et `authenticated` restent revoques.
 - Ne jamais declarer une sauvegarde operationnelle sans restauration reussie de
   la base et d'un fichier dans un environnement isole.
+- Ne jamais declarer la base reconstructible tant que toutes les migrations
+  historiques ne sont pas dans Git et rejouees sur une base jetable.
 - Les tests de charge utilisent uniquement une preview prouvee, des donnees
   fictives, une execution identifiable et un nettoyage automatique.
 - Chaque conclusion importante doit citer une preuve : test, requete de controle,
   journal, fichier ou configuration effectivement inspectee.
+- Un audit externe est un signal a verifier, pas une preuve automatique. Conserver
+  les constats confirmes, corriges, rejetes et restant ouverts.

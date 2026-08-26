@@ -17,6 +17,7 @@ type QueueJob = {
   job_type: string;
   request_id: string;
   message_id?: string;
+  contact_id?: string;
   access_token?: string;
 };
 
@@ -39,7 +40,7 @@ type EmailContext = {
   email: string | null;
 };
 
-async function loadEmailContext(requestId: string): Promise<EmailContext> {
+async function loadEmailContext(requestId: string, contactId?: string): Promise<EmailContext> {
   const [request] = await db
     .select({
       id: supportRequests.id,
@@ -57,12 +58,11 @@ async function loadEmailContext(requestId: string): Promise<EmailContext> {
   const [emailContact] = await db
     .select({ value: supportContacts.value })
     .from(supportContacts)
-    .where(
-      and(
-        eq(supportContacts.requestId, requestId),
-        eq(supportContacts.channel, "email")
-      )
-    )
+    .where(and(
+      eq(supportContacts.requestId, requestId),
+      eq(supportContacts.channel, "email"),
+      ...(contactId ? [eq(supportContacts.id, contactId)] : [])
+    ))
     .limit(1);
   return { request, email: emailContact?.value ?? null };
 }
@@ -80,14 +80,17 @@ function paragraphs(value: string): string {
 function requesterReplyAddress(publicCode: string): string {
   const inboundDomain = process.env.SUPPORT_INBOUND_DOMAIN;
   if (inboundDomain) return `${publicCode.toLowerCase()}@${inboundDomain}`;
-  return process.env.SUPPORT_REPLY_TO_EMAIL ?? process.env.SUPPORT_FROM_EMAIL ?? "blaise.cendrars.contact@gmail.com";
+  const fallback = process.env.SUPPORT_REPLY_TO_EMAIL ?? process.env.SUPPORT_FROM_EMAIL;
+  if (!fallback) throw new Error("support_reply_to_email_missing");
+  return fallback;
 }
 
 async function deliver(job: QueueJob): Promise<string> {
-  const context = await loadEmailContext(job.request_id);
+  const context = await loadEmailContext(job.request_id, job.contact_id);
   const requesterName = `${context.request.requesterFirstName} ${context.request.requesterLastName}`;
   const agentEmail = process.env.SUPPORT_AGENT_EMAIL;
-  const senderEmail = process.env.SUPPORT_FROM_EMAIL ?? "blaise.cendrars.contact@gmail.com";
+  const senderEmail = process.env.SUPPORT_FROM_EMAIL;
+  if (!senderEmail) throw new Error("support_from_email_missing");
   const senderName = process.env.SUPPORT_FROM_NAME ?? "Lycée Blaise Cendrars";
 
   if (job.job_type === "notify_requester_request_created") {

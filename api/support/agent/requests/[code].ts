@@ -74,6 +74,31 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         throw new HttpError(400, "Indiquez la méthode de vérification");
       }
       if (
+        nextIdentityStatus === "contact_verifie" &&
+        nextIdentityMethod === "email_magic_link"
+      ) {
+        const [verifiedEmail] = await db
+          .select({ id: supportContacts.id })
+          .from(supportContacts)
+          .where(
+            and(
+              eq(supportContacts.requestId, request.id),
+              eq(supportContacts.channel, "email"),
+              eq(supportContacts.isVerified, true)
+            )
+          )
+          .limit(1);
+        if (!verifiedEmail) {
+          throw new HttpError(409, "Le lien email doit être utilisé avant de déclarer ce contact vérifié");
+        }
+      }
+      if (
+        nextIdentityStatus === "identite_confirmee" &&
+        (nextIdentityMethod !== "official_roster" || (!request.studentId && !request.professeurId))
+      ) {
+        throw new HttpError(409, "Rapprochez d’abord la demande d’un élève ou professeur présent dans une liste officielle");
+      }
+      if (
         SENSITIVE_CATEGORIES.has(request.category) &&
         ["resolu", "clos"].includes(nextStatus) &&
         nextIdentityStatus !== "identite_confirmee"
@@ -82,6 +107,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       }
 
       const now = new Date();
+      const identityChanged =
+        nextIdentityStatus !== currentIdentityStatus ||
+        nextIdentityMethod !== (typeof currentContext.identityMethod === "string" ? currentContext.identityMethod : null);
       const [updated] = await db.transaction(async (tx) => {
         const [saved] = await tx
           .update(supportRequests)
@@ -92,8 +120,16 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
               ...currentContext,
               identityStatus: nextIdentityStatus,
               identityMethod: nextIdentityMethod,
-              identityVerifiedAt: nextIdentityStatus === "non_verifiee" ? null : now.toISOString(),
-              identityVerifiedBy: nextIdentityStatus === "non_verifiee" ? null : user.id,
+              identityVerifiedAt: nextIdentityStatus === "non_verifiee"
+                ? null
+                : identityChanged
+                  ? now.toISOString()
+                  : currentContext.identityVerifiedAt ?? now.toISOString(),
+              identityVerifiedBy: nextIdentityStatus === "non_verifiee"
+                ? null
+                : identityChanged
+                  ? user.id
+                  : currentContext.identityVerifiedBy ?? user.id,
             },
             assignedTo: body.assignToMe === true ? user.id : request.assignedTo,
             resolvedAt:

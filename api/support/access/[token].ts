@@ -14,8 +14,11 @@ import { HttpError } from "../../_shared/auth.js";
 import { handleApi, methodNotAllowed } from "../../_shared/response.js";
 import {
   SUPPORT_SESSION_DAYS,
+  enforceSupportRateLimit,
   opaqueToken,
+  personalHash,
   readSupportSessionToken,
+  requestIpHash,
   setSupportSessionCookie,
   sha256,
 } from "../../_shared/support.js";
@@ -28,6 +31,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (!rawMagicToken || !/^[A-Za-z0-9_-]{40,60}$/.test(rawMagicToken)) {
       throw new HttpError(400, "Lien de suivi invalide");
     }
+    await enforceSupportRateLimit({
+      scope: "magic_token_network",
+      keyHash: requestIpHash(req) ?? personalHash("network:unknown"),
+      limit: 1000,
+      windowSeconds: 10 * 60,
+    });
 
     const existingSessionToken = readSupportSessionToken(req);
     const newSessionToken = existingSessionToken ?? opaqueToken();
@@ -36,6 +45,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         .select({
           id: supportMagicTokens.id,
           requestId: supportMagicTokens.requestId,
+          contactId: supportMagicTokens.contactId,
           publicCode: supportRequests.publicCode,
         })
         .from(supportMagicTokens)
@@ -79,22 +89,41 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         .values({ sessionId: session.id, requestId: magic.requestId })
         .onConflictDoNothing();
 
-      const verifiedContacts = await tx
-        .update(supportContacts)
-        .set({
-          isVerified: true,
-          verificationSource: "email_magic_link",
-          verifiedAt: now,
-        })
-        .where(
-          and(
-            eq(supportContacts.requestId, magic.requestId),
-            eq(supportContacts.channel, "email"),
-            eq(supportContacts.isVerified, false),
-            isNull(supportContacts.disabledAt)
+      let targetContactId = magic.contactId;
+      if (!targetContactId) {
+        const legacyContacts = await tx
+          .select({ id: supportContacts.id })
+          .from(supportContacts)
+          .where(
+            and(
+              eq(supportContacts.requestId, magic.requestId),
+              eq(supportContacts.channel, "email"),
+              isNull(supportContacts.disabledAt)
+            )
           )
-        )
-        .returning({ id: supportContacts.id });
+          .limit(2);
+        if (legacyContacts.length === 1) targetContactId = legacyContacts[0].id;
+      }
+
+      const verifiedContacts = targetContactId
+        ? await tx
+            .update(supportContacts)
+            .set({
+              isVerified: true,
+              verificationSource: "email_magic_link",
+              verifiedAt: now,
+            })
+            .where(
+              and(
+                eq(supportContacts.id, targetContactId),
+                eq(supportContacts.requestId, magic.requestId),
+                eq(supportContacts.channel, "email"),
+                eq(supportContacts.isVerified, false),
+                isNull(supportContacts.disabledAt)
+              )
+            )
+            .returning({ id: supportContacts.id })
+        : [];
 
       if (verifiedContacts.length > 0) {
         await tx.insert(supportEvents).values({

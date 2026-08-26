@@ -77,20 +77,23 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       }
 
       const payloadHash = sha256(JSON.stringify(item));
-      const [receipt] = await db
-        .insert(supportWebhookReceipts)
-        .values({ provider: "brevo-inbound", externalId, payloadHash })
-        .onConflictDoNothing()
-        .returning({ id: supportWebhookReceipts.id });
-      if (!receipt) continue;
-
       const [request] = await db
         .select({ id: supportRequests.id, status: supportRequests.status })
         .from(supportRequests)
         .where(eq(supportRequests.publicCode, code))
         .limit(1);
       if (!request) {
-        await db.update(supportWebhookReceipts).set({ status: "rejected", errorCode: "request_not_found", processedAt: new Date() }).where(eq(supportWebhookReceipts.id, receipt.id));
+        await db
+          .insert(supportWebhookReceipts)
+          .values({
+            provider: "brevo-inbound",
+            externalId,
+            payloadHash,
+            status: "rejected",
+            errorCode: "request_not_found",
+            processedAt: new Date(),
+          })
+          .onConflictDoNothing();
         rejected += 1;
         continue;
       }
@@ -107,14 +110,38 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         )
         .limit(1);
       if (!knownSender) {
-        await db.update(supportWebhookReceipts).set({ status: "rejected", errorCode: "sender_mismatch", processedAt: new Date() }).where(eq(supportWebhookReceipts.id, receipt.id));
+        await db
+          .insert(supportWebhookReceipts)
+          .values({
+            provider: "brevo-inbound",
+            externalId,
+            payloadHash,
+            status: "rejected",
+            errorCode: "sender_mismatch",
+            processedAt: new Date(),
+          })
+          .onConflictDoNothing();
         rejected += 1;
         continue;
       }
 
       const correlationId = randomUUID();
       const notificationJobId = randomUUID();
-      await db.transaction(async (tx) => {
+      const outcome = await db.transaction(async (tx) => {
+        const claimed = await tx.execute(sql<{ id: string }>`
+          insert into public.support_webhook_receipts (
+            provider, external_id, payload_hash, status
+          ) values (
+            'brevo-inbound', ${externalId}, ${payloadHash}, 'processing'
+          )
+          on conflict (provider, external_id, payload_hash) do update
+          set status = 'processing', error_code = null, processed_at = null
+          where public.support_webhook_receipts.status in ('received', 'error')
+          returning id
+        `);
+        const receipt = Array.from(claimed as unknown as Array<{ id: string }>)[0];
+        if (!receipt) return "duplicate" as const;
+
         const [message] = await tx
           .insert(supportMessages)
           .values({
@@ -131,7 +158,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           .returning({ id: supportMessages.id });
         if (!message) {
           await tx.update(supportWebhookReceipts).set({ status: "duplicate", processedAt: new Date() }).where(eq(supportWebhookReceipts.id, receipt.id));
-          return;
+          return "duplicate" as const;
         }
 
         await tx
@@ -179,8 +206,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           `);
         }
         await tx.update(supportWebhookReceipts).set({ status: "processed", processedAt: new Date() }).where(eq(supportWebhookReceipts.id, receipt.id));
+        return "processed" as const;
       });
-      processed += 1;
+      if (outcome === "processed") processed += 1;
     }
 
     return { received: items.length, processed, rejected };

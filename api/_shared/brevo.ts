@@ -33,7 +33,8 @@ export async function sendTransactionalEmail(
   const apiKey = process.env.BREVO_API_KEY;
   if (!apiKey) throw new HttpError(503, "Le service email n'est pas configuré");
 
-  const senderEmail = process.env.SUPPORT_FROM_EMAIL ?? "blaise.cendrars.contact@gmail.com";
+  const senderEmail = process.env.SUPPORT_FROM_EMAIL;
+  if (!senderEmail) throw new HttpError(503, "L'expéditeur email n'est pas configuré");
   const senderName = process.env.SUPPORT_FROM_NAME ?? "Lycée Blaise Cendrars";
   const response = await fetch(BREVO_ENDPOINT, {
     method: "POST",

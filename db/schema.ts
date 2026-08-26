@@ -362,6 +362,7 @@ export const supportMagicTokens = pgTable("support_magic_tokens", {
   requestId: uuid("request_id")
     .notNull()
     .references(() => supportRequests.id, { onDelete: "cascade" }),
+  contactId: uuid("contact_id"),
   tokenHash: text("token_hash").notNull().unique(),
   purpose: text("purpose").notNull(),
   expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),

@@ -59,12 +59,23 @@ periode, depuis la meme connexion du lycee.
 
 - Creation et messages transactionnels avec cles d'idempotence uniques.
 - Sessions appareil et jetons d'acces stockes sous forme d'empreintes.
+- Chaque jeton email cible un contact precis; il ne valide plus toutes les
+  adresses d'un meme dossier et son usage est limite par réseau.
+- Le reçu du webhook entrant, le message, l'evenement et la mise en file sont
+  maintenant atomiques : une panne intermediaire laisse Brevo relancer le flux.
+- La confirmation d'identite scolaire exige un lien existant vers la liste
+  officielle. Avant ce rapprochement, les demandes ENT et email academique
+  utilisent seulement une consigne de verification controlee par le serveur.
+- La reservation des fichiers est serialisee par dossier, y compris lorsque
+  plusieurs depots commencent en meme temps.
 - Emails et analyses de fichiers places dans des files Postgres durables `pgmq`.
 - Reprises, tentatives, file d'echec et evenements de livraison conserves.
 - Stockage prive avec quarantaine avant antivirus.
 - Au moment de l'audit : aucune tache email ou fichier en attente, aucun scan en
   erreur et aucun job echoue non repris.
 - Client Postgres Vercel limite a une connexion par instance via le pooler.
+- Les migrations historiques absentes du depot ont ete recuperees depuis le
+  journal Supabase, sans exporter de donnees utilisateur.
 
 ### Construction
 
@@ -107,6 +118,8 @@ periode, depuis la meme connexion du lycee.
    avant le pilote reel.
 6. Terminer les tests RLS par role, webhooks rejoues, panne Brevo, pieces
    falsifiees, jetons expires et injections de consignes.
+7. Executer une reconstruction complete depuis les migrations dans une base
+   jetable avant de declarer la procedure de reprise validee.
 
 ### Performance et exploitation
 

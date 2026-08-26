@@ -209,7 +209,7 @@ export function requestIpHash(req: VercelRequest): string | null {
 }
 
 export async function enforceSupportRateLimit(input: {
-  scope: "assistant_session" | "assistant_network" | "request_network" | "message_session";
+  scope: "assistant_session" | "assistant_network" | "request_network" | "message_session" | "magic_token_network";
   keyHash: string;
   limit: number;
   windowSeconds: number;
