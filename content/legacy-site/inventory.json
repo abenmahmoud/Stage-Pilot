@@ -1,0 +1,2275 @@
+{
+  "schemaVersion": 1,
+  "generatedAt": "2026-08-26T15:56:35.611Z",
+  "sourceOrigin": "https://lycee-blaise-cendrars-sevran.fr",
+  "counts": {
+    "contentsDeclared": 28,
+    "contentsAccessible": 28,
+    "pagesDeclared": 19,
+    "pagesAccessible": 19,
+    "postsDeclared": 9,
+    "postsAccessible": 9,
+    "mediaDeclared": 83,
+    "mediaAccessible": 81
+  },
+  "contents": [
+    {
+      "importKey": "wordpress:page:7",
+      "wordpressId": 7,
+      "wordpressType": "page",
+      "slug": "accueil-historique",
+      "originalSlug": "accueil",
+      "sourceUrl": "https://lycee-blaise-cendrars-sevran.fr/",
+      "sourceModifiedAt": "2025-11-24T11:07:03Z",
+      "title": "Accueil",
+      "summary": "Bienvenue au Lycée Polyvalent Blaise Cendrars Actualités Des chiffres pour 2025 Taux de réussite en examens Nombre d'élèves dans l'établissement Accès Rapides Localisation Nous contacter : Comment s'y rendre :",
+      "bodyMarkdown": "# Bienvenue au Lycée Polyvalent Blaise Cendrars\n\n## Actualités\n\n-   [Articles](https://lycee-blaise-cendrars-sevran.fr/category/articles/)\n\n    ## [Planning de rentrée – septembre 2025](https://lycee-blaise-cendrars-sevran.fr/planning-de-rentree-2024/)\n\n    Vous trouverez ci-dessous les horaires et les jours de rentrée des classes selon les niveaux. Classes de seconde – Lundi 01/09/2025 Accueil sur les gradins et appels par les professeurs…\n\n    [En savoir plus Planning de rentrée – septembre 2025Continuer](https://lycee-blaise-cendrars-sevran.fr/planning-de-rentree-2024/)\n\n\n-   [Fixe](https://lycee-blaise-cendrars-sevran.fr/category/fixe/)\n\n    ### [Présentation Lycée](https://lycee-blaise-cendrars-sevran.fr/presentation-lycee/)\n\n    Le Lycée polyvalent Blaise Cendrars est un lycée polyvalent public situé à Sevran et faisant partie de l’académie de Créteil. Le…\n\n    [En savoir plus Présentation LycéeContinuer](https://lycee-blaise-cendrars-sevran.fr/presentation-lycee/)\n\n\n* * *\n\n## Des chiffres pour 2025\n\n### Taux de réussite en examens\n\nBaccalauréat Générale\n\nBaccalauréat STL\n\nBaccalauréat STMG\n\nBaccalauréat MELEC\n\nBaccalauréat PCEPC\n\nCertificat d’aptitudes professionnelles ETL\n\n### Nombre d’élèves dans l’établissement\n\n* * *\n\n## Accès Rapides\n\n[![Redirection vers la plateforme MonLycee](legacy-media:380)](https://ent.iledefrance.fr/auth/login)\n\n[![Redirection vers la plateforme Parcoursup](legacy-media:100)](https://parcoursup.gouv.fr/)\n\n[![Redirection vers la plateforme e-sidoc](legacy-media:375)](https://0932048w.esidoc.fr/)\n\n[![Redirection vers la plateforme EduConnect](legacy-media:103)](https://educonnect.education.gouv.fr/)\n\n[![Illustration du lycée](legacy-media:935)](https://cyclades.education.gouv.fr/cyccandidat/portal/accueil?codeER=&domaine=)\n\n* * *\n\n## Localisation\n\n### Nous contacter :\n\n#### Adresse\n\n12 Avenue Léon Jouhaux,\n93270 Sevran\n\n[Voir plus](https://maps.app.goo.gl/XJfNmRv8jfHgx6deA)\n\n#### Téléphone\n\n[01 49 36 20 50](tel:+33149362050)\n\n### Comment s’y rendre :\n\n#### Bus\n\nBus 618\nCollège Georges Brassens\n\n[Voir plus](https://maps.app.goo.gl/KT9KTKRvuKAyk6yW9)\n\n#### RER\n\nRER B\nSevran-Livry\n\n[Voir plus](https://maps.app.goo.gl/wLJpddzS1LiweBWz9)",
+      "contentType": "page",
+      "category": "Le lycée",
+      "disposition": "a_confirmer",
+      "wordpressCategories": [],
+      "referencedMedia": [
+        380,
+        100,
+        375,
+        103,
+        935
+      ],
+      "allReferencedUrls": [
+        "https://lycee-blaise-cendrars-sevran.fr/category/articles/",
+        "https://lycee-blaise-cendrars-sevran.fr/planning-de-rentree-2024/",
+        "https://lycee-blaise-cendrars-sevran.fr/category/fixe/",
+        "https://lycee-blaise-cendrars-sevran.fr/presentation-lycee/",
+        "https://ent.iledefrance.fr/auth/login",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/01/logo_mon_lycee.png",
+        "https://parcoursup.gouv.fr/",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2023/05/PARCOURSUP-LOGO.png",
+        "https://0932048w.esidoc.fr/",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/01/esidoc.png",
+        "https://educonnect.education.gouv.fr/",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2023/05/EduConnect-300x169.png",
+        "https://cyclades.education.gouv.fr/cyccandidat/portal/accueil?codeER=&domaine=",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/logo-cyclades.png",
+        "https://maps.app.goo.gl/XJfNmRv8jfHgx6deA",
+        "tel:+33149362050",
+        "https://maps.app.goo.gl/KT9KTKRvuKAyk6yW9",
+        "https://maps.app.goo.gl/wLJpddzS1LiweBWz9"
+      ]
+    },
+    {
+      "importKey": "wordpress:post:1159",
+      "wordpressId": 1159,
+      "wordpressType": "post",
+      "slug": "1159-2",
+      "originalSlug": "1159-2",
+      "sourceUrl": "https://lycee-blaise-cendrars-sevran.fr/1159-2/",
+      "sourceModifiedAt": "2024-10-02T05:33:48Z",
+      "title": "Une deuxième édition de la semaine de la science",
+      "summary": "Au mois de mai, une semaine de la Science a été organisée par cinq enseignants de sciences du lycée Blaise-Cendrars. Outre les objectifs disciplinaires, cette action vise à permettre aux élèves de s’approprier leur lycée : mission réussie ! https://www.ac-creteil.fr/une-deuxieme-edition-de-la-semaine-de-la-science-au-lycee-blaise-cendrars-a-sevran-93-123125 Voir une vidéo sur la 2ème édition de cet événement",
+      "bodyMarkdown": "Au mois de mai, une semaine de la Science a été organisée par cinq enseignants de sciences du lycée Blaise-Cendrars. Outre les objectifs disciplinaires, cette action vise à permettre aux élèves de s’approprier leur lycée : mission réussie !\n\n## [https://www.ac-creteil.fr/une-deuxieme-edition-de-la-semaine-de-la-science-au-lycee-blaise-cendrars-a-sevran-93-123125](https://www.ac-creteil.fr/une-deuxieme-edition-de-la-semaine-de-la-science-au-lycee-blaise-cendrars-a-sevran-93-123125)\n\n[Voir une vidéo sur la 2ème édition de cet événement](https://www.youtube.com/watch?v=kFDhVwhnXxM)\n\n#",
+      "contentType": "article",
+      "category": "Archives et actualités",
+      "disposition": "archive",
+      "wordpressCategories": [
+        {
+          "id": 15,
+          "slug": "rayonnement-du-lycee",
+          "name": "Rayonnement du lycee"
+        }
+      ],
+      "referencedMedia": [],
+      "allReferencedUrls": [
+        "https://www.ac-creteil.fr/une-deuxieme-edition-de-la-semaine-de-la-science-au-lycee-blaise-cendrars-a-sevran-93-123125",
+        "https://www.youtube.com/watch?v=kFDhVwhnXxM"
+      ]
+    },
+    {
+      "importKey": "wordpress:page:19",
+      "wordpressId": 19,
+      "wordpressType": "page",
+      "slug": "bac-general",
+      "originalSlug": "bac-general",
+      "sourceUrl": "https://lycee-blaise-cendrars-sevran.fr/bac-general/",
+      "sourceModifiedAt": "2024-02-05T15:12:54Z",
+      "title": "Bac général",
+      "summary": "Le baccalauréat général au lycée Blaise Cendrars",
+      "bodyMarkdown": "# Le baccalauréat général au lycée Blaise Cendrars\n\nLa seconde offre un enseignement commun à tous les élèves des voies générale et technologique.\n\nLes élèves peuvent aussi choisir une option facultative parmi les suivantes :\n\n-   Arts plastiques (3h)\n-   DNL/EURO Anglais (2h)\n-   Italien LV3 (3h)\n-   Management et gestion 1h30\n-   Sciences et laboratoire 1h30\n\nA partir de la première, l’enseignement de la section générale se sépare de celui de la section technologique. Un ensemble d’enseignements reste commun à toutes les premières de classe général.\n\n-   Français (4h)\n-   Histoire-géographie (3h)\n-   Langues Vivantes A et B (Anglais, Allemand, Espagnol) (4h30)\n-   Education Physique et Sportive (2h)\n-   Enseignement Moral et Civique (0h30)\n-   Enseignement Scientifique (2h)\n-   Mathématiques (pour les élèves n’ayant pas choisi l’enseignement de spécialité mathématiques) (1h30)\n\nEn plus de ce tronc commun, les élèves choisissent trois spécialités de 4 heures chacune parmi celles-ci :\n\n[Voir les spécialités](https://lycee-blaise-cendrars-sevran.fr/specialites/)\n\nDans certains cas et à la discrétion du corps enseignant, certains élèves pourront être autorisés à s’inscrire à une option. Il est cependant fortement conseillé de la garder jusqu’à la fin du lycée.\n\nLes enseignements du tronc commun sont les mêmes que ceux de premières.\n\n-   Français (4h)\n-   Histoire-géographie (3h)\n-   Langues Vivantes A et B (Anglais, Allemand, Espagnol) (4h30)\n-   Education Physique et Sportive (2h)\n-   Enseignement Moral et Civique (0h30)\n-   Enseignement Scientifique (2h)\n-   Mathématiques (pour les élèves n’ayant pas choisi l’enseignement de spécialité mathématiques) (1h30)\n\nPar contre, l’élève devra abandonner une des spécialités qu’il aura choisi en première. Celles qu’il gardera seront de 6h par semaines.\n\nUne nouvelle option de 2h sera proposé aux élèves parmi celles-ci :\n\n-   Mathématiques expertes\n-   Mathématiques complémentaires\n\nLa première est destinée aux élèves de spécialité mathématique qui souhaitent approfondir leurs connaissances et la deuxième aux élèves ayant abandonné la spécialité mais qui souhaitent garder des enseignements de mathématiques.",
+      "contentType": "page",
+      "category": "Formations",
+      "disposition": "durable",
+      "wordpressCategories": [],
+      "referencedMedia": [],
+      "allReferencedUrls": [
+        "https://lycee-blaise-cendrars-sevran.fr/specialites/"
+      ]
+    },
+    {
+      "importKey": "wordpress:page:21",
+      "wordpressId": 21,
+      "wordpressType": "page",
+      "slug": "bac-professionnel",
+      "originalSlug": "bac-professionnel",
+      "sourceUrl": "https://lycee-blaise-cendrars-sevran.fr/bac-professionnel/",
+      "sourceModifiedAt": "2024-01-31T14:31:52Z",
+      "title": "Bac professionnel",
+      "summary": "Le baccalauréat professionnel au lycée Blaise Cendrars",
+      "bodyMarkdown": "# Le baccalauréat professionnel au lycée Blaise Cendrars\n\nL’organisation de la classe de seconde se fait par familles de métiers. Cette organisation permet d’acquérir les premières compétences professionnelles dans un secteur avant de se spécialiser. Le lycée propose ces deux familles de métiers :\n\n**Métiers des Transitions Numériques et Energétiques** ([https://www.onisep.fr/ressources/univers-formation/formations/lycees/classe-de-2de-professionnelle-metiers-du-pilotage-et-de-la-maintenance-d-installations-automatisees](https://www.onisep.fr/ressources/univers-formation/formations/lycees/classe-de-2de-professionnelle-metiers-du-pilotage-et-de-la-maintenance-d-installations-automatisees)[MTNE](https://www.onisep.fr/ressources/univers-formation/formations/lycees/classe-de-2de-professionnelle-metiers-des-transitions-numerique-et-energetique))\n\nA l’issue de l’année de seconde, les élèves postulent à une des spécialités de cette famille :\n\n-   Métiers de l’ELectricité et de ses Environnements Connectés ([MELEC](https://www.onisep.fr/ressources/univers-formation/formations/lycees/bac-pro-metiers-de-l-electricite-et-de-ses-environnements-connectes)), **Spécialité proposée par le lycée Blaise Cendrars**\n-   Cybersécurité, Informatique et réseau ELectronique ([CIEL](https://www.onisep.fr/ressources/univers-formation/formations/lycees/bac-pro-cybersecurite-informatique-et-reseaux-electronique)), Installateur en Chauffage, Climatisation et Energies Renouvelables ([ICCER](https://www.onisep.fr/ressources/univers-formation/formations/lycees/bac-pro-installateur-en-chauffage-climatisation-et-energies-renouvelables)), Maintenance et Efficacité Energétique ([MEE](https://www.onisep.fr/ressources/univers-formation/formations/lycees/bac-pro-maintenance-et-efficacite-energetique)), Métiers du Froid et des Energies Renouvelables ([MFER](https://www.onisep.fr/ressources/univers-formation/formations/lycees/bac-pro-metiers-du-froid-et-des-energies-renouvelables))\n\n**Métiers du Pilotage et de la Maintenance d’Installations Automatisées** ([MPMIA](https://www.onisep.fr/ressources/univers-formation/formations/lycees/classe-de-2de-professionnelle-metiers-du-pilotage-et-de-la-maintenance-d-installations-automatisees))\n\nA l’issue de l’année de seconde, les élèves postulent à une des spécialités de cette famille :\n\n-   Procédés de la Chimie de l’Eau et des Papiers-Cartons ([PCEPC](https://www.onisep.fr/ressources/univers-formation/formations/lycees/bac-pro-procedes-de-la-chimie-de-l-eau-et-des-papiers-cartons)), **Spécialité proposée par le lycée Blaise Cendrars**\n-   Maintenance des Systèmes de Production Connectés ([MSPC](https://www.onisep.fr/ressources/univers-formation/formations/lycees/bac-pro-maintenance-des-systemes-de-production-connectes)), Pilote de Ligne de Production ([PLP](https://www.onisep.fr/ressources/univers-formation/formations/lycees/bac-pro-pilote-de-ligne-de-production)), Technicien de scierie ([Plus d’infos](https://www.onisep.fr/ressources/univers-formation/formations/lycees/bac-pro-technicien-de-scierie))\n\nLe lycée propose ces deux spécialités :\n\n-   Métiers de l’ELectricité et de ses Environnements Connectés ([MELEC](https://www.onisep.fr/ressources/univers-formation/formations/lycees/bac-pro-metiers-de-l-electricite-et-de-ses-environnements-connectes))\n-   Procédés de la Chimie de l’Eau et des Papiers-Cartons ([PCEPC](https://www.onisep.fr/ressources/univers-formation/formations/lycees/bac-pro-procedes-de-la-chimie-de-l-eau-et-des-papiers-cartons))",
+      "contentType": "page",
+      "category": "Formations",
+      "disposition": "durable",
+      "wordpressCategories": [],
+      "referencedMedia": [],
+      "allReferencedUrls": [
+        "https://www.onisep.fr/ressources/univers-formation/formations/lycees/classe-de-2de-professionnelle-metiers-du-pilotage-et-de-la-maintenance-d-installations-automatisees",
+        "https://www.onisep.fr/ressources/univers-formation/formations/lycees/classe-de-2de-professionnelle-metiers-des-transitions-numerique-et-energetique",
+        "https://www.onisep.fr/ressources/univers-formation/formations/lycees/bac-pro-metiers-de-l-electricite-et-de-ses-environnements-connectes",
+        "https://www.onisep.fr/ressources/univers-formation/formations/lycees/bac-pro-cybersecurite-informatique-et-reseaux-electronique",
+        "https://www.onisep.fr/ressources/univers-formation/formations/lycees/bac-pro-installateur-en-chauffage-climatisation-et-energies-renouvelables",
+        "https://www.onisep.fr/ressources/univers-formation/formations/lycees/bac-pro-maintenance-et-efficacite-energetique",
+        "https://www.onisep.fr/ressources/univers-formation/formations/lycees/bac-pro-metiers-du-froid-et-des-energies-renouvelables",
+        "https://www.onisep.fr/ressources/univers-formation/formations/lycees/bac-pro-procedes-de-la-chimie-de-l-eau-et-des-papiers-cartons",
+        "https://www.onisep.fr/ressources/univers-formation/formations/lycees/bac-pro-maintenance-des-systemes-de-production-connectes",
+        "https://www.onisep.fr/ressources/univers-formation/formations/lycees/bac-pro-pilote-de-ligne-de-production",
+        "https://www.onisep.fr/ressources/univers-formation/formations/lycees/bac-pro-technicien-de-scierie"
+      ]
+    },
+    {
+      "importKey": "wordpress:page:24",
+      "wordpressId": 24,
+      "wordpressType": "page",
+      "slug": "bac-technologique",
+      "originalSlug": "bac-technologique",
+      "sourceUrl": "https://lycee-blaise-cendrars-sevran.fr/bac-technologique/",
+      "sourceModifiedAt": "2024-02-05T14:40:06Z",
+      "title": "Bac technologique",
+      "summary": "Le baccalauréat technologique au lycée Blaise Cendrars",
+      "bodyMarkdown": "# Le baccalauréat technologique au lycée Blaise Cendrars\n\nLa seconde offre un enseignement commun à tous les élèves des voies générale et technologique :\n\nLes élèves peuvent aussi choisir parmi ces options facultatives :\n\n-   Arts plastiques (3h)\n-   DNL/EURO (Anglais) (2h)\n-   Italien LV3 (3h)\n-   Management et gestion (1h30)\n-   Sciences et laboratoire (1h30)\n-   Théâtre (3h)\n\nA partir de la première, l’enseignement de la section technologique se sépare de celui de la section générale. Le baccalauréat professionnel propose un ensemble d’enseignements communs :\n\n-   Français (3h)\n-   Histoire-Géographie (1h30)\n-   Enseignement Morale et Civique (0h30)\n-   Langues Vivantes A et B (3h + 1h enseignement technologique LVA)\n-   Education Physique et Sportive (2h)\n-   Mathématiques (3h)\n\nLe lycée propose 2 des spécialités de la filière technologique : Sciences et Technologies de Management et de la Gestion (STMG) ainsi que Sciences et Technologies de Laboratoire (STL).\n\nLa section STMG se compose de ces 3 matières :\n\n-   Sciences de gestion (7h)\n-   Management (4h)\n-   Droit économique (4h)\n\nLa section STL se compose de ces 3 matières :\n\n-   Sciences Physiques et Chimiques en Laboratoire – SPCL (7h)\n-   Management (4h)\n-   Droit économique (4h)",
+      "contentType": "page",
+      "category": "Formations",
+      "disposition": "durable",
+      "wordpressCategories": [],
+      "referencedMedia": [],
+      "allReferencedUrls": []
+    },
+    {
+      "importKey": "wordpress:post:225",
+      "wordpressId": 225,
+      "wordpressType": "post",
+      "slug": "bal-de-fin-dannee",
+      "originalSlug": "bal-de-fin-dannee",
+      "sourceUrl": "https://lycee-blaise-cendrars-sevran.fr/bal-de-fin-dannee/",
+      "sourceModifiedAt": "2024-10-02T05:38:34Z",
+      "title": "Bal de fin d'année",
+      "summary": "Petit article présentant le bal de fin d'année pour les élèves de terminale",
+      "bodyMarkdown": "Petit article présentant le bal de fin d’année pour les élèves de terminale",
+      "contentType": "article",
+      "category": "Archives et actualités",
+      "disposition": "archive",
+      "wordpressCategories": [
+        {
+          "id": 1,
+          "slug": "blog",
+          "name": "Blog"
+        }
+      ],
+      "referencedMedia": [],
+      "allReferencedUrls": []
+    },
+    {
+      "importKey": "wordpress:page:176",
+      "wordpressId": 176,
+      "wordpressType": "page",
+      "slug": "cap-etl",
+      "originalSlug": "cap-etl",
+      "sourceUrl": "https://lycee-blaise-cendrars-sevran.fr/cap-etl/",
+      "sourceModifiedAt": "2025-01-30T12:26:43Z",
+      "title": "CAP AQE",
+      "summary": "Le CAP Agent de la Qualité de l'Eau (CAP AQE) au lycée Blaise Cendrars Le lycée Blaise Cendrars propose un Certificat d'Aptitudes Professionnelles (CAP) : Agent de la Qualité de l'Eau (AQE). Le titulaire du CAP « agent de la qualité de l'eau » est formé pour travailler dans les services de collecte, de traitement et de…",
+      "bodyMarkdown": "## Le CAP Agent de la Qualité de l’Eau ([**CAP AQE**](https://www.onisep.fr/ressources/univers-formation/formations/lycees/cap-agent-de-la-qualite-de-l-eau)) au lycée Blaise Cendrars\n\nLe lycée Blaise Cendrars propose un Certificat d’Aptitudes Professionnelles (CAP) : Agent de la Qualité de l’Eau ([AQE](https://www.onisep.fr/ressources/univers-formation/formations/lycees/cap-agent-de-la-qualite-de-l-eau)).\n\nLe titulaire du CAP « agent de la qualité de l’eau » est formé pour travailler dans les services de collecte, de traitement et de distribution des eaux potables, usées et industrielles.\n\nCette formation propose les enseignements généraux suivants :\n\n-   Français (0h30 +1h30 co-intervention enseignant professionnel)\n-   Histoire-Géographie (1h)\n-   Langue Vivante A (1h30)\n-   Arts appliqués (1h)\n-   Mathématiques (0h30 +1h30 co-intervention enseignant professionnel)\n-   Éducation Physique et Sportive (2h30)\n-   Prévention Santé Environnement (1h30)\n-   Aide Personnalisée français/mathématiques (3h)\n\nElle propose en plus les enseignements professionnels spécifiques au métier d’agent de la qualité de l’eau suivants :\n\n-   Atelier de traitement physico-chimique de l’eau (4h)\n-   Laboratoire de biotechnologie (2h)\n-   Laboratoire de qualité, hygiène, sécurité et protection de l’environnement QHSE (2h)\n-   Chef d’œuvre (Biochimie + arts appliqués) (3h)",
+      "contentType": "page",
+      "category": "Formations",
+      "disposition": "durable",
+      "wordpressCategories": [],
+      "referencedMedia": [],
+      "allReferencedUrls": [
+        "https://www.onisep.fr/ressources/univers-formation/formations/lycees/cap-agent-de-la-qualite-de-l-eau"
+      ]
+    },
+    {
+      "importKey": "wordpress:page:34",
+      "wordpressId": 34,
+      "wordpressType": "page",
+      "slug": "cdi",
+      "originalSlug": "cdi",
+      "sourceUrl": "https://lycee-blaise-cendrars-sevran.fr/cdi/",
+      "sourceModifiedAt": "2024-02-08T15:01:52Z",
+      "title": "CDI",
+      "summary": "Le Centre de Documentation et d'Information Ici, 3 maîtres mots, Curiosité, Culture et Découverte. « L'ouverture d'esprit n'est pas une fracture du crâne » Pierre Desproges Notre objectif ? Mme Tazé M.Beauland Horaires du CDI Lundi Mardi Mercredi Jeudi Vendredi Horaires d'ouverture 8h45 8h45 9h00 8h45 8h45 Horaires de fermeture 17h30 17h30 16h45 17h30 16h15 L'actualité au…",
+      "bodyMarkdown": "# Le Centre de Documentation et d’Information\n\nIci, 3 maîtres mots, **Curiosité**, **Culture** et **Découverte**.\n\n> « L’ouverture d’esprit n’est pas une fracture du crâne »\n>\n> **Pierre Desproges**\n\n## Notre objectif ?\n\n-   **Accueillir les élèves et l’ensemble du personnel de l’établissement dans un espace propice à la lecture et aux études.**\n-   **Proposer des ressources documentaires (papiers et numériques) adaptées à vos besoins et envies.**\n-   **Vous accompagner dans l’apprentissage des méthodes de recherche documentaire.**\n-   **Favoriser votre appropriation de l’espace et du fonds documentaire.**\n-   **Vous faire participer à la dynamique portée par les différents projets et ateliers proposés.**\n\n**Mme Tazé\nM.Beauland**\n\n![Illustration du lycée](legacy-media:79)\n\n## Horaires du CDI\n\nLundi\n\nMardi\n\nMercredi\n\nJeudi\n\nVendredi\n\nHoraires d’ouverture\n\n8h45\n\n8h45\n\n9h00\n\n8h45\n\n8h45\n\nHoraires de fermeture\n\n17h30\n\n17h30\n\n16h45\n\n17h30\n\n16h15\n\n![Les horaires du CDI](legacy-media:1051)\n\n## L’actualité au CDI :\n\n-   [CDI](https://lycee-blaise-cendrars-sevran.fr/category/cdi/)\n\n    ### [Un atelier pour être plus à l’aise à l’oral !](https://lycee-blaise-cendrars-sevran.fr/un-atelier-pour-etre-plus-a-laise-a-loral/)\n\n    Tous les mercredi à 12h30 au CDI D‌epuis cette année, les élèves volontaires du Lycée participent sur simple inscription auprès…\n\n    [En savoir plus Un atelier pour être plus à l’aise à l’oral !Continuer](https://lycee-blaise-cendrars-sevran.fr/un-atelier-pour-etre-plus-a-laise-a-loral/)\n\n-   [CDI](https://lycee-blaise-cendrars-sevran.fr/category/cdi/)\n\n    ### [Exposition l’œuvre d’art du mois](https://lycee-blaise-cendrars-sevran.fr/exposition-loeuvre-dart-du-mois/)\n\n    Chaque mois le CDI en partenariat avec la Médiathèque Albert Camus expose une copie d’un tableau du Louvres sur un…\n\n    [En savoir plus Exposition l’œuvre d’art du moisContinuer](https://lycee-blaise-cendrars-sevran.fr/exposition-loeuvre-dart-du-mois/)\n\n\n## Les règles de vie du lycée\n\n-   Respectez le calme et l’atmosphère propice à l’étude et à la lecture.\n-   Manipulez les documents avec soin et remettez-les à leur place après usage.\n-   Prêtez attention aux consignes d’emprunt (3 livres, 3 semaines)\n-   Consultez les ressources numériques avec diligence et ne les partagez pas sans autorisation.\n-   Soyez courtois et respectez les autres usagers du CDI.\n-   Demandez l’aide du personnel du CDI en cas de besoin pour la recherche documentaire ou l’utilisation des ressources.\n-   Profitez pleinement des activités et des animations proposées par le CDI pour enrichir votre expérience scolaire.\n\nCes règles garantissent un environnement harmonieux et permettent à tous les élèves de profiter pleinement des ressources du CDI.",
+      "contentType": "page",
+      "category": "Vie du lycée",
+      "disposition": "durable",
+      "wordpressCategories": [],
+      "referencedMedia": [
+        79,
+        1051
+      ],
+      "allReferencedUrls": [
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2023/05/CDI.jpg",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/horaires-cdi-1024x219.png",
+        "https://lycee-blaise-cendrars-sevran.fr/category/cdi/",
+        "https://lycee-blaise-cendrars-sevran.fr/un-atelier-pour-etre-plus-a-laise-a-loral/",
+        "https://lycee-blaise-cendrars-sevran.fr/exposition-loeuvre-dart-du-mois/"
+      ]
+    },
+    {
+      "importKey": "wordpress:page:13",
+      "wordpressId": 13,
+      "wordpressType": "page",
+      "slug": "contact",
+      "originalSlug": "contact",
+      "sourceUrl": "https://lycee-blaise-cendrars-sevran.fr/contact/",
+      "sourceModifiedAt": "2023-05-15T10:08:29Z",
+      "title": "Contact",
+      "summary": "",
+      "bodyMarkdown": "",
+      "contentType": "page",
+      "category": "Informations pratiques",
+      "disposition": "a_confirmer",
+      "wordpressCategories": [],
+      "referencedMedia": [],
+      "allReferencedUrls": []
+    },
+    {
+      "importKey": "wordpress:post:441",
+      "wordpressId": 441,
+      "wordpressType": "post",
+      "slug": "exposition-loeuvre-dart-du-mois",
+      "originalSlug": "exposition-loeuvre-dart-du-mois",
+      "sourceUrl": "https://lycee-blaise-cendrars-sevran.fr/exposition-loeuvre-dart-du-mois/",
+      "sourceModifiedAt": "2024-01-25T10:40:50Z",
+      "title": "Exposition l’œuvre d’art du mois",
+      "summary": "Chaque mois le CDI en partenariat avec la Médiathèque Albert Camus expose une copie d’un tableau du Louvres sur un thème particulier. L’œuvre d’art est valorisée par des ressources complémentaires faisant appel à tous les modes d’expression, classique comme pop. A cette occasion un vernissage se tient avec une conférence menée par M.Palmeira qui nous…",
+      "bodyMarkdown": "Chaque mois le CDI en partenariat avec la Médiathèque Albert Camus expose une copie d’un tableau du Louvres sur un thème particulier. L’œuvre d’art est valorisée par des ressources complémentaires faisant appel à tous les modes d’expression, classique comme pop. A cette occasion un vernissage se tient avec une conférence menée par M.Palmeira qui nous transmet sa passion de l’Art, et où les points de vue des élèves (et des adultes !) sont les bienvenus, dans un esprit de partage !\n\n![Illustration vernissage](legacy-media:444)\n\nSujets déjà traités :\n\nen Novembre : le nu au masculin : être un homme regardé en Décembre : le nu au féminin : être une femme de couleur actuellement : orientalisme : fantasmer l’autre\n\nProchaine exposition : surprise ! Surveillez votre messagerie dans l’ENT pour recevoir les invitations !",
+      "contentType": "article",
+      "category": "Archives et actualités",
+      "disposition": "archive",
+      "wordpressCategories": [
+        {
+          "id": 14,
+          "slug": "cdi",
+          "name": "CDI"
+        }
+      ],
+      "referencedMedia": [
+        444
+      ],
+      "allReferencedUrls": [
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/01/Vernissage-131123-768x576.jpg"
+      ]
+    },
+    {
+      "importKey": "wordpress:page:9",
+      "wordpressId": 9,
+      "wordpressType": "page",
+      "slug": "formations",
+      "originalSlug": "formations",
+      "sourceUrl": "https://lycee-blaise-cendrars-sevran.fr/formations/",
+      "sourceModifiedAt": "2024-02-06T15:04:14Z",
+      "title": "Formations",
+      "summary": "Les formations du lycée Blaise Cendrars Le lycée Blaise Cendrars propose trois filières :",
+      "bodyMarkdown": "# Les formations du lycée Blaise Cendrars\n\nLe lycée Blaise Cendrars propose trois filières :\n\n[## Filière générale](https://lycee-blaise-cendrars-sevran.fr/bac-general/)\n\n[## Filière technologique](https://lycee-blaise-cendrars-sevran.fr/bac-technologique/)\n\n[## Filière professionnelle](https://lycee-blaise-cendrars-sevran.fr/bac-professionnel/)\n\n[## Certificat d’Aptitudes Professionnelles](https://lycee-blaise-cendrars-sevran.fr/cap-etl)",
+      "contentType": "page",
+      "category": "Formations",
+      "disposition": "durable",
+      "wordpressCategories": [],
+      "referencedMedia": [],
+      "allReferencedUrls": [
+        "https://lycee-blaise-cendrars-sevran.fr/bac-general/",
+        "https://lycee-blaise-cendrars-sevran.fr/bac-technologique/",
+        "https://lycee-blaise-cendrars-sevran.fr/bac-professionnel/",
+        "https://lycee-blaise-cendrars-sevran.fr/cap-etl"
+      ]
+    },
+    {
+      "importKey": "wordpress:page:1076",
+      "wordpressId": 1076,
+      "wordpressType": "page",
+      "slug": "hlp",
+      "originalSlug": "hlp",
+      "sourceUrl": "https://lycee-blaise-cendrars-sevran.fr/hlp/",
+      "sourceModifiedAt": "2024-02-09T10:49:45Z",
+      "title": "HLP",
+      "summary": "Humanité, Littérature et Philosophie",
+      "bodyMarkdown": "## Humanité, Littérature et Philosophie\n\n![Illustration du lycée](legacy-media:1085)\n\n![Illustration du lycée](legacy-media:1083)\n\n![Illustration du lycée](legacy-media:1086)\n\n![Illustration du lycée](legacy-media:1078)\n\n![Illustration du lycée](legacy-media:1079)\n\n![Illustration du lycée](legacy-media:1087)\n\n![Illustration du lycée](legacy-media:1084)\n\n![Illustration du lycée](legacy-media:1080)\n\n![Illustration du lycée](legacy-media:1081)\n\n![Illustration du lycée](legacy-media:1082)",
+      "contentType": "page",
+      "category": "Formations",
+      "disposition": "durable",
+      "wordpressCategories": [],
+      "referencedMedia": [
+        1085,
+        1083,
+        1086,
+        1078,
+        1079,
+        1087,
+        1084,
+        1080,
+        1081,
+        1082
+      ],
+      "allReferencedUrls": [
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-1-768x432.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-2-768x432.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-3-768x432.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-4-768x432.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-5-768x432.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-6-768x432.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-7-768x432.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-8-768x432.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-9-768x432.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-10-768x432.png"
+      ]
+    },
+    {
+      "importKey": "wordpress:page:566",
+      "wordpressId": 566,
+      "wordpressType": "page",
+      "slug": "https-docs-google-com-forms-d-e-1faipqlsety2swpyoogjbjt-qj2tz9z6fnhwk5if_valme6sup9ukayw-viewform",
+      "originalSlug": "https-docs-google-com-forms-d-e-1faipqlsety2swpyoogjbjt-qj2tz9z6fnhwk5if_valme6sup9ukayw-viewform",
+      "sourceUrl": "https://lycee-blaise-cendrars-sevran.fr/https-docs-google-com-forms-d-e-1faipqlsety2swpyoogjbjt-qj2tz9z6fnhwk5if_valme6sup9ukayw-viewform/",
+      "sourceModifiedAt": "2025-02-11T11:03:46Z",
+      "title": "Inscription mini-stages découverte",
+      "summary": "Mini – stages Inscription Pour bénéficier de ces mini stages, il est nécessaire de compléter, la demande d’inscription depuis le lien ici. Une convention de stage sera alors établie entre le collège d’origine, le lycée d’accueil et les représentants légaux du stagiaire accompagnée d’une proposition de date et d’horaires. Objectif : Sensibiliser le stagiaire accueilli,…",
+      "bodyMarkdown": "![Illustration du lycée](legacy-media:568)\n\n# Mini – stages\n\n## Inscription\n\nPour bénéficier de ces mini stages, il est nécessaire de compléter, la demande d’inscription depuis le lien ici.\nUne convention de stage sera alors établie entre le collège d’origine, le lycée d’accueil et les représentants légaux du stagiaire accompagnée d’une proposition de date et d’horaires.\n\n[https://docs.google.com/forms/d/e/1FAIpQLSety2swPYoogJBjt-qj2tZ9z6FnhwK5IF_vaLme6SuP9UKayw/viewform](https://docs.google.com/forms/d/e/1FAIpQLSety2swPYoogJBjt-qj2tZ9z6FnhwK5IF_vaLme6SuP9UKayw/viewform)\n\n_**Objectif** : Sensibiliser le stagiaire accueilli, à une ou plusieurs formations professionnelles ou technologiques dans le cadre de son parcours découverte des métiers et des formations_\n\n## Métiers de la chimie, de l’eau et de la biotechnologie\n\n[CAP Agent de la Qualité de l’Eau (AQE)](https://www.onisep.fr/ressources/univers-formation/formations/lycees/cap-agent-de-la-qualite-de-l-eau)\n\n[Bac pro Procédé de la Chimie, de l’Eau et des Papiers Cartons (PCEPC)](https://www.onisep.fr/ressources/univers-formation/formations/lycees/bac-pro-procedes-de-la-chimie-de-l-eau-et-des-papiers-cartons)\n\n[Seconde Métiers du Pilotage et de la Maintenance d’Installations Automatisées (MPMIA)](https://www.onisep.fr/ressources/univers-formation/formations/lycees/classe-de-2de-professionnelle-metiers-du-pilotage-et-de-la-maintenance-d-installations-automatisees)\n\n[Baccalauréat Technologique STL spécialité SPCL](https://www.onisep.fr/formation/apres-la-3-la-voie-generale-et-technologique/qu-est-ce-que-la-voie-generale-et-technologique/la-voie-technologique-en-premiere-et-terminale/le-bac-stl-sciences-et-technologies-de-laboratoire)\n\n[Seconde Générale et Technologique](https://lycee-blaise-cendrars-sevran.fr/bac-technologique/)\n\n## Métiers de gestion de l’énergie\n\n[Baccalauréat Professionnel Métier de l’ELectricité et de ses Environnements Connectés (MELEC)](https://www.onisep.fr/ressources/univers-formation/formations/lycees/bac-pro-metiers-de-l-electricite-et-de-ses-environnements-connectes)\n\n[Seconde **Métiers des Transitions Numérique et Énergétique** (MTNE)](https://www.onisep.fr/ressources/univers-formation/formations/lycees/classe-de-2de-professionnelle-metiers-des-transitions-numerique-et-energetique)\n\n## Élèves issus de troisième de SEGPA/de troisième de collège",
+      "contentType": "page",
+      "category": "Mini-stages",
+      "disposition": "a_confirmer",
+      "wordpressCategories": [],
+      "referencedMedia": [
+        568
+      ],
+      "allReferencedUrls": [
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/01/Logo-blaise-cendrars-texte-1024x830.png",
+        "https://docs.google.com/forms/d/e/1FAIpQLSety2swPYoogJBjt-qj2tZ9z6FnhwK5IF_vaLme6SuP9UKayw/viewform",
+        "https://www.onisep.fr/ressources/univers-formation/formations/lycees/cap-agent-de-la-qualite-de-l-eau",
+        "https://www.onisep.fr/ressources/univers-formation/formations/lycees/bac-pro-procedes-de-la-chimie-de-l-eau-et-des-papiers-cartons",
+        "https://www.onisep.fr/ressources/univers-formation/formations/lycees/classe-de-2de-professionnelle-metiers-du-pilotage-et-de-la-maintenance-d-installations-automatisees",
+        "https://www.onisep.fr/formation/apres-la-3-la-voie-generale-et-technologique/qu-est-ce-que-la-voie-generale-et-technologique/la-voie-technologique-en-premiere-et-terminale/le-bac-stl-sciences-et-technologies-de-laboratoire",
+        "https://lycee-blaise-cendrars-sevran.fr/bac-technologique/",
+        "https://www.onisep.fr/ressources/univers-formation/formations/lycees/bac-pro-metiers-de-l-electricite-et-de-ses-environnements-connectes",
+        "https://www.onisep.fr/ressources/univers-formation/formations/lycees/classe-de-2de-professionnelle-metiers-des-transitions-numerique-et-energetique"
+      ]
+    },
+    {
+      "importKey": "wordpress:page:1091",
+      "wordpressId": 1091,
+      "wordpressType": "page",
+      "slug": "llce",
+      "originalSlug": "llce",
+      "sourceUrl": "https://lycee-blaise-cendrars-sevran.fr/llce/",
+      "sourceModifiedAt": "2024-02-09T11:35:58Z",
+      "title": "LLCE",
+      "summary": "Langues, Littératures et Cultures Etrangères Anglais",
+      "bodyMarkdown": "# Langues, Littératures et Cultures Etrangères\n\n## Anglais\n\n![Illustration du lycée](legacy-media:1106)\n\n![Illustration du lycée](legacy-media:1093)\n\n![Illustration du lycée](legacy-media:1094)\n\n![Illustration du lycée](legacy-media:1095)\n\n![Illustration du lycée](legacy-media:1096)\n\n![Illustration du lycée](legacy-media:1097)\n\n![Illustration du lycée](legacy-media:1107)\n\n![Illustration du lycée](legacy-media:1098)\n\n![Illustration du lycée](legacy-media:1108)\n\n![Illustration du lycée](legacy-media:1099)\n\n![Illustration du lycée](legacy-media:1100)\n\n![Illustration du lycée](legacy-media:1101)\n\n![Illustration du lycée](legacy-media:1102)\n\n![Illustration du lycée](legacy-media:1103)\n\n![Illustration du lycée](legacy-media:1104)\n\n![Illustration du lycée](legacy-media:1105)\n\n[Voir le contenu associé](https://www.youtube.com/watch?v=yFZLEuLlemA)",
+      "contentType": "page",
+      "category": "Formations",
+      "disposition": "durable",
+      "wordpressCategories": [],
+      "referencedMedia": [
+        1106,
+        1093,
+        1094,
+        1095,
+        1096,
+        1097,
+        1107,
+        1098,
+        1108,
+        1099,
+        1100,
+        1101,
+        1102,
+        1103,
+        1104,
+        1105
+      ],
+      "allReferencedUrls": [
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-1-1-768x432.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-2-1-768x432.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-3-1-768x432.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-4-1-768x432.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-5-1-768x432.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-6-1-768x432.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-7-1-768x432.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-8-1-768x432.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-9-1-768x432.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-10-1-768x432.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-11-768x432.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-12-768x432.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-13-768x432.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-14-768x432.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-15-768x432.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-16-768x432.png",
+        "https://www.youtube.com/embed/yFZLEuLlemA?feature=oembed"
+      ]
+    },
+    {
+      "importKey": "wordpress:page:179",
+      "wordpressId": 179,
+      "wordpressType": "page",
+      "slug": "localisation",
+      "originalSlug": "localisation",
+      "sourceUrl": "https://lycee-blaise-cendrars-sevran.fr/localisation/",
+      "sourceModifiedAt": "2024-10-02T05:41:41Z",
+      "title": "Localisation",
+      "summary": "Où sommes-nous ? Coordonnées : S'y rendre :",
+      "bodyMarkdown": "# Où sommes-nous ?\n\n## Coordonnées :\n\n## **Adresse**\n\n12 Avenue Léon Jouhaux,\n93270 Sevran\n\n[Voir](https://maps.app.goo.gl/XJfNmRv8jfHgx6deA)\n\n## **Mail**\n\n[ce.0932048w@ac-creteil.fr](mailto:0932048w@ac-creteil.fr)\n\n## **Téléphone**\n\n[01 49 36 20 50](tel:+33149362050)\n\n## S’y rendre :\n\n## **Bus**\n\nBus 618\nCollège Georges Brassens\n\n[Voir](https://maps.app.goo.gl/KT9KTKRvuKAyk6yW9)\n\n## **RER**\n\nRER B\nSevran-Livry\n\n[Voir](https://maps.app.goo.gl/wLJpddzS1LiweBWz9)",
+      "contentType": "page",
+      "category": "Informations pratiques",
+      "disposition": "a_confirmer",
+      "wordpressCategories": [],
+      "referencedMedia": [],
+      "allReferencedUrls": [
+        "https://maps.app.goo.gl/XJfNmRv8jfHgx6deA",
+        "mailto:0932048w@ac-creteil.fr",
+        "tel:+33149362050",
+        "https://maps.app.goo.gl/KT9KTKRvuKAyk6yW9",
+        "https://maps.app.goo.gl/wLJpddzS1LiweBWz9"
+      ]
+    },
+    {
+      "importKey": "wordpress:post:1167",
+      "wordpressId": 1167,
+      "wordpressType": "post",
+      "slug": "london-trip-review",
+      "originalSlug": "london-trip-review",
+      "sourceUrl": "https://lycee-blaise-cendrars-sevran.fr/london-trip-review/",
+      "sourceModifiedAt": "2024-10-02T05:33:13Z",
+      "title": "London Trip Review",
+      "summary": "Revivez le voyage à Londres de la Section Européenne en parcourant la « London Trip Review » ! Du 22 au 26 avril 2024, 48 élèves de la Section Européenne Anglais (Seconde, Première, Terminale) et de Première Spécialité LLCE sont partis à la découverte de la capitale britannique accompagnés par cinq enseignants : Madame Azema, Monsieur Dotte,…",
+      "bodyMarkdown": "# Revivez le voyage à Londres de la Section Européenne en parcourant la « London Trip Review » ! \n\nDu 22 au 26 avril 2024, 48 élèves de la Section Européenne Anglais (Seconde, Première, Terminale) et de Première Spécialité LLCE sont partis à la découverte de la capitale britannique accompagnés par cinq enseignants : Madame Azema, Monsieur Dotte, Madame Garcia, Madame Lagarde et Monsieur Léthumier.  \n\nLes élèves ont eu l’occasion de se familiariser avec le coeur historique de Londres en se promenant dans les quartiers de Westminster, Buckingham Palace ainsi que sur la Tamise lors d’un tour en bateau jusqu’à la Tour de Londres et le _Tower Bridge_.\n\nIls ont également pu prendre la mesure du multiculturalisme londonien et de ses apports dans la construction de la ville, en découvrant un des plus grands temples hindous au monde (en dehors de l’Inde) ou encore en visitant le quartier de Brick Lane, marqué par les migrations internationales depuis le XVIIe siècle. \n\nLes élèves ont découvert le rayonnement culturel international de Londres grâce à la visite du British Museum qui regroupe des collections d’objets d’art venant du monde entier (permettant d’évoquer le rôle de la colonisation britannique dans la construction de ces collections) et en découvrant la Tate Modern, musée d’art moderne et contemporain. Ils ont aussi pu appréhender la richesse de l’art de rue (_street art_) à Brick Lane lors d’une visite guidée. \n\nEnfin, ils ont aussi pu visiter des lieux historiques emblématiques à quelques dizaines de kilomètres de la capitale, à savoir la ville estudiantine d’Oxford et la ville de Canterbury célèbre pour sa cathédrale. \n\nLa revue ci-dessous constitue la production finale réalisée par les élèves après le voyage. Elle retrace, jour après jour, le déroulé du séjour.\n\n[London Trip Review](legacy-media:1168)",
+      "contentType": "article",
+      "category": "Archives et actualités",
+      "disposition": "archive",
+      "wordpressCategories": [
+        {
+          "id": 15,
+          "slug": "rayonnement-du-lycee",
+          "name": "Rayonnement du lycee"
+        }
+      ],
+      "referencedMedia": [
+        1168
+      ],
+      "allReferencedUrls": [
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/06/Revue-Voyage-a-Londres-EURO-1.pdf"
+      ]
+    },
+    {
+      "importKey": "wordpress:page:1125",
+      "wordpressId": 1125,
+      "wordpressType": "page",
+      "slug": "maths",
+      "originalSlug": "maths",
+      "sourceUrl": "https://lycee-blaise-cendrars-sevran.fr/maths/",
+      "sourceModifiedAt": "2024-02-09T11:45:00Z",
+      "title": "Maths",
+      "summary": "Mathématiques",
+      "bodyMarkdown": "## Mathématiques\n\n![Illustration du lycée](legacy-media:1116)\n\n![Illustration du lycée](legacy-media:1117)\n\n![Illustration du lycée](legacy-media:1118)\n\n![Illustration du lycée](legacy-media:1119)\n\n![Illustration du lycée](legacy-media:1120)\n\n![Illustration du lycée](legacy-media:1121)\n\n![Illustration du lycée](legacy-media:1122)\n\n![Illustration du lycée](legacy-media:1123)\n\n![Illustration du lycée](legacy-media:1115)",
+      "contentType": "page",
+      "category": "Formations",
+      "disposition": "durable",
+      "wordpressCategories": [],
+      "referencedMedia": [
+        1116,
+        1117,
+        1118,
+        1119,
+        1120,
+        1121,
+        1122,
+        1123,
+        1115
+      ],
+      "allReferencedUrls": [
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-1-2-768x433.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-2-2-768x434.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-3-2-768x434.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-4-2-768x434.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-5-2-768x434.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-6-2-768x434.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-7-2-768x434.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-8-2-768x434.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-9-2-768x434.png"
+      ]
+    },
+    {
+      "importKey": "wordpress:page:1277",
+      "wordpressId": 1277,
+      "wordpressType": "page",
+      "slug": "nouveau-site-lycee",
+      "originalSlug": "nouveau-site-lycee",
+      "sourceUrl": "https://lycee-blaise-cendrars-sevran.fr/nouveau-site-lycee/",
+      "sourceModifiedAt": "2026-03-30T23:22:01Z",
+      "title": "Nouveau site lycée",
+      "summary": "Lycée Blaise Cendrars Plateforme moderne & vie scolaire 📚 Formations 📰 Actualités 📍 Informations 👨‍🏫 Vie scolaire ⚠️ Signaler un problème Un espace sécurisé pour élèves, personnels et enseignants Signaler un harcèlement",
+      "bodyMarkdown": "# Lycée Blaise Cendrars\n\nPlateforme moderne & vie scolaire\n\n📚 Formations\n\n📰 Actualités\n\n📍 Informations\n\n👨‍🏫 Vie scolaire\n\n## ⚠️ Signaler un problème\n\nUn espace sécurisé pour élèves, personnels et enseignants\n\n[Signaler un harcèlement](https://lycee-blaise-cendrars-sevran.fr/#)",
+      "contentType": "page",
+      "category": "Le lycée",
+      "disposition": "a_confirmer",
+      "wordpressCategories": [],
+      "referencedMedia": [],
+      "allReferencedUrls": [
+        "https://lycee-blaise-cendrars-sevran.fr/#"
+      ]
+    },
+    {
+      "importKey": "wordpress:page:977",
+      "wordpressId": 977,
+      "wordpressType": "page",
+      "slug": "nsi",
+      "originalSlug": "nsi",
+      "sourceUrl": "https://lycee-blaise-cendrars-sevran.fr/nsi/",
+      "sourceModifiedAt": "2024-02-06T16:46:25Z",
+      "title": "NSI",
+      "summary": "Numérique et Sciences Informatiques L'enseignement Numérique et Sciences Informatiques (NSI) a pour objectif d'aborder les bases de l'informatique et de former à la pratique d'une démarche scientifique et numérique. Le programme de l'année de première est le suivant :",
+      "bodyMarkdown": "# Numérique et Sciences Informatiques\n\nL’enseignement Numérique et Sciences Informatiques (NSI) a pour objectif d’aborder les bases de l’informatique et de former à la pratique d’une démarche scientifique et numérique.\n\nLe programme de l’année de première est le suivant :\n\n-   [Module 1](https://lycee-blaise-cendrars-sevran.fr/#tab-module1)\n-   [Module 2](https://lycee-blaise-cendrars-sevran.fr/#tab-module2)\n-   [Module 3](https://lycee-blaise-cendrars-sevran.fr/#tab-module3)\n-   [Module 4](https://lycee-blaise-cendrars-sevran.fr/#tab-module4)\n-   [Module 5](https://lycee-blaise-cendrars-sevran.fr/#tab-module5)\n\n## Introduction à la programmation et à l’algorithmique\n\n**Volume horaire :** 10 heures\n\n**Objectifs :**\n\n-   Comprendre les bases de la programmation en python.\n-   Explorer les concepts fondamentaux de l’algorithmique.\n\n## Langages de programmation\n\n**Volume horaire :** 15 heures\n\n**Objectifs :**\n\n-   Approfondir les concepts de programmation\n-   Étudier les structures de données en Python\n\n## Architecture matérielle et systèmes d’exploitation\n\n**Volume horaire :** 12 heures\n\n### **Objectifs :**\n\n-   Comprendre les composants matériels d’un système informatique\n-   Introduction aux systèmes d’exploitation\n\n## Représentation de l’information\n\n**Volume horaire :** 8 heures\n\n**Objectifs :**\n\n-   Notion sur les systèmes de numération\n-   Compréhension de la représentation binaire des données\n\n## Algorithmique avancée\n\n**Volume horaire :** 15 heures\n\n**Objectifs :**\n\n-   Etude d’algorithmes plus avancés\n-   Analyse de la complexité algorithmique",
+      "contentType": "page",
+      "category": "Formations",
+      "disposition": "durable",
+      "wordpressCategories": [],
+      "referencedMedia": [],
+      "allReferencedUrls": [
+        "https://lycee-blaise-cendrars-sevran.fr/#tab-module1",
+        "https://lycee-blaise-cendrars-sevran.fr/#tab-module2",
+        "https://lycee-blaise-cendrars-sevran.fr/#tab-module3",
+        "https://lycee-blaise-cendrars-sevran.fr/#tab-module4",
+        "https://lycee-blaise-cendrars-sevran.fr/#tab-module5"
+      ]
+    },
+    {
+      "importKey": "wordpress:post:218",
+      "wordpressId": 218,
+      "wordpressType": "post",
+      "slug": "planning-de-rentree-2024",
+      "originalSlug": "planning-de-rentree-2024",
+      "sourceUrl": "https://lycee-blaise-cendrars-sevran.fr/planning-de-rentree-2024/",
+      "sourceModifiedAt": "2025-09-24T12:23:40Z",
+      "title": "Planning de rentrée – septembre 2025",
+      "summary": "Vous trouverez ci-dessous les horaires et les jours de rentrée des classes selon les niveaux. Classes de seconde – Lundi 01/09/2025 Accueil sur les gradins et appels par les professeurs principaux. Les listes des classes de seconde seront affichées devant l'établissement à partir du jeudi 28 août. Classes de premières : mardi 02/09/2025 de 10h…",
+      "bodyMarkdown": "Vous trouverez ci-dessous les horaires et les jours de rentrée des classes selon les niveaux.\n\n## **Classes de seconde – Lundi 01/09/2025**\n\n-   **9h00 – 12h00** : 2nde1, 2nde2, 2nde3, 2nde4, 2nde5, 2PRO1, 2PRO4, AQE1\n-   **13h45-16h45:** 2nde6, 2nde7, 2nde8, 2nde9, 2nde10, 2nde11, 2PRO2, 2PRO3\n\nAccueil sur les gradins et appels par les professeurs principaux.\n\nLes listes des classes de seconde **seront affichées devant l’établissement à partir du jeudi 28 août**.\n\n**Classes de premières :** mardi 02/09/2025 de 10h à 12h\n\nAccueil sur les gradins et appel par les professeurs principaux.\n\n**Classes de terminales** : mardi 02/09/2025 de 14h30 à 16h30\n\nAccueil sur les gradins et appel par les professeurs principaux.",
+      "contentType": "article",
+      "category": "Archives et actualités",
+      "disposition": "archive",
+      "wordpressCategories": [
+        {
+          "id": 5,
+          "slug": "articles",
+          "name": "Articles"
+        }
+      ],
+      "referencedMedia": [],
+      "allReferencedUrls": []
+    },
+    {
+      "importKey": "wordpress:post:73",
+      "wordpressId": 73,
+      "wordpressType": "post",
+      "slug": "presentation-lycee",
+      "originalSlug": "presentation-lycee",
+      "sourceUrl": "https://lycee-blaise-cendrars-sevran.fr/presentation-lycee/",
+      "sourceModifiedAt": "2024-02-12T17:12:36Z",
+      "title": "Présentation Lycée",
+      "summary": "Le Lycée polyvalent Blaise Cendrars est un lycée polyvalent public situé à Sevran et faisant partie de l'académie de Créteil. Le Lycée polyvalent Blaise Cendrars se distingue notamment par l'enseignement des langues suivantes : italien, italien. Il propose la/les section(s) : Section européenne, Section Arts. Il offre aussi la possibilité de suivre des spécialités peu proposées…",
+      "bodyMarkdown": "Le Lycée polyvalent Blaise Cendrars est un lycée polyvalent public situé à Sevran et faisant partie de l’académie de Créteil. Le Lycée polyvalent Blaise Cendrars se distingue notamment par l’enseignement des langues suivantes : italien, italien. Il propose la/les section(s) : Section européenne, Section Arts. Il offre aussi la possibilité de suivre des spécialités peu proposées par d’autres établissements comme les spécialités langues, littératures et cultures étrangères et régionales. Il dispose d’une restauration pour les élèves. Sur les 338 candidats ayant passé le bac en 2022, 88% l’ont obtenu et 48% ont décroché une mention.",
+      "contentType": "page",
+      "category": "Le lycée",
+      "disposition": "durable",
+      "wordpressCategories": [
+        {
+          "id": 3,
+          "slug": "fixe",
+          "name": "Fixe"
+        }
+      ],
+      "referencedMedia": [],
+      "allReferencedUrls": []
+    },
+    {
+      "importKey": "wordpress:post:87",
+      "wordpressId": 87,
+      "wordpressType": "post",
+      "slug": "presentations-clubs",
+      "originalSlug": "presentations-clubs",
+      "sourceUrl": "https://lycee-blaise-cendrars-sevran.fr/presentations-clubs/",
+      "sourceModifiedAt": "2024-02-12T17:07:04Z",
+      "title": "Présentations Clubs",
+      "summary": "Ceci est un article afin de vous inciter à vous intéresser aux différents clubs du lycée, vous retrouverez plus d'informatons sur l'onglet > puis >",
+      "bodyMarkdown": "Ceci est un article afin de vous inciter à vous intéresser aux différents clubs du lycée, vous retrouverez plus d’informatons sur l’onglet _<<Vie du lycée>>_ puis _<<Clubs>>_\n\n![Illustration du lycée](http://localhost/wordpress/wp-content/uploads/2023/05/club.jpg)",
+      "contentType": "page",
+      "category": "Vie du lycée",
+      "disposition": "durable",
+      "wordpressCategories": [
+        {
+          "id": 17,
+          "slug": "clubs",
+          "name": "Clubs"
+        }
+      ],
+      "referencedMedia": [],
+      "allReferencedUrls": [
+        "http://localhost/wordpress/wp-content/uploads/2023/05/club.jpg"
+      ]
+    },
+    {
+      "importKey": "wordpress:page:306",
+      "wordpressId": 306,
+      "wordpressType": "page",
+      "slug": "se-connecter",
+      "originalSlug": "se-connecter",
+      "sourceUrl": "https://lycee-blaise-cendrars-sevran.fr/se-connecter/",
+      "sourceModifiedAt": "2024-02-02T11:03:18Z",
+      "title": "Se connecter",
+      "summary": "Se connecter Cette page est destinée aux rédacteurs d'articles",
+      "bodyMarkdown": "## Se connecter\n\n### Cette page est destinée aux rédacteurs d’articles",
+      "contentType": "page",
+      "category": "Informations pratiques",
+      "disposition": "a_confirmer",
+      "wordpressCategories": [],
+      "referencedMedia": [],
+      "allReferencedUrls": [
+        "https://lycee-blaise-cendrars-sevran.fr/wp-login.php?action=lostpassword&redirect_to=https%3A%2F%2Flycee-blaise-cendrars-sevran.fr%2Fse-connecter%2F"
+      ]
+    },
+    {
+      "importKey": "wordpress:page:947",
+      "wordpressId": 947,
+      "wordpressType": "page",
+      "slug": "specialites",
+      "originalSlug": "specialites",
+      "sourceUrl": "https://lycee-blaise-cendrars-sevran.fr/specialites/",
+      "sourceModifiedAt": "2025-03-04T13:32:29Z",
+      "title": "Spécialités",
+      "summary": "Les spécialités au lycée Blaise Cendrars",
+      "bodyMarkdown": "# Les spécialités au lycée Blaise Cendrars\n\n## HGGSP\n\nHistoire-Géographie, Géopolitique et Sciences Politiques\n\n[## HLP\n\nHumanité, Littérature et Philosophie](https://lycee-blaise-cendrars-sevran.fr/hlp/)\n\n[## LLCE\n\nLangues, Littératures et Cultures Etrangères](https://lycee-blaise-cendrars-sevran.fr/llce/)\n\n[## Mathématiques](https://lycee-blaise-cendrars-sevran.fr/maths/)\n\n[## NSI\n\nNumérique et Sciences Informatiques](https://lycee-blaise-cendrars-sevran.fr/nsi/)\n\n[## Physique-Chimie](https://www.youtube.com/watch?v=Bj6XJtQ-04Y)\n\n[## SVT\n\nSciences de la Vie et de la Terre](https://www.youtube.com/watch?v=w39LgcOPKvE&t=2s)\n\n## SES\n\nSciences Economique et Sociale",
+      "contentType": "page",
+      "category": "Formations",
+      "disposition": "durable",
+      "wordpressCategories": [],
+      "referencedMedia": [],
+      "allReferencedUrls": [
+        "https://lycee-blaise-cendrars-sevran.fr/hlp/",
+        "https://lycee-blaise-cendrars-sevran.fr/llce/",
+        "https://lycee-blaise-cendrars-sevran.fr/maths/",
+        "https://lycee-blaise-cendrars-sevran.fr/nsi/",
+        "https://www.youtube.com/watch?v=Bj6XJtQ-04Y",
+        "https://www.youtube.com/watch?v=w39LgcOPKvE&t=2s"
+      ]
+    },
+    {
+      "importKey": "wordpress:post:228",
+      "wordpressId": 228,
+      "wordpressType": "post",
+      "slug": "tournoi-de-football",
+      "originalSlug": "tournoi-de-football",
+      "sourceUrl": "https://lycee-blaise-cendrars-sevran.fr/tournoi-de-football/",
+      "sourceModifiedAt": "2023-06-05T07:38:54Z",
+      "title": "Tournoi de Football",
+      "summary": "La finale se tiendra le 11 juin 2023 soyez présent pour des repas gratuits et un nouveau macbook a gagner (c'est faux)",
+      "bodyMarkdown": "La finale se tiendra le 11 juin 2023 soyez présent pour des repas gratuits et un nouveau macbook a gagner (c’est faux)",
+      "contentType": "article",
+      "category": "Archives et actualités",
+      "disposition": "archive",
+      "wordpressCategories": [
+        {
+          "id": 1,
+          "slug": "blog",
+          "name": "Blog"
+        }
+      ],
+      "referencedMedia": [],
+      "allReferencedUrls": []
+    },
+    {
+      "importKey": "wordpress:post:374",
+      "wordpressId": 374,
+      "wordpressType": "post",
+      "slug": "un-atelier-pour-etre-plus-a-laise-a-loral",
+      "originalSlug": "un-atelier-pour-etre-plus-a-laise-a-loral",
+      "sourceUrl": "https://lycee-blaise-cendrars-sevran.fr/un-atelier-pour-etre-plus-a-laise-a-loral/",
+      "sourceModifiedAt": "2024-01-25T15:23:42Z",
+      "title": "Un atelier pour être plus à l'aise à l'oral !",
+      "summary": "Tous les mercredi à 12h30 au CDI D‌epuis cette année, les élèves volontaires du Lycée participent sur simple inscription auprès des professeurs documentalistes à un atelier d'aisance orale, pour gagner de la confiance en soi, améliorer sa diction par des exercices de théâtre et de mise en voix de textes littéraires. Certains élèves ont depuis participé au…",
+      "bodyMarkdown": "![Illustration du lycée](legacy-media:498)\n\n### **Tous les mercredi à 12h30 au CDI**\n\n\nD‌epuis cette année, les élèves volontaires du Lycée participent sur simple inscription auprès des professeurs documentalistes à un atelier d’aisance orale, pour gagner de la confiance en soi, améliorer sa diction par des exercices de théâtre et de mise en voix de textes littéraires.\n\nCertains élèves ont depuis participé au concours national de lecture à voix haute de la grande librairie sur France Télévision. »",
+      "contentType": "article",
+      "category": "Archives et actualités",
+      "disposition": "archive",
+      "wordpressCategories": [
+        {
+          "id": 14,
+          "slug": "cdi",
+          "name": "CDI"
+        }
+      ],
+      "referencedMedia": [
+        498
+      ],
+      "allReferencedUrls": [
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/01/image_atelier_oral.png"
+      ]
+    },
+    {
+      "importKey": "wordpress:page:32",
+      "wordpressId": 32,
+      "wordpressType": "page",
+      "slug": "unss",
+      "originalSlug": "unss",
+      "sourceUrl": "https://lycee-blaise-cendrars-sevran.fr/unss/",
+      "sourceModifiedAt": "2024-02-08T15:31:34Z",
+      "title": "UNSS",
+      "summary": "ASSOCIATION SPORTIVE : LYCEE BLAISE CENDRARS >>> Pour s'inscrire, il vous suffit d'apporter : ACTIVITÉS PROPOSÉES PROFESSEURS JOURS LIEUX HORAIRES BADMINTON M. MOSTEGHANEMI Lundi Gymnase Bussière 12h30/13h30 BASKET-BALL M. MOSTEGHANEMI Mardi Gymnase Bussière 12h30/13h30 M. GARCIA-MARGARITO Mercredi 12H30/14H15 Jeudi 12h30/13h30 FUTSAL M. GARCIA-MARGARITO Mercredi Gymnase Bussière 14h30/16h15 TENNIS DE TABLE M. CARO Jeudi Gymnase Bussière…",
+      "bodyMarkdown": "# ASSOCIATION SPORTIVE : LYCEE BLAISE CENDRARS\n\n**\\>>> Pour s’inscrire, il vous suffit d’apporter :**\n\n-   L’**autorisation parentale** ci-dessous remplie et signée\n-   La **cotisation de 25€** (liquide ou chèque à l’ordre de l’**association sportive du Lycée Blaise Cendrars**)\n\nACTIVITÉS PROPOSÉES\n\nPROFESSEURS\n\nJOURS\n\nLIEUX\n\nHORAIRES\n\n**BADMINTON**\n\nM. MOSTEGHANEMI\n\nLundi\n\nGymnase Bussière\n\n12h30/13h30\n\n**BASKET-BALL**\n\nM. MOSTEGHANEMI\n\nMardi\n\nGymnase\nBussière\n\n12h30/13h30\n\nM. GARCIA-MARGARITO\n\nMercredi\n\n12H30/14H15\n\nJeudi\n\n12h30/13h30\n\n**FUTSAL**\n\nM. GARCIA-MARGARITO\n\nMercredi\n\nGymnase Bussière\n\n14h30/16h15\n\n**TENNIS DE TABLE**\n\nM. CARO\n\nJeudi\n\nGymnase Bussière\n\n12h30/13h30\n\n**MUSCULATION**\n\nM. CARO\nM. GERARD\nM. MOSTEGHANEMI\n\nLundi\n\nLycée\n\n12h30/13h30\n\nMardi\n\n12h30/13h30\n\nMercredi\n\n13h00/14h30\n\nJeudi\n\n12h30/13h30\n\n**CIRCUIT TRAINING + FESSIERS/ABDOS/CUISSES**\n\nMme BIGOT\n\nLundi\n\nLycée / Salle polyvalente\n\n12h30/13h30\n\nMercredi\n\nGymnase Bussière\n\n12h30/14h30\n\n![Illustration du lycée](legacy-media:1067)\n\n* * *\n\n[Autorisation-parentale](legacy-media:1021)[Télécharger](legacy-media:1021)",
+      "contentType": "page",
+      "category": "Vie du lycée",
+      "disposition": "durable",
+      "wordpressCategories": [],
+      "referencedMedia": [
+        1067,
+        1021
+      ],
+      "allReferencedUrls": [
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/horaires-UNSS-1024x462.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/Autorisation-parentale.pdf"
+      ]
+    },
+    {
+      "importKey": "wordpress:page:11",
+      "wordpressId": 11,
+      "wordpressType": "page",
+      "slug": "vie-du-lycee",
+      "originalSlug": "vie-du-lycee",
+      "sourceUrl": "https://lycee-blaise-cendrars-sevran.fr/vie-du-lycee/",
+      "sourceModifiedAt": "2024-02-12T17:10:08Z",
+      "title": "Vie du Lycée",
+      "summary": "Lycée Blaise Cendrars Notre lycée, fondé il y a plusieurs décennies, est un établissement d'enseignement reconnu et dynamique. Nous nous engageons à offrir à nos élèves une éducation de qualité, favorisant à la fois l'épanouissement personnel et la réussite scolaire.Nous sommes fiers de proposer une large gamme de formations et de filières, adaptées aux intérêts…",
+      "bodyMarkdown": "# Lycée Blaise Cendrars\n\nNotre lycée, fondé il y a plusieurs décennies, est un établissement d’enseignement reconnu et dynamique. Nous nous engageons à offrir à nos élèves une éducation de qualité, favorisant à la fois l’épanouissement personnel et la réussite scolaire.\nNous sommes fiers de proposer une large gamme de formations et de filières, adaptées aux intérêts et aux aspirations de nos élèves. De la filière générale aux options technologiques, en passant par les sections professionnelles, nous offrons un éventail de choix pour répondre aux divers talents et projets d’avenir.\nAu-delà des cours académiques, nous accordons une grande importance à la vie étudiante et au développement des compétences sociales. Notre lycée offre un large éventail d’activités extra-scolaires, de clubs et d’initiatives spéciales qui permettent aux élèves de s’impliquer, de découvrir de nouvelles passions et de développer leurs talents.\nNous invitons les parents à rester informés en consultant régulièrement ce site, où vous trouverez des actualités, des informations pratiques et des ressources utiles pour accompagner la scolarité de votre enfant.\n\n* * *\n\n## Rayonnement du lycée\n\n-   [Rayonnement du lycee](https://lycee-blaise-cendrars-sevran.fr/category/rayonnement-du-lycee/)\n\n    ### [London Trip Review](https://lycee-blaise-cendrars-sevran.fr/london-trip-review/)\n\n    Revivez le voyage à Londres de la Section Européenne en parcourant la « London Trip Review » !  Du 22 au 26…\n\n    [En savoir plus London Trip ReviewContinuer](https://lycee-blaise-cendrars-sevran.fr/london-trip-review/)\n\n-   [Rayonnement du lycee](https://lycee-blaise-cendrars-sevran.fr/category/rayonnement-du-lycee/)\n\n    ### [Une deuxième édition de la semaine de la science](https://lycee-blaise-cendrars-sevran.fr/1159-2/)\n\n    Au mois de mai, une semaine de la Science a été organisée par cinq enseignants de sciences du lycée Blaise-Cendrars….\n\n    [En savoir plus Une deuxième édition de la semaine de la scienceContinuer](https://lycee-blaise-cendrars-sevran.fr/1159-2/)\n\n\n## Club\n\n-   [Clubs](https://lycee-blaise-cendrars-sevran.fr/category/clubs/)\n\n    ### [Présentations Clubs](https://lycee-blaise-cendrars-sevran.fr/presentations-clubs/)\n\n    Ceci est un article afin de vous inciter à vous intéresser aux différents clubs du lycée, vous retrouverez plus d’informatons…\n\n    [En savoir plus Présentations ClubsContinuer](https://lycee-blaise-cendrars-sevran.fr/presentations-clubs/)\n\n\n## Cordées de la réussite\n\nAucun article\n\n## Spectacles\n\nAucun article\n\n## Voyages/Sorties\n\nAucun article",
+      "contentType": "page",
+      "category": "Vie du lycée",
+      "disposition": "durable",
+      "wordpressCategories": [],
+      "referencedMedia": [],
+      "allReferencedUrls": [
+        "https://lycee-blaise-cendrars-sevran.fr/category/rayonnement-du-lycee/",
+        "https://lycee-blaise-cendrars-sevran.fr/london-trip-review/",
+        "https://lycee-blaise-cendrars-sevran.fr/1159-2/",
+        "https://lycee-blaise-cendrars-sevran.fr/category/clubs/",
+        "https://lycee-blaise-cendrars-sevran.fr/presentations-clubs/"
+      ]
+    }
+  ],
+  "media": [
+    {
+      "wordpressId": 1232,
+      "parentId": null,
+      "slug": "taxe-d2b",
+      "title": "Taxe d2b",
+      "caption": "",
+      "altText": "",
+      "mimeType": "application/pdf",
+      "sourceUrl": "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2025/02/Taxe-d2b.pdf",
+      "aliases": [
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2025/02/Taxe-d2b.pdf",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2025/02/Taxe-d2b-pdf.jpg",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2025/02/Taxe-d2b-pdf-212x300.jpg",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2025/02/Taxe-d2b-pdf-724x1024.jpg",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2025/02/Taxe-d2b-pdf-106x150.jpg"
+      ],
+      "modifiedAt": "2025-02-14T12:39:44Z"
+    },
+    {
+      "wordpressId": 1225,
+      "parentId": null,
+      "slug": "plaquette_aqe_2022-4",
+      "title": "plaquette_aqe_2022",
+      "caption": "",
+      "altText": "",
+      "mimeType": "application/pdf",
+      "sourceUrl": "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2025/02/plaquette_aqe_2022-1.pdf",
+      "aliases": [
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2025/02/plaquette_aqe_2022-1.pdf",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2025/02/plaquette_aqe_2022-1-pdf.jpg",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2025/02/plaquette_aqe_2022-1-pdf-300x212.jpg",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2025/02/plaquette_aqe_2022-1-pdf-1024x724.jpg",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2025/02/plaquette_aqe_2022-1-pdf-150x106.jpg"
+      ],
+      "modifiedAt": "2025-02-11T14:19:45Z"
+    },
+    {
+      "wordpressId": 1224,
+      "parentId": null,
+      "slug": "plaquette_aqe_2022-3",
+      "title": "plaquette_aqe_2022",
+      "caption": "",
+      "altText": "",
+      "mimeType": "application/pdf",
+      "sourceUrl": "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2025/02/plaquette_aqe_2022.pdf",
+      "aliases": [
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2025/02/plaquette_aqe_2022.pdf",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2025/02/plaquette_aqe_2022-pdf.jpg",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2025/02/plaquette_aqe_2022-pdf-300x212.jpg",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2025/02/plaquette_aqe_2022-pdf-1024x723.jpg",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2025/02/plaquette_aqe_2022-pdf-150x106.jpg"
+      ],
+      "modifiedAt": "2025-02-11T14:14:50Z"
+    },
+    {
+      "wordpressId": 1223,
+      "parentId": null,
+      "slug": "plaquette_aqe_2022-2",
+      "title": "plaquette_aqe_2022",
+      "caption": "plaquette_aqe_2022",
+      "altText": "",
+      "mimeType": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+      "sourceUrl": "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2025/02/plaquette_aqe_2022-1.docx",
+      "aliases": [
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2025/02/plaquette_aqe_2022-1.docx"
+      ],
+      "modifiedAt": "2025-02-11T13:32:30Z"
+    },
+    {
+      "wordpressId": 1222,
+      "parentId": null,
+      "slug": "plaquette_aqe_2022",
+      "title": "plaquette_aqe_2022",
+      "caption": "plaquette_aqe_2022",
+      "altText": "",
+      "mimeType": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+      "sourceUrl": "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2025/02/plaquette_aqe_2022.docx",
+      "aliases": [
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2025/02/plaquette_aqe_2022.docx"
+      ],
+      "modifiedAt": "2025-02-11T13:31:39Z"
+    },
+    {
+      "wordpressId": 1187,
+      "parentId": null,
+      "slug": "tuto-ent-et-vote-pronote-1-2",
+      "title": "tuto ENt et vote Pronote-1",
+      "caption": "",
+      "altText": "",
+      "mimeType": "application/pdf",
+      "sourceUrl": "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/10/tuto-ENt-et-vote-Pronote-1-1.pdf",
+      "aliases": [
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/10/tuto-ENt-et-vote-Pronote-1-1.pdf",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/10/tuto-ENt-et-vote-Pronote-1-1-pdf.jpg",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/10/tuto-ENt-et-vote-Pronote-1-1-pdf-212x300.jpg",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/10/tuto-ENt-et-vote-Pronote-1-1-pdf-724x1024.jpg",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/10/tuto-ENt-et-vote-Pronote-1-1-pdf-106x150.jpg"
+      ],
+      "modifiedAt": "2024-10-04T11:59:58Z"
+    },
+    {
+      "wordpressId": 1186,
+      "parentId": null,
+      "slug": "tuto-ent-et-vote-pronote-1",
+      "title": "tuto ENt et vote Pronote-1",
+      "caption": "",
+      "altText": "",
+      "mimeType": "application/pdf",
+      "sourceUrl": "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/10/tuto-ENt-et-vote-Pronote-1.pdf",
+      "aliases": [
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/10/tuto-ENt-et-vote-Pronote-1.pdf",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/10/tuto-ENt-et-vote-Pronote-1-pdf.jpg",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/10/tuto-ENt-et-vote-Pronote-1-pdf-212x300.jpg",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/10/tuto-ENt-et-vote-Pronote-1-pdf-724x1024.jpg",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/10/tuto-ENt-et-vote-Pronote-1-pdf-106x150.jpg"
+      ],
+      "modifiedAt": "2024-10-04T11:46:07Z"
+    },
+    {
+      "wordpressId": 1168,
+      "parentId": null,
+      "slug": "revue-voyage-a-londres-euro-1",
+      "title": "Revue-Voyage-a-Londres-EURO-1",
+      "caption": "",
+      "altText": "",
+      "mimeType": "application/pdf",
+      "sourceUrl": "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/06/Revue-Voyage-a-Londres-EURO-1.pdf",
+      "aliases": [
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/06/Revue-Voyage-a-Londres-EURO-1.pdf",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/06/Revue-Voyage-a-Londres-EURO-1-pdf.jpg",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/06/Revue-Voyage-a-Londres-EURO-1-pdf-212x300.jpg",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/06/Revue-Voyage-a-Londres-EURO-1-pdf-724x1024.jpg",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/06/Revue-Voyage-a-Londres-EURO-1-pdf-106x150.jpg"
+      ],
+      "modifiedAt": "2024-06-25T12:23:35Z"
+    },
+    {
+      "wordpressId": 1163,
+      "parentId": null,
+      "slug": "01-3-11zon-0-jpg-31483",
+      "title": "01-3-11zon-0-jpg-31483",
+      "caption": "",
+      "altText": "",
+      "mimeType": "image/jpeg",
+      "sourceUrl": "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/06/01-3-11zon-0-jpg-31483.jpg",
+      "aliases": [
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/06/01-3-11zon-0-jpg-31483.jpg",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/06/01-3-11zon-0-jpg-31483-300x225.jpg",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/06/01-3-11zon-0-jpg-31483-1024x768.jpg",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/06/01-3-11zon-0-jpg-31483-150x150.jpg",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/06/01-3-11zon-0-jpg-31483-768x576.jpg",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/06/01-3-11zon-0-jpg-31483-1536x1152.jpg"
+      ],
+      "modifiedAt": "2024-06-25T08:28:14Z"
+    },
+    {
+      "wordpressId": 1160,
+      "parentId": null,
+      "slug": "5-7-11zon-jpg-31495",
+      "title": "5-7-11zon-jpg-31495",
+      "caption": "",
+      "altText": "",
+      "mimeType": "image/jpeg",
+      "sourceUrl": "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/06/5-7-11zon-jpg-31495.jpg",
+      "aliases": [
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/06/5-7-11zon-jpg-31495.jpg",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/06/5-7-11zon-jpg-31495-225x300.jpg",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/06/5-7-11zon-jpg-31495-768x1024.jpg",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/06/5-7-11zon-jpg-31495-150x150.jpg",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/06/5-7-11zon-jpg-31495-1152x1536.jpg"
+      ],
+      "modifiedAt": "2024-06-25T07:11:49Z"
+    },
+    {
+      "wordpressId": 1156,
+      "parentId": null,
+      "slug": "example-background-image-jpg",
+      "title": "Example-Background-Image.jpg",
+      "caption": "",
+      "altText": "",
+      "mimeType": "image/jpeg",
+      "sourceUrl": "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/06/Example-Background-Image.jpg",
+      "aliases": [
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/06/Example-Background-Image.jpg",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/06/Example-Background-Image-300x197.jpg",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/06/Example-Background-Image-1024x672.jpg",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/06/Example-Background-Image-150x150.jpg",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/06/Example-Background-Image-768x504.jpg",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/06/Example-Background-Image-1536x1008.jpg"
+      ],
+      "modifiedAt": "2024-06-25T06:47:18Z"
+    },
+    {
+      "wordpressId": 1123,
+      "parentId": null,
+      "slug": "page-8-3",
+      "title": "page 8 maths",
+      "caption": "",
+      "altText": "",
+      "mimeType": "image/png",
+      "sourceUrl": "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-8-2.png",
+      "aliases": [
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-8-2.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-8-2-300x170.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-8-2-1024x579.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-8-2-150x150.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-8-2-768x434.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-8-2-1536x868.png"
+      ],
+      "modifiedAt": "2024-02-09T11:41:08Z"
+    },
+    {
+      "wordpressId": 1122,
+      "parentId": null,
+      "slug": "page-7-3",
+      "title": "page 7 maths",
+      "caption": "",
+      "altText": "",
+      "mimeType": "image/png",
+      "sourceUrl": "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-7-2.png",
+      "aliases": [
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-7-2.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-7-2-300x170.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-7-2-1024x579.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-7-2-150x150.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-7-2-768x434.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-7-2-1536x868.png"
+      ],
+      "modifiedAt": "2024-02-09T11:41:05Z"
+    },
+    {
+      "wordpressId": 1121,
+      "parentId": null,
+      "slug": "page-6-3",
+      "title": "page 6 maths",
+      "caption": "",
+      "altText": "",
+      "mimeType": "image/png",
+      "sourceUrl": "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-6-2.png",
+      "aliases": [
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-6-2.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-6-2-300x170.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-6-2-1024x579.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-6-2-150x150.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-6-2-768x434.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-6-2-1536x868.png"
+      ],
+      "modifiedAt": "2024-02-09T11:41:02Z"
+    },
+    {
+      "wordpressId": 1120,
+      "parentId": null,
+      "slug": "page-5-3",
+      "title": "page 5 maths",
+      "caption": "",
+      "altText": "",
+      "mimeType": "image/png",
+      "sourceUrl": "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-5-2.png",
+      "aliases": [
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-5-2.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-5-2-300x170.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-5-2-1024x579.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-5-2-150x150.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-5-2-768x434.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-5-2-1536x868.png"
+      ],
+      "modifiedAt": "2024-02-09T11:40:50Z"
+    },
+    {
+      "wordpressId": 1119,
+      "parentId": null,
+      "slug": "page-4-3",
+      "title": "page 4 maths",
+      "caption": "",
+      "altText": "",
+      "mimeType": "image/png",
+      "sourceUrl": "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-4-2.png",
+      "aliases": [
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-4-2.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-4-2-300x170.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-4-2-1024x579.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-4-2-150x150.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-4-2-768x434.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-4-2-1536x868.png"
+      ],
+      "modifiedAt": "2024-02-09T11:40:47Z"
+    },
+    {
+      "wordpressId": 1118,
+      "parentId": null,
+      "slug": "page-3-3",
+      "title": "page 3 maths",
+      "caption": "",
+      "altText": "",
+      "mimeType": "image/png",
+      "sourceUrl": "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-3-2.png",
+      "aliases": [
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-3-2.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-3-2-300x169.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-3-2-1024x578.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-3-2-150x150.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-3-2-768x434.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-3-2-1536x867.png"
+      ],
+      "modifiedAt": "2024-02-09T11:40:43Z"
+    },
+    {
+      "wordpressId": 1117,
+      "parentId": null,
+      "slug": "page-2-3",
+      "title": "page 2 maths",
+      "caption": "",
+      "altText": "",
+      "mimeType": "image/png",
+      "sourceUrl": "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-2-2.png",
+      "aliases": [
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-2-2.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-2-2-300x169.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-2-2-1024x578.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-2-2-150x150.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-2-2-768x434.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-2-2-1536x867.png"
+      ],
+      "modifiedAt": "2024-02-09T11:40:38Z"
+    },
+    {
+      "wordpressId": 1116,
+      "parentId": null,
+      "slug": "page-1-3",
+      "title": "page 1 maths",
+      "caption": "",
+      "altText": "",
+      "mimeType": "image/png",
+      "sourceUrl": "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-1-2.png",
+      "aliases": [
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-1-2.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-1-2-300x169.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-1-2-1024x578.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-1-2-150x150.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-1-2-768x433.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-1-2-1536x866.png"
+      ],
+      "modifiedAt": "2024-02-09T11:40:35Z"
+    },
+    {
+      "wordpressId": 1115,
+      "parentId": null,
+      "slug": "page-9-3",
+      "title": "page 9 maths",
+      "caption": "",
+      "altText": "",
+      "mimeType": "image/png",
+      "sourceUrl": "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-9-2.png",
+      "aliases": [
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-9-2.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-9-2-300x170.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-9-2-1024x579.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-9-2-150x150.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-9-2-768x434.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-9-2-1536x868.png"
+      ],
+      "modifiedAt": "2024-02-09T11:40:57Z"
+    },
+    {
+      "wordpressId": 1108,
+      "parentId": null,
+      "slug": "page-9-2",
+      "title": "page 9 llce",
+      "caption": "",
+      "altText": "",
+      "mimeType": "image/png",
+      "sourceUrl": "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-9-1.png",
+      "aliases": [
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-9-1.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-9-1-300x169.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-9-1-1024x576.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-9-1-150x150.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-9-1-768x432.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-9-1-1536x864.png"
+      ],
+      "modifiedAt": "2024-02-09T11:32:57Z"
+    },
+    {
+      "wordpressId": 1107,
+      "parentId": null,
+      "slug": "page-7-2",
+      "title": "page 7",
+      "caption": "",
+      "altText": "",
+      "mimeType": "image/png",
+      "sourceUrl": "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-7-1.png",
+      "aliases": [
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-7-1.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-7-1-300x169.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-7-1-1024x576.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-7-1-150x150.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-7-1-768x432.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-7-1-1536x864.png"
+      ],
+      "modifiedAt": "2024-02-09T11:27:45Z"
+    },
+    {
+      "wordpressId": 1106,
+      "parentId": null,
+      "slug": "page-1-2",
+      "title": "page 1 llce",
+      "caption": "",
+      "altText": "",
+      "mimeType": "image/png",
+      "sourceUrl": "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-1-1.png",
+      "aliases": [
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-1-1.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-1-1-300x169.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-1-1-1024x575.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-1-1-150x150.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-1-1-768x432.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-1-1-1536x863.png"
+      ],
+      "modifiedAt": "2024-02-09T11:27:32Z"
+    },
+    {
+      "wordpressId": 1105,
+      "parentId": null,
+      "slug": "page-16",
+      "title": "page 16",
+      "caption": "",
+      "altText": "",
+      "mimeType": "image/png",
+      "sourceUrl": "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-16.png",
+      "aliases": [
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-16.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-16-300x169.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-16-1024x576.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-16-150x150.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-16-768x432.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-16-1536x864.png"
+      ],
+      "modifiedAt": "2024-02-09T11:24:19Z"
+    },
+    {
+      "wordpressId": 1104,
+      "parentId": null,
+      "slug": "page-15",
+      "title": "page 15 llce",
+      "caption": "",
+      "altText": "",
+      "mimeType": "image/png",
+      "sourceUrl": "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-15.png",
+      "aliases": [
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-15.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-15-300x169.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-15-1024x576.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-15-150x150.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-15-768x432.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-15-1536x864.png"
+      ],
+      "modifiedAt": "2024-02-09T11:30:19Z"
+    },
+    {
+      "wordpressId": 1103,
+      "parentId": null,
+      "slug": "page-14",
+      "title": "page 14 llce",
+      "caption": "",
+      "altText": "",
+      "mimeType": "image/png",
+      "sourceUrl": "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-14.png",
+      "aliases": [
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-14.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-14-300x169.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-14-1024x576.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-14-150x150.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-14-768x432.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-14-1536x864.png"
+      ],
+      "modifiedAt": "2024-02-09T11:30:15Z"
+    },
+    {
+      "wordpressId": 1102,
+      "parentId": null,
+      "slug": "page-13",
+      "title": "page 13 llce",
+      "caption": "",
+      "altText": "",
+      "mimeType": "image/png",
+      "sourceUrl": "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-13.png",
+      "aliases": [
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-13.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-13-300x169.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-13-1024x576.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-13-150x150.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-13-768x432.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-13-1536x864.png"
+      ],
+      "modifiedAt": "2024-02-09T11:30:10Z"
+    },
+    {
+      "wordpressId": 1101,
+      "parentId": null,
+      "slug": "page-12",
+      "title": "page 12 llce",
+      "caption": "",
+      "altText": "",
+      "mimeType": "image/png",
+      "sourceUrl": "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-12.png",
+      "aliases": [
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-12.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-12-300x169.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-12-1024x576.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-12-150x150.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-12-768x432.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-12-1536x864.png"
+      ],
+      "modifiedAt": "2024-02-09T11:30:00Z"
+    },
+    {
+      "wordpressId": 1100,
+      "parentId": null,
+      "slug": "page-11",
+      "title": "page 11 llce",
+      "caption": "",
+      "altText": "",
+      "mimeType": "image/png",
+      "sourceUrl": "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-11.png",
+      "aliases": [
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-11.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-11-300x169.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-11-1024x576.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-11-150x150.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-11-768x432.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-11-1536x864.png"
+      ],
+      "modifiedAt": "2024-02-09T11:29:55Z"
+    },
+    {
+      "wordpressId": 1099,
+      "parentId": null,
+      "slug": "page-10-2",
+      "title": "page 10 llce",
+      "caption": "",
+      "altText": "",
+      "mimeType": "image/png",
+      "sourceUrl": "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-10-1.png",
+      "aliases": [
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-10-1.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-10-1-300x169.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-10-1-1024x576.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-10-1-150x150.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-10-1-768x432.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-10-1-1536x864.png"
+      ],
+      "modifiedAt": "2024-02-09T11:29:51Z"
+    },
+    {
+      "wordpressId": 1098,
+      "parentId": null,
+      "slug": "page-8-2",
+      "title": "page 8 llce",
+      "caption": "",
+      "altText": "",
+      "mimeType": "image/png",
+      "sourceUrl": "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-8-1.png",
+      "aliases": [
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-8-1.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-8-1-300x169.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-8-1-1024x576.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-8-1-150x150.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-8-1-768x432.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-8-1-1536x864.png"
+      ],
+      "modifiedAt": "2024-02-09T11:29:44Z"
+    },
+    {
+      "wordpressId": 1097,
+      "parentId": null,
+      "slug": "page-6-2",
+      "title": "page 6",
+      "caption": "",
+      "altText": "",
+      "mimeType": "image/png",
+      "sourceUrl": "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-6-1.png",
+      "aliases": [
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-6-1.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-6-1-300x169.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-6-1-1024x576.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-6-1-150x150.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-6-1-768x432.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-6-1-1536x864.png"
+      ],
+      "modifiedAt": "2024-02-09T11:08:09Z"
+    },
+    {
+      "wordpressId": 1096,
+      "parentId": null,
+      "slug": "page-5-2",
+      "title": "page 5 llce",
+      "caption": "",
+      "altText": "",
+      "mimeType": "image/png",
+      "sourceUrl": "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-5-1.png",
+      "aliases": [
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-5-1.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-5-1-300x169.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-5-1-1024x576.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-5-1-150x150.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-5-1-768x432.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-5-1-1536x864.png"
+      ],
+      "modifiedAt": "2024-02-09T11:27:45Z"
+    },
+    {
+      "wordpressId": 1095,
+      "parentId": null,
+      "slug": "page-4-2",
+      "title": "page 4 llce",
+      "caption": "",
+      "altText": "",
+      "mimeType": "image/png",
+      "sourceUrl": "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-4-1.png",
+      "aliases": [
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-4-1.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-4-1-300x169.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-4-1-1024x576.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-4-1-150x150.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-4-1-768x432.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-4-1-1536x864.png"
+      ],
+      "modifiedAt": "2024-02-09T11:27:45Z"
+    },
+    {
+      "wordpressId": 1094,
+      "parentId": null,
+      "slug": "page-3-2",
+      "title": "page 3 llce",
+      "caption": "",
+      "altText": "",
+      "mimeType": "image/png",
+      "sourceUrl": "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-3-1.png",
+      "aliases": [
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-3-1.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-3-1-300x169.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-3-1-1024x576.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-3-1-150x150.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-3-1-768x432.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-3-1-1536x864.png"
+      ],
+      "modifiedAt": "2024-02-09T11:27:42Z"
+    },
+    {
+      "wordpressId": 1093,
+      "parentId": null,
+      "slug": "page-2-2",
+      "title": "page 2 llce",
+      "caption": "",
+      "altText": "",
+      "mimeType": "image/png",
+      "sourceUrl": "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-2-1.png",
+      "aliases": [
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-2-1.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-2-1-300x169.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-2-1-1024x576.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-2-1-150x150.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-2-1-768x432.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-2-1-1536x864.png"
+      ],
+      "modifiedAt": "2024-02-09T11:27:38Z"
+    },
+    {
+      "wordpressId": 1087,
+      "parentId": null,
+      "slug": "page-6",
+      "title": "page 6",
+      "caption": "",
+      "altText": "",
+      "mimeType": "image/png",
+      "sourceUrl": "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-6.png",
+      "aliases": [
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-6.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-6-300x169.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-6-1024x576.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-6-150x150.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-6-768x432.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-6-1536x864.png"
+      ],
+      "modifiedAt": "2024-02-09T10:43:17Z"
+    },
+    {
+      "wordpressId": 1086,
+      "parentId": null,
+      "slug": "page-3",
+      "title": "page 3",
+      "caption": "",
+      "altText": "",
+      "mimeType": "image/png",
+      "sourceUrl": "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-3.png",
+      "aliases": [
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-3.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-3-300x169.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-3-1024x576.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-3-150x150.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-3-768x432.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-3-1536x864.png"
+      ],
+      "modifiedAt": "2024-02-09T10:41:34Z"
+    },
+    {
+      "wordpressId": 1085,
+      "parentId": null,
+      "slug": "page-1",
+      "title": "page 1",
+      "caption": "",
+      "altText": "",
+      "mimeType": "image/png",
+      "sourceUrl": "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-1.png",
+      "aliases": [
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-1.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-1-300x169.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-1-1024x576.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-1-150x150.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-1-768x432.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-1-1536x864.png"
+      ],
+      "modifiedAt": "2024-02-09T10:39:41Z"
+    },
+    {
+      "wordpressId": 1084,
+      "parentId": null,
+      "slug": "page-7",
+      "title": "page 7",
+      "caption": "",
+      "altText": "",
+      "mimeType": "image/png",
+      "sourceUrl": "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-7.png",
+      "aliases": [
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-7.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-7-300x169.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-7-1024x576.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-7-150x150.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-7-768x432.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-7-1536x864.png"
+      ],
+      "modifiedAt": "2024-02-09T10:36:13Z"
+    },
+    {
+      "wordpressId": 1083,
+      "parentId": null,
+      "slug": "page-2",
+      "title": "page 2",
+      "caption": "",
+      "altText": "",
+      "mimeType": "image/png",
+      "sourceUrl": "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-2.png",
+      "aliases": [
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-2.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-2-300x169.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-2-1024x576.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-2-150x150.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-2-768x432.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-2-1536x864.png"
+      ],
+      "modifiedAt": "2024-02-09T10:32:34Z"
+    },
+    {
+      "wordpressId": 1082,
+      "parentId": null,
+      "slug": "page-10",
+      "title": "page 10",
+      "caption": "",
+      "altText": "",
+      "mimeType": "image/png",
+      "sourceUrl": "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-10.png",
+      "aliases": [
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-10.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-10-300x169.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-10-1024x576.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-10-150x150.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-10-768x432.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-10-1536x864.png"
+      ],
+      "modifiedAt": "2024-02-09T10:18:13Z"
+    },
+    {
+      "wordpressId": 1081,
+      "parentId": null,
+      "slug": "page-9",
+      "title": "page 9",
+      "caption": "",
+      "altText": "",
+      "mimeType": "image/png",
+      "sourceUrl": "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-9.png",
+      "aliases": [
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-9.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-9-300x169.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-9-1024x576.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-9-150x150.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-9-768x432.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-9-1536x864.png"
+      ],
+      "modifiedAt": "2024-02-09T10:17:41Z"
+    },
+    {
+      "wordpressId": 1080,
+      "parentId": null,
+      "slug": "page-8",
+      "title": "page 8",
+      "caption": "",
+      "altText": "",
+      "mimeType": "image/png",
+      "sourceUrl": "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-8.png",
+      "aliases": [
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-8.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-8-300x169.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-8-1024x576.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-8-150x150.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-8-768x432.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-8-1536x864.png"
+      ],
+      "modifiedAt": "2024-02-09T10:17:33Z"
+    },
+    {
+      "wordpressId": 1079,
+      "parentId": null,
+      "slug": "page-5",
+      "title": "page 5",
+      "caption": "",
+      "altText": "",
+      "mimeType": "image/png",
+      "sourceUrl": "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-5.png",
+      "aliases": [
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-5.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-5-300x169.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-5-1024x576.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-5-150x150.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-5-768x432.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-5-1536x864.png"
+      ],
+      "modifiedAt": "2024-02-09T10:16:13Z"
+    },
+    {
+      "wordpressId": 1078,
+      "parentId": null,
+      "slug": "page-4",
+      "title": "page 4",
+      "caption": "",
+      "altText": "",
+      "mimeType": "image/png",
+      "sourceUrl": "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-4.png",
+      "aliases": [
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-4.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-4-300x169.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-4-1024x576.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-4-150x150.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-4-768x432.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/page-4-1536x864.png"
+      ],
+      "modifiedAt": "2024-02-09T10:15:40Z"
+    },
+    {
+      "wordpressId": 1067,
+      "parentId": null,
+      "slug": "horaires-unss",
+      "title": "horaires UNSS",
+      "caption": "",
+      "altText": "",
+      "mimeType": "image/png",
+      "sourceUrl": "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/horaires-UNSS.png",
+      "aliases": [
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/horaires-UNSS.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/horaires-UNSS-300x135.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/horaires-UNSS-1024x462.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/horaires-UNSS-150x150.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/horaires-UNSS-768x346.png"
+      ],
+      "modifiedAt": "2024-02-08T15:29:43Z"
+    },
+    {
+      "wordpressId": 1064,
+      "parentId": null,
+      "slug": "horaires-unss-2",
+      "title": "horaires UNSS",
+      "caption": "",
+      "altText": "",
+      "mimeType": "application/pdf",
+      "sourceUrl": "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/horaires-UNSS-1.pdf",
+      "aliases": [
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/horaires-UNSS-1.pdf",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/horaires-UNSS-1-pdf.jpg",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/horaires-UNSS-1-pdf-300x212.jpg",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/horaires-UNSS-1-pdf-1024x724.jpg",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/horaires-UNSS-1-pdf-150x106.jpg"
+      ],
+      "modifiedAt": "2024-02-08T15:25:55Z"
+    },
+    {
+      "wordpressId": 1051,
+      "parentId": null,
+      "slug": "horaires-cdi-2",
+      "title": "horaires cdi",
+      "caption": "",
+      "altText": "",
+      "mimeType": "image/png",
+      "sourceUrl": "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/horaires-cdi.png",
+      "aliases": [
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/horaires-cdi.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/horaires-cdi-300x64.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/horaires-cdi-1024x219.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/horaires-cdi-150x150.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/horaires-cdi-768x164.png"
+      ],
+      "modifiedAt": "2024-02-08T14:46:53Z"
+    },
+    {
+      "wordpressId": 1047,
+      "parentId": null,
+      "slug": "horaires-cdi",
+      "title": "horaires-cdi",
+      "caption": "",
+      "altText": "",
+      "mimeType": "application/pdf",
+      "sourceUrl": "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/horaires-cdi.pdf",
+      "aliases": [
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/horaires-cdi.pdf",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/horaires-cdi-pdf.jpg",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/horaires-cdi-pdf-300x212.jpg",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/horaires-cdi-pdf-1024x724.jpg",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/horaires-cdi-pdf-150x106.jpg"
+      ],
+      "modifiedAt": "2024-02-08T14:42:22Z"
+    },
+    {
+      "wordpressId": 1021,
+      "parentId": null,
+      "slug": "autorisation-parentale",
+      "title": "Autorisation-parentale",
+      "caption": "",
+      "altText": "",
+      "mimeType": "application/pdf",
+      "sourceUrl": "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/Autorisation-parentale.pdf",
+      "aliases": [
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/Autorisation-parentale.pdf",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/Autorisation-parentale-pdf.jpg",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/Autorisation-parentale-pdf-212x300.jpg",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/Autorisation-parentale-pdf-725x1024.jpg",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/Autorisation-parentale-pdf-106x150.jpg"
+      ],
+      "modifiedAt": "2024-02-07T11:14:40Z"
+    },
+    {
+      "wordpressId": 935,
+      "parentId": null,
+      "slug": "logo-cyclades",
+      "title": "logo-cyclades",
+      "caption": "",
+      "altText": "",
+      "mimeType": "image/png",
+      "sourceUrl": "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/logo-cyclades.png",
+      "aliases": [
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/logo-cyclades.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/logo-cyclades-300x156.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/logo-cyclades-150x150.png"
+      ],
+      "modifiedAt": "2024-02-05T13:59:59Z"
+    },
+    {
+      "wordpressId": 826,
+      "parentId": null,
+      "slug": "qrcode-gdoc",
+      "title": "qrcode-gdoc",
+      "caption": "",
+      "altText": "",
+      "mimeType": "image/png",
+      "sourceUrl": "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/qrcode-gdoc.png",
+      "aliases": [
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/qrcode-gdoc.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/02/qrcode-gdoc-150x150.png"
+      ],
+      "modifiedAt": "2024-02-02T13:05:11Z"
+    },
+    {
+      "wordpressId": 568,
+      "parentId": null,
+      "slug": "logo-blaise-cendrars-texte",
+      "title": "Logo-blaise-cendrars-texte",
+      "caption": "",
+      "altText": "",
+      "mimeType": "image/png",
+      "sourceUrl": "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/01/Logo-blaise-cendrars-texte.png",
+      "aliases": [
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/01/Logo-blaise-cendrars-texte.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/01/Logo-blaise-cendrars-texte-300x243.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/01/Logo-blaise-cendrars-texte-1024x830.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/01/Logo-blaise-cendrars-texte-150x150.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/01/Logo-blaise-cendrars-texte-768x622.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/01/Logo-blaise-cendrars-texte-1536x1245.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/01/Logo-blaise-cendrars-texte-2048x1660.png"
+      ],
+      "modifiedAt": "2024-01-30T10:54:09Z"
+    },
+    {
+      "wordpressId": 534,
+      "parentId": null,
+      "slug": "pronote-logo",
+      "title": "pronote-logo",
+      "caption": "",
+      "altText": "",
+      "mimeType": "image/webp",
+      "sourceUrl": "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/01/pronote-logo.webp",
+      "aliases": [
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/01/pronote-logo.webp",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/01/pronote-logo-300x300.webp",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/01/pronote-logo-150x150.webp"
+      ],
+      "modifiedAt": "2024-01-30T07:34:09Z"
+    },
+    {
+      "wordpressId": 498,
+      "parentId": null,
+      "slug": "image_atelier_oral",
+      "title": "image_atelier_oral",
+      "caption": "",
+      "altText": "",
+      "mimeType": "image/png",
+      "sourceUrl": "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/01/image_atelier_oral.png",
+      "aliases": [
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/01/image_atelier_oral.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/01/image_atelier_oral-300x134.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/01/image_atelier_oral-1024x456.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/01/image_atelier_oral-150x150.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/01/image_atelier_oral-768x342.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/01/image_atelier_oral-1536x684.png"
+      ],
+      "modifiedAt": "2024-01-25T10:45:53Z"
+    },
+    {
+      "wordpressId": 444,
+      "parentId": null,
+      "slug": "vernissage-131123",
+      "title": "Vernissage 131123",
+      "caption": "",
+      "altText": "",
+      "mimeType": "image/jpeg",
+      "sourceUrl": "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/01/Vernissage-131123-rotated.jpg",
+      "aliases": [
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/01/Vernissage-131123-rotated.jpg",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/01/Vernissage-131123-300x225.jpg",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/01/Vernissage-131123-1024x768.jpg",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/01/Vernissage-131123-150x150.jpg",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/01/Vernissage-131123-768x576.jpg",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/01/Vernissage-131123-1536x1152.jpg"
+      ],
+      "modifiedAt": "2024-01-23T14:25:54Z"
+    },
+    {
+      "wordpressId": 380,
+      "parentId": null,
+      "slug": "logo_mon_lycee",
+      "title": "logo_mon_lycee",
+      "caption": "",
+      "altText": "",
+      "mimeType": "image/png",
+      "sourceUrl": "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/01/logo_mon_lycee.png",
+      "aliases": [
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/01/logo_mon_lycee.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/01/logo_mon_lycee-150x150.png"
+      ],
+      "modifiedAt": "2024-01-19T15:37:39Z"
+    },
+    {
+      "wordpressId": 375,
+      "parentId": null,
+      "slug": "esidoc",
+      "title": "esidoc",
+      "caption": "",
+      "altText": "Redirection vers la plateforme e-sidoc",
+      "mimeType": "image/png",
+      "sourceUrl": "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/01/esidoc.png",
+      "aliases": [
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/01/esidoc.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2024/01/esidoc-150x124.png"
+      ],
+      "modifiedAt": "2024-01-19T15:33:13Z"
+    },
+    {
+      "wordpressId": 203,
+      "parentId": null,
+      "slug": "capture-decran-2023-05-22-145857",
+      "title": "Capture d’écran 2023-05-22 145857",
+      "caption": "",
+      "altText": "",
+      "mimeType": "image/jpeg",
+      "sourceUrl": "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2023/05/Capture-decran-2023-05-22-145857.jpg",
+      "aliases": [
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2023/05/Capture-decran-2023-05-22-145857.jpg",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2023/05/Capture-decran-2023-05-22-145857-150x150.jpg"
+      ],
+      "modifiedAt": "2023-05-31T06:22:47Z"
+    },
+    {
+      "wordpressId": 193,
+      "parentId": null,
+      "slug": "facadelycee",
+      "title": "facadelycee",
+      "caption": "Façade du lycée",
+      "altText": "",
+      "mimeType": "image/png",
+      "sourceUrl": "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2023/05/facadelycee.png",
+      "aliases": [
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2023/05/facadelycee.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2023/05/facadelycee-300x105.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2023/05/facadelycee-150x150.png"
+      ],
+      "modifiedAt": "2024-01-22T13:43:14Z"
+    },
+    {
+      "wordpressId": 165,
+      "parentId": null,
+      "slug": "ouverturecdi",
+      "title": "ouverturecdi",
+      "caption": "",
+      "altText": "",
+      "mimeType": "image/png",
+      "sourceUrl": "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2023/05/ouverturecdi.png",
+      "aliases": [
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2023/05/ouverturecdi.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2023/05/ouverturecdi-300x232.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2023/05/ouverturecdi-150x150.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2023/05/ouverturecdi-768x595.png"
+      ],
+      "modifiedAt": "2023-05-21T22:07:59Z"
+    },
+    {
+      "wordpressId": 152,
+      "parentId": null,
+      "slug": "sans-titre-4",
+      "title": "Sans titre",
+      "caption": "",
+      "altText": "",
+      "mimeType": "image/jpeg",
+      "sourceUrl": "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2023/05/Sans-titre-2.jpg",
+      "aliases": [
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2023/05/Sans-titre-2.jpg",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2023/05/Sans-titre-2-300x143.jpg",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2023/05/Sans-titre-2-150x150.jpg"
+      ],
+      "modifiedAt": "2023-05-21T18:23:35Z"
+    },
+    {
+      "wordpressId": 151,
+      "parentId": null,
+      "slug": "4px-bw84_n0qjgvpszge3nrbskw-2vcoifrjijpyfykotaczxxxq2vdvkgnfon3jqj9g72bdqmc9c0al7ooiyrr-4cxkr-7itck17nvfzwnulpybzv7c6q",
+      "title": "arrierelycee",
+      "caption": "Arrière du lycée",
+      "altText": "",
+      "mimeType": "image/webp",
+      "sourceUrl": "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2023/05/4px-BW84_n0QJGVPszge3NRBsKw-2VcOifrJIjPYFYkOtaCZxxXQ2VDVKgNFon3Jqj9G72BdQMc9c0al7ooiyrr-4cxkr-7ItCK17NVfZwnULPyBZv7C6Q.webp",
+      "aliases": [
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2023/05/4px-BW84_n0QJGVPszge3NRBsKw-2VcOifrJIjPYFYkOtaCZxxXQ2VDVKgNFon3Jqj9G72BdQMc9c0al7ooiyrr-4cxkr-7ItCK17NVfZwnULPyBZv7C6Q.webp",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2023/05/4px-BW84_n0QJGVPszge3NRBsKw-2VcOifrJIjPYFYkOtaCZxxXQ2VDVKgNFon3Jqj9G72BdQMc9c0al7ooiyrr-4cxkr-7ItCK17NVfZwnULPyBZv7C6Q-300x91.webp",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2023/05/4px-BW84_n0QJGVPszge3NRBsKw-2VcOifrJIjPYFYkOtaCZxxXQ2VDVKgNFon3Jqj9G72BdQMc9c0al7ooiyrr-4cxkr-7ItCK17NVfZwnULPyBZv7C6Q-150x150.webp"
+      ],
+      "modifiedAt": "2024-01-24T13:55:27Z"
+    },
+    {
+      "wordpressId": 149,
+      "parentId": null,
+      "slug": "cdi-1",
+      "title": "CDI-1",
+      "caption": "",
+      "altText": "",
+      "mimeType": "image/jpeg",
+      "sourceUrl": "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2023/05/CDI-1.jpg",
+      "aliases": [
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2023/05/CDI-1.jpg",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2023/05/CDI-1-300x225.jpg",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2023/05/CDI-1-1024x768.jpg",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2023/05/CDI-1-150x150.jpg",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2023/05/CDI-1-768x576.jpg",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2023/05/CDI-1-1536x1152.jpg"
+      ],
+      "modifiedAt": "2023-05-21T18:18:00Z"
+    },
+    {
+      "wordpressId": 118,
+      "parentId": null,
+      "slug": "logoblaise",
+      "title": "logoblaise",
+      "caption": "",
+      "altText": "",
+      "mimeType": "image/png",
+      "sourceUrl": "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2023/05/logoblaise.png",
+      "aliases": [
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2023/05/logoblaise.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2023/05/logoblaise-201x300.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2023/05/logoblaise-150x150.png"
+      ],
+      "modifiedAt": "2024-01-30T10:19:58Z"
+    },
+    {
+      "wordpressId": 114,
+      "parentId": null,
+      "slug": "bus",
+      "title": "bus",
+      "caption": "",
+      "altText": "",
+      "mimeType": "image/png",
+      "sourceUrl": "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2023/05/bus.png",
+      "aliases": [
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2023/05/bus.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2023/05/bus-150x150.png"
+      ],
+      "modifiedAt": "2023-05-17T07:17:42Z"
+    },
+    {
+      "wordpressId": 103,
+      "parentId": null,
+      "slug": "educonnect",
+      "title": "EduConnect",
+      "caption": "",
+      "altText": "Redirection vers educonnect",
+      "mimeType": "image/png",
+      "sourceUrl": "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2023/05/EduConnect.png",
+      "aliases": [
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2023/05/EduConnect.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2023/05/EduConnect-300x169.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2023/05/EduConnect-150x150.png"
+      ],
+      "modifiedAt": "2024-01-19T15:30:33Z"
+    },
+    {
+      "wordpressId": 102,
+      "parentId": null,
+      "slug": "edu",
+      "title": "edu",
+      "caption": "",
+      "altText": "",
+      "mimeType": "image/jpeg",
+      "sourceUrl": "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2023/05/edu.jpg",
+      "aliases": [
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2023/05/edu.jpg",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2023/05/edu-150x150.jpg"
+      ],
+      "modifiedAt": "2023-05-17T06:28:44Z"
+    },
+    {
+      "wordpressId": 101,
+      "parentId": null,
+      "slug": "logoparcor",
+      "title": "logoparcor",
+      "caption": "",
+      "altText": "",
+      "mimeType": "image/png",
+      "sourceUrl": "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2023/05/logoparcor.png",
+      "aliases": [
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2023/05/logoparcor.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2023/05/logoparcor-150x150.png"
+      ],
+      "modifiedAt": "2023-05-17T06:27:41Z"
+    },
+    {
+      "wordpressId": 100,
+      "parentId": null,
+      "slug": "parcoursup-logo",
+      "title": "PARCOURSUP-LOGO",
+      "caption": "",
+      "altText": "Redirection vers parcoursup",
+      "mimeType": "image/png",
+      "sourceUrl": "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2023/05/PARCOURSUP-LOGO.png",
+      "aliases": [
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2023/05/PARCOURSUP-LOGO.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2023/05/PARCOURSUP-LOGO-300x243.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2023/05/PARCOURSUP-LOGO-150x150.png"
+      ],
+      "modifiedAt": "2024-01-19T15:26:18Z"
+    },
+    {
+      "wordpressId": 98,
+      "parentId": null,
+      "slug": "sup",
+      "title": "sup",
+      "caption": "",
+      "altText": "",
+      "mimeType": "image/png",
+      "sourceUrl": "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2023/05/sup.png",
+      "aliases": [
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2023/05/sup.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2023/05/sup-300x251.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2023/05/sup-150x150.png"
+      ],
+      "modifiedAt": "2023-05-17T06:24:45Z"
+    },
+    {
+      "wordpressId": 97,
+      "parentId": null,
+      "slug": "parcour",
+      "title": "parcour",
+      "caption": "",
+      "altText": "",
+      "mimeType": "image/png",
+      "sourceUrl": "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2023/05/parcour.png",
+      "aliases": [
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2023/05/parcour.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2023/05/parcour-300x49.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2023/05/parcour-150x91.png"
+      ],
+      "modifiedAt": "2023-05-17T06:24:33Z"
+    },
+    {
+      "wordpressId": 88,
+      "parentId": null,
+      "slug": "club",
+      "title": "club",
+      "caption": "",
+      "altText": "",
+      "mimeType": "image/jpeg",
+      "sourceUrl": "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2023/05/club.jpg",
+      "aliases": [
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2023/05/club.jpg",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2023/05/club-220x300.jpg",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2023/05/club-150x150.jpg"
+      ],
+      "modifiedAt": "2023-05-16T08:00:21Z"
+    },
+    {
+      "wordpressId": 79,
+      "parentId": null,
+      "slug": "cdi-2",
+      "title": "CDI",
+      "caption": "Photo du CDI",
+      "altText": "",
+      "mimeType": "image/jpeg",
+      "sourceUrl": "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2023/05/CDI.jpg",
+      "aliases": [
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2023/05/CDI.jpg",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2023/05/CDI-300x225.jpg",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2023/05/CDI-1024x768.jpg",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2023/05/CDI-150x150.jpg",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2023/05/CDI-768x576.jpg",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2023/05/CDI-1536x1152.jpg"
+      ],
+      "modifiedAt": "2024-01-25T10:59:11Z"
+    },
+    {
+      "wordpressId": 66,
+      "parentId": null,
+      "slug": "sans-titre-1",
+      "title": "Sans-titre-1",
+      "caption": "",
+      "altText": "Redirection vers la plateforme ENT",
+      "mimeType": "image/png",
+      "sourceUrl": "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2023/05/Sans-titre-1.png",
+      "aliases": [
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2023/05/Sans-titre-1.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2023/05/Sans-titre-1-150x150.png"
+      ],
+      "modifiedAt": "2024-01-19T15:19:33Z"
+    },
+    {
+      "wordpressId": 65,
+      "parentId": null,
+      "slug": "sans-titre-3",
+      "title": "Sans titre",
+      "caption": "",
+      "altText": "",
+      "mimeType": "image/png",
+      "sourceUrl": "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2023/05/Sans-titre.png",
+      "aliases": [
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2023/05/Sans-titre.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2023/05/Sans-titre-150x150.png"
+      ],
+      "modifiedAt": "2023-05-16T06:49:22Z"
+    },
+    {
+      "wordpressId": 64,
+      "parentId": null,
+      "slug": "sans-titre-2",
+      "title": "Sans titre",
+      "caption": "",
+      "altText": "",
+      "mimeType": "image/jpeg",
+      "sourceUrl": "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2023/05/Sans-titre-1.jpg",
+      "aliases": [
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2023/05/Sans-titre-1.jpg",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2023/05/Sans-titre-1-300x104.jpg",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2023/05/Sans-titre-1-150x132.jpg"
+      ],
+      "modifiedAt": "2023-05-16T06:49:09Z"
+    },
+    {
+      "wordpressId": 62,
+      "parentId": null,
+      "slug": "logo-home-png-7412-1",
+      "title": "logo-home-png-7412-1",
+      "caption": "",
+      "altText": "",
+      "mimeType": "image/png",
+      "sourceUrl": "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2023/05/logo-home-png-7412-1.png",
+      "aliases": [
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2023/05/logo-home-png-7412-1.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2023/05/logo-home-png-7412-1-300x284.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2023/05/logo-home-png-7412-1-1024x969.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2023/05/logo-home-png-7412-1-150x150.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2023/05/logo-home-png-7412-1-768x727.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2023/05/logo-home-png-7412-1-1536x1453.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2023/05/logo-home-png-7412-1-2048x1938.png"
+      ],
+      "modifiedAt": "2023-05-16T06:45:39Z"
+    },
+    {
+      "wordpressId": 50,
+      "parentId": null,
+      "slug": "sans-titre",
+      "title": "Sans titre",
+      "caption": "",
+      "altText": "",
+      "mimeType": "image/jpeg",
+      "sourceUrl": "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2023/05/Sans-titre.jpg",
+      "aliases": [
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2023/05/Sans-titre.jpg",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2023/05/Sans-titre-300x104.jpg",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2023/05/Sans-titre-150x132.jpg"
+      ],
+      "modifiedAt": "2023-05-15T11:28:07Z"
+    },
+    {
+      "wordpressId": 43,
+      "parentId": null,
+      "slug": "logo-home-png-7412",
+      "title": "logo-home-png-7412",
+      "caption": "",
+      "altText": "",
+      "mimeType": "image/png",
+      "sourceUrl": "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2023/05/logo-home-png-7412.png",
+      "aliases": [
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2023/05/logo-home-png-7412.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2023/05/logo-home-png-7412-300x284.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2023/05/logo-home-png-7412-1024x969.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2023/05/logo-home-png-7412-150x150.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2023/05/logo-home-png-7412-768x727.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2023/05/logo-home-png-7412-1536x1453.png",
+        "https://lycee-blaise-cendrars-sevran.fr/wp-content/uploads/2023/05/logo-home-png-7412-2048x1938.png"
+      ],
+      "modifiedAt": "2023-05-15T10:36:19Z"
+    }
+  ],
+  "categories": [
+    {
+      "id": 5,
+      "slug": "articles",
+      "name": "Articles",
+      "count": 1
+    },
+    {
+      "id": 1,
+      "slug": "blog",
+      "name": "Blog",
+      "count": 2
+    },
+    {
+      "id": 14,
+      "slug": "cdi",
+      "name": "CDI",
+      "count": 2
+    },
+    {
+      "id": 17,
+      "slug": "clubs",
+      "name": "Clubs",
+      "count": 1
+    },
+    {
+      "id": 18,
+      "slug": "cordees",
+      "name": "Cordées",
+      "count": 0
+    },
+    {
+      "id": 3,
+      "slug": "fixe",
+      "name": "Fixe",
+      "count": 1
+    },
+    {
+      "id": 15,
+      "slug": "rayonnement-du-lycee",
+      "name": "Rayonnement du lycee",
+      "count": 2
+    },
+    {
+      "id": 20,
+      "slug": "sorties",
+      "name": "Sorties",
+      "count": 0
+    },
+    {
+      "id": 19,
+      "slug": "spectacles",
+      "name": "Spectacles",
+      "count": 0
+    }
+  ],
+  "unresolvedUploadUrls": [
+    "http://localhost/wordpress/wp-content/uploads/2023/05/club.jpg"
+  ]
+}

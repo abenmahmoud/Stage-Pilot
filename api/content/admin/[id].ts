@@ -36,6 +36,7 @@ async function linkedAssets(contentId: string) {
       altText: siteContentAssets.altText,
       status: siteContentAssets.status,
       storagePath: siteContentAssets.storagePath,
+      importKey: siteContentAssets.importKey,
       assetRole: siteContentAssetLinks.assetRole,
       publicLabel: siteContentAssetLinks.publicLabel,
       position: siteContentAssetLinks.position,

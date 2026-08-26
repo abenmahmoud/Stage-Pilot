@@ -19,7 +19,7 @@ import {
 } from "../../../_shared/site-content.js";
 import { handleApi, methodNotAllowed } from "../../../_shared/response.js";
 
-type ContentAction = "submit_review" | "publish" | "archive" | "duplicate" | "restore";
+type ContentAction = "submit_review" | "publish" | "archive" | "duplicate" | "restore" | "verify_source";
 
 function routeId(req: VercelRequest): string {
   const value = Array.isArray(req.query.id) ? req.query.id[0] : req.query.id;
@@ -29,7 +29,7 @@ function routeId(req: VercelRequest): string {
 
 function requestedAction(body: unknown): ContentAction {
   const value = body && typeof body === "object" ? (body as Record<string, unknown>).action : null;
-  if (!["submit_review", "publish", "archive", "duplicate", "restore"].includes(String(value))) {
+  if (!["submit_review", "publish", "archive", "duplicate", "restore", "verify_source"].includes(String(value))) {
     throw new HttpError(400, "Action invalide");
   }
   return value as ContentAction;
@@ -54,12 +54,34 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== "POST") return methodNotAllowed(res, ["POST"]);
   return handleApi(res, async () => {
     const action = requestedAction(req.body);
-    const user = action === "publish" || action === "archive" || action === "restore"
+    const user = action === "publish" || action === "archive" || action === "restore" || action === "verify_source"
       ? await requireSitePublisher(req)
       : await requireSiteEditor(req);
     const id = routeId(req);
     const [current] = await db.select().from(siteContentItems).where(eq(siteContentItems.id, id)).limit(1);
     if (!current) throw new HttpError(404, "Contenu introuvable");
+
+    if (action === "verify_source") {
+      if (!current.needsReview) throw new HttpError(409, "Ce contenu est déjà vérifié");
+      const [item] = await db
+        .update(siteContentItems)
+        .set({
+          needsReview: false,
+          reviewedAt: new Date(),
+          reviewedBy: user.id,
+          updatedBy: user.id,
+        })
+        .where(eq(siteContentItems.id, id))
+        .returning();
+      await db.insert(siteContentAudit).values({
+        resourceType: "content",
+        resourceId: id,
+        action: "verify_source",
+        actorId: user.id,
+        summary: { sourceSystem: current.sourceSystem, sourceUpdatedAt: current.sourceUpdatedAt },
+      });
+      return { item };
+    }
 
     if (action === "submit_review") {
       if (current.status === "archive") throw new HttpError(409, "Ce contenu est archivé");
@@ -80,6 +102,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     if (action === "publish") {
       if (current.status === "archive") throw new HttpError(409, "Restaurez d’abord ce contenu");
+      if (current.needsReview) {
+        throw new HttpError(409, "Vérifiez d’abord les informations reprises de l’ancien site");
+      }
       const links = await contentLinks(id);
       if (links.some((asset) => asset.status !== "ready")) {
         throw new HttpError(409, "Un fichier n’est pas prêt à être publié");
@@ -147,6 +172,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             featured: false,
             metaTitle: current.metaTitle,
             metaDescription: current.metaDescription,
+            sourceSystem: null,
+            sourceUrl: null,
+            sourceUpdatedAt: null,
+            importKey: null,
+            sourceDisposition: null,
+            needsReview: false,
+            importedAt: null,
+            reviewedAt: null,
+            reviewedBy: null,
             createdBy: user.id,
             updatedBy: user.id,
           })
@@ -221,6 +255,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           publishAt: restored.publishAt,
           expiresAt: restored.expiresAt,
           status: "brouillon",
+          needsReview: Boolean(current.importKey),
+          reviewedAt: null,
+          reviewedBy: null,
           version: nextVersion,
           updatedBy: user.id,
         })

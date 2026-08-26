@@ -52,19 +52,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       : [];
     const assetMap = new Map(assets.map((asset) => [asset.id, asset]));
 
-    const items = await Promise.all(parsed.map(async ({ item, content }) => ({
-      id: item.id,
-      contentType: content.contentType,
-      slug: content.slug,
-      title: content.title,
-      summary: content.summary,
-      bodyMarkdown: content.bodyMarkdown,
-      category: content.category,
-      audience: content.audience,
-      featured: content.featured,
-      publishedAt: item.publishedAt,
-      publishAt: content.publishAt,
-      assets: await Promise.all(content.assets.flatMap((link) => {
+    const items = await Promise.all(parsed.map(async ({ item, content }) => {
+      const signedAssets = await Promise.all(content.assets.flatMap((link) => {
         const asset = assetMap.get(link.assetId);
         if (!asset) return [];
         return [Promise.resolve(signedAssetUrl(asset.storagePath)).then((signedUrl) => ({
@@ -78,9 +67,30 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           label: link.publicLabel,
           position: link.position,
           signedUrl,
+          importKey: asset.importKey,
         }))];
-      })),
-    })));
+      }));
+      const legacyUrls = new Map(
+        signedAssets.flatMap((asset) => {
+          const match = asset.importKey?.match(/^wordpress:media:(\d+)$/);
+          return match && asset.signedUrl ? [[match[1], asset.signedUrl] as const] : [];
+        })
+      );
+      return {
+        id: item.id,
+        contentType: content.contentType,
+        slug: content.slug,
+        title: content.title,
+        summary: content.summary,
+        bodyMarkdown: content.bodyMarkdown.replace(/legacy-media:(\d+)/g, (reference, mediaId) => legacyUrls.get(mediaId) ?? reference),
+        category: content.category,
+        audience: content.audience,
+        featured: content.featured,
+        publishedAt: item.publishedAt,
+        publishAt: content.publishAt,
+        assets: signedAssets.map(({ importKey: _importKey, ...asset }) => asset),
+      };
+    }));
     return { items };
   });
 }
