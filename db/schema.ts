@@ -237,6 +237,97 @@ export const templatesDocuments = pgTable("templates_documents", {
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow(),
 });
 
+export const siteContentTemplates = pgTable("site_content_templates", {
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  slug: text("slug").notNull().unique(),
+  name: text("name").notNull(),
+  contentType: text("content_type").notNull(),
+  description: text("description").notNull().default(""),
+  defaultTitle: text("default_title").notNull().default(""),
+  defaultSummary: text("default_summary").notNull().default(""),
+  defaultBodyMarkdown: text("default_body_markdown").notNull().default(""),
+  active: boolean("active").notNull().default(true),
+  version: integer("version").notNull().default(1),
+  createdBy: uuid("created_by"),
+  updatedBy: uuid("updated_by"),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+export const siteContentItems = pgTable("site_content_items", {
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  contentType: text("content_type").notNull(),
+  slug: text("slug").notNull().unique(),
+  title: text("title").notNull(),
+  summary: text("summary").notNull().default(""),
+  bodyMarkdown: text("body_markdown").notNull().default(""),
+  category: text("category").notNull().default("Vie du lycée"),
+  audience: text("audience").notNull().default("tous"),
+  status: text("status").notNull().default("brouillon"),
+  templateId: uuid("template_id").references(() => siteContentTemplates.id, { onDelete: "set null" }),
+  featured: boolean("featured").notNull().default(false),
+  metaTitle: text("meta_title"),
+  metaDescription: text("meta_description"),
+  publishAt: timestamp("publish_at", { withTimezone: true }),
+  expiresAt: timestamp("expires_at", { withTimezone: true }),
+  publishedAt: timestamp("published_at", { withTimezone: true }),
+  createdBy: uuid("created_by"),
+  updatedBy: uuid("updated_by"),
+  approvedBy: uuid("approved_by"),
+  version: integer("version").notNull().default(1),
+  publishedVersion: integer("published_version"),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+export const siteContentVersions = pgTable("site_content_versions", {
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  contentId: uuid("content_id").notNull().references(() => siteContentItems.id, { onDelete: "restrict" }),
+  version: integer("version").notNull(),
+  snapshot: jsonb("snapshot").notNull(),
+  createdBy: uuid("created_by"),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+export const siteContentAssets = pgTable("site_content_assets", {
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  storageBucket: text("storage_bucket").notNull().default("site-content"),
+  storagePath: text("storage_path").notNull().unique(),
+  originalName: text("original_name").notNull(),
+  mimeType: text("mime_type").notNull(),
+  sizeBytes: bigint("size_bytes", { mode: "number" }).notNull(),
+  assetKind: text("asset_kind").notNull(),
+  title: text("title").notNull(),
+  altText: text("alt_text"),
+  status: text("status").notNull().default("pending"),
+  createdBy: uuid("created_by"),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+export const siteContentAssetLinks = pgTable(
+  "site_content_asset_links",
+  {
+    contentId: uuid("content_id").notNull().references(() => siteContentItems.id, { onDelete: "cascade" }),
+    assetId: uuid("asset_id").notNull().references(() => siteContentAssets.id, { onDelete: "restrict" }),
+    assetRole: text("asset_role").notNull(),
+    publicLabel: text("public_label").notNull(),
+    position: integer("position").notNull().default(0),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [primaryKey({ columns: [table.contentId, table.assetId] })]
+);
+
+export const siteContentAudit = pgTable("site_content_audit", {
+  id: bigint("id", { mode: "number" }).primaryKey().generatedAlwaysAsIdentity(),
+  resourceType: text("resource_type").notNull(),
+  resourceId: uuid("resource_id").notNull(),
+  action: text("action").notNull(),
+  actorId: uuid("actor_id"),
+  summary: jsonb("summary").notNull().default({}),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
 /**
  * Guichet numérique — demandes et conversation de support.
  * Les routes publiques passent exclusivement par les API serveur.

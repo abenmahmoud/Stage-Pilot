@@ -24,6 +24,7 @@ const CodesProfsPage = lazy(() => import("./pages/admin/CodesProfsPage"));
 const AffectationsClassesPage = lazy(() => import("./pages/admin/AffectationsClassesPage"));
 const AffectationsElevesPage = lazy(() => import("./pages/admin/AffectationsElevesPage"));
 const DocumentsClassesPage = lazy(() => import("./pages/admin/DocumentsClassesPage"));
+const ContentManagerPage = lazy(() => import("./pages/admin/ContentManagerPage"));
 
 function PageFallback() {
   return (
@@ -126,6 +127,7 @@ export default function App() {
             path="admin/documents-classes"
             element={<DocumentsClassesPage />}
           />
+          <Route path="admin/contenus" element={<ContentManagerPage />} />
           <Route path="admin/parametres" element={<ParametresPage />} />
         </Route>
         <Route path="*" element={<Navigate to="/" replace />} />

@@ -13,6 +13,8 @@ d'une conversation. Il ne remplace pas les specifications :
 - `001-guichet-numerique` decrit la demande, son suivi et le travail des agents;
 - `002-agent-etablissement-adaptatif` decrit l'agent, les competences et les
   integrations futures;
+- `003-gestion-contenus-lycee` decrit les actualites, pages, documents, modeles
+  et l'aide a la redaction dans l'espace administratif;
 - les fichiers `tasks.md` restent la liste detaillee des travaux verificables.
 
 Mettre a jour cette memoire apres chaque jalon important, sans y placer de donnee
@@ -44,6 +46,8 @@ Construire progressivement une PWA du lycee qui reunit :
 5. un suivi par appareil, email et rappel telephonique;
 6. une console agent pour traiter sans perdre les messages ni les documents;
 7. un agent d'etablissement fonde sur des competences validees et versionnees.
+8. un espace de contenus permettant a la direction de mettre a jour le portail
+   sans modifier le code.
 
 Le proprietaire estime que **89 % de son programme reste encore a expliquer**.
 Ce chiffre exprime la part de vision non decrite, pas l'avancement technique du

@@ -623,6 +623,44 @@
 .lycee-school-life-grid small { color: #6e7f91; font-size: 9px; line-height: 1.4; }
 .lycee-school-life-grid a, .lycee-school-life-grid button { min-height: 38px; display: inline-flex; align-items: center; gap: 5px; padding: 0 10px; border: 1px solid #b9c9db; border-radius: 7px; background: #fff; color: var(--lc-blue); text-decoration: none; font-size: 9px; font-weight: 850; white-space: nowrap; }
 .lycee-school-life-grid a svg, .lycee-school-life-grid button svg { width: 13px; }
+
+.lycee-news-page { max-width: 1180px; }
+.lycee-news-feature { overflow: hidden; border: 1px solid var(--lc-line); border-radius: 8px; background: #fff; }
+.lycee-news-feature > img { width: 100%; max-height: 420px; object-fit: cover; }
+.lycee-news-feature > div { max-width: 880px; margin: 0 auto; padding: 34px; }
+.lycee-news-feature > div > span { color: var(--lc-green); font-size: 10px; font-weight: 850; text-transform: uppercase; }
+.lycee-news-feature h2 { margin: 7px 0 0; font-size: 30px; line-height: 1.15; }
+.lycee-news-summary { margin: 13px 0 0; color: #52667d; font-size: 16px; line-height: 1.65; }
+.lycee-public-markdown { margin-top: 22px; color: #32475d; font-size: 13px; line-height: 1.75; }
+.lycee-public-markdown h2 { margin: 28px 0 0; font-size: 21px; }
+.lycee-public-markdown h3 { margin: 22px 0 0; font-size: 17px; }
+.lycee-public-markdown p, .lycee-public-markdown ul, .lycee-public-markdown ol, .lycee-public-markdown blockquote { margin: 12px 0 0; }
+.lycee-public-markdown ul, .lycee-public-markdown ol { padding-left: 22px; }
+.lycee-public-markdown blockquote { border-left: 4px solid var(--lc-green); background: #eaf8f4; padding: 10px 14px; }
+.lycee-public-markdown a { color: var(--lc-blue); font-weight: 800; }
+.lycee-news-documents { display: grid; gap: 8px; margin-top: 24px; }
+.lycee-news-documents a { display: grid; grid-template-columns: 34px minmax(0,1fr) 18px; align-items: center; gap: 10px; padding: 12px; border: 1px solid #c8d7e6; border-radius: 7px; color: var(--lc-ink); text-decoration: none; }
+.lycee-news-documents a > svg { width: 18px; color: var(--lc-blue); }
+.lycee-news-documents span { min-width: 0; }
+.lycee-news-documents strong, .lycee-news-documents small { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.lycee-news-documents strong { font-size: 11px; }
+.lycee-news-documents small { margin-top: 2px; color: var(--lc-muted); font-size: 9px; }
+.lycee-news-list { margin-top: 24px; }
+.lycee-news-list > div:last-child { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 10px; }
+.lycee-news-list button { min-width: 0; display: grid; grid-template-columns: 82px minmax(0,1fr) 18px; align-items: center; gap: 13px; padding: 10px; border: 1px solid var(--lc-line); border-radius: 8px; background: #fff; text-align: left; }
+.lycee-news-list button.is-active { border-color: #75bbaa; background: #effaf7; }
+.lycee-news-list button > img, .lycee-news-list button > span { width: 82px; height: 72px; border-radius: 6px; object-fit: cover; }
+.lycee-news-list button > span { display: grid; place-items: center; background: #e8efff; color: var(--lc-blue); }
+.lycee-news-list button > span svg { width: 24px; }
+.lycee-news-list button > div { min-width: 0; }
+.lycee-news-list small { color: var(--lc-green); font-size: 8px; font-weight: 850; text-transform: uppercase; }
+.lycee-news-list strong { display: block; margin-top: 3px; overflow: hidden; color: var(--lc-ink); font-size: 12px; text-overflow: ellipsis; white-space: nowrap; }
+.lycee-news-list p { display: -webkit-box; margin: 5px 0 0; overflow: hidden; color: var(--lc-muted); font-size: 10px; line-height: 1.4; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
+.lycee-news-list button > svg { width: 16px; color: var(--lc-blue); }
+.lycee-news-empty { display: flex; min-height: 330px; flex-direction: column; align-items: center; justify-content: center; border: 1px solid var(--lc-line); border-radius: 8px; background: #fff; padding: 30px; text-align: center; }
+.lycee-news-empty > svg { width: 34px; color: var(--lc-blue); }
+.lycee-news-empty h2 { margin: 13px 0 0; font-size: 20px; }
+.lycee-news-empty p { max-width: 520px; color: var(--lc-muted); font-size: 12px; }
 .lycee-practical-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 8px; }
 .lycee-practical-grid > a, .lycee-practical-grid > div { min-width: 0; display: grid; grid-template-columns: 36px minmax(0,1fr) 16px; align-items: center; gap: 10px; min-height: 76px; padding: 13px; border: 1px solid var(--lc-line); border-radius: 8px; background: #f8fafc; color: var(--lc-ink); text-decoration: none; }
 .lycee-practical-grid > div { grid-template-columns: 36px minmax(0,1fr); }
@@ -793,6 +831,10 @@
   .lycee-practical-grid { grid-template-columns: 1fr; }
   .lycee-quick-links > div:last-child { grid-template-columns: repeat(2,minmax(0,1fr)); }
   .lycee-contact-band { grid-template-columns: 1fr; }
+  .lycee-news-feature > div { padding: 22px; }
+  .lycee-news-feature h2 { font-size: 24px; }
+  .lycee-news-summary { font-size: 14px; }
+  .lycee-news-list > div:last-child { grid-template-columns: 1fr; }
   .lycee-agent-workspace { display: block; min-height: auto; overflow: visible; border: 0; background: transparent; }
   .lycee-agent-queue, .lycee-agent-detail { border: 1px solid var(--lc-line); border-radius: 8px; background: #fff; }
   .lycee-agent-queue { border-right: 1px solid var(--lc-line); }
@@ -852,6 +894,9 @@
   .lycee-reply-box > div:last-child { flex-direction: column-reverse; }
   .lycee-reply-box > div:last-child button { width: 100%; }
   .lycee-agent-mail small { display: none; }
+  .lycee-news-feature > div { padding: 18px; }
+  .lycee-news-list button { grid-template-columns: 66px minmax(0,1fr) 16px; }
+  .lycee-news-list button > img, .lycee-news-list button > span { width: 66px; height: 62px; }
   .lycee-trust-lead { grid-template-columns: 1fr; }
   .lycee-trust-grid article { grid-template-columns: 40px minmax(0,1fr); padding: 16px; }
   .lycee-trust-grid article > span { width: 40px; height: 40px; }

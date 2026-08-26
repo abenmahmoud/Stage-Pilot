@@ -1,4 +1,6 @@
 import { useEffect, useRef, useState } from "react";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 import {
   ArrowLeft,
   BadgeCheck,
@@ -55,7 +57,7 @@ import {
 } from "../../../shared/assistant-policy";
 import "./lycee-connect.css";
 
-type View = "home" | "services" | "help" | "requests" | "school" | "agent" | "trust";
+type View = "home" | "services" | "help" | "requests" | "school" | "news" | "agent" | "trust";
 type RequesterProfile = "eleve" | "parent" | "professeur" | "personnel" | "autre" | "";
 
 const SUPPORT_API_ENABLED = import.meta.env.VITE_SUPPORT_API_ENABLED === "true";
@@ -287,7 +289,7 @@ const specialties = [
 export default function LyceeConnectPrototype() {
   const [view, setView] = useState<View>(() => {
     const requested = new URLSearchParams(window.location.search).get("view");
-    return ["home", "services", "help", "requests", "school", "agent", "trust"].includes(requested ?? "")
+    return ["home", "services", "help", "requests", "school", "news", "agent", "trust"].includes(requested ?? "")
       ? requested as View
       : "home";
   });
@@ -400,7 +402,7 @@ export default function LyceeConnectPrototype() {
             </div>
           </div>
           <div className="lycee-top-actions">
-            <button className="lycee-top-tool" type="button" onClick={() => changeView("school")} title="Voir les informations de rentrée"><Newspaper aria-hidden="true" /><span>À la une</span></button>
+            <button className="lycee-top-tool" type="button" onClick={() => changeView("news")} title="Voir les informations du lycée"><Newspaper aria-hidden="true" /><span>À la une</span></button>
             <a className="lycee-top-tool" href={WEBMAIL_URL} target="_blank" rel="noreferrer" title="Ouvrir le Webmail"><Mail aria-hidden="true" /><span>Webmail</span></a>
             <button className="lycee-icon-button" type="button" aria-label="Notifications">
               <Bell aria-hidden="true" />
@@ -451,7 +453,7 @@ export default function LyceeConnectPrototype() {
 
         <div className="lycee-content">
           <section className="lycee-core-tools" aria-label="Outils principaux du lycée">
-            <button type="button" data-tool="news" onClick={() => changeView("school")}><span><Newspaper aria-hidden="true" /></span><div><strong>À la une</strong><small>Rentrée, formations et informations du lycée</small></div><em>Consulter <ChevronRight aria-hidden="true" /></em></button>
+            <button type="button" data-tool="news" onClick={() => changeView("news")}><span><Newspaper aria-hidden="true" /></span><div><strong>À la une</strong><small>Rentrée, formations et informations du lycée</small></div><em>Consulter <ChevronRight aria-hidden="true" /></em></button>
             <a href={WEBMAIL_URL} target="_blank" rel="noreferrer" data-tool="mail"><span><Mail aria-hidden="true" /></span><div><strong>Webmail du lycée</strong><small>Messagerie, contacts et diffusion</small></div><em>Ouvrir <ExternalLink aria-hidden="true" /></em></a>
           </section>
 
@@ -574,6 +576,7 @@ export default function LyceeConnectPrototype() {
         {view === "requests" && <RequestsView ticketCode={ticketCreated} onBack={() => changeView("home")} />}
         {view === "services" && <ServicesView onHelp={() => startHelp()} onBack={() => changeView("home")} />}
         {view === "school" && <SchoolView onBack={() => changeView("home")} onHelp={startHelp} />}
+        {view === "news" && <NewsView onBack={() => changeView("home")} />}
         {view === "agent" && <AgentView onBack={() => changeView("home")} />}
         {view === "trust" && <TrustView onBack={() => changeView("home")} />}
 
@@ -615,6 +618,89 @@ function PageIntro({
         <p>{description}</p>
       </div>
     </header>
+  );
+}
+
+type PublicContent = {
+  id: string;
+  contentType: "article" | "alerte" | "page" | "document";
+  slug: string;
+  title: string;
+  summary: string;
+  bodyMarkdown: string;
+  category: string;
+  audience: string;
+  featured: boolean;
+  publishedAt: string | null;
+  publishAt: string | null;
+  assets: Array<{
+    id: string;
+    assetKind: "image" | "document";
+    mimeType: string;
+    title: string;
+    altText: string | null;
+    originalName: string;
+    role: "couverture" | "illustration" | "document";
+    label: string;
+    position: number;
+    signedUrl: string | null;
+  }>;
+};
+
+function NewsView({ onBack }: { onBack: () => void }) {
+  const [items, setItems] = useState<PublicContent[]>([]);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    fetch("/api/content/public")
+      .then((response) => readApiResponse<{ items: PublicContent[] }>(response))
+      .then((payload) => {
+        setItems(payload.items);
+        setSelectedId(payload.items[0]?.id ?? null);
+      })
+      .catch(() => setError("Les informations ne peuvent pas être chargées pour le moment."))
+      .finally(() => setLoading(false));
+  }, []);
+
+  const selected = items.find((item) => item.id === selectedId) ?? items[0];
+  const selectedImage = selected?.assets.find((asset) => asset.assetKind === "image" && asset.signedUrl);
+  const selectedDocuments = selected?.assets.filter((asset) => asset.assetKind === "document" && asset.signedUrl) ?? [];
+
+  return (
+    <div className="lycee-page lycee-news-page">
+      <PageIntro
+        eyebrow="Vie du lycée"
+        title="À la une"
+        description="Les informations, événements et documents publiés par le lycée."
+        onBack={onBack}
+      />
+      {loading ? <div className="lycee-loading-state"><RefreshCw aria-hidden="true" /> Chargement des informations…</div> : null}
+      {error ? <div className="lycee-form-error"><CircleAlert aria-hidden="true" />{error}</div> : null}
+      {!loading && !error && !selected ? (
+        <section className="lycee-news-empty">
+          <Newspaper aria-hidden="true" />
+          <h2>Les prochaines informations seront publiées ici</h2>
+          <p>Les formations et la présentation du lycée restent disponibles dans « Vie du lycée ».</p>
+        </section>
+      ) : null}
+      {selected ? (
+        <>
+          <article className="lycee-news-feature">
+            {selectedImage ? <img src={selectedImage.signedUrl ?? ""} alt={selectedImage.altText ?? ""} /> : null}
+            <div>
+              <span>{selected.category}</span>
+              <h2>{selected.title}</h2>
+              {selected.summary ? <p className="lycee-news-summary">{selected.summary}</p> : null}
+              <div className="lycee-public-markdown"><ReactMarkdown remarkPlugins={[remarkGfm]}>{selected.bodyMarkdown}</ReactMarkdown></div>
+              {selectedDocuments.length ? <div className="lycee-news-documents">{selectedDocuments.map((asset) => <a key={asset.id} href={asset.signedUrl ?? "#"} target="_blank" rel="noreferrer"><FileText aria-hidden="true" /><span><strong>{asset.label}</strong><small>{asset.originalName}</small></span><ExternalLink aria-hidden="true" /></a>)}</div> : null}
+            </div>
+          </article>
+          {items.length > 1 ? <section className="lycee-news-list" aria-labelledby="news-list-title"><div className="lycee-section-title"><div><span className="lycee-eyebrow">Toutes les informations</span><h2 id="news-list-title">Publié par le lycée</h2></div></div><div>{items.map((item) => { const image = item.assets.find((asset) => asset.assetKind === "image" && asset.signedUrl); return <button className={item.id === selected.id ? "is-active" : ""} type="button" key={item.id} onClick={() => { setSelectedId(item.id); window.scrollTo({ top: 0, behavior: "smooth" }); }}>{image ? <img src={image.signedUrl ?? ""} alt="" /> : <span><Newspaper aria-hidden="true" /></span>}<div><small>{item.category}</small><strong>{item.title}</strong><p>{item.summary}</p></div><ChevronRight aria-hidden="true" /></button>; })}</div></section> : null}
+        </>
+      ) : null}
+    </div>
   );
 }
 
@@ -1813,6 +1899,7 @@ function ConnectedAgentView({ onBack }: { onBack: () => void }) {
           ) : <div className="lycee-loading-state"><Clock3 aria-hidden="true" /> Sélectionnez une demande</div>}
         </article>
       </div>
+      <section className="lycee-agent-mail"><div><Newspaper aria-hidden="true" /><span><strong>Contenus du site</strong><small>Ajouter une actualité, publier un document ou modifier un modèle.</small></span></div><a href="/admin/contenus">Gérer <ChevronRight aria-hidden="true" /></a></section>
       <section className="lycee-agent-mail"><div><Mail aria-hidden="true" /><span><strong>Communication direction</strong><small>Envoyer une information aux professeurs et personnels depuis la messagerie du lycée.</small></span></div><a href={WEBMAIL_ADMIN_URL} target="_blank" rel="noreferrer">Ouvrir <ExternalLink aria-hidden="true" /></a></section>
     </div>
   );
@@ -1853,6 +1940,7 @@ function DemoAgentView({ onBack }: { onBack: () => void }) {
           <section className="lycee-reply-box"><div><span><Sparkles aria-hidden="true" /> Réponse proposée</span><button type="button" onClick={() => setReply("Bonjour, votre demande est prise en charge. Nous vérifions votre accès et vous répondrons dans la journée.")}>Régénérer</button></div><textarea rows={5} value={reply} onChange={(event) => setReply(event.target.value)} /><div><button className="lycee-secondary-action" type="button"><Paperclip aria-hidden="true" /> Joindre</button><button className="lycee-primary-action" type="button" onClick={() => setStatus("Résolu")}><Send aria-hidden="true" /> Valider et envoyer</button></div></section>
         </article>
       </div>
+      <section className="lycee-agent-mail"><div><Newspaper aria-hidden="true" /><span><strong>Contenus du site</strong><small>Ajouter une actualité, publier un document ou modifier un modèle.</small></span></div><a href="/admin/contenus">Gérer <ChevronRight aria-hidden="true" /></a></section>
       <section className="lycee-agent-mail"><div><Mail aria-hidden="true" /><span><strong>Communication direction</strong><small>Envoyer une information aux professeurs et personnels depuis la messagerie du lycée.</small></span></div><a href={WEBMAIL_ADMIN_URL} target="_blank" rel="noreferrer">Ouvrir <ExternalLink aria-hidden="true" /></a></section>
     </div>
   );

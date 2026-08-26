@@ -17,6 +17,7 @@ import {
   UsersRound,
   FolderOpen,
   ShieldCheck,
+  Newspaper,
 } from "lucide-react";
 
 const navCls = ({ isActive }: { isActive: boolean }) =>
@@ -128,17 +129,30 @@ export default function AppLayout() {
         )}
 
         {isProviseur && (
-          <NavLink to="/admin/parametres" className={navCls}>
-            <Settings className="w-4 h-4" />
-            Paramètres
-          </NavLink>
+          <>
+            <div className="pt-4 pb-2 px-4">
+              <p className="text-[10px] font-semibold uppercase tracking-wider text-white/40">
+                Espace agent
+              </p>
+            </div>
+            <NavLink to="/admin/parametres" className={navCls}>
+              <Settings className="w-4 h-4" />
+              Paramètres
+            </NavLink>
+          </>
         )}
 
         {(isAdmin || isProviseur) && (
-          <NavLink to="/security" className={navCls}>
-            <ShieldCheck className="w-4 h-4" />
-            Sécurité du compte
-          </NavLink>
+          <>
+            <NavLink to="/admin/contenus" className={navCls}>
+              <Newspaper className="w-4 h-4" />
+              Contenus du site
+            </NavLink>
+            <NavLink to="/security" className={navCls}>
+              <ShieldCheck className="w-4 h-4" />
+              Sécurité du compte
+            </NavLink>
+          </>
         )}
       </nav>
 
@@ -211,7 +225,7 @@ export default function AppLayout() {
           <div className="flex items-center gap-1.5 text-sm text-gray-500">
             <span className="font-medium text-gray-900">LycéeGest</span>
             <ChevronRight className="w-3.5 h-3.5" />
-            <span>2025-2026</span>
+            <span>2026-2027</span>
           </div>
         </header>
         <main className="flex-1 overflow-y-auto p-4 lg:p-8">
