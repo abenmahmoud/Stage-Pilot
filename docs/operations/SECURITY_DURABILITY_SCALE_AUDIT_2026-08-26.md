@@ -74,6 +74,25 @@ periode, depuis la meme connexion du lycee.
   file temporaire, isole chaque execution et nettoie demandes, sessions et file
   meme en cas d'erreur.
 
+### Verification de la preview publiee
+
+- Commit verifie : `6312dce`.
+- Deploiement Vercel : `lyceegest-erf64ut7i-safe-scol.vercel.app`, etat `Ready`.
+- Alias stable mis a jour :
+  `lyceegest-git-codex-lycee-connect-prototype-safe-scol.vercel.app`.
+- La publication a ete declenchee par Git sur la branche qui possede les
+  variables Supabase de preview. Aucun deploiement manuel n'a ete utilise.
+- Accueil `200`, manifeste PWA valide, liste publique sans session `200` et vide.
+- Console agent sans authentification refusee `401`.
+- Webhook Brevo sans secret refuse `401`.
+- Assistant de preview `200`, reponse structuree et avertissement de ne jamais
+  transmettre un mot de passe ou un code secret.
+- Aucun journal Vercel de niveau erreur sur cette branche dans les 24 heures
+  precedant la publication ni pendant les tests apres deploiement.
+- Verification visuelle locale du build : aucune image cassee et aucun
+  debordement horizontal a `1440x900`, `390x844` et `320x700`; aucun bouton ne
+  sort de l'ecran dans ces trois vues.
+
 ## Points encore ouverts
 
 ### Bloquants avant donnees reelles a grande echelle
