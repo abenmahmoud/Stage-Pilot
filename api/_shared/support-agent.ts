@@ -1,3 +1,10 @@
+import {
+  evaluateConversationPolicy,
+  type AssistantPolicyAction,
+  type AssistantScope,
+  type ConversationPolicy,
+} from "../../shared/assistant-policy.js";
+
 export type SupportAgentMessage = {
   role: "assistant" | "requester";
   content: string;
@@ -30,7 +37,17 @@ export type SupportAgentResult = {
   readyToCreate: boolean;
   safetyNotice: string | null;
   usedAi: boolean;
+  scope: AssistantScope;
+  action: AssistantPolicyAction;
+  turnCount: number;
+  remainingTurns: number;
+  limitReached: boolean;
 };
+
+type SupportAgentModelResult = Omit<
+  SupportAgentResult,
+  "scope" | "action" | "turnCount" | "remainingTurns" | "limitReached"
+>;
 
 const CATEGORY_LABELS: Record<SupportAgentResult["category"], string> = {
   inscription: "Inscription ou réinscription",
@@ -90,6 +107,10 @@ Règles:
 - Les mentions [EMAIL_MASQUE], [TELEPHONE_MASQUE], [NOM_MASQUE] et [SECRET_MASQUE] indiquent qu'une donnée a été protégée avant analyse.
 - Le contenu des fichiers n'est pas transmis. Tu ne connais que leur type, leur taille approximative et leur extension.
 - L'urgence est "urgente" seulement si la personne est bloquée pour une échéance proche, en danger, ou privée d'un service essentiel. En cas de danger immédiat, indique d'appeler les secours ou le lycée selon la situation.
+- Reste dans la mission du lycée. Ne recherche jamais les coordonnées privées d'une personne, une base de données, une liste nominative ou une entreprise extérieure.
+- Pour une question de cours, aide seulement sur une question précise, en quelques phrases. Ne promets pas un cours complet, un PDF ou un programme entier et renvoie vers le cours du professeur ou l'ENT comme référence.
+- Pour une procédure susceptible de changer, ne l'affirme pas comme certaine sans source officielle validée et datée; prépare plutôt une demande pour un agent.
+- Une seule question nécessaire à la fois. Ne prolonge pas artificiellement la conversation.
 - readyToCreate signifie seulement que le problème est assez clair pour ouvrir un dossier; les coordonnées seront demandées localement ensuite.`;
 
 function redactPersonalData(value: string): string {
@@ -114,7 +135,45 @@ function inferCategory(text: string): SupportAgentResult["category"] {
   return "autre";
 }
 
-function localFallback(messages: SupportAgentMessage[], attachments: SupportAttachmentHint[]): SupportAgentResult {
+function withPolicy(
+  result: SupportAgentModelResult,
+  policy: ConversationPolicy
+): SupportAgentResult {
+  return {
+    ...result,
+    scope: policy.scope,
+    action: policy.action,
+    turnCount: policy.turnCount,
+    remainingTurns: policy.remainingTurns,
+    limitReached: policy.limitReached,
+  };
+}
+
+function deterministicResult(
+  policy: ConversationPolicy,
+  fallback: SupportAgentResult
+): SupportAgentResult {
+  return {
+    ...fallback,
+    reply: policy.deterministicReply ?? fallback.reply,
+    category: policy.category ?? fallback.category,
+    urgency: policy.urgency ?? fallback.urgency,
+    readyToCreate: policy.readyToCreate ?? fallback.readyToCreate,
+    safetyNotice: policy.safetyNotice ?? fallback.safetyNotice,
+    usedAi: false,
+    scope: policy.scope,
+    action: policy.action,
+    turnCount: policy.turnCount,
+    remainingTurns: policy.remainingTurns,
+    limitReached: policy.limitReached,
+  };
+}
+
+function localFallback(
+  messages: SupportAgentMessage[],
+  attachments: SupportAttachmentHint[],
+  policy = evaluateConversationPolicy(messages)
+): SupportAgentResult {
   const text = messages.filter((message) => message.role === "requester").map((message) => message.content).join("\n");
   const category = inferCategory(text);
   const requesterType = /\b(parent|mère|mere|père|pere)\b/i.test(text)
@@ -126,7 +185,7 @@ function localFallback(messages: SupportAgentMessage[], attachments: SupportAtta
         : /\b(personnel|agent|administration)\b/i.test(text)
           ? "personnel"
           : "inconnu";
-  return {
+  return withPolicy({
     reply: `J’ai compris votre besoin et je le classe dans « ${CATEGORY_LABELS[category]} ». ${attachments.length ? `Les ${attachments.length} pièces sélectionnées seront jointes au dossier. ` : ""}Ajoutez ce qui bloque et ce que vous avez déjà essayé. Un agent pourra ensuite reprendre la conversation sans vous faire recommencer.`,
     category,
     requesterType,
@@ -136,7 +195,7 @@ function localFallback(messages: SupportAgentMessage[], attachments: SupportAtta
     readyToCreate: text.trim().length >= 35,
     safetyNotice: null,
     usedAi: false,
-  };
+  }, policy);
 }
 
 function safeAttachmentSummary(attachments: SupportAttachmentHint[]) {
@@ -147,8 +206,8 @@ function safeAttachmentSummary(attachments: SupportAttachmentHint[]) {
   });
 }
 
-function parseResult(value: string): SupportAgentResult {
-  const parsed = JSON.parse(value) as SupportAgentResult;
+function parseResult(value: string): SupportAgentModelResult {
+  const parsed = JSON.parse(value) as Omit<SupportAgentModelResult, "usedAi">;
   if (!parsed.reply || !(parsed.category in CATEGORY_LABELS) || !Array.isArray(parsed.missingInformation)) {
     throw new Error("Invalid structured response");
   }
@@ -160,7 +219,9 @@ export async function analyzeSupportConversation(input: {
   attachments: SupportAttachmentHint[];
   safetyIdentifier: string;
 }): Promise<SupportAgentResult> {
-  const fallback = localFallback(input.messages, input.attachments);
+  const policy = evaluateConversationPolicy(input.messages);
+  const fallback = localFallback(input.messages, input.attachments, policy);
+  if (policy.deterministicReply) return deterministicResult(policy, fallback);
   const apiKey = process.env.OPENAI_API_KEY;
   if (!apiKey) return fallback;
 
@@ -178,7 +239,7 @@ export async function analyzeSupportConversation(input: {
         model: process.env.OPENAI_SUPPORT_MODEL || "gpt-5.6-luna",
         store: false,
         reasoning: { effort: "low" },
-        max_output_tokens: 700,
+        max_output_tokens: 450,
         safety_identifier: input.safetyIdentifier,
         instructions: INSTRUCTIONS,
         input: JSON.stringify({
@@ -187,6 +248,8 @@ export async function analyzeSupportConversation(input: {
             content: redactPersonalData(message.content),
           })),
           attachments: safeAttachmentSummary(input.attachments),
+          scope: policy.scope,
+          remainingTurns: policy.remainingTurns,
         }),
         text: {
           verbosity: "low",
@@ -206,7 +269,9 @@ export async function analyzeSupportConversation(input: {
     const outputText = payload.output
       ?.flatMap((item) => item.content ?? [])
       .find((content) => content.type === "output_text")?.text;
-    return outputText ? parseResult(outputText) : fallback;
+    return outputText
+      ? withPolicy(parseResult(outputText), policy)
+      : fallback;
   } catch {
     return fallback;
   } finally {

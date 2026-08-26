@@ -235,6 +235,15 @@ L'IA peut suggérer la priorité. Seul un agent peut confirmer P1 ou clôturer.
 - Ne change jamais directement un code ENT ou académique.
 - Ne répond jamais seul à une demande de sécurité, santé, conflit ou donnée
   sensible.
+- Oriente immédiatement une situation de danger vers un adulte et les numéros
+  publics adaptés, sans appel au modèle et sans prolonger la conversation.
+- Refuse sans appel au modèle les recherches de coordonnées privées, extractions
+  de données et listes nominatives.
+- Limite une conversation à dix messages utilisateur. L'aide pédagogique est
+  limitée à trois réponses courtes et les demandes hors mission s'arrêtent au
+  troisième essai.
+- Les règles déterministes sont évaluées avant l'appel externe afin de conserver
+  la sécurité même si l'IA est indisponible et de limiter le coût.
 - Chaque proposition et chaque validation humaine sont conservées dans l'audit.
 
 ## 9. Exigences de sécurité et de confidentialité

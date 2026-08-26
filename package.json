@@ -10,6 +10,7 @@
     "dev": "vite",
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview",
+    "test:assistant-policy": "node --experimental-strip-types scripts/test-assistant-policy.mjs",
     "test:load:support": "node scripts/load-test-support.mjs",
     "db:generate": "drizzle-kit generate",
     "db:push": "drizzle-kit push"

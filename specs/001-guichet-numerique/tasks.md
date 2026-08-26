@@ -143,6 +143,9 @@ Le support continue à fonctionner si l'IA est coupée.
 - [ ] **T047** Tester les injections de consignes dans descriptions et fichiers.
 - [x] **T048** Activer dans l'aperçu public protégé avec masquage préalable,
   limites de débit, aucune action sensible et validation humaine du dossier.
+- [x] **T048A** Ajouter la politique déterministe centrale : urgence humaine,
+  refus des données privées, trois échanges pédagogiques, trois essais hors
+  mission et dix messages utilisateur maximum, avec tests automatisés.
 
 ## Après V1
 

@@ -48,6 +48,11 @@ import {
 } from "lucide-react";
 import { supabase } from "../../lib/supabase-browser";
 import { apiFetch } from "../../lib/api";
+import {
+  evaluateConversationPolicy,
+  type AssistantPolicyAction,
+  type AssistantScope,
+} from "../../../shared/assistant-policy";
 import "./lycee-connect.css";
 
 type View = "home" | "services" | "help" | "requests" | "school" | "agent" | "trust";
@@ -693,6 +698,11 @@ type AssistantInsight = {
   readyToCreate: boolean;
   safetyNotice: string | null;
   usedAi: boolean;
+  scope: AssistantScope;
+  action: AssistantPolicyAction;
+  turnCount: number;
+  remainingTurns: number;
+  limitReached: boolean;
 };
 
 function inferSupportCategory(text: string): SupportCategory {
@@ -710,6 +720,7 @@ function inferSupportCategory(text: string): SupportCategory {
 }
 
 function localAssistantFallback(messages: AssistantChatMessage[], files: File[]): AssistantInsight {
+  const policy = evaluateConversationPolicy(messages);
   const text = messages.filter((message) => message.role === "requester").map((message) => message.content).join("\n");
   const category = inferSupportCategory(text);
   const label = supportCategories.find((item) => item.value === category)?.label ?? "Autre demande";
@@ -723,15 +734,20 @@ function localAssistantFallback(messages: AssistantChatMessage[], files: File[])
           ? "personnel"
           : "inconnu";
   return {
-    reply: `J’ai compris. Je classe votre besoin dans « ${label} ». ${files.length ? `Je vois aussi ${files.length} fichier${files.length > 1 ? "s" : ""} à joindre au dossier. ` : ""}Expliquez-moi ce qui bloque et ce que vous avez déjà essayé. Je préparerai ensuite la demande pour le bon agent.`,
-    category,
+    reply: policy.deterministicReply ?? `J’ai compris. Je classe votre besoin dans « ${label} ». ${files.length ? `Je vois aussi ${files.length} fichier${files.length > 1 ? "s" : ""} à joindre au dossier. ` : ""}Expliquez-moi ce qui bloque et ce que vous avez déjà essayé. Je préparerai ensuite la demande pour le bon agent.`,
+    category: policy.category ?? category,
     requesterType,
-    urgency: /\b(urgent|aujourd'hui|bloqué|bloque|impossible)\b/i.test(text) ? "urgente" : "normale",
+    urgency: policy.urgency ?? (/\b(urgent|aujourd'hui|bloqué|bloque|impossible)\b/i.test(text) ? "urgente" : "normale"),
     missingInformation: ["Identité de la personne concernée", "Email ou téléphone de réponse"],
     suggestedDocuments: files.length ? files.map((file) => file.name) : [],
-    readyToCreate: text.trim().length >= 35,
-    safetyNotice: null,
+    readyToCreate: policy.readyToCreate ?? text.trim().length >= 35,
+    safetyNotice: policy.safetyNotice,
     usedAi: false,
+    scope: policy.scope,
+    action: policy.action,
+    turnCount: policy.turnCount,
+    remainingTurns: policy.remainingTurns,
+    limitReached: policy.limitReached,
   };
 }
 
@@ -803,7 +819,7 @@ function HelpDeskView({
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
               sessionId: assistantSessionId,
-              messages: nextMessages.slice(-10).map(({ role, content }) => ({ role, content })),
+              messages: nextMessages.slice(-21).map(({ role, content }) => ({ role, content })),
               attachments: files.map((file) => ({ name: file.name, type: file.type, size: file.size })),
             }),
           })
@@ -825,7 +841,7 @@ function HelpDeskView({
   function sendChatMessage(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const content = chatInput.trim();
-    if (!content || assistantBusy) return;
+    if (!content || assistantBusy || insight?.limitReached) return;
     const nextMessages = [
       ...chatMessages,
       { id: crypto.randomUUID(), role: "requester" as const, content },
@@ -833,6 +849,21 @@ function HelpDeskView({
     setChatMessages(nextMessages);
     setChatInput("");
     void askAssistant(nextMessages);
+  }
+
+  const conversationStopped = insight?.limitReached === true;
+  const canCreateRequest = insight?.action !== "stop" || insight.readyToCreate;
+
+  function restartConversation() {
+    setChatMessages([welcomeMessage]);
+    setChatInput("");
+    setInsight(null);
+    setShowDetails(false);
+    setClassicForm(false);
+    setCategory("autre");
+    setFiles([]);
+    setSubmitError(null);
+    setAttachmentWarning(null);
   }
 
   function selectFiles(event: React.ChangeEvent<HTMLInputElement>) {
@@ -981,12 +1012,14 @@ function HelpDeskView({
             </div>
           ) : null}
 
-          <form className="lycee-chat-composer" onSubmit={sendChatMessage}>
-            <textarea value={chatInput} onChange={(event) => setChatInput(event.target.value)} rows={2} maxLength={1500} placeholder="Écrivez comme si vous parliez à l’accueil du lycée…" aria-label="Votre message" />
-            <input ref={fileInputRef} className="lycee-file-input" type="file" multiple accept={SUPPORT_FILE_TYPES.join(",")} onChange={selectFiles} />
-            <button className="lycee-chat-attach" type="button" aria-label="Joindre un document" title="Joindre un document" disabled={files.length >= MAX_SUPPORT_FILES} onClick={() => fileInputRef.current?.click()}><Paperclip aria-hidden="true" /></button>
-            <button className="lycee-chat-send" type="submit" aria-label="Envoyer le message" title="Envoyer" disabled={!chatInput.trim() || assistantBusy}><Send aria-hidden="true" /></button>
-          </form>
+          {!conversationStopped ? (
+            <form className="lycee-chat-composer" onSubmit={sendChatMessage}>
+              <textarea value={chatInput} onChange={(event) => setChatInput(event.target.value)} rows={2} maxLength={1500} placeholder="Écrivez comme si vous parliez à l’accueil du lycée…" aria-label="Votre message" />
+              <input ref={fileInputRef} className="lycee-file-input" type="file" multiple accept={SUPPORT_FILE_TYPES.join(",")} onChange={selectFiles} />
+              <button className="lycee-chat-attach" type="button" aria-label="Joindre un document" title="Joindre un document" disabled={files.length >= MAX_SUPPORT_FILES} onClick={() => fileInputRef.current?.click()}><Paperclip aria-hidden="true" /></button>
+              <button className="lycee-chat-send" type="submit" aria-label="Envoyer le message" title="Envoyer" disabled={!chatInput.trim() || assistantBusy}><Send aria-hidden="true" /></button>
+            </form>
+          ) : null}
 
           {files.length > 0 ? (
             <div className="lycee-selected-files lycee-chat-files" aria-label="Fichiers à envoyer">
@@ -996,10 +1029,16 @@ function HelpDeskView({
             </div>
           ) : null}
 
-          {requesterMessages.length > 0 && !showDetails ? (
+          {requesterMessages.length > 0 && !showDetails && canCreateRequest ? (
             <div className="lycee-chat-next">
-              <button className="lycee-primary-action" type="button" onClick={() => setShowDetails(true)}>Créer ma demande <ChevronRight aria-hidden="true" /></button>
+              <button className="lycee-primary-action" type="button" onClick={() => setShowDetails(true)}>{insight?.action === "human_transfer" ? "Transmettre à un adulte du lycée" : "Créer ma demande"} <ChevronRight aria-hidden="true" /></button>
               <button type="button" onClick={() => { setClassicForm(true); setShowDetails(true); }}>Je préfère remplir le formulaire</button>
+            </div>
+          ) : null}
+
+          {conversationStopped && !canCreateRequest ? (
+            <div className="lycee-chat-next">
+              <button className="lycee-primary-action" type="button" onClick={restartConversation}>Commencer une demande du lycée</button>
             </div>
           ) : null}
 

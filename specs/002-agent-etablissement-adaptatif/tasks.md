@@ -44,7 +44,7 @@
 - [ ] T023 Construire l'orchestrateur de compétences et les sorties structurées.
 - [ ] T024 Construire la recherche limitée aux sources publiées, autorisées et non expirées.
 - [ ] T025 Afficher source et date de mise à jour dans les réponses de procédure.
-- [ ] T026 Imposer une question essentielle à la fois et dix tours maximum par session.
+- [x] T026 Imposer une question essentielle à la fois et dix tours maximum par session.
 - [ ] T027 Créer ou compléter automatiquement un dossier `001` lors d'un transfert humain.
 - [ ] T028 N'afficher une réussite qu'après `confirmed_at` fourni par l'outil.
 - [ ] T029 Ajouter formulaire classique et création de demande sans dépendance à l'IA.

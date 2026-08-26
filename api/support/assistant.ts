@@ -12,12 +12,13 @@ import {
   type SupportAttachmentHint,
 } from "../_shared/support-agent.js";
 
-const RATE_WINDOW_SECONDS = 10 * 60;
-const SESSION_RATE_LIMIT = 30;
-const NETWORK_RATE_LIMIT = 2000;
+const SESSION_WINDOW_SECONDS = 24 * 60 * 60;
+const NETWORK_WINDOW_SECONDS = 60 * 60;
+const SESSION_RATE_LIMIT = 24;
+const NETWORK_RATE_LIMIT = 800;
 
 function cleanMessages(value: unknown): SupportAgentMessage[] {
-  if (!Array.isArray(value) || value.length === 0 || value.length > 10) {
+  if (!Array.isArray(value) || value.length === 0 || value.length > 21) {
     throw new HttpError(400, "La conversation est invalide");
   }
   let totalLength = 0;
@@ -32,7 +33,7 @@ function cleanMessages(value: unknown): SupportAgentMessage[] {
     totalLength += content.length;
     return { role, content };
   });
-  if (totalLength > 8000) throw new HttpError(400, "La conversation est trop longue");
+  if (totalLength > 12000) throw new HttpError(400, "La conversation est trop longue");
   return messages;
 }
 
@@ -74,13 +75,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       scope: "assistant_network",
       keyHash: keys.network,
       limit: NETWORK_RATE_LIMIT,
-      windowSeconds: RATE_WINDOW_SECONDS,
+      windowSeconds: NETWORK_WINDOW_SECONDS,
     });
     await enforceSupportRateLimit({
       scope: "assistant_session",
       keyHash: keys.session,
       limit: SESSION_RATE_LIMIT,
-      windowSeconds: RATE_WINDOW_SECONDS,
+      windowSeconds: SESSION_WINDOW_SECONDS,
     });
     return analyzeSupportConversation({
       messages: cleanMessages(input.messages),

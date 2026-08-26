@@ -3,7 +3,7 @@
 **Derniere mise a jour** : 26 aout 2026  
 **Branche de travail** : `codex/lycee-connect-prototype`  
 **Depot** : `abenmahmoud/Stage-Pilot`  
-**Dernier jalon de code verifie** : `74ee3e2`
+**Dernier jalon de code verifie** : politique conversationnelle centralisee
 
 ## 1. Fonction de cette memoire
 
@@ -69,6 +69,9 @@ sa specification.
 - Envoi email sortant durable et enregistrement des evenements de livraison.
 - Assistant de preview avec masquage prealable, limite de debit, `store: false`,
   repli sans IA et validation humaine.
+- Politique centrale appliquee avant l'IA : transfert humain pour le danger,
+  refus des donnees privees, aide pedagogique limitee a trois reponses, arret au
+  troisieme essai hors mission et dix messages utilisateur maximum.
 - PWA, interface responsive et absence de debordement horizontal verifiee sur les
   parcours principaux.
 - En-tetes HTTP de securite, API sans cache et service worker non fige.
@@ -205,6 +208,8 @@ sa specification.
 - Publier progressivement `administration-scolarite`, `referent-numerique` et
   `coordination-etablissement` apres revue humaine.
 - Ajouter mesures de qualite, cout, latence, transferts et corrections.
+- Construire le registre de sources officielles datees pour que les reponses de
+  procedure restent a jour; cette partie n'est pas encore terminee.
 
 ### Priorite D - Donnees et integrations
 
