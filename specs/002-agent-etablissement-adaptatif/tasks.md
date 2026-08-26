@@ -9,6 +9,12 @@
 - [ ] T005 Décider si une AIPD est nécessaire et enregistrer la décision.
 - [ ] T006 Définir les actions L0 à L4 et les rôles habilités pour le lycée pilote.
 - [ ] T007 Remplacer tout accès agent partagé par des comptes individuels avec authentification renforcée.
+- [x] T007A Ajouter l’enrôlement TOTP, le défi à la connexion et l’exigence
+  automatique pour chaque agent ayant déjà activé son second facteur, dans
+  l’interface, les API et les politiques RLS de preview.
+- [ ] T007B Créer au moins deux comptes nominatifs direction/administration,
+  tester la procédure de récupération, puis activer l’obligation générale MFA
+  dans l’interface et les API.
 
 ## Phase 1 - Socle de compétences
 

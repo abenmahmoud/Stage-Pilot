@@ -4,6 +4,8 @@ import type { VercelRequest } from "@vercel/node";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL ?? process.env.VITE_SUPABASE_URL ?? "";
 const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY ?? "";
+const requireAgentMfa = process.env.REQUIRE_AGENT_MFA === "true";
+const agentMfaRoles = new Set(["superadmin", "administration", "proviseur"]);
 
 /**
  * Client admin avec service_role — bypass RLS.
@@ -60,6 +62,27 @@ export async function requireRole(
   const user = await requireUser(req);
   if (!allowedRoles.includes(user.role)) {
     throw new HttpError(403, `Rôle insuffisant. Attendu : ${allowedRoles.join(", ")}`);
+  }
+  if (agentMfaRoles.has(user.role)) {
+    const authHeader = req.headers.authorization;
+    const token = authHeader?.startsWith("Bearer ")
+      ? authHeader.slice("Bearer ".length).trim()
+      : "";
+    const { data, error } =
+      await supabaseAdmin.auth.mfa.getAuthenticatorAssuranceLevel(token);
+    if (error) {
+      throw new HttpError(
+        503,
+        "La vérification renforcée est momentanément indisponible."
+      );
+    }
+    const mustUseMfa = requireAgentMfa || data.nextLevel === "aal2";
+    if (mustUseMfa && data.currentLevel !== "aal2") {
+      throw new HttpError(
+        403,
+        "Double vérification requise. Ouvrez la page Sécurité du compte."
+      );
+    }
   }
   return user;
 }

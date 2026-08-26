@@ -1,11 +1,13 @@
 import { lazy, Suspense } from "react";
-import { Routes, Route, Navigate } from "react-router-dom";
+import { Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { AuthProvider } from "./components/AuthProvider";
 import { useAuth } from "./lib/auth-context";
 import { ROLE_HOME } from "./lib/types";
+import { AGENT_MFA_ENFORCED, isAgentRole } from "./lib/auth-policy";
 
 const LyceeConnectPrototype = lazy(() => import("./pages/prototype/LyceeConnectPrototype"));
 const LoginPage = lazy(() => import("./pages/LoginPage"));
+const MfaSecurityPage = lazy(() => import("./pages/MfaSecurityPage"));
 const AppLayout = lazy(() => import("./components/AppLayout"));
 const StagesDashboard = lazy(() => import("./pages/stages/StagesDashboard"));
 const MonStage = lazy(() => import("./pages/stages/MonStage"));
@@ -32,7 +34,8 @@ function PageFallback() {
 }
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
-  const { user, loading } = useAuth();
+  const { user, loading, assuranceLevel, nextAssuranceLevel } = useAuth();
+  const location = useLocation();
   if (loading)
     return (
       <div className="flex h-screen items-center justify-center">
@@ -40,6 +43,26 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
       </div>
     );
   if (!user) return <Navigate to="/login" replace />;
+  if (
+    isAgentRole(user.role) &&
+    (AGENT_MFA_ENFORCED || nextAssuranceLevel === "aal2") &&
+    assuranceLevel !== "aal2"
+  ) {
+    const returnTo = `${location.pathname}${location.search}`;
+    return (
+      <Navigate
+        to={`/security?returnTo=${encodeURIComponent(returnTo)}`}
+        replace
+      />
+    );
+  }
+  return <>{children}</>;
+}
+
+function SignedInRoute({ children }: { children: React.ReactNode }) {
+  const { user, loading } = useAuth();
+  if (loading) return <PageFallback />;
+  if (!user) return <Navigate to="/login?returnTo=%2Fsecurity" replace />;
   return <>{children}</>;
 }
 
@@ -61,6 +84,14 @@ export default function App() {
           }
         />
         <Route path="/login" element={<LoginPage />} />
+        <Route
+          path="/security"
+          element={
+            <SignedInRoute>
+              <MfaSecurityPage />
+            </SignedInRoute>
+          }
+        />
         <Route
           path="/"
           element={

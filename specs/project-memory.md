@@ -157,6 +157,11 @@ sa specification.
 - Pas de liste nominative, emploi du temps, contact personnel ou code dans Git,
   les prompts, ce document ou un skill Codex.
 - Comptes agents individuels et authentification renforcee avant production.
+- La preview contient un ecran TOTP et une protection progressive : des qu'un
+  agent enrole son telephone, les prochaines sessions doivent atteindre `aal2`
+  dans l'interface, les API et les politiques RLS. L'obligation generale reste
+  desactivee jusqu'a la creation d'au moins deux comptes nominatifs et au test
+  de recuperation, afin de ne pas bloquer la direction.
 - Validation direction/DPO, durees de conservation, sauvegarde restauree et tests
   de securite avant l'utilisation de donnees reelles a grande echelle.
 - Aucune action Hostinger, DNS, VPS, import reel ou envoi de masse sans une
@@ -182,7 +187,9 @@ sa specification.
 
 ### Priorite B - Protection des personnes et exploitation
 
-- Comptes agents individuels, MFA, roles et habilitations par service.
+- Creer les comptes nominatifs manquants, enroler au moins deux responsables,
+  tester le telephone perdu, puis activer l'obligation generale MFA et completer
+  les habilitations par service.
 - Mentions definitives, droits, conservations, purge et decision AIPD avec la
   direction et le DPO.
 - Tests mobile 320 px, clavier, lecteur d'ecran, charge 200 demandes et securite.

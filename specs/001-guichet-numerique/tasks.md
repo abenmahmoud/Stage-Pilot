@@ -111,6 +111,11 @@ voir sa réponse dans le dossier. L'agent traite tout depuis une seule file.
   des droits.
 - [x] **T037A** Ajouter la page de confiance de préproduction, le contact DPO, les
   interdictions de partage de mots de passe et les protections HTTP du portail.
+- [x] **T037B** Ajouter l’écran de double vérification des comptes agents et
+  l’exiger automatiquement après enrôlement dans l’interface, les API et les
+  accès directs à la base de preview.
+- [ ] **T037C** Enrôler deux comptes nominatifs au minimum, valider la récupération
+  en cas de téléphone perdu et activer l’obligation générale MFA.
 - [ ] **T038** Exécuter tests mobile, desktop, clavier, charge et sécurité.
 - [x] **T038A** Relire les textes du parcours demandeur et agent, remplacer les
   codes internes par des libellés français et vérifier les principaux écrans.

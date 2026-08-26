@@ -16,6 +16,7 @@ import {
   KeyRound,
   UsersRound,
   FolderOpen,
+  ShieldCheck,
 } from "lucide-react";
 
 const navCls = ({ isActive }: { isActive: boolean }) =>
@@ -130,6 +131,13 @@ export default function AppLayout() {
           <NavLink to="/admin/parametres" className={navCls}>
             <Settings className="w-4 h-4" />
             Paramètres
+          </NavLink>
+        )}
+
+        {(isAdmin || isProviseur) && (
+          <NavLink to="/security" className={navCls}>
+            <ShieldCheck className="w-4 h-4" />
+            Sécurité du compte
           </NavLink>
         )}
       </nav>

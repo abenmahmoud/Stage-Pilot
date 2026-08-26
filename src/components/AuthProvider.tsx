@@ -26,9 +26,27 @@ function mapSupabaseUser(user: User): AppUser {
   };
 }
 
+function normalizeAssuranceLevel(
+  level: unknown
+): "aal1" | "aal2" | null {
+  if (level === "aal1") return "aal1";
+  if (level === "aal2") return "aal2";
+  return null;
+}
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<AppUser | null>(null);
   const [loading, setLoading] = useState(true);
+  const [assuranceLevel, setAssuranceLevel] = useState<"aal1" | "aal2" | null>(null);
+  const [nextAssuranceLevel, setNextAssuranceLevel] = useState<"aal1" | "aal2" | null>(null);
+
+  const refreshAssurance = useCallback(async () => {
+    const { data, error } =
+      await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
+    if (error) throw new Error(error.message);
+    setAssuranceLevel(normalizeAssuranceLevel(data.currentLevel));
+    setNextAssuranceLevel(normalizeAssuranceLevel(data.nextLevel));
+  }, []);
 
   useEffect(() => {
     let mounted = true;
@@ -36,12 +54,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // Récupérer la session actuelle au démarrage
     supabase.auth
       .getSession()
-      .then(({ data }: { data: { session: Session | null } }) => {
+      .then(async ({ data }: { data: { session: Session | null } }) => {
         if (!mounted) return;
         if (data.session?.user) {
           setUser(mapSupabaseUser(data.session.user));
+          try {
+            await refreshAssurance();
+          } catch {
+            if (!mounted) return;
+            setAssuranceLevel(null);
+            setNextAssuranceLevel(null);
+          }
         }
-        setLoading(false);
+        if (mounted) setLoading(false);
       })
       .catch(() => {
         if (mounted) setLoading(false);
@@ -53,8 +78,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (!mounted) return;
         if (session?.user) {
           setUser(mapSupabaseUser(session.user));
+          void refreshAssurance().catch(() => {
+            setAssuranceLevel(null);
+            setNextAssuranceLevel(null);
+          });
         } else {
           setUser(null);
+          setAssuranceLevel(null);
+          setNextAssuranceLevel(null);
         }
       }
     );
@@ -63,7 +94,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       mounted = false;
       subscription.subscription.unsubscribe();
     };
-  }, []);
+  }, [refreshAssurance]);
 
   const login = useCallback(async (email: string, password: string) => {
     const { data, error } = await supabase.auth.signInWithPassword({
@@ -72,16 +103,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     });
     if (error) throw new Error(error.message);
     if (data.user) setUser(mapSupabaseUser(data.user));
-  }, []);
+    await refreshAssurance();
+  }, [refreshAssurance]);
 
   const logout = useCallback(async () => {
     const { error } = await supabase.auth.signOut();
     if (error) throw new Error(error.message);
     setUser(null);
+    setAssuranceLevel(null);
+    setNextAssuranceLevel(null);
   }, []);
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, logout }}>
+    <AuthContext.Provider
+      value={{
+        user,
+        loading,
+        assuranceLevel,
+        nextAssuranceLevel,
+        login,
+        logout,
+        refreshAssurance,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );
