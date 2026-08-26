@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { and, asc, eq, ne } from "drizzle-orm";
+import { and, asc, eq } from "drizzle-orm";
 import { db } from "../../../../db/index.js";
 import {
   supportAttachments,
@@ -25,6 +25,14 @@ const STATUSES = new Set([
   "indesirable",
 ]);
 const PRIORITIES = new Set(["p1", "p2", "p3", "p4"]);
+const ASSIGNED_TEAMS = new Set([
+  "referent_numerique",
+  "secretariat",
+  "vie_scolaire",
+  "intendance",
+  "direction",
+  "administration",
+]);
 const IDENTITY_STATUSES = new Set(["non_verifiee", "contact_verifie", "identite_confirmee"]);
 const IDENTITY_METHODS = new Set(["email_magic_link", "phone_callback", "official_roster"]);
 const SENSITIVE_CATEGORIES = new Set(["ent", "email_academique"]);
@@ -61,9 +69,43 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       const nextStatus = typeof body.status === "string" ? body.status : request.status;
       const nextPriority = typeof body.priority === "string" ? body.priority : request.priority;
       const nextIdentityStatus = typeof body.identityStatus === "string" ? body.identityStatus : currentIdentityStatus;
+      const nextAssignedTeam = body.assignedTeam === undefined
+        ? request.assignedTeam
+        : body.assignedTeam === null || body.assignedTeam === ""
+          ? null
+          : typeof body.assignedTeam === "string"
+            ? body.assignedTeam
+            : request.assignedTeam;
       if (!STATUSES.has(nextStatus)) throw new HttpError(400, "Statut invalide");
       if (!PRIORITIES.has(nextPriority)) throw new HttpError(400, "Priorité invalide");
       if (!IDENTITY_STATUSES.has(nextIdentityStatus)) throw new HttpError(400, "Niveau de vérification invalide");
+      if (
+        body.assignedTeam !== undefined &&
+        body.assignedTeam !== null &&
+        typeof body.assignedTeam !== "string"
+      ) {
+        throw new HttpError(400, "Service destinataire invalide");
+      }
+      if (nextAssignedTeam && !ASSIGNED_TEAMS.has(nextAssignedTeam)) {
+        throw new HttpError(400, "Service destinataire invalide");
+      }
+
+      const currentClosureReason = typeof currentContext.closureReason === "string"
+        ? currentContext.closureReason
+        : null;
+      const closingNow = nextStatus === "clos" && request.status !== "clos";
+      let closureReason = currentClosureReason;
+      if (closingNow || (nextStatus === "clos" && !closureReason)) {
+        if (typeof body.closureReason !== "string") {
+          throw new HttpError(400, "Indiquez le motif de clôture");
+        }
+        closureReason = body.closureReason
+          .replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F]/g, "")
+          .trim();
+        if (!closureReason || closureReason.length > 500) {
+          throw new HttpError(400, "Le motif de clôture est invalide");
+        }
+      }
 
       const requestedIdentityMethod = typeof body.identityMethod === "string" ? body.identityMethod : typeof currentContext.identityMethod === "string" ? currentContext.identityMethod : null;
       const nextIdentityMethod = nextIdentityStatus === "non_verifiee" ? null : requestedIdentityMethod;
@@ -107,6 +149,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       }
 
       const now = new Date();
+      const teamChanged = nextAssignedTeam !== request.assignedTeam;
+      const nextAssignedTo = body.assignToMe === true
+        ? user.id
+        : teamChanged
+          ? null
+          : request.assignedTo;
       const identityChanged =
         nextIdentityStatus !== currentIdentityStatus ||
         nextIdentityMethod !== (typeof currentContext.identityMethod === "string" ? currentContext.identityMethod : null);
@@ -130,8 +178,18 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
                 : identityChanged
                   ? user.id
                   : currentContext.identityVerifiedBy ?? user.id,
+              ...(nextStatus === "clos"
+                ? {
+                    closureReason,
+                    closureBy: closingNow ? user.id : currentContext.closureBy,
+                    closureAt: closingNow ? now.toISOString() : currentContext.closureAt,
+                  }
+                : request.status === "clos"
+                  ? { reopenedBy: user.id, reopenedAt: now.toISOString() }
+                  : {}),
             },
-            assignedTo: body.assignToMe === true ? user.id : request.assignedTo,
+            assignedTo: nextAssignedTo,
+            assignedTeam: nextAssignedTeam,
             resolvedAt:
               nextStatus === "resolu" || nextStatus === "clos"
                 ? request.resolvedAt ?? now
@@ -145,8 +203,22 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           eventType: "request.updated",
           actorType: "agent",
           actorId: user.id,
-          fromValue: { status: request.status, priority: request.priority, identityStatus: currentIdentityStatus, assignedTo: request.assignedTo },
-          toValue: { status: nextStatus, priority: nextPriority, identityStatus: nextIdentityStatus, identityMethod: nextIdentityMethod, assignedTo: saved.assignedTo },
+          fromValue: {
+            status: request.status,
+            priority: request.priority,
+            identityStatus: currentIdentityStatus,
+            assignedTo: request.assignedTo,
+            assignedTeam: request.assignedTeam,
+          },
+          toValue: {
+            status: nextStatus,
+            priority: nextPriority,
+            identityStatus: nextIdentityStatus,
+            identityMethod: nextIdentityMethod,
+            assignedTo: saved.assignedTo,
+            assignedTeam: saved.assignedTeam,
+            closureReason: nextStatus === "clos" ? closureReason : null,
+          },
           correlationId: randomUUID(),
         });
         return [saved];
@@ -168,7 +240,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       db
         .select()
         .from(supportMessages)
-        .where(and(eq(supportMessages.requestId, request.id), ne(supportMessages.direction, "internal")))
+        .where(eq(supportMessages.requestId, request.id))
         .orderBy(asc(supportMessages.createdAt)),
       db
         .select({

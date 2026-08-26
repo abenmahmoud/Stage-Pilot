@@ -3,7 +3,7 @@
 **Derniere mise a jour** : 26 aout 2026  
 **Branche de travail** : `codex/lycee-connect-prototype`  
 **Depot** : `abenmahmoud/Stage-Pilot`  
-**Dernier jalon de code verifie** : politique conversationnelle centralisee
+**Dernier jalon de code verifie** : traitement complet des dossiers par l'agent
 
 ## 1. Fonction de cette memoire
 
@@ -72,6 +72,9 @@ sa specification.
 - Depots signes vers une quarantaine, antivirus documente et stockage prive des
   fichiers declares sains.
 - File agent paginee, filtres, assignation et verrou d'authentification.
+- Traitement agent avec transfert par service, notes internes invisibles pour
+  l'usager, cloture motivee, reouverture et modeles de reponse a variables
+  limitees.
 - Trois niveaux visibles : coordonnees declarees, contact verifie, identite
   confirmee. Les demandes de codes restent bloquees sans confirmation.
 - Envoi email sortant durable et enregistrement des evenements de livraison.
@@ -233,6 +236,10 @@ sa specification.
 
 - Importer la liste validee des professeurs et les emplois du temps par un flux
   limite, date, revocable et non public.
+- Les exports du 25 aout 2026 ont ete examines localement : 102 pages
+  professeurs et 45 pages classes. Le contrat d'import protege est defini dans
+  `002-agent-etablissement-adaptatif/schedule-import.md`; aucun fichier reel ni
+  nom n'a ete envoye vers Git ou la preview.
 - Inventorier la licence et les connecteurs PRONOTE/ENT disponibles avant toute
   integration; utiliser uniquement une voie officielle autorisee.
 - Construire la base de connaissances validee par la direction.

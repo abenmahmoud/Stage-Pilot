@@ -69,6 +69,12 @@
 - [ ] T042 Piloter les données locales avec imports limités, datés et révocables.
 - [ ] T042A Importer la liste validée des professeurs et leurs emplois du temps,
   puis tester le rapprochement sans exposer l'annuaire au public.
+- [x] T042B Examiner les exports PDF professeurs/classes du 25 août 2026 et
+  définir un contrat d'import privé, versionné et réversible sans donnée
+  nominative dans Git.
+- [ ] T042C Construire l'import privé des PDF, l'index par page et la validation
+  humaine avant activation. Ne pas importer les fichiers réels en preview sans
+  autorisation explicite et stockage protégé.
 - [ ] T043 Ajouter le connecteur ou export PRONOTE officiel après autorisation écrite.
 - [ ] T044 Terminer les courriels entrants et sortants avec preuve de livraison disponible.
 - [ ] T045 Ajouter SMS uniquement après validation du consentement, des usages et du budget.

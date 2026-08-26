@@ -56,8 +56,12 @@ quarantaine. Une panne d'envoi externe n'affecte pas le dossier.
   une liste officielle pour confirmer une identité et bloquer la résolution des
   demandes ENT ou email académique sans cette confirmation.
 - [x] **T017** Construire la file agent paginée avec filtres, SLA et assignation.
-- [ ] **T018** Ajouter réponses, notes internes, transfert et clôture motivée.
-- [ ] **T019** Ajouter les modèles de réponse et variables autorisées.
+- [x] **T018** Ajouter réponses, notes internes, transfert et clôture motivée.
+  Les notes internes restent hors du fil public, le transfert conserve le dossier
+  complet et une clôture exige un motif audité.
+- [x] **T019** Ajouter les modèles de réponse et variables autorisées. Trois
+  modèles prudents sont disponibles et les agents peuvent enregistrer un modèle
+  limité aux variables `prenom`, `numero` et `objet`.
 - [x] **T020** Installer `pgmq`, la Basic Queue transactionnelle, le worker et la
   file d'échec administrable.
 - [x] **T021** Implémenter l'envoi Brevo avec idempotence et `Reply-To` dossier.
