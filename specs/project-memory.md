@@ -15,6 +15,8 @@ d'une conversation. Il ne remplace pas les specifications :
   integrations futures;
 - `003-gestion-contenus-lycee` decrit les actualites, pages, documents, modeles
   et l'aide a la redaction dans l'espace administratif;
+- `005-centre-communications` propose le circuit durable qui transforme une
+  information en publication web datee et en notification email individuelle;
 - les fichiers `tasks.md` restent la liste detaillee des travaux verificables.
 
 Mettre a jour cette memoire apres chaque jalon important, sans y placer de donnee
@@ -48,6 +50,8 @@ Construire progressivement une PWA du lycee qui reunit :
 7. un agent d'etablissement fonde sur des competences validees et versionnees.
 8. un espace de contenus permettant a la direction de mettre a jour le portail
    sans modifier le code.
+9. un centre de communication qui publie une information une seule fois, puis
+   la diffuse sans exposer les listes de destinataires.
 
 Le proprietaire estime que **89 % de son programme reste encore a expliquer**.
 Ce chiffre exprime la part de vision non decrite, pas l'avancement technique du
@@ -191,6 +195,16 @@ sa specification.
 - Ajouter rappels telephoniques, relances SLA, doublons, tableau de sante et file
   d'echec administrable.
 - Mettre en place sauvegarde chiffree et test documente de restauration.
+
+### Priorite A bis - Clarifier les communications de rentree
+
+- Valider le module `005-centre-communications` et la distinction entre contenu
+  public, interne et cible.
+- Faire du site la version officielle datee et de l'email une notification
+  individuelle qui renvoie vers cette version.
+- Interdire l'exposition des destinataires et rattacher les reponses a une boite
+  de traitement plutot qu'a la liste collective.
+- Tester d'abord avec des contacts fictifs avant toute diffusion reelle.
 
 ### Priorite B - Protection des personnes et exploitation
 
