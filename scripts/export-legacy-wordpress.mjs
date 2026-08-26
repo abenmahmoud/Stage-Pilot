@@ -31,6 +31,16 @@ function cleanText(value = "") {
     .trim();
 }
 
+function safeSlug(value) {
+  return value
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 140);
+}
+
 function normalizedUrl(value) {
   if (!value) return null;
   const decoded = decodeHtml(value.trim());
@@ -202,7 +212,7 @@ function contentRecord(item, mediaByAlias) {
     importKey: `wordpress:${item.type}:${item.id}`,
     wordpressId: item.id,
     wordpressType: item.type,
-    slug: item.slug === "accueil" ? "accueil-historique" : item.slug,
+    slug: item.slug === "accueil" ? "accueil-historique" : safeSlug(item.slug),
     originalSlug: item.slug,
     sourceUrl: item.link,
     sourceModifiedAt: item.modified_gmt ? `${item.modified_gmt}Z` : null,
@@ -251,6 +261,26 @@ function markdownReport(exported) {
   return lines.join("\n");
 }
 
+function rewriteInternalContentLinks(contents) {
+  const destinations = new Map();
+  for (const content of contents) {
+    const source = new URL(content.sourceUrl);
+    const variants = new Set([
+      source.href,
+      source.href.replace(/\/$/, ""),
+      `${source.href.replace(/\/$/, "")}/`,
+    ]);
+    for (const variant of variants) destinations.set(variant, `/site/${content.slug}`);
+  }
+  return contents.map((content) => {
+    let bodyMarkdown = content.bodyMarkdown;
+    for (const [source, destination] of destinations) {
+      if (bodyMarkdown.includes(source)) bodyMarkdown = bodyMarkdown.split(source).join(destination);
+    }
+    return { ...content, bodyMarkdown };
+  });
+}
+
 async function main() {
   const [pages, posts, media, categories] = await Promise.all([
     fetchCollection("pages"),
@@ -260,9 +290,9 @@ async function main() {
   ]);
   const mediaRows = media.rows.map(mediaRecord);
   const mediaByAlias = new Map(mediaRows.flatMap((item) => item.aliases.map((alias) => [alias, item])));
-  const contents = [...pages.rows, ...posts.rows]
+  const contents = rewriteInternalContentLinks([...pages.rows, ...posts.rows]
     .map((item) => contentRecord(item, mediaByAlias))
-    .sort((left, right) => left.sourceUrl.localeCompare(right.sourceUrl, "fr"));
+    .sort((left, right) => left.sourceUrl.localeCompare(right.sourceUrl, "fr")));
   const uploadUrls = [...new Set(contents.flatMap((item) => item.allReferencedUrls)
     .filter((url) => url.includes("/wp-content/uploads/")))];
   const unresolvedUploadUrls = uploadUrls.filter((url) => !mediaByAlias.has(url));

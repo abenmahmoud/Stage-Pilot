@@ -74,6 +74,36 @@
       ]
     }
   ],
+  "redirects": [
+    { "source": "/1159-2", "destination": "/site/1159-2", "permanent": true },
+    { "source": "/bac-general", "destination": "/site/bac-general", "permanent": true },
+    { "source": "/bac-professionnel", "destination": "/site/bac-professionnel", "permanent": true },
+    { "source": "/bac-technologique", "destination": "/site/bac-technologique", "permanent": true },
+    { "source": "/bal-de-fin-dannee", "destination": "/site/bal-de-fin-dannee", "permanent": true },
+    { "source": "/cap-etl", "destination": "/site/cap-etl", "permanent": true },
+    { "source": "/cdi", "destination": "/site/cdi", "permanent": true },
+    { "source": "/contact", "destination": "/site/contact", "permanent": true },
+    { "source": "/exposition-loeuvre-dart-du-mois", "destination": "/site/exposition-loeuvre-dart-du-mois", "permanent": true },
+    { "source": "/formations", "destination": "/site/formations", "permanent": true },
+    { "source": "/hlp", "destination": "/site/hlp", "permanent": true },
+    { "source": "/https-docs-google-com-forms-d-e-1faipqlsety2swpyoogjbjt-qj2tz9z6fnhwk5if_valme6sup9ukayw-viewform", "destination": "/site/https-docs-google-com-forms-d-e-1faipqlsety2swpyoogjbjt-qj2tz9z6fnhwk5if-valme6sup9ukayw-viewform", "permanent": true },
+    { "source": "/llce", "destination": "/site/llce", "permanent": true },
+    { "source": "/localisation", "destination": "/site/localisation", "permanent": true },
+    { "source": "/london-trip-review", "destination": "/site/london-trip-review", "permanent": true },
+    { "source": "/maths", "destination": "/site/maths", "permanent": true },
+    { "source": "/nouveau-site-lycee", "destination": "/site/nouveau-site-lycee", "permanent": true },
+    { "source": "/nsi", "destination": "/site/nsi", "permanent": true },
+    { "source": "/planning-de-rentree-2024", "destination": "/site/planning-de-rentree-2024", "permanent": true },
+    { "source": "/presentation-lycee", "destination": "/site/presentation-lycee", "permanent": true },
+    { "source": "/presentations-clubs", "destination": "/site/presentations-clubs", "permanent": true },
+    { "source": "/se-connecter", "destination": "/site/se-connecter", "permanent": true },
+    { "source": "/specialites", "destination": "/site/specialites", "permanent": true },
+    { "source": "/tournoi-de-football", "destination": "/site/tournoi-de-football", "permanent": true },
+    { "source": "/un-atelier-pour-etre-plus-a-laise-a-loral", "destination": "/site/un-atelier-pour-etre-plus-a-laise-a-loral", "permanent": true },
+    { "source": "/unss", "destination": "/site/unss", "permanent": true },
+    { "source": "/vie-du-lycee", "destination": "/site/vie-du-lycee", "permanent": true },
+    { "source": "/category/:path*", "destination": "/?view=news", "permanent": true }
+  ],
   "rewrites": [
     {
       "source": "/api/:path*",

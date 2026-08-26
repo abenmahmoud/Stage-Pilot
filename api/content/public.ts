@@ -6,7 +6,8 @@ import {
   siteContentItems,
   siteContentVersions,
 } from "../../db/schema.js";
-import { parseSiteContentInput } from "../../shared/site-content.js";
+import { normalizeSiteSlug, parseSiteContentInput } from "../../shared/site-content.js";
+import { HttpError } from "../_shared/auth.js";
 import { signedAssetUrl } from "../_shared/site-content.js";
 import { handleApi, methodNotAllowed } from "../_shared/response.js";
 
@@ -14,6 +15,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== "GET") return methodNotAllowed(res, ["GET"]);
   return handleApi(res, async () => {
     const now = new Date();
+    const rawSlug = Array.isArray(req.query.slug) ? req.query.slug[0] : req.query.slug;
+    const requestedSlug = rawSlug ? normalizeSiteSlug(rawSlug) : null;
+    if (rawSlug && requestedSlug !== rawSlug) throw new HttpError(400, "Adresse de contenu invalide");
     const rows = await db
       .select({ item: siteContentItems, snapshot: siteContentVersions.snapshot })
       .from(siteContentItems)
@@ -27,11 +31,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       .where(
         and(
           isNotNull(siteContentItems.publishedVersion),
-          ne(siteContentItems.status, "archive")
+          ne(siteContentItems.status, "archive"),
+          requestedSlug ? eq(siteContentItems.slug, requestedSlug) : undefined
         )
       )
       .orderBy(desc(siteContentItems.featured), desc(siteContentItems.publishedAt))
-      .limit(100);
+      .limit(requestedSlug ? 1 : 100);
 
     const parsed = rows.flatMap((row) => {
       try {

@@ -6,6 +6,7 @@ import { ROLE_HOME } from "./lib/types";
 import { AGENT_MFA_ENFORCED, isAgentRole } from "./lib/auth-policy";
 
 const LyceeConnectPrototype = lazy(() => import("./pages/prototype/LyceeConnectPrototype"));
+const PublicContentPage = lazy(() => import("./pages/prototype/PublicContentPage"));
 const LoginPage = lazy(() => import("./pages/LoginPage"));
 const MfaSecurityPage = lazy(() => import("./pages/MfaSecurityPage"));
 const AppLayout = lazy(() => import("./components/AppLayout"));
@@ -78,12 +79,14 @@ export default function App() {
     <AuthProvider>
       <Suspense fallback={<PageFallback />}>
         <Routes>
+        <Route path="/" element={<LyceeConnectPrototype />} />
         <Route
           path="/prototype"
           element={
             <LyceeConnectPrototype />
           }
         />
+        <Route path="/site/:slug" element={<PublicContentPage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route
           path="/security"
@@ -94,7 +97,7 @@ export default function App() {
           }
         />
         <Route
-          path="/"
+          path="/app"
           element={
             <ProtectedRoute>
               <AppLayout />
@@ -102,6 +105,14 @@ export default function App() {
           }
         >
           <Route index element={<DashboardRedirect />} />
+        </Route>
+        <Route
+          element={
+            <ProtectedRoute>
+              <AppLayout />
+            </ProtectedRoute>
+          }
+        >
           <Route path="dashboard" element={<DashboardRedirect />} />
           <Route path="stages" element={<StagesDashboard />} />
           <Route path="stages/mon-stage/livret" element={<LivretStage />} />
