@@ -73,6 +73,14 @@ sa specification.
   parcours principaux.
 - En-tetes HTTP de securite, API sans cache et service worker non fige.
 - Audit npm des dependances de production : zero alerte connue au dernier jalon.
+- Audit de la branche Supabase de preview : fonctions privilegiees corrigees,
+  appels d'identite RLS optimises, index redondants retires, aucune relation de
+  support sans index et aucun droit direct `anon`/`authenticated`.
+- Relations croisees renforcees : un fichier ne peut pas pointer vers le message
+  d'un autre dossier et un rappel ne peut pas pointer vers le contact d'un autre
+  dossier.
+- Limiteur atomique partage entre les instances Vercel pour l'assistant, la
+  creation de demandes et les messages; seules des empreintes HMAC sont stockees.
 
 ### Concu ou partiellement branche
 
@@ -84,6 +92,10 @@ sa specification.
   site n'est pas integralement migre ni remplace.
 - Les workers Brevo et antivirus sont documentes comme installes dans les specs;
   leur etat doit etre recontrole avant chaque mise en service reelle.
+- Le rapport complet securite/durabilite/charge est conserve dans
+  `docs/operations/SECURITY_DURABILITY_SCALE_AUDIT_2026-08-26.md`.
+- Le nouveau test de charge nettoyable n'a pas ete relance sur ce poste, faute
+  d'URL de connexion directe a la base de preview dans l'environnement local.
 - L'agent V2 possede une specification, un plan et des taches. Hormis certains
   controles du guichet deja reutilisables, son registre de competences et son
   orchestrateur ne sont pas encore developpes.
@@ -141,6 +153,9 @@ sa specification.
 
 - Corriger les alertes Supabase restantes et completer les tests RLS,
   concurrence, idempotence et reprise.
+- Activer la protection des mots de passe compromis dans Supabase Auth; les
+  autres alertes de securite techniques visees par le jalon du 26 aout sont
+  fermees dans la preview.
 - Terminer reponse agent, note interne, transfert, cloture motivee et modeles.
 - Terminer le domaine email entrant, les reponses email et leurs pieces dans le
   bon dossier.

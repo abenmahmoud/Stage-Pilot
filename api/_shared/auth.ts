@@ -1,3 +1,4 @@
+import { timingSafeEqual } from "node:crypto";
 import { createClient } from "@supabase/supabase-js";
 import type { VercelRequest } from "@vercel/node";
 
@@ -67,4 +68,17 @@ export class HttpError extends Error {
   constructor(public status: number, message: string) {
     super(message);
   }
+}
+
+export function secretMatches(
+  expected: string | undefined,
+  provided: string | undefined
+): boolean {
+  if (!expected || !provided) return false;
+  const expectedBytes = Buffer.from(expected);
+  const providedBytes = Buffer.from(provided);
+  return (
+    expectedBytes.length === providedBytes.length &&
+    timingSafeEqual(expectedBytes, providedBytes)
+  );
 }

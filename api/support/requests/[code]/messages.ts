@@ -6,7 +6,9 @@ import { supportEvents, supportMessages, supportRequests } from "../../../../db/
 import { HttpError } from "../../../_shared/auth.js";
 import { handleApi, methodNotAllowed } from "../../../_shared/response.js";
 import {
+  enforceSupportRateLimit,
   idempotencyKey,
+  personalHash,
   requireSupportAccess,
   sha256,
 } from "../../../_shared/support.js";
@@ -20,6 +22,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       throw new HttpError(400, "Numéro de demande invalide");
     }
     const access = await requireSupportAccess(req, code);
+    await enforceSupportRateLimit({
+      scope: "message_session",
+      keyHash: personalHash(`message:${access.sessionId}`),
+      limit: 60,
+      windowSeconds: 10 * 60,
+    });
     const messageIdempotencyHash = sha256(idempotencyKey(req));
     const body = req.body as Record<string, unknown>;
     if (typeof body?.message !== "string") throw new HttpError(400, "Message requis");

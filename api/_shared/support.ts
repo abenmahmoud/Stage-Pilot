@@ -1,6 +1,6 @@
 import { createHash, createHmac, randomBytes } from "node:crypto";
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { and, eq, gt, isNull } from "drizzle-orm";
+import { and, eq, gt, isNull, sql } from "drizzle-orm";
 import { db } from "../../db/index.js";
 import {
   supportDeviceSessions,
@@ -196,10 +196,53 @@ export function personalHash(value: string): string {
   return createHmac("sha256", secret).update(value).digest("hex");
 }
 
+function firstHeaderValue(value: string | string[] | undefined): string | null {
+  const first = Array.isArray(value) ? value[0] : value?.split(",")[0];
+  return first?.trim() || null;
+}
+
 export function requestIpHash(req: VercelRequest): string | null {
-  const forwarded = req.headers["x-forwarded-for"];
-  const value = Array.isArray(forwarded) ? forwarded[0] : forwarded?.split(",")[0];
-  return value ? personalHash(value.trim()) : null;
+  const value =
+    firstHeaderValue(req.headers["x-vercel-forwarded-for"]) ??
+    firstHeaderValue(req.headers["x-forwarded-for"]);
+  return value ? personalHash(value) : null;
+}
+
+export async function enforceSupportRateLimit(input: {
+  scope: "assistant_session" | "assistant_network" | "request_network" | "message_session";
+  keyHash: string;
+  limit: number;
+  windowSeconds: number;
+}): Promise<void> {
+  const result = await db.execute(sql<{ request_count: number }>`
+    insert into public.support_rate_limits (
+      scope, key_hash, window_started_at, request_count, expires_at
+    ) values (
+      ${input.scope}, ${input.keyHash}, now(), 1,
+      now() + (${input.windowSeconds} * interval '1 second')
+    )
+    on conflict (scope, key_hash) do update
+    set
+      window_started_at = case
+        when public.support_rate_limits.expires_at <= now() then now()
+        else public.support_rate_limits.window_started_at
+      end,
+      request_count = case
+        when public.support_rate_limits.expires_at <= now() then 1
+        else public.support_rate_limits.request_count + 1
+      end,
+      expires_at = case
+        when public.support_rate_limits.expires_at <= now()
+          then now() + (${input.windowSeconds} * interval '1 second')
+        else public.support_rate_limits.expires_at
+      end
+    where public.support_rate_limits.expires_at <= now()
+       or public.support_rate_limits.request_count < ${input.limit}
+    returning request_count
+  `);
+  if (Array.from(result as unknown as Array<{ request_count: number }>).length === 0) {
+    throw new HttpError(429, "Trop de demandes envoyées. Réessayez dans quelques minutes.");
+  }
 }
 
 function parseCookieHeader(header: string | undefined): Record<string, string> {

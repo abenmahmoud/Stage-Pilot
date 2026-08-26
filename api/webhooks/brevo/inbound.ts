@@ -9,7 +9,7 @@ import {
   supportRequests,
   supportWebhookReceipts,
 } from "../../../db/schema.js";
-import { HttpError } from "../../_shared/auth.js";
+import { HttpError, secretMatches } from "../../_shared/auth.js";
 import { handleApi, methodNotAllowed } from "../../_shared/response.js";
 import { sha256 } from "../../_shared/support.js";
 
@@ -35,7 +35,7 @@ function authorizeWebhook(req: VercelRequest): void {
   const expected = process.env.BREVO_WEBHOOK_SECRET;
   const provided = req.headers["x-brevo-webhook-secret"];
   const value = Array.isArray(provided) ? provided[0] : provided;
-  if (!expected || value !== expected) throw new HttpError(401, "Webhook refusé");
+  if (!secretMatches(expected, value)) throw new HttpError(401, "Webhook refusé");
 }
 
 function recipientAddresses(item: InboundItem): string[] {

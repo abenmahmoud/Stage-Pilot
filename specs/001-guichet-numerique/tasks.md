@@ -15,8 +15,10 @@ restante, soit une configuration externe ou une validation par la direction.
 
 ## Jour 1 - Socle qui ne perd rien
 
-- [ ] **T001** Corriger les alertes Supabase critiques : `get_role`,
-  `set_updated_at`, mots de passe compromis et politiques RLS concernées.
+- [x] **T001A** Corriger `get_role`, `set_updated_at`, les appels RLS par ligne et
+  les index redondants sur la branche Supabase de preview.
+- [ ] **T001B** Activer la protection des mots de passe compromis dans Supabase
+  Auth et la confirmer avec un nouveau rapport des conseillers de sécurité.
 - [x] **T002** Supprimer le détail brut des erreurs 500 renvoyé par l'API.
 - [x] **T003** Ajouter la migration des tables support, index et contraintes.
 - [x] **T004** Créer les buckets privés `support-quarantine` et `support-clean`.
@@ -29,6 +31,8 @@ restante, soit une configuration externe ou une validation par la direction.
 - [x] **T010** Ajouter le journal append-only et les identifiants de corrélation.
 - [ ] **T011** Ajouter tests unitaires, RLS et intégration de création concurrente.
 - [x] **T012** Vérifier 200 créations, zéro perte et zéro doublon.
+  Le script est désormais isolé par exécution, utilise une file temporaire,
+  exige une cible preview explicite et nettoie ses données même après un échec.
 
 ### Sortie Jour 1
 

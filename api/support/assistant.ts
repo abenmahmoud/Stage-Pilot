@@ -1,17 +1,20 @@
-import { createHash } from "node:crypto";
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { HttpError } from "../_shared/auth.js";
 import { handleApi, methodNotAllowed } from "../_shared/response.js";
+import {
+  enforceSupportRateLimit,
+  personalHash,
+  requestIpHash,
+} from "../_shared/support.js";
 import {
   analyzeSupportConversation,
   type SupportAgentMessage,
   type SupportAttachmentHint,
 } from "../_shared/support-agent.js";
 
-const RATE_WINDOW_MS = 10 * 60 * 1000;
+const RATE_WINDOW_SECONDS = 10 * 60;
 const SESSION_RATE_LIMIT = 30;
-const NETWORK_RATE_LIMIT = 300;
-const requestWindows = new Map<string, { count: number; resetAt: number }>();
+const NETWORK_RATE_LIMIT = 2000;
 
 function cleanMessages(value: unknown): SupportAgentMessage[] {
   if (!Array.isArray(value) || value.length === 0 || value.length > 10) {
@@ -51,29 +54,11 @@ function cleanAttachments(value: unknown): SupportAttachmentHint[] {
 }
 
 function clientKeys(req: VercelRequest, sessionId: string): { session: string; network: string } {
-  const forwarded = req.headers["x-forwarded-for"];
-  const ip = (Array.isArray(forwarded) ? forwarded[0] : forwarded?.split(",")[0])?.trim() || "unknown";
-  const salt = process.env.SUPPORT_HASH_SECRET || process.env.OPENAI_API_KEY || "lycee-preview";
+  const network = requestIpHash(req) ?? personalHash("network:unknown");
   return {
-    session: createHash("sha256").update(`${salt}:${ip}:${sessionId}`).digest("hex").slice(0, 32),
-    network: createHash("sha256").update(`${salt}:${ip}`).digest("hex").slice(0, 32),
+    session: personalHash(`assistant:${network}:${sessionId}`),
+    network,
   };
-}
-
-function enforceRateLimit(key: string, limit: number) {
-  const now = Date.now();
-  if (requestWindows.size > 10_000) {
-    for (const [windowKey, value] of requestWindows) {
-      if (value.resetAt <= now) requestWindows.delete(windowKey);
-    }
-  }
-  const current = requestWindows.get(key);
-  if (!current || current.resetAt <= now) {
-    requestWindows.set(key, { count: 1, resetAt: now + RATE_WINDOW_MS });
-    return;
-  }
-  if (current.count >= limit) throw new HttpError(429, "Trop de messages envoyés. Réessayez dans quelques minutes.");
-  current.count += 1;
 }
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
@@ -85,8 +70,18 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       throw new HttpError(400, "La session est invalide");
     }
     const keys = clientKeys(req, input.sessionId);
-    enforceRateLimit(`session:${keys.session}`, SESSION_RATE_LIMIT);
-    enforceRateLimit(`network:${keys.network}`, NETWORK_RATE_LIMIT);
+    await enforceSupportRateLimit({
+      scope: "assistant_network",
+      keyHash: keys.network,
+      limit: NETWORK_RATE_LIMIT,
+      windowSeconds: RATE_WINDOW_SECONDS,
+    });
+    await enforceSupportRateLimit({
+      scope: "assistant_session",
+      keyHash: keys.session,
+      limit: SESSION_RATE_LIMIT,
+      windowSeconds: RATE_WINDOW_SECONDS,
+    });
     return analyzeSupportConversation({
       messages: cleanMessages(input.messages),
       attachments: cleanAttachments(input.attachments),

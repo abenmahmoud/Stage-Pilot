@@ -8,6 +8,7 @@ import {
   jsonb,
   uuid,
   bigint,
+  primaryKey,
 } from "drizzle-orm/pg-core";
 import { sql } from "drizzle-orm";
 
@@ -289,9 +290,9 @@ export const supportRequests = pgTable("support_requests", {
 
 export const supportContacts = pgTable("support_contacts", {
   id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
-  requestId: uuid("request_id").references(() => supportRequests.id, {
-    onDelete: "cascade",
-  }),
+  requestId: uuid("request_id")
+    .notNull()
+    .references(() => supportRequests.id, { onDelete: "cascade" }),
   personType: text("person_type").notNull(),
   personReferenceId: uuid("person_reference_id"),
   channel: text("channel").notNull(),
@@ -337,15 +338,24 @@ export const supportDeviceSessions = pgTable("support_device_sessions", {
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
-export const supportSessionRequests = pgTable("support_session_requests", {
-  sessionId: uuid("session_id")
-    .notNull()
-    .references(() => supportDeviceSessions.id, { onDelete: "cascade" }),
-  requestId: uuid("request_id")
-    .notNull()
-    .references(() => supportRequests.id, { onDelete: "cascade" }),
-  grantedAt: timestamp("granted_at", { withTimezone: true }).notNull().defaultNow(),
-});
+export const supportSessionRequests = pgTable(
+  "support_session_requests",
+  {
+    sessionId: uuid("session_id")
+      .notNull()
+      .references(() => supportDeviceSessions.id, { onDelete: "cascade" }),
+    requestId: uuid("request_id")
+      .notNull()
+      .references(() => supportRequests.id, { onDelete: "cascade" }),
+    grantedAt: timestamp("granted_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    primaryKey({
+      name: "support_session_requests_pkey",
+      columns: [table.sessionId, table.requestId],
+    }),
+  ]
+);
 
 export const supportMagicTokens = pgTable("support_magic_tokens", {
   id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
@@ -437,9 +447,9 @@ export const supportFailedJobs = pgTable("support_failed_jobs", {
 
 export const supportDeliveryEvents = pgTable("support_delivery_events", {
   id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
-  messageId: uuid("message_id").references(() => supportMessages.id, {
-    onDelete: "cascade",
-  }),
+  messageId: uuid("message_id")
+    .notNull()
+    .references(() => supportMessages.id, { onDelete: "cascade" }),
   provider: text("provider").notNull(),
   providerEventId: text("provider_event_id").notNull(),
   eventType: text("event_type").notNull(),
@@ -489,3 +499,22 @@ export const supportTemplates = pgTable("support_templates", {
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 });
+
+export const supportRateLimits = pgTable(
+  "support_rate_limits",
+  {
+    scope: text("scope").notNull(),
+    keyHash: text("key_hash").notNull(),
+    windowStartedAt: timestamp("window_started_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    requestCount: integer("request_count").notNull().default(1),
+    expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+  },
+  (table) => [
+    primaryKey({
+      name: "support_rate_limits_pkey",
+      columns: [table.scope, table.keyHash],
+    }),
+  ]
+);

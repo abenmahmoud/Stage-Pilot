@@ -9,7 +9,7 @@ import {
   supportRequests,
 } from "../../db/schema.js";
 import { escapeHtml, sendTransactionalEmail } from "../_shared/brevo.js";
-import { HttpError } from "../_shared/auth.js";
+import { HttpError, secretMatches } from "../_shared/auth.js";
 import { handleApi, methodNotAllowed } from "../_shared/response.js";
 
 type QueueJob = {
@@ -226,7 +226,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   return handleApi(res, async () => {
     const secret = process.env.CRON_SECRET;
-    if (!secret || req.headers.authorization !== `Bearer ${secret}`) {
+    const authorization = req.headers.authorization;
+    const provided = authorization?.startsWith("Bearer ")
+      ? authorization.slice("Bearer ".length)
+      : undefined;
+    if (!secretMatches(secret, provided)) {
       throw new HttpError(401, "Accès refusé");
     }
     const result = await db.execute(sql<QueueRow>`

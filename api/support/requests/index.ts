@@ -14,6 +14,7 @@ import {
 import { handleApi, methodNotAllowed } from "../../_shared/response.js";
 import {
   SUPPORT_SESSION_DAYS,
+  enforceSupportRateLimit,
   idempotencyKey,
   opaqueToken,
   parseSupportRequest,
@@ -63,6 +64,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method === "POST") {
     return handleApi(res, async () => {
       const input = parseSupportRequest(req.body);
+      const sourceIpHash = requestIpHash(req) ?? personalHash("network:unknown");
+      await enforceSupportRateLimit({
+        scope: "request_network",
+        keyHash: sourceIpHash,
+        limit: 1000,
+        windowSeconds: 10 * 60,
+      });
       const idempotencyHash = sha256(idempotencyKey(req));
       const correlationId = randomUUID();
       const requesterJobId = randomUUID();
@@ -107,7 +115,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             description: input.description,
             preferredChannel: input.preferredChannel,
             fallbackAllowed: input.fallbackAllowed,
-            sourceIpHash: requestIpHash(req),
+            sourceIpHash,
             slaDueAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
           })
           .onConflictDoNothing({ target: supportRequests.idempotencyKeyHash })

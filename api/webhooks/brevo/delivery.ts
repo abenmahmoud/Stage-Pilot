@@ -2,7 +2,7 @@ import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { eq } from "drizzle-orm";
 import { db } from "../../../db/index.js";
 import { supportDeliveryEvents, supportMessages } from "../../../db/schema.js";
-import { HttpError } from "../../_shared/auth.js";
+import { HttpError, secretMatches } from "../../_shared/auth.js";
 import { handleApi, methodNotAllowed } from "../../_shared/response.js";
 
 type DeliveryPayload = {
@@ -32,7 +32,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const expected = process.env.BREVO_WEBHOOK_SECRET;
     const provided = req.headers["x-brevo-webhook-secret"];
     const value = Array.isArray(provided) ? provided[0] : provided;
-    if (!expected || value !== expected) throw new HttpError(401, "Webhook refusé");
+    if (!secretMatches(expected, value)) throw new HttpError(401, "Webhook refusé");
 
     const payloads = (Array.isArray(req.body) ? req.body : [req.body]) as DeliveryPayload[];
     let recorded = 0;

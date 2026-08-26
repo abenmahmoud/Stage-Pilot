@@ -3,25 +3,33 @@ import { Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "./components/AuthProvider";
 import { useAuth } from "./lib/auth-context";
 import { ROLE_HOME } from "./lib/types";
-import LoginPage from "./pages/LoginPage";
-import AppLayout from "./components/AppLayout";
-import StagesDashboard from "./pages/stages/StagesDashboard";
-import MonStage from "./pages/stages/MonStage";
-import StageDetail from "./pages/stages/StageDetail";
-import LivretStage from "./pages/stages/LivretStage";
-import GrandOralDashboard from "./pages/grand-oral/GrandOralDashboard";
-import MaFiche from "./pages/grand-oral/MaFiche";
-import FicheDetail from "./pages/grand-oral/FicheDetail";
-import AdminDashboard from "./pages/admin/AdminDashboard";
-import ImportPage from "./pages/admin/ImportPage";
-import ParametresPage from "./pages/admin/ParametresPage";
-import CodesAccesPage from "./pages/admin/CodesAccesPage";
-import CodesProfsPage from "./pages/admin/CodesProfsPage";
-import AffectationsClassesPage from "./pages/admin/AffectationsClassesPage";
-import AffectationsElevesPage from "./pages/admin/AffectationsElevesPage";
-import DocumentsClassesPage from "./pages/admin/DocumentsClassesPage";
 
 const LyceeConnectPrototype = lazy(() => import("./pages/prototype/LyceeConnectPrototype"));
+const LoginPage = lazy(() => import("./pages/LoginPage"));
+const AppLayout = lazy(() => import("./components/AppLayout"));
+const StagesDashboard = lazy(() => import("./pages/stages/StagesDashboard"));
+const MonStage = lazy(() => import("./pages/stages/MonStage"));
+const StageDetail = lazy(() => import("./pages/stages/StageDetail"));
+const LivretStage = lazy(() => import("./pages/stages/LivretStage"));
+const GrandOralDashboard = lazy(() => import("./pages/grand-oral/GrandOralDashboard"));
+const MaFiche = lazy(() => import("./pages/grand-oral/MaFiche"));
+const FicheDetail = lazy(() => import("./pages/grand-oral/FicheDetail"));
+const AdminDashboard = lazy(() => import("./pages/admin/AdminDashboard"));
+const ImportPage = lazy(() => import("./pages/admin/ImportPage"));
+const ParametresPage = lazy(() => import("./pages/admin/ParametresPage"));
+const CodesAccesPage = lazy(() => import("./pages/admin/CodesAccesPage"));
+const CodesProfsPage = lazy(() => import("./pages/admin/CodesProfsPage"));
+const AffectationsClassesPage = lazy(() => import("./pages/admin/AffectationsClassesPage"));
+const AffectationsElevesPage = lazy(() => import("./pages/admin/AffectationsElevesPage"));
+const DocumentsClassesPage = lazy(() => import("./pages/admin/DocumentsClassesPage"));
+
+function PageFallback() {
+  return (
+    <div className="flex min-h-screen items-center justify-center bg-slate-50" aria-live="polite">
+      <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary-500 border-t-transparent" />
+    </div>
+  );
+}
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
@@ -44,13 +52,12 @@ function DashboardRedirect() {
 export default function App() {
   return (
     <AuthProvider>
-      <Routes>
+      <Suspense fallback={<PageFallback />}>
+        <Routes>
         <Route
           path="/prototype"
           element={
-            <Suspense fallback={<div className="min-h-screen bg-slate-50" />}>
-              <LyceeConnectPrototype />
-            </Suspense>
+            <LyceeConnectPrototype />
           }
         />
         <Route path="/login" element={<LoginPage />} />
@@ -91,7 +98,8 @@ export default function App() {
           <Route path="admin/parametres" element={<ParametresPage />} />
         </Route>
         <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
+        </Routes>
+      </Suspense>
     </AuthProvider>
   );
 }

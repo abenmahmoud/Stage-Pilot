@@ -47,3 +47,18 @@ cartographie oriente la recherche, elle n'autorise aucune mutation.
   conservations, sauvegardes et tests ne sont pas approuves.
 - Un ancien feu vert ne vaut pas autorisation permanente. Reconfirmer la cible
   exacte pour DNS, Hostinger, VPS, imports, emails de masse et production.
+
+## Charge, durabilite et preuves
+
+- Separer trafic mensuel et pic de rentree. Dimensionner et tester les creations,
+  messages, fichiers et reprises simultanes, pas seulement les pages vues.
+- Un limiteur en memoire d'une fonction serverless n'est pas une protection
+  distribuee; utiliser un mecanisme atomique partage et des identifiants haches.
+- Pour les tables support uniquement serveur, RLS sans politique est volontaire
+  si et seulement si les droits `anon` et `authenticated` restent revoques.
+- Ne jamais declarer une sauvegarde operationnelle sans restauration reussie de
+  la base et d'un fichier dans un environnement isole.
+- Les tests de charge utilisent uniquement une preview prouvee, des donnees
+  fictives, une execution identifiable et un nettoyage automatique.
+- Chaque conclusion importante doit citer une preuve : test, requete de controle,
+  journal, fichier ou configuration effectivement inspectee.
