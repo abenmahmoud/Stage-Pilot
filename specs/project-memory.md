@@ -3,7 +3,7 @@
 **Derniere mise a jour** : 26 aout 2026  
 **Branche de travail** : `codex/lycee-connect-prototype`  
 **Depot** : `abenmahmoud/Stage-Pilot`  
-**Dernier jalon enregistre avant cette memoire** : `0087fc7`
+**Dernier jalon de code verifie** : `74ee3e2`
 
 ## 1. Fonction de cette memoire
 
@@ -137,6 +137,8 @@ sa specification.
 
 - Preview Vercel protegee :
   `lyceegest-git-codex-lycee-connect-prototype-safe-scol.vercel.app`.
+- Le durcissement identite/reprise `74ee3e2` a ete publie sur la preview
+  `lyceegest-f0lsl9bje-safe-scol.vercel.app`, puis valide par requetes reelles.
 - Le site officiel Hostinger, le domaine principal, les DNS et le VPS n'ont pas
   ete modifies par le jalon de securisation `0087fc7`.
 - La preview sert aux demonstrations avec des donnees fictives. Elle ne constitue

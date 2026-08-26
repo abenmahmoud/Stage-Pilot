@@ -156,3 +156,24 @@ periode, depuis la meme connexion du lycee.
 - **Pilote reel restreint** : apres fermeture des six blocants ci-dessus.
 - **Remplacement du site officiel** : non, tant que contenus, retour arriere,
   accessibilite, DPO et exploitation ne sont pas valides.
+
+## Verification complementaire apres audit externe
+
+- Commit de code : `74ee3e2`.
+- Deploiement Git de preview :
+  `lyceegest-f0lsl9bje-safe-scol.vercel.app`, etat `Ready`.
+- L'alias stable de la branche pointe sur ce deploiement.
+- Page du prototype `200`; liste publique sans session `200` et vide; console
+  agent sans authentification `401`; webhook sans secret `401`; jeton mal forme
+  `400`.
+- Test synthetique avec deux contacts email : le jeton cible a retourne `200`,
+  l'adresse destinataire a seule ete verifiee, l'autre est restee non verifiee,
+  puis le dossier d'essai a ete supprime.
+- Apres la migration, zero empreinte reseau dans les dossiers, zero jeton mal
+  rattache, zero droit direct public sur les tables support, zero job echoue non
+  repris et zero scan en attente ou en erreur.
+- Aucun journal Vercel de niveau erreur n'a ete trouve pendant ces controles.
+- Le conseiller Supabase ne remonte plus d'alerte de schema support; la
+  protection des mots de passe compromis reste la seule alerte de securite de
+  niveau avertissement. Les tables support sans politiques restent des infos
+  intentionnelles : RLS est activee et les roles clients n'ont aucun droit.

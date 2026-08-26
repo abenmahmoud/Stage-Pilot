@@ -79,3 +79,14 @@ ont ete corriges dans la preview. Il a aussi produit quelques conclusions non
 confirmees. Le classement final reste : demonstration protegee et pilote avec
 donnees fictives autorises; donnees reelles a grande echelle et remplacement du
 site officiel interdits tant que les blocants d'exploitation ne sont pas fermes.
+
+## Preuves du correctif publie
+
+- Commit `74ee3e2`, preview Vercel `lyceegest-f0lsl9bje-safe-scol.vercel.app`.
+- Build TypeScript/Vite reussi et audit des dependances de production sans
+  vulnerabilite connue.
+- Migration appliquee uniquement a la branche Supabase de preview.
+- Test reel a deux adresses fictives : une seule adresse verifiee par le jeton,
+  dossier supprime apres controle.
+- Acces agent et webhook sans autorisation refuses, aucun journal Vercel de
+  niveau erreur pendant les tests.
