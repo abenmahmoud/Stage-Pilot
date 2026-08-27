@@ -1,5 +1,5 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { and, asc, eq, ilike, inArray, or, sql, type SQL } from "drizzle-orm";
+import { and, asc, eq, ilike, inArray, isNull, or, sql, type SQL } from "drizzle-orm";
 import { db } from "../../../../db/index.js";
 import { supportRequests } from "../../../../db/schema.js";
 import { HttpError } from "../../../_shared/auth.js";
@@ -22,6 +22,7 @@ const VALID_STATUSES = new Set([
   "indesirable",
 ]);
 const VALID_SERVICES = new Set<string>(SUPPORT_SERVICES);
+const UNASSIGNED_SERVICE_FILTER = "unassigned";
 
 function queryValue(value: string | string[] | undefined): string {
   return Array.isArray(value) ? value[0] ?? "" : value ?? "";
@@ -44,19 +45,21 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       ? undefined
       : inArray(supportRequests.assignedTeam, access.serviceCodes);
     if (accessFilter) filters.push(accessFilter);
-    if (service && !VALID_SERVICES.has(service)) {
+    if (service && !VALID_SERVICES.has(service) && service !== UNASSIGNED_SERVICE_FILTER) {
       throw new HttpError(400, "Service invalide");
     }
     if (
       service &&
       !access.canViewAll &&
-      !access.serviceCodes.includes(service as SupportService)
+      (service === UNASSIGNED_SERVICE_FILTER || !access.serviceCodes.includes(service as SupportService))
     ) {
       throw new HttpError(403, "Ce service n'appartient pas à votre périmètre");
     }
-    const serviceFilter = VALID_SERVICES.has(service)
-      ? eq(supportRequests.assignedTeam, service)
-      : undefined;
+    const serviceFilter = service === UNASSIGNED_SERVICE_FILTER
+      ? isNull(supportRequests.assignedTeam)
+      : VALID_SERVICES.has(service)
+        ? eq(supportRequests.assignedTeam, service)
+        : undefined;
 
     if (search) {
       const pattern = `%${search.replace(/[%_]/g, "\\$&")}%`;
@@ -121,12 +124,30 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       overdue: sql<number>`count(*) filter (where ${supportRequests.slaDueAt} < now() and ${supportRequests.status} not in ('resolu', 'clos', 'indesirable'))::int`,
     }).from(supportRequests).where(statsWhere.length ? and(...statsWhere) : undefined);
 
-    const [requests, [totalRow], [statsRow]] = await Promise.all([requestQuery, totalQuery, statsQuery]);
+    const serviceStatsQuery = db
+      .select({
+        service: supportRequests.assignedTeam,
+        open: sql<number>`count(*) filter (where ${supportRequests.status} not in ('resolu', 'clos', 'indesirable'))::int`,
+        urgent: sql<number>`count(*) filter (where ${supportRequests.priority} in ('p1', 'p2') and ${supportRequests.status} not in ('resolu', 'clos', 'indesirable'))::int`,
+        overdue: sql<number>`count(*) filter (where ${supportRequests.slaDueAt} < now() and ${supportRequests.status} not in ('resolu', 'clos', 'indesirable'))::int`,
+        unassigned: sql<number>`count(*) filter (where ${supportRequests.assignedTo} is null and ${supportRequests.status} not in ('resolu', 'clos', 'indesirable'))::int`,
+      })
+      .from(supportRequests)
+      .where(accessFilter)
+      .groupBy(supportRequests.assignedTeam);
+
+    const [requests, [totalRow], [statsRow], serviceStats] = await Promise.all([
+      requestQuery,
+      totalQuery,
+      statsQuery,
+      serviceStatsQuery,
+    ]);
     const total = totalRow?.count ?? 0;
 
     return {
       requests,
       access,
+      serviceStats,
       stats: statsRow ?? { total: 0, new: 0, qualify: 0, urgent: 0, active: 0, waitingRequester: 0, unassigned: 0, overdue: 0 },
       pagination: { page, pageSize, total, totalPages: Math.max(1, Math.ceil(total / pageSize)) },
     };

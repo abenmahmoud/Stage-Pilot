@@ -157,6 +157,8 @@
   prévisualisation mobile, programmation, retrait et historique.
 - [ ] T056 Construire les tableaux de bord secrétariat, CPE, intendance, direction
   et numérique avec comptes individuels et périmètres séparés.
+- [x] T056A Ajouter en preview la vue superadministrateur de la charge ouverte,
+  urgente et en retard par service, reliée aux files cloisonnées.
 - [ ] T057 Ajouter supervision, alertes, sauvegarde restaurable, file d'échec,
   journal d'accès et procédure d'incident.
 - [ ] T058 Faire valider le cadre ESSUF GROUP-lycée : rôles RGPD, support,

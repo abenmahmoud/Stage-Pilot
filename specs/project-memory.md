@@ -20,6 +20,9 @@
 - Les modifications agent et les reponses utilisent la revision affichee du
   dossier. Une prise en charge concurrente ou un dossier devenu perime provoque
   un refus puis une actualisation, sans ecraser le travail d'un autre agent.
+- Le superadministrateur dispose d'une vue de charge par service : dossiers
+  ouverts, urgents, en retard et sans agent, chaque indicateur ouvrant la file
+  correspondante sans elargir les droits des agents de service.
 - Le lancement Claude autorise pour l'audit cible du 27 aout s'est arrete sans
   rapport exploitable a cause de sa limite de contexte. Aucune conclusion externe
   ni relance n'a ete retenue.

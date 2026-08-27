@@ -97,6 +97,9 @@ l'autorisation de quota définie par le propriétaire.
 - Lot N5C : concurrence entre agents. **Implémentée et testée** : prise en charge
   atomique, révision obligatoire avant modification ou réponse, refus d'un état
   périmé et actualisation du dossier sans écrasement silencieux.
+- Lot N5D : pilotage superadministrateur. **Implémenté en preview** : charge
+  ouverte, urgente, en retard et sans agent par service, avec accès direct à la
+  file correspondante et respect du périmètre serveur.
 - Lot N6 : tests de non-régression, build, contrôle mobile et rapport d'écarts.
 
 ## Portes de validation humaine

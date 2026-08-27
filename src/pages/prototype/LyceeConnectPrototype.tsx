@@ -1815,6 +1815,7 @@ type AgentRequestDetail = {
 
 type AgentQueueStats = { total: number; new: number; qualify: number; urgent: number; active: number; waitingRequester: number; unassigned: number; overdue: number };
 type AgentQueuePagination = { page: number; pageSize: number; total: number; totalPages: number };
+type AgentServiceStats = { service: string | null; open: number; urgent: number; overdue: number; unassigned: number };
 type AgentAccess = {
   role: string;
   label: string;
@@ -1832,12 +1833,14 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 function isAgentQueuePayload(value: unknown): value is {
   requests: AgentRequest[];
   stats: AgentQueueStats;
+  serviceStats: AgentServiceStats[];
   pagination: AgentQueuePagination;
   access: AgentAccess;
 } {
   return isRecord(value)
     && Array.isArray(value.requests)
     && isRecord(value.stats)
+    && Array.isArray(value.serviceStats)
     && isRecord(value.pagination)
     && isRecord(value.access)
     && Array.isArray(value.access.serviceCodes);
@@ -1859,6 +1862,7 @@ function AgentView({ onBack }: { onBack: () => void }) {
 function ConnectedAgentView({ onBack }: { onBack: () => void }) {
   const [requests, setRequests] = useState<AgentRequest[]>([]);
   const [stats, setStats] = useState<AgentQueueStats>({ total: 0, new: 0, qualify: 0, urgent: 0, active: 0, waitingRequester: 0, unassigned: 0, overdue: 0 });
+  const [serviceStats, setServiceStats] = useState<AgentServiceStats[]>([]);
   const [pagination, setPagination] = useState<AgentQueuePagination>({ page: 1, pageSize: 30, total: 0, totalPages: 1 });
   const [access, setAccess] = useState<AgentAccess | null>(null);
   const [queueMode, setQueueMode] = useState<"all" | "qualify" | "urgent" | "mine">("all");
@@ -1890,6 +1894,7 @@ function ConnectedAgentView({ onBack }: { onBack: () => void }) {
       }
       setRequests(payload.requests);
       setStats(payload.stats);
+      setServiceStats(payload.serviceStats);
       setPagination(payload.pagination);
       setAccess(payload.access);
       if (
@@ -2081,6 +2086,10 @@ function ConnectedAgentView({ onBack }: { onBack: () => void }) {
   const availableTeams = access?.canViewAll
     ? supportTeams
     : supportTeams.filter((team) => access?.serviceCodes.includes(team.value));
+  const orderedServiceStats = [
+    serviceStats.find((item) => item.service === null),
+    ...supportTeams.map((team) => serviceStats.find((item) => item.service === team.value)),
+  ].filter((item): item is AgentServiceStats => Boolean(item && item.open > 0));
   const needsAgentSecurity = Boolean(
     error && /double vérification|vérification renforcée/i.test(error)
   );
@@ -2097,9 +2106,10 @@ function ConnectedAgentView({ onBack }: { onBack: () => void }) {
         <div><span><UserRound aria-hidden="true" /></span><strong>{stats.unassigned}</strong><small>Sans responsable</small></div>
         <div><span><Clock3 aria-hidden="true" /></span><strong>{stats.overdue}</strong><small>Échéances dépassées</small></div>
       </div>
+      {access?.canViewAll && orderedServiceStats.length > 0 ? <section className="lycee-service-load" aria-label="Charge par service"><div><small>Vue superadministrateur</small><strong>Charge par service</strong></div><nav>{orderedServiceStats.map((item) => { const value = item.service ?? "unassigned"; return <button type="button" className={serviceFilter === value ? "is-active" : ""} onClick={() => { setServiceFilter(value); setPage(1); }} key={value}><span>{supportTeamLabel(item.service)}</span><strong>{item.open}</strong><small>{item.urgent > 0 ? `${item.urgent} urgente${item.urgent > 1 ? "s" : ""}` : "Aucune urgence"}{item.overdue > 0 ? ` · ${item.overdue} en retard` : ""}</small></button>; })}</nav></section> : null}
       <div className="lycee-agent-workspace">
         <section className="lycee-agent-queue">
-          <div className="lycee-agent-toolbar"><label><Search aria-hidden="true" /><input value={query} onChange={(event) => { setQuery(event.target.value); setPage(1); }} placeholder="Nom, numéro ou objet" /></label><button className={queueMode === "mine" ? "is-active" : ""} type="button" aria-label="Afficher mes demandes" aria-pressed={queueMode === "mine"} title="Afficher mes demandes" onClick={() => { setQueueMode((current) => current === "mine" ? "all" : "mine"); setPage(1); }}><Filter aria-hidden="true" /></button><select aria-label="Filtrer par service" value={serviceFilter} onChange={(event) => { setServiceFilter(event.target.value); setPage(1); }}><option value="">{access?.canViewAll ? "Tous les services" : "Mon périmètre"}</option>{availableTeams.map((team) => <option value={team.value} key={team.value}>{team.label}</option>)}</select></div>
+          <div className="lycee-agent-toolbar"><label><Search aria-hidden="true" /><input value={query} onChange={(event) => { setQuery(event.target.value); setPage(1); }} placeholder="Nom, numéro ou objet" /></label><button className={queueMode === "mine" ? "is-active" : ""} type="button" aria-label="Afficher mes demandes" aria-pressed={queueMode === "mine"} title="Afficher mes demandes" onClick={() => { setQueueMode((current) => current === "mine" ? "all" : "mine"); setPage(1); }}><Filter aria-hidden="true" /></button><select aria-label="Filtrer par service" value={serviceFilter} onChange={(event) => { setServiceFilter(event.target.value); setPage(1); }}><option value="">{access?.canViewAll ? "Tous les services" : "Mon périmètre"}</option>{access?.canViewAll ? <option value="unassigned">À orienter</option> : null}{availableTeams.map((team) => <option value={team.value} key={team.value}>{team.label}</option>)}</select></div>
           <div className="lycee-agent-tabs"><button className={queueMode === "all" ? "is-active" : ""} type="button" onClick={() => { setQueueMode("all"); setPage(1); }}>Toutes <span>{stats.total}</span></button><button className={queueMode === "qualify" ? "is-active" : ""} type="button" onClick={() => { setQueueMode("qualify"); setPage(1); }}>À classer <span>{stats.qualify}</span></button><button className={queueMode === "urgent" ? "is-active" : ""} type="button" onClick={() => { setQueueMode("urgent"); setPage(1); }}>Urgentes <span>{stats.urgent}</span></button></div>
           <div className="lycee-agent-list">
             {requests.map((request) => {
