@@ -238,8 +238,9 @@ sa specification.
 - Preview Vercel protegee :
   `lyceegest-git-codex-lycee-connect-prototype-safe-scol.vercel.app`.
 - Le mode `database` des adhesions et le slug de l'etablissement sont configures
-  uniquement pour `codex/lycee-connect-prototype`. Une nouvelle construction de
-  preview est necessaire pour prendre ces deux valeurs en compte.
+  uniquement pour `codex/lycee-connect-prototype`. Le deploiement `ecebadf` les
+  prend en compte ; la connexion repond et l'API agent refuse une session non
+  authentifiee en HTTP 401 avec cache desactive.
 - Le jalon d'accès agent `531eaa8` est publié dans la preview
   `lyceegest-36ldyhuew-safe-scol.vercel.app`. L'accueil, la connexion du
   personnel et la récupération répondent en HTTP 200 ; l'API agent refuse une

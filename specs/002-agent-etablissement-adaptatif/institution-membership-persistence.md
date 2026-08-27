@@ -1,7 +1,7 @@
 # Persistance des comptes et périmètres agents
 
 **Décision technique** : 27 août 2026  
-**État** : migration appliquée et activation configurée sur la preview isolée
+**État** : migration appliquée et mode base actif sur la preview isolée
 
 ## Objectif
 
@@ -48,3 +48,8 @@ possède une adhésion active limitée à `secretariat`, `administration` et
 Le banc de test temporaire déployé sur la branche Supabase a été remplacé après
 la recette par une réponse `410 Retired`, protégée par JWT. Il ne crée plus de
 compte et pourra être supprimé avec la branche de preview en fin de pilote.
+
+Le premier déploiement Vercel intégrant les deux variables de branche est le
+commit `ecebadf`. La recette sans compte confirme que l'application répond et que
+l'API agent refuse une session anonyme ; la recette métier nominative reste
+obligatoire avant le pilote réel.
