@@ -11,6 +11,7 @@
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview",
     "test:assistant-policy": "node --experimental-strip-types scripts/test-assistant-policy.mjs",
+    "test:support-agent": "node --import ./scripts/ts-test-resolver.mjs --experimental-strip-types scripts/test-support-agent.mjs",
     "test:access-policy": "node --experimental-strip-types scripts/test-access-policy.mjs",
     "test:laptop-intake": "node --experimental-strip-types scripts/test-laptop-intake.mjs",
     "test:support-routing": "node --experimental-strip-types scripts/test-support-routing.mjs",

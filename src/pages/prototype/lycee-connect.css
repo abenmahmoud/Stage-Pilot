@@ -381,8 +381,16 @@
 .lycee-chat-send { border: 0; background: var(--lc-blue); color: #fff; box-shadow: 0 8px 16px rgba(21,94,239,.18); }
 .lycee-chat-composer > button:disabled { cursor: not-allowed; opacity: .42; box-shadow: none; }
 .lycee-chat-files { grid-template-columns: repeat(2,minmax(0,1fr)); margin-top: 0; }
-.lycee-chat-next { display: flex; align-items: center; justify-content: flex-end; gap: 9px; padding-top: 3px; }
-.lycee-chat-next > button:last-child { min-height: 40px; padding: 0 9px; border: 0; background: transparent; color: #5e7086; font-size: 10px; font-weight: 800; }
+.lycee-chat-next { display: grid; grid-template-columns: minmax(0,1fr) auto; align-items: center; gap: 12px; padding-top: 3px; }
+.lycee-chat-next.is-ready { padding: 12px 14px; border: 1px solid #bde3d8; border-radius: 8px; background: #edf9f5; }
+.lycee-chat-next.is-form-only { display: flex; justify-content: flex-end; }
+.lycee-case-ready { min-width: 0; display: flex; align-items: center; gap: 9px; color: #175f52; }
+.lycee-case-ready > svg { width: 20px; flex: 0 0 20px; }
+.lycee-case-ready > span { min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.lycee-case-ready strong { font-size: 12px; }
+.lycee-case-ready small { color: #4e7e75; font-size: 10px; line-height: 1.4; }
+.lycee-chat-next-actions { display: flex; align-items: center; justify-content: flex-end; gap: 9px; }
+.lycee-chat-next-actions > button:last-child { min-height: 40px; padding: 0 9px; border: 0; background: transparent; color: #5e7086; font-size: 10px; font-weight: 800; }
 .lycee-case-form { display: grid; gap: 14px; margin-top: 3px; padding: 18px; border: 1px solid #c8d5e5; border-radius: 8px; background: #f8fafc; animation: lycee-message-in 220ms ease both; }
 .lycee-case-form-head { display: grid; grid-template-columns: 38px minmax(0,1fr) auto; align-items: start; gap: 10px; padding-bottom: 13px; border-bottom: 1px solid var(--lc-line); }
 .lycee-case-form-head > span { width: 36px; height: 36px; display: grid; place-items: center; border-radius: 7px; background: #e8efff; color: var(--lc-blue); }
@@ -910,8 +918,10 @@
   .lycee-conversation-form { padding: 15px 13px 18px; }
   .lycee-chat-workspace { padding: 12px; }
   .lycee-chat-files { grid-template-columns: 1fr; }
-  .lycee-chat-next { align-items: stretch; flex-direction: column; }
-  .lycee-chat-next > button { width: 100%; }
+  .lycee-chat-next { grid-template-columns: 1fr; align-items: stretch; }
+  .lycee-chat-next.is-form-only { display: flex; }
+  .lycee-chat-next-actions { align-items: stretch; flex-direction: column; }
+  .lycee-chat-next-actions > button { width: 100%; }
   .lycee-case-form { padding: 14px; }
   .lycee-profile-grid, .lycee-category-grid, .lycee-fields-grid, .lycee-services-catalog { grid-template-columns: 1fr 1fr; }
   .lycee-request-form > section { padding: 15px; }

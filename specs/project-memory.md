@@ -3,7 +3,7 @@
 **Derniere mise a jour** : 28 aout 2026
 **Branche de travail** : `codex/lycee-connect-prototype`
 **Depot** : `abenmahmoud/Stage-Pilot`
-**Dernier jalon de code verifie** : registre prive de connaissances et versions
+**Dernier jalon de code verifie** : transition assistant vers demande prête
 
 ## Decision du 27 aout 2026 - espaces de traitement
 
@@ -216,9 +216,13 @@ sa specification.
   rôle ; révocation d'une source et retour à une version publiée précédente.
   Le worker d'expiration et la consommation du registre par l'orchestrateur
   restent à construire.
-- Un essai manuel a montré que l'assistant pouvait répondre sans créer la demande
-  attendue. La recette intégrée chat, dossier, suivi et console est rouverte et
-  doit être corrigée avant de déclarer le parcours agent prêt au pilote.
+- Le défaut où l'assistant répondait sans proposer clairement le dossier est
+  corrigé localement : une demande scolaire complète passe à `offer_case`,
+  affiche « Votre demande est prête » puis demande la vérification des coordonnées.
+  La cause ENT reste prioritaire sur l'emploi du temps mentionné, « élève » avec
+  accent est reconnu et aucun débordement n'a été observé sur PC ou téléphone.
+  La création d'un dossier fictif en preview, son suivi et sa lecture agent restent
+  à prouver avant de fermer la recette intégrée T027D.
 - La feuille de route détaillée des comptes, files, compétences, emplois du
   temps, contenu, charge et pilote est dans
   `002-agent-etablissement-adaptatif/execution-roadmap.md`.
@@ -295,6 +299,8 @@ sa specification.
 
 ### Priorite A - Rendre le guichet exploitable en pilote reel
 
+- Déployer le passage assistant vers demande prête, puis terminer un seul scénario
+  fictif de bout en bout : création, numéro, suivi, routage et console agent.
 - Corriger les alertes Supabase restantes et completer les tests RLS,
   concurrence, idempotence et reprise.
 - Les alertes de sécurité techniques visées par le jalon du 26 août, y compris

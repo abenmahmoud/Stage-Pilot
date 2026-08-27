@@ -1,6 +1,9 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { evaluateConversationPolicy } from "../shared/assistant-policy.ts";
+import {
+  evaluateConversationPolicy,
+  resolveAssistantAction,
+} from "../shared/assistant-policy.ts";
 
 function conversation(...requesterMessages) {
   const messages = [
@@ -23,6 +26,36 @@ test("keeps ordinary lycée support available", () => {
   assert.equal(policy.scope, "school_support");
   assert.equal(policy.deterministicReply, null);
   assert.equal(policy.limitReached, false);
+});
+
+test("offers a dossier when an ordinary lycée request is ready", () => {
+  const policy = evaluateConversationPolicy(
+    conversation("Je n'arrive plus à accéder à l'ENT depuis hier malgré plusieurs essais")
+  );
+  const action = resolveAssistantAction({
+    policyAction: policy.action,
+    readyToCreate: true,
+    scope: policy.scope,
+  });
+  assert.equal(action, "offer_case");
+});
+
+test("does not turn an unknown request into a dossier automatically", () => {
+  const action = resolveAssistantAction({
+    policyAction: "continue",
+    readyToCreate: true,
+    scope: "unknown",
+  });
+  assert.equal(action, "continue");
+});
+
+test("preserves a required human transfer", () => {
+  const action = resolveAssistantAction({
+    policyAction: "human_transfer",
+    readyToCreate: true,
+    scope: "wellbeing",
+  });
+  assert.equal(action, "human_transfer");
 });
 
 test("routes wellbeing and immediate danger to a human without AI", () => {

@@ -1,5 +1,6 @@
 import {
   evaluateConversationPolicy,
+  resolveAssistantAction,
   type AssistantPolicyAction,
   type AssistantScope,
   type ConversationPolicy,
@@ -124,10 +125,10 @@ function redactPersonalData(value: string): string {
 
 function inferCategory(text: string): SupportAgentResult["category"] {
   if (/\b(inscription|réinscription|reinscription|inscrire)\b/i.test(text)) return "inscription";
-  if (/\b(classe|affectation|emploi du temps|edt)\b/i.test(text)) return "affectation_classe";
-  if (/\b(document|pièce|piece|dossier|justificatif|manque)\b/i.test(text)) return "documents_scolarite";
   if (/\b(ent|educonnect|connexion|connecter|identifiant|code)\b/i.test(text)) return "ent";
   if (/\b(email|mail|webmail|zimbra|académique|academique)\b/i.test(text)) return "email_academique";
+  if (/\b(classe|affectation|emploi du temps|edt)\b/i.test(text)) return "affectation_classe";
+  if (/\b(document|pièce|piece|dossier|justificatif|manque)\b/i.test(text)) return "documents_scolarite";
   if (/\b(pc|ordinateur|portable|tablette|chargeur)\b/i.test(text)) return "ordinateur";
   if (/\b(logiciel|application|wifi|réseau|reseau)\b/i.test(text)) return "logiciel";
   if (/\b(cantine|restauration|bourse|intendance|paiement)\b/i.test(text)) return "restauration_bourse";
@@ -140,10 +141,16 @@ function withPolicy(
   result: SupportAgentModelResult,
   policy: ConversationPolicy
 ): SupportAgentResult {
+  const readyToCreate = policy.readyToCreate ?? result.readyToCreate;
   return {
     ...result,
+    readyToCreate,
     scope: policy.scope,
-    action: policy.action,
+    action: resolveAssistantAction({
+      policyAction: policy.action,
+      readyToCreate,
+      scope: policy.scope,
+    }),
     turnCount: policy.turnCount,
     remainingTurns: policy.remainingTurns,
     limitReached: policy.limitReached,
@@ -176,24 +183,28 @@ function localFallback(
   policy = evaluateConversationPolicy(messages)
 ): SupportAgentResult {
   const text = messages.filter((message) => message.role === "requester").map((message) => message.content).join("\n");
+  const normalizedText = text.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
   const category = inferCategory(text);
-  const requesterType = /\b(parent|mère|mere|père|pere)\b/i.test(text)
+  const requesterType = /\b(parent|mere|pere)\b/.test(normalizedText)
     ? "parent"
-    : /\b(prof|professeur|enseignant)\b/i.test(text)
+    : /\b(prof|professeur|enseignant)\b/.test(normalizedText)
       ? "professeur"
-      : /\b(élève|eleve|lycéen|lyceen)\b/i.test(text)
+      : /\b(eleve|lyceen)\b/.test(normalizedText)
         ? "eleve"
-        : /\b(personnel|agent|administration)\b/i.test(text)
+        : /\b(personnel|agent|administration)\b/.test(normalizedText)
           ? "personnel"
           : "inconnu";
+  const readyToCreate = text.trim().length >= 35;
   return withPolicy({
-    reply: `J’ai compris votre besoin et je le classe dans « ${CATEGORY_LABELS[category]} ». ${attachments.length ? `Les ${attachments.length} pièces sélectionnées seront jointes au dossier. ` : ""}Ajoutez ce qui bloque et ce que vous avez déjà essayé. Un agent pourra ensuite reprendre la conversation sans vous faire recommencer.`,
+    reply: readyToCreate
+      ? `J’ai compris votre besoin et je le classe dans « ${CATEGORY_LABELS[category]} ». ${attachments.length ? `Les ${attachments.length} pièces sélectionnées seront jointes au dossier. ` : ""}La demande est prête : vérifiez vos coordonnées puis transmettez-la au lycée.`
+      : `J’ai compris votre besoin et je le classe dans « ${CATEGORY_LABELS[category]} ». ${attachments.length ? `Les ${attachments.length} pièces sélectionnées seront jointes au dossier. ` : ""}Précisez ce qui bloque et ce que vous avez déjà essayé.`,
     category,
     requesterType,
     urgency: /\b(urgent|aujourd'hui|bloqué|bloque|impossible)\b/i.test(text) ? "urgente" : "normale",
     missingInformation: ["Identité de la personne concernée", "Email ou téléphone de réponse"],
     suggestedDocuments: [],
-    readyToCreate: text.trim().length >= 35,
+    readyToCreate,
     safetyNotice: null,
     usedAi: false,
   }, policy);

@@ -73,7 +73,10 @@
   humain, en conservant le dialogue utile et les pièces sans demander de ressaisie.
 - [ ] T027D Rejouer la recette navigateur complète après le jalon du registre :
   l'essai manuel du propriétaire a montré une conversation qui répondait sans
-  créer le dossier attendu. Corriger puis prouver chat, création, suivi et console.
+  créer le dossier attendu. Le 28 août, la transition `offer_case`, l'état visible
+  « demande prête », la priorité ENT, le préremplissage du profil et le responsive
+  ont été corrigés et validés localement. Il reste à prouver en preview la création
+  d'un dossier fictif, son suivi et sa lecture dans la console.
 - [x] T027A Ajouter le routage initial déterministe, sa justification, le niveau
   d'identité requis et le filtre de file par service dans la console agent.
 - [ ] T027B Ajouter une file `À qualifier`, les délais par service, la détection

@@ -115,16 +115,27 @@ l'autorisation de quota définie par le propriétaire.
   rappel crée une tâche même avec un email, la console possède une file dédiée,
   la prise en charge est atomique et un résultat est obligatoire. Le rappel ne
   confirme pas automatiquement l'identité scolaire.
+- Lot N5G : passage du dialogue au dossier. **Correctif implémenté et validé
+  localement** : une demande scolaire suffisamment claire passe à l'état
+  `offer_case`, affiche « Votre demande est prête », conserve le formulaire de
+  secours et demande une confirmation avant enregistrement. Le blocage ENT reste
+  prioritaire sur la consultation d'un emploi du temps, le profil accentué
+  « élève » est prérempli et les vues PC/mobile ne débordent pas. La création
+  réelle d'un dossier fictif en preview, son suivi et sa lecture agent restent la
+  dernière recette de T027D.
 - Lot N6 : tests de non-régression, build, contrôle mobile et rapport d'écarts.
 
 ## Prochaine séquence verrouillée
 
-1. Déployer le lot N4A sur la preview et vérifier l'accès direction au registre.
-2. Rejouer la recette chat vers dossier, suivi usager et console agent ; corriger
-   l'essai qui répondait sans créer la demande.
-3. Ajouter le worker d'expiration et prouver qu'une source périmée désactive la
+1. Déployer N5G sur la preview et vérifier que l'agent propose « Vérifier et
+   envoyer » dès qu'une demande scolaire est assez claire.
+2. Créer un unique dossier fictif autorisé, puis vérifier son numéro, le suivi
+   usager, le routage numérique et sa lecture dans la console agent.
+3. Fermer T027D seulement après cette preuve de bout en bout et nettoyer les
+   données de démonstration si elles ne doivent pas être conservées.
+4. Ajouter le worker d'expiration et prouver qu'une source périmée désactive la
    compétence sans réponse trompeuse.
-4. Faire nommer les responsables et valider les premières sources et procédures
+5. Faire nommer les responsables et valider les premières sources et procédures
    avant toute compétence active contenant des informations réelles.
 
 ## Portes de validation humaine

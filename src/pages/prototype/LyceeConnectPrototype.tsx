@@ -54,6 +54,7 @@ import { supabase } from "../../lib/supabase-browser";
 import { apiFetch } from "../../lib/api";
 import {
   evaluateConversationPolicy,
+  resolveAssistantAction,
   type AssistantPolicyAction,
   type AssistantScope,
 } from "../../../shared/assistant-policy";
@@ -824,10 +825,10 @@ type AssistantInsight = {
 
 function inferSupportCategory(text: string): SupportCategory {
   if (/\b(inscription|réinscription|reinscription|inscrire)\b/i.test(text)) return "inscription";
-  if (/\b(classe|affectation|emploi du temps|edt|prochain cours|mon cours|quelle salle|dans quelle salle|changement de salle)\b/i.test(text)) return "affectation_classe";
-  if (/\b(document|pièce|piece|dossier|justificatif|manque)\b/i.test(text)) return "documents_scolarite";
   if (/\b(ent|educonnect|connexion|connecter|identifiant|code)\b/i.test(text)) return "ent";
   if (/\b(email|mail|webmail|zimbra|académique|academique)\b/i.test(text)) return "email_academique";
+  if (/\b(classe|affectation|emploi du temps|edt|prochain cours|mon cours|quelle salle|dans quelle salle|changement de salle)\b/i.test(text)) return "affectation_classe";
+  if (/\b(document|pièce|piece|dossier|justificatif|manque)\b/i.test(text)) return "documents_scolarite";
   if (/\b(pc|ordinateur|portable|tablette|chargeur)\b/i.test(text)) return "ordinateur";
   if (/\b(logiciel|application|wifi|réseau|reseau)\b/i.test(text)) return "logiciel";
   if (/\b(cantine|restauration|bourse|intendance|paiement)\b/i.test(text)) return "restauration_bourse";
@@ -839,23 +840,32 @@ function inferSupportCategory(text: string): SupportCategory {
 function localAssistantFallback(messages: AssistantChatMessage[], files: File[]): AssistantInsight {
   const policy = evaluateConversationPolicy(messages);
   const text = messages.filter((message) => message.role === "requester").map((message) => message.content).join("\n");
+  const normalizedText = text.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
   const category = inferSupportCategory(text);
   const laptopIntake = policy.deterministicReply ? null : evaluateLaptopIntake(messages, files.length);
   const label = supportCategories.find((item) => item.value === category)?.label ?? "Autre demande";
-  const scheduleQuestion = /\b(emploi du temps|edt|prochain cours|mon cours|quelle salle|dans quelle salle|changement de salle)\b/i.test(text);
-  const requesterType = /\b(parent|mère|mere|père|pere)\b/i.test(text)
+  const scheduleQuestion = category === "affectation_classe" && /\b(emploi du temps|edt|prochain cours|mon cours|quelle salle|dans quelle salle|changement de salle)\b/i.test(text);
+  const requesterType = /\b(parent|mere|pere)\b/.test(normalizedText)
     ? "parent"
-    : /\b(prof|professeur|enseignant)\b/i.test(text)
+    : /\b(prof|professeur|enseignant)\b/.test(normalizedText)
       ? "professeur"
-      : /\b(élève|eleve|lycéen|lyceen|seconde|première|premiere|terminale|cap)\b/i.test(text)
+      : /\b(eleve|lyceen|seconde|premiere|terminale|cap)\b/.test(normalizedText)
         ? "eleve"
-        : /\b(personnel|agent|administration)\b/i.test(text)
+        : /\b(personnel|agent|administration)\b/.test(normalizedText)
           ? "personnel"
           : "inconnu";
+  const readyToCreate = policy.readyToCreate ?? laptopIntake?.readyToCreate ?? text.trim().length >= 35;
+  const action = resolveAssistantAction({
+    policyAction: laptopIntake?.action ?? policy.action,
+    readyToCreate,
+    scope: policy.scope,
+  });
   return {
     reply: policy.deterministicReply ?? laptopIntake?.reply ?? (scheduleQuestion
       ? "Je peux rechercher votre prochain cours et sa salle, mais une classe écrite librement ne suffit pas pour ouvrir un emploi du temps réel. Le lycée doit d’abord confirmer votre identité scolaire et votre lien avec la classe ou le groupe. La version reçue le 25 août 2026 pourra ensuite être consultée avec sa date de mise à jour ; en cas de doute, la vie scolaire vérifiera avant de répondre."
-      : `J’ai compris. Je classe votre besoin dans « ${label} ». ${files.length ? `Je vois aussi ${files.length} fichier${files.length > 1 ? "s" : ""} à joindre au dossier. ` : ""}Expliquez-moi ce qui bloque et ce que vous avez déjà essayé. Je préparerai ensuite la demande pour le bon agent.`),
+      : readyToCreate
+        ? `J’ai compris. Je classe votre besoin dans « ${label} ». ${files.length ? `Je vois aussi ${files.length} fichier${files.length > 1 ? "s" : ""} à joindre au dossier. ` : ""}La demande est prête : vérifiez vos coordonnées puis transmettez-la au lycée.`
+        : `J’ai compris. Je classe votre besoin dans « ${label} ». ${files.length ? `Je vois aussi ${files.length} fichier${files.length > 1 ? "s" : ""} à joindre au dossier. ` : ""}Précisez ce qui bloque et ce que vous avez déjà essayé.`),
     category: policy.category ?? laptopIntake?.category ?? category,
     requesterType,
     urgency: policy.urgency ?? laptopIntake?.urgency ?? (/\b(urgent|aujourd'hui|bloqué|bloque|impossible)\b/i.test(text) ? "urgente" : "normale"),
@@ -863,13 +873,13 @@ function localAssistantFallback(messages: AssistantChatMessage[], files: File[])
       ? ["Identité scolaire confirmée", "Classe ou groupe autorisé"]
       : ["Identité de la personne concernée", "Email ou téléphone de réponse"]),
     suggestedDocuments: laptopIntake?.suggestedDocuments ?? (files.length ? files.map((file) => file.name) : []),
-    readyToCreate: policy.readyToCreate ?? laptopIntake?.readyToCreate ?? text.trim().length >= 35,
+    readyToCreate,
     safetyNotice: policy.safetyNotice ?? laptopIntake?.safetyNotice ?? (scheduleQuestion
       ? "Aucun emploi du temps réel n’est affiché avant la vérification de l’identité scolaire."
       : null),
     usedAi: false,
     scope: policy.scope,
-    action: laptopIntake?.action ?? policy.action,
+    action,
     turnCount: policy.turnCount,
     remainingTurns: policy.remainingTurns,
     limitReached: policy.limitReached,
@@ -977,7 +987,9 @@ function HelpDeskView({
   }
 
   const conversationStopped = insight?.limitReached === true;
-  const canCreateRequest = insight?.action !== "stop" || insight.readyToCreate;
+  const canCreateRequest =
+    insight?.action === "human_transfer" ||
+    (insight?.action === "offer_case" && insight.readyToCreate === true);
 
   function restartConversation() {
     setChatMessages([welcomeMessage]);
@@ -1155,10 +1167,13 @@ function HelpDeskView({
             </div>
           ) : null}
 
-          {requesterMessages.length > 0 && !showDetails && canCreateRequest ? (
-            <div className="lycee-chat-next">
-              <button className="lycee-primary-action" type="button" onClick={() => setShowDetails(true)}>{insight?.action === "human_transfer" ? "Transmettre à un adulte du lycée" : "Créer ma demande"} <ChevronRight aria-hidden="true" /></button>
-              <button type="button" onClick={() => { setClassicForm(true); setShowDetails(true); }}>Je préfère remplir le formulaire</button>
+          {requesterMessages.length > 0 && !showDetails ? (
+            <div className={`lycee-chat-next${canCreateRequest ? " is-ready" : " is-form-only"}`}>
+              {canCreateRequest ? <div className="lycee-case-ready"><CheckCircle2 aria-hidden="true" /><span><strong>{insight?.action === "human_transfer" ? "Un adulte doit reprendre la demande" : "Votre demande est prête"}</strong><small>La conversation et les documents seront réunis dans le même dossier.</small></span></div> : null}
+              <div className="lycee-chat-next-actions">
+                {canCreateRequest ? <button className="lycee-primary-action" type="button" onClick={() => setShowDetails(true)}>{insight?.action === "human_transfer" ? "Transmettre à un adulte du lycée" : "Vérifier et envoyer"} <ChevronRight aria-hidden="true" /></button> : null}
+                <button type="button" onClick={() => { setClassicForm(true); setShowDetails(true); }}>Je préfère remplir le formulaire</button>
+              </div>
             </div>
           ) : null}
 

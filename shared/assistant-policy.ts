@@ -43,6 +43,16 @@ export type ConversationPolicy = {
   safetyNotice: string | null;
 };
 
+export function resolveAssistantAction(input: {
+  policyAction: AssistantPolicyAction;
+  readyToCreate: boolean;
+  scope: AssistantScope;
+}): AssistantPolicyAction {
+  if (input.policyAction !== "continue") return input.policyAction;
+  if (input.scope === "school_support" && input.readyToCreate) return "offer_case";
+  return "continue";
+}
+
 const MAX_CONVERSATION_TURNS = 10;
 const MAX_EDUCATION_TURNS = 3;
 const MAX_OUT_OF_SCOPE_TURNS = 3;
