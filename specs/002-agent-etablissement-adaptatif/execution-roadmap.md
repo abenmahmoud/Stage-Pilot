@@ -70,6 +70,11 @@ l'autorisation de quota définie par le propriétaire.
 - Lot N1 : moteur de routage déterministe, motif, identité requise et filtre de
   service. **Implémenté et testé**.
 - Lot N2 : contrat complet comptes/OTP/identité scolaire et matrice d'accès.
+  **Matrice déterministe implémentée et testée sur données fictives** : contact
+  vérifié distinct de l'identité scolaire, liens propres/parent-enfant,
+  révocation, cloisonnement établissement/service, MFA et absence de passe-droit
+  administrateur. Les comptes, OTP, tables privées, annuaire et politiques RLS
+  restent à construire avant tout usage réel.
 - Lot N3 : schéma privé et réversible des versions d'emploi du temps, sans importer
   les PDF ni les noms en preview. **Contrat et politique de lecture fictive testés ;
   migration privée encore requise**.

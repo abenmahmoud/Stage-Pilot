@@ -3,7 +3,7 @@
 **Derniere mise a jour** : 27 aout 2026
 **Branche de travail** : `codex/lycee-connect-prototype`
 **Depot** : `abenmahmoud/Stage-Pilot`
-**Dernier jalon de code verifie** : file agent à classer, dossiers sans responsable et échéances dépassées
+**Dernier jalon de code verifie** : matrice d'accès identité, établissement et service sur données fictives
 
 ## 1. Fonction de cette memoire
 
@@ -153,6 +153,12 @@ sa specification.
 - L'agent V2 possede une specification, un plan et des taches. Hormis certains
   controles du guichet deja reutilisables, son registre de competences et son
   orchestrateur ne sont pas encore developpes.
+- La matrice d'accès V2 est implémentée et testée sur objets fictifs : un contact
+  vérifié ne devient jamais une identité scolaire, les relations propres ou
+  parent-enfant doivent être actives, les établissements et services sont
+  cloisonnés, et un administrateur ne contourne pas son périmètre de contenu.
+  Les comptes, OTP, tables d'identité/adhésion, annuaire privé et RLS ne sont pas
+  encore branchés ; aucune donnée réelle ne doit dépendre de cette matrice seule.
 - La politique centrale du futur registre est maintenant implementee sur objets
   fictifs : publication refusee sans proprietaire, source actuelle, revue
   independante et tests; acces aux sources limite par etablissement, role,

@@ -45,6 +45,11 @@
 ## Phase 2 - Autorité et sécurité
 
 - [ ] T015 Implémenter le moteur déterministe identité-rôle-niveau-action avant le modèle.
+- [x] T015A Implémenter et tester sur objets fictifs la matrice d'accès identité,
+  établissement, relation et service : contact vérifié distinct de l'identité
+  scolaire, révocation, MFA et aucun passe-droit administrateur hors périmètre.
+- [ ] T015B Brancher cette matrice avant l'IA et chaque outil sur les futures
+  tables d'identités, relations et adhésions, puis la renforcer par les RLS.
 - [ ] T016 Implémenter les listes blanches d'outils et schémas d'entrée par compétence.
 - [ ] T017 Bloquer techniquement toute exécution L4.
 - [ ] T018 Construire la boîte de validation L3 avec expiration, motif et audit.
