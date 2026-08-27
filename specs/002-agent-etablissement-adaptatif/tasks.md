@@ -84,6 +84,10 @@
 - [x] T027D1 Aligner les workers email VPS et Vercel : toute recette utilisant une
   adresse réservée `example.com`, `example.org`, `example.net` ou `test.invalid`
   est enregistrée mais n'envoie aucune notification demandeur ou agent.
+- [x] T027D2 Vérifier une session agent authentifiée et son périmètre
+  administration, puis simplifier l'interface sans élargir les droits : retrait
+  du bouton de notification inactif, priorité lisible, confirmation adaptée au
+  canal choisi et suppression des termes techniques d'analyse côté public.
 - [x] T027A Ajouter le routage initial déterministe, sa justification, le niveau
   d'identité requis et le filtre de file par service dans la console agent.
 - [ ] T027B Ajouter une file `À qualifier`, les délais par service, la détection

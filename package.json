@@ -31,6 +31,7 @@
     "test:legacy-import": "node --experimental-strip-types scripts/test-legacy-import.mjs",
     "test:support-templates": "node --experimental-strip-types scripts/test-support-reply-templates.mjs",
     "test:site-content": "node --experimental-strip-types scripts/test-site-content.mjs",
+    "test:editor-ux": "node scripts/test-editor-ux.mjs",
     "legacy:export": "node scripts/export-legacy-wordpress.mjs",
     "test:load:support": "node scripts/load-test-support.mjs",
     "db:generate": "drizzle-kit generate",

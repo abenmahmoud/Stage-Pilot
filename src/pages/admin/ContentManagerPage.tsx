@@ -80,6 +80,10 @@ const EMPTY: Draft = {
   needsReview: false, importedAt: null, reviewedAt: null,
 };
 
+function draftSignature(value: Draft) {
+  return JSON.stringify(value);
+}
+
 function slug(value: string) {
   return value.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase()
     .replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 140);
@@ -131,6 +135,7 @@ export default function ContentManagerPage() {
   const [assets, setAssets] = useState<Asset[]>([]);
   const [versions, setVersions] = useState<Version[]>([]);
   const [draft, setDraft] = useState<Draft>(EMPTY);
+  const [savedDraftSignature, setSavedDraftSignature] = useState(() => draftSignature(EMPTY));
   const [templateId, setTemplateId] = useState("");
   const [templateDraft, setTemplateDraft] = useState<Template | null>(null);
   const [search, setSearch] = useState("");
@@ -169,7 +174,7 @@ export default function ContentManagerPage() {
         const linkedIds = new Set(data.assets.map((asset) => asset.id));
         return [...data.assets, ...current.filter((asset) => !linkedIds.has(asset.id))];
       });
-      setDraft({
+      const nextDraft: Draft = {
         id: item.id, contentType: item.contentType, slug: item.slug, title: item.title,
         summary: item.summary, bodyMarkdown: item.bodyMarkdown, category: item.category,
         audience: item.audience, status: item.status, templateId: item.templateId,
@@ -182,7 +187,9 @@ export default function ContentManagerPage() {
           assetId: asset.id, assetRole: asset.assetRole ?? (asset.assetKind === "image" ? "illustration" : "document"),
           publicLabel: asset.publicLabel ?? asset.title, position: asset.position ?? position,
         })),
-      });
+      };
+      setDraft(nextDraft);
+      setSavedDraftSignature(draftSignature(nextDraft));
       setVersions(data.versions); setMode("edit"); setNotice("");
     } catch (reason) { setError(reason instanceof Error ? reason.message : "Ouverture impossible"); }
     finally { setBusy(false); }
@@ -200,13 +207,46 @@ export default function ContentManagerPage() {
     () => ({ ...draft, bodyMarkdown: resolveLegacyMedia(draft.bodyMarkdown, draft.assets, assetMap) }),
     [draft, assetMap]
   );
+  const draftDirty = useMemo(
+    () => draftSignature(draft) !== savedDraftSignature,
+    [draft, savedDraftSignature]
+  );
+
+  useEffect(() => {
+    if (!draftDirty) return;
+    const warnBeforeLeaving = (event: BeforeUnloadEvent) => {
+      event.preventDefault();
+      event.returnValue = "";
+    };
+    window.addEventListener("beforeunload", warnBeforeLeaving);
+    return () => window.removeEventListener("beforeunload", warnBeforeLeaving);
+  }, [draftDirty]);
+
+  function confirmDraftChange() {
+    return !draftDirty || window.confirm("Des modifications ne sont pas enregistrées. Les abandonner ?");
+  }
 
   function newDraft() {
+    if (!confirmDraftChange()) return;
     const template = templates.find((value) => value.id === templateId);
     const contentType = tab === "documents" ? "document" : template?.contentType ?? "article";
-    setDraft({ ...EMPTY, contentType, templateId: template?.id ?? null, title: template?.defaultTitle ?? "",
-      slug: slug(template?.defaultTitle ?? ""), summary: template?.defaultSummary ?? "", bodyMarkdown: template?.defaultBodyMarkdown ?? "" });
+    const nextDraft: Draft = { ...EMPTY, contentType, templateId: template?.id ?? null, title: template?.defaultTitle ?? "",
+      slug: slug(template?.defaultTitle ?? ""), summary: template?.defaultSummary ?? "", bodyMarkdown: template?.defaultBodyMarkdown ?? "" };
+    setDraft(nextDraft);
+    setSavedDraftSignature(draftSignature({ ...EMPTY, contentType }));
     setVersions([]); setMode("edit"); setError(""); setNotice("");
+  }
+
+  async function discardDraftChanges() {
+    if (!window.confirm("Annuler les modifications non enregistrées ?")) return;
+    if (draft.id) {
+      await openItem(draft.id);
+      return;
+    }
+    const nextDraft: Draft = { ...EMPTY, contentType: tab === "documents" ? "document" : "article" };
+    setDraft(nextDraft);
+    setSavedDraftSignature(draftSignature(nextDraft));
+    setVersions([]); setNotice(""); setError("");
   }
 
   function payload() {
@@ -329,7 +369,7 @@ export default function ContentManagerPage() {
       </header>
 
       <div className="inline-flex max-w-full overflow-x-auto rounded-md border border-slate-200 bg-white p-1" role="tablist">
-        {(["contenus", "documents", "modeles"] as const).map((value) => <button key={value} type="button" role="tab" aria-selected={tab === value} onClick={() => setTab(value)} className={`whitespace-nowrap rounded px-4 py-2 text-sm font-semibold ${tab === value ? "bg-slate-900 text-white" : "text-slate-600 hover:bg-slate-100"}`}>{value === "contenus" ? "Articles et pages" : value === "documents" ? "Documents" : "Modèles"}</button>)}
+        {(["contenus", "documents", "modeles"] as const).map((value) => <button key={value} type="button" role="tab" aria-selected={tab === value} onClick={() => { if (tab === value || confirmDraftChange()) setTab(value); }} className={`whitespace-nowrap rounded px-4 py-2 text-sm font-semibold ${tab === value ? "bg-slate-900 text-white" : "text-slate-600 hover:bg-slate-100"}`}>{value === "contenus" ? "Articles et pages" : value === "documents" ? "Documents" : "Modèles"}</button>)}
       </div>
       {error ? <div className="flex gap-2 rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-800"><X className="h-4 w-4 shrink-0" />{error}</div> : null}
       {notice ? <div className="flex gap-2 rounded-md border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-800"><Check className="h-4 w-4 shrink-0" />{notice}</div> : null}
@@ -339,12 +379,12 @@ export default function ContentManagerPage() {
       ) : (
         <div className="grid min-h-[680px] overflow-hidden rounded-md border border-slate-200 bg-white xl:grid-cols-[300px_minmax(0,1fr)]">
           <aside className="border-b border-slate-200 bg-slate-50 xl:border-b-0 xl:border-r">
-            <div className="space-y-3 border-b border-slate-200 p-4"><div className="relative"><Search className="absolute left-3 top-3 h-4 w-4 text-slate-400" /><input value={search} onChange={(event) => setSearch(event.target.value)} className="w-full rounded-md border border-slate-300 bg-white py-2.5 pl-9 pr-3 text-sm" placeholder="Rechercher" /></div><div className="flex gap-2"><select value={templateId} onChange={(event) => setTemplateId(event.target.value)} className="min-w-0 flex-1 rounded-md border border-slate-300 bg-white px-2 text-sm"><option value="">Sans modèle</option>{templates.filter((value) => value.active).map((value) => <option key={value.id} value={value.id}>{value.name}</option>)}</select><button type="button" onClick={newDraft} className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-emerald-700 text-white" title="Nouveau contenu"><Plus className="h-4 w-4" /></button></div></div>
-            <div className="max-h-[600px] space-y-1 overflow-y-auto p-2 xl:max-h-[calc(100vh-300px)]">{visible.length ? visible.map((item) => <button key={item.id} type="button" onClick={() => openItem(item.id)} className={`w-full rounded-md border p-3 text-left ${draft.id === item.id ? "border-emerald-300 bg-emerald-50" : "border-transparent hover:bg-white"}`}><div className="mb-2 flex items-center justify-between gap-2"><span className="text-[11px] font-semibold uppercase text-slate-500">{TYPES[item.contentType]}</span><Status value={item.status} /></div>{item.needsReview ? <span className="mb-2 inline-flex rounded bg-amber-100 px-2 py-1 text-[11px] font-semibold text-amber-900">Ancien site · à vérifier</span> : null}<p className="line-clamp-2 text-sm font-semibold text-slate-900">{item.title}</p><p className="mt-1 text-xs text-slate-500">Modifié le {displayDate(item.updatedAt)}</p></button>) : <p className="px-3 py-8 text-center text-sm text-slate-500">Aucun contenu.</p>}</div>
+            <div className="space-y-3 border-b border-slate-200 p-4"><div className="relative"><Search className="absolute left-3 top-3 h-4 w-4 text-slate-400" /><input value={search} onChange={(event) => setSearch(event.target.value)} className="w-full rounded-md border border-slate-300 bg-white py-2.5 pl-9 pr-3 text-sm" placeholder="Rechercher" /></div><div className="flex gap-2"><select value={templateId} onChange={(event) => setTemplateId(event.target.value)} className="min-w-0 flex-1 rounded-md border border-slate-300 bg-white px-2 text-sm"><option value="">Sans modèle</option>{templates.filter((value) => value.active).map((value) => <option key={value.id} value={value.id}>{value.name}</option>)}</select><button type="button" onClick={newDraft} className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-emerald-700 text-white" title="Nouveau contenu" aria-label="Nouveau contenu"><Plus className="h-4 w-4" /></button></div></div>
+            <div className="max-h-[600px] space-y-1 overflow-y-auto p-2 xl:max-h-[calc(100vh-300px)]">{visible.length ? visible.map((item) => <button key={item.id} type="button" onClick={() => { if (draft.id === item.id) return; if (confirmDraftChange()) void openItem(item.id); }} className={`w-full rounded-md border p-3 text-left ${draft.id === item.id ? "border-emerald-300 bg-emerald-50" : "border-transparent hover:bg-white"}`}><div className="mb-2 flex items-center justify-between gap-2"><span className="text-[11px] font-semibold uppercase text-slate-500">{TYPES[item.contentType]}</span><Status value={item.status} /></div>{item.needsReview ? <span className="mb-2 inline-flex rounded bg-amber-100 px-2 py-1 text-[11px] font-semibold text-amber-900">Ancien site · à vérifier</span> : null}<p className="line-clamp-2 text-sm font-semibold text-slate-900">{item.title}</p><p className="mt-1 text-xs text-slate-500">Modifié le {displayDate(item.updatedAt)}</p></button>) : <p className="px-3 py-8 text-center text-sm text-slate-500">Aucun contenu.</p>}</div>
           </aside>
 
           <section className="min-w-0">
-            <div className="sticky top-0 z-10 flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 bg-white/95 px-4 py-3 backdrop-blur"><div><p className="text-sm font-semibold text-slate-900">{draft.title || "Nouveau contenu"}</p><p className="text-xs text-slate-500">{draft.id ? `Version ${items.find((item) => item.id === draft.id)?.version ?? 1}` : "Pas encore enregistré"}</p></div><div className="flex flex-wrap gap-2"><div className="inline-flex rounded-md border border-slate-200 p-0.5"><ModeButton active={mode === "edit"} onClick={() => setMode("edit")} title="Modifier"><Settings2 /></ModeButton><ModeButton active={mode === "desktop"} onClick={() => setMode("desktop")} title="Aperçu ordinateur"><Monitor /></ModeButton><ModeButton active={mode === "mobile"} onClick={() => setMode("mobile")} title="Aperçu téléphone"><Smartphone /></ModeButton></div><button type="button" onClick={() => setAiOpen(true)} className="inline-flex items-center gap-2 rounded-md border border-blue-200 bg-blue-50 px-3 py-2 text-sm font-semibold text-blue-800"><Sparkles className="h-4 w-4" /> Aide IA</button><button type="button" disabled={busy} onClick={save} className="inline-flex items-center gap-2 rounded-md bg-slate-900 px-3 py-2 text-sm font-semibold text-white disabled:opacity-50">{busy ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />} Enregistrer</button></div></div>
+            <div className="sticky top-0 z-10 flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 bg-white/95 px-4 py-3 backdrop-blur"><div><p className="text-sm font-semibold text-slate-900">{draft.title || "Nouveau contenu"}</p><p className="text-xs text-slate-500">{draft.id ? `Version ${items.find((item) => item.id === draft.id)?.version ?? 1}` : "Pas encore enregistré"}</p>{draftDirty ? <p className="mt-1 text-xs font-semibold text-amber-700">Modifications non enregistrées</p> : null}</div><div className="flex flex-wrap gap-2"><div className="inline-flex rounded-md border border-slate-200 p-0.5"><ModeButton active={mode === "edit"} onClick={() => setMode("edit")} title="Modifier"><Settings2 /></ModeButton><ModeButton active={mode === "desktop"} onClick={() => setMode("desktop")} title="Aperçu ordinateur"><Monitor /></ModeButton><ModeButton active={mode === "mobile"} onClick={() => setMode("mobile")} title="Aperçu téléphone"><Smartphone /></ModeButton></div><button type="button" onClick={() => setAiOpen(true)} className="inline-flex items-center gap-2 rounded-md border border-blue-200 bg-blue-50 px-3 py-2 text-sm font-semibold text-blue-800"><Sparkles className="h-4 w-4" /> Aide IA</button>{draftDirty ? <button type="button" disabled={busy} onClick={() => void discardDraftChanges()} className="inline-flex items-center gap-2 rounded-md border border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-slate-700 disabled:opacity-50"><RotateCcw className="h-4 w-4" /> Annuler</button> : null}<button type="button" disabled={busy || !draftDirty} onClick={save} className="inline-flex items-center gap-2 rounded-md bg-slate-900 px-3 py-2 text-sm font-semibold text-white disabled:opacity-50">{busy ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />} Enregistrer</button></div></div>
 
             {mode !== "edit" ? <div className="min-h-[620px] bg-slate-100 p-4 sm:p-8"><div className={mode === "mobile" ? "mx-auto max-w-[390px] overflow-hidden rounded-[24px] border-[8px] border-slate-900 shadow-xl" : "mx-auto max-w-5xl overflow-hidden rounded-md border border-slate-200 shadow-sm"}><Preview draft={previewDraft} mobile={mode === "mobile"} /></div></div> : (
               <div className="grid lg:grid-cols-[minmax(0,1fr)_320px]">
@@ -378,10 +418,10 @@ function Select({ label, value, onChange, children }: { label: string; value: st
   return <Field label={label}><select value={value} onChange={(event) => onChange(event.target.value)} className="field bg-white">{children}</select></Field>;
 }
 function Tool({ title, onClick, children }: { title: string; onClick: () => void; children: React.ReactElement<{ className?: string }> }) {
-  return <button type="button" title={title} onClick={onClick} className="rounded p-2 text-slate-600 hover:bg-white">{children}</button>;
+  return <button type="button" title={title} aria-label={title} onClick={onClick} className="rounded p-2 text-slate-600 hover:bg-white">{children}</button>;
 }
 function ModeButton({ active, title, onClick, children }: { active: boolean; title: string; onClick: () => void; children: React.ReactElement<{ className?: string }> }) {
-  return <button type="button" title={title} onClick={onClick} className={`rounded p-2 ${active ? "bg-slate-900 text-white" : "text-slate-500"}`}>{children}</button>;
+  return <button type="button" title={title} aria-label={title} aria-pressed={active} onClick={onClick} className={`rounded p-2 ${active ? "bg-slate-900 text-white" : "text-slate-500"}`}>{children}</button>;
 }
 function Action({ onClick, tone = "plain", children }: { onClick: () => void; tone?: "plain" | "amber" | "green" | "dark"; children: React.ReactNode }) {
   const style = tone === "green" ? "bg-emerald-700 text-white" : tone === "amber" ? "border-amber-300 bg-amber-50 text-amber-900" : tone === "dark" ? "bg-slate-900 text-white" : "border-slate-300 bg-white text-slate-700";

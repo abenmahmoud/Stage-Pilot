@@ -17,6 +17,16 @@
 - Base preview : 5 modèles, 6 tables avec RLS, aucun droit direct pour `anon` ou
   `authenticated`, bucket `site-content` privé.
 
+## Complément du 28 août 2026
+
+- Build TypeScript et Vite réussi après durcissement de l'éditeur.
+- 3 tests dédiés vérifient l'avertissement de brouillon, les noms accessibles des
+  commandes et l'absence du bouton de notification inactif.
+- L'éditeur affiche un état non enregistré, propose une annulation et protège le
+  changement de contenu, d'onglet ou de page.
+- La session agent administration a été vérifiée sans élargissement de rôle ni
+  modification de compte.
+
 ## Vérification humaine restante
 
 La direction doit se connecter, créer un brouillon fictif, le soumettre puis le

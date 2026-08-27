@@ -22,6 +22,9 @@
 - [x] T012 Ajouter l'entrée Contenus dans l'espace administratif.
 - [x] T013 Construire liste, recherche, filtres et indicateurs.
 - [x] T014 Construire l'éditeur avec modèles et barre Markdown.
+- [x] T014A Protéger les brouillons non enregistrés lors d'un changement de
+  contenu, d'onglet ou d'un départ de la page, avec annulation explicite et noms
+  accessibles pour les commandes représentées uniquement par une icône.
 - [x] T015 Ajouter pièces, image, programmation, expiration et métadonnées.
 - [x] T016 Ajouter aperçu ordinateur/téléphone et historique des versions.
 - [x] T017 Ajouter gestion des modèles.

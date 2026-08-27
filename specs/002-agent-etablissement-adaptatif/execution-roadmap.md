@@ -65,6 +65,16 @@ Codex reste arbitre : aucune proposition externe n'est appliquée sans preuve da
 le dépôt et sans respecter la spécification. Les appels Claude/Kimi nécessitent
 l'autorisation de quota définie par le propriétaire.
 
+### Revue bornée du 28 août 2026
+
+- L'exécution Claude autorisée s'est arrêtée par saturation de contexte et n'a
+  produit aucun rapport exploitable. Elle n'a pas été relancée.
+- Kimi a signalé plusieurs écarts d'interface. L'hypothèse d'un accès public à
+  la console agent a été rejetée après contrôle de l'API et d'une session réelle :
+  l'accès anonyme est refusé et le compte administration reste limité à son
+  périmètre. Les écarts confirmés de vocabulaire, canal de réponse, commandes
+  inactives et accessibilité ont été corrigés puis testés.
+
 ## Lots de nuit sûrs
 
 - Lot N1 : moteur de routage déterministe, motif, identité requise et filtre de
@@ -128,14 +138,24 @@ l'autorisation de quota définie par le propriétaire.
   dialogue. La recette a révélé puis fait corriger le conflit qui envoyait un
   blocage ENT vers la vie scolaire dès que le demandeur mentionnait son emploi du
   temps. La preuve dans une console agent authentifiée reste à réaliser.
+- Lot N5H : lisibilité des interfaces. **Implémenté et testé localement** : la
+  confirmation de demande reflète le canal réellement choisi, le public ne voit
+  plus les termes internes d'analyse ou de priorité, les priorités agent utilisent
+  des mots clairs et le bouton de notification sans fonction a été retiré. Une
+  session administration authentifiée affiche uniquement secrétariat, intendance
+  et administration. L'éditeur de contenus avertit avant toute perte d'un
+  brouillon et nomme ses commandes d'icônes pour les technologies d'assistance.
 - Lot N6 : tests de non-régression, build, contrôle mobile et rapport d'écarts.
 
 ## Prochaine séquence verrouillée
 
-1. Déployer le correctif de routage ENT sur la preview et vérifier sa disponibilité.
-2. Ouvrir `BC-2026-000008` dans une session agent autorisée, puis vérifier le
-   périmètre de file et la présentation du dialogue. Le suivi usager est validé.
-3. Fermer T027D seulement après cette preuve de bout en bout et nettoyer les
+1. Publier le lot N5H sur la preview et vérifier les parcours public et agent sur
+   ordinateur et téléphone.
+2. Recréer un dossier fictif après le correctif de routage ENT, puis le lire avec
+   un compte autorisé au numérique. Le dossier historique `BC-2026-000008` reste
+   affecté à la vie scolaire car il précède le correctif et n'est pas déplacé
+   silencieusement.
+3. Fermer T027D seulement après cette nouvelle preuve de bout en bout et nettoyer les
    données de démonstration si elles ne doivent pas être conservées.
 4. Ajouter le worker d'expiration et prouver qu'une source périmée désactive la
    compétence sans réponse trompeuse.

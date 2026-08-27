@@ -3,7 +3,7 @@
 **Derniere mise a jour** : 28 aout 2026
 **Branche de travail** : `codex/lycee-connect-prototype`
 **Depot** : `abenmahmoud/Stage-Pilot`
-**Dernier jalon de code verifie** : transition assistant vers demande prête
+**Dernier jalon de code verifie** : lisibilité agent et protection des brouillons
 
 ## Decision du 27 aout 2026 - espaces de traitement
 
@@ -27,6 +27,15 @@
 - Le lancement Claude autorise pour l'audit cible du 27 aout s'est arrete sans
   rapport exploitable a cause de sa limite de contexte. Aucune conclusion externe
   ni relance n'a ete retenue.
+- La revue Kimi autorisee du 28 aout a ete contre-verifiee dans le depot et le
+  navigateur. Son alerte d'exposition publique de la console a ete rejetee :
+  l'API refuse l'anonyme et une session administration authentifiee ne voit que
+  secretariat, intendance et administration. Les seuls constats prouves ont ete
+  corriges : bouton inactif retire, vocabulaire public simplifie, canal de
+  confirmation exact et priorites lisibles.
+- L'editeur de contenus indique maintenant les modifications non enregistrees,
+  demande confirmation avant de les abandonner, protege le depart de page et
+  fournit des noms accessibles aux commandes d'icones.
 
 ## 1. Fonction de cette memoire
 
