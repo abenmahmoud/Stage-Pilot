@@ -38,8 +38,15 @@ pas une reponse automatique incertaine.
 - PRONOTE ou l'outil officiel reste prioritaire lorsqu'une integration autorisee
   et plus recente est disponible.
 
-## Autorisation restante
+## Autorisation et protections restantes
 
-La lecture locale autorise la conception de ce flux. Elle n'autorise pas encore
-l'import des PDF reels dans Supabase, Vercel, le VPS ou un autre service. Cette
-action devra nommer la cible, la duree de conservation et les agents habilites.
+Le 27 août 2026, le propriétaire du projet a explicitement demandé d'utiliser
+ces deux exports réels dans LyceeGest, projet Vercel `safe-scol/lyceegest`.
+Cette autorisation est enregistrée et n'a pas besoin d'être redemandée pour
+construire le flux d'import privé en preview.
+
+Les fichiers ne doivent toutefois jamais être ajoutés à Git, intégrés au bundle
+web ou servis par une URL publique. Avant leur premier téléversement, il reste à
+créer le stockage privé, les comptes agents habilités, la journalisation des
+accès et la durée de conservation. Tant que ces protections ne sont pas actives,
+les PDF restent uniquement sur le poste local.

@@ -3,7 +3,7 @@
 **Derniere mise a jour** : 27 aout 2026
 **Branche de travail** : `codex/lycee-connect-prototype`
 **Depot** : `abenmahmoud/Stage-Pilot`
-**Dernier jalon de code verifie** : matrice d'accès identité, établissement et service sur données fictives
+**Dernier jalon de code verifie** : parcours de démonstration emploi du temps sécurisé
 
 ## 1. Fonction de cette memoire
 
@@ -72,6 +72,9 @@ sa specification.
 - Accueil moderne, navigation Webmail/LyceeGest, pages du lycee, voies et huit
   specialites generales.
 - Conversation d'aide en texte libre avec formulaire accessible en alternative.
+- La conversation reconnaît les questions de prochain cours ou de salle, les
+  classe dans `Classe ou emploi du temps` et explique le contrôle d'identité
+  avant de consulter la version réelle reçue le 25 août 2026.
 - Creation d'un dossier par API avec idempotence, session d'appareil securisee et
   numero public.
 - Suivi sur l'appareil et reprise par lien email; telephone en canal de secours.

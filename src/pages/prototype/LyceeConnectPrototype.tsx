@@ -515,7 +515,7 @@ export default function LyceeConnectPrototype() {
             </div>
             <div className="lycee-trust-row">
               <button type="button" onClick={() => changeView("trust")}><ShieldCheck aria-hidden="true" /> Confidentialité et sécurité</button>
-              <span><Users aria-hidden="true" /> Réponse validée par un agent</span>
+              <span><Users aria-hidden="true" /> Actions sensibles validées par un agent</span>
             </div>
           </section>
 
@@ -579,7 +579,7 @@ export default function LyceeConnectPrototype() {
               </a>
               <a href={WEBMAIL_URL} target="_blank" rel="noreferrer" aria-label="Ouvrir le Webmail du lycée dans un nouvel onglet">
                 <span className="lycee-status-icon"><Mail aria-hidden="true" /></span>
-                <span><strong>Webmail académique</strong><small>Communication Créteil</small></span>
+                <span><strong>Webmail du lycée</strong><small>Messagerie et diffusion</small></span>
                 <em>Ouvrir <ExternalLink aria-hidden="true" /></em>
               </a>
             </article>
@@ -823,7 +823,7 @@ type AssistantInsight = {
 
 function inferSupportCategory(text: string): SupportCategory {
   if (/\b(inscription|réinscription|reinscription|inscrire)\b/i.test(text)) return "inscription";
-  if (/\b(classe|affectation|emploi du temps|edt)\b/i.test(text)) return "affectation_classe";
+  if (/\b(classe|affectation|emploi du temps|edt|prochain cours|mon cours|quelle salle|dans quelle salle|changement de salle)\b/i.test(text)) return "affectation_classe";
   if (/\b(document|pièce|piece|dossier|justificatif|manque)\b/i.test(text)) return "documents_scolarite";
   if (/\b(ent|educonnect|connexion|connecter|identifiant|code)\b/i.test(text)) return "ent";
   if (/\b(email|mail|webmail|zimbra|académique|academique)\b/i.test(text)) return "email_academique";
@@ -841,24 +841,31 @@ function localAssistantFallback(messages: AssistantChatMessage[], files: File[])
   const category = inferSupportCategory(text);
   const laptopIntake = policy.deterministicReply ? null : evaluateLaptopIntake(messages, files.length);
   const label = supportCategories.find((item) => item.value === category)?.label ?? "Autre demande";
+  const scheduleQuestion = /\b(emploi du temps|edt|prochain cours|mon cours|quelle salle|dans quelle salle|changement de salle)\b/i.test(text);
   const requesterType = /\b(parent|mère|mere|père|pere)\b/i.test(text)
     ? "parent"
     : /\b(prof|professeur|enseignant)\b/i.test(text)
       ? "professeur"
-      : /\b(élève|eleve|lycéen|lyceen)\b/i.test(text)
+      : /\b(élève|eleve|lycéen|lyceen|seconde|première|premiere|terminale|cap)\b/i.test(text)
         ? "eleve"
         : /\b(personnel|agent|administration)\b/i.test(text)
           ? "personnel"
           : "inconnu";
   return {
-    reply: policy.deterministicReply ?? laptopIntake?.reply ?? `J’ai compris. Je classe votre besoin dans « ${label} ». ${files.length ? `Je vois aussi ${files.length} fichier${files.length > 1 ? "s" : ""} à joindre au dossier. ` : ""}Expliquez-moi ce qui bloque et ce que vous avez déjà essayé. Je préparerai ensuite la demande pour le bon agent.`,
+    reply: policy.deterministicReply ?? laptopIntake?.reply ?? (scheduleQuestion
+      ? "Je peux rechercher votre prochain cours et sa salle, mais une classe écrite librement ne suffit pas pour ouvrir un emploi du temps réel. Le lycée doit d’abord confirmer votre identité scolaire et votre lien avec la classe ou le groupe. La version reçue le 25 août 2026 pourra ensuite être consultée avec sa date de mise à jour ; en cas de doute, la vie scolaire vérifiera avant de répondre."
+      : `J’ai compris. Je classe votre besoin dans « ${label} ». ${files.length ? `Je vois aussi ${files.length} fichier${files.length > 1 ? "s" : ""} à joindre au dossier. ` : ""}Expliquez-moi ce qui bloque et ce que vous avez déjà essayé. Je préparerai ensuite la demande pour le bon agent.`),
     category: policy.category ?? laptopIntake?.category ?? category,
     requesterType,
     urgency: policy.urgency ?? laptopIntake?.urgency ?? (/\b(urgent|aujourd'hui|bloqué|bloque|impossible)\b/i.test(text) ? "urgente" : "normale"),
-    missingInformation: laptopIntake?.missingInformation ?? ["Identité de la personne concernée", "Email ou téléphone de réponse"],
+    missingInformation: laptopIntake?.missingInformation ?? (scheduleQuestion
+      ? ["Identité scolaire confirmée", "Classe ou groupe autorisé"]
+      : ["Identité de la personne concernée", "Email ou téléphone de réponse"]),
     suggestedDocuments: laptopIntake?.suggestedDocuments ?? (files.length ? files.map((file) => file.name) : []),
     readyToCreate: policy.readyToCreate ?? laptopIntake?.readyToCreate ?? text.trim().length >= 35,
-    safetyNotice: policy.safetyNotice ?? laptopIntake?.safetyNotice ?? null,
+    safetyNotice: policy.safetyNotice ?? laptopIntake?.safetyNotice ?? (scheduleQuestion
+      ? "Aucun emploi du temps réel n’est affiché avant la vérification de l’identité scolaire."
+      : null),
     usedAi: false,
     scope: policy.scope,
     action: laptopIntake?.action ?? policy.action,
@@ -1103,7 +1110,7 @@ function HelpDeskView({
       <PageIntro
         eyebrow="Assistant du lycée"
         title="Dites simplement ce qu’il vous faut"
-        description="Écrivez avec vos mots, dans la langue qui vous convient. Le lycée garde la conversation jusqu’à la réponse."
+        description="Écrivez avec vos mots, dans la langue qui vous convient. Vous pourrez enregistrer la demande et suivre la réponse."
         onBack={onBack}
       />
 

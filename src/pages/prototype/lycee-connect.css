@@ -940,6 +940,8 @@
 }
 
 @media (max-width: 430px) {
+  .lycee-mobile-brand strong { overflow: hidden; font-size: 12px; text-overflow: ellipsis; white-space: nowrap; }
+  .lycee-mobile-brand span { display: none; }
   .lycee-specialties-preview-grid { grid-template-columns: 1fr; }
   .lycee-profile-grid, .lycee-category-grid, .lycee-services-catalog { grid-template-columns: 1fr; }
   .lycee-profile-grid { grid-template-columns: repeat(2,minmax(0,1fr)); }

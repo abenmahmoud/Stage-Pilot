@@ -112,13 +112,17 @@
   définir un contrat d'import privé, versionné et réversible sans donnée
   nominative dans Git.
 - [ ] T042C Construire l'import privé des PDF, l'index par page et la validation
-  humaine avant activation. Ne pas importer les fichiers réels en preview sans
-  autorisation explicite et stockage protégé.
+  humaine avant activation. L'autorisation d'utiliser les fichiers réels est
+  enregistrée ; ne les importer qu'après création du stockage protégé, des
+  habilitations nominatives, du journal d'accès et de la conservation.
 - [ ] T042D Construire le modèle de lecture privé des créneaux, groupes, salles et
   périodes de validité, avec versions et possibilité de retour arrière.
 - [x] T042D1 Implémenter et tester sur données fictives la politique de lecture :
   identité scolaire, périmètre classe/groupe, version active, fraîcheur,
   changement officiel, non-divulgation du personnel et refus des conflits.
+- [x] T042D1A Reconnaître dans la conversation les demandes de prochain cours et
+  de salle, les classer correctement et expliquer le contrôle d'identité avant
+  toute consultation de la version réelle datée.
 - [ ] T042D2 Brancher cette politique sur les tables privées et les politiques RLS
   après migration, sans importer les PDF réels avant autorisation.
 - [ ] T043 Ajouter le connecteur ou export PRONOTE officiel après autorisation écrite.
