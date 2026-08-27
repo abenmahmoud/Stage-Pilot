@@ -18,6 +18,7 @@
     "test:support-concurrency": "node --experimental-strip-types scripts/test-support-concurrency.mjs",
     "test:support-callback-policy": "node --experimental-strip-types scripts/test-support-callback-policy.mjs",
     "test:support-agent-access": "node --experimental-strip-types scripts/test-support-agent-access.mjs",
+    "test:institution-membership-security": "node --experimental-strip-types scripts/test-institution-membership-security.mjs",
     "test:support-notification-routing": "node --experimental-strip-types scripts/test-support-notification-routing.mjs",
     "test:schedule-policy": "node --experimental-strip-types scripts/test-schedule-policy.mjs",
     "test:skill-registry": "node --experimental-strip-types scripts/test-skill-registry-policy.mjs",

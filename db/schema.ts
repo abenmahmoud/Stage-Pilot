@@ -9,6 +9,7 @@ import {
   uuid,
   bigint,
   primaryKey,
+  index,
 } from "drizzle-orm/pg-core";
 import { sql } from "drizzle-orm";
 
@@ -236,6 +237,45 @@ export const templatesDocuments = pgTable("templates_documents", {
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow(),
 });
+
+export const institutions = pgTable("institutions", {
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  slug: text("slug").notNull().unique(),
+  name: text("name").notNull(),
+  timezone: text("timezone").notNull().default("Europe/Paris"),
+  settings: jsonb("settings").notNull().default({}),
+  status: text("status").notNull().default("draft"),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+export const institutionMemberships = pgTable(
+  "institution_memberships",
+  {
+    institutionId: uuid("institution_id")
+      .notNull()
+      .references(() => institutions.id, { onDelete: "cascade" }),
+    userId: uuid("user_id").notNull(),
+    role: text("role").notNull(),
+    serviceCodes: text("service_codes")
+      .array()
+      .notNull()
+      .default(sql`array[]::text[]`),
+    mfaVerifiedAt: timestamp("mfa_verified_at", { withTimezone: true }),
+    status: text("status").notNull().default("invited"),
+    grantedBy: uuid("granted_by"),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    primaryKey({
+      name: "institution_memberships_pkey",
+      columns: [table.institutionId, table.userId],
+    }),
+    index("institution_memberships_user_status_idx").on(table.userId, table.status),
+    index("institution_memberships_service_codes_idx").using("gin", table.serviceCodes),
+  ]
+);
 
 export const siteContentTemplates = pgTable("site_content_templates", {
   id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),

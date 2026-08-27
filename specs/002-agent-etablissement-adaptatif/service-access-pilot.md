@@ -43,10 +43,11 @@ Un humain conserve la décision et peut corriger le service depuis la vue global
 
 ## Limite actuelle de la preview
 
-Le périmètre de l'agent est lu dans les métadonnées serveur signées du compte.
-Avant la création des comptes réels, il reste à persister ces adhésions dans
-`institution_memberships`, appliquer les politiques RLS correspondantes et
-tester quatre comptes fictifs, puis les comptes nominatifs autorisés.
+La migration `institutions` et `institution_memberships`, les protections RLS
+et le contrôle serveur sont prêts mais non appliqués à la base distante. Le
+périmètre reste donc lu dans les métadonnées serveur signées jusqu'à l'activation
+explicite du mode base de données. Il reste à appliquer la migration en preview,
+tester quatre comptes fictifs, puis créer les comptes nominatifs autorisés.
 
 ## Données requises avant création des comptes
 

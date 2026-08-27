@@ -19,6 +19,13 @@ export type SupportAgentAccess = {
   canManageTemplates: boolean;
 };
 
+export type InstitutionMembershipAccessRecord = {
+  role: string;
+  serviceCodes: unknown;
+  status: string;
+  institutionStatus: string;
+};
+
 const ADMINISTRATION_SERVICES: SupportService[] = [
   "secretariat",
   "administration",
@@ -41,6 +48,11 @@ function isSupportService(value: unknown): value is SupportService {
 
 function declaredServices(appMetadata: Record<string, unknown>): SupportService[] {
   const value = appMetadata.service_codes ?? appMetadata.support_services;
+  if (!Array.isArray(value)) return [];
+  return [...new Set(value.filter(isSupportService))];
+}
+
+function persistedServices(value: unknown): SupportService[] {
   if (!Array.isArray(value)) return [];
   return [...new Set(value.filter(isSupportService))];
 }
@@ -93,6 +105,39 @@ export function resolveSupportAgentAccess(
   return {
     role,
     label: scopedLabel(serviceCodes),
+    serviceCodes,
+    canViewAll: false,
+    canRoute: false,
+    canManageTemplates: false,
+  };
+}
+
+export function resolvePersistedSupportAgentAccess(
+  authRole: string,
+  membership: InstitutionMembershipAccessRecord | null
+): SupportAgentAccess | null {
+  if (
+    !membership ||
+    membership.status !== "active" ||
+    !["pilot", "active"].includes(membership.institutionStatus) ||
+    !["agent", "service_manager", "admin", "auditor"].includes(membership.role) ||
+    membership.role === "auditor"
+  ) {
+    return null;
+  }
+
+  if (authRole === "superadmin" || authRole === "proviseur") {
+    if (membership.role !== "admin") return null;
+    return resolveSupportAgentAccess(authRole);
+  }
+
+  if (authRole !== "agent" && authRole !== "administration") return null;
+  const serviceCodes = persistedServices(membership.serviceCodes);
+  if (serviceCodes.length === 0) return null;
+
+  return {
+    role: authRole,
+    label: authRole === "administration" ? "Agent administration" : scopedLabel(serviceCodes),
     serviceCodes,
     canViewAll: false,
     canRoute: false,
