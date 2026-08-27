@@ -147,6 +147,11 @@ sa specification.
 - L'agent V2 possede une specification, un plan et des taches. Hormis certains
   controles du guichet deja reutilisables, son registre de competences et son
   orchestrateur ne sont pas encore developpes.
+- La politique centrale du futur registre est maintenant implementee sur objets
+  fictifs : publication refusee sans proprietaire, source actuelle, revue
+  independante et tests; acces aux sources limite par etablissement, role,
+  service et outil; expiration et retour a une version publiee precedente. Les
+  tables, l'ecran de publication et le worker d'expiration restent a construire.
 - La feuille de route détaillée des comptes, files, compétences, emplois du
   temps, contenu, charge et pilote est dans
   `002-agent-etablissement-adaptatif/execution-roadmap.md`.

@@ -118,6 +118,7 @@ Une contrainte unique empêche qu'une même référence officielle active soit l
 | `uri` | text | URL ou identifiant de stockage privé |
 | `classification` | enum | `public`, `internal`, `personal`, `sensitive` |
 | `owner_user_id` | uuid | Responsable métier |
+| `service_codes` | text[] | Services autorisés ; vide uniquement pour une source réellement transverse |
 | `valid_from` | timestamptz | Début d'utilisation |
 | `expires_at` | timestamptz nullable | Interdiction de répondre après expiration |
 | `status` | enum | `draft`, `published`, `expired`, `revoked` |
@@ -258,6 +259,9 @@ Une migration peut ajouter `institution_id`, `source_channel`, `identity_assuran
 - Une référence enseignant n'est jamais exposée dans une API publique permettant
   de suivre sa présence ou sa localisation.
 - Une source `sensitive` ne peut jamais être injectée automatiquement dans le modèle généraliste.
+- Une source interne, personnelle ou sensible est contrôlée par établissement,
+  rôle, service et voie d'accès ; un rôle administrateur ne contourne pas ce
+  périmètre par défaut.
 - Une action L3 exige une validation active, non expirée, émise par un rôle autorisé.
 - Une action L4 ne peut pas passer à `running`.
 - La suppression logique préserve l'audit ; la purge physique suit la politique de rétention.

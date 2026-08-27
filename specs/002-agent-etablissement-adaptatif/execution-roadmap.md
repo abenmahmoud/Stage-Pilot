@@ -74,6 +74,9 @@ l'autorisation de quota définie par le propriétaire.
   les PDF ni les noms en preview. **Contrat et politique de lecture fictive testés ;
   migration privée encore requise**.
 - Lot N4 : compétence cours/salles/changements et scénarios interdits.
+- Lot N4A : politique de publication, accès aux sources, expiration et retour
+  arrière du registre de compétences sur données fictives. **Implémentée et
+  testée ; stockage et interface encore requis**.
 - Lot N5 : files `À qualifier`, délais et dossiers sans propriétaire.
 - Lot N6 : tests de non-régression, build, contrôle mobile et rapport d'écarts.
 

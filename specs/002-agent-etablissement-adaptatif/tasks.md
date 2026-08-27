@@ -30,8 +30,17 @@
   puis tester qu'un compte ne consulte jamais les données d'un autre foyer.
 - [ ] T011 Implémenter le parseur et le validateur du format de compétence.
 - [ ] T012 Refuser la publication d'une compétence sans propriétaire, sources, révision et tests valides.
+- [x] T012A Implémenter et tester sur objets fictifs la politique de publication :
+  propriétaire réel, version valide, revue indépendante pour les données
+  personnelles ou sensibles, sources actuelles, outils structurés et couverture
+  de tests positive, ambiguë et interdite.
 - [ ] T013 Construire l'écran de publication, désactivation et retour à une version précédente.
 - [ ] T014 Construire le contrôle d'expiration des sources et compétences.
+- [x] T014A Implémenter la sélection de la dernière version publiée non expirée,
+  le repli vers la version précédente et la désactivation lorsque sa source
+  devient indisponible.
+- [ ] T014B Brancher les politiques de registre sur les futures tables, le worker
+  d'expiration, l'audit et l'interface de publication.
 
 ## Phase 2 - Autorité et sécurité
 
