@@ -19,6 +19,8 @@
 
 ## Complément du 28 août 2026
 
+- Le commit `0349530` a été construit avec succès par Vercel et servi sur l'alias
+  de la branche de preview.
 - Build TypeScript et Vite réussi après durcissement de l'éditeur.
 - 3 tests dédiés vérifient l'avertissement de brouillon, les noms accessibles des
   commandes et l'absence du bouton de notification inactif.
@@ -26,6 +28,8 @@
   changement de contenu, d'onglet ou de page.
 - La session agent administration a été vérifiée sans élargissement de rôle ni
   modification de compte.
+- Une modification temporaire du titre a affiché l'avertissement et activé
+  l'enregistrement ; le champ a ensuite été remis à vide sans créer de contenu.
 
 ## Vérification humaine restante
 

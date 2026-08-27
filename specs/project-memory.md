@@ -36,6 +36,9 @@
 - L'editeur de contenus indique maintenant les modifications non enregistrees,
   demande confirmation avant de les abandonner, protege le depart de page et
   fournit des noms accessibles aux commandes d'icones.
+- Le jalon `0349530` est publie sur l'alias de preview de la branche. Le portail,
+  la session administration et l'etat de brouillon de l'editeur ont ete verifies
+  en ligne sans enregistrer de contenu ni modifier un role.
 
 ## 1. Fonction de cette memoire
 

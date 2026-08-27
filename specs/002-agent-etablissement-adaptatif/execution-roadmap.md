@@ -138,7 +138,8 @@ l'autorisation de quota définie par le propriétaire.
   dialogue. La recette a révélé puis fait corriger le conflit qui envoyait un
   blocage ENT vers la vie scolaire dès que le demandeur mentionnait son emploi du
   temps. La preuve dans une console agent authentifiée reste à réaliser.
-- Lot N5H : lisibilité des interfaces. **Implémenté et testé localement** : la
+- Lot N5H : lisibilité des interfaces. **Implémenté et vérifié en preview au
+  commit `0349530`** : la
   confirmation de demande reflète le canal réellement choisi, le public ne voit
   plus les termes internes d'analyse ou de priorité, les priorités agent utilisent
   des mots clairs et le bouton de notification sans fonction a été retiré. Une
@@ -149,17 +150,15 @@ l'autorisation de quota définie par le propriétaire.
 
 ## Prochaine séquence verrouillée
 
-1. Publier le lot N5H sur la preview et vérifier les parcours public et agent sur
-   ordinateur et téléphone.
-2. Recréer un dossier fictif après le correctif de routage ENT, puis le lire avec
+1. Recréer un dossier fictif après le correctif de routage ENT, puis le lire avec
    un compte autorisé au numérique. Le dossier historique `BC-2026-000008` reste
    affecté à la vie scolaire car il précède le correctif et n'est pas déplacé
    silencieusement.
-3. Fermer T027D seulement après cette nouvelle preuve de bout en bout et nettoyer les
+2. Fermer T027D seulement après cette nouvelle preuve de bout en bout et nettoyer les
    données de démonstration si elles ne doivent pas être conservées.
-4. Ajouter le worker d'expiration et prouver qu'une source périmée désactive la
+3. Ajouter le worker d'expiration et prouver qu'une source périmée désactive la
    compétence sans réponse trompeuse.
-5. Faire nommer les responsables et valider les premières sources et procédures
+4. Faire nommer les responsables et valider les premières sources et procédures
    avant toute compétence active contenant des informations réelles.
 
 ## Portes de validation humaine
