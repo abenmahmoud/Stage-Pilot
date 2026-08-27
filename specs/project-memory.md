@@ -282,6 +282,12 @@ sa specification.
   professeurs et 45 pages classes. Le contrat d'import protege est defini dans
   `002-agent-etablissement-adaptatif/schedule-import.md`; aucun fichier reel ni
   nom n'a ete envoye vers Git ou la preview.
+- Une politique de lecture d'emploi du temps fonctionne maintenant sur donnees
+  entierement fictives : identite scolaire obligatoire, perimetre classe/groupe,
+  creneau valide, version active la plus recente, source non perimee, changement
+  officiel, refus des contradictions et aucune reference enseignant exposee. Le
+  stockage prive, les migrations RLS et l'import reel restent volontairement non
+  executes.
 - Inventorier la licence et les connecteurs PRONOTE/ENT disponibles avant toute
   integration; utiliser uniquement une voie officielle autorisee.
 - Construire la base de connaissances validee par la direction.

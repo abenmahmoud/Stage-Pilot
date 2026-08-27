@@ -71,7 +71,8 @@ l'autorisation de quota définie par le propriétaire.
   service. **Implémenté et testé**.
 - Lot N2 : contrat complet comptes/OTP/identité scolaire et matrice d'accès.
 - Lot N3 : schéma privé et réversible des versions d'emploi du temps, sans importer
-  les PDF ni les noms en preview.
+  les PDF ni les noms en preview. **Contrat et politique de lecture fictive testés ;
+  migration privée encore requise**.
 - Lot N4 : compétence cours/salles/changements et scénarios interdits.
 - Lot N5 : files `À qualifier`, délais et dossiers sans propriétaire.
 - Lot N6 : tests de non-régression, build, contrôle mobile et rapport d'écarts.

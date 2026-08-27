@@ -97,6 +97,11 @@
   autorisation explicite et stockage protégé.
 - [ ] T042D Construire le modèle de lecture privé des créneaux, groupes, salles et
   périodes de validité, avec versions et possibilité de retour arrière.
+- [x] T042D1 Implémenter et tester sur données fictives la politique de lecture :
+  identité scolaire, périmètre classe/groupe, version active, fraîcheur,
+  changement officiel, non-divulgation du personnel et refus des conflits.
+- [ ] T042D2 Brancher cette politique sur les tables privées et les politiques RLS
+  après migration, sans importer les PDF réels avant autorisation.
 - [ ] T043 Ajouter le connecteur ou export PRONOTE officiel après autorisation écrite.
 - [ ] T043A Ajouter un flux officiel de changements de cours avec état de santé,
   heure de dernière synchronisation et blocage des réponses périmées.
