@@ -86,6 +86,10 @@
 - [x] T027C2A Préparer la migration `institutions` et
   `institution_memberships`, le verrouillage serveur, les tests RLS et le mode
   d'activation explicite, sans compte réel ni application sur la base distante.
+- [x] T027C2B Appliquer la migration à la base de preview isolée, vérifier les
+  quatre rôles avec des comptes fictifs éphémères et MFA `aal2`, nettoyer toutes
+  les données de test, puis configurer le mode base uniquement sur la branche de
+  preview. Les comptes nominatifs et leur recette restent dans T027C2.
 - [ ] T028 N'afficher une réussite qu'après `confirmed_at` fourni par l'outil.
 - [ ] T029 Ajouter formulaire classique et création de demande sans dépendance à l'IA.
 - [ ] T030 Ajouter mesure du coût, de la latence, des transferts et des corrections.

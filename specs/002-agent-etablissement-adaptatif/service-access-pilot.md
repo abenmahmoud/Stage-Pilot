@@ -43,11 +43,13 @@ Un humain conserve la décision et peut corriger le service depuis la vue global
 
 ## Limite actuelle de la preview
 
-La migration `institutions` et `institution_memberships`, les protections RLS
-et le contrôle serveur sont prêts mais non appliqués à la base distante. Le
-périmètre reste donc lu dans les métadonnées serveur signées jusqu'à l'activation
-explicite du mode base de données. Il reste à appliquer la migration en preview,
-tester quatre comptes fictifs, puis créer les comptes nominatifs autorisés.
+La migration `institutions` et `institution_memberships` est appliquée uniquement
+à la branche Supabase isolée. Les protections RLS et le mode base de données sont
+configurés uniquement pour la branche Vercel de preview. Quatre comptes fictifs
+éphémères ont validé les rôles superadministrateur, DDFPT, administration et vie
+scolaire avec MFA `aal2`, puis ont été supprimés avec leurs adhésions. Il reste à
+créer les comptes nominatifs autorisés et à tester leur récupération, leurs
+parcours métier complets et leur révocation avant le pilote réel.
 
 ## Données requises avant création des comptes
 

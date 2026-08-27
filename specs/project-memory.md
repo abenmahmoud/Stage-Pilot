@@ -3,7 +3,7 @@
 **Derniere mise a jour** : 27 aout 2026
 **Branche de travail** : `codex/lycee-connect-prototype`
 **Depot** : `abenmahmoud/Stage-Pilot`
-**Dernier jalon de code verifie** : espaces agents cloisonnes et continuite du chat
+**Dernier jalon de code verifie** : adhesions agents persistees en preview isolee
 
 ## Decision du 27 aout 2026 - espaces de traitement
 
@@ -12,8 +12,9 @@
   scolaire, chacun avec compte individuel et double verification.
 - Les agents sont cloisonnes cote serveur ; seuls superadmin et direction peuvent
   classer une demande sans service ou la transferer.
-- La politique de preview utilise des metadonnees serveur signees. Les adhesions
-  persistees et les RLS restent a construire avant les comptes reels.
+- La politique de preview utilise maintenant les adhesions persistees de sa base
+  Supabase isolee. Un compte sans adhesion active est refuse sans repli vers les
+  metadonnees. La production et la base Supabase principale restent inchangees.
 - Lorsqu'un chat devient une demande, le dialogue utile est conserve dans l'ordre
   dans le dossier. Les messages automatiques restent identifies comme tels dans
   le suivi public et la console agent.
@@ -165,6 +166,12 @@ sa specification.
   en file sont valides ensemble, ce qui permet une reprise apres panne.
 - Les trois migrations historiques LyceeGest ont ete recuperees depuis le
   journal Supabase et replacees dans Git, sans aucune donnee utilisateur.
+- La migration `institutions` et `institution_memberships` est appliquee sur la
+  branche Supabase isolee de preview. Les tables sont forcees en RLS et restent
+  inaccessibles directement aux roles `anon` et `authenticated`.
+- Quatre comptes fictifs ephemeres ont valide superadministrateur, DDFPT,
+  administration et vie scolaire avec MFA `aal2` et adhesion persistante. Ils
+  ont ensuite ete supprimes avec toutes leurs adhesions, sans envoi d'email.
 
 ### Concu ou partiellement branche
 
@@ -193,8 +200,10 @@ sa specification.
   vérifié ne devient jamais une identité scolaire, les relations propres ou
   parent-enfant doivent être actives, les établissements et services sont
   cloisonnés, et un administrateur ne contourne pas son périmètre de contenu.
-  Les comptes, OTP, tables d'identité/adhésion, annuaire privé et RLS ne sont pas
-  encore branchés ; aucune donnée réelle ne doit dépendre de cette matrice seule.
+  Les adhesions agents et leurs RLS sont branchees en preview. Les comptes
+  usagers, OTP de contact, tables d'identite scolaire, annuaire prive et leurs
+  RLS restent a construire ; aucune donnee reelle ne doit dependre de la matrice
+  fictive seule.
 - La politique centrale du futur registre est maintenant implementee sur objets
   fictifs : publication refusee sans proprietaire, source actuelle, revue
   independante et tests; acces aux sources limite par etablissement, role,
@@ -228,6 +237,9 @@ sa specification.
 
 - Preview Vercel protegee :
   `lyceegest-git-codex-lycee-connect-prototype-safe-scol.vercel.app`.
+- Le mode `database` des adhesions et le slug de l'etablissement sont configures
+  uniquement pour `codex/lycee-connect-prototype`. Une nouvelle construction de
+  preview est necessaire pour prendre ces deux valeurs en compte.
 - Le jalon d'accès agent `531eaa8` est publié dans la preview
   `lyceegest-36ldyhuew-safe-scol.vercel.app`. L'accueil, la connexion du
   personnel et la récupération répondent en HTTP 200 ; l'API agent refuse une

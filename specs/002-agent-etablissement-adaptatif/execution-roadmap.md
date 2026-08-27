@@ -90,7 +90,9 @@ l'autorisation de quota définie par le propriétaire.
 - Lot N5A : périmètres de traitement par service. **Politique serveur de preview
   implémentée et testée** : superadmin/direction complets, DDFPT, administration
   et vie scolaire cloisonnés sur liste, détail, réponse, note et pièce jointe.
-  La persistance dans les adhésions et les RLS reste obligatoire avant comptes réels.
+  La persistance et les RLS sont appliquées sur la base de preview isolée ; quatre
+  comptes fictifs avec MFA `aal2` ont validé les adhésions puis ont été supprimés.
+  Les comptes nominatifs, la récupération et la recette métier restent requis.
 - Lot N5B : continuité assistant-dossier. **Implémentée et testée** : le dialogue
   utile est conservé message par message dans l'ordre, les réponses automatiques
   restent identifiées et le même fil est visible par l'usager et l'agent.

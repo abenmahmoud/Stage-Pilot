@@ -1,7 +1,7 @@
 # Persistance des comptes et périmètres agents
 
 **Décision technique** : 27 août 2026  
-**État** : migration et contrôle serveur prêts, activation différée
+**État** : migration appliquée et activation configurée sur la preview isolée
 
 ## Objectif
 
@@ -27,13 +27,24 @@ ni aucune adresse personnelle n'est ajouté dans Git.
 
 ## Activation progressive
 
-1. Appliquer la migration uniquement à la base de prévisualisation.
-2. Créer quatre comptes fictifs et leurs adhésions, puis vérifier le cloisonnement.
-3. Créer les comptes nominatifs autorisés et enrôler leur second facteur.
-4. Définir `SUPPORT_MEMBERSHIP_SOURCE=database` et
-   `SUPPORT_INSTITUTION_SLUG=blaise-cendrars-sevran` en prévisualisation.
-5. Tester lecture, prise en charge, réponse, transfert, pièces et révocation.
-6. Activer le pilote réel seulement après validation de la direction.
+1. [Terminé] Appliquer la migration uniquement à la base Supabase isolée de la
+   prévisualisation.
+2. [Terminé] Créer quatre comptes fictifs éphémères, atteindre `aal2`, vérifier
+   leurs adhésions persistées, puis supprimer comptes et adhésions de test.
+3. [Terminé] Définir `SUPPORT_MEMBERSHIP_SOURCE=database` et
+   `SUPPORT_INSTITUTION_SLUG=blaise-cendrars-sevran` uniquement pour la branche
+   Vercel `codex/lycee-connect-prototype`.
+4. [À faire] Créer les comptes nominatifs autorisés et enrôler leur second
+   facteur. Les autres comptes sans adhésion active sont refusés sans repli.
+5. [À faire] Tester lecture, prise en charge, réponse, transfert, pièces,
+   récupération du compte et révocation avec ces comptes nominatifs.
+6. [À faire] Activer le pilote réel seulement après validation de la direction.
 
-Avant l'étape 4, l'application conserve le mode `metadata` actuel afin que le
-déploiement de cette préparation ne bloque pas la démonstration.
+Un compte de démonstration administration déjà présent dans la base de preview
+possède une adhésion active limitée à `secretariat`, `administration` et
+`intendance`. Aucun email de test n'a été envoyé et aucune donnée nominative n'a
+été ajoutée à Git.
+
+Le banc de test temporaire déployé sur la branche Supabase a été remplacé après
+la recette par une réponse `410 Retired`, protégée par JWT. Il ne crée plus de
+compte et pourra être supprimé avec la branche de preview en fin de pilote.
