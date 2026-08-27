@@ -1,4 +1,4 @@
-const CACHE_NAME = "blaise-cendrars-connect-v5";
+const CACHE_NAME = "blaise-cendrars-connect-v6";
 const APP_SHELL = [
   "/prototype",
   "/manifest.webmanifest",
@@ -31,7 +31,7 @@ self.addEventListener("fetch", (event) => {
 
   if (event.request.mode === "navigate") {
     event.respondWith(
-      fetch(event.request).catch(() => caches.match("/prototype"))
+      fetch(event.request, { cache: "no-store" }).catch(() => caches.match("/prototype"))
     );
     return;
   }

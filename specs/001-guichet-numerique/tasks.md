@@ -96,6 +96,9 @@ voir sa réponse dans le dossier. L'agent traite tout depuis une seule file.
 - [ ] **T031** Mettre en place la sauvegarde chiffrée DB + Storage et un test de
   restauration.
 - [x] **T032** Finaliser PWA : hors-ligne limité, mise à jour, icônes, installation.
+- [x] **T032A** Forcer la vérification du service worker et charger les navigations
+  en ligne sans cache afin qu'un nouveau déploiement ne reste pas masqué par
+  l'ancienne interface PWA.
 - [ ] **T033** Ajouter notifications PWA pour les sessions actives.
 - [ ] **T034** Ajouter tableau de santé, file d'échec et bouton de reprise.
 - [ ] **T035** Ajouter le formulaire de collecte des emails personnels avec double

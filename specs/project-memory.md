@@ -141,6 +141,9 @@ sa specification.
   troisieme essai hors mission et dix messages utilisateur maximum.
 - PWA, interface responsive et absence de debordement horizontal verifiee sur les
   parcours principaux.
+- La PWA vérifie explicitement les mises à jour du service worker sans réutiliser
+  son cache HTTP et privilégie toujours la navigation en ligne la plus récente ;
+  l'ancien écran reste uniquement le repli hors connexion.
 - En-tetes HTTP de securite, API sans cache et service worker non fige.
 - Audit npm des dependances de production : zero alerte connue au dernier jalon.
 - Audit de la branche Supabase de preview : fonctions privilegiees corrigees,
