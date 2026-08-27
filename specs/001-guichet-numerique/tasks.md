@@ -17,7 +17,7 @@ restante, soit une configuration externe ou une validation par la direction.
 
 - [x] **T001A** Corriger `get_role`, `set_updated_at`, les appels RLS par ligne et
   les index redondants sur la branche Supabase de preview.
-- [ ] **T001B** Activer la protection des mots de passe compromis dans Supabase
+- [x] **T001B** Activer la protection des mots de passe compromis dans Supabase
   Auth et la confirmer avec un nouveau rapport des conseillers de sécurité.
 - [x] **T002** Supprimer le détail brut des erreurs 500 renvoyé par l'API.
 - [x] **T003** Ajouter la migration des tables support, index et contraintes, et
@@ -120,6 +120,9 @@ voir sa réponse dans le dossier. L'agent traite tout depuis une seule file.
   accès directs à la base de preview.
 - [ ] **T037C** Enrôler deux comptes nominatifs au minimum, valider la récupération
   en cas de téléphone perdu et activer l’obligation générale MFA.
+- [x] **T037D** Protéger les pages administratives par rôle côté interface,
+  conserver la destination après connexion et ajouter la récupération du mot de
+  passe par email avec écran de remplacement et tests de robustesse.
 - [ ] **T038** Exécuter tests mobile, desktop, clavier, charge et sécurité.
 - [x] **T038A** Relire les textes du parcours demandeur et agent, remplacer les
   codes internes par des libellés français et vérifier les principaux écrans.

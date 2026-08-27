@@ -216,6 +216,11 @@ Autres corrections obligatoires :
 - vérifier les secrets de webhooks ;
 - limiter les requêtes par session, contact et IP hachée ;
 - activer MFA pour les rôles sensibles ;
+- conserver la destination demandée lors de la connexion, ouvrir directement le
+  mode personnel pour l'espace agent et contrôler les rôles à la fois dans le
+  routeur et dans les API ;
+- fournir une récupération de mot de passe Supabase par email avec message
+  anti-énumération, URL de retour autorisée et nouveau mot de passe fort ;
 - journaliser les exports, téléchargements et changements de contact ;
 - tester toutes les politiques RLS avec les rôles réels.
 

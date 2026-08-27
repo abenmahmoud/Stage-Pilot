@@ -3,7 +3,7 @@
 **Derniere mise a jour** : 27 aout 2026
 **Branche de travail** : `codex/lycee-connect-prototype`
 **Depot** : `abenmahmoud/Stage-Pilot`
-**Dernier jalon de code verifie** : pre-triage ordinateur et raccordement securise du contenu public
+**Dernier jalon de code verifie** : accès agent, récupération de compte et contrôle des rôles
 
 ## 1. Fonction de cette memoire
 
@@ -60,7 +60,7 @@ Ce chiffre exprime la part de vision non decrite, pas l'avancement technique du
 code. Ne pas inventer ce programme et ne pas annoncer un pourcentage global avant
 sa specification.
 
-## 4. Etat reel au 26 aout 2026
+## 4. Etat reel au 27 aout 2026
 
 ### Operationnel dans la preview protegee
 
@@ -74,6 +74,13 @@ sa specification.
 - Depots signes vers une quarantaine, antivirus documente et stockage prive des
   fichiers declares sains.
 - File agent paginee, filtres, assignation et verrou d'authentification.
+- Les liens vers l'espace agent ouvrent directement la connexion du personnel,
+  conservent la page demandée et les pages administratives contrôlent maintenant
+  le rôle côté interface en plus des contrôles API.
+- La récupération de mot de passe par email et l'écran de remplacement sont
+  programmés avec message générique, mot de passe fort et déconnexion après
+  modification. La branche Supabase de preview autorise l'URL de retour exacte,
+  exige 12 caractères au minimum et rejette les mots de passe compromis.
 - Traitement agent avec transfert par service, notes internes invisibles pour
   l'usager, cloture motivee, reouverture et modeles de reponse a variables
   limitees.
@@ -193,9 +200,10 @@ sa specification.
 
 - Corriger les alertes Supabase restantes et completer les tests RLS,
   concurrence, idempotence et reprise.
-- Activer la protection des mots de passe compromis dans Supabase Auth; les
-  autres alertes de securite techniques visees par le jalon du 26 aout sont
-  fermees dans la preview.
+- Les alertes de sécurité techniques visées par le jalon du 26 août, y compris
+  la protection des mots de passe compromis, sont fermées dans la preview. Les
+  informations RLS restantes concernent les tables volontairement réservées au
+  serveur et leurs droits directs restent révoqués.
 - Terminer reponse agent, note interne, transfert, cloture motivee et modeles.
 - Ajouter le rapprochement agent explicite avec les listes officielles, avec
   journal et controle de concurrence, avant toute remise de code.

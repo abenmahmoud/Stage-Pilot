@@ -4,11 +4,18 @@ import { AuthProvider } from "./components/AuthProvider";
 import { useAuth } from "./lib/auth-context";
 import { ROLE_HOME } from "./lib/types";
 import { AGENT_MFA_ENFORCED, isAgentRole } from "./lib/auth-policy";
+import {
+  ADMINISTRATION_ROLES,
+  AGENT_ROLES,
+  roleIsAllowed,
+} from "../shared/role-access";
+import type { LyceeGestRole } from "../shared/role-access";
 
 const LyceeConnectPrototype = lazy(() => import("./pages/prototype/LyceeConnectPrototype"));
 const PublicContentPage = lazy(() => import("./pages/prototype/PublicContentPage"));
 const LoginPage = lazy(() => import("./pages/LoginPage"));
 const MfaSecurityPage = lazy(() => import("./pages/MfaSecurityPage"));
+const ResetPasswordPage = lazy(() => import("./pages/ResetPasswordPage"));
 const AppLayout = lazy(() => import("./components/AppLayout"));
 const StagesDashboard = lazy(() => import("./pages/stages/StagesDashboard"));
 const MonStage = lazy(() => import("./pages/stages/MonStage"));
@@ -44,7 +51,16 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
         <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary-500 border-t-transparent" />
       </div>
     );
-  if (!user) return <Navigate to="/login" replace />;
+  if (!user) {
+    const returnTo = `${location.pathname}${location.search}`;
+    const mode = location.pathname.startsWith("/admin") ? "&mode=staff" : "";
+    return (
+      <Navigate
+        to={`/login?returnTo=${encodeURIComponent(returnTo)}${mode}`}
+        replace
+      />
+    );
+  }
   if (
     isAgentRole(user.role) &&
     (AGENT_MFA_ENFORCED || nextAssuranceLevel === "aal2") &&
@@ -64,7 +80,7 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
 function SignedInRoute({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
   if (loading) return <PageFallback />;
-  if (!user) return <Navigate to="/login?returnTo=%2Fsecurity" replace />;
+  if (!user) return <Navigate to="/login?returnTo=%2Fsecurity&mode=staff" replace />;
   return <>{children}</>;
 }
 
@@ -72,6 +88,21 @@ function DashboardRedirect() {
   const { user } = useAuth();
   if (!user) return <Navigate to="/login" replace />;
   return <Navigate to={ROLE_HOME[user.role]} replace />;
+}
+
+function RoleRoute({
+  allowedRoles,
+  children,
+}: {
+  allowedRoles: readonly LyceeGestRole[];
+  children: React.ReactNode;
+}) {
+  const { user } = useAuth();
+  if (!user) return <Navigate to="/login?mode=staff" replace />;
+  if (!roleIsAllowed(user.role, allowedRoles)) {
+    return <Navigate to={ROLE_HOME[user.role]} replace />;
+  }
+  return <>{children}</>;
 }
 
 export default function App() {
@@ -88,6 +119,7 @@ export default function App() {
         />
         <Route path="/site/:slug" element={<PublicContentPage />} />
         <Route path="/login" element={<LoginPage />} />
+        <Route path="/reset-password" element={<ResetPasswordPage />} />
         <Route
           path="/security"
           element={
@@ -122,24 +154,78 @@ export default function App() {
           <Route path="grand-oral" element={<GrandOralDashboard />} />
           <Route path="grand-oral/ma-fiche" element={<MaFiche />} />
           <Route path="grand-oral/:ficheId" element={<FicheDetail />} />
-          <Route path="admin" element={<AdminDashboard />} />
-          <Route path="admin/import" element={<ImportPage />} />
-          <Route path="admin/codes-acces" element={<CodesAccesPage />} />
-          <Route path="admin/codes-profs" element={<CodesProfsPage />} />
+          <Route
+            path="admin"
+            element={
+              <RoleRoute allowedRoles={ADMINISTRATION_ROLES}>
+                <AdminDashboard />
+              </RoleRoute>
+            }
+          />
+          <Route
+            path="admin/import"
+            element={
+              <RoleRoute allowedRoles={ADMINISTRATION_ROLES}>
+                <ImportPage />
+              </RoleRoute>
+            }
+          />
+          <Route
+            path="admin/codes-acces"
+            element={
+              <RoleRoute allowedRoles={ADMINISTRATION_ROLES}>
+                <CodesAccesPage />
+              </RoleRoute>
+            }
+          />
+          <Route
+            path="admin/codes-profs"
+            element={
+              <RoleRoute allowedRoles={ADMINISTRATION_ROLES}>
+                <CodesProfsPage />
+              </RoleRoute>
+            }
+          />
           <Route
             path="admin/affectations-classes"
-            element={<AffectationsClassesPage />}
+            element={
+              <RoleRoute allowedRoles={ADMINISTRATION_ROLES}>
+                <AffectationsClassesPage />
+              </RoleRoute>
+            }
           />
           <Route
             path="admin/affectations-eleves"
-            element={<AffectationsElevesPage />}
+            element={
+              <RoleRoute allowedRoles={ADMINISTRATION_ROLES}>
+                <AffectationsElevesPage />
+              </RoleRoute>
+            }
           />
           <Route
             path="admin/documents-classes"
-            element={<DocumentsClassesPage />}
+            element={
+              <RoleRoute allowedRoles={ADMINISTRATION_ROLES}>
+                <DocumentsClassesPage />
+              </RoleRoute>
+            }
           />
-          <Route path="admin/contenus" element={<ContentManagerPage />} />
-          <Route path="admin/parametres" element={<ParametresPage />} />
+          <Route
+            path="admin/contenus"
+            element={
+              <RoleRoute allowedRoles={AGENT_ROLES}>
+                <ContentManagerPage />
+              </RoleRoute>
+            }
+          />
+          <Route
+            path="admin/parametres"
+            element={
+              <RoleRoute allowedRoles={AGENT_ROLES}>
+                <ParametresPage />
+              </RoleRoute>
+            }
+          />
         </Route>
         <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>

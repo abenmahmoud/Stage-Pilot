@@ -106,6 +106,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     await refreshAssurance();
   }, [refreshAssurance]);
 
+  const requestPasswordReset = useCallback(async (email: string) => {
+    const configuredRedirect = import.meta.env.VITE_PASSWORD_RESET_REDIRECT_URL;
+    const redirectTo =
+      configuredRedirect || `${window.location.origin}/reset-password`;
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo,
+    });
+    if (error) throw new Error(error.message);
+  }, []);
+
+  const updatePassword = useCallback(async (password: string) => {
+    const { error } = await supabase.auth.updateUser({ password });
+    if (error) throw new Error(error.message);
+  }, []);
+
   const logout = useCallback(async () => {
     const { error } = await supabase.auth.signOut();
     if (error) throw new Error(error.message);
@@ -122,6 +137,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         assuranceLevel,
         nextAssuranceLevel,
         login,
+        requestPasswordReset,
+        updatePassword,
         logout,
         refreshAssurance,
       }}

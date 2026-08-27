@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "../lib/auth-context";
 import { ROLE_HOME } from "../lib/types";
@@ -37,7 +37,7 @@ function codeProfToCredentials(code: string): { email: string; password: string 
 }
 
 export default function LoginPage() {
-  const { login, user } = useAuth();
+  const { login, requestPasswordReset, user } = useAuth();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const requestedReturn = searchParams.get("returnTo");
@@ -45,19 +45,29 @@ export default function LoginPage() {
     requestedReturn?.startsWith("/") && !requestedReturn.startsWith("//")
       ? requestedReturn
       : null;
+  const staffRequested =
+    searchParams.get("mode") === "staff" ||
+    requestedReturn?.startsWith("/admin") ||
+    requestedReturn?.includes("view=agent") ||
+    requestedReturn === "/security";
 
-  const [mode, setMode] = useState<Mode>("eleve");
+  const [mode, setMode] = useState<Mode>(staffRequested ? "staff" : "eleve");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [code, setCode] = useState("");
   const [showPw, setShowPw] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [resetSending, setResetSending] = useState(false);
+  const [resetSent, setResetSent] = useState(false);
 
-  if (user) {
-    navigate(returnTo ?? ROLE_HOME[user.role], { replace: true });
-    return null;
-  }
+  useEffect(() => {
+    if (user) {
+      navigate(returnTo ?? ROLE_HOME[user.role], { replace: true });
+    }
+  }, [navigate, returnTo, user]);
+
+  if (user) return null;
 
   async function handleStaffSubmit(e: FormEvent) {
     e.preventDefault();
@@ -66,12 +76,31 @@ export default function LoginPage() {
     try {
       await login(email, password);
       navigate(returnTo ?? "/dashboard", { replace: true });
-    } catch (err: unknown) {
-      const msg =
-        err instanceof Error ? err.message : "Identifiants incorrects";
-      setError(msg);
+    } catch {
+      setError("Adresse email ou mot de passe incorrect.");
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function handlePasswordReset() {
+    setError("");
+    setResetSent(false);
+    if (!email.trim()) {
+      setError("Indiquez d’abord l’adresse email de votre compte.");
+      return;
+    }
+
+    setResetSending(true);
+    try {
+      await requestPasswordReset(email.trim());
+      setResetSent(true);
+    } catch {
+      setError(
+        "Le lien ne peut pas être envoyé pour le moment. Réessayez dans quelques minutes."
+      );
+    } finally {
+      setResetSending(false);
     }
   }
 
@@ -167,6 +196,7 @@ export default function LoginPage() {
               onClick={() => {
                 setMode("eleve");
                 setError("");
+                setResetSent(false);
               }}
               className={`flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 rounded-xl py-3 px-1 text-center text-xs sm:text-sm font-medium transition-all ${
                 mode === "eleve"
@@ -182,6 +212,7 @@ export default function LoginPage() {
               onClick={() => {
                 setMode("professeur");
                 setError("");
+                setResetSent(false);
               }}
               className={`flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 rounded-xl py-3 px-1 text-center text-xs sm:text-sm font-medium transition-all ${
                 mode === "professeur"
@@ -336,6 +367,18 @@ export default function LoginPage() {
                 </div>
               )}
 
+              {searchParams.get("reset") === "success" && (
+                <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-800">
+                  Mot de passe enregistré. Vous pouvez maintenant vous connecter.
+                </div>
+              )}
+
+              {resetSent && (
+                <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-sm leading-6 text-emerald-800" role="status">
+                  Si cette adresse correspond à un compte, un lien de réinitialisation vient d’être envoyé. Vérifiez aussi les courriers indésirables.
+                </div>
+              )}
+
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Adresse email
@@ -389,9 +432,14 @@ export default function LoginPage() {
                 {loading ? "Connexion…" : "Se connecter"}
               </button>
 
-              <p className="text-center text-xs text-gray-400">
-                Mot de passe oublié ? Contactez l'administration du lycée.
-              </p>
+              <button
+                type="button"
+                onClick={() => void handlePasswordReset()}
+                disabled={resetSending}
+                className="w-full text-center text-sm font-semibold text-primary-500 hover:text-primary-600 disabled:opacity-60"
+              >
+                {resetSending ? "Envoi du lien…" : "Mot de passe oublié ?"}
+              </button>
             </form>
           )}
         </div>

@@ -1989,7 +1989,7 @@ function ConnectedAgentView({ onBack }: { onBack: () => void }) {
   return (
     <div className="lycee-page lycee-agent-page">
       <PageIntro eyebrow="Espace agent" title="Demandes du lycée" description="Classez, répondez et gardez chaque échange dans le même dossier." onBack={onBack} />
-      {error ? <div className="lycee-form-error" role="alert"><CircleAlert aria-hidden="true" />{error}{error.toLowerCase().includes("auth") ? <a href="/login?returnTo=%2Fprototype%3Fview%3Dagent">Se connecter</a> : null}</div> : null}
+      {error ? <div className="lycee-form-error" role="alert"><CircleAlert aria-hidden="true" />{error}{error.toLowerCase().includes("auth") ? <a href="/login?returnTo=%2Fprototype%3Fview%3Dagent&mode=staff">Se connecter</a> : null}</div> : null}
       <div className="lycee-agent-stats">
         <div><span><Inbox aria-hidden="true" /></span><strong>{stats.new}</strong><small>Nouvelles</small></div>
         <div><span><CircleAlert aria-hidden="true" /></span><strong>{stats.urgent}</strong><small>Urgentes</small></div>

@@ -250,6 +250,11 @@ L'IA peut suggérer la priorité. Seul un agent peut confirmer P1 ou clôturer.
 
 - MFA obligatoire pour direction et administrateurs.
 - Rôles séparés : administrateur, direction, agent, lecture seule.
+- Les pages administratives vérifient le rôle dans l'interface et chaque API
+  vérifie de nouveau le rôle côté serveur. Masquer un lien ne suffit jamais.
+- Un agent peut demander un lien de réinitialisation à son adresse confirmée.
+  La réponse reste générique pour ne pas révéler l'existence d'un compte, et le
+  retour n'est accepté que sur une URL autorisée par Supabase Auth.
 - RLS sur toutes les nouvelles tables exposées.
 - Clé `service_role`, clé Brevo et future clé IA uniquement côté serveur.
 - Limitation de débit sans bloquer un établissement partageant la même IP.
