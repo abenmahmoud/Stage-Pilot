@@ -13,7 +13,11 @@
 - [x] T006 Ajouter l'action direction « Marquer comme vérifié ».
 - [x] T007 Bloquer la publication tant que la reprise n'est pas vérifiée.
 - [x] T008 Afficher source, date et état dans l'espace contenus.
-- [ ] T009 Tester droits, concurrence, idempotence et audit.
+- [x] T009 Tester droits, concurrence, idempotence et audit.
+  Les tables de preview ont RLS active sans droit direct `anon` ou
+  `authenticated`; les clés d'import sont uniques, les collisions concurrentes
+  relisent l'élément gagnant et chaque création journalise l'agent déclencheur.
+  Six tests couvrent aussi type, taille réelle du flux et collision PostgreSQL.
 
 ## Import
 

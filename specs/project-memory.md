@@ -261,6 +261,9 @@ sa specification.
 - L'inventaire reproductible contient 28 contenus et 83 medias annonces, dont
   81 accessibles. L'importeur par lots est code mais aucun contenu n'a encore
   ete cree dans la base de preview.
+- L'importeur borne les fichiers a 10 Mo pendant le flux, refuse un type recu
+  different de l'inventaire, resiste aux lancements concurrents et journalise
+  l'agent. Son chargement JSON est compatible avec le serveur Node de Vercel.
 - Le portail distingue maintenant les articles des pages durables, relie les
   pages publiees a la rubrique lycee et exclut de l'API publique toute audience
   autre que `tous`.
