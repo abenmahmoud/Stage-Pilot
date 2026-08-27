@@ -11,6 +11,7 @@ import {
 import { escapeHtml, sendTransactionalEmail } from "../_shared/brevo.js";
 import { HttpError, secretMatches } from "../_shared/auth.js";
 import { handleApi, methodNotAllowed } from "../_shared/response.js";
+import { resolveSupportNotificationTarget } from "../../shared/support-notification-routing.js";
 
 type QueueJob = {
   job_id: string;
@@ -36,6 +37,7 @@ type EmailContext = {
     requesterLastName: string;
     category: string;
     subject: string;
+    assignedTeam: string | null;
   };
   email: string | null;
 };
@@ -50,6 +52,7 @@ async function loadEmailContext(requestId: string, contactId?: string): Promise<
       requesterLastName: supportRequests.requesterLastName,
       category: supportRequests.category,
       subject: supportRequests.subject,
+      assignedTeam: supportRequests.assignedTeam,
     })
     .from(supportRequests)
     .where(eq(supportRequests.id, requestId))
@@ -88,7 +91,6 @@ function requesterReplyAddress(publicCode: string): string {
 async function deliver(job: QueueJob): Promise<string> {
   const context = await loadEmailContext(job.request_id, job.contact_id);
   const requesterName = `${context.request.requesterFirstName} ${context.request.requesterLastName}`;
-  const agentEmail = process.env.SUPPORT_AGENT_EMAIL;
   const senderEmail = process.env.SUPPORT_FROM_EMAIL;
   if (!senderEmail) throw new Error("support_from_email_missing");
   const senderName = process.env.SUPPORT_FROM_NAME ?? "Lycée Blaise Cendrars";
@@ -109,11 +111,12 @@ async function deliver(job: QueueJob): Promise<string> {
   }
 
   if (job.job_type === "notify_agent_request_created" || job.job_type === "notify_agent_message_received") {
-    if (!agentEmail) throw new Error("support_agent_email_missing");
+    const target = resolveSupportNotificationTarget(context.request.assignedTeam, process.env);
+    if (!target) throw new Error("support_agent_email_missing");
     const isMessage = job.job_type === "notify_agent_message_received";
     const agentUrl = (process.env.SUPPORT_AGENT_URL ?? process.env.SUPPORT_PUBLIC_URL ?? "https://app.lycee-blaise-cendrars-sevran.fr/prototype").replace(/\/$/, "");
     const result = await sendTransactionalEmail({
-      to: { email: agentEmail, name: "Équipe support du lycée" },
+      to: { email: target.email, name: target.name },
       subject: `${isMessage ? "Nouveau message" : "Nouvelle demande"} ${context.request.publicCode} - ${context.request.subject}`,
       textContent: `${isMessage ? "Un nouveau message est arrivé" : "Une nouvelle demande a été créée"}.\nDossier : ${context.request.publicCode}\nDemandeur : ${requesterName} (${context.request.requesterType})\nCatégorie : ${context.request.category}\nObjet : ${context.request.subject}\n\nOuvrir : ${agentUrl}?agent_request=${context.request.publicCode}`,
       htmlContent: `<p><strong>${isMessage ? "Un nouveau message est arrivé" : "Une nouvelle demande a été créée"}.</strong></p><p>Dossier : ${escapeHtml(context.request.publicCode)}<br>Demandeur : ${escapeHtml(requesterName)} (${escapeHtml(context.request.requesterType)})<br>Catégorie : ${escapeHtml(context.request.category)}<br>Objet : ${escapeHtml(context.request.subject)}</p><p><a href="${escapeHtml(`${agentUrl}?agent_request=${context.request.publicCode}`)}">Ouvrir le dossier</a></p>`,

@@ -228,6 +228,10 @@ L'IA peut suggérer la priorité. Seul un agent peut confirmer P1 ou clôturer.
 - SMS Brevo : activable ensuite, avec crédits et consentement adaptés.
 - WhatsApp : sert d'abord à diffuser le lien public, pas le contenu d'un dossier.
 - Chaque échec crée une relance par un autre canal autorisé ou une alerte agent.
+- Une alerte interne est adressée au service actuellement affecté au dossier.
+  Si son adresse n'est pas configurée ou si le dossier reste à qualifier, elle
+  revient à la boîte générale du superadministrateur afin de ne pas être perdue.
+- L'adresse interne destinataire n'est jamais affichée ni transmise au demandeur.
 
 ## 8. Règles de l'assistant IA
 

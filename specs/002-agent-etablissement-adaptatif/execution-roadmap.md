@@ -100,6 +100,11 @@ l'autorisation de quota définie par le propriétaire.
 - Lot N5D : pilotage superadministrateur. **Implémenté en preview** : charge
   ouverte, urgente, en retard et sans agent par service, avec accès direct à la
   file correspondante et respect du périmètre serveur.
+- Lot N5E : alertes internes par service. **Implémenté et testé** : le destinataire
+  dépend du service affecté, les trois files administratives partagent une boîte
+  fonctionnelle et une configuration absente revient au superadministrateur sans
+  exposer l'adresse interne au demandeur. Les valeurs réelles restent à fournir
+  et à configurer avant le pilote.
 - Lot N6 : tests de non-régression, build, contrôle mobile et rapport d'écarts.
 
 ## Portes de validation humaine

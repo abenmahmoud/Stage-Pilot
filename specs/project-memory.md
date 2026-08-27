@@ -126,6 +126,10 @@ sa specification.
 - Trois niveaux visibles : coordonnees declarees, contact verifie, identite
   confirmee. Les demandes de codes restent bloquees sans confirmation.
 - Envoi email sortant durable et enregistrement des evenements de livraison.
+- Les alertes internes de nouvelle demande ou de nouveau message sont routées
+  vers DDFPT, administration, vie scolaire, numérique ou direction selon le
+  service affecté. Une adresse manquante revient à la boîte générale du
+  superadministrateur ; aucune adresse réelle n'est conservée dans Git.
 - Assistant de preview avec masquage prealable, limite de debit, `store: false`,
   repli sans IA et validation humaine.
 - Politique centrale appliquee avant l'IA : transfert humain pour le danger,

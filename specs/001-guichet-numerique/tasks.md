@@ -72,6 +72,8 @@ quarantaine. Une panne d'envoi externe n'affecte pas le dossier.
 - [x] **T021** Implémenter l'envoi Brevo avec idempotence et `Reply-To` dossier.
   La file lie explicitement le destinataire et le jeton au même contact.
 - [x] **T022** Recevoir les événements Brevo livré/rejeté/différé/spam.
+- [x] **T022A** Router les alertes internes vers le service affecté, avec repli
+  vers le superadministrateur si l'adresse de ce service est absente.
 - [ ] **T023** Configurer le domaine entrant Brevo et son webhook secret.
 - [ ] **T024** Recevoir réponses et pièces jointes email dans le bon dossier.
 - [ ] **T025** Ajouter tâches de rappel téléphonique et résultat d'appel.
