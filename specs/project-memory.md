@@ -3,7 +3,7 @@
 **Derniere mise a jour** : 28 aout 2026
 **Branche de travail** : `codex/lycee-connect-prototype`
 **Depot** : `abenmahmoud/Stage-Pilot`
-**Dernier jalon de code verifie** : lisibilité agent et protection des brouillons
+**Dernier jalon de code verifie** : actualisation sécurisée des droits agent
 
 ## Decision du 27 aout 2026 - espaces de traitement
 
@@ -39,6 +39,11 @@
 - Le jalon `0349530` est publie sur l'alias de preview de la branche. Le portail,
   la session administration et l'etat de brouillon de l'editeur ont ete verifies
   en ligne sans enregistrer de contenu ni modifier un role.
+- Le 28 aout, le proprietaire a autorise explicitement son passage en
+  superadministrateur sur la preview uniquement. Son role Auth est `superadmin`,
+  son adhesion nominative est `admin` active et aucun autre compte n'a ete
+  modifie. La console renouvelle desormais la session avant de charger les files
+  afin de prendre en compte une autorisation serveur recente.
 
 ## 1. Fonction de cette memoire
 

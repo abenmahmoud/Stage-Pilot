@@ -1914,6 +1914,7 @@ function ConnectedAgentView({ onBack }: { onBack: () => void }) {
   const [showTemplateSave, setShowTemplateSave] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const [sessionReady, setSessionReady] = useState(false);
 
   async function loadQueue() {
     try {
@@ -1949,9 +1950,18 @@ function ConnectedAgentView({ onBack }: { onBack: () => void }) {
   }
 
   useEffect(() => {
+    let active = true;
+    void supabase.auth.refreshSession().finally(() => {
+      if (active) setSessionReady(true);
+    });
+    return () => { active = false; };
+  }, []);
+
+  useEffect(() => {
+    if (!sessionReady) return;
     const timer = window.setTimeout(() => void loadQueue(), 250);
     return () => window.clearTimeout(timer);
-  }, [page, query, queueMode, serviceFilter]);
+  }, [page, query, queueMode, serviceFilter, sessionReady]);
   useEffect(() => {
     if (!selectedCode) return;
     setReply("");

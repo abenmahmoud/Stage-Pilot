@@ -146,6 +146,11 @@ l'autorisation de quota définie par le propriétaire.
   session administration authentifiée affiche uniquement secrétariat, intendance
   et administration. L'éditeur de contenus avertit avant toute perte d'un
   brouillon et nomme ses commandes d'icônes pour les technologies d'assistance.
+- Lot N5I : superadministration nominative. **Autorisé et appliqué uniquement à
+  la preview** : le compte du propriétaire porte maintenant le rôle Auth
+  `superadmin` et une adhésion établissement `admin` active. La console actualise
+  la session avant sa première lecture afin qu'un changement de rôle ne laisse
+  pas l'ancien périmètre en mémoire. Les autres comptes sont inchangés.
 - Lot N6 : tests de non-régression, build, contrôle mobile et rapport d'écarts.
 
 ## Prochaine séquence verrouillée

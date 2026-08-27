@@ -112,6 +112,9 @@
   quatre rôles avec des comptes fictifs éphémères et MFA `aal2`, nettoyer toutes
   les données de test, puis configurer le mode base uniquement sur la branche de
   preview. Les comptes nominatifs et leur recette restent dans T027C2.
+- [x] T027C2C Attribuer, après autorisation explicite, le rôle superadministrateur
+  au compte nominatif du propriétaire dans la preview uniquement, conserver une
+  adhésion `admin` active et actualiser la session avant de charger la console.
 - [ ] T028 N'afficher une réussite qu'après `confirmed_at` fourni par l'outil.
 - [ ] T029 Ajouter formulaire classique et création de demande sans dépendance à l'IA.
 - [ ] T030 Ajouter mesure du coût, de la latence, des transferts et des corrections.
