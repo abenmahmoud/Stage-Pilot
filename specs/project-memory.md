@@ -3,7 +3,7 @@
 **Derniere mise a jour** : 27 aout 2026
 **Branche de travail** : `codex/lycee-connect-prototype`
 **Depot** : `abenmahmoud/Stage-Pilot`
-**Dernier jalon de code verifie** : traitement complet des dossiers par l'agent
+**Dernier jalon de code verifie** : pre-triage ordinateur et raccordement securise du contenu public
 
 ## 1. Fonction de cette memoire
 
@@ -15,6 +15,8 @@ d'une conversation. Il ne remplace pas les specifications :
   integrations futures;
 - `003-gestion-contenus-lycee` decrit les actualites, pages, documents, modeles
   et l'aide a la redaction dans l'espace administratif;
+- `004-reprise-site-officiel` decrit l'inventaire, l'import en brouillon et la
+  validation humaine de l'ancien site avant toute bascule;
 - `005-centre-communications` propose le circuit durable qui transforme une
   information en publication web datee et en notification email individuelle;
 - les fichiers `tasks.md` restent la liste detaillee des travaux verificables.
@@ -256,6 +258,14 @@ sa specification.
 
 - Reprendre, corriger et faire valider toutes les rubriques, documents, liens et
   informations pratiques de l'ancien site.
+- L'inventaire reproductible contient 28 contenus et 83 medias annonces, dont
+  81 accessibles. L'importeur par lots est code mais aucun contenu n'a encore
+  ete cree dans la base de preview.
+- Le portail distingue maintenant les articles des pages durables, relie les
+  pages publiees a la rubrique lycee et exclut de l'API publique toute audience
+  autre que `tous`.
+- La navigation mobile expose directement la rubrique lycee; les acces ENT et
+  Webmail ne pretendent plus afficher un etat de service non supervise.
 - Tester accessibilite, performances, installation PWA et parcours publics.
 - Preparer sauvegarde et retour arriere, puis basculer le domaine uniquement sur
   ordre explicite apres validation fonctionnelle.

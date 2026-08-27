@@ -25,7 +25,7 @@
 ## Site public
 
 - [x] T014 Ajouter la lecture publique d'une page par slug.
-- [ ] T015 Relier formations, spécialités, vie du lycée et actualités.
+- [x] T015 Relier formations, spécialités, vie du lycée et actualités.
 - [x] T016 Préparer les redirections des anciennes URL.
 - [ ] T017 Vérifier français, liens, fichiers, 320 px et ordinateur.
 

@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import {
+  isSiteContentPublicAt,
   normalizeSiteSlug,
   parseSiteAssetInput,
   parseSiteContentAiInput,
@@ -49,4 +50,16 @@ test("rejects files above 10 MB", () => {
 
 test("limits editorial AI instructions", () => {
   assert.throws(() => parseSiteContentAiInput({ action: "ameliorer", contentType: "article", title: "Titre", summary: "", bodyMarkdown: "", instructions: "x".repeat(1001) }), /1000 caractères/);
+});
+
+test("keeps restricted audiences out of the public site", () => {
+  const content = parseSiteContentInput({ ...validContent, audience: "parents" });
+  assert.equal(isSiteContentPublicAt(content, new Date("2026-08-28T06:00:00.000Z")), false);
+});
+
+test("publishes only inside the configured date window", () => {
+  const content = parseSiteContentInput(validContent);
+  assert.equal(isSiteContentPublicAt(content, new Date("2026-08-26T06:00:00.000Z")), false);
+  assert.equal(isSiteContentPublicAt(content, new Date("2026-08-28T06:00:00.000Z")), true);
+  assert.equal(isSiteContentPublicAt(content, new Date("2026-10-01T06:00:00.000Z")), false);
 });

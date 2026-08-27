@@ -567,16 +567,16 @@ export default function LyceeConnectPrototype() {
               <a href={LYCEEGEST_URL}>Ouvrir LyceeGest <ChevronRight aria-hidden="true" /></a>
             </article>
             <article className="lycee-status-panel">
-              <div>
+              <a href="https://ent.iledefrance.fr/auth/login" target="_blank" rel="noreferrer" aria-label="Ouvrir ENT Monlycée.net dans un nouvel onglet">
                 <span className="lycee-status-icon"><Wifi aria-hidden="true" /></span>
                 <span><strong>ENT Monlycée.net</strong><small>Connexion et services</small></span>
-                <em className="is-ok">Opérationnel</em>
-              </div>
-              <div>
+                <em>Ouvrir <ExternalLink aria-hidden="true" /></em>
+              </a>
+              <a href={WEBMAIL_URL} target="_blank" rel="noreferrer" aria-label="Ouvrir le Webmail du lycée dans un nouvel onglet">
                 <span className="lycee-status-icon"><Mail aria-hidden="true" /></span>
                 <span><strong>Webmail académique</strong><small>Communication Créteil</small></span>
-                <em className="is-warning">Perturbé</em>
-              </div>
+                <em>Ouvrir <ExternalLink aria-hidden="true" /></em>
+              </a>
             </article>
           </section>
 
@@ -605,7 +605,7 @@ export default function LyceeConnectPrototype() {
         {view === "trust" && <TrustView onBack={() => changeView("home")} />}
 
         <nav className="lycee-bottom-nav" aria-label="Navigation mobile">
-          {navigation.slice(0, 4).map((item, index) => (
+          {navigation.map((item, index) => (
             <button
               className={view === item.view ? "is-active" : ""}
               type="button"
@@ -613,7 +613,7 @@ export default function LyceeConnectPrototype() {
               onClick={() => changeView(item.view)}
             >
               <item.icon aria-hidden="true" />
-              <span>{["Accueil", "Services", "Aide", "Suivi"][index]}</span>
+              <span>{["Accueil", "Services", "Aide", "Suivi", "Lycée"][index]}</span>
             </button>
           ))}
         </nav>
@@ -681,8 +681,9 @@ function NewsView({ onBack }: { onBack: () => void }) {
     fetch("/api/content/public")
       .then((response) => readApiResponse<{ items: PublicContent[] }>(response))
       .then((payload) => {
-        setItems(payload.items);
-        setSelectedId(payload.items[0]?.id ?? null);
+        const newsItems = payload.items.filter((item) => item.contentType !== "page");
+        setItems(newsItems);
+        setSelectedId(newsItems[0]?.id ?? null);
       })
       .catch(() => setError("Les informations ne peuvent pas être chargées pour le moment."))
       .finally(() => setLoading(false));
@@ -1550,6 +1551,21 @@ function ServicesView({ onHelp, onBack }: { onHelp: () => void; onBack: () => vo
 }
 
 function SchoolView({ onBack, onHelp }: { onBack: () => void; onHelp: (prompt?: string) => void }) {
+  const [publishedPages, setPublishedPages] = useState<PublicContent[]>([]);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    fetch("/api/content/public", { signal: controller.signal })
+      .then((response) => readApiResponse<{ items: PublicContent[] }>(response))
+      .then((payload) => setPublishedPages(payload.items.filter((item) => item.contentType === "page")))
+      .catch((reason) => {
+        if (!(reason instanceof DOMException && reason.name === "AbortError")) setPublishedPages([]);
+      });
+    return () => controller.abort();
+  }, []);
+
+  const publishedPage = (slug: string) => publishedPages.find((item) => item.slug === slug);
+  const pageHref = (slug: string, fallback: string) => publishedPage(slug) ? `/site/${slug}` : fallback;
   const links = [
     { label: "Monlycée.net", href: "https://ent.iledefrance.fr/auth/login", icon: GraduationCap },
     { label: "EduConnect", href: "https://educonnect.education.gouv.fr/", icon: KeyRound },
@@ -1667,7 +1683,7 @@ function SchoolView({ onBack, onHelp }: { onBack: () => void; onHelp: (prompt?: 
       <section className="lycee-specialties" id="specialites" aria-labelledby="specialites-title">
         <div className="lycee-section-title">
           <div><span className="lycee-eyebrow">Première et terminale générales</span><h2 id="specialites-title">Les spécialités proposées</h2></div>
-          <a href="https://lycee-blaise-cendrars-sevran.fr/specialites/" target="_blank" rel="noreferrer">Informations officielles <ExternalLink aria-hidden="true" /></a>
+          <a href={pageHref("specialites", "https://lycee-blaise-cendrars-sevran.fr/specialites/")} target={publishedPage("specialites") ? undefined : "_blank"} rel={publishedPage("specialites") ? undefined : "noreferrer"}>Informations détaillées {publishedPage("specialites") ? <ChevronRight aria-hidden="true" /> : <ExternalLink aria-hidden="true" />}</a>
         </div>
         <p className="lycee-specialties-intro">En première, chaque élève choisit trois spécialités puis en conserve deux en terminale. Le choix se construit selon ses goûts, ses points forts et son projet d'études.</p>
         <div className="lycee-specialties-grid">
@@ -1687,9 +1703,23 @@ function SchoolView({ onBack, onHelp }: { onBack: () => void; onHelp: (prompt?: 
         </div>
       </section>
       <section className="lycee-formations" aria-labelledby="formations-title">
-        <div className="lycee-section-title"><div><span className="lycee-eyebrow">Choisir son parcours</span><h2 id="formations-title">Les formations du lycée</h2></div><a href="https://lycee-blaise-cendrars-sevran.fr/formations/" target="_blank" rel="noreferrer">Site du lycée <ExternalLink aria-hidden="true" /></a></div>
+        <div className="lycee-section-title"><div><span className="lycee-eyebrow">Choisir son parcours</span><h2 id="formations-title">Les formations du lycée</h2></div><a href={pageHref("formations", "https://lycee-blaise-cendrars-sevran.fr/formations/")} target={publishedPage("formations") ? undefined : "_blank"} rel={publishedPage("formations") ? undefined : "noreferrer"}>Toutes les informations {publishedPage("formations") ? <ChevronRight aria-hidden="true" /> : <ExternalLink aria-hidden="true" />}</a></div>
         <div>{formations.map((formation) => <article key={formation.title}><span><formation.icon aria-hidden="true" /></span><div><h3>{formation.title}</h3><p>{formation.description}</p><small>{formation.items}</small></div></article>)}</div>
       </section>
+      {publishedPages.length ? (
+        <section className="lycee-published-pages" aria-labelledby="published-pages-title">
+          <div className="lycee-section-title"><div><span className="lycee-eyebrow">Pages vérifiées</span><h2 id="published-pages-title">Toutes les informations du lycée</h2></div></div>
+          <div className="lycee-published-pages-grid">
+            {publishedPages.map((page) => (
+              <a href={`/site/${page.slug}`} key={page.id}>
+                <span><FileText aria-hidden="true" /></span>
+                <div><small>{page.category}</small><strong>{page.title}</strong><p>{page.summary}</p></div>
+                <ChevronRight aria-hidden="true" />
+              </a>
+            ))}
+          </div>
+        </section>
+      ) : null}
       <section className="lycee-programs" id="formations-detaillees" aria-labelledby="programs-title">
         <div className="lycee-section-title"><div><span className="lycee-eyebrow">Technologique, professionnel et CAP</span><h2 id="programs-title">Les parcours en détail</h2></div></div>
         <p className="lycee-specialties-intro">Des formations qui associent enseignements généraux, projets, expérimentation et découverte progressive des métiers.</p>

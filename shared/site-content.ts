@@ -174,6 +174,16 @@ export function parseSiteContentInput(value: unknown): SiteContentInput {
   };
 }
 
+export function isSiteContentPublicAt(
+  content: SiteContentInput,
+  at: Date = new Date()
+): boolean {
+  if (content.audience !== "tous") return false;
+  if (content.publishAt && content.publishAt > at) return false;
+  if (content.expiresAt && content.expiresAt <= at) return false;
+  return true;
+}
+
 export function parseSiteTemplateInput(value: unknown): SiteContentTemplateInput & { id: string | null } {
   const input = objectValue(value);
   const name = textValue(input.name, "Nom du modèle", 120);

@@ -54,7 +54,11 @@ mais ne doivent pas être présentées automatiquement comme actuelles en 2026.
 - **FR-013** : aucune bascule Hostinger, DNS ou production ne peut être déclenchée
   par l'import ; elle exige un ordre explicite après validation.
 - **FR-014** : conserver un export daté et un rapport de correspondance afin de
-  prouver ce qui a été repris ou reste à traiter.
+  prouver ce qui a été repris ou reste à traiter, contrôler la reprise et
+  préparer un retour arrière.
+- **FR-015** : l'API publique ne diffuse que les contenus publiés destinés à
+  l'audience `tous`, dans leur période de publication. Les contenus réservés aux
+  parents, élèves, professeurs ou personnels restent hors du site public.
 
 ## 5. Première version indispensable
 

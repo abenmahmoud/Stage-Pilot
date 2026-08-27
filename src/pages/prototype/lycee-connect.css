@@ -167,16 +167,16 @@
 .lycee-news p { max-width: 520px; margin: 10px 0 15px; color: rgba(255,255,255,.74); font-size: 13px; line-height: 1.55; }
 .lycee-news > button, .lycee-news > a { position: relative; z-index: 1; color: #fff; }
 .lycee-status-panel { display: grid; align-content: center; padding: 8px 20px; border: 1px solid var(--lc-line); background: #fff; }
-.lycee-status-panel > div { min-height: 80px; display: grid; grid-template-columns: 40px minmax(0,1fr) auto; align-items: center; gap: 11px; }
-.lycee-status-panel > div + div { border-top: 1px solid var(--lc-line); }
+.lycee-status-panel > a { min-height: 80px; display: grid; grid-template-columns: 40px minmax(0,1fr) auto; align-items: center; gap: 11px; color: var(--lc-ink); text-decoration: none; }
+.lycee-status-panel > a + a { border-top: 1px solid var(--lc-line); }
+.lycee-status-panel > a:hover strong { color: var(--lc-blue); }
 .lycee-status-icon { width: 38px; height: 38px; display: grid; place-items: center; border-radius: 8px; background: #edf2ff; color: var(--lc-blue); }
 .lycee-status-icon svg { width: 19px; height: 19px; }
-.lycee-status-panel > div > span:nth-child(2) { min-width: 0; display: flex; flex-direction: column; gap: 4px; }
+.lycee-status-panel > a > span:nth-child(2) { min-width: 0; display: flex; flex-direction: column; gap: 4px; }
 .lycee-status-panel strong { font-size: 13px; }
 .lycee-status-panel small { color: var(--lc-muted); font-size: 11px; }
-.lycee-status-panel em { padding: 5px 8px; border-radius: 999px; font-size: 10px; font-style: normal; font-weight: 800; }
-.lycee-status-panel .is-ok { background: #e5f7f1; color: var(--lc-green); }
-.lycee-status-panel .is-warning { background: #fff4d5; color: #9b5c00; }
+.lycee-status-panel em { display: inline-flex; align-items: center; gap: 4px; color: var(--lc-blue); font-size: 10px; font-style: normal; font-weight: 800; }
+.lycee-status-panel em svg { width: 12px; height: 12px; }
 
 .lycee-formations-band { display: grid; grid-template-columns: minmax(0,1fr) auto; align-items: center; gap: 16px 28px; margin-top: 12px; padding: 24px 26px; border: 1px solid #c8d7e8; border-radius: 8px; background: #fff; }
 .lycee-formations-band h2 { margin: 4px 0 0; font-size: 20px; }
@@ -239,7 +239,7 @@
   .lycee-status-panel { padding: 6px 14px; }
   .lycee-formations-band { grid-template-columns: 1fr; padding: 20px; }
   .lycee-formations-band > button { grid-column: 1; grid-row: auto; width: 100%; justify-content: center; }
-  .lycee-bottom-nav { position: fixed; left: 0; right: 0; bottom: 0; z-index: 40; min-height: 72px; display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); padding: 7px 6px calc(7px + env(safe-area-inset-bottom)); border-top: 1px solid var(--lc-line); background: rgba(255,255,255,.97); backdrop-filter: blur(18px); box-shadow: 0 -10px 28px rgba(17,42,77,.08); }
+  .lycee-bottom-nav { position: fixed; left: 0; right: 0; bottom: 0; z-index: 40; min-height: 72px; display: grid; grid-template-columns: repeat(5,minmax(0,1fr)); padding: 7px 6px calc(7px + env(safe-area-inset-bottom)); border-top: 1px solid var(--lc-line); background: rgba(255,255,255,.97); backdrop-filter: blur(18px); box-shadow: 0 -10px 28px rgba(17,42,77,.08); }
   .lycee-bottom-nav button { min-width: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px; border: 0; background: transparent; color: #758398; font-size: 10px; font-weight: 750; }
   .lycee-bottom-nav button svg { width: 21px; height: 21px; }
   .lycee-bottom-nav button.is-active { color: var(--lc-blue); }
@@ -251,7 +251,7 @@
   .lycee-specialties-preview-grid { grid-template-columns: 1fr; }
   .lycee-service-grid > button { grid-template-columns: 42px minmax(0,1fr) 18px; gap: 10px; }
   .lycee-service-icon { width: 42px; height: 42px; }
-  .lycee-status-panel > div { grid-template-columns: 38px minmax(0,1fr); }
+  .lycee-status-panel > a { grid-template-columns: 38px minmax(0,1fr); }
   .lycee-status-panel em { grid-column: 2; width: fit-content; }
 }
 
@@ -606,6 +606,15 @@
 .lycee-formations h3 { margin: 1px 0 0; font-size: 14px; }
 .lycee-formations p { margin: 6px 0; color: var(--lc-muted); font-size: 10px; line-height: 1.45; }
 .lycee-formations small { display: block; color: #41566e; font-size: 9px; line-height: 1.45; }
+.lycee-published-pages { margin-bottom: 14px; padding: 22px; border: 1px solid var(--lc-line); border-radius: 8px; background: #fff; }
+.lycee-published-pages-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 8px; }
+.lycee-published-pages-grid > a { min-width: 0; display: grid; grid-template-columns: 38px minmax(0,1fr) 18px; align-items: center; gap: 11px; padding: 14px; border: 1px solid #d8e1eb; border-radius: 8px; background: #f8fafc; color: var(--lc-ink); text-decoration: none; }
+.lycee-published-pages-grid > a:hover { border-color: #a9bfd7; background: #fff; }
+.lycee-published-pages-grid > a > span { width: 36px; height: 36px; display: grid; place-items: center; border-radius: 7px; background: #e8efff; color: var(--lc-blue); }
+.lycee-published-pages-grid > a svg { width: 17px; }
+.lycee-published-pages-grid small { display: block; color: var(--lc-green); font-size: 8px; font-weight: 850; text-transform: uppercase; }
+.lycee-published-pages-grid strong { display: block; margin-top: 3px; font-size: 12px; }
+.lycee-published-pages-grid p { margin: 4px 0 0; color: var(--lc-muted); font-size: 9px; line-height: 1.4; }
 .lycee-programs, .lycee-school-life, .lycee-practical { scroll-margin-top: 142px; margin-bottom: 14px; padding: 22px; border: 1px solid var(--lc-line); border-radius: 8px; background: #fff; }
 .lycee-programs-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); border-top: 1px solid var(--lc-line); border-left: 1px solid var(--lc-line); }
 .lycee-programs-grid article { min-width: 0; display: grid; grid-template-columns: minmax(0,1fr) auto; align-content: start; padding: 18px; border-right: 1px solid var(--lc-line); border-bottom: 1px solid var(--lc-line); background: #fbfcfe; }
@@ -892,6 +901,7 @@
   .lycee-school-stats > div:nth-child(4) { border-top: 1px solid var(--lc-line); }
   .lycee-specialties { padding: 18px; }
   .lycee-formations > div:last-child { grid-template-columns: 1fr; }
+  .lycee-published-pages-grid { grid-template-columns: 1fr; }
   .lycee-programs-grid { grid-template-columns: 1fr; }
   .lycee-school-life-grid article { grid-template-columns: 42px minmax(0,1fr); }
   .lycee-school-life-grid article > a, .lycee-school-life-grid article > button { grid-column: 2; width: fit-content; }
@@ -949,7 +959,7 @@
   .lycee-school-nav button { min-height: 36px; }
   .lycee-specialties-grid { grid-template-columns: 1fr; }
   .lycee-specialties-grid h3, .lycee-specialties-grid p { min-height: 0; }
-  .lycee-programs, .lycee-school-life, .lycee-practical { padding: 16px; }
+  .lycee-programs, .lycee-school-life, .lycee-practical, .lycee-published-pages { padding: 16px; }
   .lycee-programs-grid article { grid-template-columns: 1fr; }
   .lycee-programs-grid article > small { margin-top: 4px; }
   .lycee-school-life-grid article { grid-template-columns: 1fr; }

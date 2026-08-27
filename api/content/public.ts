@@ -6,7 +6,11 @@ import {
   siteContentItems,
   siteContentVersions,
 } from "../../db/schema.js";
-import { normalizeSiteSlug, parseSiteContentInput } from "../../shared/site-content.js";
+import {
+  isSiteContentPublicAt,
+  normalizeSiteSlug,
+  parseSiteContentInput,
+} from "../../shared/site-content.js";
 import { HttpError } from "../_shared/auth.js";
 import { signedAssetUrl } from "../_shared/site-content.js";
 import { handleApi, methodNotAllowed } from "../_shared/response.js";
@@ -41,8 +45,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const parsed = rows.flatMap((row) => {
       try {
         const content = parseSiteContentInput(row.snapshot);
-        if (content.publishAt && content.publishAt > now) return [];
-        if (content.expiresAt && content.expiresAt <= now) return [];
+        if (!isSiteContentPublicAt(content, now)) return [];
         return [{ item: row.item, content }];
       } catch {
         return [];
