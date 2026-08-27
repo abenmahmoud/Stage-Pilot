@@ -64,6 +64,11 @@
   d'identité requis et le filtre de file par service dans la console agent.
 - [ ] T027B Ajouter une file `À qualifier`, les délais par service, la détection
   des dossiers sans propriétaire et les relances internes.
+- [x] T027B1 Ajouter la vue `À classer`, les compteurs sans responsable et
+  échéances dépassées, les marqueurs visibles et l'ordre priorité-échéance, sans
+  inventer de délai métier supplémentaire.
+- [ ] T027B2 Ajouter les relances internes et l'escalade après validation des
+  délais propres à chaque service et des responsables à notifier.
 - [ ] T027C Créer les adhésions de service puis appliquer le périmètre dans les
   API et les politiques RLS ; le filtre d'interface seul n'est pas une barrière
   d'autorisation.

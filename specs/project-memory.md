@@ -3,7 +3,7 @@
 **Derniere mise a jour** : 27 aout 2026
 **Branche de travail** : `codex/lycee-connect-prototype`
 **Depot** : `abenmahmoud/Stage-Pilot`
-**Dernier jalon de code verifie** : routage automatique par service et contrôle des rôles
+**Dernier jalon de code verifie** : file agent à classer, dossiers sans responsable et échéances dépassées
 
 ## 1. Fonction de cette memoire
 
@@ -82,6 +82,9 @@ sa specification.
 - Routage déterministe des nouvelles demandes vers numérique, secrétariat, vie
   scolaire, intendance, direction ou qualification générale, avec motif,
   confiance, niveau d'identité requis et filtre par service dans la console.
+- File agent ordonnée par priorité puis échéance enregistrée, avec une vue
+  `À classer`, des compteurs sans responsable et en retard, et des marqueurs
+  visibles sur chaque dossier. Aucun délai métier supplémentaire n'est inventé.
 - Les liens vers l'espace agent ouvrent directement la connexion du personnel,
   conservent la page demandée et les pages administratives contrôlent maintenant
   le rôle côté interface en plus des contrôles API.
@@ -134,6 +137,9 @@ sa specification.
 - Le traitement agent, les notes internes, le transfert, la clôture motivée et
   les modèles de réponse sont terminés dans la preview ; il reste à les éprouver
   avec des comptes nominatifs et des scénarios réels contrôlés.
+- Les rappels internes et les escalades automatiques ne sont pas activés : la
+  direction doit d'abord valider les délais et les responsables à notifier pour
+  chaque service.
 - Les formations et informations utiles sont partiellement reprises; l'ancien
   site n'est pas integralement migre ni remplace.
 - Les workers Brevo et antivirus sont documentes comme installes dans les specs;

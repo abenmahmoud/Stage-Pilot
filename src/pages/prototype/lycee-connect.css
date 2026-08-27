@@ -722,7 +722,10 @@
 .lycee-agent-list strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 12px; }
 .lycee-agent-list small { color: #53657a; font-size: 10px; }
 .lycee-agent-list em { color: #8995a5; font-size: 9px; font-style: normal; }
-.lycee-agent-list b { position: absolute; right: 10px; bottom: 11px; padding: 4px 6px; border-radius: 999px; background: #fff0ed; color: var(--lc-coral); font-size: 8px; }
+.lycee-request-flags { position: absolute; right: 10px; bottom: 9px; display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 4px; max-width: calc(100% - 58px); }
+.lycee-request-flags b { padding: 4px 6px; border-radius: 999px; background: #fff0ed; color: var(--lc-coral); font-size: 8px; }
+.lycee-request-flags b[data-kind="unassigned"] { background: #edf2ff; color: var(--lc-blue); }
+.lycee-request-flags b[data-kind="overdue"] { background: #fff1e4; color: #9a4a00; }
 .lycee-agent-list-empty { padding: 32px 18px; color: var(--lc-muted); font-size: 11px; line-height: 1.5; text-align: center; }
 .lycee-agent-pagination { min-height: 58px; display: grid; grid-template-columns: 34px minmax(0,1fr) 34px; align-items: center; gap: 8px; margin-top: auto; padding: 9px 12px; border-top: 1px solid var(--lc-line); background: #f8fafc; }
 .lycee-agent-pagination > button { width: 34px; height: 34px; display: grid; place-items: center; border: 1px solid #ccd6e2; border-radius: 7px; background: #fff; color: var(--lc-blue); }

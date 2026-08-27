@@ -63,6 +63,7 @@ import {
   renderSupportReplyTemplate,
   type SupportReplyTemplate,
 } from "../../../shared/support-reply-templates";
+import { assessSupportQueueItem } from "../../../shared/support-queue-policy";
 import "./lycee-connect.css";
 
 type View = "home" | "services" | "help" | "requests" | "school" | "news" | "agent" | "trust";
@@ -1803,9 +1804,32 @@ type AgentRequestDetail = {
   attachments: Array<{ id: string; originalName: string; scanStatus: string; sizeBytes: number; createdAt: string }>;
 };
 
-type AgentQueueStats = { total: number; new: number; urgent: number; active: number; waitingRequester: number };
+type AgentQueueStats = { total: number; new: number; qualify: number; urgent: number; active: number; waitingRequester: number; unassigned: number; overdue: number };
 type AgentQueuePagination = { page: number; pageSize: number; total: number; totalPages: number };
 const IDENTITY_VERIFICATION_REPLY = "Bonjour, pour protéger vos accès, nous devons d’abord confirmer votre identité avec une source officielle du lycée. Ne transmettez aucun mot de passe ni aucun code reçu par SMS. Nous revenons vers vous dès que la vérification est terminée.";
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null;
+}
+
+function isAgentQueuePayload(value: unknown): value is {
+  requests: AgentRequest[];
+  stats: AgentQueueStats;
+  pagination: AgentQueuePagination;
+} {
+  return isRecord(value)
+    && Array.isArray(value.requests)
+    && isRecord(value.stats)
+    && isRecord(value.pagination);
+}
+
+function isAgentRequestDetail(value: unknown): value is AgentRequestDetail {
+  return isRecord(value)
+    && isRecord(value.request)
+    && Array.isArray(value.contacts)
+    && Array.isArray(value.messages)
+    && Array.isArray(value.attachments);
+}
 
 function AgentView({ onBack }: { onBack: () => void }) {
   if (!SUPPORT_API_ENABLED) return <DemoAgentView onBack={onBack} />;
@@ -1814,9 +1838,9 @@ function AgentView({ onBack }: { onBack: () => void }) {
 
 function ConnectedAgentView({ onBack }: { onBack: () => void }) {
   const [requests, setRequests] = useState<AgentRequest[]>([]);
-  const [stats, setStats] = useState<AgentQueueStats>({ total: 0, new: 0, urgent: 0, active: 0, waitingRequester: 0 });
+  const [stats, setStats] = useState<AgentQueueStats>({ total: 0, new: 0, qualify: 0, urgent: 0, active: 0, waitingRequester: 0, unassigned: 0, overdue: 0 });
   const [pagination, setPagination] = useState<AgentQueuePagination>({ page: 1, pageSize: 30, total: 0, totalPages: 1 });
-  const [queueMode, setQueueMode] = useState<"all" | "urgent" | "mine">("all");
+  const [queueMode, setQueueMode] = useState<"all" | "qualify" | "urgent" | "mine">("all");
   const [serviceFilter, setServiceFilter] = useState("");
   const [page, setPage] = useState(1);
   const [selectedCode, setSelectedCode] = useState<string | null>(null);
@@ -1836,9 +1860,13 @@ function ConnectedAgentView({ onBack }: { onBack: () => void }) {
       const params = new URLSearchParams({ page: String(page), pageSize: "30" });
       if (query.trim()) params.set("q", query.trim());
       if (queueMode === "urgent") params.set("urgent", "true");
+      if (queueMode === "qualify") params.set("status", "a_qualifier");
       if (queueMode === "mine") params.set("assigned", "me");
       if (serviceFilter) params.set("service", serviceFilter);
-      const payload = await apiFetch<{ requests: AgentRequest[]; stats: AgentQueueStats; pagination: AgentQueuePagination }>(`support/agent/requests?${params}`);
+      const payload = await apiFetch<unknown>(`support/agent/requests?${params}`);
+      if (!isAgentQueuePayload(payload)) {
+        throw new Error("Réponse invalide du service de demandes");
+      }
       setRequests(payload.requests);
       setStats(payload.stats);
       setPagination(payload.pagination);
@@ -1859,14 +1887,25 @@ function ConnectedAgentView({ onBack }: { onBack: () => void }) {
     setReply("");
     setInternalNote("");
     setClosureReason("");
-    apiFetch<AgentRequestDetail>(`support/agent/requests/${selectedCode}`)
-      .then((payload) => { setDetail(payload); setError(null); })
+    apiFetch<unknown>(`support/agent/requests/${selectedCode}`)
+      .then((payload) => {
+        if (!isAgentRequestDetail(payload)) {
+          throw new Error("Réponse invalide du détail de la demande");
+        }
+        setDetail(payload);
+        setError(null);
+      })
       .catch((loadError: Error) => setError(loadError.message));
   }, [selectedCode]);
 
   useEffect(() => {
-    apiFetch<{ templates: SupportReplyTemplate[] }>("support/agent/templates")
-      .then((payload) => setTemplates(payload.templates))
+    apiFetch<unknown>("support/agent/templates")
+      .then((payload) => {
+        if (!isRecord(payload) || !Array.isArray(payload.templates)) {
+          throw new Error("Réponse invalide du service de modèles");
+        }
+        setTemplates(payload.templates as SupportReplyTemplate[]);
+      })
       .catch(() => setTemplates(DEFAULT_SUPPORT_REPLY_TEMPLATES));
   }, []);
 
@@ -1997,23 +2036,24 @@ function ConnectedAgentView({ onBack }: { onBack: () => void }) {
       <PageIntro eyebrow="Espace agent" title="Demandes du lycée" description="Classez, répondez et gardez chaque échange dans le même dossier." onBack={onBack} />
       {error ? <div className="lycee-form-error" role="alert"><CircleAlert aria-hidden="true" />{error}{error.toLowerCase().includes("auth") ? <a href="/login?returnTo=%2Fprototype%3Fview%3Dagent&mode=staff">Se connecter</a> : null}</div> : null}
       <div className="lycee-agent-stats">
-        <div><span><Inbox aria-hidden="true" /></span><strong>{stats.new}</strong><small>Nouvelles</small></div>
+        <div><span><Inbox aria-hidden="true" /></span><strong>{stats.qualify}</strong><small>À classer</small></div>
         <div><span><CircleAlert aria-hidden="true" /></span><strong>{stats.urgent}</strong><small>Urgentes</small></div>
-        <div><span><Clock3 aria-hidden="true" /></span><strong>{stats.active}</strong><small>En cours</small></div>
-        <div><span><MessageCircleMore aria-hidden="true" /></span><strong>{stats.waitingRequester}</strong><small>Réponse attendue</small></div>
+        <div><span><UserRound aria-hidden="true" /></span><strong>{stats.unassigned}</strong><small>Sans responsable</small></div>
+        <div><span><Clock3 aria-hidden="true" /></span><strong>{stats.overdue}</strong><small>Échéances dépassées</small></div>
       </div>
       <div className="lycee-agent-workspace">
         <section className="lycee-agent-queue">
           <div className="lycee-agent-toolbar"><label><Search aria-hidden="true" /><input value={query} onChange={(event) => { setQuery(event.target.value); setPage(1); }} placeholder="Nom, numéro ou objet" /></label><button className={queueMode === "mine" ? "is-active" : ""} type="button" aria-label="Afficher mes demandes" aria-pressed={queueMode === "mine"} title="Afficher mes demandes" onClick={() => { setQueueMode((current) => current === "mine" ? "all" : "mine"); setPage(1); }}><Filter aria-hidden="true" /></button><select aria-label="Filtrer par service" value={serviceFilter} onChange={(event) => { setServiceFilter(event.target.value); setPage(1); }}><option value="">Tous les services</option>{supportTeams.map((team) => <option value={team.value} key={team.value}>{team.label}</option>)}</select></div>
-          <div className="lycee-agent-tabs"><button className={queueMode === "all" ? "is-active" : ""} type="button" onClick={() => { setQueueMode("all"); setPage(1); }}>Toutes <span>{stats.total}</span></button><button className={queueMode === "urgent" ? "is-active" : ""} type="button" onClick={() => { setQueueMode("urgent"); setPage(1); }}>Urgentes <span>{stats.urgent}</span></button></div>
+          <div className="lycee-agent-tabs"><button className={queueMode === "all" ? "is-active" : ""} type="button" onClick={() => { setQueueMode("all"); setPage(1); }}>Toutes <span>{stats.total}</span></button><button className={queueMode === "qualify" ? "is-active" : ""} type="button" onClick={() => { setQueueMode("qualify"); setPage(1); }}>À classer <span>{stats.qualify}</span></button><button className={queueMode === "urgent" ? "is-active" : ""} type="button" onClick={() => { setQueueMode("urgent"); setPage(1); }}>Urgentes <span>{stats.urgent}</span></button></div>
           <div className="lycee-agent-list">
-            {requests.map((request) => (
-              <button className={selectedCode === request.publicCode ? "is-selected" : ""} type="button" key={request.publicCode} onClick={() => setSelectedCode(request.publicCode)}>
+            {requests.map((request) => {
+              const queueState = assessSupportQueueItem(request, new Date().toISOString());
+              return <button className={selectedCode === request.publicCode ? "is-selected" : ""} type="button" key={request.publicCode} onClick={() => setSelectedCode(request.publicCode)}>
                 <span className="lycee-request-avatar">{`${request.requesterFirstName[0] ?? ""}${request.requesterLastName[0] ?? ""}`}</span>
                 <span><strong>{request.subject}</strong><small>{request.requesterFirstName} {request.requesterLastName} · {requesterProfileLabels[request.requesterType] ?? request.requesterType}</small><em>{supportTeamLabel(request.assignedTeam)} · {supportCategoryLabel(request.category)} · {supportSlaLabel(request.slaDueAt)}</em></span>
-                {["p1", "p2"].includes(request.priority) ? <b>Urgent</b> : null}
-              </button>
-            ))}
+                <span className="lycee-request-flags">{["p1", "p2"].includes(request.priority) ? <b>Urgent</b> : null}{queueState.unassigned ? <b data-kind="unassigned">Sans agent</b> : null}{queueState.overdue ? <b data-kind="overdue">En retard</b> : null}</span>
+              </button>;
+            })}
             {requests.length === 0 ? <div className="lycee-agent-list-empty">Aucune demande ne correspond à ce filtre.</div> : null}
           </div>
           <div className="lycee-agent-pagination"><button type="button" aria-label="Page précédente" disabled={page <= 1} onClick={() => setPage((current) => Math.max(1, current - 1))}><ArrowLeft aria-hidden="true" /></button><span>Page {pagination.page} sur {pagination.totalPages}<small>{pagination.total} {pagination.total > 1 ? "dossiers" : "dossier"}</small></span><button type="button" aria-label="Page suivante" disabled={page >= pagination.totalPages} onClick={() => setPage((current) => current + 1)}><ChevronRight aria-hidden="true" /></button></div>

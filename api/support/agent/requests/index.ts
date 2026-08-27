@@ -1,5 +1,5 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { and, desc, eq, ilike, or, sql, type SQL } from "drizzle-orm";
+import { and, asc, eq, ilike, or, sql, type SQL } from "drizzle-orm";
 import { db } from "../../../../db/index.js";
 import { supportRequests } from "../../../../db/schema.js";
 import { requireRole } from "../../../_shared/auth.js";
@@ -87,7 +87,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       .where(where)
       .orderBy(
         sql`case ${supportRequests.priority} when 'p1' then 1 when 'p2' then 2 when 'p3' then 3 else 4 end`,
-        desc(supportRequests.createdAt)
+        asc(supportRequests.slaDueAt),
+        asc(supportRequests.createdAt)
       )
       .limit(pageSize)
       .offset((page - 1) * pageSize);
@@ -100,9 +101,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const statsQuery = db.select({
       total: sql<number>`count(*)::int`,
       new: sql<number>`count(*) filter (where ${supportRequests.status} in ('nouveau', 'a_qualifier'))::int`,
-      urgent: sql<number>`count(*) filter (where ${supportRequests.priority} in ('p1', 'p2') and ${supportRequests.status} <> 'clos')::int`,
+      qualify: sql<number>`count(*) filter (where ${supportRequests.status} = 'a_qualifier')::int`,
+      urgent: sql<number>`count(*) filter (where ${supportRequests.priority} in ('p1', 'p2') and ${supportRequests.status} not in ('resolu', 'clos', 'indesirable'))::int`,
       active: sql<number>`count(*) filter (where ${supportRequests.status} in ('assigne', 'en_cours', 'attente_interne'))::int`,
       waitingRequester: sql<number>`count(*) filter (where ${supportRequests.status} = 'attente_demandeur')::int`,
+      unassigned: sql<number>`count(*) filter (where ${supportRequests.assignedTo} is null and ${supportRequests.status} not in ('resolu', 'clos', 'indesirable'))::int`,
+      overdue: sql<number>`count(*) filter (where ${supportRequests.slaDueAt} < now() and ${supportRequests.status} not in ('resolu', 'clos', 'indesirable'))::int`,
     }).from(supportRequests).where(serviceFilter);
 
     const [requests, [totalRow], [statsRow]] = await Promise.all([requestQuery, totalQuery, statsQuery]);
@@ -110,7 +114,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     return {
       requests,
-      stats: statsRow ?? { total: 0, new: 0, urgent: 0, active: 0, waitingRequester: 0 },
+      stats: statsRow ?? { total: 0, new: 0, qualify: 0, urgent: 0, active: 0, waitingRequester: 0, unassigned: 0, overdue: 0 },
       pagination: { page, pageSize, total, totalPages: Math.max(1, Math.ceil(total / pageSize)) },
     };
   });

@@ -78,6 +78,10 @@ l'autorisation de quota définie par le propriétaire.
   arrière du registre de compétences sur données fictives. **Implémentée et
   testée ; stockage et interface encore requis**.
 - Lot N5 : files `À qualifier`, délais et dossiers sans propriétaire.
+  **Visibilité opérationnelle implémentée et testée** : vue `À classer`, compteurs
+  sans responsable et échéances dépassées, marqueurs par dossier et ordre par
+  priorité puis échéance enregistrée. Les relances et escalades restent bloquées
+  jusqu'à la validation des délais métier et des responsables de chaque service.
 - Lot N6 : tests de non-régression, build, contrôle mobile et rapport d'écarts.
 
 ## Portes de validation humaine
