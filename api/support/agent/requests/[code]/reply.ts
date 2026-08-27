@@ -10,18 +10,21 @@ import {
   supportMessages,
   supportRequests,
 } from "../../../../../db/schema.js";
-import { HttpError, requireRole } from "../../../../_shared/auth.js";
+import { HttpError } from "../../../../_shared/auth.js";
 import { handleApi, methodNotAllowed } from "../../../../_shared/response.js";
 import { idempotencyKey, opaqueToken, sha256 } from "../../../../_shared/support.js";
+import {
+  assertSupportRequestAccess,
+  requireSupportAgent,
+} from "../../../../_shared/support-agent-access.js";
 
-const AGENT_ROLES = ["superadmin", "administration", "proviseur"];
 const IDENTITY_VERIFICATION_MESSAGE = "Bonjour, pour protéger vos accès, nous devons d’abord confirmer votre identité avec une source officielle du lycée. Ne transmettez aucun mot de passe ni aucun code reçu par SMS. Nous revenons vers vous dès que la vérification est terminée.";
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== "POST") return methodNotAllowed(res, ["POST"]);
 
   return handleApi(res, async () => {
-    const user = await requireRole(req, AGENT_ROLES);
+    const { user, access } = await requireSupportAgent(req);
     const code = Array.isArray(req.query.code) ? req.query.code[0] : req.query.code;
     if (!code || !/^BC-\d{4}-\d{6}$/.test(code)) {
       throw new HttpError(400, "Numéro de demande invalide");
@@ -39,11 +42,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         subject: supportRequests.subject,
         category: supportRequests.category,
         subjectContext: supportRequests.subjectContext,
+        assignedTeam: supportRequests.assignedTeam,
       })
       .from(supportRequests)
       .where(eq(supportRequests.publicCode, code))
       .limit(1);
     if (!request) throw new HttpError(404, "Demande introuvable");
+    assertSupportRequestAccess(access, request.assignedTeam);
     const identityContext = (request.subjectContext ?? {}) as Record<string, unknown>;
     if (
       ["ent", "email_academique"].includes(request.category) &&

@@ -1,6 +1,7 @@
 export type LyceeGestRole =
   | "superadmin"
   | "administration"
+  | "agent"
   | "pp"
   | "professeur"
   | "proviseur"
@@ -12,6 +13,13 @@ export const ADMINISTRATION_ROLES: readonly LyceeGestRole[] = [
 ];
 
 export const AGENT_ROLES: readonly LyceeGestRole[] = [
+  "superadmin",
+  "administration",
+  "agent",
+  "proviseur",
+];
+
+export const CONTENT_MANAGER_ROLES: readonly LyceeGestRole[] = [
   "superadmin",
   "administration",
   "proviseur",

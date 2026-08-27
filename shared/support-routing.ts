@@ -1,5 +1,6 @@
 export type SchoolService =
   | "referent_numerique"
+  | "ddfpt"
   | "secretariat"
   | "vie_scolaire"
   | "intendance"
@@ -96,6 +97,16 @@ export function routeSupportRequest(input: {
       service: "referent_numerique",
       confidence: "high",
       reason: "acces_ou_equipement_numerique",
+      requiredIdentity: identity,
+    };
+  }
+  if (
+    /\b(ddfpt|pfmp|periode de formation|convention de stage|recherche de stage|entreprise d'accueil|mini[- ]stage|plateau technique|atelier professionnel|voie professionnelle|formation professionnelle|melec|pcepc)\b/.test(text)
+  ) {
+    return {
+      service: "ddfpt",
+      confidence: "high",
+      reason: "formation_professionnelle_ou_stage",
       requiredIdentity: identity,
     };
   }

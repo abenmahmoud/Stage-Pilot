@@ -9,10 +9,14 @@ import {
   supportMessages,
   supportRequests,
 } from "../../../../db/schema.js";
-import { HttpError, requireRole } from "../../../_shared/auth.js";
+import { HttpError } from "../../../_shared/auth.js";
 import { handleApi, methodNotAllowed } from "../../../_shared/response.js";
+import {
+  assertSupportRequestAccess,
+  assertSupportTransferAccess,
+  requireSupportAgent,
+} from "../../../_shared/support-agent-access.js";
 
-const AGENT_ROLES = ["superadmin", "administration", "proviseur"];
 const STATUSES = new Set([
   "nouveau",
   "a_qualifier",
@@ -27,6 +31,7 @@ const STATUSES = new Set([
 const PRIORITIES = new Set(["p1", "p2", "p3", "p4"]);
 const ASSIGNED_TEAMS = new Set([
   "referent_numerique",
+  "ddfpt",
   "secretariat",
   "vie_scolaire",
   "intendance",
@@ -51,7 +56,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   return handleApi(res, async () => {
-    const user = await requireRole(req, AGENT_ROLES);
+    const { user, access } = await requireSupportAgent(req);
     const code = publicCode(req);
     const [request] = await db
       .select()
@@ -59,6 +64,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       .where(eq(supportRequests.publicCode, code))
       .limit(1);
     if (!request) throw new HttpError(404, "Demande introuvable");
+    assertSupportRequestAccess(access, request.assignedTeam);
 
     if (req.method === "PATCH") {
       const body = (req.body ?? {}) as Record<string, unknown>;
@@ -88,6 +94,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       }
       if (nextAssignedTeam && !ASSIGNED_TEAMS.has(nextAssignedTeam)) {
         throw new HttpError(400, "Service destinataire invalide");
+      }
+      if (body.assignedTeam !== undefined) {
+        assertSupportTransferAccess(access, request.assignedTeam, nextAssignedTeam);
       }
 
       const currentClosureReason = typeof currentContext.closureReason === "string"
@@ -276,6 +285,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       contacts,
       messages,
       attachments,
+      access,
     };
   });
 }

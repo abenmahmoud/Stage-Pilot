@@ -14,6 +14,7 @@
     "test:access-policy": "node --experimental-strip-types scripts/test-access-policy.mjs",
     "test:laptop-intake": "node --experimental-strip-types scripts/test-laptop-intake.mjs",
     "test:support-routing": "node --experimental-strip-types scripts/test-support-routing.mjs",
+    "test:support-agent-access": "node --experimental-strip-types scripts/test-support-agent-access.mjs",
     "test:schedule-policy": "node --experimental-strip-types scripts/test-schedule-policy.mjs",
     "test:skill-registry": "node --experimental-strip-types scripts/test-skill-registry-policy.mjs",
     "test:identity-access": "node --experimental-strip-types scripts/test-identity-access-policy.mjs",

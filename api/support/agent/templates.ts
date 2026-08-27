@@ -7,10 +7,10 @@ import {
   SUPPORT_TEMPLATE_VARIABLES,
   supportTemplateVariables,
 } from "../../../shared/support-reply-templates.js";
-import { HttpError, requireRole } from "../../_shared/auth.js";
+import { HttpError } from "../../_shared/auth.js";
 import { handleApi, methodNotAllowed } from "../../_shared/response.js";
+import { requireSupportAgent } from "../../_shared/support-agent-access.js";
 
-const AGENT_ROLES = ["superadmin", "administration", "proviseur"];
 const ALLOWED_VARIABLES = new Set<string>(SUPPORT_TEMPLATE_VARIABLES);
 
 function cleanText(value: unknown, label: string, maxLength: number): string {
@@ -28,9 +28,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   return handleApi(res, async () => {
-    const user = await requireRole(req, AGENT_ROLES);
+    const { user, access } = await requireSupportAgent(req);
 
     if (req.method === "POST") {
+      if (!access.canManageTemplates) {
+        throw new HttpError(403, "Seule la direction peut enregistrer un modèle partagé");
+      }
       const body = (req.body ?? {}) as Record<string, unknown>;
       const name = cleanText(body.name, "Nom du modèle", 80);
       const bodyText = cleanText(body.bodyText, "Texte du modèle", 5000);

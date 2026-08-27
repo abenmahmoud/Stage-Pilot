@@ -5,6 +5,19 @@
 **Depot** : `abenmahmoud/Stage-Pilot`
 **Dernier jalon de code verifie** : parcours de démonstration emploi du temps sécurisé
 
+## Decision du 27 aout 2026 - espaces de traitement
+
+- Le proprietaire est superadministrateur et voit toutes les demandes.
+- Le pilote prevoit un agent DDFPT, un agent administration et un agent vie
+  scolaire, chacun avec compte individuel et double verification.
+- Les agents sont cloisonnes cote serveur ; seuls superadmin et direction peuvent
+  classer une demande sans service ou la transferer.
+- La politique de preview utilise des metadonnees serveur signees. Les adhesions
+  persistees et les RLS restent a construire avant les comptes reels.
+- Le lancement Claude autorise pour l'audit cible du 27 aout s'est arrete sans
+  rapport exploitable a cause de sa limite de contexte. Aucune conclusion externe
+  ni relance n'a ete retenue.
+
 ## 1. Fonction de cette memoire
 
 Ce document donne le contexte necessaire pour reprendre le projet sans dependre

@@ -151,6 +151,7 @@ const languagePreferenceLabels: Record<string, string> = {
 
 const supportTeams = [
   { value: "referent_numerique", label: "Référent numérique" },
+  { value: "ddfpt", label: "DDFPT" },
   { value: "secretariat", label: "Secrétariat" },
   { value: "vie_scolaire", label: "Vie scolaire" },
   { value: "intendance", label: "Intendance" },
@@ -1813,6 +1814,14 @@ type AgentRequestDetail = {
 
 type AgentQueueStats = { total: number; new: number; qualify: number; urgent: number; active: number; waitingRequester: number; unassigned: number; overdue: number };
 type AgentQueuePagination = { page: number; pageSize: number; total: number; totalPages: number };
+type AgentAccess = {
+  role: string;
+  label: string;
+  serviceCodes: string[];
+  canViewAll: boolean;
+  canRoute: boolean;
+  canManageTemplates: boolean;
+};
 const IDENTITY_VERIFICATION_REPLY = "Bonjour, pour protéger vos accès, nous devons d’abord confirmer votre identité avec une source officielle du lycée. Ne transmettez aucun mot de passe ni aucun code reçu par SMS. Nous revenons vers vous dès que la vérification est terminée.";
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -1823,11 +1832,14 @@ function isAgentQueuePayload(value: unknown): value is {
   requests: AgentRequest[];
   stats: AgentQueueStats;
   pagination: AgentQueuePagination;
+  access: AgentAccess;
 } {
   return isRecord(value)
     && Array.isArray(value.requests)
     && isRecord(value.stats)
-    && isRecord(value.pagination);
+    && isRecord(value.pagination)
+    && isRecord(value.access)
+    && Array.isArray(value.access.serviceCodes);
 }
 
 function isAgentRequestDetail(value: unknown): value is AgentRequestDetail {
@@ -1847,6 +1859,7 @@ function ConnectedAgentView({ onBack }: { onBack: () => void }) {
   const [requests, setRequests] = useState<AgentRequest[]>([]);
   const [stats, setStats] = useState<AgentQueueStats>({ total: 0, new: 0, qualify: 0, urgent: 0, active: 0, waitingRequester: 0, unassigned: 0, overdue: 0 });
   const [pagination, setPagination] = useState<AgentQueuePagination>({ page: 1, pageSize: 30, total: 0, totalPages: 1 });
+  const [access, setAccess] = useState<AgentAccess | null>(null);
   const [queueMode, setQueueMode] = useState<"all" | "qualify" | "urgent" | "mine">("all");
   const [serviceFilter, setServiceFilter] = useState("");
   const [page, setPage] = useState(1);
@@ -1877,6 +1890,14 @@ function ConnectedAgentView({ onBack }: { onBack: () => void }) {
       setRequests(payload.requests);
       setStats(payload.stats);
       setPagination(payload.pagination);
+      setAccess(payload.access);
+      if (
+        serviceFilter &&
+        !payload.access.canViewAll &&
+        !payload.access.serviceCodes.includes(serviceFilter)
+      ) {
+        setServiceFilter("");
+      }
       setSelectedCode((current) => payload.requests.some((request) => request.publicCode === current) ? current : payload.requests[0]?.publicCode ?? null);
       if (payload.requests.length === 0) setDetail(null);
       setError(null);
@@ -2037,11 +2058,19 @@ function ConnectedAgentView({ onBack }: { onBack: () => void }) {
   const visibleTemplates = selected
     ? templates.filter((template) => template.category === "all" || template.category === selected.category)
     : templates;
+  const availableTeams = access?.canViewAll
+    ? supportTeams
+    : supportTeams.filter((team) => access?.serviceCodes.includes(team.value));
+  const needsAgentSecurity = Boolean(
+    error && /double vérification|vérification renforcée/i.test(error)
+  );
+  const needsAgentLogin = Boolean(error && /authentifi|connexion requise/i.test(error));
 
   return (
     <div className="lycee-page lycee-agent-page">
       <PageIntro eyebrow="Espace agent" title="Demandes du lycée" description="Classez, répondez et gardez chaque échange dans le même dossier." onBack={onBack} />
-      {error ? <div className="lycee-form-error" role="alert"><CircleAlert aria-hidden="true" />{error}{error.toLowerCase().includes("auth") ? <a href="/login?returnTo=%2Fprototype%3Fview%3Dagent&mode=staff">Se connecter</a> : null}</div> : null}
+      {error ? <div className="lycee-form-error" role="alert"><CircleAlert aria-hidden="true" />{error}{needsAgentSecurity ? <a href="/security?returnTo=%2Fprototype%3Fview%3Dagent">Sécuriser le compte</a> : needsAgentLogin ? <a href="/login?returnTo=%2Fprototype%3Fview%3Dagent&mode=staff">Se connecter</a> : null}</div> : null}
+      {access ? <section className="lycee-agent-scope"><ShieldCheck aria-hidden="true" /><span><small>Votre périmètre</small><strong>{access.label}</strong><p>{access.canViewAll ? "Toutes les demandes et tous les transferts." : availableTeams.map((team) => team.label).join(" · ")}</p></span><b>{access.canViewAll ? "Vue complète" : "Vue limitée"}</b></section> : null}
       <div className="lycee-agent-stats">
         <div><span><Inbox aria-hidden="true" /></span><strong>{stats.qualify}</strong><small>À classer</small></div>
         <div><span><CircleAlert aria-hidden="true" /></span><strong>{stats.urgent}</strong><small>Urgentes</small></div>
@@ -2050,7 +2079,7 @@ function ConnectedAgentView({ onBack }: { onBack: () => void }) {
       </div>
       <div className="lycee-agent-workspace">
         <section className="lycee-agent-queue">
-          <div className="lycee-agent-toolbar"><label><Search aria-hidden="true" /><input value={query} onChange={(event) => { setQuery(event.target.value); setPage(1); }} placeholder="Nom, numéro ou objet" /></label><button className={queueMode === "mine" ? "is-active" : ""} type="button" aria-label="Afficher mes demandes" aria-pressed={queueMode === "mine"} title="Afficher mes demandes" onClick={() => { setQueueMode((current) => current === "mine" ? "all" : "mine"); setPage(1); }}><Filter aria-hidden="true" /></button><select aria-label="Filtrer par service" value={serviceFilter} onChange={(event) => { setServiceFilter(event.target.value); setPage(1); }}><option value="">Tous les services</option>{supportTeams.map((team) => <option value={team.value} key={team.value}>{team.label}</option>)}</select></div>
+          <div className="lycee-agent-toolbar"><label><Search aria-hidden="true" /><input value={query} onChange={(event) => { setQuery(event.target.value); setPage(1); }} placeholder="Nom, numéro ou objet" /></label><button className={queueMode === "mine" ? "is-active" : ""} type="button" aria-label="Afficher mes demandes" aria-pressed={queueMode === "mine"} title="Afficher mes demandes" onClick={() => { setQueueMode((current) => current === "mine" ? "all" : "mine"); setPage(1); }}><Filter aria-hidden="true" /></button><select aria-label="Filtrer par service" value={serviceFilter} onChange={(event) => { setServiceFilter(event.target.value); setPage(1); }}><option value="">{access?.canViewAll ? "Tous les services" : "Mon périmètre"}</option>{availableTeams.map((team) => <option value={team.value} key={team.value}>{team.label}</option>)}</select></div>
           <div className="lycee-agent-tabs"><button className={queueMode === "all" ? "is-active" : ""} type="button" onClick={() => { setQueueMode("all"); setPage(1); }}>Toutes <span>{stats.total}</span></button><button className={queueMode === "qualify" ? "is-active" : ""} type="button" onClick={() => { setQueueMode("qualify"); setPage(1); }}>À classer <span>{stats.qualify}</span></button><button className={queueMode === "urgent" ? "is-active" : ""} type="button" onClick={() => { setQueueMode("urgent"); setPage(1); }}>Urgentes <span>{stats.urgent}</span></button></div>
           <div className="lycee-agent-list">
             {requests.map((request) => {
@@ -2070,13 +2099,13 @@ function ConnectedAgentView({ onBack }: { onBack: () => void }) {
             <>
               <div className="lycee-agent-detail-head"><div><span>{selected.publicCode}</span><h2>{selected.subject}</h2><p>{selected.requesterFirstName} {selected.requesterLastName} · {requesterProfileLabels[selected.requesterType] ?? selected.requesterType}</p></div><div className="lycee-agent-controls"><select aria-label="Priorité" value={selected.priority} disabled={saving} onChange={(event) => void updateRequest({ priority: event.target.value })}><option value="p1">P1 critique</option><option value="p2">P2 urgente</option><option value="p3">P3 normale</option><option value="p4">P4 faible</option></select><select aria-label="Statut" value={selected.status} disabled={saving || selected.status === "clos"} onChange={(event) => void updateRequest({ status: event.target.value })}><option value="nouveau">Nouvelle demande</option><option value="a_qualifier">À classer</option><option value="assigne">Assignée</option><option value="en_cours">En cours</option><option value="attente_demandeur">En attente de l’utilisateur</option><option value="attente_interne">Vérification interne</option><option value="resolu">Résolue</option>{selected.status === "clos" ? <option value="clos">Fermée</option> : null}</select></div></div>
               <div className="lycee-agent-contact-row">{detail.contacts.map((contact) => <span className={contact.isVerified ? "is-verified" : ""} key={contact.id}>{contact.channel === "email" ? <Mail aria-hidden="true" /> : <Phone aria-hidden="true" />}{contact.value}{contact.isVerified ? " · vérifié" : ""}</span>)}<button type="button" disabled={saving || Boolean(selected.assignedTo)} onClick={() => void updateRequest({ assignToMe: true })}>{selected.assignedTo ? "Déjà attribuée" : "Prendre la demande"}</button></div>
-              <section className="lycee-agent-routing"><ArrowRightLeft aria-hidden="true" /><span><strong>Service responsable</strong><small>Le transfert conserve tous les messages et documents.</small></span><select aria-label="Service responsable" value={selected.assignedTeam ?? ""} disabled={saving || selected.status === "clos"} onChange={(event) => void updateRequest({ assignedTeam: event.target.value || null, status: ["nouveau", "a_qualifier"].includes(selected.status) ? "assigne" : selected.status })}><option value="">À orienter</option>{supportTeams.map((team) => <option value={team.value} key={team.value}>{team.label}</option>)}</select></section>
+              <section className="lycee-agent-routing"><ArrowRightLeft aria-hidden="true" /><span><strong>Service responsable</strong><small>{access?.canRoute ? "Le transfert conserve tous les messages et documents." : "Le superadministrateur réalise les transferts entre services."}</small></span><select aria-label="Service responsable" value={selected.assignedTeam ?? ""} disabled={saving || selected.status === "clos" || !access?.canRoute} onChange={(event) => void updateRequest({ assignedTeam: event.target.value || null, status: ["nouveau", "a_qualifier"].includes(selected.status) ? "assigne" : selected.status })}><option value="">À orienter</option>{supportTeams.map((team) => <option value={team.value} key={team.value}>{team.label}</option>)}</select></section>
               <section className="lycee-agent-identity" data-sensitive={["ent", "email_academique"].includes(selected.category)}><BadgeCheck aria-hidden="true" /><span><strong>{identityStatusLabels[selected.identityStatus]}</strong><small>{["ent", "email_academique"].includes(selected.category) ? "Demande sensible : ne transmettre aucun identifiant avant rapprochement avec une liste officielle." : "Adaptez le contrôle au niveau de sensibilité de la réponse."}</small></span><select aria-label="Niveau de vérification de l’identité" value={selected.identityStatus} disabled={saving} onChange={(event) => { const identityStatus = event.target.value as IdentityStatus; const identityMethod = identityStatus === "identite_confirmee" ? "official_roster" : identityStatus === "contact_verifie" ? (detail.contacts.some((contact) => contact.channel === "email" && contact.isVerified) ? "email_magic_link" : "phone_callback") : undefined; void updateRequest({ identityStatus, identityMethod }); }}><option value="non_verifiee">Coordonnées déclarées</option><option value="contact_verifie">Contact vérifié</option><option value="identite_confirmee">Identité confirmée dans la liste</option></select></section>
               <div className="lycee-agent-thread">{detail.messages.map((message) => <div data-direction={message.direction} key={message.id}><span><strong>{message.direction === "internal" ? "Note interne" : message.authorLabel ?? "Utilisateur"}</strong><small>{supportDate(message.createdAt)}{message.direction === "internal" ? " · invisible pour l’utilisateur" : ` · ${supportDeliveryLabel(message.deliveryStatus)}`}</small></span><p>{message.bodyText}</p></div>)}</div>
               {detail.attachments.length > 0 ? <div className="lycee-tracked-files">{detail.attachments.map((attachment) => <div key={attachment.id}><FileText aria-hidden="true" /><span><strong>{attachment.originalName}</strong><small>{attachment.scanStatus === "clean" ? "Vérifié" : "Contrôle en cours"}</small></span>{attachment.scanStatus === "clean" ? <button type="button" onClick={() => void openAgentAttachment(attachment.id)} aria-label={`Ouvrir ${attachment.originalName}`}><ExternalLink aria-hidden="true" /></button> : null}</div>)}</div> : null}
               <section className="lycee-agent-ai"><div><WandSparkles aria-hidden="true" /><span><span className="lycee-eyebrow">Aide au traitement</span><h3>{supportCategoryLabel(selected.category)} · priorité {selected.priority.toUpperCase()}</h3></span></div><dl><div><dt>Personne</dt><dd>{selected.beneficiaryType === "self" ? "Demandeur" : `${selected.beneficiaryFirstName ?? ""} ${selected.beneficiaryLastName ?? ""}`}</dd></div><div><dt>Canal disponible</dt><dd>{detail.contacts.map((contact) => channelLabels[contact.channel] ?? contact.channel).join(" + ")}</dd></div><div><dt>Langue souhaitée</dt><dd>{languagePreferenceLabels[selected.subjectContext.languagePreference] ?? "Non précisée"}</dd></div><div><dt>Aide à la compréhension</dt><dd>{selected.subjectContext.communicationSupport ?? "Réponse écrite"}</dd></div><div><dt>Pièces</dt><dd>{detail.attachments.length} {detail.attachments.length > 1 ? "documents" : "document"}</dd></div></dl></section>
               <section className="lycee-agent-actions"><div><span><StickyNote aria-hidden="true" /><strong>Note interne</strong><small>Visible uniquement par les agents.</small></span><textarea aria-label="Note interne" rows={3} value={internalNote} onChange={(event) => setInternalNote(event.target.value)} placeholder="Diagnostic, appel effectué ou prochaine action…" maxLength={5000} /><button type="button" disabled={saving || !internalNote.trim()} onClick={() => void saveInternalNote()}>Ajouter la note</button></div><div data-closed={selected.status === "clos"}><span><CheckCircle2 aria-hidden="true" /><strong>{selected.status === "clos" ? "Dossier clôturé" : "Clôturer proprement"}</strong><small>{selected.status === "clos" ? selected.subjectContext.closureReason ?? "Motif enregistré dans l’historique." : requiresSafeIdentityReply ? "Confirmez d’abord l’identité scolaire pour cette demande sensible." : "Un motif est obligatoire et reste dans l’audit."}</small></span>{selected.status === "clos" ? <button type="button" disabled={saving} onClick={() => void updateRequest({ status: "en_cours" })}>Rouvrir le dossier</button> : <><textarea aria-label="Motif de clôture" rows={3} value={closureReason} onChange={(event) => setClosureReason(event.target.value)} placeholder="Solution apportée ou raison de la clôture…" maxLength={500} /><button type="button" disabled={saving || !closureReason.trim() || requiresSafeIdentityReply} onClick={() => void updateRequest({ status: "clos", closureReason })}>Clôturer le dossier</button></>}</div></section>
-              <section className="lycee-reply-box"><div><span><Sparkles aria-hidden="true" /> {requiresSafeIdentityReply ? "Consigne de vérification sécurisée" : "Réponse à valider"}</span>{requiresSafeIdentityReply ? null : <select aria-label="Choisir un modèle de réponse" defaultValue="" onChange={(event) => { applyReplyTemplate(event.target.value); event.currentTarget.value = ""; }}><option value="">Choisir un modèle</option>{visibleTemplates.map((template) => <option value={template.id} key={template.id}>{template.name}</option>)}</select>}</div><textarea aria-label="Réponse à envoyer" rows={5} value={requiresSafeIdentityReply ? IDENTITY_VERIFICATION_REPLY : reply} readOnly={requiresSafeIdentityReply || selected.status === "clos"} onChange={(event) => setReply(event.target.value)} placeholder="Écrivez une réponse claire. Aucun mot de passe ne doit être demandé." />{showTemplateSave && !requiresSafeIdentityReply ? <div className="lycee-template-save"><input aria-label="Nom du nouveau modèle" value={templateName} onChange={(event) => setTemplateName(event.target.value)} placeholder="Nom du modèle" maxLength={80} /><button type="button" disabled={saving || !templateName.trim() || !reply.trim()} onClick={() => void saveReplyTemplate()}>Enregistrer</button></div> : null}<div>{requiresSafeIdentityReply ? null : <button className="lycee-secondary-action" type="button" disabled={selected.status === "clos"} onClick={() => setShowTemplateSave((current) => !current)}><BookOpenCheck aria-hidden="true" /> Modèle</button>}<button className="lycee-secondary-action" type="button" disabled><Paperclip aria-hidden="true" /> Joindre</button><button className="lycee-primary-action" type="button" disabled={saving || selected.status === "clos" || (!requiresSafeIdentityReply && !reply.trim())} onClick={() => void sendAgentReply()}><Send aria-hidden="true" /> {saving ? "Enregistrement…" : "Valider et envoyer"}</button></div></section>
+              <section className="lycee-reply-box"><div><span><Sparkles aria-hidden="true" /> {requiresSafeIdentityReply ? "Consigne de vérification sécurisée" : "Réponse à valider"}</span>{requiresSafeIdentityReply ? null : <select aria-label="Choisir un modèle de réponse" defaultValue="" onChange={(event) => { applyReplyTemplate(event.target.value); event.currentTarget.value = ""; }}><option value="">Choisir un modèle</option>{visibleTemplates.map((template) => <option value={template.id} key={template.id}>{template.name}</option>)}</select>}</div><textarea aria-label="Réponse à envoyer" rows={5} value={requiresSafeIdentityReply ? IDENTITY_VERIFICATION_REPLY : reply} readOnly={requiresSafeIdentityReply || selected.status === "clos"} onChange={(event) => setReply(event.target.value)} placeholder="Écrivez une réponse claire. Aucun mot de passe ne doit être demandé." />{showTemplateSave && !requiresSafeIdentityReply && access?.canManageTemplates ? <div className="lycee-template-save"><input aria-label="Nom du nouveau modèle" value={templateName} onChange={(event) => setTemplateName(event.target.value)} placeholder="Nom du modèle" maxLength={80} /><button type="button" disabled={saving || !templateName.trim() || !reply.trim()} onClick={() => void saveReplyTemplate()}>Enregistrer</button></div> : null}<div>{requiresSafeIdentityReply || !access?.canManageTemplates ? null : <button className="lycee-secondary-action" type="button" disabled={selected.status === "clos"} onClick={() => setShowTemplateSave((current) => !current)}><BookOpenCheck aria-hidden="true" /> Modèle</button>}<button className="lycee-secondary-action" type="button" disabled><Paperclip aria-hidden="true" /> Joindre</button><button className="lycee-primary-action" type="button" disabled={saving || selected.status === "clos" || (!requiresSafeIdentityReply && !reply.trim())} onClick={() => void sendAgentReply()}><Send aria-hidden="true" /> {saving ? "Enregistrement…" : "Valider et envoyer"}</button></div></section>
             </>
           ) : <div className="lycee-loading-state"><Clock3 aria-hidden="true" /> Sélectionnez une demande</div>}
         </article>

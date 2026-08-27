@@ -62,6 +62,16 @@ test("routes catering and grants to stewardship", () => {
   assert.equal(route.confidence, "high");
 });
 
+test("routes vocational placements and PFMP to the DDFPT queue", () => {
+  const route = routeSupportRequest({
+    category: "orientation_formation",
+    description: "Je cherche une entreprise pour ma PFMP en voie professionnelle",
+  });
+  assert.equal(route.service, "ddfpt");
+  assert.equal(route.confidence, "high");
+  assert.equal(route.reason, "formation_professionnelle_ou_stage");
+});
+
 test("keeps unknown requests in a human qualification queue", () => {
   const route = routeSupportRequest({
     category: "autre",

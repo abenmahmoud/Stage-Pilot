@@ -7,17 +7,20 @@ import {
   supportMessages,
   supportRequests,
 } from "../../../../../db/schema.js";
-import { HttpError, requireRole } from "../../../../_shared/auth.js";
+import { HttpError } from "../../../../_shared/auth.js";
 import { handleApi, methodNotAllowed } from "../../../../_shared/response.js";
 import { idempotencyKey, sha256 } from "../../../../_shared/support.js";
+import {
+  assertSupportRequestAccess,
+  requireSupportAgent,
+} from "../../../../_shared/support-agent-access.js";
 
-const AGENT_ROLES = ["superadmin", "administration", "proviseur"];
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== "POST") return methodNotAllowed(res, ["POST"]);
 
   return handleApi(res, async () => {
-    const user = await requireRole(req, AGENT_ROLES);
+    const { user, access } = await requireSupportAgent(req);
     const code = Array.isArray(req.query.code) ? req.query.code[0] : req.query.code;
     if (!code || !/^BC-\d{4}-\d{6}$/.test(code)) {
       throw new HttpError(400, "Numéro de demande invalide");
@@ -30,11 +33,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (!note || note.length > 5000) throw new HttpError(400, "Note invalide");
 
     const [request] = await db
-      .select({ id: supportRequests.id })
+      .select({ id: supportRequests.id, assignedTeam: supportRequests.assignedTeam })
       .from(supportRequests)
       .where(eq(supportRequests.publicCode, code))
       .limit(1);
     if (!request) throw new HttpError(404, "Demande introuvable");
+    assertSupportRequestAccess(access, request.assignedTeam);
 
     const idempotencyHash = sha256(idempotencyKey(req));
     const result = await db.transaction(async (tx) => {

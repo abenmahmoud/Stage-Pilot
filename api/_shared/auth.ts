@@ -5,7 +5,7 @@ import type { VercelRequest } from "@vercel/node";
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL ?? process.env.VITE_SUPABASE_URL ?? "";
 const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY ?? "";
 const requireAgentMfa = process.env.REQUIRE_AGENT_MFA === "true";
-const agentMfaRoles = new Set(["superadmin", "administration", "proviseur"]);
+const agentMfaRoles = new Set(["superadmin", "administration", "agent", "proviseur"]);
 
 /**
  * Client admin avec service_role — bypass RLS.
@@ -57,7 +57,7 @@ export async function requireUser(req: VercelRequest): Promise<AuthUser> {
 
 export async function requireRole(
   req: VercelRequest,
-  allowedRoles: string[]
+  allowedRoles: readonly string[]
 ): Promise<AuthUser> {
   const user = await requireUser(req);
   if (!allowedRoles.includes(user.role)) {

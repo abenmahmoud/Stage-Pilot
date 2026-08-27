@@ -18,6 +18,7 @@ test("limits historical administration pages to administration roles", () => {
 test("allows the direction and administration into agent tools", () => {
   assert.equal(roleIsAllowed("superadmin", AGENT_ROLES), true);
   assert.equal(roleIsAllowed("administration", AGENT_ROLES), true);
+  assert.equal(roleIsAllowed("agent", AGENT_ROLES), true);
   assert.equal(roleIsAllowed("proviseur", AGENT_ROLES), true);
   assert.equal(roleIsAllowed("pp", AGENT_ROLES), false);
   assert.equal(roleIsAllowed("eleve", AGENT_ROLES), false);

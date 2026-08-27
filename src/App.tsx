@@ -6,7 +6,7 @@ import { ROLE_HOME } from "./lib/types";
 import { AGENT_MFA_ENFORCED, isAgentRole } from "./lib/auth-policy";
 import {
   ADMINISTRATION_ROLES,
-  AGENT_ROLES,
+  CONTENT_MANAGER_ROLES,
   roleIsAllowed,
 } from "../shared/role-access";
 import type { LyceeGestRole } from "../shared/role-access";
@@ -213,7 +213,7 @@ export default function App() {
           <Route
             path="admin/contenus"
             element={
-              <RoleRoute allowedRoles={AGENT_ROLES}>
+              <RoleRoute allowedRoles={CONTENT_MANAGER_ROLES}>
                 <ContentManagerPage />
               </RoleRoute>
             }
@@ -221,7 +221,7 @@ export default function App() {
           <Route
             path="admin/parametres"
             element={
-              <RoleRoute allowedRoles={AGENT_ROLES}>
+              <RoleRoute allowedRoles={CONTENT_MANAGER_ROLES}>
                 <ParametresPage />
               </RoleRoute>
             }

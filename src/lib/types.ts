@@ -1,6 +1,7 @@
 export type UserRole =
   | "superadmin"
   | "administration"
+  | "agent"
   | "pp"
   | "professeur"
   | "proviseur"
@@ -17,6 +18,7 @@ export interface AppUser {
 export const ROLE_LABELS: Record<UserRole, string> = {
   superadmin: "Super Admin",
   administration: "Administration",
+  agent: "Agent du lycée",
   pp: "Professeur Principal",
   professeur: "Professeur",
   proviseur: "Proviseur",
@@ -26,6 +28,7 @@ export const ROLE_LABELS: Record<UserRole, string> = {
 export const ROLE_HOME: Record<UserRole, string> = {
   superadmin: "/admin",
   administration: "/stages",
+  agent: "/prototype?view=agent",
   pp: "/stages",
   professeur: "/stages",
   proviseur: "/grand-oral",

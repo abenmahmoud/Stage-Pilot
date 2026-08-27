@@ -1,11 +1,15 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { and, asc, eq, ilike, or, sql, type SQL } from "drizzle-orm";
+import { and, asc, eq, ilike, inArray, or, sql, type SQL } from "drizzle-orm";
 import { db } from "../../../../db/index.js";
 import { supportRequests } from "../../../../db/schema.js";
-import { requireRole } from "../../../_shared/auth.js";
+import { HttpError } from "../../../_shared/auth.js";
 import { handleApi, methodNotAllowed } from "../../../_shared/response.js";
+import { requireSupportAgent } from "../../../_shared/support-agent-access.js";
+import {
+  SUPPORT_SERVICES,
+  type SupportService,
+} from "../../../../shared/support-agent-access.js";
 
-const AGENT_ROLES = ["superadmin", "administration", "proviseur"];
 const VALID_STATUSES = new Set([
   "nouveau",
   "a_qualifier",
@@ -17,14 +21,7 @@ const VALID_STATUSES = new Set([
   "clos",
   "indesirable",
 ]);
-const VALID_SERVICES = new Set([
-  "referent_numerique",
-  "secretariat",
-  "vie_scolaire",
-  "intendance",
-  "direction",
-  "administration",
-]);
+const VALID_SERVICES = new Set<string>(SUPPORT_SERVICES);
 
 function queryValue(value: string | string[] | undefined): string {
   return Array.isArray(value) ? value[0] ?? "" : value ?? "";
@@ -34,7 +31,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== "GET") return methodNotAllowed(res, ["GET"]);
 
   return handleApi(res, async () => {
-    const user = await requireRole(req, AGENT_ROLES);
+    const { user, access } = await requireSupportAgent(req);
     const page = Math.max(1, Number.parseInt(queryValue(req.query.page), 10) || 1);
     const pageSize = Math.min(50, Math.max(10, Number.parseInt(queryValue(req.query.pageSize), 10) || 30));
     const search = queryValue(req.query.q).trim().slice(0, 80);
@@ -43,6 +40,20 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const mineOnly = queryValue(req.query.assigned) === "me";
     const service = queryValue(req.query.service);
     const filters: SQL[] = [];
+    const accessFilter = access.canViewAll
+      ? undefined
+      : inArray(supportRequests.assignedTeam, access.serviceCodes);
+    if (accessFilter) filters.push(accessFilter);
+    if (service && !VALID_SERVICES.has(service)) {
+      throw new HttpError(400, "Service invalide");
+    }
+    if (
+      service &&
+      !access.canViewAll &&
+      !access.serviceCodes.includes(service as SupportService)
+    ) {
+      throw new HttpError(403, "Ce service n'appartient pas à votre périmètre");
+    }
     const serviceFilter = VALID_SERVICES.has(service)
       ? eq(supportRequests.assignedTeam, service)
       : undefined;
@@ -98,6 +109,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       .from(supportRequests)
       .where(where);
 
+    const statsWhere = [accessFilter, serviceFilter].filter((value): value is SQL => Boolean(value));
     const statsQuery = db.select({
       total: sql<number>`count(*)::int`,
       new: sql<number>`count(*) filter (where ${supportRequests.status} in ('nouveau', 'a_qualifier'))::int`,
@@ -107,13 +119,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       waitingRequester: sql<number>`count(*) filter (where ${supportRequests.status} = 'attente_demandeur')::int`,
       unassigned: sql<number>`count(*) filter (where ${supportRequests.assignedTo} is null and ${supportRequests.status} not in ('resolu', 'clos', 'indesirable'))::int`,
       overdue: sql<number>`count(*) filter (where ${supportRequests.slaDueAt} < now() and ${supportRequests.status} not in ('resolu', 'clos', 'indesirable'))::int`,
-    }).from(supportRequests).where(serviceFilter);
+    }).from(supportRequests).where(statsWhere.length ? and(...statsWhere) : undefined);
 
     const [requests, [totalRow], [statsRow]] = await Promise.all([requestQuery, totalQuery, statsQuery]);
     const total = totalRow?.count ?? 0;
 
     return {
       requests,
+      access,
       stats: statsRow ?? { total: 0, new: 0, qualify: 0, urgent: 0, active: 0, waitingRequester: 0, unassigned: 0, overdue: 0 },
       pagination: { page, pageSize, total, totalPages: Math.max(1, Math.ceil(total / pageSize)) },
     };

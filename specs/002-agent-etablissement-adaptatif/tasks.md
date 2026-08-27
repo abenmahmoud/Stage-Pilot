@@ -77,6 +77,11 @@
 - [ ] T027C Créer les adhésions de service puis appliquer le périmètre dans les
   API et les politiques RLS ; le filtre d'interface seul n'est pas une barrière
   d'autorisation.
+- [x] T027C1 Appliquer en preview une politique serveur centralisée à toutes les
+  API de demandes : superadmin/direction complets, DDFPT, administration et vie
+  scolaire cloisonnés par métadonnées signées, pièces et notes comprises.
+- [ ] T027C2 Persister ces périmètres dans `institution_memberships`, ajouter les
+  politiques RLS, puis tester les comptes nominatifs avec MFA avant le pilote.
 - [ ] T028 N'afficher une réussite qu'après `confirmed_at` fourni par l'outil.
 - [ ] T029 Ajouter formulaire classique et création de demande sans dépendance à l'IA.
 - [ ] T030 Ajouter mesure du coût, de la latence, des transferts et des corrections.

@@ -87,6 +87,10 @@ l'autorisation de quota définie par le propriétaire.
   sans responsable et échéances dépassées, marqueurs par dossier et ordre par
   priorité puis échéance enregistrée. Les relances et escalades restent bloquées
   jusqu'à la validation des délais métier et des responsables de chaque service.
+- Lot N5A : périmètres de traitement par service. **Politique serveur de preview
+  implémentée et testée** : superadmin/direction complets, DDFPT, administration
+  et vie scolaire cloisonnés sur liste, détail, réponse, note et pièce jointe.
+  La persistance dans les adhésions et les RLS reste obligatoire avant comptes réels.
 - Lot N6 : tests de non-régression, build, contrôle mobile et rapport d'écarts.
 
 ## Portes de validation humaine

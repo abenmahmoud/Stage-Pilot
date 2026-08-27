@@ -1,17 +1,20 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { eq } from "drizzle-orm";
 import { db } from "../../../../db/index.js";
-import { supportAttachments } from "../../../../db/schema.js";
-import { HttpError, requireRole, supabaseAdmin } from "../../../_shared/auth.js";
+import { supportAttachments, supportRequests } from "../../../../db/schema.js";
+import { HttpError, supabaseAdmin } from "../../../_shared/auth.js";
 import { handleApi, methodNotAllowed } from "../../../_shared/response.js";
+import {
+  assertSupportRequestAccess,
+  requireSupportAgent,
+} from "../../../_shared/support-agent-access.js";
 
-const AGENT_ROLES = ["superadmin", "administration", "proviseur"];
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== "GET") return methodNotAllowed(res, ["GET"]);
 
   return handleApi(res, async () => {
-    await requireRole(req, AGENT_ROLES);
+    const { access } = await requireSupportAgent(req);
     const id = Array.isArray(req.query.id) ? req.query.id[0] : req.query.id;
     if (!id || !/^[0-9a-f-]{36}$/i.test(id)) throw new HttpError(400, "Pièce jointe invalide");
     const [attachment] = await db
@@ -20,11 +23,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         storageBucket: supportAttachments.storageBucket,
         storagePath: supportAttachments.storagePath,
         scanStatus: supportAttachments.scanStatus,
+        assignedTeam: supportRequests.assignedTeam,
       })
       .from(supportAttachments)
+      .innerJoin(supportRequests, eq(supportRequests.id, supportAttachments.requestId))
       .where(eq(supportAttachments.id, id))
       .limit(1);
     if (!attachment) throw new HttpError(404, "Pièce jointe introuvable");
+    assertSupportRequestAccess(access, attachment.assignedTeam);
     if (attachment.scanStatus !== "clean") {
       throw new HttpError(423, "Le fichier n'est pas encore disponible");
     }
