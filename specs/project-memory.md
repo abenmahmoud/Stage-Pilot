@@ -1,8 +1,8 @@
 # Memoire durable - Portail numerique du Lycee Blaise Cendrars
 
-**Derniere mise a jour** : 26 aout 2026  
-**Branche de travail** : `codex/lycee-connect-prototype`  
-**Depot** : `abenmahmoud/Stage-Pilot`  
+**Derniere mise a jour** : 27 aout 2026
+**Branche de travail** : `codex/lycee-connect-prototype`
+**Depot** : `abenmahmoud/Stage-Pilot`
 **Dernier jalon de code verifie** : traitement complet des dossiers par l'agent
 
 ## 1. Fonction de cette memoire
@@ -75,6 +75,9 @@ sa specification.
 - Traitement agent avec transfert par service, notes internes invisibles pour
   l'usager, cloture motivee, reouverture et modeles de reponse a variables
   limitees.
+- Premier pré-triage déterministe des ordinateurs portables : danger matériel,
+  perte/vol, dommage, alimentation, réseau et logiciel. Il ne remplace pas la
+  procédure locale de réparation, encore attendue.
 - Trois niveaux visibles : coordonnees declarees, contact verifie, identite
   confirmee. Les demandes de codes restent bloquees sans confirmation.
 - Envoi email sortant durable et enregistrement des evenements de livraison.
@@ -111,8 +114,9 @@ sa specification.
 
 - Le retour email complet dans le meme fil et les pieces entrantes dependent
   encore de la configuration du domaine entrant et des tests de webhook.
-- La console montre le traitement, mais notes internes, transfert, cloture motivee
-  et modeles de reponse ne sont pas termines.
+- Le traitement agent, les notes internes, le transfert, la clôture motivée et
+  les modèles de réponse sont terminés dans la preview ; il reste à les éprouver
+  avec des comptes nominatifs et des scénarios réels contrôlés.
 - Les formations et informations utiles sont partiellement reprises; l'ancien
   site n'est pas integralement migre ni remplace.
 - Les workers Brevo et antivirus sont documentes comme installes dans les specs;
@@ -231,6 +235,8 @@ sa specification.
 - Ajouter mesures de qualite, cout, latence, transferts et corrections.
 - Construire le registre de sources officielles datees pour que les reponses de
   procedure restent a jour; cette partie n'est pas encore terminee.
+- Ordre métier actuel : ordinateur portable, emplois du temps privés, puis codes
+  ENT lorsque l'accès administrateur du référent sera ouvert.
 
 ### Priorite D - Donnees et integrations
 
@@ -273,9 +279,10 @@ taches et analyse de coherence avant une automatisation sensible.
 
 ## 8. Prochain ordre recommande
 
-1. Terminer les fonctions agent et le retour email du guichet `001`.
-2. Fermer les ecarts securite, sauvegarde, tests et protection des donnees.
-3. Recueillir les procedures metier et definir les trois premieres competences
-   du pilote `002`.
-4. Importer ensuite les donnees validees et tester l'agent sur un petit groupe.
-5. Migrer le reste du site et envisager la bascule seulement apres convergence.
+1. Publier et tester le pré-triage ordinateur portable avec des données fictives.
+2. Construire l'import privé et réversible des emplois du temps, sans déposer les
+   PDF réels avant validation du stockage et des habilitations.
+3. Reprendre le skill ENT après ouverture de l'accès administrateur du référent.
+4. Terminer le retour email, la sauvegarde, les tests de charge et les comptes
+   agents nominatifs.
+5. Migrer le reste du site et envisager la bascule seulement après convergence.

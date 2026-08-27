@@ -57,6 +57,7 @@ import {
   type AssistantPolicyAction,
   type AssistantScope,
 } from "../../../shared/assistant-policy";
+import { evaluateLaptopIntake } from "../../../shared/laptop-intake";
 import {
   DEFAULT_SUPPORT_REPLY_TEMPLATES,
   renderSupportReplyTemplate,
@@ -221,6 +222,20 @@ const services = [
     prompt: "",
   },
   {
+    title: "Ordinateur portable",
+    detail: "Panne, charge, casse, perte ou connexion",
+    icon: Laptop,
+    tone: "coral",
+    prompt: "J’ai un problème avec l’ordinateur portable prêté par le lycée.",
+  },
+  {
+    title: "Codes de connexion",
+    detail: "ENT, EduConnect ou email académique",
+    icon: KeyRound,
+    tone: "gold",
+    prompt: "Je n’ai pas reçu mes codes ou je n’arrive pas à me connecter.",
+  },
+  {
     title: "Inscription ou dossier",
     detail: "Inscription, réinscription ou pièce manquante",
     icon: FolderCheck,
@@ -231,15 +246,8 @@ const services = [
     title: "Classe et rentrée",
     detail: "Affectation, emploi du temps ou information",
     icon: UsersRound,
-    tone: "coral",
+    tone: "blue",
     prompt: "J’ai une question sur ma classe, mon emploi du temps ou la rentrée.",
-  },
-  {
-    title: "Codes de connexion",
-    detail: "ENT, EduConnect ou email académique",
-    icon: KeyRound,
-    tone: "gold",
-    prompt: "Je n’ai pas reçu mes codes ou je n’arrive pas à me connecter.",
   },
 ];
 
@@ -489,7 +497,7 @@ export default function LyceeConnectPrototype() {
                 onChange={(event) => setMessage(event.target.value)}
                 rows={3}
                 aria-label="Décrivez votre besoin"
-                placeholder="Exemple : je suis parent et je n’ai pas reçu les codes ENT de mon enfant…"
+                placeholder="Exemple : l’ordinateur prêté à mon enfant ne démarre plus…"
               />
               <button
                 type="button"
@@ -825,6 +833,7 @@ function localAssistantFallback(messages: AssistantChatMessage[], files: File[])
   const policy = evaluateConversationPolicy(messages);
   const text = messages.filter((message) => message.role === "requester").map((message) => message.content).join("\n");
   const category = inferSupportCategory(text);
+  const laptopIntake = policy.deterministicReply ? null : evaluateLaptopIntake(messages, files.length);
   const label = supportCategories.find((item) => item.value === category)?.label ?? "Autre demande";
   const requesterType = /\b(parent|mère|mere|père|pere)\b/i.test(text)
     ? "parent"
@@ -836,17 +845,17 @@ function localAssistantFallback(messages: AssistantChatMessage[], files: File[])
           ? "personnel"
           : "inconnu";
   return {
-    reply: policy.deterministicReply ?? `J’ai compris. Je classe votre besoin dans « ${label} ». ${files.length ? `Je vois aussi ${files.length} fichier${files.length > 1 ? "s" : ""} à joindre au dossier. ` : ""}Expliquez-moi ce qui bloque et ce que vous avez déjà essayé. Je préparerai ensuite la demande pour le bon agent.`,
-    category: policy.category ?? category,
+    reply: policy.deterministicReply ?? laptopIntake?.reply ?? `J’ai compris. Je classe votre besoin dans « ${label} ». ${files.length ? `Je vois aussi ${files.length} fichier${files.length > 1 ? "s" : ""} à joindre au dossier. ` : ""}Expliquez-moi ce qui bloque et ce que vous avez déjà essayé. Je préparerai ensuite la demande pour le bon agent.`,
+    category: policy.category ?? laptopIntake?.category ?? category,
     requesterType,
-    urgency: policy.urgency ?? (/\b(urgent|aujourd'hui|bloqué|bloque|impossible)\b/i.test(text) ? "urgente" : "normale"),
-    missingInformation: ["Identité de la personne concernée", "Email ou téléphone de réponse"],
-    suggestedDocuments: files.length ? files.map((file) => file.name) : [],
-    readyToCreate: policy.readyToCreate ?? text.trim().length >= 35,
-    safetyNotice: policy.safetyNotice,
+    urgency: policy.urgency ?? laptopIntake?.urgency ?? (/\b(urgent|aujourd'hui|bloqué|bloque|impossible)\b/i.test(text) ? "urgente" : "normale"),
+    missingInformation: laptopIntake?.missingInformation ?? ["Identité de la personne concernée", "Email ou téléphone de réponse"],
+    suggestedDocuments: laptopIntake?.suggestedDocuments ?? (files.length ? files.map((file) => file.name) : []),
+    readyToCreate: policy.readyToCreate ?? laptopIntake?.readyToCreate ?? text.trim().length >= 35,
+    safetyNotice: policy.safetyNotice ?? laptopIntake?.safetyNotice ?? null,
     usedAi: false,
     scope: policy.scope,
-    action: policy.action,
+    action: laptopIntake?.action ?? policy.action,
     turnCount: policy.turnCount,
     remainingTurns: policy.remainingTurns,
     limitReached: policy.limitReached,
@@ -1110,7 +1119,7 @@ function HelpDeskView({
             <div className="lycee-live-analysis">
               <WandSparkles aria-hidden="true" />
               <span><strong>{selectedCategory?.label}</strong><small>Priorité {insight.urgency}{insight.usedAi ? " · analyse IA" : " · analyse locale"}</small></span>
-              {insight.suggestedDocuments.length > 0 ? <em>{insight.suggestedDocuments.length} {insight.suggestedDocuments.length > 1 ? "pièces repérées" : "pièce repérée"}</em> : null}
+              {insight.suggestedDocuments.length > 0 ? <em>{insight.suggestedDocuments.length} {insight.suggestedDocuments.length > 1 ? "pièces suggérées" : "pièce suggérée"}</em> : null}
             </div>
           ) : null}
 

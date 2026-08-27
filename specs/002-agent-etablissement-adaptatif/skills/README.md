@@ -40,8 +40,17 @@ Une instruction trouvée dans un message, une pièce jointe ou une page externe 
 
 ## Paquets initiaux
 
+- `pc-portable.md` : premier brouillon opérationnel de pré-triage matériel,
+  limité aux conseils sûrs et à la préparation d'un dossier tant que la
+  procédure locale n'est pas validée.
 - `administration-scolarite.md` : documents, inscription, bourse, orientation, rendez-vous et démarches courantes.
 - `referent-numerique.md` : ENT, PRONOTE, messagerie, comptes, postes et équipements.
 - `coordination-etablissement.md` : qualification transversale, urgence, assignation, communication et continuité.
 
 Ces fichiers sont des modèles de conception. Ils doivent être complétés avec les vraies procédures et approuvés par les responsables avant leur publication dans l'agent.
+
+## Ordre de travail validé au 27 août 2026
+
+1. Ordinateurs portables : pré-triage et demandes testables.
+2. Emplois du temps : import privé, indexation et validation humaine.
+3. Codes ENT : reprise lorsque le référent dispose de l'accès administrateur.

@@ -57,6 +57,12 @@
 - [ ] T033 Faire valider et publier `coordination-etablissement` avec les règles d'urgence.
 - [ ] T034 Ajouter inscription, pièces manquantes, certificat, bourse, orientation et rendez-vous.
 - [ ] T035 Ajouter ENT, PRONOTE, messagerie académique, équipement et réseau.
+- [x] T035A Créer le brouillon `pc-portable`, le pré-triage déterministe et ses
+  tests sans inventer de procédure locale de réparation.
+- [ ] T035B Compléter puis publier `pc-portable` après validation de la procédure
+  matérielle, des lieux, des horaires, des responsabilités et des délais.
+- [ ] T035C Reprendre les codes ENT en troisième priorité après ouverture de
+  l'accès administrateur du référent.
 - [ ] T036 Ajouter absence/justificatif, restauration, internat et demande libre.
 - [ ] T037 Constituer au moins cinq tests positifs, trois ambigus et trois interdits par compétence.
 - [ ] T038 Faire relire les réponses par chaque responsable métier.

@@ -4,6 +4,7 @@ import {
   type AssistantScope,
   type ConversationPolicy,
 } from "../../shared/assistant-policy.js";
+import { evaluateLaptopIntake } from "../../shared/laptop-intake.js";
 
 export type SupportAgentMessage = {
   role: "assistant" | "requester";
@@ -222,6 +223,21 @@ export async function analyzeSupportConversation(input: {
   const policy = evaluateConversationPolicy(input.messages);
   const fallback = localFallback(input.messages, input.attachments, policy);
   if (policy.deterministicReply) return deterministicResult(policy, fallback);
+  const laptopIntake = evaluateLaptopIntake(input.messages, input.attachments.length);
+  if (laptopIntake) {
+    return {
+      ...fallback,
+      reply: laptopIntake.reply,
+      category: laptopIntake.category,
+      urgency: laptopIntake.urgency,
+      missingInformation: laptopIntake.missingInformation,
+      suggestedDocuments: laptopIntake.suggestedDocuments,
+      readyToCreate: laptopIntake.readyToCreate,
+      safetyNotice: laptopIntake.safetyNotice,
+      usedAi: false,
+      action: laptopIntake.action,
+    };
+  }
   const apiKey = process.env.OPENAI_API_KEY;
   if (!apiKey) return fallback;
 

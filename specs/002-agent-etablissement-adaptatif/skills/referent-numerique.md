@@ -48,6 +48,10 @@ supersedes: null
 
 # Référent numérique
 
+Le pré-triage des ordinateurs portables est détaillé dans `pc-portable.md`.
+Les codes ENT restent au stade de préparation de demande tant que l'accès
+administrateur nécessaire n'est pas ouvert au référent.
+
 ## Objectif
 
 Résoudre rapidement les incidents numériques simples et transmettre les autres au bon niveau avec un diagnostic utile, sans manipuler de secret ni accorder de droit de manière autonome.
