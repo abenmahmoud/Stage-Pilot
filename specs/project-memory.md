@@ -164,6 +164,11 @@ sa specification.
 
 - Preview Vercel protegee :
   `lyceegest-git-codex-lycee-connect-prototype-safe-scol.vercel.app`.
+- Le jalon d'accès agent `531eaa8` est publié dans la preview
+  `lyceegest-36ldyhuew-safe-scol.vercel.app`. L'accueil, la connexion du
+  personnel et la récupération répondent en HTTP 200 ; l'API agent refuse une
+  visite non connectée en HTTP 401. La recette contrôlée est documentée dans
+  `docs/operations/PILOT_RECIPE_2026-08-27.md`.
 - Le durcissement identite/reprise `74ee3e2` a ete publie sur la preview
   `lyceegest-f0lsl9bje-safe-scol.vercel.app`, puis valide par requetes reelles.
 - Le site officiel Hostinger, le domaine principal, les DNS et le VPS n'ont pas
