@@ -9,6 +9,11 @@ import {
 } from "../../db/schema.js";
 import { HttpError } from "./auth.js";
 import { routeSupportRequest, type SupportRoute } from "../../shared/support-routing.js";
+import {
+  normalizeSupportConversation,
+  SupportConversationValidationError,
+  type SupportConversationTurn,
+} from "../../shared/support-conversation.js";
 
 export const SUPPORT_COOKIE = "bc_support_session";
 export const SUPPORT_SESSION_DAYS = 30;
@@ -59,6 +64,7 @@ export type SupportRequestInput = {
   email: string | null;
   phone: string | null;
   routing: SupportRoute;
+  conversation: SupportConversationTurn[];
 };
 
 function cleanText(value: unknown, field: string, maxLength: number): string {
@@ -129,6 +135,15 @@ export function parseSupportRequest(body: unknown): SupportRequestInput {
   const subject = cleanText(input.subject, "Objet", 180);
   const description = cleanText(input.description, "Description", 5000);
   const routing = routeSupportRequest({ category, subject, description });
+  let conversation: SupportConversationTurn[];
+  try {
+    conversation = normalizeSupportConversation(input.conversation);
+  } catch (error) {
+    if (error instanceof SupportConversationValidationError) {
+      throw new HttpError(400, error.message);
+    }
+    throw error;
+  }
 
   if (!email && !phone) {
     throw new HttpError(400, "Indiquez un email ou un téléphone pour recevoir la réponse");
@@ -186,6 +201,7 @@ export function parseSupportRequest(body: unknown): SupportRequestInput {
     email,
     phone,
     routing,
+    conversation,
   };
 }
 

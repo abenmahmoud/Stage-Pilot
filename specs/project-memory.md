@@ -3,7 +3,7 @@
 **Derniere mise a jour** : 27 aout 2026
 **Branche de travail** : `codex/lycee-connect-prototype`
 **Depot** : `abenmahmoud/Stage-Pilot`
-**Dernier jalon de code verifie** : parcours de démonstration emploi du temps sécurisé
+**Dernier jalon de code verifie** : espaces agents cloisonnes et continuite du chat
 
 ## Decision du 27 aout 2026 - espaces de traitement
 
@@ -14,6 +14,9 @@
   classer une demande sans service ou la transferer.
 - La politique de preview utilise des metadonnees serveur signees. Les adhesions
   persistees et les RLS restent a construire avant les comptes reels.
+- Lorsqu'un chat devient une demande, le dialogue utile est conserve dans l'ordre
+  dans le dossier. Les messages automatiques restent identifies comme tels dans
+  le suivi public et la console agent.
 - Le lancement Claude autorise pour l'audit cible du 27 aout s'est arrete sans
   rapport exploitable a cause de sa limite de contexte. Aucune conclusion externe
   ni relance n'a ete retenue.

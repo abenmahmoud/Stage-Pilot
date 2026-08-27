@@ -91,6 +91,9 @@ l'autorisation de quota définie par le propriétaire.
   implémentée et testée** : superadmin/direction complets, DDFPT, administration
   et vie scolaire cloisonnés sur liste, détail, réponse, note et pièce jointe.
   La persistance dans les adhésions et les RLS reste obligatoire avant comptes réels.
+- Lot N5B : continuité assistant-dossier. **Implémentée et testée** : le dialogue
+  utile est conservé message par message dans l'ordre, les réponses automatiques
+  restent identifiées et le même fil est visible par l'usager et l'agent.
 - Lot N6 : tests de non-régression, build, contrôle mobile et rapport d'écarts.
 
 ## Portes de validation humaine

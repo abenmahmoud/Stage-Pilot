@@ -58,9 +58,13 @@ et ne clôture pas un dossier sans validation humaine.
 20. Une personne peut écrire dans sa langue ou demander un français simple. Ce
     besoin est conservé dans le dossier et visible par l'agent sans diminuer le
     niveau de vérification d'identité.
-21. Le site officiel ne peut être remplacé qu'après reprise, correction et
+21. Lorsqu'une conversation avec l'assistant devient une demande, les messages
+    utiles du demandeur et de l'assistant sont conservés dans l'ordre dans le fil
+    du dossier. L'assistant reste identifié comme tel et ses réponses ne sont pas
+    présentées comme une décision validée par un agent humain.
+22. Le site officiel ne peut être remplacé qu'après reprise, correction et
     validation de toutes ses rubriques utiles, de ses documents et de ses liens.
-22. Une page de confiance explique en langage simple les données demandées, les
+23. Une page de confiance explique en langage simple les données demandées, les
     protections réellement actives, les secrets à ne jamais transmettre et le
     caractère de préproduction tant que la direction et le DPO n'ont pas validé
     les mentions définitives et les durées de conservation.

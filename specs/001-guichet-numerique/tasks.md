@@ -46,6 +46,9 @@ quarantaine. Une panne d'envoi externe n'affecte pas le dossier.
 ## Jour 2 - Conversation et travail agent
 
 - [x] **T013** Relier la conversation libre du prototype aux vraies API.
+- [x] **T013A** Conserver le dialogue utile demandeur-assistant message par
+  message lors de la création du dossier, avec ordre stable, auteur explicite et
+  mention visible des réponses automatiques.
 - [x] **T014** Ajouter la distinction demandeur/bénéficiaire et le contexte de
   chaque fichier.
 - [ ] **T015** Ajouter IndexedDB pour brouillons et liste des dossiers du terminal.

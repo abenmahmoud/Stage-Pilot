@@ -177,23 +177,38 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           : [];
         const emailContact = insertedContacts.find((contact) => contact.channel === "email");
 
-        const [message] = await tx
-          .insert(supportMessages)
-          .values({
-            requestId: created.id,
-            direction: "inbound",
-            channel: "web",
-            authorLabel: `${input.requesterFirstName} ${input.requesterLastName}`,
-            bodyText: input.description,
-          })
-          .returning({ id: supportMessages.id });
+        const requesterLabel = `${input.requesterFirstName} ${input.requesterLastName}`;
+        const transcript = input.conversation.length > 0
+          ? input.conversation
+          : [{ role: "requester" as const, content: input.description }];
+        const transcriptCreatedAt = Date.now();
+        const messageRows = transcript.map((turn, index) => ({
+          id: randomUUID(),
+          requestId: created.id,
+          direction: turn.role === "requester" ? "inbound" : "outbound",
+          channel: "web",
+          authorLabel: turn.role === "requester" ? requesterLabel : "Assistant du lycée",
+          bodyText: turn.content,
+          deliveryStatus: "stored",
+          createdAt: new Date(transcriptCreatedAt + index),
+        }));
+        await tx.insert(supportMessages).values(messageRows);
+        const sourceMessage = [...messageRows]
+          .reverse()
+          .find((message) => message.direction === "inbound");
+        if (!sourceMessage) throw new Error("Support request transcript has no requester message");
 
         await tx.insert(supportEvents).values({
           requestId: created.id,
           eventType: "request.created",
           actorType: "requester",
           actorId: session.id,
-          toValue: { status: "nouveau", messageId: message.id },
+          toValue: {
+            status: created.status,
+            messageId: sourceMessage.id,
+            messageCount: messageRows.length,
+            conversationCaptured: input.conversation.length > 0,
+          },
           correlationId,
         });
 
@@ -217,7 +232,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
                 'job_id', ${requesterJobId}::uuid,
                 'job_type', 'notify_requester_request_created',
                 'request_id', ${created.id}::uuid,
-                'message_id', ${message.id}::uuid,
+                'message_id', ${sourceMessage.id}::uuid,
                 'contact_id', ${emailContact.id}::uuid,
                 'access_token', ${rawAccessToken}::text,
                 'idempotency_key', ${`requester-request-created:${created.id}`}::text,
@@ -234,7 +249,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
               'job_id', ${agentJobId}::uuid,
               'job_type', 'notify_agent_request_created',
               'request_id', ${created.id}::uuid,
-              'message_id', ${message.id}::uuid,
+              'message_id', ${sourceMessage.id}::uuid,
               'idempotency_key', ${`agent-request-created:${created.id}`}::text,
               'attempt', 0
             )

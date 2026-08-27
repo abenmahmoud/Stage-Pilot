@@ -64,7 +64,8 @@
 - [ ] T024 Construire la recherche limitée aux sources publiées, autorisées et non expirées.
 - [ ] T025 Afficher source et date de mise à jour dans les réponses de procédure.
 - [x] T026 Imposer une question essentielle à la fois et dix tours maximum par session.
-- [ ] T027 Créer ou compléter automatiquement un dossier `001` lors d'un transfert humain.
+- [x] T027 Créer ou compléter automatiquement un dossier `001` lors d'un transfert
+  humain, en conservant le dialogue utile et les pièces sans demander de ressaisie.
 - [x] T027A Ajouter le routage initial déterministe, sa justification, le niveau
   d'identité requis et le filtre de file par service dans la console agent.
 - [ ] T027B Ajouter une file `À qualifier`, les délais par service, la détection
