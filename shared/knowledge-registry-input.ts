@@ -1,8 +1,8 @@
-import { SUPPORT_SERVICES, type SupportService } from "./support-agent-access.ts";
+import { SUPPORT_SERVICES, type SupportService } from "./support-agent-access.js";
 import type {
   KnowledgeClassification,
   SkillEvaluation,
-} from "./skill-registry-policy.ts";
+} from "./skill-registry-policy.js";
 
 export const KNOWLEDGE_SOURCE_TYPES = [
   "official_url",

@@ -11,6 +11,7 @@ const migrationPath = new URL(
   import.meta.url
 );
 const helperPath = new URL("../api/_shared/knowledge-registry.ts", import.meta.url);
+const parserPath = new URL("../shared/knowledge-registry-input.ts", import.meta.url);
 const actionPath = new URL(
   "../api/knowledge/admin/versions/[id]/action.ts",
   import.meta.url
@@ -32,6 +33,13 @@ test("keeps every knowledge registry table server-only", async () => {
   }
   assert.match(sql, /revoke all on table[\s\S]+from public, anon, authenticated/i);
   assert.match(sql, /grant select, insert, update, delete on table[\s\S]+to service_role/i);
+});
+
+test("keeps server imports compatible with the Vercel function bundle", async () => {
+  const parser = await readFile(parserPath, "utf8");
+  assert.match(parser, /from "\.\/support-agent-access\.js"/);
+  assert.match(parser, /from "\.\/skill-registry-policy\.js"/);
+  assert.doesNotMatch(parser, /from "[^\"]+\.ts"/);
 });
 
 test("enforces institution consistency and immutable version references", async () => {
