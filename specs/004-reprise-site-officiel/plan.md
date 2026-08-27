@@ -10,8 +10,9 @@
   scripts sont remplacés par des liens explicites lorsqu'ils sont utiles.
 - **Données** : extension additive de `site_content_items` pour la provenance et
   l'état de vérification.
-- **Import** : commande réservée à la direction, idempotente par clé source,
-  ciblée exclusivement sur la base de preview.
+- **Import** : commande réservée à un éditeur habilité, idempotente par clé
+  source et ciblée exclusivement sur la base de preview. La vérification de la
+  source et la publication restent réservées à la direction.
 - **Médias** : copie progressive dans le bucket privé `site-content`, puis liens
   signés pour la lecture publique validée.
 - **Lecture** : pages publiques par slug, en réutilisant l'API de contenus et le

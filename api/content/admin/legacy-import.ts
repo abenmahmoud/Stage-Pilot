@@ -15,7 +15,7 @@ import {
   readLimitedResponseBytes,
 } from "../../../shared/legacy-import.js";
 import { HttpError, supabaseAdmin } from "../../_shared/auth.js";
-import { requireSitePublisher, SITE_CONTENT_BUCKET } from "../../_shared/site-content.js";
+import { requireSiteEditor, SITE_CONTENT_BUCKET } from "../../_shared/site-content.js";
 import { handleApi, methodNotAllowed } from "../../_shared/response.js";
 
 type LegacyMedia = {
@@ -240,7 +240,7 @@ async function importContent(content: LegacyContent, actorId: string) {
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method === "GET") {
     return handleApi(res, async () => {
-      await requireSitePublisher(req);
+      await requireSiteEditor(req);
       const [media, contents] = await Promise.all([
         db.select({ id: siteContentAssets.id }).from(siteContentAssets)
           .where(like(siteContentAssets.importKey, "wordpress:media:%")).orderBy(asc(siteContentAssets.createdAt)),
@@ -256,7 +256,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
   if (req.method !== "POST") return methodNotAllowed(res, ["GET", "POST"]);
   return handleApi(res, async () => {
-    const user = await requireSitePublisher(req);
+    const user = await requireSiteEditor(req);
     const input = pageInput(req.body);
     const rows = input.phase === "media" ? inventory.media : inventory.contents;
     const selected = rows.slice(input.offset, input.offset + input.limit);
