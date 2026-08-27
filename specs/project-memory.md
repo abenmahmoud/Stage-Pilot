@@ -180,6 +180,11 @@ sa specification.
   personnel et la récupération répondent en HTTP 200 ; l'API agent refuse une
   visite non connectée en HTTP 401. La recette contrôlée est documentée dans
   `docs/operations/PILOT_RECIPE_2026-08-27.md`.
+- Le jalon de routage par service `57b53be` est publié sur la branche de preview.
+  GitHub a confirmé le succès du déploiement Vercel : orientation initiale,
+  statut `À qualifier` pour les faibles confiances, filtre de service et nouvelle
+  feuille de route V2. Il ne crée encore aucun périmètre d'accès par service ;
+  cette barrière attend les comptes nominatifs et les adhésions métier.
 - Le durcissement identite/reprise `74ee3e2` a ete publie sur la preview
   `lyceegest-f0lsl9bje-safe-scol.vercel.app`, puis valide par requetes reelles.
 - Le site officiel Hostinger, le domaine principal, les DNS et le VPS n'ont pas
