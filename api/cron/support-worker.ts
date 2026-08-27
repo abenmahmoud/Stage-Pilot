@@ -12,6 +12,7 @@ import { escapeHtml, sendTransactionalEmail } from "../_shared/brevo.js";
 import { HttpError, secretMatches } from "../_shared/auth.js";
 import { handleApi, methodNotAllowed } from "../_shared/response.js";
 import { resolveSupportNotificationTarget } from "../../shared/support-notification-routing.js";
+import { isReservedTestEmail } from "../../shared/support-test-address.js";
 
 type QueueJob = {
   job_id: string;
@@ -90,6 +91,7 @@ function requesterReplyAddress(publicCode: string): string {
 
 async function deliver(job: QueueJob): Promise<string> {
   const context = await loadEmailContext(job.request_id, job.contact_id);
+  if (isReservedTestEmail(context.email)) return "skipped:test_address";
   const requesterName = `${context.request.requesterFirstName} ${context.request.requesterLastName}`;
   const senderEmail = process.env.SUPPORT_FROM_EMAIL;
   if (!senderEmail) throw new Error("support_from_email_missing");
