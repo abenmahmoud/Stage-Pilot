@@ -1,9 +1,9 @@
 # Memoire durable - Portail numerique du Lycee Blaise Cendrars
 
-**Derniere mise a jour** : 27 aout 2026
+**Derniere mise a jour** : 28 aout 2026
 **Branche de travail** : `codex/lycee-connect-prototype`
 **Depot** : `abenmahmoud/Stage-Pilot`
-**Dernier jalon de code verifie** : adhesions agents persistees en preview isolee
+**Dernier jalon de code verifie** : registre prive de connaissances et versions
 
 ## Decision du 27 aout 2026 - espaces de traitement
 
@@ -88,7 +88,7 @@ Ce chiffre exprime la part de vision non decrite, pas l'avancement technique du
 code. Ne pas inventer ce programme et ne pas annoncer un pourcentage global avant
 sa specification.
 
-## 4. Etat reel au 27 aout 2026
+## 4. Etat reel au 28 aout 2026
 
 ### Operationnel dans la preview protegee
 
@@ -172,6 +172,12 @@ sa specification.
 - Quatre comptes fictifs ephemeres ont valide superadministrateur, DDFPT,
   administration et vie scolaire avec MFA `aal2` et adhesion persistante. Ils
   ont ensuite ete supprimes avec toutes leurs adhesions, sans envoi d'email.
+- Le registre de connaissances dispose de tables privées versionnées, de sources
+  datées, d'évaluations, d'un journal et d'un écran réservé au superadministrateur
+  et à la direction. La publication, le retrait et le retour arrière exigent une
+  session MFA `aal2`. La migration est appliquée uniquement à la base de preview
+  isolée ; les six tables du registre sont vides et aucune donnée réelle n'a été
+  importée.
 
 ### Concu ou partiellement branche
 
@@ -193,9 +199,9 @@ sa specification.
   `docs/audits/CLAUDE_AUDIT_ADJUDICATION_2026-08-26.md`.
 - Le nouveau test de charge nettoyable n'a pas ete relance sur ce poste, faute
   d'URL de connexion directe a la base de preview dans l'environnement local.
-- L'agent V2 possede une specification, un plan et des taches. Hormis certains
-  controles du guichet deja reutilisables, son registre de competences et son
-  orchestrateur ne sont pas encore developpes.
+- L'agent V2 possede une specification, un plan et des taches. Son registre de
+  competences est maintenant persiste et administrable ; son orchestrateur ne
+  consomme pas encore les seules versions publiees.
 - La matrice d'accès V2 est implémentée et testée sur objets fictifs : un contact
   vérifié ne devient jamais une identité scolaire, les relations propres ou
   parent-enfant doivent être actives, les établissements et services sont
@@ -204,11 +210,15 @@ sa specification.
   usagers, OTP de contact, tables d'identite scolaire, annuaire prive et leurs
   RLS restent a construire ; aucune donnee reelle ne doit dependre de la matrice
   fictive seule.
-- La politique centrale du futur registre est maintenant implementee sur objets
-  fictifs : publication refusee sans proprietaire, source actuelle, revue
-  independante et tests; acces aux sources limite par etablissement, role,
-  service et outil; expiration et retour a une version publiee precedente. Les
-  tables, l'ecran de publication et le worker d'expiration restent a construire.
+- La politique centrale du registre est branchée sur les tables et l'écran de
+  preview : publication refusée sans propriétaire, source actuelle, revue
+  indépendante lorsque requise et tests ; accès limité par établissement et
+  rôle ; révocation d'une source et retour à une version publiée précédente.
+  Le worker d'expiration et la consommation du registre par l'orchestrateur
+  restent à construire.
+- Un essai manuel a montré que l'assistant pouvait répondre sans créer la demande
+  attendue. La recette intégrée chat, dossier, suivi et console est rouverte et
+  doit être corrigée avant de déclarer le parcours agent prêt au pilote.
 - La feuille de route détaillée des comptes, files, compétences, emplois du
   temps, contenu, charge et pilote est dans
   `002-agent-etablissement-adaptatif/execution-roadmap.md`.
@@ -325,13 +335,14 @@ sa specification.
 
 - Nommer les responsables metier et inventorier les procedures reelles.
 - Definir les niveaux L0 a L4 et les validations attendues.
-- Construire le registre de competences, les sources datees, les tests, le moteur
-  de regles et la boite de validation.
+- Terminer le worker d'expiration, brancher l'orchestrateur sur les seules
+  compétences publiées et valider les responsables des sources.
 - Publier progressivement `administration-scolarite`, `referent-numerique` et
   `coordination-etablissement` apres revue humaine.
 - Ajouter mesures de qualite, cout, latence, transferts et corrections.
-- Construire le registre de sources officielles datees pour que les reponses de
-  procedure restent a jour; cette partie n'est pas encore terminee.
+- Enregistrer puis faire valider les premières sources officielles datées pour
+  que les réponses de procédure restent à jour ; aucune source réelle n'est
+  encore publiée.
 - Construire les comptes usagers en séparant strictement OTP de contact et
   rapprochement d'identité scolaire avec un annuaire officiel privé.
 - Ajouter la compétence `cours-salles-changements`, puis le modèle de lecture

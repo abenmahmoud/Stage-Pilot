@@ -1,6 +1,6 @@
 # Feuille de route d'exécution - Portail et agent d'établissement
 
-**Date de référence** : 27 août 2026  
+**Date de référence** : 28 août 2026
 **Périmètre** : feature `002-agent-etablissement-adaptatif` et dépendance `001`  
 **Principe** : avancer vite en preview, valider avant données réelles et production
 
@@ -80,8 +80,12 @@ l'autorisation de quota définie par le propriétaire.
   migration privée encore requise**.
 - Lot N4 : compétence cours/salles/changements et scénarios interdits.
 - Lot N4A : politique de publication, accès aux sources, expiration et retour
-  arrière du registre de compétences sur données fictives. **Implémentée et
-  testée ; stockage et interface encore requis**.
+  arrière du registre de compétences. **Socle persistant implémenté et testé** :
+  six tables privées, cloisonnement par établissement, API réservée à la direction,
+  MFA au moment de publier ou retirer, écran de sources/versions/tests/journal et
+  retour arrière. La migration est appliquée uniquement à la base Supabase isolée
+  de preview et les six tables sont vides. Le worker d'expiration, les responsables
+  métier et la publication de sources réelles restent requis.
 - Lot N5 : files `À qualifier`, délais et dossiers sans propriétaire.
   **Visibilité opérationnelle implémentée et testée** : vue `À classer`, compteurs
   sans responsable et échéances dépassées, marqueurs par dossier et ordre par
@@ -112,6 +116,16 @@ l'autorisation de quota définie par le propriétaire.
   la prise en charge est atomique et un résultat est obligatoire. Le rappel ne
   confirme pas automatiquement l'identité scolaire.
 - Lot N6 : tests de non-régression, build, contrôle mobile et rapport d'écarts.
+
+## Prochaine séquence verrouillée
+
+1. Déployer le lot N4A sur la preview et vérifier l'accès direction au registre.
+2. Rejouer la recette chat vers dossier, suivi usager et console agent ; corriger
+   l'essai qui répondait sans créer la demande.
+3. Ajouter le worker d'expiration et prouver qu'une source périmée désactive la
+   compétence sans réponse trompeuse.
+4. Faire nommer les responsables et valider les premières sources et procédures
+   avant toute compétence active contenant des informations réelles.
 
 ## Portes de validation humaine
 

@@ -18,6 +18,7 @@ import {
   FolderOpen,
   ShieldCheck,
   Newspaper,
+  BookOpenCheck,
 } from "lucide-react";
 
 const navCls = ({ isActive }: { isActive: boolean }) =>
@@ -148,6 +149,12 @@ export default function AppLayout() {
               <Newspaper className="w-4 h-4" />
               Contenus du site
             </NavLink>
+            {(user.role === "superadmin" || isProviseur) && (
+              <NavLink to="/admin/connaissances-agent" className={navCls}>
+                <BookOpenCheck className="w-4 h-4" />
+                Connaissances IA
+              </NavLink>
+            )}
             <NavLink to="/security" className={navCls}>
               <ShieldCheck className="w-4 h-4" />
               Sécurité du compte

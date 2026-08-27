@@ -18,8 +18,11 @@
 
 ## Phase 1 - Socle de compétences
 
-- [ ] T008 Créer les migrations `institutions`, adhésions, compétences, versions et sources.
+- [x] T008 Créer les migrations `institutions`, adhésions, compétences, versions et sources.
 - [ ] T009 Ajouter actions, validations, intégrations et évaluations avec politiques d'accès.
+- [x] T009A Brancher en preview les brouillons, évaluations, validations,
+  publications, retraits, révocations, journal et création d'une nouvelle
+  version sur des tables privées réservées au serveur.
 - [ ] T010 Ajouter `institution_id` et le niveau de vérification d'identité aux demandes `001` si nécessaire.
 - [x] T010A Exposer dès le pilote les états coordonnées déclarées, contact vérifié
   et identité confirmée, avec un verrou sur les réponses contenant des codes.
@@ -28,19 +31,21 @@
   seul l'identité scolaire.
 - [ ] T010C Définir les liens élève-responsable, personnel-service et classe-groupe,
   puis tester qu'un compte ne consulte jamais les données d'un autre foyer.
-- [ ] T011 Implémenter le parseur et le validateur du format de compétence.
-- [ ] T012 Refuser la publication d'une compétence sans propriétaire, sources, révision et tests valides.
+- [x] T011 Implémenter le parseur et le validateur du format de compétence.
+- [x] T012 Refuser la publication d'une compétence sans propriétaire, sources, révision et tests valides.
 - [x] T012A Implémenter et tester sur objets fictifs la politique de publication :
   propriétaire réel, version valide, revue indépendante pour les données
   personnelles ou sensibles, sources actuelles, outils structurés et couverture
   de tests positive, ambiguë et interdite.
-- [ ] T013 Construire l'écran de publication, désactivation et retour à une version précédente.
+- [x] T013 Construire l'écran de publication, désactivation et retour à une version précédente.
 - [ ] T014 Construire le contrôle d'expiration des sources et compétences.
 - [x] T014A Implémenter la sélection de la dernière version publiée non expirée,
   le repli vers la version précédente et la désactivation lorsque sa source
   devient indisponible.
 - [ ] T014B Brancher les politiques de registre sur les futures tables, le worker
   d'expiration, l'audit et l'interface de publication.
+- [x] T014B1 Brancher les tables, l'audit, l'interface direction et le retour
+  arrière sur la base Supabase isolée de preview, sans source ni compétence réelle.
 
 ## Phase 2 - Autorité et sécurité
 
@@ -66,6 +71,9 @@
 - [x] T026 Imposer une question essentielle à la fois et dix tours maximum par session.
 - [x] T027 Créer ou compléter automatiquement un dossier `001` lors d'un transfert
   humain, en conservant le dialogue utile et les pièces sans demander de ressaisie.
+- [ ] T027D Rejouer la recette navigateur complète après le jalon du registre :
+  l'essai manuel du propriétaire a montré une conversation qui répondait sans
+  créer le dossier attendu. Corriger puis prouver chat, création, suivi et console.
 - [x] T027A Ajouter le routage initial déterministe, sa justification, le niveau
   d'identité requis et le filtre de file par service dans la console agent.
 - [ ] T027B Ajouter une file `À qualifier`, les délais par service, la détection

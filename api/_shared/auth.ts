@@ -87,6 +87,21 @@ export async function requireRole(
   return user;
 }
 
+export async function requireAal2(req: VercelRequest): Promise<void> {
+  const authHeader = req.headers.authorization;
+  const token = authHeader?.startsWith("Bearer ")
+    ? authHeader.slice("Bearer ".length).trim()
+    : "";
+  if (!token) throw new HttpError(401, "Non authentifié");
+  const { data, error } = await supabaseAdmin.auth.mfa.getAuthenticatorAssuranceLevel(token);
+  if (error) {
+    throw new HttpError(503, "La double vérification est momentanément indisponible.");
+  }
+  if (data.currentLevel !== "aal2") {
+    throw new HttpError(403, "Double vérification obligatoire pour cette action.");
+  }
+}
+
 export class HttpError extends Error {
   constructor(public status: number, message: string) {
     super(message);

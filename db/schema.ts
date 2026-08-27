@@ -10,6 +10,7 @@ import {
   bigint,
   primaryKey,
   index,
+  uniqueIndex,
 } from "drizzle-orm/pg-core";
 import { sql } from "drizzle-orm";
 
@@ -274,6 +275,181 @@ export const institutionMemberships = pgTable(
     }),
     index("institution_memberships_user_status_idx").on(table.userId, table.status),
     index("institution_memberships_service_codes_idx").using("gin", table.serviceCodes),
+  ]
+);
+
+export const knowledgeSources = pgTable(
+  "knowledge_sources",
+  {
+    id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+    institutionId: uuid("institution_id")
+      .notNull()
+      .references(() => institutions.id, { onDelete: "cascade" }),
+    title: text("title").notNull(),
+    sourceType: text("source_type").notNull(),
+    uri: text("uri").notNull(),
+    classification: text("classification").notNull().default("internal"),
+    ownerUserId: uuid("owner_user_id").notNull(),
+    serviceCodes: text("service_codes")
+      .array()
+      .notNull()
+      .default(sql`array[]::text[]`),
+    validFrom: timestamp("valid_from", { withTimezone: true }).notNull(),
+    expiresAt: timestamp("expires_at", { withTimezone: true }),
+    status: text("status").notNull().default("draft"),
+    checksum: text("checksum").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    index("knowledge_sources_institution_status_idx").on(
+      table.institutionId,
+      table.status
+    ),
+    index("knowledge_sources_expiry_idx").on(table.expiresAt),
+    index("knowledge_sources_service_codes_idx").using("gin", table.serviceCodes),
+  ]
+);
+
+export const agentSkills = pgTable(
+  "agent_skills",
+  {
+    id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+    institutionId: uuid("institution_id")
+      .notNull()
+      .references(() => institutions.id, { onDelete: "cascade" }),
+    skillKey: text("skill_key").notNull(),
+    name: text("name").notNull(),
+    domain: text("domain").notNull(),
+    activeVersionId: uuid("active_version_id"),
+    enabled: boolean("enabled").notNull().default(false),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    uniqueIndex("agent_skills_institution_key_uidx").on(
+      table.institutionId,
+      table.skillKey
+    ),
+    index("agent_skills_institution_enabled_idx").on(
+      table.institutionId,
+      table.enabled
+    ),
+  ]
+);
+
+export const agentSkillVersions = pgTable(
+  "agent_skill_versions",
+  {
+    id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+    institutionId: uuid("institution_id")
+      .notNull()
+      .references(() => institutions.id, { onDelete: "cascade" }),
+    skillId: uuid("skill_id")
+      .notNull()
+      .references(() => agentSkills.id, { onDelete: "cascade" }),
+    version: text("version").notNull(),
+    status: text("status").notNull().default("draft"),
+    definition: jsonb("definition").notNull().default({}),
+    contentHash: text("content_hash").notNull(),
+    dataClassification: text("data_classification").notNull().default("internal"),
+    createdBy: uuid("created_by").notNull(),
+    approvedBy: uuid("approved_by"),
+    publishedAt: timestamp("published_at", { withTimezone: true }),
+    reviewDueAt: timestamp("review_due_at", { withTimezone: true }).notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    uniqueIndex("agent_skill_versions_skill_version_uidx").on(
+      table.skillId,
+      table.version
+    ),
+    index("agent_skill_versions_status_review_idx").on(
+      table.institutionId,
+      table.status,
+      table.reviewDueAt
+    ),
+  ]
+);
+
+export const skillSourceLinks = pgTable(
+  "skill_source_links",
+  {
+    institutionId: uuid("institution_id")
+      .notNull()
+      .references(() => institutions.id, { onDelete: "cascade" }),
+    skillVersionId: uuid("skill_version_id")
+      .notNull()
+      .references(() => agentSkillVersions.id, { onDelete: "cascade" }),
+    sourceId: uuid("source_id")
+      .notNull()
+      .references(() => knowledgeSources.id, { onDelete: "restrict" }),
+    required: boolean("required").notNull().default(true),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    primaryKey({
+      name: "skill_source_links_pkey",
+      columns: [table.skillVersionId, table.sourceId],
+    }),
+    index("skill_source_links_source_idx").on(table.sourceId),
+  ]
+);
+
+export const agentEvaluations = pgTable(
+  "agent_evaluations",
+  {
+    id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+    institutionId: uuid("institution_id")
+      .notNull()
+      .references(() => institutions.id, { onDelete: "cascade" }),
+    skillVersionId: uuid("skill_version_id")
+      .notNull()
+      .references(() => agentSkillVersions.id, { onDelete: "cascade" }),
+    testCaseKey: text("test_case_key").notNull(),
+    kind: text("kind").notNull(),
+    result: text("result").notNull(),
+    scores: jsonb("scores").notNull().default({}),
+    evidence: jsonb("evidence").notNull().default({}),
+    runAt: timestamp("run_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    uniqueIndex("agent_evaluations_version_case_uidx").on(
+      table.skillVersionId,
+      table.testCaseKey
+    ),
+    index("agent_evaluations_institution_run_idx").on(
+      table.institutionId,
+      table.runAt
+    ),
+  ]
+);
+
+export const agentSkillAudit = pgTable(
+  "agent_skill_audit",
+  {
+    id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+    institutionId: uuid("institution_id")
+      .notNull()
+      .references(() => institutions.id, { onDelete: "cascade" }),
+    resourceType: text("resource_type").notNull(),
+    resourceId: uuid("resource_id").notNull(),
+    action: text("action").notNull(),
+    actorId: uuid("actor_id").notNull(),
+    summary: jsonb("summary").notNull().default({}),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    index("agent_skill_audit_resource_idx").on(
+      table.resourceType,
+      table.resourceId,
+      table.createdAt
+    ),
+    index("agent_skill_audit_institution_created_idx").on(
+      table.institutionId,
+      table.createdAt
+    ),
   ]
 );
 
