@@ -30,6 +30,55 @@ Toutes les entités V2 portent `institution_id`, sont protégées par des politi
 | `mfa_verified_at` | timestamptz | Requis pour les actions sensibles |
 | `status` | enum | `invited`, `active`, `disabled` |
 
+### `school_identities`
+
+Lien privé entre un compte et une personne connue de l'établissement. Cette
+table n'est jamais alimentée depuis une simple déclaration publique.
+
+| Champ | Type | Règle |
+|---|---|---|
+| `id` | uuid | Clé primaire |
+| `institution_id` | uuid | Cloison obligatoire |
+| `user_id` | uuid | Compte authentifié |
+| `person_type` | enum | `student`, `guardian`, `staff` |
+| `official_person_ref` | text | Identifiant opaque de la source officielle |
+| `assurance_level` | enum | `contact_verified`, `directory_matched`, `official_sso` |
+| `verified_by` | uuid nullable | Agent lorsque le rapprochement est manuel |
+| `verified_at` | timestamptz | Date de décision |
+| `revoked_at` | timestamptz nullable | Coupe immédiatement l'accès |
+| `evidence` | jsonb | Méthode et source, sans OTP ni secret |
+
+Une contrainte unique empêche qu'une même référence officielle active soit liée
+à plusieurs comptes incompatibles. Les doublons passent en validation humaine.
+
+### `school_relationships`
+
+| Champ | Type | Règle |
+|---|---|---|
+| `institution_id` | uuid | Cloison obligatoire |
+| `subject_identity_id` | uuid | Personne qui consulte |
+| `object_person_ref` | text | Élève, classe ou groupe autorisé |
+| `relationship_type` | enum | `self`, `guardian_of`, `member_of`, `teaches`, `manages` |
+| `valid_from` | date | Début du droit |
+| `valid_until` | date nullable | Fin automatique |
+| `source_version_id` | uuid | Version officielle ayant créé le lien |
+| `status` | enum | `active`, `revoked`, `expired` |
+
+### `contact_verifications`
+
+| Champ | Type | Règle |
+|---|---|---|
+| `id` | uuid | Clé primaire |
+| `institution_id` | uuid | Cloison obligatoire |
+| `user_id` | uuid nullable | Compte en cours de création |
+| `channel` | enum | `email`, `sms` |
+| `contact_hash` | text | Empreinte, jamais l'OTP |
+| `purpose` | enum | `signup`, `recovery`, `link_identity` |
+| `status` | enum | `pending`, `verified`, `expired`, `blocked` |
+| `attempt_count` | integer | Limite anti-bruteforce |
+| `expires_at` | timestamptz | Courte durée |
+| `consumed_at` | timestamptz nullable | Usage unique |
+
 ### `agent_skills`
 
 | Champ | Type | Règle |
@@ -91,6 +140,60 @@ Relie une version de compétence à une ou plusieurs sources. La publication éc
 | `allowed_actions` | text[] | Liste blanche |
 | `last_verified_at` | timestamptz nullable | État contrôlé |
 
+### `schedule_source_versions`
+
+| Champ | Type | Règle |
+|---|---|---|
+| `id` | uuid | Clé primaire |
+| `institution_id` | uuid | Cloison obligatoire |
+| `source_type` | enum | `pdf_import`, `official_export`, `official_connector` |
+| `storage_ref` | text | Objet privé, jamais URL publique permanente |
+| `content_hash` | text | Détection d'altération et doublons |
+| `effective_from` | timestamptz | Début de validité |
+| `effective_until` | timestamptz nullable | Fin de validité |
+| `status` | enum | `uploaded`, `parsed`, `review`, `active`, `superseded`, `rejected` |
+| `uploaded_by` | uuid | Compte individuel |
+| `approved_by` | uuid nullable | Validation humaine requise |
+| `activated_at` | timestamptz nullable | Une seule version active par périmètre |
+
+### `schedule_slots`
+
+| Champ | Type | Règle |
+|---|---|---|
+| `id` | uuid | Clé primaire |
+| `institution_id` | uuid | Cloison obligatoire |
+| `source_version_id` | uuid | Version immuable |
+| `class_ref` | text nullable | Référence opaque de classe |
+| `group_ref` | text nullable | Référence opaque de groupe |
+| `teacher_ref` | text nullable | Référence opaque, non publique |
+| `subject_code` | text | Matière issue du référentiel validé |
+| `room_code` | text nullable | Salle |
+| `starts_at` | timestamptz | Heure avec fuseau établissement |
+| `ends_at` | timestamptz | Supérieure à `starts_at` |
+| `week_pattern` | text nullable | Semaine A/B ou période |
+| `parse_confidence` | numeric | Les faibles scores exigent une revue |
+| `review_status` | enum | `pending`, `approved`, `rejected` |
+
+### `schedule_changes`
+
+| Champ | Type | Règle |
+|---|---|---|
+| `id` | uuid | Clé primaire |
+| `institution_id` | uuid | Cloison obligatoire |
+| `base_slot_id` | uuid nullable | Créneau remplacé lorsque connu |
+| `change_type` | enum | `maintained`, `moved`, `cancelled`, `room_changed`, `time_changed` |
+| `new_room_code` | text nullable | Salle corrigée |
+| `new_starts_at` | timestamptz nullable | Horaire corrigé |
+| `new_ends_at` | timestamptz nullable | Horaire corrigé |
+| `source_integration_id` | uuid | Source officielle autorisée |
+| `source_event_ref` | text | Idempotence du changement |
+| `observed_at` | timestamptz | Fraîcheur affichable |
+| `expires_at` | timestamptz | Empêche de réutiliser un ancien événement |
+| `status` | enum | `active`, `superseded`, `revoked` |
+
+Le modèle ne conserve pas un booléen public `teacher_present`. Une réponse sur
+un cours est calculée à partir du créneau autorisé et d'un changement officiel.
+
 ### `agent_actions`
 
 | Champ | Type | Règle |
@@ -148,6 +251,12 @@ Une migration peut ajouter `institution_id`, `source_channel`, `identity_assuran
 
 - Un compte ne lit que les établissements et services présents dans ses adhésions actives.
 - Un parent ou élève ne lit que ses propres dossiers après vérification adaptée.
+- Un OTP sur un contact déclaré ne crée jamais seul une ligne
+  `school_identities` au niveau `directory_matched` ou `official_sso`.
+- Une lecture d'emploi du temps exige une identité scolaire active et une
+  relation active vers la classe, le groupe ou la personne concernée.
+- Une référence enseignant n'est jamais exposée dans une API publique permettant
+  de suivre sa présence ou sa localisation.
 - Une source `sensitive` ne peut jamais être injectée automatiquement dans le modèle généraliste.
 - Une action L3 exige une validation active, non expirée, émise par un rôle autorisé.
 - Une action L4 ne peut pas passer à `running`.
@@ -159,6 +268,10 @@ Une migration peut ajouter `institution_id`, `source_channel`, `identity_assuran
 - Index sur `(institution_id, status, created_at)` pour demandes, actions et validations.
 - Index sur `(institution_id, skill_key)` et `(skill_id, version)`.
 - Index sur sources publiées et non expirées.
+- Index sur `(institution_id, official_person_ref, status)` et sur les relations
+  actives par identité.
+- Index sur `(institution_id, starts_at, class_ref, group_ref)` pour les créneaux
+  et sur `(institution_id, base_slot_id, observed_at)` pour les changements.
 - Contraintes uniques sur `idempotency_key` par intégration.
 - Transactions pour confirmer ensemble action, événement et notification à produire.
 - File de quarantaine pour les traitements définitivement échoués, sans perte silencieuse.

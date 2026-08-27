@@ -115,6 +115,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             description: input.description,
             preferredChannel: input.preferredChannel,
             fallbackAllowed: input.fallbackAllowed,
+            status: input.routing.confidence === "low" ? "a_qualifier" : "nouveau",
+            assignedTeam: input.routing.service,
             slaDueAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
           })
           .onConflictDoNothing({ target: supportRequests.idempotencyKeyHash })

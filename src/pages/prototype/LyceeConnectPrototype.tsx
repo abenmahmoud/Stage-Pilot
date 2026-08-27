@@ -161,6 +161,10 @@ function supportCategoryLabel(value: string): string {
   return supportCategories.find((category) => category.value === value)?.label ?? "Autre demande";
 }
 
+function supportTeamLabel(value: string | null): string {
+  return supportTeams.find((team) => team.value === value)?.label ?? "À orienter";
+}
+
 async function readApiResponse<T>(responseInput: Response | Promise<Response>): Promise<T> {
   const response = await responseInput;
   const payload = (await response.json()) as T & { error?: string };
@@ -1813,6 +1817,7 @@ function ConnectedAgentView({ onBack }: { onBack: () => void }) {
   const [stats, setStats] = useState<AgentQueueStats>({ total: 0, new: 0, urgent: 0, active: 0, waitingRequester: 0 });
   const [pagination, setPagination] = useState<AgentQueuePagination>({ page: 1, pageSize: 30, total: 0, totalPages: 1 });
   const [queueMode, setQueueMode] = useState<"all" | "urgent" | "mine">("all");
+  const [serviceFilter, setServiceFilter] = useState("");
   const [page, setPage] = useState(1);
   const [selectedCode, setSelectedCode] = useState<string | null>(null);
   const [detail, setDetail] = useState<AgentRequestDetail | null>(null);
@@ -1832,6 +1837,7 @@ function ConnectedAgentView({ onBack }: { onBack: () => void }) {
       if (query.trim()) params.set("q", query.trim());
       if (queueMode === "urgent") params.set("urgent", "true");
       if (queueMode === "mine") params.set("assigned", "me");
+      if (serviceFilter) params.set("service", serviceFilter);
       const payload = await apiFetch<{ requests: AgentRequest[]; stats: AgentQueueStats; pagination: AgentQueuePagination }>(`support/agent/requests?${params}`);
       setRequests(payload.requests);
       setStats(payload.stats);
@@ -1847,7 +1853,7 @@ function ConnectedAgentView({ onBack }: { onBack: () => void }) {
   useEffect(() => {
     const timer = window.setTimeout(() => void loadQueue(), 250);
     return () => window.clearTimeout(timer);
-  }, [page, query, queueMode]);
+  }, [page, query, queueMode, serviceFilter]);
   useEffect(() => {
     if (!selectedCode) return;
     setReply("");
@@ -1998,13 +2004,13 @@ function ConnectedAgentView({ onBack }: { onBack: () => void }) {
       </div>
       <div className="lycee-agent-workspace">
         <section className="lycee-agent-queue">
-          <div className="lycee-agent-toolbar"><label><Search aria-hidden="true" /><input value={query} onChange={(event) => { setQuery(event.target.value); setPage(1); }} placeholder="Nom, numéro ou objet" /></label><button className={queueMode === "mine" ? "is-active" : ""} type="button" aria-label="Afficher mes demandes" aria-pressed={queueMode === "mine"} title="Afficher mes demandes" onClick={() => { setQueueMode((current) => current === "mine" ? "all" : "mine"); setPage(1); }}><Filter aria-hidden="true" /></button></div>
+          <div className="lycee-agent-toolbar"><label><Search aria-hidden="true" /><input value={query} onChange={(event) => { setQuery(event.target.value); setPage(1); }} placeholder="Nom, numéro ou objet" /></label><button className={queueMode === "mine" ? "is-active" : ""} type="button" aria-label="Afficher mes demandes" aria-pressed={queueMode === "mine"} title="Afficher mes demandes" onClick={() => { setQueueMode((current) => current === "mine" ? "all" : "mine"); setPage(1); }}><Filter aria-hidden="true" /></button><select aria-label="Filtrer par service" value={serviceFilter} onChange={(event) => { setServiceFilter(event.target.value); setPage(1); }}><option value="">Tous les services</option>{supportTeams.map((team) => <option value={team.value} key={team.value}>{team.label}</option>)}</select></div>
           <div className="lycee-agent-tabs"><button className={queueMode === "all" ? "is-active" : ""} type="button" onClick={() => { setQueueMode("all"); setPage(1); }}>Toutes <span>{stats.total}</span></button><button className={queueMode === "urgent" ? "is-active" : ""} type="button" onClick={() => { setQueueMode("urgent"); setPage(1); }}>Urgentes <span>{stats.urgent}</span></button></div>
           <div className="lycee-agent-list">
             {requests.map((request) => (
               <button className={selectedCode === request.publicCode ? "is-selected" : ""} type="button" key={request.publicCode} onClick={() => setSelectedCode(request.publicCode)}>
                 <span className="lycee-request-avatar">{`${request.requesterFirstName[0] ?? ""}${request.requesterLastName[0] ?? ""}`}</span>
-                <span><strong>{request.subject}</strong><small>{request.requesterFirstName} {request.requesterLastName} · {requesterProfileLabels[request.requesterType] ?? request.requesterType}</small><em>{supportCategoryLabel(request.category)} · {supportSlaLabel(request.slaDueAt)}</em></span>
+                <span><strong>{request.subject}</strong><small>{request.requesterFirstName} {request.requesterLastName} · {requesterProfileLabels[request.requesterType] ?? request.requesterType}</small><em>{supportTeamLabel(request.assignedTeam)} · {supportCategoryLabel(request.category)} · {supportSlaLabel(request.slaDueAt)}</em></span>
                 {["p1", "p2"].includes(request.priority) ? <b>Urgent</b> : null}
               </button>
             ))}

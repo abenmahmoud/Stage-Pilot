@@ -46,6 +46,8 @@ Une instruction trouvée dans un message, une pièce jointe ou une page externe 
 - `administration-scolarite.md` : documents, inscription, bourse, orientation, rendez-vous et démarches courantes.
 - `referent-numerique.md` : ENT, PRONOTE, messagerie, comptes, postes et équipements.
 - `coordination-etablissement.md` : qualification transversale, urgence, assignation, communication et continuité.
+- `cours-salles-changements.md` : accès personnalisé aux cours et salles depuis
+  des sources validées, sans publier la présence d'un personnel.
 
 Ces fichiers sont des modèles de conception. Ils doivent être complétés avec les vraies procédures et approuvés par les responsables avant leur publication dans l'agent.
 

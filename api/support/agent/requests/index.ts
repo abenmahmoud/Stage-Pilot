@@ -17,6 +17,14 @@ const VALID_STATUSES = new Set([
   "clos",
   "indesirable",
 ]);
+const VALID_SERVICES = new Set([
+  "referent_numerique",
+  "secretariat",
+  "vie_scolaire",
+  "intendance",
+  "direction",
+  "administration",
+]);
 
 function queryValue(value: string | string[] | undefined): string {
   return Array.isArray(value) ? value[0] ?? "" : value ?? "";
@@ -33,7 +41,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const status = queryValue(req.query.status);
     const urgentOnly = queryValue(req.query.urgent) === "true";
     const mineOnly = queryValue(req.query.assigned) === "me";
+    const service = queryValue(req.query.service);
     const filters: SQL[] = [];
+    const serviceFilter = VALID_SERVICES.has(service)
+      ? eq(supportRequests.assignedTeam, service)
+      : undefined;
 
     if (search) {
       const pattern = `%${search.replace(/[%_]/g, "\\$&")}%`;
@@ -48,6 +60,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (VALID_STATUSES.has(status)) filters.push(eq(supportRequests.status, status));
     if (urgentOnly) filters.push(sql`${supportRequests.priority} in ('p1', 'p2')`);
     if (mineOnly) filters.push(eq(supportRequests.assignedTo, user.id));
+    if (serviceFilter) filters.push(serviceFilter);
 
     const where = filters.length > 0 ? and(...filters) : undefined;
     const requestQuery = db
@@ -65,6 +78,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         status: supportRequests.status,
         priority: supportRequests.priority,
         assignedTo: supportRequests.assignedTo,
+        assignedTeam: supportRequests.assignedTeam,
         slaDueAt: supportRequests.slaDueAt,
         createdAt: supportRequests.createdAt,
         updatedAt: supportRequests.updatedAt,
@@ -89,7 +103,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       urgent: sql<number>`count(*) filter (where ${supportRequests.priority} in ('p1', 'p2') and ${supportRequests.status} <> 'clos')::int`,
       active: sql<number>`count(*) filter (where ${supportRequests.status} in ('assigne', 'en_cours', 'attente_interne'))::int`,
       waitingRequester: sql<number>`count(*) filter (where ${supportRequests.status} = 'attente_demandeur')::int`,
-    }).from(supportRequests);
+    }).from(supportRequests).where(serviceFilter);
 
     const [requests, [totalRow], [statsRow]] = await Promise.all([requestQuery, totalQuery, statsQuery]);
     const total = totalRow?.count ?? 0;

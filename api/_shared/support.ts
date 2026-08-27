@@ -8,6 +8,7 @@ import {
   supportSessionRequests,
 } from "../../db/schema.js";
 import { HttpError } from "./auth.js";
+import { routeSupportRequest, type SupportRoute } from "../../shared/support-routing.js";
 
 export const SUPPORT_COOKIE = "bc_support_session";
 export const SUPPORT_SESSION_DAYS = 30;
@@ -57,6 +58,7 @@ export type SupportRequestInput = {
   fallbackAllowed: boolean;
   email: string | null;
   phone: string | null;
+  routing: SupportRoute;
 };
 
 function cleanText(value: unknown, field: string, maxLength: number): string {
@@ -124,6 +126,9 @@ export function parseSupportRequest(body: unknown): SupportRequestInput {
   const requesterLastName = cleanText(input.requesterLastName, "Nom", 100);
   const email = normalizeEmail(input.email);
   const phone = normalizePhone(input.phone);
+  const subject = cleanText(input.subject, "Objet", 180);
+  const description = cleanText(input.description, "Description", 5000);
+  const routing = routeSupportRequest({ category, subject, description });
 
   if (!email && !phone) {
     throw new HttpError(400, "Indiquez un email ou un téléphone pour recevoir la réponse");
@@ -158,6 +163,9 @@ export function parseSupportRequest(body: unknown): SupportRequestInput {
         input.communicationSupport === true
           ? "Rappel téléphonique souhaité pour faciliter la compréhension"
           : undefined,
+      routingConfidence: routing.confidence,
+      routingReason: routing.reason,
+      requiredIdentity: routing.requiredIdentity,
     }).filter((entry): entry is [string, string] => Boolean(entry[1]))
   );
 
@@ -171,12 +179,13 @@ export function parseSupportRequest(body: unknown): SupportRequestInput {
     subjectContext,
     category,
     subcategory: optionalText(input.subcategory, "Sous-catégorie", 100),
-    subject: cleanText(input.subject, "Objet", 180),
-    description: cleanText(input.description, "Description", 5000),
+    subject,
+    description,
     preferredChannel,
     fallbackAllowed: input.fallbackAllowed === true,
     email,
     phone,
+    routing,
   };
 }
 

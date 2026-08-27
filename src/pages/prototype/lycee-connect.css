@@ -709,6 +709,7 @@
 .lycee-agent-toolbar > button { display: grid; place-items: center; border: 1px solid #ccd6e2; border-radius: 7px; background: #fff; color: var(--lc-muted); }
 .lycee-agent-toolbar > button.is-active { border-color: var(--lc-blue); background: #edf2ff; color: var(--lc-blue); }
 .lycee-agent-toolbar > button svg { width: 17px; }
+.lycee-agent-toolbar > select { grid-column: 1 / -1; min-width: 0; min-height: 40px; padding: 0 10px; border: 1px solid #ccd6e2; border-radius: 7px; background: #fff; color: #53657a; font-size: 11px; font-weight: 750; }
 .lycee-agent-tabs { display: flex; gap: 16px; padding: 0 14px; border-bottom: 1px solid var(--lc-line); }
 .lycee-agent-tabs button { min-height: 43px; display: flex; align-items: center; gap: 6px; padding: 0; border: 0; border-bottom: 2px solid transparent; background: transparent; color: var(--lc-muted); font-size: 10px; font-weight: 800; }
 .lycee-agent-tabs button.is-active { border-bottom-color: var(--lc-blue); color: var(--lc-blue); }

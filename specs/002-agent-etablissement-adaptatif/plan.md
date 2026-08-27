@@ -30,12 +30,48 @@ La V2 étend le guichet numérique existant. Elle réutilise ses demandes, messa
 ## Identité et niveaux d'accès
 
 - **Visiteur** : informations publiques et création d'une demande.
-- **Usager vérifié** : consultation de ses propres demandes et données autorisées.
+- **Contact vérifié** : contrôle d'un email ou téléphone déclaré et consultation
+  du suivi autorisé ; ce niveau ne prouve pas l'identité scolaire.
+- **Identité scolaire confirmée** : compte rapproché d'un annuaire officiel ou
+  d'un SSO ; accès aux seules données scolaires propres à la personne et à ses
+  enfants ou groupes autorisés.
 - **Agent** : traitement des files de son service.
 - **Responsable de service** : validation d'actions L3 et publication de procédures.
 - **Administrateur** : configuration et habilitations, sans accès automatique au contenu hors de son périmètre.
 
 L'accès usager pourra combiner jeton de suivi, code à usage unique par courriel/SMS et, plus tard, SSO officiel. L'espace agent exige un compte individuel et une authentification renforcée ; aucun mot de passe direction partagé en production.
+
+Le rapprochement d'identité est déterministe. Un OTP sur une adresse saisie par
+l'usager produit le niveau `contact_verifie`. Le niveau `identite_scolaire` exige
+que l'adresse ou l'identifiant ait été préalablement associé par un import privé
+validé, ou confirmé par le fournisseur d'identité officiel.
+
+## Routage et files de travail
+
+- Le premier classement est réalisé par des règles explicites : numérique vers
+  le référent, administratif vers le secrétariat, vie scolaire et changements de
+  cours vers la CPE, restauration et bourse vers l'intendance.
+- Le service, la justification, la confiance et le niveau d'identité requis sont
+  enregistrés dans le dossier.
+- La faible confiance aboutit à une file `À qualifier` ; le modèle peut proposer,
+  mais ne décide pas silencieusement.
+- Chaque service voit uniquement sa file, ses délais et les champs nécessaires.
+  Les transferts conservent les messages, documents, décisions et traces d'accès.
+
+## Emplois du temps et changements
+
+1. Importer les exports autorisés dans un stockage privé et créer une version
+   immuable avec date, origine, empreinte et état de validation.
+2. Transformer la version validée en créneaux structurés : classe, groupe,
+   matière, enseignant, salle, début, fin et période de validité.
+3. Rapprocher la question de l'usager uniquement avec ses classes, groupes ou
+   responsabilités autorisés.
+4. Superposer un flux officiel de changements lorsqu'il existe ; conserver la
+   source et l'heure de synchronisation.
+5. Répondre par la conséquence utile. Une absence nominative n'est ni inférée ni
+   exposée au public.
+6. Si la donnée est ancienne, contradictoire ou indisponible, l'agent le dit et
+   ouvre une demande au service compétent au lieu d'inventer.
 
 ## Données et fichiers
 
@@ -53,6 +89,32 @@ L'accès usager pourra combiner jeton de suivi, code à usage unique par courrie
 - Contexte composé de la compétence publiée, de courts extraits sourcés et du minimum de données du dossier.
 - Budget et nombre de tours par session ; transfert propre après dix échanges.
 - Jeu de tests versionné pour chaque compétence avant publication.
+- Les réponses pédagogiques restent limitées aux programmes, documents et
+  ressources publiés ; l'agent demande le niveau et le besoin, puis aide à
+  comprendre sans produire un cursus entier non vérifié.
+- Les données dynamiques, droits et actions viennent d'outils structurés ; elles
+  ne sont jamais mémorisées comme des faits dans le texte du modèle.
+
+## Continuité et charge
+
+- Écriture synchrone minimale de la demande puis traitements asynchrones pour
+  classement enrichi, documents et notifications.
+- File durable avec reprises exponentielles, file d'échec, idempotence et état
+  visible pour chaque travail.
+- Dégradation contrôlée : sans IA, l'usager conserve le site, le formulaire, le
+  numéro de suivi et les réponses humaines.
+- Tableaux de bord séparés pour erreurs, délais, files sans propriétaire,
+  synchronisations périmées, coût IA et corrections de classement.
+- Test de pointe à 200 créations simultanées, puis mesure d'un pilote réel avant
+  d'augmenter les limites.
+
+## Gouvernance du partenariat
+
+Le lycée reste responsable de ses décisions et de ses sources officielles. Le
+rôle éventuel d'ESSUF GROUP, les mentions publiques, la propriété intellectuelle,
+l'assistance, l'hébergement et les responsabilités RGPD doivent être écrits avant
+la production. Les dépôts, secrets et données du lycée restent séparés des autres
+projets ESSUF.
 
 ## Adaptation à un établissement
 

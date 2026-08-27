@@ -13,6 +13,7 @@
     "test:assistant-policy": "node --experimental-strip-types scripts/test-assistant-policy.mjs",
     "test:access-policy": "node --experimental-strip-types scripts/test-access-policy.mjs",
     "test:laptop-intake": "node --experimental-strip-types scripts/test-laptop-intake.mjs",
+    "test:support-routing": "node --experimental-strip-types scripts/test-support-routing.mjs",
     "test:legacy-import": "node --experimental-strip-types scripts/test-legacy-import.mjs",
     "test:support-templates": "node --experimental-strip-types scripts/test-support-reply-templates.mjs",
     "test:site-content": "node --experimental-strip-types scripts/test-site-content.mjs",

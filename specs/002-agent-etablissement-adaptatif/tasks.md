@@ -23,6 +23,11 @@
 - [ ] T010 Ajouter `institution_id` et le niveau de vérification d'identité aux demandes `001` si nécessaire.
 - [x] T010A Exposer dès le pilote les états coordonnées déclarées, contact vérifié
   et identité confirmée, avec un verrou sur les réponses contenant des codes.
+- [ ] T010B Créer les comptes usagers, l'OTP de contact et le rapprochement séparé
+  avec un annuaire officiel privé ; interdire qu'un email libre confirme à lui
+  seul l'identité scolaire.
+- [ ] T010C Définir les liens élève-responsable, personnel-service et classe-groupe,
+  puis tester qu'un compte ne consulte jamais les données d'un autre foyer.
 - [ ] T011 Implémenter le parseur et le validateur du format de compétence.
 - [ ] T012 Refuser la publication d'une compétence sans propriétaire, sources, révision et tests valides.
 - [ ] T013 Construire l'écran de publication, désactivation et retour à une version précédente.
@@ -46,6 +51,13 @@
 - [ ] T025 Afficher source et date de mise à jour dans les réponses de procédure.
 - [x] T026 Imposer une question essentielle à la fois et dix tours maximum par session.
 - [ ] T027 Créer ou compléter automatiquement un dossier `001` lors d'un transfert humain.
+- [x] T027A Ajouter le routage initial déterministe, sa justification, le niveau
+  d'identité requis et le filtre de file par service dans la console agent.
+- [ ] T027B Ajouter une file `À qualifier`, les délais par service, la détection
+  des dossiers sans propriétaire et les relances internes.
+- [ ] T027C Créer les adhésions de service puis appliquer le périmètre dans les
+  API et les politiques RLS ; le filtre d'interface seul n'est pas une barrière
+  d'autorisation.
 - [ ] T028 N'afficher une réussite qu'après `confirmed_at` fourni par l'outil.
 - [ ] T029 Ajouter formulaire classique et création de demande sans dépendance à l'IA.
 - [ ] T030 Ajouter mesure du coût, de la latence, des transferts et des corrections.
@@ -64,6 +76,8 @@
 - [ ] T035C Reprendre les codes ENT en troisième priorité après ouverture de
   l'accès administrateur du référent.
 - [ ] T036 Ajouter absence/justificatif, restauration, internat et demande libre.
+- [x] T036A Rédiger le brouillon de compétence `cours-salles-changements` avec
+  contrôle d'identité, source datée et interdiction d'inférer une absence.
 - [ ] T037 Constituer au moins cinq tests positifs, trois ambigus et trois interdits par compétence.
 - [ ] T038 Faire relire les réponses par chaque responsable métier.
 
@@ -81,7 +95,11 @@
 - [ ] T042C Construire l'import privé des PDF, l'index par page et la validation
   humaine avant activation. Ne pas importer les fichiers réels en preview sans
   autorisation explicite et stockage protégé.
+- [ ] T042D Construire le modèle de lecture privé des créneaux, groupes, salles et
+  périodes de validité, avec versions et possibilité de retour arrière.
 - [ ] T043 Ajouter le connecteur ou export PRONOTE officiel après autorisation écrite.
+- [ ] T043A Ajouter un flux officiel de changements de cours avec état de santé,
+  heure de dernière synchronisation et blocage des réponses périmées.
 - [ ] T044 Terminer les courriels entrants et sortants avec preuve de livraison disponible.
 - [ ] T045 Ajouter SMS uniquement après validation du consentement, des usages et du budget.
 
@@ -94,3 +112,22 @@
 - [ ] T050 Ouvrir un pilote limité avec agents nommés et canal de retour.
 - [ ] T051 Mesurer deux semaines : classement, délai, transferts, corrections, coût et incidents.
 - [ ] T052 Corriger les écarts puis exécuter `/speckit.analyze` et `/speckit.converge` avant généralisation.
+
+## Phase 7 - Portail complet et généralisation contrôlée
+
+- [ ] T053 Inventorier chaque page, formation, document, contact et redirection de
+  l'ancien site, avec propriétaire et date de vérification.
+- [ ] T054 Importer les contenus publics en brouillons réversibles, faire relire
+  grammaire, liens et informations, puis publier uniquement après validation.
+- [ ] T055 Finaliser l'éditeur d'actualités et documents : modèles, dates,
+  prévisualisation mobile, programmation, retrait et historique.
+- [ ] T056 Construire les tableaux de bord secrétariat, CPE, intendance, direction
+  et numérique avec comptes individuels et périmètres séparés.
+- [ ] T057 Ajouter supervision, alertes, sauvegarde restaurable, file d'échec,
+  journal d'accès et procédure d'incident.
+- [ ] T058 Faire valider le cadre ESSUF GROUP-lycée : rôles RGPD, support,
+  propriété, mentions, réversibilité et fin de partenariat.
+- [ ] T059 Exécuter un pilote avec données minimales, responsables nommés et plan
+  de retour arrière avant tout remplacement du site officiel.
+- [ ] T060 Généraliser uniquement après critères de réussite, validation direction,
+  sécurité, DPO et convergence complète des spécifications.

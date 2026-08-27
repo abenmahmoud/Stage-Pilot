@@ -3,7 +3,7 @@
 **Derniere mise a jour** : 27 aout 2026
 **Branche de travail** : `codex/lycee-connect-prototype`
 **Depot** : `abenmahmoud/Stage-Pilot`
-**Dernier jalon de code verifie** : accès agent, récupération de compte et contrôle des rôles
+**Dernier jalon de code verifie** : routage automatique par service et contrôle des rôles
 
 ## 1. Fonction de cette memoire
 
@@ -36,8 +36,9 @@ une reinstallation controlee sur un autre poste.
   `lyceegest`. Ce n'est ni le nom ni la marque du produit.
 - Le Webmail du Lycee est une application separee, simplement accessible depuis
   le portail et utilisee pour certains flux de communication.
-- My Cycle, ESSUF et les autres projets n'ont aucun fichier, numero de feature ou
-  choix technique commun avec ce projet.
+- My Cycle et les autres produits restent entièrement séparés. ESSUF GROUP peut
+  devenir le prestataire ou partenaire média du lycée après accord écrit, mais
+  ses autres dépôts, données et secrets ne sont jamais mélangés avec ce projet.
 
 ## 3. Objectif connu
 
@@ -54,6 +55,10 @@ Construire progressivement une PWA du lycee qui reunit :
    sans modifier le code.
 9. un centre de communication qui publie une information une seule fois, puis
    la diffuse sans exposer les listes de destinataires.
+10. des comptes usagers avec contact vérifié puis identité scolaire confirmée
+    pour accéder aux seules informations personnelles autorisées.
+11. des réponses sur les cours, groupes, salles et changements depuis des sources
+    officielles datées, sans publication de la présence des personnels.
 
 Le proprietaire estime que **89 % de son programme reste encore a expliquer**.
 Ce chiffre exprime la part de vision non decrite, pas l'avancement technique du
@@ -74,6 +79,9 @@ sa specification.
 - Depots signes vers une quarantaine, antivirus documente et stockage prive des
   fichiers declares sains.
 - File agent paginee, filtres, assignation et verrou d'authentification.
+- Routage déterministe des nouvelles demandes vers numérique, secrétariat, vie
+  scolaire, intendance, direction ou qualification générale, avec motif,
+  confiance, niveau d'identité requis et filtre par service dans la console.
 - Les liens vers l'espace agent ouvrent directement la connexion du personnel,
   conservent la page demandée et les pages administratives contrôlent maintenant
   le rôle côté interface en plus des contrôles API.
@@ -139,6 +147,9 @@ sa specification.
 - L'agent V2 possede une specification, un plan et des taches. Hormis certains
   controles du guichet deja reutilisables, son registre de competences et son
   orchestrateur ne sont pas encore developpes.
+- La feuille de route détaillée des comptes, files, compétences, emplois du
+  temps, contenu, charge et pilote est dans
+  `002-agent-etablissement-adaptatif/execution-roadmap.md`.
 
 ### Webmail du Lycee, application separee a recontroler avant modification
 
@@ -250,6 +261,11 @@ sa specification.
 - Ajouter mesures de qualite, cout, latence, transferts et corrections.
 - Construire le registre de sources officielles datees pour que les reponses de
   procedure restent a jour; cette partie n'est pas encore terminee.
+- Construire les comptes usagers en séparant strictement OTP de contact et
+  rapprochement d'identité scolaire avec un annuaire officiel privé.
+- Ajouter la compétence `cours-salles-changements`, puis le modèle de lecture
+  privé et versionné des créneaux. L'agent affiche la conséquence officielle
+  d'un changement, jamais une présence nominative déduite.
 - Ordre métier actuel : ordinateur portable, emplois du temps privés, puis codes
   ENT lorsque l'accès administrateur du référent sera ouvert.
 
