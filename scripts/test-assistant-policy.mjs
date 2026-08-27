@@ -3,6 +3,7 @@ import test from "node:test";
 import {
   evaluateConversationPolicy,
   resolveAssistantAction,
+  resolveAssistantReadiness,
 } from "../shared/assistant-policy.ts";
 
 function conversation(...requesterMessages) {
@@ -56,6 +57,26 @@ test("preserves a required human transfer", () => {
     scope: "wellbeing",
   });
   assert.equal(action, "human_transfer");
+});
+
+test("keeps a complete school request ready when the model is too cautious", () => {
+  const ready = resolveAssistantReadiness({
+    scope: "school_support",
+    policyReadyToCreate: null,
+    modelReadyToCreate: false,
+    deterministicReadyToCreate: true,
+  });
+  assert.equal(ready, true);
+});
+
+test("does not apply the readiness floor outside school support", () => {
+  const ready = resolveAssistantReadiness({
+    scope: "unknown",
+    policyReadyToCreate: null,
+    modelReadyToCreate: false,
+    deterministicReadyToCreate: true,
+  });
+  assert.equal(ready, false);
 });
 
 test("routes wellbeing and immediate danger to a human without AI", () => {

@@ -52,3 +52,44 @@ test("does not offer a dossier for a long unknown message", async () => {
   assert.equal(result.scope, "unknown");
   assert.equal(result.action, "continue");
 });
+
+test("keeps a complete school request ready when the AI returns false", async () => {
+  const originalFetch = globalThis.fetch;
+  const originalApiKey = process.env.OPENAI_API_KEY;
+  process.env.OPENAI_API_KEY = "test-key";
+  globalThis.fetch = async () => new Response(JSON.stringify({
+    output: [{
+      type: "message",
+      content: [{
+        type: "output_text",
+        text: JSON.stringify({
+          reply: "Je vérifie encore votre situation.",
+          category: "ent",
+          requesterType: "eleve",
+          urgency: "normale",
+          missingInformation: [],
+          suggestedDocuments: [],
+          readyToCreate: false,
+          safetyNotice: null,
+        }),
+      }],
+    }],
+  }), { status: 200, headers: { "Content-Type": "application/json" } });
+
+  try {
+    const result = await analyzeSupportConversation({
+      messages: messages(
+        "Je suis élève et je ne peux plus accéder à mon ENT depuis hier malgré plusieurs essais. Je dois consulter mon emploi du temps pour demain."
+      ),
+      attachments: [],
+      safetyIdentifier: "test-session",
+    });
+
+    assert.equal(result.usedAi, true);
+    assert.equal(result.readyToCreate, true);
+    assert.equal(result.action, "offer_case");
+  } finally {
+    globalThis.fetch = originalFetch;
+    process.env.OPENAI_API_KEY = originalApiKey;
+  }
+});

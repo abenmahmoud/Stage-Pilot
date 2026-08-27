@@ -1,6 +1,7 @@
 import {
   evaluateConversationPolicy,
   resolveAssistantAction,
+  resolveAssistantReadiness,
   type AssistantPolicyAction,
   type AssistantScope,
   type ConversationPolicy,
@@ -113,6 +114,7 @@ Règles:
 - Pour une question de cours, aide seulement sur une question précise, en quelques phrases. Ne promets pas un cours complet, un PDF ou un programme entier et renvoie vers le cours du professeur ou l'ENT comme référence.
 - Pour une procédure susceptible de changer, ne l'affirme pas comme certaine sans source officielle validée et datée; prépare plutôt une demande pour un agent.
 - Une seule question nécessaire à la fois. Ne prolonge pas artificiellement la conversation.
+- Pour une demande du lycée, mets readyToCreate à true dès que le problème, son effet et un essai ou contexte utile sont compris, même si l'identité et le contact restent à confirmer dans l'écran suivant.
 - readyToCreate signifie seulement que le problème est assez clair pour ouvrir un dossier; les coordonnées seront demandées localement ensuite.`;
 
 function redactPersonalData(value: string): string {
@@ -139,9 +141,15 @@ function inferCategory(text: string): SupportAgentResult["category"] {
 
 function withPolicy(
   result: SupportAgentModelResult,
-  policy: ConversationPolicy
+  policy: ConversationPolicy,
+  deterministicReadyToCreate = result.readyToCreate
 ): SupportAgentResult {
-  const readyToCreate = policy.readyToCreate ?? result.readyToCreate;
+  const readyToCreate = resolveAssistantReadiness({
+    scope: policy.scope,
+    policyReadyToCreate: policy.readyToCreate,
+    modelReadyToCreate: result.readyToCreate,
+    deterministicReadyToCreate,
+  });
   return {
     ...result,
     readyToCreate,
@@ -297,7 +305,7 @@ export async function analyzeSupportConversation(input: {
       ?.flatMap((item) => item.content ?? [])
       .find((content) => content.type === "output_text")?.text;
     return outputText
-      ? withPolicy(parseResult(outputText), policy)
+      ? withPolicy(parseResult(outputText), policy, fallback.readyToCreate)
       : fallback;
   } catch {
     return fallback;

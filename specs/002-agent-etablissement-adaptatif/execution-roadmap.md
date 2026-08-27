@@ -120,7 +120,9 @@ l'autorisation de quota définie par le propriétaire.
   `offer_case`, affiche « Votre demande est prête », conserve le formulaire de
   secours et demande une confirmation avant enregistrement. Le blocage ENT reste
   prioritaire sur la consultation d'un emploi du temps, le profil accentué
-  « élève » est prérempli et les vues PC/mobile ne débordent pas. La création
+  « élève » est prérempli et les vues PC/mobile ne débordent pas. La règle serveur
+  empêche aussi un résultat IA trop prudent de remettre à `false` une demande que
+  le contrôle déterministe juge complète. La création
   réelle d'un dossier fictif en preview, son suivi et sa lecture agent restent la
   dernière recette de T027D.
 - Lot N6 : tests de non-régression, build, contrôle mobile et rapport d'écarts.

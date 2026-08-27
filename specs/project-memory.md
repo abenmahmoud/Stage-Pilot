@@ -221,6 +221,8 @@ sa specification.
   affiche « Votre demande est prête » puis demande la vérification des coordonnées.
   La cause ENT reste prioritaire sur l'emploi du temps mentionné, « élève » avec
   accent est reconnu et aucun débordement n'a été observé sur PC ou téléphone.
+  Un modèle IA trop prudent ne peut plus annuler l'état prêt établi par le contrôle
+  déterministe du serveur.
   La création d'un dossier fictif en preview, son suivi et sa lecture agent restent
   à prouver avant de fermer la recette intégrée T027D.
 - La feuille de route détaillée des comptes, files, compétences, emplois du

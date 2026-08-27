@@ -53,6 +53,17 @@ export function resolveAssistantAction(input: {
   return "continue";
 }
 
+export function resolveAssistantReadiness(input: {
+  scope: AssistantScope;
+  policyReadyToCreate: boolean | null;
+  modelReadyToCreate: boolean;
+  deterministicReadyToCreate: boolean;
+}): boolean {
+  if (input.policyReadyToCreate !== null) return input.policyReadyToCreate;
+  if (input.scope === "school_support" && input.deterministicReadyToCreate) return true;
+  return input.modelReadyToCreate;
+}
+
 const MAX_CONVERSATION_TURNS = 10;
 const MAX_EDUCATION_TURNS = 3;
 const MAX_OUT_OF_SCOPE_TURNS = 3;

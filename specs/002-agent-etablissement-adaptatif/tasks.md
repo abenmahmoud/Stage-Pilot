@@ -75,7 +75,8 @@
   l'essai manuel du propriétaire a montré une conversation qui répondait sans
   créer le dossier attendu. Le 28 août, la transition `offer_case`, l'état visible
   « demande prête », la priorité ENT, le préremplissage du profil et le responsive
-  ont été corrigés et validés localement. Il reste à prouver en preview la création
+  ont été corrigés et validés localement. Le modèle IA ne peut plus annuler l'état
+  prêt établi par la règle serveur. Il reste à prouver en preview la création
   d'un dossier fictif, son suivi et sa lecture dans la console.
 - [x] T027A Ajouter le routage initial déterministe, sa justification, le niveau
   d'identité requis et le filtre de file par service dans la console agent.
