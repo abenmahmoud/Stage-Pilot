@@ -1939,17 +1939,26 @@ function ConnectedAgentView({ onBack }: { onBack: () => void }) {
   }, []);
 
   async function updateRequest(changes: { status?: string; priority?: string; identityStatus?: IdentityStatus; identityMethod?: string; assignToMe?: boolean; assignedTeam?: string | null; closureReason?: string }) {
-    if (!selectedCode) return;
+    if (!selectedCode || !detail?.request.updatedAt) return;
     setSaving(true);
     try {
       await apiFetch(`support/agent/requests/${selectedCode}`, {
         method: "PATCH",
-        body: JSON.stringify(changes),
+        body: JSON.stringify({ ...changes, expectedUpdatedAt: detail.request.updatedAt }),
       });
       setDetail(await apiFetch<AgentRequestDetail>(`support/agent/requests/${selectedCode}`));
       await loadQueue();
     } catch (saveError) {
-      setError(saveError instanceof Error ? saveError.message : "Modification impossible");
+      const message = saveError instanceof Error ? saveError.message : "Modification impossible";
+      if (/modifié|pris en charge|transféré/i.test(message)) {
+        try {
+          setDetail(await apiFetch<AgentRequestDetail>(`support/agent/requests/${selectedCode}`));
+          await loadQueue();
+        } catch {
+          // Le message de conflit initial reste le plus utile pour l'agent.
+        }
+      }
+      setError(message);
     } finally {
       setSaving(false);
     }
@@ -1963,7 +1972,7 @@ function ConnectedAgentView({ onBack }: { onBack: () => void }) {
       request.identityStatus !== "identite_confirmee"
     );
     const outgoingMessage = requiresSafeTemplate ? IDENTITY_VERIFICATION_REPLY : reply.trim();
-    if (!selectedCode || !outgoingMessage) return;
+    if (!selectedCode || !request || !outgoingMessage) return;
     setSaving(true);
     try {
       await apiFetch(`support/agent/requests/${selectedCode}/reply`, {
@@ -1971,6 +1980,7 @@ function ConnectedAgentView({ onBack }: { onBack: () => void }) {
         headers: { "Idempotency-Key": crypto.randomUUID() },
         body: JSON.stringify({
           message: outgoingMessage,
+          expectedUpdatedAt: request.updatedAt,
           ...(requiresSafeTemplate ? { safeTemplate: "identity_verification" } : {}),
         }),
       });
@@ -1978,7 +1988,16 @@ function ConnectedAgentView({ onBack }: { onBack: () => void }) {
       setDetail(await apiFetch<AgentRequestDetail>(`support/agent/requests/${selectedCode}`));
       await loadQueue();
     } catch (sendError) {
-      setError(sendError instanceof Error ? sendError.message : "Réponse non enregistrée");
+      const message = sendError instanceof Error ? sendError.message : "Réponse non enregistrée";
+      if (/modifié|transféré/i.test(message) && selectedCode) {
+        try {
+          setDetail(await apiFetch<AgentRequestDetail>(`support/agent/requests/${selectedCode}`));
+          await loadQueue();
+        } catch {
+          // Le message de conflit initial reste le plus utile pour l'agent.
+        }
+      }
+      setError(message);
     } finally {
       setSaving(false);
     }

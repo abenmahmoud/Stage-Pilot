@@ -15,6 +15,7 @@
     "test:laptop-intake": "node --experimental-strip-types scripts/test-laptop-intake.mjs",
     "test:support-routing": "node --experimental-strip-types scripts/test-support-routing.mjs",
     "test:support-conversation": "node --experimental-strip-types scripts/test-support-conversation.mjs",
+    "test:support-concurrency": "node --experimental-strip-types scripts/test-support-concurrency.mjs",
     "test:support-agent-access": "node --experimental-strip-types scripts/test-support-agent-access.mjs",
     "test:schedule-policy": "node --experimental-strip-types scripts/test-schedule-policy.mjs",
     "test:skill-registry": "node --experimental-strip-types scripts/test-skill-registry-policy.mjs",

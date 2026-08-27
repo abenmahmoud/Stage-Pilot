@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { and, asc, eq } from "drizzle-orm";
+import { and, asc, eq, isNull, sql } from "drizzle-orm";
 import { db } from "../../../../db/index.js";
 import {
   supportAttachments,
@@ -16,6 +16,10 @@ import {
   assertSupportTransferAccess,
   requireSupportAgent,
 } from "../../../_shared/support-agent-access.js";
+import {
+  parseSupportRevision,
+  supportRevisionMatches,
+} from "../../../../shared/support-concurrency.js";
 
 const STATUSES = new Set([
   "nouveau",
@@ -68,6 +72,20 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     if (req.method === "PATCH") {
       const body = (req.body ?? {}) as Record<string, unknown>;
+      const expectedRevision = parseSupportRevision(body.expectedUpdatedAt);
+      if (!expectedRevision) {
+        throw new HttpError(400, "La version du dossier est requise");
+      }
+      if (!supportRevisionMatches(request.updatedAt, expectedRevision)) {
+        throw new HttpError(409, "Ce dossier a été modifié par un autre agent. Il vient d’être actualisé.");
+      }
+      if (
+        body.assignToMe === true &&
+        request.assignedTo !== null &&
+        request.assignedTo !== user.id
+      ) {
+        throw new HttpError(409, "Cette demande est déjà prise en charge par un autre agent");
+      }
       const currentContext = (request.subjectContext ?? {}) as Record<string, unknown>;
       const currentIdentityStatus = typeof currentContext.identityStatus === "string" && IDENTITY_STATUSES.has(currentContext.identityStatus)
         ? currentContext.identityStatus
@@ -167,6 +185,17 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       const identityChanged =
         nextIdentityStatus !== currentIdentityStatus ||
         nextIdentityMethod !== (typeof currentContext.identityMethod === "string" ? currentContext.identityMethod : null);
+      const revisionCondition = sql`date_trunc('milliseconds', ${supportRequests.updatedAt}) = ${expectedRevision}`;
+      const updateCondition = body.assignToMe === true && request.assignedTo === null
+        ? and(
+            eq(supportRequests.id, request.id),
+            revisionCondition,
+            isNull(supportRequests.assignedTo)
+          )
+        : and(
+            eq(supportRequests.id, request.id),
+            revisionCondition
+          );
       const [updated] = await db.transaction(async (tx) => {
         const [saved] = await tx
           .update(supportRequests)
@@ -205,8 +234,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
                 : request.resolvedAt,
             closedAt: nextStatus === "clos" ? now : null,
           })
-          .where(eq(supportRequests.id, request.id))
+          .where(updateCondition)
           .returning();
+        if (!saved) {
+          throw new HttpError(409, "Ce dossier a été modifié ou pris en charge par un autre agent. Il vient d’être actualisé.");
+        }
         await tx.insert(supportEvents).values({
           requestId: request.id,
           eventType: "request.updated",

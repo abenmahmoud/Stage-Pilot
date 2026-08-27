@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { eq, sql } from "drizzle-orm";
+import { and, eq, isNull, sql } from "drizzle-orm";
 import { db } from "../../../../../db/index.js";
 import {
   supportCallbackTasks,
@@ -17,6 +17,10 @@ import {
   assertSupportRequestAccess,
   requireSupportAgent,
 } from "../../../../_shared/support-agent-access.js";
+import {
+  parseSupportRevision,
+  supportRevisionMatches,
+} from "../../../../../shared/support-concurrency.js";
 
 const IDENTITY_VERIFICATION_MESSAGE = "Bonjour, pour protéger vos accès, nous devons d’abord confirmer votre identité avec une source officielle du lycée. Ne transmettez aucun mot de passe ni aucun code reçu par SMS. Nous revenons vers vous dès que la vérification est terminée.";
 
@@ -43,12 +47,44 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         category: supportRequests.category,
         subjectContext: supportRequests.subjectContext,
         assignedTeam: supportRequests.assignedTeam,
+        updatedAt: supportRequests.updatedAt,
       })
       .from(supportRequests)
       .where(eq(supportRequests.publicCode, code))
       .limit(1);
     if (!request) throw new HttpError(404, "Demande introuvable");
     assertSupportRequestAccess(access, request.assignedTeam);
+    const [existingReply] = await db
+      .select({
+        id: supportMessages.id,
+        requestId: supportMessages.requestId,
+        createdAt: supportMessages.createdAt,
+        channel: supportMessages.channel,
+      })
+      .from(supportMessages)
+      .where(eq(supportMessages.clientIdempotencyKeyHash, idempotencyHash))
+      .limit(1);
+    if (existingReply) {
+      if (existingReply.requestId !== request.id) {
+        throw new HttpError(409, "Cette clé d’envoi a déjà été utilisée pour un autre dossier");
+      }
+      res.status(200);
+      return {
+        message: {
+          id: existingReply.id,
+          createdAt: existingReply.createdAt,
+          channel: existingReply.channel,
+          duplicate: true,
+        },
+      };
+    }
+    const expectedRevision = parseSupportRevision(body.expectedUpdatedAt);
+    if (!expectedRevision) {
+      throw new HttpError(400, "La version du dossier est requise");
+    }
+    if (!supportRevisionMatches(request.updatedAt, expectedRevision)) {
+      throw new HttpError(409, "Ce dossier a été modifié par un autre agent. Il vient d’être actualisé.");
+    }
     const identityContext = (request.subjectContext ?? {}) as Record<string, unknown>;
     if (
       ["ent", "email_academique"].includes(request.category) &&
@@ -88,11 +124,18 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         .returning({ id: supportMessages.id, createdAt: supportMessages.createdAt });
       if (!created) {
         const [existing] = await tx
-          .select({ id: supportMessages.id, createdAt: supportMessages.createdAt })
+          .select({
+            id: supportMessages.id,
+            requestId: supportMessages.requestId,
+            createdAt: supportMessages.createdAt,
+          })
           .from(supportMessages)
           .where(eq(supportMessages.clientIdempotencyKeyHash, idempotencyHash))
           .limit(1);
         if (!existing) throw new Error("Idempotent agent reply could not be recovered");
+        if (existing.requestId !== request.id) {
+          throw new HttpError(409, "Cette clé d’envoi a déjà été utilisée pour un autre dossier");
+        }
         return { ...existing, duplicate: true, channel: email ? "email" : "phone" };
       }
 
@@ -128,10 +171,23 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         });
       }
 
-      await tx
+      const teamCondition = request.assignedTeam === null
+        ? isNull(supportRequests.assignedTeam)
+        : eq(supportRequests.assignedTeam, request.assignedTeam);
+      const [updatedRequest] = await tx
         .update(supportRequests)
         .set({ status: "attente_demandeur", assignedTo: user.id })
-        .where(eq(supportRequests.id, request.id));
+        .where(
+          and(
+            eq(supportRequests.id, request.id),
+            sql`date_trunc('milliseconds', ${supportRequests.updatedAt}) = ${expectedRevision}`,
+            teamCondition
+          )
+        )
+        .returning({ id: supportRequests.id });
+      if (!updatedRequest) {
+        throw new HttpError(409, "Ce dossier a été modifié ou transféré par un autre agent. Il vient d’être actualisé.");
+      }
       await tx.insert(supportEvents).values({
         requestId: request.id,
         eventType: email ? "reply.queued" : "callback.created",

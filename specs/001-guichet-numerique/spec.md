@@ -144,6 +144,10 @@ et ne clôture pas un dossier sans validation humaine.
 - Les actions répétitives utilisent des modèles avec champs variables.
 - Les demandes probablement identiques sont signalées, jamais fusionnées sans
   validation humaine.
+- Si deux agents ouvrent le même dossier, une modification plus récente ne peut
+  jamais être écrasée silencieusement. Le second agent est invité à actualiser.
+- Une prise en charge est atomique : un seul agent obtient le dossier, les autres
+  voient immédiatement qu'il est déjà attribué.
 - La réponse, le changement de statut et le job durable sont enregistrés dans la
   même transaction avant l'envoi externe.
 - Un dossier ne peut être clôturé qu'après une réponse ou un motif explicite.

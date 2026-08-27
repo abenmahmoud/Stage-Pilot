@@ -17,6 +17,9 @@
 - Lorsqu'un chat devient une demande, le dialogue utile est conserve dans l'ordre
   dans le dossier. Les messages automatiques restent identifies comme tels dans
   le suivi public et la console agent.
+- Les modifications agent et les reponses utilisent la revision affichee du
+  dossier. Une prise en charge concurrente ou un dossier devenu perime provoque
+  un refus puis une actualisation, sans ecraser le travail d'un autre agent.
 - Le lancement Claude autorise pour l'audit cible du 27 aout s'est arrete sans
   rapport exploitable a cause de sa limite de contexte. Aucune conclusion externe
   ni relance n'a ete retenue.

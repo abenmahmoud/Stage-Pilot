@@ -59,6 +59,8 @@ quarantaine. Une panne d'envoi externe n'affecte pas le dossier.
   une liste officielle pour confirmer une identité et bloquer la résolution des
   demandes ENT ou email académique sans cette confirmation.
 - [x] **T017** Construire la file agent paginée avec filtres, SLA et assignation.
+- [x] **T017A** Protéger les modifications et réponses par révision, rendre la
+  prise en charge atomique et actualiser l'écran après un conflit.
 - [x] **T018** Ajouter réponses, notes internes, transfert et clôture motivée.
   Les notes internes restent hors du fil public, le transfert conserve le dossier
   complet et une clôture exige un motif audité.

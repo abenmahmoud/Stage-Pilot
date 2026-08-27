@@ -94,6 +94,9 @@ l'autorisation de quota définie par le propriétaire.
 - Lot N5B : continuité assistant-dossier. **Implémentée et testée** : le dialogue
   utile est conservé message par message dans l'ordre, les réponses automatiques
   restent identifiées et le même fil est visible par l'usager et l'agent.
+- Lot N5C : concurrence entre agents. **Implémentée et testée** : prise en charge
+  atomique, révision obligatoire avant modification ou réponse, refus d'un état
+  périmé et actualisation du dossier sans écrasement silencieux.
 - Lot N6 : tests de non-régression, build, contrôle mobile et rapport d'écarts.
 
 ## Portes de validation humaine
