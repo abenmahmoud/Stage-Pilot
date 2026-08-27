@@ -123,17 +123,18 @@ l'autorisation de quota définie par le propriétaire.
   « élève » est prérempli et les vues PC/mobile ne débordent pas. La règle serveur
   empêche aussi un résultat IA trop prudent de remettre à `false` une demande que
   le contrôle déterministe juge complète. Les workers email VPS et Vercel ignorent
-  les domaines réservés aux tests avant toute notification demandeur ou agent. La création
-  réelle d'un dossier fictif en preview, son suivi et sa lecture agent restent la
-  dernière recette de T027D.
+  les domaines réservés aux tests avant toute notification demandeur ou agent.
+  Le dossier fictif `BC-2026-000008` a été créé et retrouvé côté usager avec son
+  dialogue. La recette a révélé puis fait corriger le conflit qui envoyait un
+  blocage ENT vers la vie scolaire dès que le demandeur mentionnait son emploi du
+  temps. La preuve dans une console agent authentifiée reste à réaliser.
 - Lot N6 : tests de non-régression, build, contrôle mobile et rapport d'écarts.
 
 ## Prochaine séquence verrouillée
 
-1. Déployer N5G sur la preview et vérifier que l'agent propose « Vérifier et
-   envoyer » dès qu'une demande scolaire est assez claire.
-2. Créer un unique dossier fictif autorisé, puis vérifier son numéro, le suivi
-   usager, le routage numérique et sa lecture dans la console agent.
+1. Déployer le correctif de routage ENT sur la preview et vérifier sa disponibilité.
+2. Ouvrir `BC-2026-000008` dans une session agent autorisée, puis vérifier le
+   périmètre de file et la présentation du dialogue. Le suivi usager est validé.
 3. Fermer T027D seulement après cette preuve de bout en bout et nettoyer les
    données de démonstration si elles ne doivent pas être conservées.
 4. Ajouter le worker d'expiration et prouver qu'une source périmée désactive la

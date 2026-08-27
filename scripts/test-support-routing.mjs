@@ -11,6 +11,15 @@ test("routes digital access and equipment to the digital lead", () => {
   assert.equal(ent.requiredIdentity, "school_identity");
   assert.equal(ent.confidence, "high");
 
+  const entBeforeSchedule = routeSupportRequest({
+    category: "ent",
+    subject: "ENT ou EduConnect",
+    description:
+      "Je ne peux plus accéder à mon ENT et je dois consulter mon emploi du temps pour demain",
+  });
+  assert.equal(entBeforeSchedule.service, "referent_numerique");
+  assert.equal(entBeforeSchedule.reason, "acces_ou_equipement_numerique");
+
   const laptop = routeSupportRequest({
     category: "ordinateur",
     description: "Le PC portable fourni par le lycée ne démarre plus",

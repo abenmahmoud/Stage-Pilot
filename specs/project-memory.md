@@ -223,8 +223,11 @@ sa specification.
   accent est reconnu et aucun débordement n'a été observé sur PC ou téléphone.
   Un modèle IA trop prudent ne peut plus annuler l'état prêt établi par le contrôle
   déterministe du serveur.
-  La création d'un dossier fictif en preview, son suivi et sa lecture agent restent
-  à prouver avant de fermer la recette intégrée T027D.
+  Le dossier fictif `BC-2026-000008` a été créé en preview et retrouvé dans le
+  suivi avec son dialogue. Cette recette a révélé que le routeur serveur donnait
+  encore la priorité aux mots « emploi du temps » sur un blocage ENT ; l'ordre a
+  été corrigé et couvert par un test exact. La lecture dans une console agent
+  authentifiée reste à prouver avant de fermer la recette intégrée T027D.
 - La feuille de route détaillée des comptes, files, compétences, emplois du
   temps, contenu, charge et pilote est dans
   `002-agent-etablissement-adaptatif/execution-roadmap.md`.

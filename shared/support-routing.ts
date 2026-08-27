@@ -81,22 +81,22 @@ export function routeSupportRequest(input: {
     };
   }
   if (
-    /\b((professeur|enseignant).{0,16}absent|mon prochain cours|ma salle|changement de salle|cours (annule|deplace|maintenu)|emploi du temps|absence|retard|justificatif|cpe|vie scolaire|surveillant|aed|sanction)\b/.test(text)
-  ) {
-    return {
-      service: "vie_scolaire",
-      confidence: "high",
-      reason: "absence_ou_vie_scolaire",
-      requiredIdentity: identity,
-    };
-  }
-  if (
     /\b(ent|educonnect|webmail|zimbra|email academique|wifi|reseau|ordinateur|pc|tablette|logiciel|connexion)\b/.test(text)
   ) {
     return {
       service: "referent_numerique",
       confidence: "high",
       reason: "acces_ou_equipement_numerique",
+      requiredIdentity: identity,
+    };
+  }
+  if (
+    /\b((professeur|enseignant).{0,16}absent|mon prochain cours|ma salle|changement de salle|cours (annule|deplace|maintenu)|emploi du temps|absence|retard|justificatif|cpe|vie scolaire|surveillant|aed|sanction)\b/.test(text)
+  ) {
+    return {
+      service: "vie_scolaire",
+      confidence: "high",
+      reason: "absence_ou_vie_scolaire",
       requiredIdentity: identity,
     };
   }
