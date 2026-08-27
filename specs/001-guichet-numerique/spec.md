@@ -225,6 +225,11 @@ L'IA peut suggérer la priorité. Seul un agent peut confirmer P1 ou clôturer.
 - Email : actif en V1, suivi de délivrabilité obligatoire.
 - Notification dans la PWA : active pour les sessions connues.
 - Téléphone : création d'une tâche de rappel en V1.
+- Une demande explicite de rappel crée la tâche même si un email est aussi
+  disponible. La file agent affiche les rappels en attente séparément.
+- Un agent prend le rappel avant de le traiter, puis enregistre un résultat pour
+  le terminer. Deux agents ne peuvent pas prendre le même rappel simultanément.
+- Un rappel terminé ne confirme jamais à lui seul l'identité scolaire.
 - SMS Brevo : activable ensuite, avec crédits et consentement adaptés.
 - WhatsApp : sert d'abord à diffuser le lien public, pas le contenu d'un dossier.
 - Chaque échec crée une relance par un autre canal autorisé ou une alerte agent.

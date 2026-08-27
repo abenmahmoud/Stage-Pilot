@@ -1,7 +1,7 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { and, asc, eq, ilike, inArray, isNull, or, sql, type SQL } from "drizzle-orm";
 import { db } from "../../../../db/index.js";
-import { supportRequests } from "../../../../db/schema.js";
+import { supportCallbackTasks, supportRequests } from "../../../../db/schema.js";
 import { HttpError } from "../../../_shared/auth.js";
 import { handleApi, methodNotAllowed } from "../../../_shared/response.js";
 import { requireSupportAgent } from "../../../_shared/support-agent-access.js";
@@ -24,6 +24,14 @@ const VALID_STATUSES = new Set([
 const VALID_SERVICES = new Set<string>(SUPPORT_SERVICES);
 const UNASSIGNED_SERVICE_FILTER = "unassigned";
 
+function hasPendingCallback(): SQL<boolean> {
+  return sql<boolean>`exists (
+    select 1 from ${supportCallbackTasks}
+    where ${supportCallbackTasks.requestId} = ${supportRequests.id}
+      and ${supportCallbackTasks.status} in ('todo', 'in_progress')
+  )`;
+}
+
 function queryValue(value: string | string[] | undefined): string {
   return Array.isArray(value) ? value[0] ?? "" : value ?? "";
 }
@@ -39,6 +47,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const status = queryValue(req.query.status);
     const urgentOnly = queryValue(req.query.urgent) === "true";
     const mineOnly = queryValue(req.query.assigned) === "me";
+    const callbackOnly = queryValue(req.query.callback) === "pending";
     const service = queryValue(req.query.service);
     const filters: SQL[] = [];
     const accessFilter = access.canViewAll
@@ -74,6 +83,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (VALID_STATUSES.has(status)) filters.push(eq(supportRequests.status, status));
     if (urgentOnly) filters.push(sql`${supportRequests.priority} in ('p1', 'p2')`);
     if (mineOnly) filters.push(eq(supportRequests.assignedTo, user.id));
+    if (callbackOnly) filters.push(hasPendingCallback());
     if (serviceFilter) filters.push(serviceFilter);
 
     const where = filters.length > 0 ? and(...filters) : undefined;
@@ -96,6 +106,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         slaDueAt: supportRequests.slaDueAt,
         createdAt: supportRequests.createdAt,
         updatedAt: supportRequests.updatedAt,
+        callbackPending: hasPendingCallback(),
       })
       .from(supportRequests)
       .where(where)
@@ -122,6 +133,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       waitingRequester: sql<number>`count(*) filter (where ${supportRequests.status} = 'attente_demandeur')::int`,
       unassigned: sql<number>`count(*) filter (where ${supportRequests.assignedTo} is null and ${supportRequests.status} not in ('resolu', 'clos', 'indesirable'))::int`,
       overdue: sql<number>`count(*) filter (where ${supportRequests.slaDueAt} < now() and ${supportRequests.status} not in ('resolu', 'clos', 'indesirable'))::int`,
+      callbacks: sql<number>`count(*) filter (where ${hasPendingCallback()})::int`,
     }).from(supportRequests).where(statsWhere.length ? and(...statsWhere) : undefined);
 
     const serviceStatsQuery = db
@@ -148,7 +160,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       requests,
       access,
       serviceStats,
-      stats: statsRow ?? { total: 0, new: 0, qualify: 0, urgent: 0, active: 0, waitingRequester: 0, unassigned: 0, overdue: 0 },
+      stats: statsRow ?? { total: 0, new: 0, qualify: 0, urgent: 0, active: 0, waitingRequester: 0, unassigned: 0, overdue: 0, callbacks: 0 },
       pagination: { page, pageSize, total, totalPages: Math.max(1, Math.ceil(total / pageSize)) },
     };
   });

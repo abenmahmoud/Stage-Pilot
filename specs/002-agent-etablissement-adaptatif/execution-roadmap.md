@@ -105,6 +105,10 @@ l'autorisation de quota définie par le propriétaire.
   fonctionnelle et une configuration absente revient au superadministrateur sans
   exposer l'adresse interne au demandeur. Les valeurs réelles restent à fournir
   et à configurer avant le pilote.
+- Lot N5F : rappels téléphoniques. **Implémenté en preview** : une demande de
+  rappel crée une tâche même avec un email, la console possède une file dédiée,
+  la prise en charge est atomique et un résultat est obligatoire. Le rappel ne
+  confirme pas automatiquement l'identité scolaire.
 - Lot N6 : tests de non-régression, build, contrôle mobile et rapport d'écarts.
 
 ## Portes de validation humaine

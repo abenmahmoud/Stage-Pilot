@@ -4,6 +4,7 @@ import { and, asc, eq, isNull, sql } from "drizzle-orm";
 import { db } from "../../../../db/index.js";
 import {
   supportAttachments,
+  supportCallbackTasks,
   supportContacts,
   supportEvents,
   supportMessages,
@@ -267,7 +268,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return { request: updated };
     }
 
-    const [contacts, messages, attachments] = await Promise.all([
+    const [contacts, messages, attachments, callbacks] = await Promise.all([
       db
         .select({
           id: supportContacts.id,
@@ -296,6 +297,20 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         })
         .from(supportAttachments)
         .where(eq(supportAttachments.requestId, request.id)),
+      db
+        .select({
+          id: supportCallbackTasks.id,
+          phoneContactId: supportCallbackTasks.phoneContactId,
+          assignedTo: supportCallbackTasks.assignedTo,
+          dueAt: supportCallbackTasks.dueAt,
+          status: supportCallbackTasks.status,
+          outcome: supportCallbackTasks.outcome,
+          completedAt: supportCallbackTasks.completedAt,
+          createdAt: supportCallbackTasks.createdAt,
+        })
+        .from(supportCallbackTasks)
+        .where(eq(supportCallbackTasks.requestId, request.id))
+        .orderBy(asc(supportCallbackTasks.createdAt)),
     ]);
 
     const identityContext = (request.subjectContext ?? {}) as Record<string, unknown>;
@@ -317,6 +332,17 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       contacts,
       messages,
       attachments,
+      callbacks: callbacks.map((callback) => ({
+        id: callback.id,
+        phoneContactId: callback.phoneContactId,
+        dueAt: callback.dueAt,
+        status: callback.status,
+        outcome: callback.outcome,
+        completedAt: callback.completedAt,
+        createdAt: callback.createdAt,
+        assigned: callback.assignedTo !== null,
+        assignedToCurrentAgent: callback.assignedTo === user.id,
+      })),
       access,
     };
   });

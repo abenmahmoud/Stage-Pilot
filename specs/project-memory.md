@@ -130,6 +130,10 @@ sa specification.
   vers DDFPT, administration, vie scolaire, numérique ou direction selon le
   service affecté. Une adresse manquante revient à la boîte générale du
   superadministrateur ; aucune adresse réelle n'est conservée dans Git.
+- Les rappels téléphoniques sont maintenant des tâches suivies : création dès la
+  demande explicite même si un email existe, compteur et filtre dans la file
+  agent, prise en charge sans collision, résultat obligatoire et événement
+  audité. Un rappel ne vaut pas confirmation d'identité scolaire.
 - Assistant de preview avec masquage prealable, limite de debit, `store: false`,
   repli sans IA et validation humaine.
 - Politique centrale appliquee avant l'IA : transfert humain pour le danger,

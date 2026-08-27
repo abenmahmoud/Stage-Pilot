@@ -61,6 +61,7 @@ export type SupportRequestInput = {
   description: string;
   preferredChannel: string;
   fallbackAllowed: boolean;
+  callbackRequested: boolean;
   email: string | null;
   phone: string | null;
   routing: SupportRoute;
@@ -132,6 +133,7 @@ export function parseSupportRequest(body: unknown): SupportRequestInput {
   const requesterLastName = cleanText(input.requesterLastName, "Nom", 100);
   const email = normalizeEmail(input.email);
   const phone = normalizePhone(input.phone);
+  const callbackRequested = input.communicationSupport === true;
   const subject = cleanText(input.subject, "Objet", 180);
   const description = cleanText(input.description, "Description", 5000);
   const routing = routeSupportRequest({ category, subject, description });
@@ -154,6 +156,9 @@ export function parseSupportRequest(body: unknown): SupportRequestInput {
   if (preferredChannel === "phone" && !phone) {
     throw new HttpError(400, "Un téléphone est requis pour ce canal de réponse");
   }
+  if (callbackRequested && !phone) {
+    throw new HttpError(400, "Un téléphone est requis pour demander un rappel");
+  }
 
   const beneficiaryFirstName =
     beneficiaryType === "self"
@@ -175,7 +180,7 @@ export function parseSupportRequest(body: unknown): SupportRequestInput {
       schoolTrack: contextValue(input.schoolTrack, "Voie"),
       languagePreference: contextValue(input.languagePreference, "Langue souhaitée"),
       communicationSupport:
-        input.communicationSupport === true
+        callbackRequested
           ? "Rappel téléphonique souhaité pour faciliter la compréhension"
           : undefined,
       routingConfidence: routing.confidence,
@@ -198,6 +203,7 @@ export function parseSupportRequest(body: unknown): SupportRequestInput {
     description,
     preferredChannel,
     fallbackAllowed: input.fallbackAllowed === true,
+    callbackRequested,
     email,
     phone,
     routing,

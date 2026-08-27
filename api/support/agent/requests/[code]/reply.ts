@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { and, eq, isNull, sql } from "drizzle-orm";
+import { and, eq, inArray, isNull, sql } from "drizzle-orm";
 import { db } from "../../../../../db/index.js";
 import {
   supportCallbackTasks,
@@ -163,12 +163,26 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           )
         `);
       } else if (phone) {
-        await tx.insert(supportCallbackTasks).values({
-          requestId: request.id,
-          phoneContactId: phone.id,
-          assignedTo: user.id,
-          dueAt: new Date(),
-        });
+        const [activeCallback] = await tx
+          .select({ id: supportCallbackTasks.id })
+          .from(supportCallbackTasks)
+          .where(
+            and(
+              eq(supportCallbackTasks.requestId, request.id),
+              eq(supportCallbackTasks.phoneContactId, phone.id),
+              inArray(supportCallbackTasks.status, ["todo", "in_progress"])
+            )
+          )
+          .limit(1);
+        if (!activeCallback) {
+          await tx.insert(supportCallbackTasks).values({
+            requestId: request.id,
+            phoneContactId: phone.id,
+            assignedTo: user.id,
+            status: "in_progress",
+            dueAt: new Date(),
+          });
+        }
       }
 
       const teamCondition = request.assignedTeam === null

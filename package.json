@@ -16,6 +16,7 @@
     "test:support-routing": "node --experimental-strip-types scripts/test-support-routing.mjs",
     "test:support-conversation": "node --experimental-strip-types scripts/test-support-conversation.mjs",
     "test:support-concurrency": "node --experimental-strip-types scripts/test-support-concurrency.mjs",
+    "test:support-callback-policy": "node --experimental-strip-types scripts/test-support-callback-policy.mjs",
     "test:support-agent-access": "node --experimental-strip-types scripts/test-support-agent-access.mjs",
     "test:support-notification-routing": "node --experimental-strip-types scripts/test-support-notification-routing.mjs",
     "test:schedule-policy": "node --experimental-strip-types scripts/test-schedule-policy.mjs",

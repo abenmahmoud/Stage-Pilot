@@ -1804,6 +1804,7 @@ type AgentRequest = {
   slaDueAt: string | null;
   createdAt: string;
   updatedAt: string;
+  callbackPending: boolean;
 };
 
 type AgentRequestDetail = {
@@ -1811,9 +1812,20 @@ type AgentRequestDetail = {
   contacts: Array<{ id: string; channel: string; value: string; isPrimary: boolean; isVerified: boolean }>;
   messages: Array<{ id: string; direction: string; authorLabel: string | null; bodyText: string; deliveryStatus: string; createdAt: string }>;
   attachments: Array<{ id: string; originalName: string; scanStatus: string; sizeBytes: number; createdAt: string }>;
+  callbacks: Array<{
+    id: string;
+    phoneContactId: string;
+    dueAt: string | null;
+    status: "todo" | "in_progress" | "done" | "cancelled";
+    outcome: string | null;
+    completedAt: string | null;
+    createdAt: string;
+    assigned: boolean;
+    assignedToCurrentAgent: boolean;
+  }>;
 };
 
-type AgentQueueStats = { total: number; new: number; qualify: number; urgent: number; active: number; waitingRequester: number; unassigned: number; overdue: number };
+type AgentQueueStats = { total: number; new: number; qualify: number; urgent: number; active: number; waitingRequester: number; unassigned: number; overdue: number; callbacks: number };
 type AgentQueuePagination = { page: number; pageSize: number; total: number; totalPages: number };
 type AgentServiceStats = { service: string | null; open: number; urgent: number; overdue: number; unassigned: number };
 type AgentAccess = {
@@ -1851,7 +1863,8 @@ function isAgentRequestDetail(value: unknown): value is AgentRequestDetail {
     && isRecord(value.request)
     && Array.isArray(value.contacts)
     && Array.isArray(value.messages)
-    && Array.isArray(value.attachments);
+    && Array.isArray(value.attachments)
+    && Array.isArray(value.callbacks);
 }
 
 function AgentView({ onBack }: { onBack: () => void }) {
@@ -1861,11 +1874,11 @@ function AgentView({ onBack }: { onBack: () => void }) {
 
 function ConnectedAgentView({ onBack }: { onBack: () => void }) {
   const [requests, setRequests] = useState<AgentRequest[]>([]);
-  const [stats, setStats] = useState<AgentQueueStats>({ total: 0, new: 0, qualify: 0, urgent: 0, active: 0, waitingRequester: 0, unassigned: 0, overdue: 0 });
+  const [stats, setStats] = useState<AgentQueueStats>({ total: 0, new: 0, qualify: 0, urgent: 0, active: 0, waitingRequester: 0, unassigned: 0, overdue: 0, callbacks: 0 });
   const [serviceStats, setServiceStats] = useState<AgentServiceStats[]>([]);
   const [pagination, setPagination] = useState<AgentQueuePagination>({ page: 1, pageSize: 30, total: 0, totalPages: 1 });
   const [access, setAccess] = useState<AgentAccess | null>(null);
-  const [queueMode, setQueueMode] = useState<"all" | "qualify" | "urgent" | "mine">("all");
+  const [queueMode, setQueueMode] = useState<"all" | "qualify" | "urgent" | "callbacks" | "mine">("all");
   const [serviceFilter, setServiceFilter] = useState("");
   const [page, setPage] = useState(1);
   const [selectedCode, setSelectedCode] = useState<string | null>(null);
@@ -1873,6 +1886,7 @@ function ConnectedAgentView({ onBack }: { onBack: () => void }) {
   const [query, setQuery] = useState("");
   const [reply, setReply] = useState("");
   const [internalNote, setInternalNote] = useState("");
+  const [callbackOutcome, setCallbackOutcome] = useState("");
   const [closureReason, setClosureReason] = useState("");
   const [templates, setTemplates] = useState<SupportReplyTemplate[]>(DEFAULT_SUPPORT_REPLY_TEMPLATES);
   const [templateName, setTemplateName] = useState("");
@@ -1887,6 +1901,7 @@ function ConnectedAgentView({ onBack }: { onBack: () => void }) {
       if (queueMode === "urgent") params.set("urgent", "true");
       if (queueMode === "qualify") params.set("status", "a_qualifier");
       if (queueMode === "mine") params.set("assigned", "me");
+      if (queueMode === "callbacks") params.set("callback", "pending");
       if (serviceFilter) params.set("service", serviceFilter);
       const payload = await apiFetch<unknown>(`support/agent/requests?${params}`);
       if (!isAgentQueuePayload(payload)) {
@@ -1920,6 +1935,7 @@ function ConnectedAgentView({ onBack }: { onBack: () => void }) {
     if (!selectedCode) return;
     setReply("");
     setInternalNote("");
+    setCallbackOutcome("");
     setClosureReason("");
     apiFetch<unknown>(`support/agent/requests/${selectedCode}`)
       .then((payload) => {
@@ -2038,6 +2054,45 @@ function ConnectedAgentView({ onBack }: { onBack: () => void }) {
     }
   }
 
+  async function createCallback(phoneContactId: string) {
+    if (!selectedCode) return;
+    setSaving(true);
+    try {
+      await apiFetch(`support/agent/requests/${selectedCode}/callbacks`, {
+        method: "POST",
+        body: JSON.stringify({ phoneContactId }),
+      });
+      setDetail(await apiFetch<AgentRequestDetail>(`support/agent/requests/${selectedCode}`));
+      setError(null);
+    } catch (callbackError) {
+      setError(callbackError instanceof Error ? callbackError.message : "Rappel non programmé");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function updateCallback(callbackId: string, action: "claim" | "complete") {
+    if (!selectedCode) return;
+    setSaving(true);
+    try {
+      await apiFetch(`support/agent/requests/${selectedCode}/callbacks`, {
+        method: "PATCH",
+        body: JSON.stringify({
+          callbackId,
+          action,
+          ...(action === "complete" ? { outcome: callbackOutcome } : {}),
+        }),
+      });
+      setCallbackOutcome("");
+      setDetail(await apiFetch<AgentRequestDetail>(`support/agent/requests/${selectedCode}`));
+      setError(null);
+    } catch (callbackError) {
+      setError(callbackError instanceof Error ? callbackError.message : "Rappel non modifié");
+    } finally {
+      setSaving(false);
+    }
+  }
+
   async function saveReplyTemplate() {
     const request = detail?.request;
     if (!request || !templateName.trim() || !reply.trim()) return;
@@ -2090,6 +2145,11 @@ function ConnectedAgentView({ onBack }: { onBack: () => void }) {
     serviceStats.find((item) => item.service === null),
     ...supportTeams.map((team) => serviceStats.find((item) => item.service === team.value)),
   ].filter((item): item is AgentServiceStats => Boolean(item && item.open > 0));
+  const phoneContact = detail?.contacts.find((contact) => contact.channel === "phone") ?? null;
+  const activeCallback = detail?.callbacks.find((callback) => ["todo", "in_progress"].includes(callback.status)) ?? null;
+  const lastFinishedCallback = [...(detail?.callbacks ?? [])]
+    .reverse()
+    .find((callback) => ["done", "cancelled"].includes(callback.status)) ?? null;
   const needsAgentSecurity = Boolean(
     error && /double vérification|vérification renforcée/i.test(error)
   );
@@ -2110,14 +2170,14 @@ function ConnectedAgentView({ onBack }: { onBack: () => void }) {
       <div className="lycee-agent-workspace">
         <section className="lycee-agent-queue">
           <div className="lycee-agent-toolbar"><label><Search aria-hidden="true" /><input value={query} onChange={(event) => { setQuery(event.target.value); setPage(1); }} placeholder="Nom, numéro ou objet" /></label><button className={queueMode === "mine" ? "is-active" : ""} type="button" aria-label="Afficher mes demandes" aria-pressed={queueMode === "mine"} title="Afficher mes demandes" onClick={() => { setQueueMode((current) => current === "mine" ? "all" : "mine"); setPage(1); }}><Filter aria-hidden="true" /></button><select aria-label="Filtrer par service" value={serviceFilter} onChange={(event) => { setServiceFilter(event.target.value); setPage(1); }}><option value="">{access?.canViewAll ? "Tous les services" : "Mon périmètre"}</option>{access?.canViewAll ? <option value="unassigned">À orienter</option> : null}{availableTeams.map((team) => <option value={team.value} key={team.value}>{team.label}</option>)}</select></div>
-          <div className="lycee-agent-tabs"><button className={queueMode === "all" ? "is-active" : ""} type="button" onClick={() => { setQueueMode("all"); setPage(1); }}>Toutes <span>{stats.total}</span></button><button className={queueMode === "qualify" ? "is-active" : ""} type="button" onClick={() => { setQueueMode("qualify"); setPage(1); }}>À classer <span>{stats.qualify}</span></button><button className={queueMode === "urgent" ? "is-active" : ""} type="button" onClick={() => { setQueueMode("urgent"); setPage(1); }}>Urgentes <span>{stats.urgent}</span></button></div>
+          <div className="lycee-agent-tabs"><button className={queueMode === "all" ? "is-active" : ""} type="button" onClick={() => { setQueueMode("all"); setPage(1); }}>Toutes <span>{stats.total}</span></button><button className={queueMode === "qualify" ? "is-active" : ""} type="button" onClick={() => { setQueueMode("qualify"); setPage(1); }}>À classer <span>{stats.qualify}</span></button><button className={queueMode === "urgent" ? "is-active" : ""} type="button" onClick={() => { setQueueMode("urgent"); setPage(1); }}>Urgentes <span>{stats.urgent}</span></button><button className={queueMode === "callbacks" ? "is-active" : ""} type="button" onClick={() => { setQueueMode("callbacks"); setPage(1); }}>Rappels <span>{stats.callbacks}</span></button></div>
           <div className="lycee-agent-list">
             {requests.map((request) => {
               const queueState = assessSupportQueueItem(request, new Date().toISOString());
               return <button className={selectedCode === request.publicCode ? "is-selected" : ""} type="button" key={request.publicCode} onClick={() => setSelectedCode(request.publicCode)}>
                 <span className="lycee-request-avatar">{`${request.requesterFirstName[0] ?? ""}${request.requesterLastName[0] ?? ""}`}</span>
                 <span><strong>{request.subject}</strong><small>{request.requesterFirstName} {request.requesterLastName} · {requesterProfileLabels[request.requesterType] ?? request.requesterType}</small><em>{supportTeamLabel(request.assignedTeam)} · {supportCategoryLabel(request.category)} · {supportSlaLabel(request.slaDueAt)}</em></span>
-                <span className="lycee-request-flags">{["p1", "p2"].includes(request.priority) ? <b>Urgent</b> : null}{queueState.unassigned ? <b data-kind="unassigned">Sans agent</b> : null}{queueState.overdue ? <b data-kind="overdue">En retard</b> : null}</span>
+                <span className="lycee-request-flags">{["p1", "p2"].includes(request.priority) ? <b>Urgent</b> : null}{request.callbackPending ? <b data-kind="callback">Rappel</b> : null}{queueState.unassigned ? <b data-kind="unassigned">Sans agent</b> : null}{queueState.overdue ? <b data-kind="overdue">En retard</b> : null}</span>
               </button>;
             })}
             {requests.length === 0 ? <div className="lycee-agent-list-empty">Aucune demande ne correspond à ce filtre.</div> : null}
@@ -2129,6 +2189,23 @@ function ConnectedAgentView({ onBack }: { onBack: () => void }) {
             <>
               <div className="lycee-agent-detail-head"><div><span>{selected.publicCode}</span><h2>{selected.subject}</h2><p>{selected.requesterFirstName} {selected.requesterLastName} · {requesterProfileLabels[selected.requesterType] ?? selected.requesterType}</p></div><div className="lycee-agent-controls"><select aria-label="Priorité" value={selected.priority} disabled={saving} onChange={(event) => void updateRequest({ priority: event.target.value })}><option value="p1">P1 critique</option><option value="p2">P2 urgente</option><option value="p3">P3 normale</option><option value="p4">P4 faible</option></select><select aria-label="Statut" value={selected.status} disabled={saving || selected.status === "clos"} onChange={(event) => void updateRequest({ status: event.target.value })}><option value="nouveau">Nouvelle demande</option><option value="a_qualifier">À classer</option><option value="assigne">Assignée</option><option value="en_cours">En cours</option><option value="attente_demandeur">En attente de l’utilisateur</option><option value="attente_interne">Vérification interne</option><option value="resolu">Résolue</option>{selected.status === "clos" ? <option value="clos">Fermée</option> : null}</select></div></div>
               <div className="lycee-agent-contact-row">{detail.contacts.map((contact) => <span className={contact.isVerified ? "is-verified" : ""} key={contact.id}>{contact.channel === "email" ? <Mail aria-hidden="true" /> : <Phone aria-hidden="true" />}{contact.value}{contact.isVerified ? " · vérifié" : ""}</span>)}<button type="button" disabled={saving || Boolean(selected.assignedTo)} onClick={() => void updateRequest({ assignToMe: true })}>{selected.assignedTo ? "Déjà attribuée" : "Prendre la demande"}</button></div>
+              {phoneContact ? (
+                <section className="lycee-agent-callback" data-status={activeCallback?.status ?? lastFinishedCallback?.status ?? "idle"}>
+                  <Headphones aria-hidden="true" />
+                  <span>
+                    <small>Rappel téléphonique</small>
+                    <strong>{activeCallback?.status === "todo" ? "Rappel à prendre" : activeCallback?.status === "in_progress" ? "Rappel en cours" : lastFinishedCallback?.status === "done" ? "Dernier rappel terminé" : "Aucun rappel en attente"}</strong>
+                    <p>{phoneContact.value}{activeCallback?.dueAt ? ` · demandé le ${supportDate(activeCallback.dueAt)}` : ""}</p>
+                    {lastFinishedCallback?.outcome && !activeCallback ? <em>{lastFinishedCallback.outcome}</em> : null}
+                  </span>
+                  <div>
+                    {!activeCallback ? <button type="button" disabled={saving || selected.status === "clos"} onClick={() => void createCallback(phoneContact.id)}>Programmer</button> : null}
+                    {activeCallback?.status === "todo" ? <button type="button" disabled={saving} onClick={() => void updateCallback(activeCallback.id, "claim")}>Prendre le rappel</button> : null}
+                    {activeCallback?.status === "in_progress" && activeCallback.assignedToCurrentAgent ? <><textarea aria-label="Résultat du rappel" rows={2} maxLength={1000} value={callbackOutcome} onChange={(event) => setCallbackOutcome(event.target.value)} placeholder="Résultat de l’appel…" /><button type="button" disabled={saving || callbackOutcome.trim().length < 2} onClick={() => void updateCallback(activeCallback.id, "complete")}>Terminer</button></> : null}
+                    {activeCallback?.status === "in_progress" && !activeCallback.assignedToCurrentAgent ? <small>Pris en charge par un autre agent</small> : null}
+                  </div>
+                </section>
+              ) : null}
               <section className="lycee-agent-routing"><ArrowRightLeft aria-hidden="true" /><span><strong>Service responsable</strong><small>{access?.canRoute ? "Le transfert conserve tous les messages et documents." : "Le superadministrateur réalise les transferts entre services."}</small></span><select aria-label="Service responsable" value={selected.assignedTeam ?? ""} disabled={saving || selected.status === "clos" || !access?.canRoute} onChange={(event) => void updateRequest({ assignedTeam: event.target.value || null, status: ["nouveau", "a_qualifier"].includes(selected.status) ? "assigne" : selected.status })}><option value="">À orienter</option>{supportTeams.map((team) => <option value={team.value} key={team.value}>{team.label}</option>)}</select></section>
               <section className="lycee-agent-identity" data-sensitive={["ent", "email_academique"].includes(selected.category)}><BadgeCheck aria-hidden="true" /><span><strong>{identityStatusLabels[selected.identityStatus]}</strong><small>{["ent", "email_academique"].includes(selected.category) ? "Demande sensible : ne transmettre aucun identifiant avant rapprochement avec une liste officielle." : "Adaptez le contrôle au niveau de sensibilité de la réponse."}</small></span><select aria-label="Niveau de vérification de l’identité" value={selected.identityStatus} disabled={saving} onChange={(event) => { const identityStatus = event.target.value as IdentityStatus; const identityMethod = identityStatus === "identite_confirmee" ? "official_roster" : identityStatus === "contact_verifie" ? (detail.contacts.some((contact) => contact.channel === "email" && contact.isVerified) ? "email_magic_link" : "phone_callback") : undefined; void updateRequest({ identityStatus, identityMethod }); }}><option value="non_verifiee">Coordonnées déclarées</option><option value="contact_verifie">Contact vérifié</option><option value="identite_confirmee">Identité confirmée dans la liste</option></select></section>
               <div className="lycee-agent-thread">{detail.messages.map((message) => <div data-direction={message.direction} data-author={message.authorLabel === "Assistant du lycée" ? "assistant" : undefined} key={message.id}><span><strong>{message.direction === "internal" ? "Note interne" : message.authorLabel ?? "Utilisateur"}</strong><small>{supportDate(message.createdAt)}{message.direction === "internal" ? " · invisible pour l’utilisateur" : message.authorLabel === "Assistant du lycée" ? " · réponse automatique" : ` · ${supportDeliveryLabel(message.deliveryStatus)}`}</small></span><p>{message.bodyText}</p></div>)}</div>

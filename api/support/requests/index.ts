@@ -4,6 +4,7 @@ import { and, desc, eq, gt, isNull, sql } from "drizzle-orm";
 import { db } from "../../../db/index.js";
 import {
   supportContacts,
+  supportCallbackTasks,
   supportDeviceSessions,
   supportEvents,
   supportMagicTokens,
@@ -176,6 +177,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
               .returning({ id: supportContacts.id, channel: supportContacts.channel })
           : [];
         const emailContact = insertedContacts.find((contact) => contact.channel === "email");
+        const phoneContact = insertedContacts.find((contact) => contact.channel === "phone");
 
         const requesterLabel = `${input.requesterFirstName} ${input.requesterLastName}`;
         const transcript = input.conversation.length > 0
@@ -208,9 +210,26 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             messageId: sourceMessage.id,
             messageCount: messageRows.length,
             conversationCaptured: input.conversation.length > 0,
+            callbackRequested: input.callbackRequested,
           },
           correlationId,
         });
+
+        if (input.callbackRequested && phoneContact) {
+          await tx.insert(supportCallbackTasks).values({
+            requestId: created.id,
+            phoneContactId: phoneContact.id,
+            dueAt: new Date(),
+          });
+          await tx.insert(supportEvents).values({
+            requestId: created.id,
+            eventType: "callback.requested",
+            actorType: "requester",
+            actorId: session.id,
+            toValue: { phoneContactId: phoneContact.id },
+            correlationId,
+          });
+        }
 
         await tx
           .insert(supportSessionRequests)
