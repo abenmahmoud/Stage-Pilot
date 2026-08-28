@@ -17,6 +17,13 @@ test("gives icon-only editor controls accessible names", () => {
   assert.match(editorSource, /aria-pressed=\{active\}/);
 });
 
+test("makes the legacy review queue visible and filterable", () => {
+  assert.match(editorSource, /Vérifier la reprise/);
+  assert.match(editorSource, /Filtrer la reprise de l’ancien site/);
+  assert.match(editorSource, /À vérifier/);
+  assert.match(editorSource, /reviewCounts\.pending/);
+});
+
 test("keeps public wording simple and removes the inactive notification control", () => {
   assert.doesNotMatch(prototypeSource, /analyse IA|analyse locale/);
   assert.doesNotMatch(prototypeSource, /aria-label="Notifications"/);

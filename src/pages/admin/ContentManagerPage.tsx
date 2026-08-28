@@ -14,6 +14,7 @@ type ContentType = "article" | "alerte" | "page" | "document";
 type ContentStatus = "brouillon" | "a_valider" | "publie" | "archive";
 type Audience = "tous" | "eleves" | "parents" | "personnels" | "professeurs";
 type Tab = "contenus" | "documents" | "modeles";
+type ReviewFilter = "all" | "pending" | "ready";
 
 type Item = {
   id: string; contentType: ContentType; slug: string; title: string; summary: string;
@@ -139,6 +140,7 @@ export default function ContentManagerPage() {
   const [templateId, setTemplateId] = useState("");
   const [templateDraft, setTemplateDraft] = useState<Template | null>(null);
   const [search, setSearch] = useState("");
+  const [reviewFilter, setReviewFilter] = useState<ReviewFilter>("all");
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
@@ -200,8 +202,17 @@ export default function ContentManagerPage() {
   const visible = useMemo(() => {
     const query = search.trim().toLowerCase();
     return items.filter((item) => (tab === "documents" ? item.contentType === "document" : item.contentType !== "document")
+      && (tab === "documents" || reviewFilter === "all" || (reviewFilter === "pending" ? item.needsReview : item.sourceSystem === "wordpress" && !item.needsReview))
       && (!query || `${item.title} ${item.category}`.toLowerCase().includes(query)));
-  }, [items, search, tab]);
+  }, [items, reviewFilter, search, tab]);
+  const reviewCounts = useMemo(() => {
+    const legacy = items.filter((item) => item.sourceSystem === "wordpress");
+    return {
+      all: legacy.length,
+      pending: legacy.filter((item) => item.needsReview).length,
+      ready: legacy.filter((item) => !item.needsReview).length,
+    };
+  }, [items]);
   const assetMap = useMemo(() => new Map(assets.map((asset) => [asset.id, asset])), [assets]);
   const previewDraft = useMemo(
     () => ({ ...draft, bodyMarkdown: resolveLegacyMedia(draft.bodyMarkdown, draft.assets, assetMap) }),
@@ -365,7 +376,7 @@ export default function ContentManagerPage() {
     <div className="mx-auto max-w-[1600px] space-y-5">
       <header className="flex flex-col gap-4 border-b border-slate-200 pb-5 sm:flex-row sm:items-center sm:justify-between">
         <div><p className="flex items-center gap-2 text-sm font-semibold text-emerald-700"><Newspaper className="h-4 w-4" /> Espace agent</p><h1 className="mt-1 text-2xl font-bold text-slate-950">Contenus du site</h1><p className="mt-1 text-sm text-slate-600">Articles, documents, pages et modèles du lycée.</p></div>
-        <div className="flex flex-col gap-2 sm:flex-row">{canImportLegacy ? <button type="button" disabled={legacyBusy} onClick={importLegacySite} className="inline-flex items-center justify-center gap-2 rounded-md border border-amber-300 bg-amber-50 px-4 py-2.5 text-sm font-semibold text-amber-900 disabled:opacity-60">{legacyBusy ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />} {legacyProgress || "Reprendre l’ancien site"}</button> : null}<a href="/?view=news" target="_blank" rel="noreferrer" className="inline-flex items-center justify-center gap-2 rounded-md border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-800"><Monitor className="h-4 w-4" /> Voir le site</a></div>
+        <div className="flex flex-col gap-2 sm:flex-row">{reviewCounts.pending ? <button type="button" onClick={() => { const next = items.find((item) => item.needsReview); if (next && confirmDraftChange()) void openItem(next.id); }} className="inline-flex items-center justify-center gap-2 rounded-md bg-amber-800 px-4 py-2.5 text-sm font-semibold text-white"><BadgeCheck className="h-4 w-4" /> Vérifier la reprise <span className="rounded bg-white/20 px-1.5 py-0.5 text-xs">{reviewCounts.pending}</span></button> : null}{canImportLegacy ? <button type="button" disabled={legacyBusy} onClick={importLegacySite} className="inline-flex items-center justify-center gap-2 rounded-md border border-amber-300 bg-amber-50 px-4 py-2.5 text-sm font-semibold text-amber-900 disabled:opacity-60">{legacyBusy ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />} {legacyProgress || "Reprendre l’ancien site"}</button> : null}<a href="/?view=news" target="_blank" rel="noreferrer" className="inline-flex items-center justify-center gap-2 rounded-md border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-800"><Monitor className="h-4 w-4" /> Voir le site</a></div>
       </header>
 
       <div className="inline-flex max-w-full overflow-x-auto rounded-md border border-slate-200 bg-white p-1" role="tablist">
@@ -379,7 +390,7 @@ export default function ContentManagerPage() {
       ) : (
         <div className="grid min-h-[680px] overflow-hidden rounded-md border border-slate-200 bg-white xl:grid-cols-[300px_minmax(0,1fr)]">
           <aside className="border-b border-slate-200 bg-slate-50 xl:border-b-0 xl:border-r">
-            <div className="space-y-3 border-b border-slate-200 p-4"><div className="relative"><Search className="absolute left-3 top-3 h-4 w-4 text-slate-400" /><input value={search} onChange={(event) => setSearch(event.target.value)} className="w-full rounded-md border border-slate-300 bg-white py-2.5 pl-9 pr-3 text-sm" placeholder="Rechercher" /></div><div className="flex gap-2"><select value={templateId} onChange={(event) => setTemplateId(event.target.value)} className="min-w-0 flex-1 rounded-md border border-slate-300 bg-white px-2 text-sm"><option value="">Sans modèle</option>{templates.filter((value) => value.active).map((value) => <option key={value.id} value={value.id}>{value.name}</option>)}</select><button type="button" onClick={newDraft} className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-emerald-700 text-white" title="Nouveau contenu" aria-label="Nouveau contenu"><Plus className="h-4 w-4" /></button></div></div>
+            <div className="space-y-3 border-b border-slate-200 p-4"><div className="relative"><Search className="absolute left-3 top-3 h-4 w-4 text-slate-400" /><input value={search} onChange={(event) => setSearch(event.target.value)} className="w-full rounded-md border border-slate-300 bg-white py-2.5 pl-9 pr-3 text-sm" placeholder="Rechercher" /></div>{tab === "contenus" && reviewCounts.all ? <div className="grid grid-cols-3 rounded-md border border-slate-200 bg-white p-1" role="group" aria-label="Filtrer la reprise de l’ancien site">{([['all', 'Tous'], ['pending', 'À vérifier'], ['ready', 'Vérifiés']] as const).map(([value, label]) => <button key={value} type="button" aria-pressed={reviewFilter === value} onClick={() => setReviewFilter(value)} className={`min-w-0 rounded px-1 py-2 text-xs font-semibold ${reviewFilter === value ? "bg-slate-900 text-white" : "text-slate-600 hover:bg-slate-100"}`}><span className="block truncate">{label}</span><span className={`mt-0.5 block text-[11px] ${reviewFilter === value ? "text-slate-300" : "text-slate-400"}`}>{reviewCounts[value]}</span></button>)}</div> : null}<div className="flex gap-2"><select value={templateId} onChange={(event) => setTemplateId(event.target.value)} className="min-w-0 flex-1 rounded-md border border-slate-300 bg-white px-2 text-sm"><option value="">Sans modèle</option>{templates.filter((value) => value.active).map((value) => <option key={value.id} value={value.id}>{value.name}</option>)}</select><button type="button" onClick={newDraft} className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-emerald-700 text-white" title="Nouveau contenu" aria-label="Nouveau contenu"><Plus className="h-4 w-4" /></button></div></div>
             <div className="max-h-[600px] space-y-1 overflow-y-auto p-2 xl:max-h-[calc(100vh-300px)]">{visible.length ? visible.map((item) => <button key={item.id} type="button" onClick={() => { if (draft.id === item.id) return; if (confirmDraftChange()) void openItem(item.id); }} className={`w-full rounded-md border p-3 text-left ${draft.id === item.id ? "border-emerald-300 bg-emerald-50" : "border-transparent hover:bg-white"}`}><div className="mb-2 flex items-center justify-between gap-2"><span className="text-[11px] font-semibold uppercase text-slate-500">{TYPES[item.contentType]}</span><Status value={item.status} /></div>{item.needsReview ? <span className="mb-2 inline-flex rounded bg-amber-100 px-2 py-1 text-[11px] font-semibold text-amber-900">Ancien site · à vérifier</span> : null}<p className="line-clamp-2 text-sm font-semibold text-slate-900">{item.title}</p><p className="mt-1 text-xs text-slate-500">Modifié le {displayDate(item.updatedAt)}</p></button>) : <p className="px-3 py-8 text-center text-sm text-slate-500">Aucun contenu.</p>}</div>
           </aside>
 
