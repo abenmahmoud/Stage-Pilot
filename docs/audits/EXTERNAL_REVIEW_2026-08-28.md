@@ -33,6 +33,9 @@
 - `npm audit --omit=dev --audit-level=high` : aucune vulnerabilite.
 - Controle navigateur en 1440 x 1000 et 320 x 812 : contenu present,
   formulaire visible, aucun debordement horizontal et aucune erreur de page.
+- Recette API de preview avec identite et telephone fictifs : creation du
+  dossier, confirmation du canal telephone et ouverture du suivi sur le meme
+  appareil. Aucun email n'a ete fourni ni envoye.
 
 Cette revue ne valide ni les donnees reelles, ni la charge, ni les habilitations
 nominatives, ni une bascule de production.

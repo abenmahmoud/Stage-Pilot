@@ -1125,13 +1125,23 @@ function HelpDeskView({
 
   async function copyTicketCode() {
     if (!ticketCode) return;
+    let copied = false;
     try {
       await navigator.clipboard.writeText(ticketCode);
-      setTicketCopied(true);
-      window.setTimeout(() => setTicketCopied(false), 1800);
+      copied = true;
     } catch {
-      setTicketCopied(false);
+      const field = document.createElement("textarea");
+      field.value = ticketCode;
+      field.readOnly = true;
+      field.style.position = "fixed";
+      field.style.opacity = "0";
+      document.body.appendChild(field);
+      field.select();
+      copied = document.execCommand("copy");
+      field.remove();
     }
+    setTicketCopied(copied);
+    if (copied) window.setTimeout(() => setTicketCopied(false), 1800);
   }
 
   if (ticketCode) {

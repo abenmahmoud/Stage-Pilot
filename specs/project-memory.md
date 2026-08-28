@@ -59,6 +59,10 @@
   formulaire est desormais transforme en message demandeur borne a 1 500
   caracteres tout en gardant le debut et la fin ; une conversation deja saisie
   n'est ni remplacee ni dupliquee.
+- La recette en ligne a ensuite cree un dossier entierement fictif sans email,
+  confirme le canal telephone et retrouve ce dossier dans le suivi du meme
+  navigateur. Cette preuve ne valide pas encore le retour email entrant ni les
+  comptes agents nominatifs.
 
 ## Decision du 27 aout 2026 - espaces de traitement
 
