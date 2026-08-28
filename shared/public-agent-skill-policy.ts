@@ -1,9 +1,12 @@
+import type { KnowledgeActor, KnowledgeActorLevel } from "./skill-registry-policy.js";
+
 export type PublicAgentSkillSource = {
   id: string;
   institutionId: string;
   title: string;
   status: "draft" | "published" | "expired" | "revoked";
   classification: "public" | "internal" | "personal" | "sensitive";
+  serviceCodes: string[];
   validFrom: string;
   expiresAt: string | null;
   required: boolean;
@@ -34,6 +37,7 @@ export type PublicAgentSkillContext = {
   name: string;
   domain: string;
   version: string;
+  accessLevel: KnowledgeActorLevel;
   instructions: string;
   allowedTools: string[];
   sources: Array<{ title: string; expiresAt: string | null }>;
@@ -71,43 +75,66 @@ function tokens(value: string): string[] {
   )];
 }
 
-function sourceIsPublicAndCurrent(
+const ACTOR_RANK: Record<KnowledgeActorLevel, number> = {
+  visitor: 0,
+  contact_verified: 1,
+  school_identity: 2,
+  agent: 3,
+  service_manager: 4,
+  admin: 5,
+};
+
+function classificationIsPromptSafe(
+  classification: PublicAgentSkillCandidate["dataClassification"],
+  actor: KnowledgeActor
+): boolean {
+  if (classification === "public") return true;
+  if (classification !== "internal") return false;
+  return ACTOR_RANK[actor.level] >= ACTOR_RANK.agent;
+}
+
+function sourceIsAuthorizedAndCurrent(
   source: PublicAgentSkillSource,
-  institutionId: string,
+  actor: KnowledgeActor,
   now: number
 ): boolean {
   const validFrom = timestamp(source.validFrom);
   const expiresAt = source.expiresAt ? timestamp(source.expiresAt) : Number.POSITIVE_INFINITY;
   return (
-    source.institutionId === institutionId &&
+    source.institutionId === actor.institutionId &&
     source.status === "published" &&
-    source.classification === "public" &&
+    classificationIsPromptSafe(source.classification, actor) &&
     Number.isFinite(validFrom) &&
     validFrom <= now &&
-    expiresAt >= now
+    expiresAt >= now &&
+    (
+      source.classification === "public" ||
+      source.serviceCodes.length === 0 ||
+      source.serviceCodes.some((service) => actor.serviceCodes.includes(service))
+    )
   );
 }
 
-function skillIsPublicAndCurrent(
+function skillIsAuthorizedAndCurrent(
   candidate: PublicAgentSkillCandidate,
-  institutionId: string,
+  actor: KnowledgeActor,
   now: number
 ): boolean {
   const instructions = candidate.instructions.trim();
   const requiredSources = candidate.sources.filter((source) => source.required);
   return (
-    candidate.institutionId === institutionId &&
+    candidate.institutionId === actor.institutionId &&
     candidate.enabled &&
     candidate.activeVersionId === candidate.versionId &&
     candidate.versionStatus === "published" &&
-    candidate.dataClassification === "public" &&
+    classificationIsPromptSafe(candidate.dataClassification, actor) &&
     candidate.publishedAt !== null &&
     timestamp(candidate.publishedAt) <= now &&
     timestamp(candidate.reviewDueAt) > now &&
     instructions.length >= 20 &&
     instructions.length <= MAX_SKILL_INSTRUCTIONS &&
     requiredSources.length > 0 &&
-    requiredSources.every((source) => sourceIsPublicAndCurrent(source, institutionId, now))
+    requiredSources.every((source) => sourceIsAuthorizedAndCurrent(source, actor, now))
   );
 }
 
@@ -130,6 +157,24 @@ export function selectPublicAgentSkillContext(input: {
   query: string;
   now: string;
 }): PublicAgentSkillContext[] {
+  return selectAuthorizedAgentSkillContext({
+    candidates: input.candidates,
+    actor: {
+      level: "visitor",
+      institutionId: input.institutionId,
+      serviceCodes: [],
+    },
+    query: input.query,
+    now: input.now,
+  });
+}
+
+export function selectAuthorizedAgentSkillContext(input: {
+  candidates: PublicAgentSkillCandidate[];
+  actor: KnowledgeActor;
+  query: string;
+  now: string;
+}): PublicAgentSkillContext[] {
   const now = timestamp(input.now);
   if (!Number.isFinite(now)) return [];
   const queryTokens = tokens(input.query);
@@ -137,7 +182,7 @@ export function selectPublicAgentSkillContext(input: {
   const selected: PublicAgentSkillContext[] = [];
 
   const ranked = input.candidates
-    .filter((candidate) => skillIsPublicAndCurrent(candidate, input.institutionId, now))
+    .filter((candidate) => skillIsAuthorizedAndCurrent(candidate, input.actor, now))
     .map((candidate) => ({ candidate, score: relevance(candidate, queryTokens) }))
     .filter((entry) => entry.score > 0)
     .sort((left, right) => right.score - left.score || left.candidate.skillKey.localeCompare(right.candidate.skillKey));
@@ -154,6 +199,7 @@ export function selectPublicAgentSkillContext(input: {
       name: candidate.name,
       domain: candidate.domain,
       version: candidate.version,
+      accessLevel: input.actor.level,
       instructions,
       allowedTools: [...new Set(candidate.allowedTools)].sort(),
       sources: candidate.sources
@@ -174,7 +220,7 @@ export function formatPublicAgentSkillContext(skills: PublicAgentSkillContext[])
     const tools = skill.allowedTools.length > 0
       ? `Outils déclarés mais non exécutables dans cette conversation : ${skill.allowedTools.join(", ")}.`
       : "Aucun outil externe n'est autorisé pour cette compétence.";
-    return `${index + 1}. ${skill.name} [${skill.skillKey}@${skill.version}]\nDomaine : ${skill.domain}\nSources publiques validées : ${sources}\n${tools}\nInstructions validées :\n${skill.instructions}`;
+    return `${index + 1}. ${skill.name} [${skill.skillKey}@${skill.version}]\nDomaine : ${skill.domain}\nNiveau d'accès vérifié : ${skill.accessLevel}\nSources autorisées et validées : ${sources}\n${tools}\nInstructions validées :\n${skill.instructions}`;
   });
-  return `<registre_public_valide>\n${blocks.join("\n\n")}\n</registre_public_valide>`;
+  return `<registre_autorise_valide>\n${blocks.join("\n\n")}\n</registre_autorise_valide>`;
 }

@@ -124,7 +124,7 @@ test("adds only the server-selected public registry context to model instruction
   };
 
   try {
-    const context = "<registre_public_valide>\nProcédure ENT validée\n</registre_public_valide>";
+    const context = "<registre_autorise_valide>\nProcédure ENT validée\n</registre_autorise_valide>";
     const result = await analyzeSupportConversation({
       messages: messages("Mon accès ENT est bloqué depuis ce matin"),
       attachments: [],
@@ -173,7 +173,7 @@ test("does not audit a selected skill when the model request fails", async () =>
       attachments: [],
       safetyIdentifier: "test-session",
       knowledgeContextLoader: async () => ({
-        instructions: "<registre_public_valide>Procédure ENT</registre_public_valide>",
+        instructions: "<registre_autorise_valide>Procédure ENT</registre_autorise_valide>",
         versions: [{
           institutionId: "00000000-0000-4000-8000-000000000001",
           versionId: "00000000-0000-4000-8000-000000000002",
@@ -219,7 +219,7 @@ test("keeps a safe answer available when the usage journal is temporarily unavai
       attachments: [],
       safetyIdentifier: "test-session",
       knowledgeContextLoader: async () => ({
-        instructions: "<registre_public_valide>Procédure ENT</registre_public_valide>",
+        instructions: "<registre_autorise_valide>Procédure ENT</registre_autorise_valide>",
         versions: [{
           institutionId: "00000000-0000-4000-8000-000000000001",
           versionId: "00000000-0000-4000-8000-000000000002",

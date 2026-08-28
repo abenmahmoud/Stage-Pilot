@@ -105,6 +105,12 @@ l'autorisation de quota définie par le propriétaire.
   injectées sont audités seulement après une réponse IA réussie, sans texte ni
   coordonnées. Le registre de preview restant vide, aucune procédure réelle
   n'est encore utilisée.
+- Lot N4C : identité progressive du contexte. **Implémentée et testée** : L0
+  anonyme, L1 email Supabase confirmé, L2 fiche élève/professeur liée, L3 agent et
+  L4 responsable issus d'une adhésion active. Les procédures internes sont
+  limitées au service de la source ; les catégories personnelles et sensibles
+  restent exclues du prompt et les déclarations dans le chat ne donnent aucun
+  droit. Le token est facultatif et transmis uniquement via `apiFetch`.
 - Lot N5 : files `À qualifier`, délais et dossiers sans propriétaire.
   **Visibilité opérationnelle implémentée et testée** : vue `À classer`, compteurs
   sans responsable et échéances dépassées, marqueurs par dossier et ordre par
@@ -174,8 +180,8 @@ l'autorisation de quota définie par le propriétaire.
 1. Conserver `BC-2026-000009` comme preuve fictive de recette jusqu'à la décision
    de nettoyage du pilote ; le dossier historique `BC-2026-000008` n'est pas
    déplacé silencieusement.
-2. Étendre l'orchestrateur aux niveaux authentifiés L1 à L4, avec autorisation
-   par service et outils contrôlés.
+2. Construire les outils contrôlés pour les données personnelles ou sensibles,
+   avec MFA, justification, résultat minimal et audit d'accès.
 3. Faire nommer les responsables et valider les premières sources et procédures
    avant toute compétence active contenant des informations réelles.
 

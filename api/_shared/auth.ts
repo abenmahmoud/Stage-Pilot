@@ -18,6 +18,7 @@ export const supabaseAdmin = createClient(supabaseUrl, serviceRoleKey, {
 export type AuthUser = {
   id: string;
   email: string | null;
+  emailConfirmedAt: string | null;
   role: string;
   appMetadata: Record<string, unknown>;
 };
@@ -42,6 +43,7 @@ export async function getUserFromRequest(req: VercelRequest): Promise<AuthUser |
   return {
     id: data.user.id,
     email: data.user.email ?? null,
+    emailConfirmedAt: data.user.email_confirmed_at ?? null,
     role,
     appMetadata: appMeta,
   };

@@ -76,6 +76,12 @@
 - [x] T023B Journaliser après une réponse IA réussie chaque version publique
   réellement injectée, avec acteur système, hash de session, modèle et numéro de
   tour, sans message, réponse, contact ni localisation privée de source.
+- [x] T023C Résoudre progressivement L0 à L4 à partir du token Supabase, de
+  l'email confirmé, des fiches élève/professeur liées et des adhésions actives,
+  puis transmettre facultativement la session via le frontend sans bloquer L0.
+- [x] T024A Autoriser le contexte public à tous, le contexte interne uniquement
+  aux agents L3/L4 du service de la source, et interdire l'injection directe des
+  classifications personnelles ou sensibles, même pour un administrateur.
 - [ ] T024 Construire la recherche limitée aux sources publiées, autorisées et non expirées.
 - [ ] T025 Afficher source et date de mise à jour dans les réponses de procédure.
 - [x] T026 Imposer une question essentielle à la fois et dix tours maximum par session.

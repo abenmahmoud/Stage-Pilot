@@ -10,9 +10,10 @@ import {
 } from "../../db/schema.js";
 import {
   formatPublicAgentSkillContext,
-  selectPublicAgentSkillContext,
+  selectAuthorizedAgentSkillContext,
   type PublicAgentSkillCandidate,
 } from "../../shared/public-agent-skill-policy.js";
+import type { KnowledgeActor } from "../../shared/skill-registry-policy.js";
 
 const DEFAULT_INSTITUTION_SLUG = "blaise-cendrars-sevran";
 const MAX_DATABASE_CANDIDATES = 30;
@@ -47,6 +48,7 @@ function definitionFields(value: unknown): { instructions: string; allowedTools:
 
 export async function loadPublicKnowledgeContext(input: {
   query: string;
+  actor?: KnowledgeActor | null;
   now?: Date;
 }): Promise<LoadedPublicKnowledgeContext> {
   const now = input.now ?? new Date();
@@ -57,6 +59,9 @@ export async function loadPublicKnowledgeContext(input: {
     .where(eq(institutions.slug, slug))
     .limit(1);
   if (!institution) return EMPTY_CONTEXT;
+  const actor: KnowledgeActor = input.actor?.institutionId === institution.id
+    ? input.actor
+    : { level: "visitor", institutionId: institution.id, serviceCodes: [] };
 
   const rows = await db
     .select({
@@ -91,6 +96,7 @@ export async function loadPublicKnowledgeContext(input: {
       title: knowledgeSources.title,
       status: knowledgeSources.status,
       classification: knowledgeSources.classification,
+      serviceCodes: knowledgeSources.serviceCodes,
       validFrom: knowledgeSources.validFrom,
       expiresAt: knowledgeSources.expiresAt,
     })
@@ -128,6 +134,7 @@ export async function loadPublicKnowledgeContext(input: {
           title: source.title,
           status: source.status as PublicAgentSkillCandidate["sources"][number]["status"],
           classification: source.classification as PublicAgentSkillCandidate["sources"][number]["classification"],
+          serviceCodes: source.serviceCodes,
           validFrom: source.validFrom.toISOString(),
           expiresAt: source.expiresAt?.toISOString() ?? null,
           required: source.required,
@@ -135,9 +142,9 @@ export async function loadPublicKnowledgeContext(input: {
     };
   });
 
-  const selected = selectPublicAgentSkillContext({
+  const selected = selectAuthorizedAgentSkillContext({
     candidates,
-    institutionId: institution.id,
+    actor,
     query: input.query,
     now: now.toISOString(),
   });

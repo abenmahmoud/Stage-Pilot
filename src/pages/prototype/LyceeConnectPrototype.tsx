@@ -950,18 +950,14 @@ function HelpDeskView({
     let result = localAssistantFallback(nextMessages, files);
     if (AI_ASSISTANT_ENABLED) {
       try {
-        result = await readApiResponse<AssistantInsight>(
-          fetch("/api/support/assistant", {
-            method: "POST",
-            credentials: "include",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              sessionId: assistantSessionId,
-              messages: nextMessages.slice(-21).map(({ role, content }) => ({ role, content })),
-              attachments: files.map((file) => ({ name: file.name, type: file.type, size: file.size })),
-            }),
-          })
-        );
+        result = await apiFetch<AssistantInsight>("support/assistant", {
+          method: "POST",
+          body: JSON.stringify({
+            sessionId: assistantSessionId,
+            messages: nextMessages.slice(-21).map(({ role, content }) => ({ role, content })),
+            attachments: files.map((file) => ({ name: file.name, type: file.type, size: file.size })),
+          }),
+        });
       } catch {
         result = localAssistantFallback(nextMessages, files);
       }

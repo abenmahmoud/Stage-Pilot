@@ -11,6 +11,7 @@ import {
   type SupportAgentMessage,
   type SupportAttachmentHint,
 } from "../_shared/support-agent.js";
+import { resolveKnowledgeActorFromRequest } from "../_shared/knowledge-actor.js";
 
 const SESSION_WINDOW_SECONDS = 24 * 60 * 60;
 const NETWORK_WINDOW_SECONDS = 60 * 60;
@@ -83,10 +84,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       limit: SESSION_RATE_LIMIT,
       windowSeconds: SESSION_WINDOW_SECONDS,
     });
+    const knowledgeActor = await resolveKnowledgeActorFromRequest(req);
     return analyzeSupportConversation({
       messages: cleanMessages(input.messages),
       attachments: cleanAttachments(input.attachments),
       safetyIdentifier: keys.session,
+      knowledgeActor,
     });
   });
 }

@@ -3,6 +3,7 @@ import { readFileSync } from "node:fs";
 import test from "node:test";
 import {
   formatPublicAgentSkillContext,
+  selectAuthorizedAgentSkillContext,
   selectPublicAgentSkillContext,
 } from "../shared/public-agent-skill-policy.ts";
 
@@ -13,6 +14,7 @@ const source = {
   title: "Procédure ENT de rentrée",
   status: "published",
   classification: "public",
+  serviceCodes: [],
   validFrom: "2026-08-01T00:00:00.000Z",
   expiresAt: "2026-09-30T23:59:59.000Z",
   required: true,
@@ -82,7 +84,7 @@ test("returns no context for an unrelated request or oversized instructions", ()
 
 test("formats only the bounded public context and declares tools unavailable", () => {
   const context = formatPublicAgentSkillContext(select());
-  assert.match(context, /<registre_public_valide>/);
+  assert.match(context, /<registre_autorise_valide>/);
   assert.match(context, /Procédure ENT de rentrée/);
   assert.match(context, /non exécutables dans cette conversation/);
   assert.doesNotMatch(context, /source-public|checksum|https?:\/\//);
@@ -112,4 +114,50 @@ test("keeps usage audit metadata free of messages and contact data", () => {
   assert.match(auditSource, /action: "consult_public"/);
   assert.match(auditSource, /actorId: null/);
   assert.doesNotMatch(auditSource, /\b(query|reply|email|telephone|uri|checksum)\b/i);
+});
+
+test("allows an internal skill only for persisted staff in the source service", () => {
+  const internalSource = {
+    ...source,
+    classification: "internal",
+    serviceCodes: ["numerique"],
+  };
+  const internalSkill = {
+    ...candidate,
+    dataClassification: "internal",
+    sources: [internalSource],
+  };
+  const base = {
+    candidates: [internalSkill],
+    query: "Mon accès ENT est bloqué",
+    now,
+  };
+
+  assert.equal(selectAuthorizedAgentSkillContext({
+    ...base,
+    actor: { level: "agent", institutionId: "school-a", serviceCodes: ["numerique"] },
+  }).length, 1);
+  assert.deepEqual(selectAuthorizedAgentSkillContext({
+    ...base,
+    actor: { level: "agent", institutionId: "school-a", serviceCodes: ["vie_scolaire"] },
+  }), []);
+  assert.deepEqual(selectAuthorizedAgentSkillContext({
+    ...base,
+    actor: { level: "school_identity", institutionId: "school-a", serviceCodes: [] },
+  }), []);
+});
+
+test("never injects personal or sensitive procedures directly into the prompt", () => {
+  for (const classification of ["personal", "sensitive"]) {
+    assert.deepEqual(selectAuthorizedAgentSkillContext({
+      candidates: [{
+        ...candidate,
+        dataClassification: classification,
+        sources: [{ ...source, classification }],
+      }],
+      actor: { level: "admin", institutionId: "school-a", serviceCodes: ["direction"] },
+      query: "Mon accès ENT est bloqué",
+      now,
+    }), []);
+  }
 });
