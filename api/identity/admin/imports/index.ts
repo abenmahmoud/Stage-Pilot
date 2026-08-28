@@ -12,6 +12,7 @@ import {
   requireIdentityDirectoryManager,
 } from "../../../_shared/identity-directory.js";
 import { identityDirectoryStoragePath } from "../../../_shared/identity-directory-path.js";
+import { identityDirectoryView } from "../../../_shared/identity-directory-view.js";
 import { registryInputError } from "../../../_shared/knowledge-registry.js";
 import { handleApi, methodNotAllowed } from "../../../_shared/response.js";
 
@@ -25,7 +26,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         .where(eq(identityDirectoryImports.institutionId, context.institutionId))
         .orderBy(desc(identityDirectoryImports.createdAt))
         .limit(100);
-      return { imports };
+      return { imports: imports.map(identityDirectoryView) };
     });
   }
 
@@ -75,7 +76,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         },
       });
       return {
-        import: directoryImport,
+        import: identityDirectoryView(directoryImport),
         upload: {
           bucket: IDENTITY_DIRECTORY_BUCKET,
           path: upload.path,

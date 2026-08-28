@@ -1,0 +1,6 @@
+record_type,person_ref,person_type,first_name,last_name,academic_email,personal_email,phone,class_ref,service_code,active_from,active_until,subject_person_ref,relationship_type,object_ref,valid_from,valid_until
+person,STU-TEST-001,student,Lina,Martin,lina.martin@example.test,,,2GT-TEST,,2026-09-01,,,,,,
+person,PAR-TEST-001,guardian,Samira,Martin,,samira.martin@example.test,+33600000001,,,2026-09-01,,,,,,
+person,STA-TEST-001,staff,Nicolas,Durand,nicolas.durand@example.test,,,,NUMERIQUE,2026-09-01,,,,,,
+relationship,,,,,,,,,,,,PAR-TEST-001,guardian_of,STU-TEST-001,2026-09-01,
+relationship,,,,,,,,,,,,STU-TEST-001,member_of,2GT-TEST,2026-09-01,

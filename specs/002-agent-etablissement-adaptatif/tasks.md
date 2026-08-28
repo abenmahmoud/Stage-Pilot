@@ -40,6 +40,15 @@
   personne réelle et sans rendre le répertoire utilisable par l'IA.
 - [ ] T010B2 Ajouter antivirus, empreinte, lecture structurée CSV/XLSX, lignes
   en quarantaine, rapport de doublons et activation humaine d'une seule version.
+- [x] T010B2A Implémenter le contrat borné et le parseur sur données fictives :
+  25 000 lignes maximum, colonnes en liste blanche, refus des formules/macros,
+  empreinte SHA-256, contacts en HMAC, rapport sans noms ni coordonnées en clair,
+  approbation et activation distinctes avec MFA. La migration est appliquée sur
+  la preview et vide ; le worker est préparé dans Git mais pas installé sur le VPS.
+- [ ] T010B2B Fournir le secret HMAC au worker isolé, installer son timer VPS
+  après autorisation précise, puis exécuter
+  la recette antivirus, doublons, approbation, remplacement et suppression avec
+  un fichier entièrement fictif avant tout dépôt réel.
 - [ ] T010B3 Brancher l'OTP de contact à usage unique avec limites, expiration,
   session rotative et révocation, sans promouvoir ce contact en identité scolaire.
 - [ ] T010B4 Rapprocher une identité uniquement contre une version active du

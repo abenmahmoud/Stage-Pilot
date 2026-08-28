@@ -12,9 +12,29 @@ const migrationPath = new URL(
   "../supabase/migrations/20260828212703_create_identity_directory_intake.sql",
   import.meta.url
 );
+const quarantineMigrationPath = new URL(
+  "../supabase/migrations/20260828220614_create_identity_directory_quarantine_rows.sql",
+  import.meta.url
+);
 const reservePath = new URL("../api/identity/admin/imports/index.ts", import.meta.url);
 const confirmPath = new URL(
   "../api/identity/admin/imports/[id]/confirm.ts",
+  import.meta.url
+);
+const reportPath = new URL(
+  "../api/identity/admin/imports/[id]/report.ts",
+  import.meta.url
+);
+const approvePath = new URL(
+  "../api/identity/admin/imports/[id]/approve.ts",
+  import.meta.url
+);
+const activatePath = new URL(
+  "../api/identity/admin/imports/[id]/activate.ts",
+  import.meta.url
+);
+const viewPath = new URL(
+  "../api/_shared/identity-directory-view.ts",
   import.meta.url
 );
 
@@ -91,7 +111,46 @@ test("requires MFA, signed upload and explicit confirmation", async () => {
   assert.match(reserve, /createSignedUploadUrl\(storagePath\)/);
   assert.match(reserve, /status: "reserved"/);
   assert.doesNotMatch(reserve, /schoolIdentities|schoolRelationships/);
-  assert.match(confirm, /eq\(identityDirectoryImports\.status, "reserved"\)/);
-  assert.match(confirm, /status: "uploaded"/);
+  assert.match(confirm, /inArray\(identityDirectoryImports\.status, \["reserved", "uploaded"\]\)/);
+  assert.match(confirm, /status: "quarantined"/);
+  assert.match(confirm, /pgmq\.send\(/);
+  assert.match(confirm, /'identity_directory_scan'/);
   assert.doesNotMatch(confirm, /status: "active"/);
+});
+
+test("keeps parsed rows private and stores only keyed contact fingerprints", async () => {
+  const sql = (await readFile(quarantineMigrationPath, "utf8")).toLowerCase();
+  assert.match(sql, /create table public\.identity_directory_rows/);
+  assert.match(sql, /alter table public\.identity_directory_rows enable row level security/);
+  assert.match(sql, /alter table public\.identity_directory_rows force row level security/);
+  assert.match(sql, /academic_email_hash text/);
+  assert.match(sql, /personal_email_hash text/);
+  assert.match(sql, /phone_hash text/);
+  assert.doesNotMatch(sql, /academic_email text/);
+  assert.doesNotMatch(sql, /personal_email text/);
+  assert.doesNotMatch(sql, /phone text/);
+  assert.match(sql, /revoke all on table public\.identity_directory_rows from public, anon, authenticated/);
+});
+
+test("exposes only a redacted report and requires MFA lifecycle actions", async () => {
+  const [report, approve, activate, view] = await Promise.all([
+    readFile(reportPath, "utf8"),
+    readFile(approvePath, "utf8"),
+    readFile(activatePath, "utf8"),
+    readFile(viewPath, "utf8"),
+  ]);
+  for (const source of [report, approve, activate]) {
+    assert.match(source, /requireIdentityDirectoryManager\(req\)/);
+  }
+  assert.doesNotMatch(report, /academicEmailHash:/);
+  assert.doesNotMatch(report, /personalEmailHash:/);
+  assert.doesNotMatch(report, /phoneHash:/);
+  assert.match(approve, /candidate\.rejectedRowCount !== 0/);
+  assert.match(approve, /status: "approved"/);
+  assert.match(activate, /confirmation !== "ACTIVER"/);
+  assert.match(activate, /status: "superseded"/);
+  assert.match(activate, /status: "active"/);
+  assert.doesNotMatch(view, /storagePath:/);
+  assert.doesNotMatch(view, /storageBucket:/);
+  assert.doesNotMatch(view, /uploadedBy:/);
 });

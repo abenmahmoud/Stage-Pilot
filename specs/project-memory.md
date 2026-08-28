@@ -1,9 +1,30 @@
 # Memoire durable - Portail numerique du Lycee Blaise Cendrars
 
-**Derniere mise a jour** : 28 aout 2026
+**Derniere mise a jour** : 29 aout 2026
 **Branche de travail** : `codex/lycee-connect-prototype`
 **Depot** : `abenmahmoud/Stage-Pilot`
 **Dernier jalon de code verifie** : candidate publiée sur la production Vercel
+
+## Jalon du 29 août 2026 - analyse privée du répertoire préparée
+
+- Le format fictif du répertoire, le parseur CSV/XLSX borné à 25 000 lignes et
+  le worker ClamAV sont implémentés dans Git. Les formules, macros, colonnes
+  libres, signatures incorrectes et valeurs hors contrat sont refusées.
+- Les noms et coordonnées ne sont jamais écrits dans les lignes du rapport. Les
+  emails et téléphones sont normalisés puis transformés en HMAC-SHA-256 avec un
+  secret serveur distinct ; le rapport conserve uniquement références opaques,
+  types, périodes et codes d'anomalie.
+- Le futur écran de revue distingue l'approbation du rapport et l'activation de
+  l'unique version. Les deux actions exigent la session direction avec MFA, une
+  justification et un audit. Une version comportant une ligne refusée ne peut
+  pas être approuvée.
+- La migration de quarantaine est appliquée uniquement à Supabase preview. La
+  table et la file sont vides, RLS est forcée, les rôles publics n'ont aucun
+  droit et le lint SQL ne remonte aucune erreur. Une insertion de cinq lignes
+  fictives a été validée dans une transaction ensuite annulée.
+- Le secret du worker et son timer VPS ne sont pas encore installés. Aucune
+  donnée réelle n'a été importée, aucun VPS ni domaine de production n'a été
+  modifié et la recette ClamAV complète reste obligatoire avec le modèle fictif.
 
 ## Jalon du 28 août 2026 - assistant visible dès l'accueil
 

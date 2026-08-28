@@ -316,6 +316,53 @@ export const identityDirectoryImports = pgTable(
   ]
 );
 
+export const identityDirectoryRows = pgTable(
+  "identity_directory_rows",
+  {
+    id: bigint("id", { mode: "number" }).primaryKey().generatedAlwaysAsIdentity(),
+    institutionId: uuid("institution_id")
+      .notNull()
+      .references(() => institutions.id, { onDelete: "cascade" }),
+    importId: uuid("import_id")
+      .notNull()
+      .references(() => identityDirectoryImports.id, { onDelete: "cascade" }),
+    sourceSheet: text("source_sheet").notNull(),
+    rowNumber: integer("row_number").notNull(),
+    recordType: text("record_type").notNull(),
+    personRef: text("person_ref"),
+    personType: text("person_type"),
+    subjectPersonRef: text("subject_person_ref"),
+    relationshipType: text("relationship_type"),
+    objectRef: text("object_ref"),
+    classRef: text("class_ref"),
+    serviceCode: text("service_code"),
+    academicEmailHash: text("academic_email_hash"),
+    personalEmailHash: text("personal_email_hash"),
+    phoneHash: text("phone_hash"),
+    validFrom: date("valid_from"),
+    validUntil: date("valid_until"),
+    validationStatus: text("validation_status").notNull(),
+    issues: jsonb("issues").notNull().default([]),
+    fingerprint: text("fingerprint").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    index("identity_directory_rows_import_status_idx").on(
+      table.importId,
+      table.validationStatus,
+      table.rowNumber
+    ),
+    index("identity_directory_rows_person_ref_idx").on(
+      table.institutionId,
+      table.personRef
+    ),
+    index("identity_directory_rows_subject_ref_idx").on(
+      table.institutionId,
+      table.subjectPersonRef
+    ),
+  ]
+);
+
 export const contactVerifications = pgTable(
   "contact_verifications",
   {

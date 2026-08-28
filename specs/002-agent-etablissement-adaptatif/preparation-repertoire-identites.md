@@ -63,3 +63,9 @@ ensuite deux tableaux distincts, avec une référence opaque stable par personne
 Le fichier réel ne doit pas être envoyé dans une conversation, ajouté au dépôt
 Git ou placé dans un dossier public. L'écran `Identités du lycée` sera son seul
 point d'entrée lorsque `T010B2` sera terminée et validée.
+
+Un modèle entièrement fictif est désormais disponible dans l'écran et dans
+`public/modeles/repertoire-identites-fictif.csv`. Il illustre les deux types de
+ligne `person` et `relationship`. Les intitulés supplémentaires, commentaires
+libres, formules Excel et macros sont refusés afin d'éviter l'import involontaire
+de données hors finalité.

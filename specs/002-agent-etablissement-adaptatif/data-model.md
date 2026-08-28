@@ -91,6 +91,31 @@ préparé. Le fichier source reste en quarantaine jusqu'aux contrôles technique
 | `source_import_id` | uuid | Version officielle ayant créé le lien |
 | `status` | enum | `active`, `revoked`, `expired` |
 
+### `identity_directory_rows`
+
+Rapport de quarantaine produit après antivirus et lecture bornée. Il ne contient
+jamais de nom, d'email ou de téléphone en clair et n'est accessible que côté
+serveur.
+
+| Champ | Type | Règle |
+|---|---|---|
+| `import_id` | uuid | Version privée contrôlée |
+| `source_sheet`, `row_number` | text, integer | Localisation de l'anomalie sans recopier la ligne |
+| `record_type` | enum | `person`, `relationship`, `unknown` |
+| `person_ref`, `subject_person_ref`, `object_ref` | text nullable | Références opaques uniquement |
+| `person_type`, `relationship_type` | enum nullable | Valeurs autorisées par le contrat |
+| `class_ref`, `service_code` | text nullable | Périmètre fonctionnel opaque |
+| `academic_email_hash` | text nullable | HMAC-SHA-256 avec secret serveur |
+| `personal_email_hash` | text nullable | HMAC-SHA-256 avec secret serveur |
+| `phone_hash` | text nullable | HMAC-SHA-256 avec secret serveur |
+| `validation_status` | enum | `valid`, `warning`, `rejected` |
+| `issues` | jsonb | Codes d'anomalies, sans valeur source |
+| `fingerprint` | text | SHA-256 de la représentation minimale de la ligne |
+
+Le secret HMAC n'est jamais placé dans Git, la base ou l'interface. Une ligne
+valide n'est pas encore une identité : seul un rapprochement ultérieur, borné à
+la version active et validé par la politique d'accès, peut créer ce lien.
+
 ### `contact_verifications`
 
 | Champ | Type | Règle |

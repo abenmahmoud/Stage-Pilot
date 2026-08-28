@@ -36,6 +36,8 @@
     "test:knowledge-document-ingestion": "node --import ./scripts/ts-test-resolver.mjs --experimental-strip-types scripts/test-knowledge-document-ingestion.mjs",
     "test:identity-access": "node --experimental-strip-types scripts/test-identity-access-policy.mjs",
     "test:identity-directory": "node --experimental-strip-types scripts/test-identity-directory-ingestion.mjs",
+    "test:identity-directory-parser": "node scripts/test-identity-directory-parser.mjs",
+    "test:identity-directory-worker": "node scripts/test-identity-directory-worker.mjs",
     "test:support-queue": "node --experimental-strip-types scripts/test-support-queue-policy.mjs",
     "test:legacy-import": "node --experimental-strip-types scripts/test-legacy-import.mjs",
     "test:legacy-links": "node scripts/test-legacy-content-links.mjs",

@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import {
   Database,
+  Download,
   FileSpreadsheet,
   LoaderCircle,
   LockKeyhole,
@@ -14,6 +15,7 @@ import {
   IDENTITY_DIRECTORY_MAX_BYTES,
   identityDirectoryMime,
 } from "../../../shared/identity-directory-input";
+import IdentityDirectoryReport from "./IdentityDirectoryReport";
 
 type DirectoryStatus =
   | "reserved"
@@ -80,6 +82,7 @@ export default function IdentityDirectoryPage() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
+  const [selectedImportId, setSelectedImportId] = useState<string | null>(null);
 
   async function load() {
     setLoading(true);
@@ -222,6 +225,13 @@ export default function IdentityDirectoryPage() {
               {tooLarge ? "Ce fichier dépasse 50 Mo." : unsupported ? "Ce format n’est pas accepté." : formatBytes(file.size)}
             </small>
           ) : null}
+          <a
+            href="/modeles/repertoire-identites-fictif.csv"
+            download
+            className="mt-3 inline-flex items-center gap-2 text-sm font-semibold text-emerald-700 hover:text-emerald-900"
+          >
+            <Download className="h-4 w-4" /> Télécharger le modèle fictif
+          </a>
         </div>
 
         <label className="text-sm font-medium text-slate-700">
@@ -276,12 +286,22 @@ export default function IdentityDirectoryPage() {
               <div>
                 <span className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold ${STATUS[item.status].style}`}>{STATUS[item.status].label}</span>
                 {item.rowCount !== null ? <small className="mt-1 block text-slate-500">{item.validRowCount ?? 0}/{item.rowCount} lignes valides</small> : null}
+                {["review", "approved", "active", "failed"].includes(item.status) ? (
+                  <button
+                    type="button"
+                    onClick={() => setSelectedImportId((value) => value === item.id ? null : item.id)}
+                    className="mt-2 block text-sm font-semibold text-emerald-700 hover:text-emerald-900"
+                  >
+                    {selectedImportId === item.id ? "Fermer le rapport" : "Examiner le rapport"}
+                  </button>
+                ) : null}
               </div>
               <time className="text-xs text-slate-500">Déposé le<br />{dateLabel(item.createdAt)}</time>
             </article>
           ))}
           {imports.length === 0 ? <p className="px-4 py-10 text-center text-sm text-slate-500">Aucun répertoire n’a encore été déposé.</p> : null}
         </div> : null}
+        {selectedImportId ? <IdentityDirectoryReport importId={selectedImportId} onChanged={load} /> : null}
       </section>
     </div>
   );
