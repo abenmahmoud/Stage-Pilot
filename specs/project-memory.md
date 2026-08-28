@@ -231,8 +231,10 @@ sa specification.
   preview : publication refusée sans propriétaire, source actuelle, revue
   indépendante lorsque requise et tests ; accès limité par établissement et
   rôle ; révocation d'une source et retour à une version publiée précédente.
-  Le worker d'expiration et la consommation du registre par l'orchestrateur
-  restent à construire.
+  Le worker quotidien d'expiration est implémenté : il expire les sources,
+  désactive les compétences dépendantes ou en retard de revue et journalise une
+  action système. La consommation du registre par l'orchestrateur reste à
+  construire.
 - Le défaut où l'assistant répondait sans proposer clairement le dossier est
   corrigé localement : une demande scolaire complète passe à `offer_case`,
   affiche « Votre demande est prête » puis demande la vérification des coordonnées.
@@ -371,8 +373,8 @@ sa specification.
 
 - Nommer les responsables metier et inventorier les procedures reelles.
 - Definir les niveaux L0 a L4 et les validations attendues.
-- Terminer le worker d'expiration, brancher l'orchestrateur sur les seules
-  compétences publiées et valider les responsables des sources.
+- Brancher l'orchestrateur sur les seules compétences publiées et encore valides,
+  puis valider les responsables des sources.
 - Publier progressivement `administration-scolarite`, `referent-numerique` et
   `coordination-etablissement` apres revue humaine.
 - Ajouter mesures de qualite, cout, latence, transferts et corrections.

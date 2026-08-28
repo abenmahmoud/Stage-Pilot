@@ -47,10 +47,23 @@ retrait ou un retour arrière exige en plus une session MFA `aal2` actuelle.
 - tests unitaires de publication, expiration, cloisonnement et retour arrière ;
 - compilation de production réussie.
 
+## État du worker d'expiration
+
+- le worker quotidien marque les sources publiées arrivées à expiration,
+  désactive les compétences qui dépendent d'une source obligatoire expirée ou
+  d'une version dont la revue est échue, puis écrit un audit système ;
+- la route est protégée par `CRON_SECRET` avant toute transaction et la
+  programmation Vercel est quotidienne ; les crons Vercel ne s'exécutent pas
+  sur les déploiements de preview ;
+- la migration autorisant un acteur système nul est appliquée uniquement à la
+  base Supabase isolée de preview. Les six tables restent vides, en RLS forcé et
+  sans droit `anon` ou `authenticated` ;
+- huit tests ciblés couvrent expiration obligatoire, source facultative, revue
+  échue, raisons cumulées, horodatage invalide, ordre d'authentification, audit
+  système et déclaration du cron.
+
 ## Reste à faire
 
-- worker planifié pour marquer les sources expirées et désactiver leurs
-  compétences ;
 - recette navigateur avec deux comptes nominatifs et récupération testée ;
 - responsables métier, règles de conservation et premières sources validées ;
 - branchement de l'orchestrateur sur les seules versions actives ;

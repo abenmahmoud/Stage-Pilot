@@ -94,8 +94,9 @@ l'autorisation de quota définie par le propriétaire.
   six tables privées, cloisonnement par établissement, API réservée à la direction,
   MFA au moment de publier ou retirer, écran de sources/versions/tests/journal et
   retour arrière. La migration est appliquée uniquement à la base Supabase isolée
-  de preview et les six tables sont vides. Le worker d'expiration, les responsables
-  métier et la publication de sources réelles restent requis.
+  de preview et les six tables sont vides. Le worker quotidien d'expiration est
+  implémenté, protégé par secret et audité ; les responsables métier et la
+  publication de sources réelles restent requis.
 - Lot N5 : files `À qualifier`, délais et dossiers sans propriétaire.
   **Visibilité opérationnelle implémentée et testée** : vue `À classer`, compteurs
   sans responsable et échéances dépassées, marqueurs par dossier et ordre par
@@ -165,8 +166,8 @@ l'autorisation de quota définie par le propriétaire.
 1. Conserver `BC-2026-000009` comme preuve fictive de recette jusqu'à la décision
    de nettoyage du pilote ; le dossier historique `BC-2026-000008` n'est pas
    déplacé silencieusement.
-2. Ajouter le worker d'expiration et prouver qu'une source périmée désactive la
-   compétence sans réponse trompeuse.
+2. Brancher l'orchestrateur sur les seules compétences publiées, actives et
+   encore valides ; aucune source réelle n'est ajoutée avant validation humaine.
 3. Faire nommer les responsables et valider les premières sources et procédures
    avant toute compétence active contenant des informations réelles.
 

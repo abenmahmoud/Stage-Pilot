@@ -38,14 +38,17 @@
   personnelles ou sensibles, sources actuelles, outils structurés et couverture
   de tests positive, ambiguë et interdite.
 - [x] T013 Construire l'écran de publication, désactivation et retour à une version précédente.
-- [ ] T014 Construire le contrôle d'expiration des sources et compétences.
+- [x] T014 Construire le contrôle d'expiration des sources et compétences.
 - [x] T014A Implémenter la sélection de la dernière version publiée non expirée,
   le repli vers la version précédente et la désactivation lorsque sa source
   devient indisponible.
-- [ ] T014B Brancher les politiques de registre sur les futures tables, le worker
+- [x] T014B Brancher les politiques de registre sur les futures tables, le worker
   d'expiration, l'audit et l'interface de publication.
 - [x] T014B1 Brancher les tables, l'audit, l'interface direction et le retour
   arrière sur la base Supabase isolée de preview, sans source ni compétence réelle.
+- [x] T014B2 Marquer automatiquement les sources expirées, désactiver les
+  compétences qui en dépendent ou dont la revue est échue, écrire un audit
+  système et protéger la maintenance par `CRON_SECRET`.
 
 ## Phase 2 - Autorité et sécurité
 

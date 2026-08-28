@@ -436,7 +436,7 @@ export const agentSkillAudit = pgTable(
     resourceType: text("resource_type").notNull(),
     resourceId: uuid("resource_id").notNull(),
     action: text("action").notNull(),
-    actorId: uuid("actor_id").notNull(),
+    actorId: uuid("actor_id"),
     summary: jsonb("summary").notNull().default({}),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   },
