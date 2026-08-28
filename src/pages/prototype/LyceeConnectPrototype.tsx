@@ -933,7 +933,7 @@ function HelpDeskView({
   const [category, setCategory] = useState<SupportCategory>(() => inferSupportCategory(initialMessage));
   const [classicDescription, setClassicDescription] = useState(initialMessage);
   const [ticketCode, setTicketCode] = useState<string | null>(null);
-  const [ticketCopied, setTicketCopied] = useState(false);
+  const [ticketCopyStatus, setTicketCopyStatus] = useState<"idle" | "copied" | "selected">("idle");
   const [confirmationChannel, setConfirmationChannel] = useState<"email" | "phone">("email");
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
@@ -941,6 +941,7 @@ function HelpDeskView({
   const [files, setFiles] = useState<File[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const caseFormRef = useRef<HTMLFormElement>(null);
+  const ticketCodeRef = useRef<HTMLElement>(null);
   const threadRef = useRef<HTMLDivElement>(null);
   const initialAnalysisStarted = useRef(false);
   const [requestKey] = useState(() => crypto.randomUUID());
@@ -1140,8 +1141,17 @@ function HelpDeskView({
       copied = document.execCommand("copy");
       field.remove();
     }
-    setTicketCopied(copied);
-    if (copied) window.setTimeout(() => setTicketCopied(false), 1800);
+    let selected = false;
+    if (!copied && ticketCodeRef.current) {
+      const selection = window.getSelection();
+      const range = document.createRange();
+      range.selectNodeContents(ticketCodeRef.current);
+      selection?.removeAllRanges();
+      selection?.addRange(range);
+      selected = true;
+    }
+    setTicketCopyStatus(copied ? "copied" : selected ? "selected" : "idle");
+    if (copied || selected) window.setTimeout(() => setTicketCopyStatus("idle"), 3000);
   }
 
   if (ticketCode) {
@@ -1151,7 +1161,7 @@ function HelpDeskView({
         <span className="lycee-eyebrow">Demande transmise</span>
         <h1>Votre dossier est créé.</h1>
         <p>La conversation et les documents sont réunis. Un agent du lycée peut maintenant vous répondre sans vous faire recommencer.</p>
-        <div className="lycee-ticket-code"><span>Numéro de demande</span><div><strong>{ticketCode}</strong><button type="button" onClick={() => void copyTicketCode()} aria-label={`Copier le numéro ${ticketCode}`}><Copy aria-hidden="true" /> {ticketCopied ? "Copié" : "Copier"}</button></div></div>
+        <div className="lycee-ticket-code"><span>Numéro de demande</span><div><strong ref={ticketCodeRef}>{ticketCode}</strong><button type="button" onClick={() => void copyTicketCode()} aria-label={`Copier le numéro ${ticketCode}`}><Copy aria-hidden="true" /> {ticketCopyStatus === "copied" ? "Copié" : ticketCopyStatus === "selected" ? "Sélectionné" : "Copier"}</button></div></div>
         <div className="lycee-confirmation-note"><Smartphone aria-hidden="true" /><span>Le suivi reste disponible sur cet appareil avec votre numéro de demande.</span></div>
         {confirmationChannel === "email"
           ? <div className="lycee-confirmation-note"><Mail aria-hidden="true" /><span>Un lien sécurisé est envoyé par email pour retrouver le dossier depuis un autre appareil et conserver les réponses.</span></div>

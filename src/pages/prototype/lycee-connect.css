@@ -487,7 +487,7 @@
 .lycee-ticket-code { max-width: 390px; display: flex; flex-direction: column; margin: 0 auto; padding: 18px; border: 1px solid #b9c9db; border-radius: 8px; background: #fff; }
 .lycee-ticket-code span { color: var(--lc-muted); font-size: 10px; font-weight: 800; text-transform: uppercase; }
 .lycee-ticket-code > div { min-width: 0; display: flex; align-items: center; justify-content: center; gap: 10px; margin-top: 5px; }
-.lycee-ticket-code strong { min-width: 0; color: var(--lc-blue); font-size: 26px; overflow-wrap: anywhere; }
+.lycee-ticket-code strong { min-width: 0; color: var(--lc-blue); font-size: 26px; overflow-wrap: anywhere; user-select: all; }
 .lycee-ticket-code button { min-height: 34px; display: inline-flex; align-items: center; gap: 5px; padding: 0 9px; border: 1px solid #c8d5e5; border-radius: 7px; background: #f8fafc; color: #40556e; font-size: 9px; font-weight: 800; }
 .lycee-ticket-code button svg { width: 14px; height: 14px; }
 .lycee-confirmation-note { max-width: 560px; display: flex; align-items: flex-start; gap: 9px; margin: 16px auto 0; padding: 12px; background: #eef4fb; color: #53677f; font-size: 11px; line-height: 1.5; text-align: left; }
