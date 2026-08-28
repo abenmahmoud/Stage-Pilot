@@ -224,14 +224,17 @@ l'autorisation de quota définie par le propriétaire.
   fichiers en attente, ainsi que d'une file des échecs définitifs. Une relance
   réserve atomiquement l'ancien échec, crée un nouveau travail audité et renouvelle
   le lien temporaire lorsqu'un demandeur doit être contacté.
-- Lot N5M : analyse du répertoire. **Implémenté localement, non installé sur le
-  VPS** : modèle fictif, parseur CSV/XLSX borné, refus des formules et macros,
+- Lot N5M : analyse du répertoire. **Interface et API déployées en preview,
+  worker non installé sur le VPS** : modèle fictif, parseur CSV/XLSX borné,
+  refus des formules et macros,
   antivirus ClamAV avant lecture, SHA-256 du fichier, HMAC des coordonnées,
   lignes de rapport privées, doublons et relations contrôlés. L'écran sépare
   l'approbation du rapport de l'activation de l'unique version. Aucun nom ni
   contact brut n'est écrit dans les lignes de quarantaine et aucun fichier réel
   n'a été utilisé. La migration est appliquée uniquement à la base de preview :
   table et file vides, RLS forcée, droits publics révoqués et lint SQL sans erreur.
+  Les API de rapport, approbation et activation refusent une visite anonyme ; le
+  parcours ClamAV complet attend l'installation autorisée du worker.
 - Lot N6 : tests de non-régression, build, contrôle mobile et rapport d'écarts.
 
 ## Prochaine séquence verrouillée

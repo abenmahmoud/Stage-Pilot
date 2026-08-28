@@ -25,6 +25,11 @@
 - Le secret du worker et son timer VPS ne sont pas encore installés. Aucune
   donnée réelle n'a été importée, aucun VPS ni domaine de production n'a été
   modifié et la recette ClamAV complète reste obligatoire avec le modèle fictif.
+- Le commit `7cb7a40` est publié sur la preview Vercel
+  `lyceegest-1rzm9kjdt-safe-scol.vercel.app` et sur l'alias de branche. L'écran
+  administratif et le modèle fictif répondent en HTTP 200 ; rapport,
+  approbation et activation répondent en HTTP 401 sans session. La connexion ne
+  déborde pas à 390 px ni à 1 440 px.
 
 ## Jalon du 28 août 2026 - assistant visible dès l'accueil
 
