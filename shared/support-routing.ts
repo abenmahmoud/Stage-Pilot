@@ -21,6 +21,10 @@ export type SupportRoute = {
   requiredIdentity: IdentityRequirement;
 };
 
+export function initialSupportStatus(confidence: RoutingConfidence): "nouveau" | "a_qualifier" {
+  return confidence === "low" ? "a_qualifier" : "nouveau";
+}
+
 const CATEGORY_SERVICES: Record<string, SchoolService> = {
   inscription: "secretariat",
   affectation_classe: "secretariat",

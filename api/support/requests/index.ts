@@ -2,6 +2,7 @@ import { randomUUID } from "node:crypto";
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { and, desc, eq, gt, isNull, sql } from "drizzle-orm";
 import { db } from "../../../db/index.js";
+import { initialSupportStatus } from "../../../shared/support-routing.js";
 import {
   supportContacts,
   supportCallbackTasks,
@@ -116,7 +117,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             description: input.description,
             preferredChannel: input.preferredChannel,
             fallbackAllowed: input.fallbackAllowed,
-            status: input.routing.confidence === "low" ? "a_qualifier" : "nouveau",
+            status: initialSupportStatus(input.routing.confidence),
             assignedTeam: input.routing.service,
             slaDueAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
           })

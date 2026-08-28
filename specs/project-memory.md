@@ -3,7 +3,7 @@
 **Derniere mise a jour** : 28 aout 2026
 **Branche de travail** : `codex/lycee-connect-prototype`
 **Depot** : `abenmahmoud/Stage-Pilot`
-**Dernier jalon de code verifie** : pseudonymisation des demandes avant analyse IA
+**Dernier jalon de code verifie** : seuils de confiance et repli déterministe de l'agent
 
 ## Jalon du 28 août 2026 - reprise de l'ancien site en preview
 
@@ -28,6 +28,11 @@
   noms explicitement déclarés, adresses, dates de naissance, identifiants élève
   et secrets. Les tests vérifient la non-fuite et la conservation du texte utile
   au classement; l'appel OpenAI reste limité et utilise `store: false`.
+- La sortie IA est validée intégralement côté serveur avec des longueurs et des
+  listes bornées. Une réponse invalide ou de confiance faible est ignorée au
+  profit du classement déterministe; une demande locale ambiguë rejoint la file
+  humaine `a_qualifier`. Ces comportements sont couverts par les tests agent et
+  routage, y compris quand le fournisseur répond avec un JSON incomplet.
 
 ## Decision du 27 aout 2026 - espaces de traitement
 

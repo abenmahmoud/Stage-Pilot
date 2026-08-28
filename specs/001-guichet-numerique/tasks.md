@@ -159,7 +159,10 @@ Le support continue à fonctionner si l'IA est coupée.
   reste disponible pour le classement et l'appel conserve `store: false`.
 - [x] **T043** Définir le schéma de sortie classification/réponse/urgence/pièces.
 - [x] **T044** Implémenter l'adaptateur IA serveur, `store: false`, avec repli local.
-- [ ] **T045** Ajouter seuils de confiance et retour aux règles déterministes.
+- [x] **T045** Ajouter une confiance `high/medium/low`, valider intégralement la
+  sortie structurée côté serveur et revenir aux règles déterministes si la
+  sortie est invalide ou de confiance faible. Une route locale de confiance
+  faible ouvre le dossier dans la file `a_qualifier`.
 - [ ] **T046** Journaliser coût, durée, version et validation humaine.
 - [ ] **T047** Tester les injections de consignes dans descriptions et fichiers.
 - [x] **T048** Activer dans l'aperçu public protégé avec masquage préalable,

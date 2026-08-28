@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { routeSupportRequest } from "../shared/support-routing.ts";
+import { initialSupportStatus, routeSupportRequest } from "../shared/support-routing.ts";
 
 test("routes digital access and equipment to the digital lead", () => {
   const ent = routeSupportRequest({
@@ -89,4 +89,10 @@ test("keeps unknown requests in a human qualification queue", () => {
   assert.equal(route.service, "administration");
   assert.equal(route.confidence, "low");
   assert.equal(route.reason, "qualification_humaine_requise");
+  assert.equal(initialSupportStatus(route.confidence), "a_qualifier");
+});
+
+test("opens confident routes directly in the assigned service queue", () => {
+  assert.equal(initialSupportStatus("high"), "nouveau");
+  assert.equal(initialSupportStatus("medium"), "nouveau");
 });

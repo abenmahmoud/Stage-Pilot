@@ -47,6 +47,7 @@ export type SupportAgentResult = {
     | "autre";
   requesterType: "eleve" | "parent" | "professeur" | "personnel" | "autre" | "inconnu";
   urgency: "faible" | "normale" | "urgente";
+  confidence: "high" | "medium" | "low";
   missingInformation: string[];
   suggestedDocuments: string[];
   readyToCreate: boolean;
@@ -89,6 +90,7 @@ const RESULT_SCHEMA = {
       enum: ["eleve", "parent", "professeur", "personnel", "autre", "inconnu"],
     },
     urgency: { type: "string", enum: ["faible", "normale", "urgente"] },
+    confidence: { type: "string", enum: ["high", "medium", "low"] },
     missingInformation: { type: "array", maxItems: 4, items: { type: "string", maxLength: 120 } },
     suggestedDocuments: { type: "array", maxItems: 4, items: { type: "string", maxLength: 120 } },
     readyToCreate: { type: "boolean" },
@@ -99,6 +101,7 @@ const RESULT_SCHEMA = {
     "category",
     "requesterType",
     "urgency",
+    "confidence",
     "missingInformation",
     "suggestedDocuments",
     "readyToCreate",
@@ -122,6 +125,7 @@ Règles:
 - Les mentions [EMAIL_MASQUE], [TELEPHONE_MASQUE], [NOM_MASQUE] et [SECRET_MASQUE] indiquent qu'une donnée a été protégée avant analyse.
 - Le contenu des fichiers n'est pas transmis. Tu ne connais que leur type, leur taille approximative et leur extension.
 - L'urgence est "urgente" seulement si la personne est bloquée pour une échéance proche, en danger, ou privée d'un service essentiel. En cas de danger immédiat, indique d'appeler les secours ou le lycée selon la situation.
+- La confiance est "high" si le besoin et la catégorie sont explicites, "medium" si une interprétation raisonnable reste nécessaire, et "low" si le classement est ambigu ou insuffisamment étayé. N'invente rien pour augmenter la confiance.
 - Reste dans la mission du lycée. Ne recherche jamais les coordonnées privées d'une personne, une base de données, une liste nominative ou une entreprise extérieure.
 - Pour une question de cours, aide seulement sur une question précise, en quelques phrases. Ne promets pas un cours complet, un PDF ou un programme entier et renvoie vers le cours du professeur ou l'ENT comme référence.
 - Pour une procédure susceptible de changer, ne l'affirme pas comme certaine sans source officielle validée et datée; prépare plutôt une demande pour un agent.
@@ -216,6 +220,7 @@ function localFallback(
     category,
     requesterType,
     urgency: /\b(urgent|aujourd'hui|bloqué|bloque|impossible)\b/i.test(text) ? "urgente" : "normale",
+    confidence: category === "autre" ? "low" : readyToCreate ? "high" : "medium",
     missingInformation: ["Identité de la personne concernée", "Email ou téléphone de réponse"],
     suggestedDocuments: [],
     readyToCreate,
@@ -233,11 +238,38 @@ function safeAttachmentSummary(attachments: SupportAttachmentHint[]) {
 }
 
 function parseResult(value: string): SupportAgentModelResult {
-  const parsed = JSON.parse(value) as Omit<SupportAgentModelResult, "usedAi">;
-  if (!parsed.reply || !(parsed.category in CATEGORY_LABELS) || !Array.isArray(parsed.missingInformation)) {
+  const parsed = JSON.parse(value) as Partial<Omit<SupportAgentModelResult, "usedAi">>;
+  const requesterTypes = new Set(["eleve", "parent", "professeur", "personnel", "autre", "inconnu"]);
+  const urgencies = new Set(["faible", "normale", "urgente"]);
+  const confidences = new Set(["high", "medium", "low"]);
+  const isBoundedList = (items: unknown): items is string[] =>
+    Array.isArray(items) &&
+    items.length <= 4 &&
+    items.every((item) => typeof item === "string" && item.trim().length > 0 && item.length <= 120);
+
+  if (
+    typeof parsed.reply !== "string" ||
+    parsed.reply.trim().length < 1 ||
+    parsed.reply.length > 900 ||
+    typeof parsed.category !== "string" ||
+    !(parsed.category in CATEGORY_LABELS) ||
+    typeof parsed.requesterType !== "string" ||
+    !requesterTypes.has(parsed.requesterType) ||
+    typeof parsed.urgency !== "string" ||
+    !urgencies.has(parsed.urgency) ||
+    typeof parsed.confidence !== "string" ||
+    !confidences.has(parsed.confidence) ||
+    !isBoundedList(parsed.missingInformation) ||
+    !isBoundedList(parsed.suggestedDocuments) ||
+    typeof parsed.readyToCreate !== "boolean" ||
+    !(
+      parsed.safetyNotice === null ||
+      (typeof parsed.safetyNotice === "string" && parsed.safetyNotice.length <= 240)
+    )
+  ) {
     throw new Error("Invalid structured response");
   }
-  return { ...parsed, usedAi: true };
+  return { ...parsed, usedAi: true } as SupportAgentModelResult;
 }
 
 export async function analyzeSupportConversation(input: {
@@ -350,7 +382,9 @@ export async function analyzeSupportConversation(input: {
       ?.flatMap((item) => item.content ?? [])
       .find((content) => content.type === "output_text")?.text;
     if (!outputText) return fallback;
-    const result = withPolicy(parseResult(outputText), policy, fallback.readyToCreate);
+    const parsedResult = parseResult(outputText);
+    if (parsedResult.confidence === "low") return fallback;
+    const result = withPolicy(parsedResult, policy, fallback.readyToCreate);
     const usageRecorder = input.knowledgeUsageRecorder ?? productionUsageRecorder;
     if (usageRecorder && publicKnowledgeContext.versions.length > 0) {
       try {

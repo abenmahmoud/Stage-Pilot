@@ -67,6 +67,7 @@ test("keeps a complete school request ready when the AI returns false", async ()
           category: "ent",
           requesterType: "eleve",
           urgency: "normale",
+          confidence: "high",
           missingInformation: [],
           suggestedDocuments: [],
           readyToCreate: false,
@@ -95,6 +96,90 @@ test("keeps a complete school request ready when the AI returns false", async ()
   }
 });
 
+test("falls back to deterministic rules when model confidence is low", async () => {
+  const originalFetch = globalThis.fetch;
+  const originalApiKey = process.env.OPENAI_API_KEY;
+  process.env.OPENAI_API_KEY = "test-key";
+  globalThis.fetch = async () => new Response(JSON.stringify({
+    output: [{
+      type: "message",
+      content: [{
+        type: "output_text",
+        text: JSON.stringify({
+          reply: "Je ne suis pas certain du classement.",
+          category: "autre",
+          requesterType: "inconnu",
+          urgency: "normale",
+          confidence: "low",
+          missingInformation: ["Précision"],
+          suggestedDocuments: [],
+          readyToCreate: false,
+          safetyNotice: null,
+        }),
+      }],
+    }],
+  }), { status: 200, headers: { "Content-Type": "application/json" } });
+
+  try {
+    const result = await analyzeSupportConversation({
+      messages: messages(
+        "Je suis élève et je ne peux plus accéder à mon ENT depuis hier malgré plusieurs essais."
+      ),
+      attachments: [],
+      safetyIdentifier: "test-session",
+      knowledgeContextLoader: async () => "",
+    });
+
+    assert.equal(result.usedAi, false);
+    assert.equal(result.category, "ent");
+    assert.equal(result.confidence, "high");
+    assert.equal(result.action, "offer_case");
+  } finally {
+    globalThis.fetch = originalFetch;
+    process.env.OPENAI_API_KEY = originalApiKey;
+  }
+});
+
+test("rejects an incomplete structured model response", async () => {
+  const originalFetch = globalThis.fetch;
+  const originalApiKey = process.env.OPENAI_API_KEY;
+  process.env.OPENAI_API_KEY = "test-key";
+  globalThis.fetch = async () => new Response(JSON.stringify({
+    output: [{
+      type: "message",
+      content: [{
+        type: "output_text",
+        text: JSON.stringify({
+          reply: "Réponse incomplète",
+          category: "ent",
+          requesterType: "eleve",
+          urgency: "normale",
+          missingInformation: [],
+          suggestedDocuments: [],
+          readyToCreate: true,
+          safetyNotice: null,
+        }),
+      }],
+    }],
+  }), { status: 200, headers: { "Content-Type": "application/json" } });
+
+  try {
+    const result = await analyzeSupportConversation({
+      messages: messages("Mon accès ENT ne fonctionne plus depuis ce matin."),
+      attachments: [],
+      safetyIdentifier: "test-session",
+      knowledgeContextLoader: async () => "",
+    });
+
+    assert.equal(result.usedAi, false);
+    assert.equal(result.category, "ent");
+    assert.equal(result.confidence, "high");
+  } finally {
+    globalThis.fetch = originalFetch;
+    process.env.OPENAI_API_KEY = originalApiKey;
+  }
+});
+
 test("adds only the server-selected public registry context to model instructions", async () => {
   const originalFetch = globalThis.fetch;
   const originalApiKey = process.env.OPENAI_API_KEY;
@@ -113,6 +198,7 @@ test("adds only the server-selected public registry context to model instruction
             category: "ent",
             requesterType: "eleve",
             urgency: "normale",
+            confidence: "high",
             missingInformation: [],
             suggestedDocuments: [],
             readyToCreate: false,
@@ -204,6 +290,7 @@ test("keeps a safe answer available when the usage journal is temporarily unavai
           category: "ent",
           requesterType: "eleve",
           urgency: "normale",
+          confidence: "high",
           missingInformation: [],
           suggestedDocuments: [],
           readyToCreate: false,

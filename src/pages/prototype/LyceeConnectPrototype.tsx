@@ -813,6 +813,7 @@ type AssistantInsight = {
   category: SupportCategory;
   requesterType: "eleve" | "parent" | "professeur" | "personnel" | "autre" | "inconnu";
   urgency: "faible" | "normale" | "urgente";
+  confidence: "high" | "medium" | "low";
   missingInformation: string[];
   suggestedDocuments: string[];
   readyToCreate: boolean;
@@ -871,6 +872,7 @@ function localAssistantFallback(messages: AssistantChatMessage[], files: File[])
     category: policy.category ?? laptopIntake?.category ?? category,
     requesterType,
     urgency: policy.urgency ?? laptopIntake?.urgency ?? (/\b(urgent|aujourd'hui|bloqué|bloque|impossible)\b/i.test(text) ? "urgente" : "normale"),
+    confidence: category === "autre" ? "low" : readyToCreate ? "high" : "medium",
     missingInformation: laptopIntake?.missingInformation ?? (scheduleQuestion
       ? ["Identité scolaire confirmée", "Classe ou groupe autorisé"]
       : ["Identité de la personne concernée", "Email ou téléphone de réponse"]),
