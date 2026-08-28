@@ -104,7 +104,10 @@ voir sa réponse dans le dossier. L'agent traite tout depuis une seule file.
   en ligne sans cache afin qu'un nouveau déploiement ne reste pas masqué par
   l'ancienne interface PWA.
 - [ ] **T033** Ajouter notifications PWA pour les sessions actives.
-- [ ] **T034** Ajouter tableau de santé, file d'échec et bouton de reprise.
+- [x] **T034** Ajouter tableau de santé, file d'échec et bouton de reprise.
+  La direction avec MFA voit les succès, alertes email, fichiers en attente et
+  échecs définitifs. Une reprise est atomique et auditée ; les notifications
+  destinées à l'usager reçoivent un nouveau lien temporaire.
 - [ ] **T035** Ajouter le formulaire de collecte des emails personnels avec double
   vérification et validation agent.
 - [x] **T036** Restaurer dans la navigation les formations et informations du lycée.

@@ -26,6 +26,7 @@
     "test:institution-membership-security": "node --experimental-strip-types scripts/test-institution-membership-security.mjs",
     "verify:preview-agent-memberships": "node scripts/test-preview-agent-memberships.mjs",
     "test:support-notification-routing": "node --experimental-strip-types scripts/test-support-notification-routing.mjs",
+    "test:support-operations": "node --experimental-strip-types scripts/test-support-operations.mjs",
     "test:schedule-policy": "node --experimental-strip-types scripts/test-schedule-policy.mjs",
     "test:skill-registry": "node --experimental-strip-types scripts/test-skill-registry-policy.mjs",
     "test:knowledge-expiry": "node --experimental-strip-types scripts/test-knowledge-expiry-policy.mjs",

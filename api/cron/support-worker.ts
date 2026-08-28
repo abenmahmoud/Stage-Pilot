@@ -215,7 +215,10 @@ async function processRow(row: QueueRow): Promise<"processed" | "retried" | "fai
             jobId: job.job_id,
             requestId: job.request_id,
             jobType: job.job_type,
-            payloadRedacted: { messageId: job.message_id ?? null },
+            payloadRedacted: {
+              messageId: job.message_id ?? null,
+              contactId: job.contact_id ?? null,
+            },
             attempts: row.read_ct,
             lastErrorCode: errorCode,
             lastErrorSummary: "Échec après plusieurs tentatives",

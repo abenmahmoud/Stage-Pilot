@@ -651,6 +651,17 @@ taches et analyse de coherence avant une automatisation sensible.
 - Avant le premier depot reel : antivirus, extraction bornee, rapport de conflits,
   validation humaine, retention et decision Direction/DPO restent obligatoires.
 
+### Jalon du 28 août 2026 - santé et reprise des communications
+
+- Un écran direction protégé par MFA rassemble les succès du worker, alertes de
+  livraison, webhooks refusés, fichiers encore en quarantaine et échecs définitifs.
+- La relance manuelle est réservée aux types d'envoi connus, atomique et auditée.
+  Elle ne réutilise jamais l'ancien lien magique : un nouveau jeton de trente
+  minutes est créé côté serveur lorsque le demandeur doit être recontacté.
+- Les coordonnées et jetons ne sont jamais renvoyés par l'API de supervision.
+  Les tests de panne fournisseur et de rejeu sur une base de recette restent à
+  exécuter avant de considérer le retour email complètement opérationnel.
+
 ## 8. Prochain ordre recommande
 
 1. Publier et tester le pré-triage ordinateur portable avec des données fictives.

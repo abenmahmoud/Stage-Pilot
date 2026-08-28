@@ -219,6 +219,11 @@ l'autorisation de quota définie par le propriétaire.
   aucune identité et n'alimente jamais les connaissances de l'IA. Antivirus,
   lecture des lignes, rapport de conflits et activation restent nécessaires avant
   toute liste réelle.
+- Lot N5L : santé et reprise des communications. **Implémenté localement** : la
+  direction avec MFA dispose des indicateurs sur les envois, webhooks, rejets et
+  fichiers en attente, ainsi que d'une file des échecs définitifs. Une relance
+  réserve atomiquement l'ancien échec, crée un nouveau travail audité et renouvelle
+  le lien temporaire lorsqu'un demandeur doit être contacté.
 - Lot N6 : tests de non-régression, build, contrôle mobile et rapport d'écarts.
 
 ## Prochaine séquence verrouillée

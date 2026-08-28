@@ -20,6 +20,7 @@ import {
   Newspaper,
   BookOpenCheck,
   IdCard,
+  Activity,
 } from "lucide-react";
 
 const navCls = ({ isActive }: { isActive: boolean }) =>
@@ -159,6 +160,10 @@ export default function AppLayout() {
                 <NavLink to="/admin/repertoire-identites" className={navCls}>
                   <IdCard className="w-4 h-4" />
                   Identités du lycée
+                </NavLink>
+                <NavLink to="/admin/sante-demandes" className={navCls}>
+                  <Activity className="w-4 h-4" />
+                  Santé des demandes
                 </NavLink>
               </>
             )}
