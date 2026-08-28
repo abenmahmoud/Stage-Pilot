@@ -1,6 +1,6 @@
 # Inventaire du site WordPress historique
 
-**Généré le** : 2026-08-26T16:03:00.355Z
+**Généré le** : 2026-08-28T03:37:59.273Z
 **Source** : https://lycee-blaise-cendrars-sevran.fr
 **Contenus** : 28 accessibles / 28 déclarés
 **Médias** : 81 accessibles / 83 déclarés

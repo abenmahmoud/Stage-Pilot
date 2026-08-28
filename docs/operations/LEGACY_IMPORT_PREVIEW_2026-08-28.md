@@ -25,6 +25,23 @@ La requête de contrôle a confirmé :
   correspondants dans le registre des médias ;
 - `47` rattachements média-contenu.
 
+## Réparation des liens internes
+
+La recette a détecté `37` liens WordPress concaténés par erreur à l'adresse de
+l'accueil dans `9` brouillons. Le convertisseur rapproche désormais une adresse
+interne par son chemin complet au lieu de remplacer un préfixe commun.
+
+La base de preview a été réparée sans publication :
+
+- `9` brouillons corrigés, toujours marqués `needs_review = true` ;
+- `9` nouvelles versions conservées, soit `37` versions au total ;
+- `9` entrées d'audit avec le motif `legacy_internal_link_repair` ;
+- `0` lien concaténé restant et `0` contenu importé publié.
+
+Les redirections couvrent les `27` anciennes adresses hors accueil. La
+configuration Vercel supprime aussi la barre oblique finale historique avant
+d'appliquer la destination `/site/...`.
+
 ## Échecs isolés
 
 1. Médias WordPress `1222` et `1223`, deux variantes de
@@ -52,6 +69,6 @@ La requête de contrôle a confirmé :
 1. Corriger ou remplacer les trois fichiers refusés.
 2. Relire les 15 contenus durables, archiver les 7 anciennes actualités et
    décider du sort des 6 contenus à confirmer.
-3. Contrôler les liens, le français et le rendu à 320 px et sur ordinateur.
-4. Comparer les 28 anciennes adresses avec leurs destinations avant toute
-   bascule du domaine.
+3. Relire le français et contrôler le rendu à 320 px et sur ordinateur.
+4. Vérifier les 28 destinations sur la nouvelle preview après déploiement, puis
+   comparer visuellement chaque rubrique avant toute bascule du domaine.

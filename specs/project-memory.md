@@ -439,11 +439,17 @@ sa specification.
 - Reprendre, corriger et faire valider toutes les rubriques, documents, liens et
   informations pratiques de l'ancien site.
 - L'inventaire reproductible contient 28 contenus et 83 medias annonces, dont
-  81 accessibles. L'importeur par lots est code mais aucun contenu n'a encore
-  ete cree dans la base de preview.
+  81 accessibles. Les 28 contenus sont maintenant des brouillons protégés dans
+  la base isolée de preview; 78 médias sont copiés dans le stockage privé et
+  trois fichiers refusés restent à remplacer ou optimiser.
 - L'importeur borne les fichiers a 10 Mo pendant le flux, refuse un type recu
   different de l'inventaire, resiste aux lancements concurrents et journalise
   l'agent. Son chargement JSON est compatible avec le serveur Node de Vercel.
+- La recette du 28 août a corrigé 37 liens internes mal concaténés dans neuf
+  brouillons. Chaque réparation possède une nouvelle version et une entrée
+  d'audit; aucun contenu repris n'est publié.
+- Les 27 anciennes adresses hors accueil disposent d'une redirection testée par
+  rapport à l'inventaire, y compris leur ancienne forme avec barre oblique.
 - Le portail distingue maintenant les articles des pages durables, relie les
   pages publiees a la rubrique lycee et exclut de l'API publique toute audience
   autre que `tous`.

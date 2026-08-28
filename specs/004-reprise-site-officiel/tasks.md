@@ -36,7 +36,13 @@
 - [x] T014 Ajouter la lecture publique d'une page par slug.
 - [x] T015 Relier formations, spécialités, vie du lycée et actualités.
 - [x] T016 Préparer les redirections des anciennes URL.
+  Les 27 anciennes adresses hors accueil ont une destination explicite et
+  Vercel normalise aussi leur ancienne forme avec barre oblique finale. Deux
+  tests automatiques comparent ces destinations aux 28 contenus inventoriés.
 - [ ] T017 Vérifier français, liens, fichiers, 320 px et ordinateur.
+  Le convertisseur et les 28 brouillons ne contiennent plus aucun lien interne
+  concaténé à l'adresse de l'accueil. La relecture éditoriale, les trois fichiers
+  refusés et la recette visuelle 320 px/ordinateur restent à terminer.
 
 ## Bascule
 

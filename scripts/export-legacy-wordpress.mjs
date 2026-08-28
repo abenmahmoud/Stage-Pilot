@@ -1,5 +1,6 @@
 import { mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
+import { pathToFileURL } from "node:url";
 import TurndownService from "turndown";
 
 const SOURCE_ORIGIN = "https://lycee-blaise-cendrars-sevran.fr";
@@ -261,22 +262,24 @@ function markdownReport(exported) {
   return lines.join("\n");
 }
 
-function rewriteInternalContentLinks(contents) {
+export function rewriteInternalContentLinks(contents) {
   const destinations = new Map();
   for (const content of contents) {
     const source = new URL(content.sourceUrl);
-    const variants = new Set([
-      source.href,
-      source.href.replace(/\/$/, ""),
-      `${source.href.replace(/\/$/, "")}/`,
-    ]);
-    for (const variant of variants) destinations.set(variant, `/site/${content.slug}`);
+    const pathname = source.pathname.replace(/\/+$/, "") || "/";
+    destinations.set(pathname, `/site/${content.slug}`);
   }
   return contents.map((content) => {
-    let bodyMarkdown = content.bodyMarkdown;
-    for (const [source, destination] of destinations) {
-      if (bodyMarkdown.includes(source)) bodyMarkdown = bodyMarkdown.split(source).join(destination);
-    }
+    const bodyMarkdown = content.bodyMarkdown.replace(
+      /\]\((https?:\/\/[^)\s]+)(?=[\s)])/g,
+      (match, rawTarget) => {
+        const target = new URL(rawTarget);
+        if (target.origin !== SOURCE_ORIGIN) return match;
+        const pathname = target.pathname.replace(/\/+$/, "") || "/";
+        const destination = destinations.get(pathname);
+        return destination ? `](${destination}${target.search}${target.hash}` : match;
+      }
+    );
     return { ...content, bodyMarkdown };
   });
 }
@@ -323,4 +326,6 @@ async function main() {
   console.log(JSON.stringify({ output: OUTPUT_DIR, counts: exported.counts, unresolvedUploadUrls: unresolvedUploadUrls.length }, null, 2));
 }
 
-await main();
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+  await main();
+}

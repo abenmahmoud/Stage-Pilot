@@ -32,6 +32,8 @@
     "test:identity-access": "node --experimental-strip-types scripts/test-identity-access-policy.mjs",
     "test:support-queue": "node --experimental-strip-types scripts/test-support-queue-policy.mjs",
     "test:legacy-import": "node --experimental-strip-types scripts/test-legacy-import.mjs",
+    "test:legacy-links": "node scripts/test-legacy-content-links.mjs",
+    "test:legacy-routes": "node scripts/test-legacy-routes.mjs",
     "test:support-templates": "node --experimental-strip-types scripts/test-support-reply-templates.mjs",
     "test:site-content": "node --experimental-strip-types scripts/test-site-content.mjs",
     "test:editor-ux": "node scripts/test-editor-ux.mjs",
