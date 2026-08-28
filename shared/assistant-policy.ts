@@ -171,7 +171,7 @@ export function evaluateConversationPolicy(
 
   if (lastScope === "wellbeing" || unresolvedRecentSafety) {
     const reply =
-      "Je suis désolé que vous viviez cela. Si vous êtes en danger immédiat, appelez le 112. Si vous pensez à vous faire du mal, appelez le 3114. Allez aussi vers un adulte du lycée ou un adulte de confiance. Êtes-vous en sécurité maintenant ? Je peux transmettre une demande urgente à un adulte du lycée.";
+      "Je suis désolé que vous viviez cela. Si vous êtes en danger immédiat, appelez le 112. Si vous pensez à vous faire du mal, appelez le 3114. Allez aussi vers un adulte du lycée ou un adulte de confiance. Êtes-vous en sécurité maintenant ? Je peux vous aider à préparer une demande urgente pour le lycée, mais cela ne remplace pas un appel aux secours ou à un adulte présent.";
     return {
       scope: "wellbeing",
       action: "human_transfer",

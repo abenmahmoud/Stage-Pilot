@@ -89,6 +89,8 @@ test("routes wellbeing and immediate danger to a human without AI", () => {
   assert.equal(policy.readyToCreate, true);
   assert.match(policy.deterministicReply, /112/);
   assert.match(policy.deterministicReply, /3114/);
+  assert.match(policy.deterministicReply, /préparer une demande urgente/);
+  assert.doesNotMatch(policy.deterministicReply, /(?:alerte|demande) (?:a été|est) transmise/i);
 });
 
 test("recognizes a simple expression of distress", () => {

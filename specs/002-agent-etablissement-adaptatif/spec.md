@@ -125,6 +125,13 @@ leur date, leur responsable et leur état de validité.
 - **FR-031** : toute synchronisation ENT ou PRONOTE expose son dernier succès, son retard et son état ; aucune donnée ancienne n'est présentée comme actuelle.
 - **FR-032** : l'agent assiste les AED, CPE, secrétariat, direction et référent numérique ; il ne remplace pas leur responsabilité légale, éducative, disciplinaire ou de protection.
 - **FR-033** : une mention d'ESSUF GROUP ou d'un partenariat média n'est publiée qu'après validation écrite du lycée, de l'entreprise et des responsabilités de traitement des données.
+- **FR-034** : la preuve d'identité `I0-I4`, le rôle, la relation avec la personne concernée et l'autorité d'action `A0-A4` sont évalués séparément avant l'IA et avant chaque outil.
+- **FR-035** : un contact vérifié ne devient jamais une identité scolaire par simple déclaration, ressemblance de nom, voix ou contenu de conversation.
+- **FR-036** : un niveau de risque `P0` affiche immédiatement les consignes adaptées, mais l'agent ne prétend jamais avoir alerté un humain sans confirmation structurée d'un canal réellement supervisé.
+- **FR-037** : une mention de santé, danger ou difficulté sociale déclenche minimisation et orientation sûre ; l'agent ne diagnostique pas et n'exige pas de récit ou de document sensible dans le dialogue public.
+- **FR-038** : le portail peut recevoir des demandes en continu, tandis que disponibilité humaine et notifications suivent les horaires et règles de diffusion validés par l'établissement.
+- **FR-039** : une information générale d'orientation peut être expliquée ; toute évaluation, affectation, admission, sanction ou décision individuelle reste hors automatisation.
+- **FR-040** : l'agent peut créer ou compléter une demande dans LyceeGest via un outil autorisé, mais n'écrit dans aucun système officiel externe sans connecteur, finalité, rôle, confirmation et audit validés.
 
 ## Exigences non fonctionnelles
 

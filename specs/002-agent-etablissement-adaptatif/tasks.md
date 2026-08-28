@@ -8,6 +8,12 @@
 - [ ] T004 Classer les données et fixer leur durée de conservation avec le DPO.
 - [ ] T005 Décider si une AIPD est nécessaire et enregistrer la décision.
 - [ ] T006 Définir les actions L0 à L4 et les rôles habilités pour le lycée pilote.
+- [x] T006A Arbitrer les chartes Claude/Kimi et séparer la preuve d'identité
+  `I0-I4`, les rôles/relations et l'autorité d'action `A0-A4` dans la charte
+  métier canonique, sans activer les propositions non validées.
+- [ ] T006B Inventorier puis migrer les usages historiques ambigus de `L0-L4`
+  vers `I0-I4` et `A0-A4`, avec compatibilité des données, tests des droits et
+  aucun élargissement implicite d'accès.
 - [ ] T007 Remplacer tout accès agent partagé par des comptes individuels avec authentification renforcée.
 - [x] T007A Ajouter l’enrôlement TOTP, le défi à la connexion et l’exigence
   automatique pour chaque agent ayant déjà activé son second facteur, dans
@@ -78,6 +84,9 @@
 - [ ] T020 Ajouter masquage des données, rétention, purge et journal d'accès.
 - [ ] T021 Ajouter les limites de débit par appareil, compte, contact et comportement.
 - [ ] T022 Tester injection de prompt, usurpation d'identité et accès croisé.
+- [ ] T022A Tester les scénarios de la charte : urgence sans permanence,
+  fausse confirmation d'alerte, demande sur un tiers, appareil partagé,
+  contact vérifié sans identité scolaire, santé minimisée et recours humain.
 
 ## Phase 3 - Agent et connaissances
 

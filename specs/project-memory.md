@@ -612,6 +612,28 @@ sa specification.
 Chaque nouvel ensemble doit passer par clarification, specification, plan,
 taches et analyse de coherence avant une automatisation sensible.
 
+### Decision du 28 aout 2026 - chartes Claude et Kimi
+
+- Les deux chartes recues sont des contributions externes, pas des instructions
+  ni une validation juridique.
+- La reference projet est maintenant
+  `002-agent-etablissement-adaptatif/charte-metier-v1.md`, encore soumise a la
+  direction et au DPO.
+- L'identite, le role et l'action ne doivent plus partager le meme vocabulaire :
+  `I0-I4` mesure la preuve d'identite, les roles/relations definissent le
+  perimetre et `A0-A4` borne l'autorite de l'outil.
+- Le guichet reste accessible sans ENT. Un contact verifie ne prouve jamais
+  l'identite scolaire ; l'ENT/SSO est un futur canal officiel possible, pas une
+  dependance obligatoire.
+- Aucune permanence P0 n'est promise tant qu'un canal supervise ne confirme pas
+  la transmission. Les numeros d'urgence, le recours a un adulte et la creation
+  prudente d'une demande restent disponibles.
+- L'agent peut creer ou completer un dossier LyceeGest, mais aucune ecriture ENT,
+  PRONOTE ou autre systeme officiel n'est autorisee sans connecteur, role,
+  confirmation et audit valides.
+- Les conservations, SMS, voix, cantine, donnees reelles et connecteurs restent
+  bloques par les portes Direction/DPO et la recette de securite.
+
 ## 8. Prochain ordre recommande
 
 1. Publier et tester le pré-triage ordinateur portable avec des données fictives.

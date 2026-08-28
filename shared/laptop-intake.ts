@@ -53,7 +53,7 @@ export function evaluateLaptopIntake(
   ) {
     return {
       reply:
-        "N’utilisez plus et ne rechargez plus l’appareil. Débranchez-le seulement si vous pouvez le faire sans danger, éloignez-vous et prévenez immédiatement un adulte du lycée ; je peux transmettre la demande en urgence.",
+        "N’utilisez plus et ne rechargez plus l’appareil. Débranchez-le seulement si vous pouvez le faire sans danger, éloignez-vous et prévenez immédiatement un adulte du lycée ; je peux vous aider à préparer une demande urgente.",
       category: "ordinateur",
       urgency: "urgente",
       missingInformation: ["Lieu où se trouve l’appareil"],

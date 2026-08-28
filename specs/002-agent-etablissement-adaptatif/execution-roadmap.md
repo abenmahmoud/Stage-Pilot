@@ -95,6 +95,22 @@ l'autorisation de quota définie par le propriétaire.
   navigateur sans debordement. Le rapport d'arbitrage est dans
   `docs/audits/EXTERNAL_REVIEW_2026-08-28.md`.
 
+### Arbitrage des chartes metier du 28 aout 2026
+
+- Les chartes Kimi et Claude ont ete relues comme propositions externes, sans
+  nouvelle consommation de modele et sans execution automatique.
+- Les principes utiles sont integres dans
+  `charte-metier-v1.md`. L'ENT obligatoire, la permanence P0 non branchee, les
+  services de cantine ou vocaux et les durees de conservation non validees ne
+  sont pas presentes comme disponibles.
+- Le vocabulaire canonique separe desormais `I0-I4` pour la preuve d'identite,
+  les roles et relations, puis `A0-A4` pour l'autorite d'action. Les anciens
+  libelles `L0-L4` restent temporairement dans le code jusqu'a une migration
+  testee afin de ne pas modifier les droits en silence.
+- La charte reste soumise a la direction et au DPO avant tout pilote reel. Le
+  detail des decisions est conserve dans
+  `docs/audits/CLAUDE_KIMI_AGENT_CHARTER_ADJUDICATION_2026-08-28.md`.
+
 ## Lots de nuit sûrs
 
 - Lot N1 : moteur de routage déterministe, motif, identité requise et filtre de

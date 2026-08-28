@@ -9,7 +9,7 @@ active lorsque l'IA est coupée ou indisponible.
 
 | Situation | Réponse attendue | Appel IA |
 | --- | --- | --- |
-| Danger, mal-être ou risque immédiat | Réponse courte, 112 ou 3114 selon le cas, transfert vers un adulte | Non |
+| Danger, mal-être ou risque immédiat | Réponse courte, 112 ou 3114 selon le cas, adulte présent et proposition de demande sans promesse de prise en charge | Non |
 | Coordonnées privées, annuaire ou extraction de données | Refus neutre et proposition d'un canal officiel du lycée | Non |
 | Aide pédagogique | Question précise uniquement, trois réponses maximum | Oui, si nécessaire |
 | Demande hors mission | Rappel du rôle du lycée, arrêt au troisième essai | Non |
@@ -28,6 +28,7 @@ métier et sa date d'expiration.
 
 ## Validation
 
-Le jeu automatisé couvre les demandes ordinaires, le danger, la confirmation de
+Le jeu automatisé couvre les demandes ordinaires, le danger sans fausse
+confirmation de transmission, la confirmation de
 sécurité, les coordonnées privées, l'extraction de données, les limites d'aide
 pédagogique, les demandes hors mission et la limite générale de conversation.
