@@ -26,6 +26,7 @@
     "test:schedule-policy": "node --experimental-strip-types scripts/test-schedule-policy.mjs",
     "test:skill-registry": "node --experimental-strip-types scripts/test-skill-registry-policy.mjs",
     "test:knowledge-expiry": "node --experimental-strip-types scripts/test-knowledge-expiry-policy.mjs",
+    "test:public-skill-context": "node --experimental-strip-types scripts/test-public-agent-skill-policy.mjs",
     "test:knowledge-registry-security": "node --import ./scripts/ts-test-resolver.mjs --experimental-strip-types scripts/test-knowledge-registry-security.mjs",
     "test:identity-access": "node --experimental-strip-types scripts/test-identity-access-policy.mjs",
     "test:support-queue": "node --experimental-strip-types scripts/test-support-queue-policy.mjs",

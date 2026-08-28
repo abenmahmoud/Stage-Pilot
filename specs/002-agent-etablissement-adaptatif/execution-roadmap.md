@@ -97,6 +97,12 @@ l'autorisation de quota définie par le propriétaire.
   de preview et les six tables sont vides. Le worker quotidien d'expiration est
   implémenté, protégé par secret et audité ; les responsables métier et la
   publication de sources réelles restent requis.
+- Lot N4B : consommation du registre par l'assistant public. **Implémentée et
+  testée** : sélection par pertinence des seules versions actives, publiques,
+  publiées et valides du bon établissement ; contrôle de toutes les sources
+  obligatoires, contexte borné, aucun identifiant privé envoyé au modèle et repli
+  statique si Supabase est indisponible. Le registre de preview restant vide,
+  aucune procédure réelle n'est encore utilisée.
 - Lot N5 : files `À qualifier`, délais et dossiers sans propriétaire.
   **Visibilité opérationnelle implémentée et testée** : vue `À classer`, compteurs
   sans responsable et échéances dépassées, marqueurs par dossier et ordre par
@@ -166,8 +172,8 @@ l'autorisation de quota définie par le propriétaire.
 1. Conserver `BC-2026-000009` comme preuve fictive de recette jusqu'à la décision
    de nettoyage du pilote ; le dossier historique `BC-2026-000008` n'est pas
    déplacé silencieusement.
-2. Brancher l'orchestrateur sur les seules compétences publiées, actives et
-   encore valides ; aucune source réelle n'est ajoutée avant validation humaine.
+2. Étendre l'orchestrateur aux niveaux authentifiés L1 à L4, avec autorisation
+   par service, outils contrôlés et audit des versions réellement consultées.
 3. Faire nommer les responsables et valider les premières sources et procédures
    avant toute compétence active contenant des informations réelles.
 

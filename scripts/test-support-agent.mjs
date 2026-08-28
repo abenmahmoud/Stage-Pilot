@@ -83,11 +83,60 @@ test("keeps a complete school request ready when the AI returns false", async ()
       ),
       attachments: [],
       safetyIdentifier: "test-session",
+      knowledgeContextLoader: async () => "",
     });
 
     assert.equal(result.usedAi, true);
     assert.equal(result.readyToCreate, true);
     assert.equal(result.action, "offer_case");
+  } finally {
+    globalThis.fetch = originalFetch;
+    process.env.OPENAI_API_KEY = originalApiKey;
+  }
+});
+
+test("adds only the server-selected public registry context to model instructions", async () => {
+  const originalFetch = globalThis.fetch;
+  const originalApiKey = process.env.OPENAI_API_KEY;
+  process.env.OPENAI_API_KEY = "test-key";
+  let requestBody;
+  globalThis.fetch = async (_url, init) => {
+    requestBody = JSON.parse(init.body);
+    return new Response(JSON.stringify({
+      output: [{
+        type: "message",
+        content: [{
+          type: "output_text",
+          text: JSON.stringify({
+            reply: "Suivez la procédure ENT validée.",
+            category: "ent",
+            requesterType: "eleve",
+            urgency: "normale",
+            missingInformation: [],
+            suggestedDocuments: [],
+            readyToCreate: false,
+            safetyNotice: null,
+          }),
+        }],
+      }],
+    }), { status: 200, headers: { "Content-Type": "application/json" } });
+  };
+
+  try {
+    const context = "<registre_public_valide>\nProcédure ENT validée\n</registre_public_valide>";
+    const result = await analyzeSupportConversation({
+      messages: messages("Mon accès ENT est bloqué depuis ce matin"),
+      attachments: [],
+      safetyIdentifier: "test-session",
+      knowledgeContextLoader: async (query) => {
+        assert.match(query, /accès ENT/i);
+        return context;
+      },
+    });
+
+    assert.equal(result.usedAi, true);
+    assert.match(requestBody.instructions, /Procédure ENT validée/);
+    assert.match(requestBody.instructions, /ne prétends jamais l'avoir exécuté/i);
   } finally {
     globalThis.fetch = originalFetch;
     process.env.OPENAI_API_KEY = originalApiKey;

@@ -62,9 +62,28 @@ retrait ou un retour arrière exige en plus une session MFA `aal2` actuelle.
   échue, raisons cumulées, horodatage invalide, ordre d'authentification, audit
   système et déclaration du cron.
 
+## Lecture par l'assistant public
+
+- le niveau visiteur charge uniquement la version active d'une compétence
+  `public`, `published`, non échue et appartenant au lycée configuré ;
+- chaque source obligatoire doit elle aussi être publique, publiée, dans sa
+  période de validité et rattachée au même établissement ; une source facultative
+  expirée ne bloque pas une compétence qui conserve ses preuves obligatoires ;
+- la sélection est pertinente pour le dernier message et bornée à quatre
+  compétences, 3 000 caractères par compétence et 6 000 caractères au total ;
+  une instruction trop longue est ignorée entièrement, jamais tronquée ;
+- ni URI, ni empreinte, ni propriétaire de source ne sont envoyés au modèle ;
+  seuls les instructions validées, la version et les titres/dates des sources
+  publiques entrent dans le contexte ;
+- les outils déclarés sont présentés comme indisponibles : le modèle ne peut pas
+  prétendre les avoir exécutés ;
+- en cas d'erreur de lecture, le registre est ignoré et les règles statiques
+  sûres continuent de s'appliquer.
+
 ## Reste à faire
 
 - recette navigateur avec deux comptes nominatifs et récupération testée ;
 - responsables métier, règles de conservation et premières sources validées ;
-- branchement de l'orchestrateur sur les seules versions actives ;
+- lecture authentifiée par niveau L1 à L4, exécution contrôlée des outils et audit
+  des versions réellement utilisées dans chaque réponse ;
 - aucun passage en production avant ces validations et la décision DPO.

@@ -69,6 +69,10 @@
 ## Phase 3 - Agent et connaissances
 
 - [ ] T023 Construire l'orchestrateur de compétences et les sorties structurées.
+- [x] T023A Brancher l'assistant public sur les seules compétences pertinentes,
+  actives et publiées de son établissement, avec version et revue valides,
+  sources obligatoires publiques encore valides, budget de contexte borné et
+  repli sur les règles statiques si le registre est indisponible.
 - [ ] T024 Construire la recherche limitée aux sources publiées, autorisées et non expirées.
 - [ ] T025 Afficher source et date de mise à jour dans les réponses de procédure.
 - [x] T026 Imposer une question essentielle à la fois et dix tours maximum par session.

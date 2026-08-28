@@ -1,0 +1,176 @@
+export type PublicAgentSkillSource = {
+  id: string;
+  institutionId: string;
+  title: string;
+  status: "draft" | "published" | "expired" | "revoked";
+  classification: "public" | "internal" | "personal" | "sensitive";
+  validFrom: string;
+  expiresAt: string | null;
+  required: boolean;
+};
+
+export type PublicAgentSkillCandidate = {
+  institutionId: string;
+  skillKey: string;
+  name: string;
+  domain: string;
+  enabled: boolean;
+  activeVersionId: string | null;
+  versionId: string;
+  version: string;
+  versionStatus: "draft" | "review" | "published" | "retired";
+  dataClassification: "public" | "internal" | "personal" | "sensitive";
+  publishedAt: string | null;
+  reviewDueAt: string;
+  instructions: string;
+  allowedTools: string[];
+  sources: PublicAgentSkillSource[];
+};
+
+export type PublicAgentSkillContext = {
+  skillKey: string;
+  name: string;
+  domain: string;
+  version: string;
+  instructions: string;
+  allowedTools: string[];
+  sources: Array<{ title: string; expiresAt: string | null }>;
+};
+
+const MAX_SKILLS = 4;
+const MAX_SKILL_INSTRUCTIONS = 3_000;
+const MAX_TOTAL_INSTRUCTIONS = 6_000;
+const STOP_WORDS = new Set([
+  "avec", "avoir", "dans", "elle", "elles", "etre", "faire", "pour", "sans",
+  "sont", "tout", "tous", "une", "vous", "votre", "mais", "comme", "plus",
+  "quoi", "quel", "quelle", "besoin", "aide", "lycee",
+]);
+
+function timestamp(value: string | null): number {
+  if (!value) return Number.NaN;
+  const parsed = Date.parse(value);
+  return Number.isFinite(parsed) ? parsed : Number.NaN;
+}
+
+function normalize(value: string): string {
+  return value
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, " ")
+    .trim();
+}
+
+function tokens(value: string): string[] {
+  return [...new Set(
+    normalize(value)
+      .split(/\s+/)
+      .filter((token) => token.length >= 3 && !STOP_WORDS.has(token))
+  )];
+}
+
+function sourceIsPublicAndCurrent(
+  source: PublicAgentSkillSource,
+  institutionId: string,
+  now: number
+): boolean {
+  const validFrom = timestamp(source.validFrom);
+  const expiresAt = source.expiresAt ? timestamp(source.expiresAt) : Number.POSITIVE_INFINITY;
+  return (
+    source.institutionId === institutionId &&
+    source.status === "published" &&
+    source.classification === "public" &&
+    Number.isFinite(validFrom) &&
+    validFrom <= now &&
+    expiresAt >= now
+  );
+}
+
+function skillIsPublicAndCurrent(
+  candidate: PublicAgentSkillCandidate,
+  institutionId: string,
+  now: number
+): boolean {
+  const instructions = candidate.instructions.trim();
+  const requiredSources = candidate.sources.filter((source) => source.required);
+  return (
+    candidate.institutionId === institutionId &&
+    candidate.enabled &&
+    candidate.activeVersionId === candidate.versionId &&
+    candidate.versionStatus === "published" &&
+    candidate.dataClassification === "public" &&
+    candidate.publishedAt !== null &&
+    timestamp(candidate.publishedAt) <= now &&
+    timestamp(candidate.reviewDueAt) > now &&
+    instructions.length >= 20 &&
+    instructions.length <= MAX_SKILL_INSTRUCTIONS &&
+    requiredSources.length > 0 &&
+    requiredSources.every((source) => sourceIsPublicAndCurrent(source, institutionId, now))
+  );
+}
+
+function relevance(candidate: PublicAgentSkillCandidate, queryTokens: string[]): number {
+  if (queryTokens.length === 0) return 0;
+  const identity = new Set(tokens(`${candidate.skillKey} ${candidate.name} ${candidate.domain}`));
+  const sourceTitles = new Set(tokens(candidate.sources.map((source) => source.title).join(" ")));
+  const instructions = new Set(tokens(candidate.instructions));
+  return queryTokens.reduce((score, token) => {
+    if (identity.has(token)) return score + 5;
+    if (sourceTitles.has(token)) return score + 3;
+    if (instructions.has(token)) return score + 1;
+    return score;
+  }, 0);
+}
+
+export function selectPublicAgentSkillContext(input: {
+  candidates: PublicAgentSkillCandidate[];
+  institutionId: string;
+  query: string;
+  now: string;
+}): PublicAgentSkillContext[] {
+  const now = timestamp(input.now);
+  if (!Number.isFinite(now)) return [];
+  const queryTokens = tokens(input.query);
+  let usedCharacters = 0;
+  const selected: PublicAgentSkillContext[] = [];
+
+  const ranked = input.candidates
+    .filter((candidate) => skillIsPublicAndCurrent(candidate, input.institutionId, now))
+    .map((candidate) => ({ candidate, score: relevance(candidate, queryTokens) }))
+    .filter((entry) => entry.score > 0)
+    .sort((left, right) => right.score - left.score || left.candidate.skillKey.localeCompare(right.candidate.skillKey));
+
+  for (const { candidate } of ranked) {
+    const instructions = candidate.instructions.trim();
+    if (selected.length >= MAX_SKILLS || usedCharacters + instructions.length > MAX_TOTAL_INSTRUCTIONS) {
+      continue;
+    }
+    selected.push({
+      skillKey: candidate.skillKey,
+      name: candidate.name,
+      domain: candidate.domain,
+      version: candidate.version,
+      instructions,
+      allowedTools: [...new Set(candidate.allowedTools)].sort(),
+      sources: candidate.sources
+        .filter((source) => source.required)
+        .map((source) => ({ title: source.title, expiresAt: source.expiresAt })),
+    });
+    usedCharacters += instructions.length;
+  }
+  return selected;
+}
+
+export function formatPublicAgentSkillContext(skills: PublicAgentSkillContext[]): string {
+  if (skills.length === 0) return "";
+  const blocks = skills.map((skill, index) => {
+    const sources = skill.sources
+      .map((source) => `${source.title}${source.expiresAt ? ` (valide jusqu'au ${source.expiresAt})` : ""}`)
+      .join(" ; ");
+    const tools = skill.allowedTools.length > 0
+      ? `Outils déclarés mais non exécutables dans cette conversation : ${skill.allowedTools.join(", ")}.`
+      : "Aucun outil externe n'est autorisé pour cette compétence.";
+    return `${index + 1}. ${skill.name} [${skill.skillKey}@${skill.version}]\nDomaine : ${skill.domain}\nSources publiques validées : ${sources}\n${tools}\nInstructions validées :\n${skill.instructions}`;
+  });
+  return `<registre_public_valide>\n${blocks.join("\n\n")}\n</registre_public_valide>`;
+}
