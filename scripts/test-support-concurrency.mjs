@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import {
+  formatSupportRevision,
   parseSupportRevision,
   supportRevisionMatches,
 } from "../shared/support-concurrency.ts";
@@ -21,4 +22,10 @@ test("detects a stale support revision", () => {
   const current = new Date("2026-08-27T10:15:31.000Z");
   assert.equal(supportRevisionMatches(current, "2026-08-27T10:15:31.000Z"), true);
   assert.equal(supportRevisionMatches(current, "2026-08-27T10:15:30.000Z"), false);
+});
+
+test("formats database revision parameters as ISO strings", () => {
+  const revision = new Date("2026-08-27T10:15:30.123Z");
+  assert.equal(formatSupportRevision(revision), "2026-08-27T10:15:30.123Z");
+  assert.equal(typeof formatSupportRevision(revision), "string");
 });

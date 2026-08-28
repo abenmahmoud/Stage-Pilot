@@ -18,6 +18,7 @@ import {
   requireSupportAgent,
 } from "../../../_shared/support-agent-access.js";
 import {
+  formatSupportRevision,
   parseSupportRevision,
   supportRevisionMatches,
 } from "../../../../shared/support-concurrency.js";
@@ -186,7 +187,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       const identityChanged =
         nextIdentityStatus !== currentIdentityStatus ||
         nextIdentityMethod !== (typeof currentContext.identityMethod === "string" ? currentContext.identityMethod : null);
-      const revisionCondition = sql`date_trunc('milliseconds', ${supportRequests.updatedAt}) = ${expectedRevision}`;
+      const revisionCondition = sql`date_trunc('milliseconds', ${supportRequests.updatedAt}) = ${formatSupportRevision(expectedRevision)}::timestamptz`;
       const updateCondition = body.assignToMe === true && request.assignedTo === null
         ? and(
             eq(supportRequests.id, request.id),

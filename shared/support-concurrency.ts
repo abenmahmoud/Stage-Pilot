@@ -14,3 +14,7 @@ export function supportRevisionMatches(
     && Number.isFinite(expectedTimestamp)
     && currentTimestamp === expectedTimestamp;
 }
+
+export function formatSupportRevision(expected: Date): string {
+  return expected.toISOString();
+}

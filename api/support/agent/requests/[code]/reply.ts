@@ -18,6 +18,7 @@ import {
   requireSupportAgent,
 } from "../../../../_shared/support-agent-access.js";
 import {
+  formatSupportRevision,
   parseSupportRevision,
   supportRevisionMatches,
 } from "../../../../../shared/support-concurrency.js";
@@ -194,7 +195,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         .where(
           and(
             eq(supportRequests.id, request.id),
-            sql`date_trunc('milliseconds', ${supportRequests.updatedAt}) = ${expectedRevision}`,
+            sql`date_trunc('milliseconds', ${supportRequests.updatedAt}) = ${formatSupportRevision(expectedRevision)}::timestamptz`,
             teamCondition
           )
         )
