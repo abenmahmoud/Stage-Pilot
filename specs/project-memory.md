@@ -5,6 +5,22 @@
 **Depot** : `abenmahmoud/Stage-Pilot`
 **Dernier jalon de code verifie** : candidate publiée sur la production Vercel
 
+## Jalon du 28 août 2026 - assistant visible dès l'accueil
+
+- Le premier retour de présentation indiquait que l'assistant n'était pas assez
+  visible. Il devient le premier outil après la photo, avant les actualités et le
+  Webmail, avec un intitulé explicite et un champ demandant directement la
+  question ou le problème.
+- Un appel « Besoin d'aide ? » dans la photo d'accueil fait défiler la page et
+  place le curseur dans le champ. Le formulaire classique reste proposé sans
+  obliger à utiliser l'assistant.
+- La mise en valeur conserve une interface sobre : contraste renforcé, profondeur
+  légère, indicateur de disponibilité et animation neutralisée lorsque la
+  réduction des mouvements est demandée.
+- Le build réussit. Les contrôles navigateur ordinateur et téléphone confirment
+  la visibilité au premier écran, le focus du champ, l'absence de débordement
+  horizontal et l'absence d'erreur console.
+
 ## Jalon du 28 août 2026 - production Vercel publique
 
 - Le propriétaire a autorisé explicitement la mise en production de la candidate

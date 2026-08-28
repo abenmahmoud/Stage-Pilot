@@ -366,6 +366,7 @@ export default function LyceeConnectPrototype() {
   const [helpMode, setHelpMode] = useState<"chat" | "form">("chat");
   const [menuOpen, setMenuOpen] = useState(false);
   const [ticketCreated, setTicketCreated] = useState<string | null>(null);
+  const homeAssistantRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
     if (!SUPPORT_API_ENABLED) return;
@@ -405,6 +406,11 @@ export default function LyceeConnectPrototype() {
     setMessage(prompt);
     setHelpMode(mode);
     changeView("help");
+  }
+
+  function focusHomeAssistant() {
+    document.getElementById("lycee-assistant-title")?.scrollIntoView({ behavior: "smooth", block: "center" });
+    window.setTimeout(() => homeAssistantRef.current?.focus(), 350);
   }
 
   return (
@@ -516,34 +522,35 @@ export default function LyceeConnectPrototype() {
             <div className="lycee-hero-tracks" aria-label="Parcours proposés">
               <span>Général</span><span>Technologique</span><span>Professionnel</span><span>CAP</span>
             </div>
+            <button className="lycee-hero-help" type="button" onClick={focusHomeAssistant}>
+              <MessageCircleMore aria-hidden="true" />
+              <span><strong>Besoin d’aide&nbsp;?</strong><small>Parler à l’assistant du lycée</small></span>
+              <ChevronRight aria-hidden="true" />
+            </button>
           </div>
         </section>
 
         <div className="lycee-content">
-          <section className="lycee-core-tools" aria-label="Outils principaux du lycée">
-            <button type="button" data-tool="news" onClick={() => changeView("news")}><span><Newspaper aria-hidden="true" /></span><div><strong>À la une</strong><small>Rentrée, formations et informations du lycée</small></div><em>Consulter <ChevronRight aria-hidden="true" /></em></button>
-            <a href={WEBMAIL_URL} target="_blank" rel="noreferrer" data-tool="mail"><span><Mail aria-hidden="true" /></span><div><strong>Webmail du lycée</strong><small>Messagerie, contacts et diffusion</small></div><em>Ouvrir <ExternalLink aria-hidden="true" /></em></a>
-          </section>
-
           <section className="lycee-assistant" aria-labelledby="lycee-assistant-title">
             <div className="lycee-assistant-heading">
               <span className="lycee-ai-icon"><Bot aria-hidden="true" /></span>
               <div>
-                <span className="lycee-eyebrow">Assistant du lycée</span>
-                <h2 id="lycee-assistant-title">De quoi avez-vous besoin&nbsp;?</h2>
+                <span className="lycee-eyebrow">Aide immédiate</span>
+                <h2 id="lycee-assistant-title">Posez votre question à l’assistant du lycée</h2>
               </div>
-              <span className="lycee-ai-status"><Sparkles aria-hidden="true" /> Assistant actif</span>
+              <span className="lycee-ai-status"><Sparkles aria-hidden="true" /> Disponible</span>
             </div>
-            <p>Expliquez votre situation avec vos mots. L’assistant vous guide et prépare la demande pour le bon service.</p>
+            <p>Connexion, ordinateur, inscription, vie scolaire ou document&nbsp;: écrivez simplement votre besoin. L’assistant vous répond ou prépare une demande pour le bon service.</p>
             <div className="lycee-composer">
               <textarea
+                ref={homeAssistantRef}
                 id="lycee-home-help-message"
                 name="helpMessage"
                 value={message}
                 onChange={(event) => setMessage(event.target.value)}
                 rows={3}
-                aria-label="Décrivez votre besoin"
-                placeholder="Exemple : l’ordinateur prêté à mon enfant ne démarre plus…"
+                aria-label="Écrivez votre question ou votre problème"
+                placeholder="Écrivez ici votre question ou votre problème…"
               />
               <button
                 type="button"
@@ -551,14 +558,19 @@ export default function LyceeConnectPrototype() {
                 onClick={() => startHelp(message)}
               >
                 <Send aria-hidden="true" />
-                <span>Envoyer</span>
+                <span>Obtenir de l’aide</span>
               </button>
             </div>
-            <button className="lycee-form-shortcut" type="button" onClick={() => startHelp("", "form")}><FileText aria-hidden="true" /> Remplir le formulaire</button>
+            <button className="lycee-form-shortcut" type="button" onClick={() => startHelp("", "form")}><FileText aria-hidden="true" /> Je préfère remplir un formulaire</button>
             <div className="lycee-trust-row">
               <button type="button" onClick={() => changeView("trust")}><ShieldCheck aria-hidden="true" /> Confidentialité et sécurité</button>
               <span><Users aria-hidden="true" /> Actions sensibles validées par un agent</span>
             </div>
+          </section>
+
+          <section className="lycee-core-tools" aria-label="Outils principaux du lycée">
+            <button type="button" data-tool="news" onClick={() => changeView("news")}><span><Newspaper aria-hidden="true" /></span><div><strong>À la une</strong><small>Rentrée, formations et informations du lycée</small></div><em>Consulter <ChevronRight aria-hidden="true" /></em></button>
+            <a href={WEBMAIL_URL} target="_blank" rel="noreferrer" data-tool="mail"><span><Mail aria-hidden="true" /></span><div><strong>Webmail du lycée</strong><small>Messagerie, contacts et diffusion</small></div><em>Ouvrir <ExternalLink aria-hidden="true" /></em></a>
           </section>
 
           <section className="lycee-services" aria-labelledby="lycee-services-title">
