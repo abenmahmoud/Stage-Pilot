@@ -151,19 +151,23 @@ l'autorisation de quota définie par le propriétaire.
   `superadmin` et une adhésion établissement `admin` active. La console actualise
   la session avant sa première lecture afin qu'un changement de rôle ne laisse
   pas l'ancien périmètre en mémoire. Les autres comptes sont inchangés.
+- Lot N5J : recette intégrée du dossier. **Terminée en preview** : la file agent
+  exécute ses requêtes en série sur l'unique connexion serverless, les révisions
+  concurrentes sont liées comme timestamps ISO, et le dossier fictif
+  `BC-2026-000009` a parcouru assistant, création, routage numérique, prise en
+  charge, réponse sécurisée, suivi usager et retour usager. Aucune identité
+  fictive n'a été déclarée confirmée et les adresses réservées n'envoient pas de
+  notification réelle.
 - Lot N6 : tests de non-régression, build, contrôle mobile et rapport d'écarts.
 
 ## Prochaine séquence verrouillée
 
-1. Recréer un dossier fictif après le correctif de routage ENT, puis le lire avec
-   un compte autorisé au numérique. Le dossier historique `BC-2026-000008` reste
-   affecté à la vie scolaire car il précède le correctif et n'est pas déplacé
-   silencieusement.
-2. Fermer T027D seulement après cette nouvelle preuve de bout en bout et nettoyer les
-   données de démonstration si elles ne doivent pas être conservées.
-3. Ajouter le worker d'expiration et prouver qu'une source périmée désactive la
+1. Conserver `BC-2026-000009` comme preuve fictive de recette jusqu'à la décision
+   de nettoyage du pilote ; le dossier historique `BC-2026-000008` n'est pas
+   déplacé silencieusement.
+2. Ajouter le worker d'expiration et prouver qu'une source périmée désactive la
    compétence sans réponse trompeuse.
-4. Faire nommer les responsables et valider les premières sources et procédures
+3. Faire nommer les responsables et valider les premières sources et procédures
    avant toute compétence active contenant des informations réelles.
 
 ## Portes de validation humaine

@@ -244,7 +244,15 @@ sa specification.
   suivi avec son dialogue. Cette recette a révélé que le routeur serveur donnait
   encore la priorité aux mots « emploi du temps » sur un blocage ENT ; l'ordre a
   été corrigé et couvert par un test exact. La lecture dans une console agent
-  authentifiée reste à prouver avant de fermer la recette intégrée T027D.
+  authentifiée a ensuite été prouvée avec `BC-2026-000009` : routage vers le
+  référent numérique, prise en charge Superadmin, réponse sécurisée visible côté
+  usager, puis retour usager visible côté agent. La recette intégrée T027D est
+  fermée. Elle a aussi révélé puis fait corriger deux défauts serveur : quatre
+  lectures concurrentes sur une connexion unique qui expiraient après cinq
+  minutes (`3edaece`) et une date de révision liée comme objet au lieu d'une
+  chaîne ISO (`015e992`). Toutes les données utilisées sont fictives et aucune
+  identité n'a été confirmée. Le contrôle des exécutions du worker montre zéro
+  livraison fournisseur pour ce dossier réservé aux tests.
 - La feuille de route détaillée des comptes, files, compétences, emplois du
   temps, contenu, charge et pilote est dans
   `002-agent-etablissement-adaptatif/execution-roadmap.md`.

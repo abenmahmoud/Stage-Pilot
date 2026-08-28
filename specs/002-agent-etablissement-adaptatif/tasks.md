@@ -71,16 +71,14 @@
 - [x] T026 Imposer une question essentielle à la fois et dix tours maximum par session.
 - [x] T027 Créer ou compléter automatiquement un dossier `001` lors d'un transfert
   humain, en conservant le dialogue utile et les pièces sans demander de ressaisie.
-- [ ] T027D Rejouer la recette navigateur complète après le jalon du registre :
-  l'essai manuel du propriétaire a montré une conversation qui répondait sans
-  créer le dossier attendu. Le 28 août, la transition `offer_case`, l'état visible
-  « demande prête », la priorité ENT, le préremplissage du profil et le responsive
-  ont été corrigés et validés localement. Le dossier fictif `BC-2026-000008` a
-  ensuite été créé en preview et retrouvé dans le suivi avec tout le dialogue.
-  Cette recette a détecté un conflit : la mention secondaire « emploi du temps »
-  envoyait encore le dossier ENT à la vie scolaire. Le routeur et son test de
-  non-régression donnent maintenant la priorité au blocage numérique. Il reste à
-  vérifier le correctif déployé et la lecture dans une console agent authentifiée.
+- [x] T027D Rejouer la recette navigateur complète après le jalon du registre.
+  Le 28 août, le dossier fictif `BC-2026-000009` a été créé depuis le dialogue,
+  suivi sur le même appareil, routé vers `referent_numerique`, pris en charge par
+  le Superadmin, passé en cours et répondu avec la consigne d'identité sécurisée.
+  L'usager fictif a répondu à son tour et ce retour est apparu dans la console
+  agent. Aucun rapprochement d'identité ni envoi vers une adresse réelle n'a été
+  effectué. La recette a aussi fait corriger le blocage des lectures concurrentes
+  sur la connexion serverless et le format du verrou de révision.
 - [x] T027D1 Aligner les workers email VPS et Vercel : toute recette utilisant une
   adresse réservée `example.com`, `example.org`, `example.net` ou `test.invalid`
   est enregistrée mais n'envoie aucune notification demandeur ou agent.
