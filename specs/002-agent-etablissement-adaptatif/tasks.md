@@ -227,7 +227,15 @@
 
 - [ ] T046 Exécuter le jeu de tests de toutes les versions publiées.
 - [ ] T047 Tester 200 créations simultanées, reprise worker et idempotence des notifications.
+- [x] T047A Exécuter sur la preview le test nettoyable de 200 transactions de
+  création avec concurrence 20 : 200 dossiers, messages, sessions et travaux,
+  128,6 créations/s, puis zéro donnée ou file temporaire restante. La reprise
+  des workers et le p95 HTTP restent dans T047.
 - [ ] T048 Vérifier mobile 320 px, ordinateur, clavier, lecteur d'écran et installation PWA.
+- [x] T048A Vérifier le portail de preview à 320, 390, 768 et 1 440 px sans
+  débordement ni contrôle hors écran, manifeste et service worker actifs,
+  Lighthouse mobile accessibilité 100 et navigation agentique 100. La recette
+  complète des écrans agents authentifiés et du lecteur d'écran reste dans T048.
 - [ ] T049 Exécuter une revue de sécurité et de protection des données.
 - [ ] T050 Ouvrir un pilote limité avec agents nommés et canal de retour.
 - [ ] T051 Mesurer deux semaines : classement, délai, transferts, corrections, coût et incidents.

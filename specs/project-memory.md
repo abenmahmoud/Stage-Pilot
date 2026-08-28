@@ -31,6 +31,24 @@
   approbation et activation répondent en HTTP 401 sans session. La connexion ne
   déborde pas à 390 px ni à 1 440 px.
 
+## Jalon du 29 août 2026 - recette intégrée charge, sécurité et PWA
+
+- Le test nettoyable de preview a créé 200 dossiers, 200 messages, 200 liaisons
+  de session et 200 travaux avec concurrence 20 en 1 555 ms, soit 128,6
+  créations par seconde. Le nettoyage a laissé zéro dossier, session ou file
+  temporaire de charge.
+- 135 contrôles ciblés passent, les deux audits npm ne trouvent aucune
+  vulnérabilité et le build réussit. Les API d'identités, de santé des demandes
+  et de contenus refusent l'anonyme en HTTP 401.
+- Le portail ne déborde pas à 320, 390, 768 ou 1 440 px. Le manifeste et le
+  service worker sont actifs. Lighthouse mobile obtient 100 en accessibilité et
+  navigation agentique ; les scores 92 bonnes pratiques et 66 SEO viennent des
+  protections/noindex propres à la preview Vercel.
+- Le conseiller performance a fait ajouter les trois index de clés étrangères
+  manquants au répertoire ; il n'en signale plus aucun pour ce module. La recette
+  complète est conservée dans
+  `docs/operations/PREVIEW_INTEGRATED_RECIPE_2026-08-29.md`.
+
 ## Jalon du 28 août 2026 - assistant visible dès l'accueil
 
 - Le premier retour de présentation indiquait que l'assistant n'était pas assez

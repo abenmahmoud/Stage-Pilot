@@ -16,6 +16,10 @@ const quarantineMigrationPath = new URL(
   "../supabase/migrations/20260828220614_create_identity_directory_quarantine_rows.sql",
   import.meta.url
 );
+const indexMigrationPath = new URL(
+  "../supabase/migrations/20260828224421_add_identity_directory_fk_indexes.sql",
+  import.meta.url
+);
 const reservePath = new URL("../api/identity/admin/imports/index.ts", import.meta.url);
 const confirmPath = new URL(
   "../api/identity/admin/imports/[id]/confirm.ts",
@@ -153,4 +157,12 @@ test("exposes only a redacted report and requires MFA lifecycle actions", async 
   assert.doesNotMatch(view, /storagePath:/);
   assert.doesNotMatch(view, /storageBucket:/);
   assert.doesNotMatch(view, /uploadedBy:/);
+});
+
+test("covers identity directory foreign keys used at school scale", async () => {
+  const sql = (await readFile(indexMigrationPath, "utf8")).toLowerCase();
+  assert.match(sql, /identity_directory_imports_uploaded_by_idx/);
+  assert.match(sql, /identity_directory_imports_approved_by_idx/);
+  assert.match(sql, /identity_directory_rows_import_institution_idx/);
+  assert.match(sql, /\(import_id, institution_id\)/);
 });

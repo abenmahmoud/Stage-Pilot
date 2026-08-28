@@ -313,6 +313,10 @@ export const identityDirectoryImports = pgTable(
       table.status,
       table.createdAt
     ),
+    index("identity_directory_imports_uploaded_by_idx").on(table.uploadedBy),
+    index("identity_directory_imports_approved_by_idx")
+      .on(table.approvedBy)
+      .where(sql`${table.approvedBy} is not null`),
   ]
 );
 
@@ -359,6 +363,10 @@ export const identityDirectoryRows = pgTable(
     index("identity_directory_rows_subject_ref_idx").on(
       table.institutionId,
       table.subjectPersonRef
+    ),
+    index("identity_directory_rows_import_institution_idx").on(
+      table.importId,
+      table.institutionId
     ),
   ]
 );

@@ -236,6 +236,11 @@ l'autorisation de quota définie par le propriétaire.
   Les API de rapport, approbation et activation refusent une visite anonyme ; le
   parcours ClamAV complet attend l'installation autorisée du worker.
 - Lot N6 : tests de non-régression, build, contrôle mobile et rapport d'écarts.
+  **Partiellement validé en preview** : 200 transactions concurrentes sans perte
+  ni reste après nettoyage, 135 contrôles de sécurité, build réussi, PWA active,
+  Lighthouse accessibilité et navigation agentique à 100, aucun débordement de
+  320 à 1 440 px. Restent le p95 HTTP, la reprise des workers, les écrans agents
+  authentifiés au lecteur d'écran et la restauration.
 
 ## Prochaine séquence verrouillée
 
