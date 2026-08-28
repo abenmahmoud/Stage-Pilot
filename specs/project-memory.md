@@ -3,7 +3,24 @@
 **Derniere mise a jour** : 28 aout 2026
 **Branche de travail** : `codex/lycee-connect-prototype`
 **Depot** : `abenmahmoud/Stage-Pilot`
-**Dernier jalon de code verifie** : dépôt privé de documents de connaissance
+**Dernier jalon de code verifie** : candidate publiée sur la production Vercel
+
+## Jalon du 28 août 2026 - production Vercel publique
+
+- Le propriétaire a autorisé explicitement la mise en production de la candidate
+  afin de pouvoir la présenter sans compte Vercel.
+- Le commit `44c744d` a été promu sur la production du projet Vercel `lyceegest`.
+  Le domaine durable `gestion.lycee-blaise-cendrars-sevran.fr` répond en public
+  sans l'écran d'authentification Vercel.
+- Une navigation neuve a chargé `/prototype`, le portail et ses principaux accès
+  sans erreur de console. L'API administrative des documents répond toujours
+  `401` à une visite anonyme.
+- L'ancienne production `dpl_9G4Y8RYfyCh6TtDrJsuRPzS5q9QR` reste identifiée
+  comme cible de retour arrière. Le domaine principal Hostinger, son DNS, le VPS
+  et le Webmail n'ont pas été modifiés.
+- Cette publication rend la candidate présentable ; elle ne prouve pas encore
+  la recette fonctionnelle complète des demandes, notifications, données et
+  comptes agents, prévue maintenant sur cette version intégrée.
 
 ## Décision du 28 août 2026 - recette intégrée et accès de démonstration
 
