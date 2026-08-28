@@ -59,7 +59,10 @@ import {
   type AssistantScope,
 } from "../../../shared/assistant-policy";
 import { evaluateLaptopIntake } from "../../../shared/laptop-intake";
-import { summarizeSupportDescription } from "../../../shared/support-conversation";
+import {
+  prepareSupportSubmissionConversation,
+  summarizeSupportDescription,
+} from "../../../shared/support-conversation";
 import {
   DEFAULT_SUPPORT_REPLY_TEMPLATES,
   renderSupportReplyTemplate,
@@ -1083,7 +1086,10 @@ function HelpDeskView({
             category,
             subject: selectedCategory?.label ?? "Demande au lycée",
             description: summarizeSupportDescription(description),
-            conversation: chatMessages.slice(-21).map(({ role, content }) => ({ role, content })),
+            conversation: prepareSupportSubmissionConversation(
+              chatMessages.map(({ role, content }) => ({ role, content })),
+              description
+            ),
             email,
             phone,
             preferredChannel,
@@ -1203,7 +1209,7 @@ function HelpDeskView({
               {canCreateRequest ? <div className="lycee-case-ready"><CheckCircle2 aria-hidden="true" /><span><strong>{insight?.action === "human_transfer" ? "Un adulte doit reprendre la demande" : "Votre demande est prête"}</strong><small>La conversation et les documents seront réunis dans le même dossier.</small></span></div> : null}
               <div className="lycee-chat-next-actions">
                 {canCreateRequest ? <button className="lycee-primary-action" type="button" onClick={() => setShowDetails(true)}>{insight?.action === "human_transfer" ? "Transmettre à un adulte du lycée" : "Vérifier et envoyer"} <ChevronRight aria-hidden="true" /></button> : null}
-                <button type="button" onClick={() => { setClassicForm(true); setShowDetails(true); }}>Je préfère remplir le formulaire</button>
+                <button type="button" onClick={() => { setClassicDescription((current) => current.trim() ? current : conversationDescription); setClassicForm(true); setShowDetails(true); }}>Je préfère remplir le formulaire</button>
               </div>
             </div>
           ) : null}

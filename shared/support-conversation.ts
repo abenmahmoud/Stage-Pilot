@@ -19,6 +19,20 @@ export function summarizeSupportDescription(value: string, maximum = 5000): stri
   return `${clean.slice(0, headLength)}${separator}${clean.slice(-(available - headLength))}`;
 }
 
+export function prepareSupportSubmissionConversation(
+  value: SupportConversationTurn[],
+  description: string
+): SupportConversationTurn[] {
+  const turns = value.slice(-MAX_TURNS);
+  if (turns.some((turn) => turn.role === "requester")) return turns;
+  const requesterMessage = summarizeSupportDescription(description, MAX_TURN_LENGTH);
+  if (!requesterMessage) return turns;
+  return [
+    ...turns.slice(-(MAX_TURNS - 1)),
+    { role: "requester", content: requesterMessage },
+  ];
+}
+
 export function normalizeSupportConversation(value: unknown): SupportConversationTurn[] {
   if (value === undefined || value === null) return [];
   if (!Array.isArray(value) || value.length > MAX_TURNS) {

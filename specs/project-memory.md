@@ -54,6 +54,11 @@
 - Le formulaire classique s'ouvre maintenant depuis l'accueil, accepte les
   pieces jointes et reste utilisable sans modele. Il a ete controle sans
   debordement a 320 px et 1440 px ; la conversation libre reste prioritaire.
+- Une recette API fictive a revele que le premier formulaire direct n'envoyait
+  aucun tour `requester` et etait refuse par la validation serveur. Le texte du
+  formulaire est desormais transforme en message demandeur borne a 1 500
+  caracteres tout en gardant le debut et la fin ; une conversation deja saisie
+  n'est ni remplacee ni dupliquee.
 
 ## Decision du 27 aout 2026 - espaces de traitement
 

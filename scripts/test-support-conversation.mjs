@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import {
   normalizeSupportConversation,
+  prepareSupportSubmissionConversation,
   summarizeSupportDescription,
   SupportConversationValidationError,
 } from "../shared/support-conversation.ts";
@@ -54,4 +55,26 @@ test("keeps the beginning and end of an oversized request summary", () => {
   assert.match(summary, /^PROBLEME_INITIAL/);
   assert.match(summary, /DERNIER_DETAIL$/);
   assert.match(summary, /échanges intermédiaires/);
+});
+
+test("turns a direct classic form into a valid requester conversation", () => {
+  const description = `DEBUT_DEMANDE ${"x".repeat(1800)} FIN_DEMANDE`;
+  const prepared = prepareSupportSubmissionConversation(
+    [{ role: "assistant", content: "Bonjour" }],
+    description
+  );
+  const normalized = normalizeSupportConversation(prepared);
+  assert.equal(normalized.length, 1);
+  assert.equal(normalized[0].role, "requester");
+  assert.equal(normalized[0].content.length, 1500);
+  assert.match(normalized[0].content, /^DEBUT_DEMANDE/);
+  assert.match(normalized[0].content, /FIN_DEMANDE$/);
+});
+
+test("does not duplicate a requester already present in the chat", () => {
+  const prepared = prepareSupportSubmissionConversation(
+    [{ role: "requester", content: "Mon ENT est bloque." }],
+    "Une reformulation du formulaire"
+  );
+  assert.deepEqual(prepared, [{ role: "requester", content: "Mon ENT est bloque." }]);
 });

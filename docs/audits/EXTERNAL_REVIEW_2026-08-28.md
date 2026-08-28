@@ -19,13 +19,14 @@
 | Aucun acces direct au formulaire classique | Confirme | Un raccourci secondaire est accessible depuis l'accueil ; la conversation reste le parcours principal. |
 | Le numero de demande ne pouvait pas etre copie | Confirme, confort | Bouton de copie et retour visuel `Copie` ajoutes. |
 | La necessite d'un email ou telephone etait visible seulement apres erreur | Confirme, comprehension | Consigne placee avant les deux champs ; la validation serveur existante reste obligatoire. |
+| Le formulaire direct pouvait creer un dossier sans dialogue | Confirme par recette API | Le premier essai a ete refuse car aucun message demandeur n'etait joint. Le texte du formulaire produit maintenant une conversation valide et bornee, sans demander une seconde saisie. |
 | Les erreurs API internes etaient exposees au public | Non confirme | Le filtre partage renvoie les erreurs metier controlees ou le message generique `Erreur serveur`. Aucun changement sans preuve contraire. |
 | La navigation mobile debordait a 320 px | Non reproduit | Controle navigateur : largeur du document egale a 320 px, sans erreur ni overlay. |
 | `DDFPT` et `Communication direction` devaient disparaitre | Rejete dans ce perimetre | Ces termes appartiennent a la console des agents et au routage interne, pas au parcours public teste. |
 
 ## Verification apres correction
 
-- 5/5 tests de conversation.
+- 7/7 tests de conversation, dont formulaire direct et absence de duplication.
 - 11/11 tests de l'agent de support.
 - 16/16 tests de politique de conversation.
 - Compilation TypeScript et build Vite reussis.
