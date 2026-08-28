@@ -119,8 +119,9 @@ l'autorisation de quota définie par le propriétaire.
   **Matrice déterministe implémentée et testée sur données fictives** : contact
   vérifié distinct de l'identité scolaire, liens propres/parent-enfant,
   révocation, cloisonnement établissement/service, MFA et absence de passe-droit
-  administrateur. Les comptes, OTP, tables privées, annuaire et politiques RLS
-  restent à construire avant tout usage réel.
+  administrateur. Les tables privées et leurs protections RLS sont appliquées en
+  preview. Les comptes usagers, l'OTP, l'analyse du répertoire et le
+  rapprochement restent à construire avant tout usage réel.
 - Lot N3 : schéma privé et réversible des versions d'emploi du temps, sans importer
   les PDF ni les noms en preview. **Contrat et politique de lecture fictive testés ;
   migration privée encore requise**.
@@ -209,6 +210,15 @@ l'autorisation de quota définie par le propriétaire.
   charge, réponse sécurisée, suivi usager et retour usager. Aucune identité
   fictive n'a été déclarée confirmée et les adresses réservées n'envoient pas de
   notification réelle.
+- Lot N5K : entrée privée du répertoire d'identités. **Implémentée et vérifiée
+  uniquement en preview** : écran direction protégé par MFA, transfert CSV/XLSX
+  reprenable vers un bucket privé, version en attente, tables serveur pour
+  contacts vérifiés, identités scolaires, relations et audit. La migration est
+  appliquée sur la branche Supabase de preview ; les cinq tables sont vides et
+  les rôles public, anonyme et authentifié n'y ont aucun droit. Le dépôt ne crée
+  aucune identité et n'alimente jamais les connaissances de l'IA. Antivirus,
+  lecture des lignes, rapport de conflits et activation restent nécessaires avant
+  toute liste réelle.
 - Lot N6 : tests de non-régression, build, contrôle mobile et rapport d'écarts.
 
 ## Prochaine séquence verrouillée

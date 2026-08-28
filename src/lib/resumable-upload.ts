@@ -17,7 +17,7 @@ function resumableEndpoint(): string {
   return `${url.origin}/storage/v1/upload/resumable`;
 }
 
-export function uploadKnowledgeDocument(
+export function uploadPrivateFile(
   file: File,
   target: SignedUpload,
   onProgress: (percent: number) => void
@@ -53,4 +53,12 @@ export function uploadKnowledgeDocument(
       upload.start();
     }).catch(reject);
   });
+}
+
+export function uploadKnowledgeDocument(
+  file: File,
+  target: SignedUpload,
+  onProgress: (percent: number) => void
+): Promise<void> {
+  return uploadPrivateFile(file, target, onProgress);
 }

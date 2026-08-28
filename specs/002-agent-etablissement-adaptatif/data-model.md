@@ -42,7 +42,8 @@ table n'est jamais alimentée depuis une simple déclaration publique.
 | `user_id` | uuid | Compte authentifié |
 | `person_type` | enum | `student`, `guardian`, `staff` |
 | `official_person_ref` | text | Identifiant opaque de la source officielle |
-| `assurance_level` | enum | `contact_verified`, `directory_matched`, `official_sso` |
+| `source_import_id` | uuid | Version active du répertoire ayant permis le rapprochement |
+| `assurance_level` | enum | `directory_matched`, `official_sso` |
 | `verified_by` | uuid nullable | Agent lorsque le rapprochement est manuel |
 | `verified_at` | timestamptz | Date de décision |
 | `revoked_at` | timestamptz nullable | Coupe immédiatement l'accès |
@@ -50,6 +51,32 @@ table n'est jamais alimentée depuis une simple déclaration publique.
 
 Une contrainte unique empêche qu'une même référence officielle active soit liée
 à plusieurs comptes incompatibles. Les doublons passent en validation humaine.
+Le niveau `contact_verified` n'est volontairement pas autorisé dans cette table :
+il reste dans `contact_verifications` et ne constitue jamais une identité scolaire.
+
+### `identity_directory_imports`
+
+Version privée et inactive par défaut d'un export officiel ou d'un tableau
+préparé. Le fichier source reste en quarantaine jusqu'aux contrôles techniques et
+à la validation humaine.
+
+| Champ | Type | Règle |
+|---|---|---|
+| `id` | uuid | Clé primaire et identifiant de version |
+| `institution_id` | uuid | Cloison obligatoire |
+| `title` | text | Nom lisible de la version |
+| `purpose_description` | text | Finalité déclarée avant le dépôt |
+| `source_type` | enum | `csv`, `xlsx`, `official_export` |
+| `storage_path` | text | Objet privé opaque, jamais une URL publique |
+| `checksum` | text nullable | SHA-256 calculé après réception |
+| `status` | enum | `reserved`, `uploaded`, `quarantined`, `parsing`, `review`, `approved`, `active`, `superseded`, `rejected`, `failed` |
+| `row_count` | integer nullable | Nombre total après lecture bornée |
+| `valid_row_count` | integer nullable | Lignes proposées à la validation |
+| `rejected_row_count` | integer nullable | Lignes écartées ou conflictuelles |
+| `validation_summary` | jsonb | Résultat minimal, sans recopier les données personnelles |
+| `uploaded_by` | uuid | Compte direction avec MFA |
+| `approved_by` | uuid nullable | Validation humaine obligatoire |
+| `activated_at` | timestamptz nullable | Une seule version active par établissement |
 
 ### `school_relationships`
 
@@ -61,7 +88,7 @@ Une contrainte unique empêche qu'une même référence officielle active soit l
 | `relationship_type` | enum | `self`, `guardian_of`, `member_of`, `teaches`, `manages` |
 | `valid_from` | date | Début du droit |
 | `valid_until` | date nullable | Fin automatique |
-| `source_version_id` | uuid | Version officielle ayant créé le lien |
+| `source_import_id` | uuid | Version officielle ayant créé le lien |
 | `status` | enum | `active`, `revoked`, `expired` |
 
 ### `contact_verifications`

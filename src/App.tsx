@@ -34,6 +34,7 @@ const AffectationsElevesPage = lazy(() => import("./pages/admin/AffectationsElev
 const DocumentsClassesPage = lazy(() => import("./pages/admin/DocumentsClassesPage"));
 const ContentManagerPage = lazy(() => import("./pages/admin/ContentManagerPage"));
 const KnowledgeRegistryPage = lazy(() => import("./pages/admin/KnowledgeRegistryPage"));
+const IdentityDirectoryPage = lazy(() => import("./pages/admin/IdentityDirectoryPage"));
 
 function PageFallback() {
   return (
@@ -224,6 +225,14 @@ export default function App() {
             element={
               <RoleRoute allowedRoles={["superadmin", "proviseur"]}>
                 <KnowledgeRegistryPage />
+              </RoleRoute>
+            }
+          />
+          <Route
+            path="admin/repertoire-identites"
+            element={
+              <RoleRoute allowedRoles={["superadmin", "proviseur"]}>
+                <IdentityDirectoryPage />
               </RoleRoute>
             }
           />

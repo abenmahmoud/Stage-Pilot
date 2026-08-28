@@ -35,6 +35,15 @@
 - [ ] T010B Créer les comptes usagers, l'OTP de contact et le rapprochement séparé
   avec un annuaire officiel privé ; interdire qu'un email libre confirme à lui
   seul l'identité scolaire.
+- [x] T010B1 Créer le dépôt privé MFA du répertoire d'identités, les tables
+  serveur de vérifications, identités, relations et audit, sans importer de
+  personne réelle et sans rendre le répertoire utilisable par l'IA.
+- [ ] T010B2 Ajouter antivirus, empreinte, lecture structurée CSV/XLSX, lignes
+  en quarantaine, rapport de doublons et activation humaine d'une seule version.
+- [ ] T010B3 Brancher l'OTP de contact à usage unique avec limites, expiration,
+  session rotative et révocation, sans promouvoir ce contact en identité scolaire.
+- [ ] T010B4 Rapprocher une identité uniquement contre une version active du
+  répertoire, avec MFA agent, justification, gestion des conflits et audit.
 - [ ] T010C Définir les liens élève-responsable, personnel-service et classe-groupe,
   puis tester qu'un compte ne consulte jamais les données d'un autre foyer.
 - [x] T011 Implémenter le parseur et le validateur du format de compétence.

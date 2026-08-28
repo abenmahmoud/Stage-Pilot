@@ -278,6 +278,172 @@ export const institutionMemberships = pgTable(
   ]
 );
 
+export const identityDirectoryImports = pgTable(
+  "identity_directory_imports",
+  {
+    id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+    institutionId: uuid("institution_id")
+      .notNull()
+      .references(() => institutions.id, { onDelete: "cascade" }),
+    title: text("title").notNull(),
+    purposeDescription: text("purpose_description").notNull(),
+    sourceType: text("source_type").notNull(),
+    originalName: text("original_name").notNull(),
+    mimeType: text("mime_type").notNull(),
+    sizeBytes: bigint("size_bytes", { mode: "number" }).notNull(),
+    storageBucket: text("storage_bucket").notNull().default("identity-ingest"),
+    storagePath: text("storage_path").notNull().unique(),
+    checksum: text("checksum"),
+    status: text("status").notNull().default("reserved"),
+    rowCount: integer("row_count"),
+    validRowCount: integer("valid_row_count"),
+    rejectedRowCount: integer("rejected_row_count"),
+    validationSummary: jsonb("validation_summary").notNull().default({}),
+    uploadedBy: uuid("uploaded_by").notNull(),
+    approvedBy: uuid("approved_by"),
+    uploadedAt: timestamp("uploaded_at", { withTimezone: true }),
+    approvedAt: timestamp("approved_at", { withTimezone: true }),
+    activatedAt: timestamp("activated_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    index("identity_directory_imports_status_idx").on(
+      table.institutionId,
+      table.status,
+      table.createdAt
+    ),
+  ]
+);
+
+export const contactVerifications = pgTable(
+  "contact_verifications",
+  {
+    id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+    institutionId: uuid("institution_id")
+      .notNull()
+      .references(() => institutions.id, { onDelete: "cascade" }),
+    userId: uuid("user_id"),
+    supportSessionId: uuid("support_session_id"),
+    channel: text("channel").notNull(),
+    contactHash: text("contact_hash").notNull(),
+    purpose: text("purpose").notNull(),
+    status: text("status").notNull().default("pending"),
+    attemptCount: integer("attempt_count").notNull().default(0),
+    expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+    consumedAt: timestamp("consumed_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    index("contact_verifications_subject_idx").on(
+      table.institutionId,
+      table.userId,
+      table.supportSessionId,
+      table.status
+    ),
+  ]
+);
+
+export const schoolIdentities = pgTable(
+  "school_identities",
+  {
+    id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+    institutionId: uuid("institution_id")
+      .notNull()
+      .references(() => institutions.id, { onDelete: "cascade" }),
+    userId: uuid("user_id").notNull(),
+    sourceImportId: uuid("source_import_id")
+      .notNull()
+      .references(() => identityDirectoryImports.id, { onDelete: "restrict" }),
+    personType: text("person_type").notNull(),
+    officialPersonRef: text("official_person_ref").notNull(),
+    assuranceLevel: text("assurance_level").notNull(),
+    verifiedBy: uuid("verified_by"),
+    verifiedAt: timestamp("verified_at", { withTimezone: true }).notNull().defaultNow(),
+    revokedAt: timestamp("revoked_at", { withTimezone: true }),
+    evidence: jsonb("evidence").notNull().default({}),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    index("school_identities_user_idx").on(
+      table.institutionId,
+      table.userId,
+      table.personType
+    ),
+    index("school_identities_official_ref_idx").on(
+      table.institutionId,
+      table.officialPersonRef,
+      table.personType
+    ),
+  ]
+);
+
+export const schoolRelationships = pgTable(
+  "school_relationships",
+  {
+    id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+    institutionId: uuid("institution_id")
+      .notNull()
+      .references(() => institutions.id, { onDelete: "cascade" }),
+    subjectIdentityId: uuid("subject_identity_id")
+      .notNull()
+      .references(() => schoolIdentities.id, { onDelete: "cascade" }),
+    objectPersonRef: text("object_person_ref").notNull(),
+    relationshipType: text("relationship_type").notNull(),
+    validFrom: date("valid_from").notNull(),
+    validUntil: date("valid_until"),
+    sourceImportId: uuid("source_import_id")
+      .notNull()
+      .references(() => identityDirectoryImports.id, { onDelete: "restrict" }),
+    status: text("status").notNull().default("active"),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    index("school_relationships_subject_active_idx").on(
+      table.institutionId,
+      table.subjectIdentityId,
+      table.status,
+      table.validUntil
+    ),
+    index("school_relationships_object_active_idx").on(
+      table.institutionId,
+      table.objectPersonRef,
+      table.status,
+      table.validUntil
+    ),
+  ]
+);
+
+export const identityDirectoryAudit = pgTable(
+  "identity_directory_audit",
+  {
+    id: bigint("id", { mode: "number" }).primaryKey().generatedAlwaysAsIdentity(),
+    institutionId: uuid("institution_id")
+      .notNull()
+      .references(() => institutions.id, { onDelete: "cascade" }),
+    resourceType: text("resource_type").notNull(),
+    resourceId: uuid("resource_id").notNull(),
+    action: text("action").notNull(),
+    actorId: uuid("actor_id"),
+    summary: jsonb("summary").notNull().default({}),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    index("identity_directory_audit_resource_idx").on(
+      table.resourceType,
+      table.resourceId,
+      table.createdAt
+    ),
+    index("identity_directory_audit_institution_idx").on(
+      table.institutionId,
+      table.createdAt
+    ),
+  ]
+);
+
 export const knowledgeSources = pgTable(
   "knowledge_sources",
   {

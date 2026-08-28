@@ -370,10 +370,12 @@ sa specification.
   vérifié ne devient jamais une identité scolaire, les relations propres ou
   parent-enfant doivent être actives, les établissements et services sont
   cloisonnés, et un administrateur ne contourne pas son périmètre de contenu.
-  Les adhesions agents et leurs RLS sont branchees en preview. Les comptes
-  usagers, OTP de contact, tables d'identite scolaire, annuaire prive et leurs
-  RLS restent a construire ; aucune donnee reelle ne doit dependre de la matrice
-  fictive seule.
+  Les adhesions agents et leurs RLS sont branchees en preview. Le dépôt privé du
+  répertoire, les tables de vérification, d'identité, de relations et d'audit
+  sont maintenant appliqués sur la base de preview avec RLS forcée et droits
+  publics révoqués. La lecture des lignes, l'OTP usager, le rapprochement et
+  l'activation d'une version restent à construire ; aucune donnée réelle ne doit
+  dépendre de la matrice fictive seule.
 - La politique centrale du registre est branchée sur les tables et l'écran de
   preview : publication refusée sans propriétaire, source actuelle, revue
   indépendante lorsque requise et tests ; accès limité par établissement et
@@ -538,8 +540,9 @@ sa specification.
 - Enregistrer puis faire valider les premières sources officielles datées pour
   que les réponses de procédure restent à jour ; aucune source réelle n'est
   encore publiée.
-- Construire les comptes usagers en séparant strictement OTP de contact et
-  rapprochement d'identité scolaire avec un annuaire officiel privé.
+- Terminer l'analyse en quarantaine du répertoire, puis construire les comptes
+  usagers en séparant strictement OTP de contact et rapprochement d'identité
+  scolaire avec une version officielle active.
 - Ajouter la compétence `cours-salles-changements`, puis le modèle de lecture
   privé et versionné des créneaux. L'agent affiche la conséquence officielle
   d'un changement, jamais une présence nominative déduite.
@@ -633,6 +636,20 @@ taches et analyse de coherence avant une automatisation sensible.
   confirmation et audit valides.
 - Les conservations, SMS, voix, cantine, donnees reelles et connecteurs restent
   bloques par les portes Direction/DPO et la recette de securite.
+
+### Decision du 28 aout 2026 - preparation des donnees de personnes
+
+- Les listes d'eleves, responsables et personnels ne sont jamais des
+  connaissances de l'IA et ne servent pas a entrainer un modele.
+- Un espace distinct `Identites du lycee` accepte uniquement CSV/XLSX dans un
+  stockage prive, avec MFA direction, journal et version inactive par defaut.
+- Le schema separe verification de contact, identite scolaire et relations. Un
+  contact confirme reste insuffisant pour acceder aux donnees scolaires.
+- La migration est appliquée uniquement sur la branche Supabase de preview et
+  l'interface est prête sur la branche de code. Les cinq tables sont vides,
+  l'accès public est révoqué et aucune personne réelle n'a été importée.
+- Avant le premier depot reel : antivirus, extraction bornee, rapport de conflits,
+  validation humaine, retention et decision Direction/DPO restent obligatoires.
 
 ## 8. Prochain ordre recommande
 

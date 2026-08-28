@@ -19,6 +19,7 @@ import {
   ShieldCheck,
   Newspaper,
   BookOpenCheck,
+  IdCard,
 } from "lucide-react";
 
 const navCls = ({ isActive }: { isActive: boolean }) =>
@@ -150,10 +151,16 @@ export default function AppLayout() {
               Contenus du site
             </NavLink>
             {(user.role === "superadmin" || isProviseur) && (
-              <NavLink to="/admin/connaissances-agent" className={navCls}>
-                <BookOpenCheck className="w-4 h-4" />
-                Connaissances IA
-              </NavLink>
+              <>
+                <NavLink to="/admin/connaissances-agent" className={navCls}>
+                  <BookOpenCheck className="w-4 h-4" />
+                  Connaissances IA
+                </NavLink>
+                <NavLink to="/admin/repertoire-identites" className={navCls}>
+                  <IdCard className="w-4 h-4" />
+                  Identités du lycée
+                </NavLink>
+              </>
             )}
             <NavLink to="/security" className={navCls}>
               <ShieldCheck className="w-4 h-4" />
