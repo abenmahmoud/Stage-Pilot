@@ -2,11 +2,12 @@ import { randomUUID } from "node:crypto";
 import type { VercelRequest } from "@vercel/node";
 import { supabaseAdmin, requireRole, type AuthUser, HttpError } from "./auth.js";
 import type { SiteContentInput } from "../../shared/site-content.js";
+import {
+  SITE_EDITOR_ROLES,
+  SITE_PUBLISHER_ROLES,
+} from "../../shared/site-content-policy.js";
 
 export const SITE_CONTENT_BUCKET = "site-content";
-export const SITE_EDITOR_ROLES = ["superadmin", "administration", "proviseur"];
-export const SITE_PUBLISHER_ROLES = ["superadmin", "proviseur"];
-
 export async function requireSiteEditor(req: VercelRequest): Promise<AuthUser> {
   return requireRole(req, SITE_EDITOR_ROLES);
 }

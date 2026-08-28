@@ -32,7 +32,9 @@
 
 ## Phase 4 - Validation
 
-- [ ] T019 Tester rôles, statuts, limites, données invalides et absence d'accès public aux brouillons.
+- [x] T019 Tester rôles, statuts, limites, données invalides et absence d'accès
+  public aux contenus jamais publiés. L'ancienne version publiée reste servie
+  pendant la préparation d'un nouveau brouillon.
 - [x] T020 Vérifier build, sécurité, audit des dépendances et conseillers Supabase.
 - [x] T021 Vérifier à 320 px et sur ordinateur.
 - [x] T022 Déployer uniquement sur la preview et documenter le jalon.

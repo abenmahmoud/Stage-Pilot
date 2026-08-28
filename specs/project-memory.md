@@ -3,7 +3,7 @@
 **Derniere mise a jour** : 28 aout 2026
 **Branche de travail** : `codex/lycee-connect-prototype`
 **Depot** : `abenmahmoud/Stage-Pilot`
-**Dernier jalon de code verifie** : seuils de confiance et repli déterministe de l'agent
+**Dernier jalon de code verifie** : politique éditoriale et lecture publique testées
 
 ## Jalon du 28 août 2026 - reprise de l'ancien site en preview
 
@@ -39,6 +39,11 @@
   inattendus sont réduits à `application/octet-stream` et une catégorie IA ne
   peut plus contredire une route locale certaine. Les scénarios d'injection sont
   couverts sans utiliser de donnée réelle.
+- La gestion des contenus dispose désormais d'une politique partagée et testée
+  pour les rôles éditeur/publicateur, les actions sur contenus archivés, les
+  limites de saisie et la lecture publique. Un brouillon jamais publié n'est pas
+  exposé; pendant une révision, seule l'ancienne version déjà validée demeure
+  lisible. Toutes les tâches `003-gestion-contenus-lycee` sont couvertes.
 
 ## Decision du 27 aout 2026 - espaces de traitement
 

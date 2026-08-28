@@ -10,6 +10,11 @@ import {
   siteContentVersions,
 } from "../../../../db/schema.js";
 import { parseSiteContentInput } from "../../../../shared/site-content.js";
+import {
+  siteContentActionAccess,
+  siteContentStatusAllowsAction,
+  type SiteContentAction,
+} from "../../../../shared/site-content-policy.js";
 import { HttpError } from "../../../_shared/auth.js";
 import {
   contentSnapshot,
@@ -19,20 +24,18 @@ import {
 } from "../../../_shared/site-content.js";
 import { handleApi, methodNotAllowed } from "../../../_shared/response.js";
 
-type ContentAction = "submit_review" | "publish" | "archive" | "duplicate" | "restore" | "verify_source";
-
 function routeId(req: VercelRequest): string {
   const value = Array.isArray(req.query.id) ? req.query.id[0] : req.query.id;
   if (!value) throw new HttpError(400, "Contenu manquant");
   return value;
 }
 
-function requestedAction(body: unknown): ContentAction {
+function requestedAction(body: unknown): SiteContentAction {
   const value = body && typeof body === "object" ? (body as Record<string, unknown>).action : null;
   if (!["submit_review", "publish", "archive", "duplicate", "restore", "verify_source"].includes(String(value))) {
     throw new HttpError(400, "Action invalide");
   }
-  return value as ContentAction;
+  return value as SiteContentAction;
 }
 
 async function contentLinks(contentId: string) {
@@ -54,12 +57,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== "POST") return methodNotAllowed(res, ["POST"]);
   return handleApi(res, async () => {
     const action = requestedAction(req.body);
-    const user = action === "publish" || action === "archive" || action === "restore" || action === "verify_source"
+    const user = siteContentActionAccess(action) === "publisher"
       ? await requireSitePublisher(req)
       : await requireSiteEditor(req);
     const id = routeId(req);
     const [current] = await db.select().from(siteContentItems).where(eq(siteContentItems.id, id)).limit(1);
     if (!current) throw new HttpError(404, "Contenu introuvable");
+    if (!siteContentStatusAllowsAction(current.status, action)) {
+      throw new HttpError(409, action === "publish" ? "Restaurez d’abord ce contenu" : "Ce contenu est archivé");
+    }
 
     if (action === "verify_source") {
       if (!current.needsReview) throw new HttpError(409, "Ce contenu est déjà vérifié");
@@ -84,7 +90,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
 
     if (action === "submit_review") {
-      if (current.status === "archive") throw new HttpError(409, "Ce contenu est archivé");
       const [item] = await db
         .update(siteContentItems)
         .set({ status: "a_valider", updatedBy: user.id })
@@ -101,7 +106,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
 
     if (action === "publish") {
-      if (current.status === "archive") throw new HttpError(409, "Restaurez d’abord ce contenu");
       if (current.needsReview) {
         throw new HttpError(409, "Vérifiez d’abord les informations reprises de l’ancien site");
       }

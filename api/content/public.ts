@@ -11,6 +11,7 @@ import {
   normalizeSiteSlug,
   parseSiteContentInput,
 } from "../../shared/site-content.js";
+import { hasPublicSiteContentVersion } from "../../shared/site-content-policy.js";
 import { HttpError } from "../_shared/auth.js";
 import { signedAssetUrl } from "../_shared/site-content.js";
 import { handleApi, methodNotAllowed } from "../_shared/response.js";
@@ -44,6 +45,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     const parsed = rows.flatMap((row) => {
       try {
+        if (!hasPublicSiteContentVersion(row.item)) return [];
         const content = parseSiteContentInput(row.snapshot);
         if (!isSiteContentPublicAt(content, now)) return [];
         return [{ item: row.item, content }];
