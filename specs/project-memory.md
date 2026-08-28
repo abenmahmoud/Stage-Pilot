@@ -5,6 +5,20 @@
 **Depot** : `abenmahmoud/Stage-Pilot`
 **Dernier jalon de code verifie** : actualisation sécurisée des droits agent
 
+## Jalon du 28 août 2026 - reprise de l'ancien site en preview
+
+- Les 28 pages et actualités inventoriées sur le WordPress historique sont
+  importées dans la base Supabase isolée de preview comme brouillons à vérifier.
+- Les 28 versions initiales et les audits d'import sont présents ; aucun contenu
+  repris n'est publié automatiquement.
+- 78 des 81 médias accessibles sont copiés dans le stockage privé et 47 liens
+  média-contenu sont rattachés. Deux DOCX servis avec un type incorrect et un PDF
+  de 49,8 Mo sont refusés ; le détail durable se trouve dans
+  `docs/operations/LEGACY_IMPORT_PREVIEW_2026-08-28.md`.
+- L'accès temporaire strictement borné à la preview utilisé pour cette copie a
+  été retiré du code après l'opération. Hostinger, DNS, VPS et production sont
+  restés inchangés.
+
 ## Decision du 27 aout 2026 - espaces de traitement
 
 - Le proprietaire est superadministrateur et voit toutes les demandes.

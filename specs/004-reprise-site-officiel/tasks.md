@@ -22,9 +22,14 @@
 ## Import
 
 - [x] T010 Convertir le HTML en Markdown sûr et contrôlé.
-- [ ] T011 Importer les contenus comme brouillons sans écraser les corrections.
+- [x] T011 Importer les contenus comme brouillons sans écraser les corrections.
 - [ ] T012 Copier les médias par lots relançables dans le stockage prévu.
-- [ ] T013 Produire la liste explicite des échecs et éléments manquants.
+  Le 28 août 2026, `78/81` médias accessibles ont été copiés dans le bucket
+  privé de preview. Deux DOCX au type incohérent et un PDF de 49,8 Mo restent à
+  remplacer ou corriger avant de fermer cette tâche.
+- [x] T013 Produire la liste explicite des échecs et éléments manquants.
+  Le rapport est conservé dans
+  `docs/operations/LEGACY_IMPORT_PREVIEW_2026-08-28.md`.
 
 ## Site public
 
