@@ -148,12 +148,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       .where(accessFilter)
       .groupBy(supportRequests.assignedTeam);
 
-    const [requests, [totalRow], [statsRow], serviceStats] = await Promise.all([
-      requestQuery,
-      totalQuery,
-      statsQuery,
-      serviceStatsQuery,
-    ]);
+    // The serverless database client intentionally owns one connection. Running
+    // four statements concurrently can leave the queue waiting for that single
+    // connection until the Vercel function times out, so execute them in order.
+    const requests = await requestQuery;
+    const [totalRow] = await totalQuery;
+    const [statsRow] = await statsQuery;
+    const serviceStats = await serviceStatsQuery;
     const total = totalRow?.count ?? 0;
 
     return {

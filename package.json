@@ -33,6 +33,7 @@
     "test:site-content": "node --experimental-strip-types scripts/test-site-content.mjs",
     "test:editor-ux": "node scripts/test-editor-ux.mjs",
     "test:agent-session-ux": "node scripts/test-agent-session-ux.mjs",
+    "test:agent-queue-serverless": "node scripts/test-agent-queue-serverless.mjs",
     "legacy:export": "node scripts/export-legacy-wordpress.mjs",
     "test:load:support": "node scripts/load-test-support.mjs",
     "db:generate": "drizzle-kit generate",
