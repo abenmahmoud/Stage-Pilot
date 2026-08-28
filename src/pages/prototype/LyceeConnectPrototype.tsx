@@ -1120,7 +1120,9 @@ function HelpDeskView({
     setInsight(null);
     setShowDetails(false);
     setClassicForm(false);
+    setProfile("");
     setCategory("autre");
+    setClassicDescription("");
     setFiles([]);
     setSubmitError(null);
     setAttachmentWarning(null);

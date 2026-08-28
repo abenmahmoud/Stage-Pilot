@@ -23,5 +23,13 @@ assert.match(prototypeSource, /requestKey,/);
 assert.match(prototypeSource, /"Idempotency-Key": requestKey/);
 assert.match(prototypeSource, /hadAttachments: files\.length > 0/);
 assert.match(prototypeSource, /clearSupportDeviceDraft\(\)/);
+const restartBlock = prototypeSource.slice(
+  prototypeSource.indexOf("function restartConversation"),
+  prototypeSource.indexOf("function selectFiles")
+);
+assert.match(restartBlock, /setProfile\(""\)/);
+assert.match(restartBlock, /setClassicDescription\(""\)/);
+assert.match(restartBlock, /setFormValues\(defaultSupportFormValues\(\)\)/);
+assert.match(restartBlock, /clearSupportDeviceDraft\(\)/);
 
 console.log("support device memory policy: ok");
