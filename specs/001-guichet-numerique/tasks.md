@@ -109,7 +109,8 @@ voir sa réponse dans le dossier. L'agent traite tout depuis une seule file.
 - [x] **T036B** Remplacer les raccourcis Stages/Grand Oral de l'accueil par les
   besoins de rentrée : aide, inscription, classe, documents et codes d'accès.
 - [x] **T036C** Faire du texte libre le parcours principal et conserver le
-  formulaire classique comme option secondaire après la conversation.
+  formulaire classique comme option secondaire accessible aussi depuis
+  l'accueil, sans dependance a l'IA.
 - [x] **T036D** Mettre le nom Lycée Blaise Cendrars et le portrait avec cigarette
   au centre de l'identité visuelle de l'accueil.
 - [x] **T036E** Présenter les huit spécialités générales avec photos, explications
@@ -139,6 +140,8 @@ voir sa réponse dans le dossier. L'agent traite tout depuis une seule file.
   codes internes par des libellés français et vérifier les principaux écrans.
 - [x] **T038B** Vérifier le nouveau parcours d'aide sur ordinateur et téléphone,
   sans débordement horizontal et avec les aides de compréhension visibles.
+- [x] **T038C** Contre-verifier la revue externe bornee, corriger uniquement les
+  constats reproduits et documenter les alertes rejetees avec leurs preuves.
 - [ ] **T039** Déployer une preview Vercel protégée et la faire valider.
 - [x] **T039A** Déployer la preview protégée et terminer sa validation technique
   mobile/ordinateur, API, base, email sortant et fichier sain.

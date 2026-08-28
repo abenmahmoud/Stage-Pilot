@@ -130,7 +130,7 @@
   au compte nominatif du propriétaire dans la preview uniquement, conserver une
   adhésion `admin` active et actualiser la session avant de charger la console.
 - [ ] T028 N'afficher une réussite qu'après `confirmed_at` fourni par l'outil.
-- [ ] T029 Ajouter formulaire classique et création de demande sans dépendance à l'IA.
+- [x] T029 Ajouter formulaire classique et création de demande sans dépendance à l'IA.
 - [ ] T030 Ajouter mesure du coût, de la latence, des transferts et des corrections.
 
 ## Phase 4 - Compétences du pilote

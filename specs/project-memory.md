@@ -44,6 +44,16 @@
   limites de saisie et la lecture publique. Un brouillon jamais publié n'est pas
   exposé; pendant une révision, seule l'ancienne version déjà validée demeure
   lisible. Toutes les tâches `003-gestion-contenus-lycee` sont couvertes.
+- Une seconde revue externe bornee a ete contre-verifiee. Claude n'a produit
+  aucun rapport apres saturation de contexte et n'a pas ete relance. Kimi a
+  permis de confirmer quatre ameliorations publiques : acces direct au
+  formulaire sans IA, conservation du debut et de la fin des demandes longues,
+  consigne email ou telephone et copie du numero de dossier. Les alertes sur les
+  erreurs API et le debordement mobile n'ont pas ete reproduites. Le detail est
+  conserve dans `docs/audits/EXTERNAL_REVIEW_2026-08-28.md`.
+- Le formulaire classique s'ouvre maintenant depuis l'accueil, accepte les
+  pieces jointes et reste utilisable sans modele. Il a ete controle sans
+  debordement a 320 px et 1440 px ; la conversation libre reste prioritaire.
 
 ## Decision du 27 aout 2026 - espaces de traitement
 

@@ -74,6 +74,12 @@ l'autorisation de quota définie par le propriétaire.
   l'accès anonyme est refusé et le compte administration reste limité à son
   périmètre. Les écarts confirmés de vocabulaire, canal de réponse, commandes
   inactives et accessibilité ont été corrigés puis testés.
+- Une seconde execution Kimi isolee a confirme l'interet d'un acces direct au
+  formulaire, d'une copie du numero et d'un meilleur resume des longues
+  demandes. Ces points sont corriges. Les alertes sur les erreurs API et la
+  navigation a 320 px ont ete rejetees apres lecture du filtre serveur et test
+  navigateur sans debordement. Le rapport d'arbitrage est dans
+  `docs/audits/EXTERNAL_REVIEW_2026-08-28.md`.
 
 ## Lots de nuit sûrs
 

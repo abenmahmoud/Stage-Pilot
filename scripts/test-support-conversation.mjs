@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import {
   normalizeSupportConversation,
+  summarizeSupportDescription,
   SupportConversationValidationError,
 } from "../shared/support-conversation.ts";
 
@@ -44,4 +45,13 @@ test("rejects unknown roles and oversized turns", () => {
     () => normalizeSupportConversation([{ role: "requester", content: "a".repeat(1501) }]),
     SupportConversationValidationError
   );
+});
+
+test("keeps the beginning and end of an oversized request summary", () => {
+  const value = `PROBLEME_INITIAL ${"x".repeat(6000)} DERNIER_DETAIL`;
+  const summary = summarizeSupportDescription(value);
+  assert.equal(summary.length, 5000);
+  assert.match(summary, /^PROBLEME_INITIAL/);
+  assert.match(summary, /DERNIER_DETAIL$/);
+  assert.match(summary, /échanges intermédiaires/);
 });

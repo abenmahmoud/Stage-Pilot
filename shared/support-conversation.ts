@@ -9,6 +9,16 @@ const MAX_TURNS = 21;
 const MAX_TURN_LENGTH = 1500;
 const MAX_TOTAL_LENGTH = 12000;
 
+export function summarizeSupportDescription(value: string, maximum = 5000): string {
+  const clean = value.trim();
+  if (clean.length <= maximum) return clean;
+  const separator = "\n\n[… échanges intermédiaires conservés dans la conversation …]\n\n";
+  const available = maximum - separator.length;
+  if (available < 2) return clean.slice(0, maximum);
+  const headLength = Math.ceil(available * 0.65);
+  return `${clean.slice(0, headLength)}${separator}${clean.slice(-(available - headLength))}`;
+}
+
 export function normalizeSupportConversation(value: unknown): SupportConversationTurn[] {
   if (value === undefined || value === null) return [];
   if (!Array.isArray(value) || value.length > MAX_TURNS) {

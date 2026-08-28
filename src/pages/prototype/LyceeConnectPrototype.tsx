@@ -14,6 +14,7 @@ import {
   CircleAlert,
   CircleUserRound,
   Clock3,
+  Copy,
   ExternalLink,
   FileText,
   FolderCheck,
@@ -58,6 +59,7 @@ import {
   type AssistantScope,
 } from "../../../shared/assistant-policy";
 import { evaluateLaptopIntake } from "../../../shared/laptop-intake";
+import { summarizeSupportDescription } from "../../../shared/support-conversation";
 import {
   DEFAULT_SUPPORT_REPLY_TEMPLATES,
   renderSupportReplyTemplate,
@@ -331,6 +333,7 @@ export default function LyceeConnectPrototype() {
       : "home";
   });
   const [message, setMessage] = useState("");
+  const [helpMode, setHelpMode] = useState<"chat" | "form">("chat");
   const [menuOpen, setMenuOpen] = useState(false);
   const [ticketCreated, setTicketCreated] = useState<string | null>(null);
 
@@ -358,6 +361,7 @@ export default function LyceeConnectPrototype() {
   }, []);
 
   function changeView(nextView: View) {
+    if (nextView !== "help") setHelpMode("chat");
     setView(nextView);
     setMenuOpen(false);
     const url = new URL(window.location.href);
@@ -367,8 +371,9 @@ export default function LyceeConnectPrototype() {
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
-  function startHelp(prompt = "") {
+  function startHelp(prompt = "", mode: "chat" | "form" = "chat") {
     setMessage(prompt);
+    setHelpMode(mode);
     changeView("help");
   }
 
@@ -517,6 +522,7 @@ export default function LyceeConnectPrototype() {
                 <span>Envoyer</span>
               </button>
             </div>
+            <button className="lycee-form-shortcut" type="button" onClick={() => startHelp("", "form")}><FileText aria-hidden="true" /> Remplir le formulaire</button>
             <div className="lycee-trust-row">
               <button type="button" onClick={() => changeView("trust")}><ShieldCheck aria-hidden="true" /> Confidentialité et sécurité</button>
               <span><Users aria-hidden="true" /> Actions sensibles validées par un agent</span>
@@ -601,6 +607,7 @@ export default function LyceeConnectPrototype() {
         {view === "help" && (
           <HelpDeskView
             initialMessage={message}
+            initialClassicForm={helpMode === "form"}
             onBack={() => changeView("home")}
             onTicketCreated={setTicketCreated}
             onTrack={() => changeView("requests")}
@@ -892,11 +899,13 @@ function localAssistantFallback(messages: AssistantChatMessage[], files: File[])
 
 function HelpDeskView({
   initialMessage,
+  initialClassicForm,
   onBack,
   onTicketCreated,
   onTrack,
 }: {
   initialMessage: string;
+  initialClassicForm: boolean;
   onBack: () => void;
   onTicketCreated: (code: string) => void;
   onTrack: () => void;
@@ -915,18 +924,20 @@ function HelpDeskView({
   const [chatInput, setChatInput] = useState("");
   const [insight, setInsight] = useState<AssistantInsight | null>(null);
   const [assistantBusy, setAssistantBusy] = useState(false);
-  const [showDetails, setShowDetails] = useState(false);
-  const [classicForm, setClassicForm] = useState(false);
+  const [showDetails, setShowDetails] = useState(initialClassicForm);
+  const [classicForm, setClassicForm] = useState(initialClassicForm);
   const [profile, setProfile] = useState<RequesterProfile>("");
   const [category, setCategory] = useState<SupportCategory>(() => inferSupportCategory(initialMessage));
   const [classicDescription, setClassicDescription] = useState(initialMessage);
   const [ticketCode, setTicketCode] = useState<string | null>(null);
+  const [ticketCopied, setTicketCopied] = useState(false);
   const [confirmationChannel, setConfirmationChannel] = useState<"email" | "phone">("email");
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [attachmentWarning, setAttachmentWarning] = useState<string | null>(null);
   const [files, setFiles] = useState<File[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const caseFormRef = useRef<HTMLFormElement>(null);
   const threadRef = useRef<HTMLDivElement>(null);
   const initialAnalysisStarted = useRef(false);
   const [requestKey] = useState(() => crypto.randomUUID());
@@ -944,6 +955,11 @@ function HelpDeskView({
     if (!initialMessage.trim() || initialAnalysisStarted.current) return;
     initialAnalysisStarted.current = true;
     void askAssistant(chatMessages);
+  }, []);
+
+  useEffect(() => {
+    if (!initialClassicForm) return;
+    window.requestAnimationFrame(() => caseFormRef.current?.scrollIntoView({ block: "start" }));
   }, []);
 
   async function askAssistant(nextMessages: AssistantChatMessage[]) {
@@ -1066,7 +1082,7 @@ function HelpDeskView({
             schoolTrack: form.get("schoolTrack"),
             category,
             subject: selectedCategory?.label ?? "Demande au lycée",
-            description: description.slice(-5000),
+            description: summarizeSupportDescription(description),
             conversation: chatMessages.slice(-21).map(({ role, content }) => ({ role, content })),
             email,
             phone,
@@ -1101,6 +1117,17 @@ function HelpDeskView({
     }
   }
 
+  async function copyTicketCode() {
+    if (!ticketCode) return;
+    try {
+      await navigator.clipboard.writeText(ticketCode);
+      setTicketCopied(true);
+      window.setTimeout(() => setTicketCopied(false), 1800);
+    } catch {
+      setTicketCopied(false);
+    }
+  }
+
   if (ticketCode) {
     return (
       <div className="lycee-page lycee-confirmation-view">
@@ -1108,7 +1135,7 @@ function HelpDeskView({
         <span className="lycee-eyebrow">Demande transmise</span>
         <h1>Votre dossier est créé.</h1>
         <p>La conversation et les documents sont réunis. Un agent du lycée peut maintenant vous répondre sans vous faire recommencer.</p>
-        <div className="lycee-ticket-code"><span>Numéro de demande</span><strong>{ticketCode}</strong></div>
+        <div className="lycee-ticket-code"><span>Numéro de demande</span><div><strong>{ticketCode}</strong><button type="button" onClick={() => void copyTicketCode()} aria-label={`Copier le numéro ${ticketCode}`}><Copy aria-hidden="true" /> {ticketCopied ? "Copié" : "Copier"}</button></div></div>
         <div className="lycee-confirmation-note"><Smartphone aria-hidden="true" /><span>Le suivi reste disponible sur cet appareil avec votre numéro de demande.</span></div>
         {confirmationChannel === "email"
           ? <div className="lycee-confirmation-note"><Mail aria-hidden="true" /><span>Un lien sécurisé est envoyé par email pour retrouver le dossier depuis un autre appareil et conserver les réponses.</span></div>
@@ -1163,7 +1190,7 @@ function HelpDeskView({
             </form>
           ) : null}
 
-          {files.length > 0 ? (
+          {files.length > 0 && !classicForm ? (
             <div className="lycee-selected-files lycee-chat-files" aria-label="Fichiers à envoyer">
               {files.map((file, index) => (
                 <div key={`${file.name}-${file.lastModified}`}><FileText aria-hidden="true" /><span><strong>{file.name}</strong><small>{(file.size / 1024 / 1024).toFixed(1)} Mo</small></span><button type="button" onClick={() => setFiles((current) => current.filter((_, fileIndex) => fileIndex !== index))}>Retirer</button></div>
@@ -1188,8 +1215,8 @@ function HelpDeskView({
           ) : null}
 
           {showDetails ? (
-            <form className="lycee-case-form" onSubmit={submitRequest}>
-              <div className="lycee-case-form-head"><span><ShieldCheck aria-hidden="true" /></span><div><h2>{classicForm ? "Formulaire classique" : "Une dernière étape"}</h2><p>{classicForm ? "Tous les champs sont visibles pour ceux qui préfèrent écrire leur demande directement." : "Vos coordonnées permettent au lycée de vous répondre et de retrouver la bonne personne."}</p></div><button type="button" aria-label="Fermer" onClick={() => setShowDetails(false)}>Fermer</button></div>
+            <form ref={caseFormRef} className="lycee-case-form" onSubmit={submitRequest}>
+              <div className="lycee-case-form-head"><span><ShieldCheck aria-hidden="true" /></span><div><h2>{classicForm ? "Formulaire classique" : "Une dernière étape"}</h2><p>{classicForm ? "Tous les champs sont visibles pour ceux qui préfèrent écrire leur demande directement." : "Vos coordonnées permettent au lycée de vous répondre et de retrouver la bonne personne."}</p></div><button type="button" aria-label="Fermer" onClick={() => { setShowDetails(false); setClassicForm(false); }}>Fermer</button></div>
               <div className="lycee-fields-grid">
                 <label><span>Vous êtes</span><select value={profile} onChange={(event) => setProfile(event.target.value as RequesterProfile)} required><option value="">Sélectionner</option><option value="eleve">Élève</option><option value="parent">Parent</option><option value="professeur">Professeur</option><option value="personnel">Personnel</option><option value="autre">Autre</option></select></label>
                 {classicForm ? <label><span>Votre demande concerne</span><select value={category} onChange={(event) => setCategory(event.target.value as SupportCategory)}>{supportCategories.map((item) => <option value={item.value} key={item.value}>{item.label}</option>)}</select></label> : null}
@@ -1199,6 +1226,7 @@ function HelpDeskView({
                 {profile === "eleve" || profile === "parent" ? <label><span>Classe, si connue</span><input name="className" type="text" placeholder="Ex. 2GT4" /></label> : null}
                 {profile === "professeur" || profile === "personnel" ? <label><span>Matière ou service</span><input name="subjectArea" type="text" placeholder="Ex. Mathématiques, intendance" /></label> : null}
                 {profile === "professeur" ? <label><span>Voie</span><select name="schoolTrack"><option value="">Non précisée</option><option value="general">Générale et technologique</option><option value="professionnel">Professionnelle</option><option value="les_deux">Les deux</option></select></label> : null}
+                <div className="lycee-contact-requirement is-wide"><strong>Comment le lycée peut-il vous répondre ?</strong><span>Indiquez au moins une adresse email ou un numéro de téléphone.</span></div>
                 <label><span>Adresse email recommandée</span><input name="email" type="email" autoComplete="email" placeholder="nom@exemple.fr" /><small>Pour garder une trace et retrouver la demande sur un autre appareil.</small></label>
                 <label><span>Téléphone</span><input name="phone" type="tel" autoComplete="tel" placeholder="06 00 00 00 00" /><small>Pour un rappel si l’email ne suffit pas.</small></label>
                 <label><span>Moyen de contact principal</span><select name="preferredChannel" defaultValue="email"><option value="email">Email, recommandé</option><option value="phone">Téléphone</option></select></label>
@@ -1206,6 +1234,7 @@ function HelpDeskView({
                 <label className="lycee-fallback-choice"><input name="fallbackAllowed" type="checkbox" defaultChecked /><span>Utiliser l’autre moyen de contact si nécessaire</span></label>
                 <label className="lycee-fallback-choice"><input name="communicationSupport" type="checkbox" /><span>J’ai besoin d’un rappel pour mieux comprendre la réponse</span></label>
                 {classicForm ? <label className="is-wide"><span>Votre demande</span><textarea value={classicDescription} onChange={(event) => setClassicDescription(event.target.value)} rows={5} maxLength={5000} placeholder="Expliquez ce dont vous avez besoin." required /></label> : null}
+                {classicForm ? <div className="lycee-classic-files is-wide"><button type="button" onClick={() => fileInputRef.current?.click()} disabled={files.length >= MAX_SUPPORT_FILES}><Paperclip aria-hidden="true" /> Joindre un document</button><small>PDF, image, Word ou Excel, jusqu’à 10 Mo.</small>{files.map((file, index) => <div key={`${file.name}-${file.lastModified}`}><FileText aria-hidden="true" /><span>{file.name}</span><button type="button" onClick={() => setFiles((current) => current.filter((_, fileIndex) => fileIndex !== index))}>Retirer</button></div>)}</div> : null}
                 <label className="lycee-honeypot" aria-hidden="true"><span>Site web</span><input name="website" type="text" tabIndex={-1} autoComplete="off" /></label>
               </div>
               <div className="lycee-contact-guidance"><Smartphone aria-hidden="true" /><span><strong>Deux moyens pour ne pas perdre la demande</strong><small>Le suivi sur cet appareil est toujours actif. L’email ajoute une copie durable et un accès depuis un autre téléphone ou ordinateur.</small></span></div>

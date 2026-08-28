@@ -120,6 +120,8 @@
 .lycee-composer button { min-height: 46px; display: inline-flex; align-items: center; gap: 8px; padding: 0 17px; border: 0; border-radius: 7px; background: var(--lc-blue); color: #fff; font-size: 13px; font-weight: 800; box-shadow: 0 8px 18px rgba(21,94,239,.2); }
 .lycee-composer button:disabled { cursor: not-allowed; opacity: .48; box-shadow: none; }
 .lycee-composer button svg { width: 17px; height: 17px; }
+.lycee-form-shortcut { min-height: 34px; display: inline-flex; align-items: center; gap: 6px; margin-top: 9px; padding: 0; border: 0; background: transparent; color: var(--lc-blue); font-size: 11px; font-weight: 800; }
+.lycee-form-shortcut svg { width: 15px; height: 15px; }
 .lycee-ai-response { margin-top: 12px; display: flex; align-items: flex-start; gap: 9px; padding: 12px; border-left: 3px solid var(--lc-green); background: #eff9f6; color: #245d53; font-size: 13px; line-height: 1.45; }
 .lycee-ai-response svg { width: 17px; height: 17px; flex: 0 0 17px; }
 .lycee-trust-row { display: flex; gap: 20px; margin-top: 12px; color: #6c7a8d; font-size: 11px; font-weight: 700; }
@@ -391,7 +393,7 @@
 .lycee-case-ready small { color: #4e7e75; font-size: 10px; line-height: 1.4; }
 .lycee-chat-next-actions { display: flex; align-items: center; justify-content: flex-end; gap: 9px; }
 .lycee-chat-next-actions > button:last-child { min-height: 40px; padding: 0 9px; border: 0; background: transparent; color: #5e7086; font-size: 10px; font-weight: 800; }
-.lycee-case-form { display: grid; gap: 14px; margin-top: 3px; padding: 18px; border: 1px solid #c8d5e5; border-radius: 8px; background: #f8fafc; animation: lycee-message-in 220ms ease both; }
+.lycee-case-form { scroll-margin-top: 88px; display: grid; gap: 14px; margin-top: 3px; padding: 18px; border: 1px solid #c8d5e5; border-radius: 8px; background: #f8fafc; animation: lycee-message-in 220ms ease both; }
 .lycee-case-form-head { display: grid; grid-template-columns: 38px minmax(0,1fr) auto; align-items: start; gap: 10px; padding-bottom: 13px; border-bottom: 1px solid var(--lc-line); }
 .lycee-case-form-head > span { width: 36px; height: 36px; display: grid; place-items: center; border-radius: 7px; background: #e8efff; color: var(--lc-blue); }
 .lycee-case-form-head > span svg { width: 18px; }
@@ -440,6 +442,18 @@
 .lycee-fields-grid .lycee-fallback-choice { align-self: end; min-height: 43px; flex-direction: row; align-items: center; padding: 8px 10px; border: 1px solid var(--lc-line); border-radius: 7px; background: #f8fafc; }
 .lycee-fields-grid .lycee-fallback-choice input { width: 18px; min-height: 18px; flex: 0 0 18px; padding: 0; }
 .lycee-fields-grid .lycee-fallback-choice span { font-size: 10px; line-height: 1.35; }
+.lycee-contact-requirement { grid-column: 1 / -1; display: flex; align-items: baseline; justify-content: space-between; gap: 12px; padding: 10px 12px; border-left: 3px solid var(--lc-blue); background: #edf3ff; color: #314d72; }
+.lycee-contact-requirement strong { font-size: 11px; }
+.lycee-contact-requirement span { color: #526b89; font-size: 10px; line-height: 1.4; }
+.lycee-classic-files { grid-column: 1 / -1; display: grid; grid-template-columns: auto minmax(0,1fr); align-items: center; gap: 7px 10px; padding: 11px; border: 1px dashed #b8c4d2; border-radius: 7px; background: #fff; }
+.lycee-classic-files > button:first-child { min-height: 38px; display: inline-flex; align-items: center; justify-content: center; gap: 7px; padding: 0 11px; border: 1px solid #b8c4d2; border-radius: 7px; background: #f8fafc; color: #40556e; font-size: 10px; font-weight: 800; }
+.lycee-classic-files > button:first-child:disabled { cursor: not-allowed; opacity: .45; }
+.lycee-classic-files > button:first-child svg { width: 15px; }
+.lycee-classic-files > small { color: var(--lc-muted); font-size: 9px; line-height: 1.4; }
+.lycee-classic-files > div { min-width: 0; grid-column: 1 / -1; display: grid; grid-template-columns: 20px minmax(0,1fr) auto; align-items: center; gap: 8px; padding-top: 7px; border-top: 1px solid var(--lc-line); }
+.lycee-classic-files > div > svg { width: 16px; color: var(--lc-blue); }
+.lycee-classic-files > div > span { overflow: hidden; color: #40556e; font-size: 10px; font-weight: 700; text-overflow: ellipsis; white-space: nowrap; }
+.lycee-classic-files > div > button { min-height: 30px; padding: 0 5px; border: 0; background: transparent; color: #9b3022; font-size: 9px; font-weight: 800; }
 .lycee-honeypot { position: absolute !important; left: -10000px !important; width: 1px !important; height: 1px !important; overflow: hidden !important; }
 .lycee-attachment-button { min-height: 40px; display: inline-flex; align-items: center; gap: 7px; margin-top: 10px; padding: 0 11px; border: 1px dashed #b8c4d2; border-radius: 7px; background: #f8fafc; color: var(--lc-muted); font-size: 11px; font-weight: 750; }
 .lycee-attachment-button svg { width: 15px; }
@@ -472,7 +486,10 @@
 .lycee-confirmation-view > p { max-width: 540px; margin: 12px auto 22px; color: var(--lc-muted); line-height: 1.55; }
 .lycee-ticket-code { max-width: 390px; display: flex; flex-direction: column; margin: 0 auto; padding: 18px; border: 1px solid #b9c9db; border-radius: 8px; background: #fff; }
 .lycee-ticket-code span { color: var(--lc-muted); font-size: 10px; font-weight: 800; text-transform: uppercase; }
-.lycee-ticket-code strong { margin-top: 5px; color: var(--lc-blue); font-size: 26px; }
+.lycee-ticket-code > div { min-width: 0; display: flex; align-items: center; justify-content: center; gap: 10px; margin-top: 5px; }
+.lycee-ticket-code strong { min-width: 0; color: var(--lc-blue); font-size: 26px; overflow-wrap: anywhere; }
+.lycee-ticket-code button { min-height: 34px; display: inline-flex; align-items: center; gap: 5px; padding: 0 9px; border: 1px solid #c8d5e5; border-radius: 7px; background: #f8fafc; color: #40556e; font-size: 9px; font-weight: 800; }
+.lycee-ticket-code button svg { width: 14px; height: 14px; }
 .lycee-confirmation-note { max-width: 560px; display: flex; align-items: flex-start; gap: 9px; margin: 16px auto 0; padding: 12px; background: #eef4fb; color: #53677f; font-size: 11px; line-height: 1.5; text-align: left; }
 .lycee-confirmation-note svg { width: 17px; flex: 0 0 17px; }
 .lycee-confirmation-actions { display: flex; justify-content: center; gap: 9px; margin-top: 22px; }
@@ -926,6 +943,7 @@
   .lycee-profile-grid, .lycee-category-grid, .lycee-fields-grid, .lycee-services-catalog { grid-template-columns: 1fr 1fr; }
   .lycee-request-form > section { padding: 15px; }
   .lycee-fields-grid label, .lycee-fields-grid label.is-wide { grid-column: 1 / -1; }
+  .lycee-contact-requirement { align-items: flex-start; flex-direction: column; gap: 3px; }
   .lycee-submit-request { width: 100%; justify-self: stretch; }
   .lycee-confirmation-view { padding-top: 42px; }
   .lycee-confirmation-actions { flex-direction: column; }
@@ -1007,6 +1025,11 @@
   .lycee-case-form-head > button { grid-column: 2; justify-self: start; padding: 0; }
   .lycee-confirmation-view h1 { font-size: 25px; }
   .lycee-ticket-code strong { font-size: 22px; }
+  .lycee-ticket-code > div { align-items: stretch; flex-direction: column; }
+  .lycee-ticket-code button { justify-content: center; }
+  .lycee-classic-files { grid-template-columns: 1fr; }
+  .lycee-classic-files > button:first-child { width: 100%; }
+  .lycee-classic-files > small, .lycee-classic-files > div { grid-column: 1; }
   .lycee-ticket-meta { flex-direction: column; gap: 7px; }
   .lycee-ticket-list > button { grid-template-columns: 36px minmax(0,1fr); }
   .lycee-ticket-list > button > em { grid-column: 2; width: fit-content; }
