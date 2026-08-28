@@ -18,6 +18,12 @@
 - L'accès temporaire strictement borné à la preview utilisé pour cette copie a
   été retiré du code après l'opération. Hostinger, DNS, VPS et production sont
   restés inchangés.
+- L'espace Contenus affiche le nombre de reprises à vérifier, filtre les
+  brouillons repris et ouvre directement le prochain élément à relire.
+- Le moteur Node déclaré est aligné sur Node 24, réellement utilisé localement
+  et par Vercel. Les neuf alertes Supabase `auth_rls_initplan` des anciennes
+  politiques MFA ont été supprimées en mettant en cache les valeurs Auth par
+  requête, sans modifier les règles d'accès.
 
 ## Decision du 27 aout 2026 - espaces de traitement
 
