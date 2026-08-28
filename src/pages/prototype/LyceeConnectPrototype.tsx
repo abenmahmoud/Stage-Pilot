@@ -626,12 +626,12 @@ export default function LyceeConnectPrototype() {
               <a href={LYCEEGEST_URL}>Ouvrir LyceeGest <ChevronRight aria-hidden="true" /></a>
             </article>
             <article className="lycee-status-panel">
-              <a href="https://ent.iledefrance.fr/auth/login" target="_blank" rel="noreferrer" aria-label="ENT Monlycée.net, connexion et services, ouvrir dans un nouvel onglet">
+              <a href="https://ent.iledefrance.fr/auth/login" target="_blank" rel="noreferrer" title="Ouvrir ENT Monlycée.net dans un nouvel onglet">
                 <span className="lycee-status-icon"><Wifi aria-hidden="true" /></span>
                 <span><strong>ENT Monlycée.net</strong><small>Connexion et services</small></span>
                 <em>Ouvrir <ExternalLink aria-hidden="true" /></em>
               </a>
-              <a href={WEBMAIL_URL} target="_blank" rel="noreferrer" aria-label="Webmail du lycée, messagerie et diffusion, ouvrir dans un nouvel onglet">
+              <a href={WEBMAIL_URL} target="_blank" rel="noreferrer" title="Ouvrir le Webmail du lycée dans un nouvel onglet">
                 <span className="lycee-status-icon"><Mail aria-hidden="true" /></span>
                 <span><strong>Webmail du lycée</strong><small>Messagerie et diffusion</small></span>
                 <em>Ouvrir <ExternalLink aria-hidden="true" /></em>
