@@ -12,6 +12,10 @@ const migrationPath = new URL(
   "../supabase/migrations/20260828184943_create_knowledge_document_ingestion.sql",
   import.meta.url
 );
+const governanceMigrationPath = new URL(
+  "../supabase/migrations/20260828232200_add_knowledge_document_governance.sql",
+  import.meta.url
+);
 const reservePath = new URL("../api/knowledge/admin/documents/index.ts", import.meta.url);
 const uploaderPath = new URL("../src/lib/resumable-upload.ts", import.meta.url);
 
@@ -22,7 +26,10 @@ function validInput(overrides = {}) {
       "Ce document fictif décrit une procédure de test et ne contient aucune donnée réelle.",
     sourceType: "procedure",
     classification: "internal",
+    ownerServiceCode: "referent_numerique",
     serviceCodes: ["referent_numerique"],
+    validFrom: "2026-09-01",
+    reviewDueAt: "2027-02-01T12:00:00.000Z",
     originalName: "procedure-fictive.pdf",
     mimeType: "application/pdf",
     sizeBytes: 8 * 1024 * 1024,
@@ -33,7 +40,21 @@ function validInput(overrides = {}) {
 test("accepts a bounded private document with a business explanation", () => {
   const parsed = parseKnowledgeDocumentInput(validInput());
   assert.equal(parsed.mimeType, "application/pdf");
+  assert.equal(parsed.ownerServiceCode, "referent_numerique");
   assert.deepEqual(parsed.serviceCodes, ["referent_numerique"]);
+});
+
+test("separates people directories from governed knowledge documents", () => {
+  const form = parseKnowledgeDocumentInput(validInput({ sourceType: "form_template" }));
+  assert.equal(form.sourceType, "form_template");
+  assert.throws(
+    () => parseKnowledgeDocumentInput(validInput({ sourceType: "directory" })),
+    /Type de document/
+  );
+  assert.throws(
+    () => parseKnowledgeDocumentInput(validInput({ reviewDueAt: "2026-08-31T23:00:00.000Z" })),
+    /postérieure/
+  );
 });
 
 test("infers known browser MIME gaps without accepting executable files", () => {
@@ -74,6 +95,15 @@ test("keeps uploaded documents private and inactive by construction", async () =
   assert.match(sql, /revoke all on table public\.knowledge_documents from public, anon, authenticated/i);
   assert.match(sql, /check \(source_id is null or status = 'ready'\)/i);
   assert.match(sql, /status in \([\s\S]+'reserved'[\s\S]+'uploaded'[\s\S]+'ready'/i);
+});
+
+test("requires a human owner, effective date and review deadline", async () => {
+  const sql = await readFile(governanceMigrationPath, "utf8");
+  assert.match(sql, /owner_service_code text/i);
+  assert.match(sql, /valid_from date/i);
+  assert.match(sql, /review_due_at timestamptz/i);
+  assert.match(sql, /source_type in \('internal_document', 'procedure', 'calendar', 'form_template'\)/i);
+  assert.match(sql, /knowledge_documents_owner_review_idx/i);
 });
 
 test("uploads directly with TUS and never creates a published source", async () => {

@@ -23,9 +23,10 @@
   ces tables accessibles uniquement au serveur avec droits clients révoqués.
 - Trois index de couverture ont été ajoutés après le conseiller performance ; il
   ne remonte plus aucune clé étrangère non indexée pour le répertoire.
-- Le worker ClamAV, son secret HMAC et son timer sont prêts dans Git mais ne sont
-  pas installés sur le VPS. Aucun fichier réel ne doit être déposé avant cette
-  recette séparée.
+- Le worker ClamAV est installé sur le VPS de preview avec un secret HMAC dédié
+  et un timer d'une minute. Un CSV de quatre lignes entièrement fictives a atteint
+  l'état `review` sans conserver de nom ni contact brut ; EICAR a été rejeté et
+  le nettoyage a laissé zéro import, ligne, audit ou travail de test.
 
 ## Test de pointe
 
@@ -75,14 +76,27 @@ file, pas encore la latence HTTP p95 ni la reprise du worker après panne.
 
 ## Limites avant données réelles
 
-1. Installer le worker du répertoire sur le VPS avec un secret HMAC dédié, puis
-   tester ClamAV avec le modèle fictif et un fichier de test antivirus reconnu.
+1. Tester dans l'interface l'approbation, l'activation, le remplacement et la
+   suppression contrôlée d'une version fictive du répertoire.
 2. Créer les comptes agents nominatifs restants et tester récupération plus MFA.
 3. Faire valider finalités, colonnes, rétention et droits par Direction/DPO.
 4. Tester la panne puis la reprise des workers et la livraison idempotente.
 5. Mesurer le parcours HTTP complet et son p95, pas uniquement les transactions.
 6. Tester la restauration chiffrée d'un dossier et d'un fichier dans un
    environnement isolé.
+
+## Gouvernance documentaire ajoutée
+
+- Le dépôt des documents de connaissance est distinct du répertoire des
+  personnes ; le type `directory` n'est plus accepté dans ce flux.
+- Le superadministrateur doit renseigner le service responsable, le périmètre,
+  la date d'effet, la date de révision et ce que l'agent doit comprendre.
+- La migration `20260828232200` est appliquée uniquement sur la preview. La table
+  était vide, conserve RLS forcée et ne donne aucun droit direct à `public`,
+  `anon` ou `authenticated`.
+- Huit tests de dépôt documentaire et le build passent. L'analyse antivirus et
+  l'extraction de ces documents restent à construire avant qu'un fichier puisse
+  devenir une source publiée.
 
 La preview est solide pour une démonstration et des données fictives. Elle ne
 constitue pas encore une autorisation d'importer la base réelle des personnes.

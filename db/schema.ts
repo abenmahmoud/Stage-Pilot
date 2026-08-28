@@ -546,10 +546,13 @@ export const knowledgeDocuments = pgTable(
     purposeDescription: text("purpose_description").notNull(),
     sourceType: text("source_type").notNull(),
     classification: text("classification").notNull().default("internal"),
+    ownerServiceCode: text("owner_service_code").notNull(),
     serviceCodes: text("service_codes")
       .array()
       .notNull()
       .default(sql`array[]::text[]`),
+    validFrom: date("valid_from").notNull(),
+    reviewDueAt: timestamp("review_due_at", { withTimezone: true }).notNull(),
     originalName: text("original_name").notNull(),
     mimeType: text("mime_type").notNull(),
     sizeBytes: bigint("size_bytes", { mode: "number" }).notNull(),
@@ -575,6 +578,11 @@ export const knowledgeDocuments = pgTable(
       table.createdAt
     ),
     index("knowledge_documents_service_codes_idx").using("gin", table.serviceCodes),
+    index("knowledge_documents_owner_review_idx").on(
+      table.institutionId,
+      table.ownerServiceCode,
+      table.reviewDueAt
+    ),
   ]
 );
 

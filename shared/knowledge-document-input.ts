@@ -5,8 +5,8 @@ export const KNOWLEDGE_DOCUMENT_MAX_BYTES = 50 * 1024 * 1024;
 export const KNOWLEDGE_DOCUMENT_TYPES = [
   "internal_document",
   "procedure",
-  "directory",
   "calendar",
+  "form_template",
 ] as const;
 
 export const KNOWLEDGE_DOCUMENT_MIME_TYPES = [
@@ -25,7 +25,10 @@ export type KnowledgeDocumentInput = {
   purposeDescription: string;
   sourceType: (typeof KNOWLEDGE_DOCUMENT_TYPES)[number];
   classification: KnowledgeClassification;
+  ownerServiceCode: SupportService;
   serviceCodes: SupportService[];
+  validFrom: string;
+  reviewDueAt: string;
   originalName: string;
   mimeType: (typeof KNOWLEDGE_DOCUMENT_MIME_TYPES)[number];
   sizeBytes: number;
@@ -75,6 +78,24 @@ function enumValue<T extends string>(value: unknown, values: readonly T[], label
   return value as T;
 }
 
+function isoDate(value: unknown, label: string): string {
+  if (typeof value !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(value)) {
+    throw new Error(`${label} est invalide`);
+  }
+  const parsed = new Date(`${value}T00:00:00.000Z`);
+  if (Number.isNaN(parsed.getTime()) || parsed.toISOString().slice(0, 10) !== value) {
+    throw new Error(`${label} est invalide`);
+  }
+  return value;
+}
+
+function isoInstant(value: unknown, label: string): string {
+  if (typeof value !== "string") throw new Error(`${label} est obligatoire`);
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) throw new Error(`${label} est invalide`);
+  return parsed.toISOString();
+}
+
 export function knowledgeDocumentMime(fileName: string, suppliedMime = ""): string {
   const normalized = suppliedMime.toLowerCase().trim();
   if ((KNOWLEDGE_DOCUMENT_MIME_TYPES as readonly string[]).includes(normalized)) {
@@ -87,6 +108,11 @@ export function knowledgeDocumentMime(fileName: string, suppliedMime = ""): stri
 export function parseKnowledgeDocumentInput(value: unknown): KnowledgeDocumentInput {
   const input = record(value);
   const classification = enumValue(input.classification, CLASSIFICATIONS, "Confidentialité");
+  const ownerServiceCode = enumValue(
+    input.ownerServiceCode,
+    SUPPORT_SERVICES,
+    "Service responsable"
+  );
   const suppliedServices = Array.isArray(input.serviceCodes)
     ? [...new Set(input.serviceCodes.map(String).map((item) => item.trim()).filter(Boolean))]
     : [];
@@ -98,6 +124,11 @@ export function parseKnowledgeDocumentInput(value: unknown): KnowledgeDocumentIn
   );
   if (classification === "public" && serviceCodes.length > 0) {
     throw new Error("Un document public ne doit pas être limité à un service");
+  }
+  const validFrom = isoDate(input.validFrom, "Date d'effet");
+  const reviewDueAt = isoInstant(input.reviewDueAt, "Date de révision");
+  if (reviewDueAt.slice(0, 10) < validFrom) {
+    throw new Error("La révision doit être postérieure à la date d'effet");
   }
 
   const originalName = cleanText(input.originalName, "Nom du fichier", 1, 255);
@@ -116,7 +147,10 @@ export function parseKnowledgeDocumentInput(value: unknown): KnowledgeDocumentIn
     purposeDescription: cleanText(input.purposeDescription, "Explication", 20, 4000),
     sourceType: enumValue(input.sourceType, KNOWLEDGE_DOCUMENT_TYPES, "Type de document"),
     classification,
+    ownerServiceCode,
     serviceCodes,
+    validFrom,
+    reviewDueAt,
     originalName,
     mimeType,
     sizeBytes,

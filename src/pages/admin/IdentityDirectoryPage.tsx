@@ -232,6 +232,11 @@ export default function IdentityDirectoryPage() {
           >
             <Download className="h-4 w-4" /> Télécharger le modèle fictif
           </a>
+          <p className="mt-3 border-l-4 border-amber-500 bg-amber-50 p-3 text-sm text-amber-950">
+            N’ajoutez jamais de mot de passe, code ENT ou PRONOTE, secret
+            d’activation, donnée médicale ou note disciplinaire. Toute colonne
+            non prévue par le modèle sera refusée.
+          </p>
         </div>
 
         <label className="text-sm font-medium text-slate-700">

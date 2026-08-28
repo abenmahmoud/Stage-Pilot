@@ -77,7 +77,10 @@ type KnowledgeDocument = {
   purposeDescription: string;
   sourceType: string;
   classification: string;
+  ownerServiceCode: string;
   serviceCodes: string[];
+  validFrom: string;
+  reviewDueAt: string;
   originalName: string;
   mimeType: string;
   sizeBytes: number;
@@ -158,6 +161,11 @@ function localInput(date: Date): string {
   return shifted.toISOString().slice(0, 16);
 }
 
+function localDate(date: Date): string {
+  const shifted = new Date(date.getTime() - date.getTimezoneOffset() * 60_000);
+  return shifted.toISOString().slice(0, 10);
+}
+
 function dateLabel(value: string | null): string {
   if (!value) return "Sans échéance";
   return new Intl.DateTimeFormat("fr-FR", {
@@ -199,7 +207,10 @@ export default function KnowledgeRegistryPage() {
     purposeDescription: "",
     sourceType: "procedure",
     classification: "internal",
+    ownerServiceCode: "administration",
     serviceCodes: [] as string[],
+    validFrom: localDate(new Date()),
+    reviewDueAt: localInput(new Date(Date.now() + 180 * 24 * 60 * 60 * 1000)),
   }));
   const [sourceDraft, setSourceDraft] = useState(() => ({
     title: "",
@@ -290,7 +301,10 @@ export default function KnowledgeRegistryPage() {
         purposeDescription: "",
         sourceType: "procedure",
         classification: "internal",
+        ownerServiceCode: "administration",
         serviceCodes: [],
+        validFrom: localDate(new Date()),
+        reviewDueAt: localInput(new Date(Date.now() + 180 * 24 * 60 * 60 * 1000)),
       });
       await load();
     } catch (reason) {
@@ -508,7 +522,10 @@ type DocumentDraft = {
   purposeDescription: string;
   sourceType: string;
   classification: string;
+  ownerServiceCode: string;
   serviceCodes: string[];
+  validFrom: string;
+  reviewDueAt: string;
 };
 
 function DocumentUploadForm({
@@ -554,10 +571,14 @@ function DocumentUploadForm({
       {file ? <small className={`mt-1 block text-xs ${fileTooLarge || unsupportedFile ? "text-red-700" : "text-slate-500"}`}>{fileTooLarge ? "Ce fichier dépasse la limite actuelle de 50 Mo." : unsupportedFile ? "Ce format n’est pas accepté." : formatBytes(file.size)}</small> : null}
     </Field>
     <Field label="Titre"><input className="field bg-white" required value={draft.title} onChange={(event) => setDraft((value) => ({ ...value, title: event.target.value }))} /></Field>
-    <Field label="Nature"><select className="field bg-white" value={draft.sourceType} onChange={(event) => setDraft((value) => ({ ...value, sourceType: event.target.value }))}><option value="procedure">Procédure</option><option value="internal_document">Document interne</option><option value="directory">Annuaire</option><option value="calendar">Calendrier</option></select></Field>
+    <Field label="Nature"><select className="field bg-white" value={draft.sourceType} onChange={(event) => setDraft((value) => ({ ...value, sourceType: event.target.value }))}><option value="procedure">Procédure</option><option value="internal_document">Document interne</option><option value="form_template">Formulaire vierge</option><option value="calendar">Calendrier</option></select></Field>
     <Field label="Confidentialité"><select className="field bg-white" value={draft.classification} onChange={(event) => setDraft((value) => ({ ...value, classification: event.target.value, serviceCodes: event.target.value === "public" ? [] : value.serviceCodes }))}><option value="public">Public</option><option value="internal">Interne</option><option value="personal">Données personnelles</option><option value="sensitive">Sensible</option></select></Field>
-    <Field label="Service propriétaire"><select disabled={draft.classification === "public"} className="field bg-white" value={draft.serviceCodes[0] ?? ""} onChange={(event) => setDraft((value) => ({ ...value, serviceCodes: event.target.value ? [event.target.value] : [] }))}><option value="">Transverse</option>{SERVICE_OPTIONS.map(([value, label]) => <option value={value} key={value}>{label}</option>)}</select></Field>
+    <Field label="Service responsable"><select required className="field bg-white" value={draft.ownerServiceCode} onChange={(event) => setDraft((value) => ({ ...value, ownerServiceCode: event.target.value }))}>{SERVICE_OPTIONS.map(([value, label]) => <option value={value} key={value}>{label}</option>)}</select></Field>
+    <Field label="Périmètre autorisé"><select disabled={draft.classification === "public"} className="field bg-white" value={draft.serviceCodes[0] ?? ""} onChange={(event) => setDraft((value) => ({ ...value, serviceCodes: event.target.value ? [event.target.value] : [] }))}><option value="">Tous les services habilités</option>{SERVICE_OPTIONS.map(([value, label]) => <option value={value} key={value}>{label}</option>)}</select></Field>
+    <Field label="Valide à partir du"><input type="date" className="field bg-white" required value={draft.validFrom} onChange={(event) => setDraft((value) => ({ ...value, validFrom: event.target.value }))} /></Field>
+    <Field label="Révision obligatoire avant le"><input type="datetime-local" className="field bg-white" required value={draft.reviewDueAt} onChange={(event) => setDraft((value) => ({ ...value, reviewDueAt: event.target.value }))} /></Field>
     <Field label="Ce que l’agent doit comprendre" wide><textarea className="field bg-white" rows={6} required minLength={20} maxLength={4000} placeholder="Expliquez le contenu, à qui il s’adresse, les règles importantes, les dates et ce que l’agent ne doit jamais déduire." value={draft.purposeDescription} onChange={(event) => setDraft((value) => ({ ...value, purposeDescription: event.target.value }))} /></Field>
+    <p className="border-l-4 border-amber-500 bg-amber-50 p-3 text-sm text-amber-950 sm:col-span-2">Les listes de personnes vont dans « Répertoire des identités ». Les mots de passe, codes ENT ou PRONOTE et secrets d’activation sont refusés partout.</p>
     {busy ? <div className="sm:col-span-2" role="status"><div className="mb-1 flex justify-between text-xs font-medium text-slate-600"><span>Transfert privé</span><span>{progress} %</span></div><div className="h-2 overflow-hidden bg-slate-200"><div className="h-full bg-emerald-600 transition-[width]" style={{ width: `${progress}%` }} /></div></div> : null}
     <div className="sm:col-span-2"><button type="submit" disabled={busy || !file || fileTooLarge || unsupportedFile} className="inline-flex items-center gap-2 rounded-md bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-50">{busy ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <FileUp className="h-4 w-4" />} Déposer pour analyse</button></div>
   </form>;

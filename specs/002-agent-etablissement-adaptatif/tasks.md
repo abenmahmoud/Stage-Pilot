@@ -49,6 +49,16 @@
   après autorisation précise, puis exécuter
   la recette antivirus, doublons, approbation, remplacement et suppression avec
   un fichier entièrement fictif avant tout dépôt réel.
+- [x] T010B2B1 Installer le worker isolé sur le VPS de preview après autorisation,
+  créer un secret HMAC dédié, activer le timer d'une minute et vérifier un CSV
+  fictif propre, le blocage EICAR et le nettoyage à zéro. L'approbation, le
+  remplacement et la suppression fonctionnelle restent dans T010B2B.
+- [ ] T010B2C Concevoir puis implémenter le coffre opérationnel chiffré pour les
+  noms et coordonnées strictement nécessaires, séparé des empreintes de
+  vérification et inaccessible directement au modèle.
+- [ ] T010B2D Refuser automatiquement mots de passe, codes ENT/PRONOTE et secrets
+  dans tous les imports ; cadrer séparément une éventuelle remise de codes avec
+  Direction/DPO, identité forte, durée courte et validation humaine.
 - [ ] T010B3 Brancher l'OTP de contact à usage unique avec limites, expiration,
   session rotative et révocation, sans promouvoir ce contact en identité scolaire.
 - [ ] T010B4 Rapprocher une identité uniquement contre une version active du
@@ -73,6 +83,17 @@
 - [x] T014B2 Marquer automatiquement les sources expirées, désactiver les
   compétences qui en dépendent ou dont la revue est échue, écrire un audit
   système et protéger la maintenance par `CRON_SECRET`.
+- [ ] T014C Terminer le pipeline des documents confiés à l'agent : antivirus,
+  extraction locale bornée, proposition de classement, objet expliqué par le
+  superadministrateur, propriétaire, périmètre, validité, revue et publication
+  humaine.
+- [x] T014C1 Séparer l'entrée documentaire du répertoire des personnes et exiger
+  en preview une nature, un service responsable, un périmètre, une date d'effet,
+  une échéance de révision et une explication métier. Les codes et secrets sont
+  signalés comme interdits ; l'analyse reste dans T014C.
+- [ ] T014D Exposer aux compétences uniquement des extraits minimaux de sources
+  publiées et autorisées ; interdire les listes nominatives, fichiers bruts et
+  documents personnels dans le contexte du modèle.
 
 ## Phase 2 - Autorité et sécurité
 

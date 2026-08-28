@@ -224,8 +224,8 @@ l'autorisation de quota définie par le propriétaire.
   fichiers en attente, ainsi que d'une file des échecs définitifs. Une relance
   réserve atomiquement l'ancien échec, crée un nouveau travail audité et renouvelle
   le lien temporaire lorsqu'un demandeur doit être contacté.
-- Lot N5M : analyse du répertoire. **Interface et API déployées en preview,
-  worker non installé sur le VPS** : modèle fictif, parseur CSV/XLSX borné,
+- Lot N5M : analyse du répertoire. **Interface, API et worker VPS de preview
+  déployés et testés** : modèle fictif, parseur CSV/XLSX borné,
   refus des formules et macros,
   antivirus ClamAV avant lecture, SHA-256 du fichier, HMAC des coordonnées,
   lignes de rapport privées, doublons et relations contrôlés. L'écran sépare
@@ -233,8 +233,18 @@ l'autorisation de quota définie par le propriétaire.
   contact brut n'est écrit dans les lignes de quarantaine et aucun fichier réel
   n'a été utilisé. La migration est appliquée uniquement à la base de preview :
   table et file vides, RLS forcée, droits publics révoqués et lint SQL sans erreur.
-  Les API de rapport, approbation et activation refusent une visite anonyme ; le
-  parcours ClamAV complet attend l'installation autorisée du worker.
+  Les API de rapport, approbation et activation refusent une visite anonyme. Le
+  worker possède un secret HMAC dédié et un timer d'une minute. La recette
+  intégrée a produit `review` pour quatre lignes fictives sans identité brute,
+  rejeté EICAR, puis confirmé zéro import, ligne, audit ou travail de test. Les
+  parcours humains d'approbation, remplacement et suppression restent à tester.
+- Lot N5N : gouvernance des documents confiés à l'agent. **Entrée renforcée en
+  preview** : le type annuaire est retiré de ce dépôt, le formulaire vierge est
+  identifié, et le service responsable, le périmètre, la date d'effet, la date
+  de révision et l'explication métier sont obligatoires. La migration est
+  appliquée sur la base isolée, vide, avec RLS forcée et aucun droit client.
+  L'antivirus documentaire, l'extraction et la revue de publication restent à
+  implémenter.
 - Lot N6 : tests de non-régression, build, contrôle mobile et rapport d'écarts.
   **Partiellement validé en preview** : 200 transactions concurrentes sans perte
   ni reste après nettoyage, 135 contrôles de sécurité, build réussi, PWA active,

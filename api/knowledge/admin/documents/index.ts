@@ -55,6 +55,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         .values({
           institutionId: context.institutionId,
           ...input,
+          reviewDueAt: new Date(input.reviewDueAt),
           storageBucket: KNOWLEDGE_DOCUMENT_BUCKET,
           storagePath,
           uploadedBy: context.user.id,

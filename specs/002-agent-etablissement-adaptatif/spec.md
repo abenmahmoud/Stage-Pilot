@@ -132,6 +132,26 @@ leur date, leur responsable et leur état de validité.
 - **FR-038** : le portail peut recevoir des demandes en continu, tandis que disponibilité humaine et notifications suivent les horaires et règles de diffusion validés par l'établissement.
 - **FR-039** : une information générale d'orientation peut être expliquée ; toute évaluation, affectation, admission, sanction ou décision individuelle reste hors automatisation.
 - **FR-040** : l'agent peut créer ou compléter une demande dans LyceeGest via un outil autorisé, mais n'écrit dans aucun système officiel externe sans connecteur, finalité, rôle, confirmation et audit validés.
+- **FR-041** : l'espace superadministrateur sépare explicitement le répertoire
+  privé des personnes et les documents de connaissance ; un fichier ne peut
+  jamais passer silencieusement d'un périmètre à l'autre.
+- **FR-042** : un répertoire opérationnel peut conserver les champs strictement
+  nécessaires sous forme chiffrée, mais seul un outil déterministe autorisé peut
+  en retourner un résultat minimal après contrôle identité, rôle, relation,
+  finalité et journalisation ; la liste complète n'est jamais fournie au modèle.
+- **FR-043** : mots de passe, codes ENT ou PRONOTE et secrets d'activation sont
+  refusés dans le répertoire et dans les connaissances. Une future remise de
+  code utilise un coffre distinct, une durée courte, une identité confirmée et
+  une validation humaine.
+- **FR-044** : lors du dépôt d'un document de connaissance, le
+  superadministrateur indique son objet, son propriétaire, sa classification,
+  les services autorisés, sa date d'effet et sa date de révision. Le document
+  reste en brouillon jusqu'au contrôle antivirus, à l'extraction bornée et à la
+  validation humaine.
+- **FR-045** : un formulaire vierge, par exemple une autorisation de voyage, peut
+  être publié comme source ou modèle ; toute liste de participants ou pièce
+  nominative associée reste dans un stockage privé séparé et n'est jamais
+  intégrée aux connaissances générales.
 
 ## Exigences non fonctionnelles
 
@@ -147,6 +167,12 @@ leur date, leur responsable et leur état de validité.
 - **NFR-010** : français clair, langage adapté au profil, accessibilité clavier et messages compréhensibles.
 - **NFR-011** : le portail supporte au minimum 3 000 visites mensuelles et les pointes de rentrée sans lier sa disponibilité à celle du fournisseur IA.
 - **NFR-012** : une synchronisation défaillante, une source périmée ou un modèle indisponible ne doit jamais supprimer une demande ni bloquer le formulaire classique.
+- **NFR-013** : les noms, coordonnées, relations et identifiants issus du
+  répertoire privé ne sont jamais transmis à un fournisseur de modèle ; seuls
+  des résultats minimaux autorisés peuvent être reformulés après masquage.
+- **NFR-014** : chaque import privé possède une version, une empreinte, un
+  responsable, une durée de conservation, une procédure de remplacement et une
+  preuve de suppression ou d'archivage contrôlé.
 
 ## Règles d'autorité
 

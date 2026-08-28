@@ -5,6 +5,31 @@
 **Depot** : `abenmahmoud/Stage-Pilot`
 **Dernier jalon de code verifie** : candidate publiée sur la production Vercel
 
+## Jalon du 29 août 2026 - worker du répertoire privé sur le VPS de preview
+
+- Après autorisation explicite, le worker d'annuaire a été installé de manière
+  additive dans `/opt/lycee-support-preview`, avec secret HMAC généré sur le VPS,
+  ClamAV et timer systemd d'une minute. Aucun autre service, domaine ou
+  environnement n'a été modifié.
+- La recette intégrée a envoyé un CSV de quatre lignes fictives : état `review`,
+  preuve antivirus propre et aucune identité brute conservée. EICAR a été bloqué
+  et le nettoyage a confirmé zéro import, ligne, audit ou travail restant.
+- Les timers du répertoire, de l'email et des pièces jointes sont actifs ; le
+  second déclenchement automatique du nouveau worker s'est terminé avec le code
+  `0`. L'audit npm du répertoire VPS ne trouve aucune vulnérabilité.
+- Le besoin durable est maintenant séparé en deux entrées superadministrateur :
+  répertoire privé d'identités et documents de connaissance validés. Les codes
+  ENT/PRONOTE, mots de passe et secrets sont interdits dans les deux. Un futur
+  coffre chiffré et des outils déterministes seront nécessaires pour consulter
+  des noms ou coordonnées sans les transmettre au modèle.
+- La preuve détaillée est conservée dans
+  `docs/operations/IDENTITY_DIRECTORY_WORKER_VPS_2026-08-29.md`.
+- Le dépôt documentaire superadministrateur est désormais séparé du répertoire
+  des personnes : plus de type annuaire, ajout du formulaire vierge, service
+  responsable, périmètre, date d'effet et échéance de révision obligatoires. La
+  migration `20260828232200` est appliquée uniquement à la preview vide ; RLS est
+  forcée, les droits clients sont absents, huit tests ciblés et le build passent.
+
 ## Jalon du 29 août 2026 - analyse privée du répertoire préparée
 
 - Le format fictif du répertoire, le parseur CSV/XLSX borné à 25 000 lignes et
@@ -22,9 +47,10 @@
   table et la file sont vides, RLS est forcée, les rôles publics n'ont aucun
   droit et le lint SQL ne remonte aucune erreur. Une insertion de cinq lignes
   fictives a été validée dans une transaction ensuite annulée.
-- Le secret du worker et son timer VPS ne sont pas encore installés. Aucune
-  donnée réelle n'a été importée, aucun VPS ni domaine de production n'a été
-  modifié et la recette ClamAV complète reste obligatoire avec le modèle fictif.
+- Le secret et le timer, absents lors de ce premier jalon, ont ensuite été
+  installés et testés sur le VPS de preview comme indiqué dans le jalon ci-dessus.
+  Aucune donnée réelle n'a été importée et aucun domaine de production n'a été
+  modifié.
 - Le commit `7cb7a40` est publié sur la preview Vercel
   `lyceegest-1rzm9kjdt-safe-scol.vercel.app` et sur l'alias de branche. L'écran
   administratif et le modèle fictif répondent en HTTP 200 ; rapport,
