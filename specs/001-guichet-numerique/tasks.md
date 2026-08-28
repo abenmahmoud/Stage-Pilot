@@ -153,7 +153,10 @@ Le support continue à fonctionner si l'IA est coupée.
 
 - [x] **T041** Choisir OpenAI `gpt-5.6-luna` et confirmer la réutilisation de la
   clé existante pour l'aperçu protégé.
-- [ ] **T042** Ajouter le pseudonymiseur et ses tests de non-fuite.
+- [x] **T042** Ajouter le pseudonymiseur et ses tests de non-fuite. Les emails,
+  téléphones, noms explicitement déclarés, adresses, dates de naissance,
+  identifiants élève et secrets sont masqués avant l'appel IA. Le besoin utile
+  reste disponible pour le classement et l'appel conserve `store: false`.
 - [x] **T043** Définir le schéma de sortie classification/réponse/urgence/pièces.
 - [x] **T044** Implémenter l'adaptateur IA serveur, `store: false`, avec repli local.
 - [ ] **T045** Ajouter seuils de confiance et retour aux règles déterministes.

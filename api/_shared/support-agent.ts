@@ -8,6 +8,7 @@ import {
 } from "../../shared/assistant-policy.js";
 import { evaluateLaptopIntake } from "../../shared/laptop-intake.js";
 import type { KnowledgeActor } from "../../shared/skill-registry-policy.js";
+import { pseudonymizeSupportText } from "../../shared/support-pseudonymizer.js";
 
 export type SupportAgentMessage = {
   role: "assistant" | "requester";
@@ -129,14 +130,6 @@ Règles:
 - Une seule question nécessaire à la fois. Ne prolonge pas artificiellement la conversation.
 - Pour une demande du lycée, mets readyToCreate à true dès que le problème, son effet et un essai ou contexte utile sont compris, même si l'identité et le contact restent à confirmer dans l'écran suivant.
 - readyToCreate signifie seulement que le problème est assez clair pour ouvrir un dossier; les coordonnées seront demandées localement ensuite.`;
-
-function redactPersonalData(value: string): string {
-  return value
-    .replace(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/gi, "[EMAIL_MASQUE]")
-    .replace(/(?:(?:\+|00)33[\s.-]?(?:\(0\)[\s.-]?)?|0)[1-9](?:[\s.-]?\d{2}){4}/g, "[TELEPHONE_MASQUE]")
-    .replace(/\b(je m['’]appelle|mon nom est|nom\s*:)[^\n,.!?]{2,80}/gi, "$1 [NOM_MASQUE]")
-    .replace(/\b(mot de passe|mdp|password|code secret)\s*[:=]\s*\S+/gi, "$1: [SECRET_MASQUE]");
-}
 
 function inferCategory(text: string): SupportAgentResult["category"] {
   if (/\b(inscription|réinscription|reinscription|inscrire)\b/i.test(text)) return "inscription";
@@ -332,7 +325,7 @@ export async function analyzeSupportConversation(input: {
         input: JSON.stringify({
           conversation: input.messages.slice(-10).map((message) => ({
             role: message.role,
-            content: redactPersonalData(message.content),
+            content: pseudonymizeSupportText(message.content),
           })),
           attachments: safeAttachmentSummary(input.attachments),
           scope: policy.scope,

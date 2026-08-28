@@ -3,7 +3,7 @@
 **Derniere mise a jour** : 28 aout 2026
 **Branche de travail** : `codex/lycee-connect-prototype`
 **Depot** : `abenmahmoud/Stage-Pilot`
-**Dernier jalon de code verifie** : actualisation sécurisée des droits agent
+**Dernier jalon de code verifie** : pseudonymisation des demandes avant analyse IA
 
 ## Jalon du 28 août 2026 - reprise de l'ancien site en preview
 
@@ -24,6 +24,10 @@
   et par Vercel. Les neuf alertes Supabase `auth_rls_initplan` des anciennes
   politiques MFA ont été supprimées en mettant en cache les valeurs Auth par
   requête, sans modifier les règles d'accès.
+- Les messages envoyés au modèle masquent maintenant les emails, téléphones,
+  noms explicitement déclarés, adresses, dates de naissance, identifiants élève
+  et secrets. Les tests vérifient la non-fuite et la conservation du texte utile
+  au classement; l'appel OpenAI reste limité et utilise `store: false`.
 
 ## Decision du 27 aout 2026 - espaces de traitement
 
