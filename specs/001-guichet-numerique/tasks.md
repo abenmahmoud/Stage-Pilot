@@ -164,7 +164,10 @@ Le support continue à fonctionner si l'IA est coupée.
   sortie est invalide ou de confiance faible. Une route locale de confiance
   faible ouvre le dossier dans la file `a_qualifier`.
 - [ ] **T046** Journaliser coût, durée, version et validation humaine.
-- [ ] **T047** Tester les injections de consignes dans descriptions et fichiers.
+- [x] **T047** Neutraliser et tester les injections de consignes dans les
+  descriptions et métadonnées de fichiers : balises réservées supprimées,
+  contenu des fichiers jamais transmis, nom complet omis, type MIME limité et
+  contradiction avec une route déterministe certaine refusée.
 - [x] **T048** Activer dans l'aperçu public protégé avec masquage préalable,
   limites de débit, aucune action sensible et validation humaine du dossier.
 - [x] **T048A** Ajouter la politique déterministe centrale : urgence humaine,

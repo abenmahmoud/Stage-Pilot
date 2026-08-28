@@ -33,6 +33,12 @@
   profit du classement déterministe; une demande locale ambiguë rejoint la file
   humaine `a_qualifier`. Ces comportements sont couverts par les tests agent et
   routage, y compris quand le fournisseur répond avec un JSON incomplet.
+- La conversation et les métadonnées de pièces sont explicitement traitées
+  comme données non fiables. Les balises réservées sont neutralisées, les noms
+  complets de fichiers et leur contenu ne partent pas vers le modèle, les types
+  inattendus sont réduits à `application/octet-stream` et une catégorie IA ne
+  peut plus contredire une route locale certaine. Les scénarios d'injection sont
+  couverts sans utiliser de donnée réelle.
 
 ## Decision du 27 aout 2026 - espaces de traitement
 

@@ -10,6 +10,7 @@ const BIRTH_DATE_PATTERN = /\b(date de naissance|né(?:e)? le)\s*:?\s*\d{1,2}[/.
 const SCHOOL_ID_PATTERN = /\b(INE|identifiant élève|identifiant eleve|numéro élève|numero eleve)\s*[:=]?\s*[A-Z0-9-]{6,24}\b/gi;
 const EXPLICIT_ADDRESS_PATTERN = /\b(adresse(?: postale)?\s*:)\s*[^\n]{5,140}/gi;
 const SECRET_PATTERN = /\b(mot de passe|mdp|password|code secret|code de vérification|code de verification|code otp)\s*[:=]\s*\S+/gi;
+const RESERVED_PROMPT_MARKER_PATTERN = /<\/?(?:registre_autorise_valide|system|developer|assistant|tool|instructions)\b[^>]*>/gi;
 
 export function pseudonymizeSupportText(value: string): string {
   return value
@@ -20,4 +21,8 @@ export function pseudonymizeSupportText(value: string): string {
     .replace(SCHOOL_ID_PATTERN, "$1: [IDENTIFIANT_MASQUE]")
     .replace(EXPLICIT_ADDRESS_PATTERN, "$1 [ADRESSE_MASQUEE]")
     .replace(SECRET_PATTERN, "$1: [SECRET_MASQUE]");
+}
+
+export function neutralizeSupportPromptMarkers(value: string): string {
+  return value.replace(RESERVED_PROMPT_MARKER_PATTERN, "[BALISE_UTILISATEUR_MASQUEE]");
 }
