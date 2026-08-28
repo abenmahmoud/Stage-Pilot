@@ -32,6 +32,7 @@
     "test:public-skill-context": "node --experimental-strip-types scripts/test-public-agent-skill-policy.mjs",
     "test:knowledge-actor": "node --experimental-strip-types scripts/test-knowledge-actor-policy.mjs",
     "test:knowledge-registry-security": "node --import ./scripts/ts-test-resolver.mjs --experimental-strip-types scripts/test-knowledge-registry-security.mjs",
+    "test:knowledge-document-ingestion": "node --import ./scripts/ts-test-resolver.mjs --experimental-strip-types scripts/test-knowledge-document-ingestion.mjs",
     "test:identity-access": "node --experimental-strip-types scripts/test-identity-access-policy.mjs",
     "test:support-queue": "node --experimental-strip-types scripts/test-support-queue-policy.mjs",
     "test:legacy-import": "node --experimental-strip-types scripts/test-legacy-import.mjs",
@@ -62,6 +63,7 @@
     "react-router-dom": "^7.18.2",
     "remark-gfm": "4.0.1",
     "turndown": "^7.2.4",
+    "tus-js-client": "4.3.1",
     "xlsx": "https://cdn.sheetjs.com/xlsx-0.20.3/xlsx-0.20.3.tgz"
   },
   "devDependencies": {

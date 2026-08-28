@@ -7,6 +7,8 @@ import {
   BookOpenCheck,
   Database,
   FileCheck2,
+  FileText,
+  FileUp,
   History,
   LoaderCircle,
   Plus,
@@ -15,6 +17,11 @@ import {
   ShieldCheck,
 } from "lucide-react";
 import { apiFetch } from "../../lib/api";
+import { uploadKnowledgeDocument } from "../../lib/resumable-upload";
+import {
+  KNOWLEDGE_DOCUMENT_MAX_BYTES,
+  knowledgeDocumentMime,
+} from "../../../shared/knowledge-document-input";
 
 type SourceStatus = "draft" | "published" | "expired" | "revoked";
 type VersionStatus = "draft" | "review" | "published" | "retired";
@@ -55,6 +62,32 @@ type SkillVersion = {
 };
 
 type SourceLink = { skillVersionId: string; sourceId: string };
+type KnowledgeDocumentStatus =
+  | "reserved"
+  | "uploaded"
+  | "quarantined"
+  | "processing"
+  | "review"
+  | "ready"
+  | "rejected"
+  | "failed";
+type KnowledgeDocument = {
+  id: string;
+  title: string;
+  purposeDescription: string;
+  sourceType: string;
+  classification: string;
+  serviceCodes: string[];
+  originalName: string;
+  mimeType: string;
+  sizeBytes: number;
+  status: KnowledgeDocumentStatus;
+  analysisSummary: string | null;
+  analysisError: string | null;
+  sourceId: string | null;
+  createdAt: string;
+  uploadedAt: string | null;
+};
 type Evaluation = {
   skillVersionId: string;
   testCaseKey: string;
@@ -99,6 +132,17 @@ const STATUS_STYLE: Record<SourceStatus | VersionStatus, string> = {
   retired: "bg-gray-200 text-gray-600",
 };
 
+const DOCUMENT_STATUS: Record<KnowledgeDocumentStatus, { label: string; style: string }> = {
+  reserved: { label: "Transfert à terminer", style: "bg-slate-100 text-slate-700" },
+  uploaded: { label: "Analyse à préparer", style: "bg-blue-100 text-blue-800" },
+  quarantined: { label: "Contrôle de sécurité", style: "bg-amber-100 text-amber-800" },
+  processing: { label: "Analyse en cours", style: "bg-cyan-100 text-cyan-800" },
+  review: { label: "À relire", style: "bg-amber-100 text-amber-800" },
+  ready: { label: "Validé", style: "bg-emerald-100 text-emerald-800" },
+  rejected: { label: "Refusé", style: "bg-red-100 text-red-800" },
+  failed: { label: "Échec d’analyse", style: "bg-red-100 text-red-800" },
+};
+
 const SERVICE_OPTIONS = [
   ["referent_numerique", "Numérique"],
   ["ddfpt", "DDFPT"],
@@ -138,7 +182,8 @@ function Status({ value }: { value: SourceStatus | VersionStatus }) {
 
 export default function KnowledgeRegistryPage() {
   const [registry, setRegistry] = useState<Registry>(EMPTY_REGISTRY);
-  const [tab, setTab] = useState<"skills" | "sources" | "history">("skills");
+  const [documents, setDocuments] = useState<KnowledgeDocument[]>([]);
+  const [tab, setTab] = useState<"documents" | "skills" | "sources" | "history">("documents");
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
@@ -146,6 +191,16 @@ export default function KnowledgeRegistryPage() {
   const [sourceOpen, setSourceOpen] = useState(false);
   const [skillOpen, setSkillOpen] = useState(false);
   const [versionSkillId, setVersionSkillId] = useState<string | null>(null);
+  const [documentOpen, setDocumentOpen] = useState(false);
+  const [documentFile, setDocumentFile] = useState<File | null>(null);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [documentDraft, setDocumentDraft] = useState(() => ({
+    title: "",
+    purposeDescription: "",
+    sourceType: "procedure",
+    classification: "internal",
+    serviceCodes: [] as string[],
+  }));
   const [sourceDraft, setSourceDraft] = useState(() => ({
     title: "",
     sourceType: "official_url",
@@ -184,7 +239,12 @@ export default function KnowledgeRegistryPage() {
     setLoading(true);
     setError("");
     try {
-      setRegistry(await apiFetch<Registry>("knowledge/admin"));
+      const [nextRegistry, documentResult] = await Promise.all([
+        apiFetch<Registry>("knowledge/admin"),
+        apiFetch<{ documents: KnowledgeDocument[] }>("knowledge/admin/documents"),
+      ]);
+      setRegistry(nextRegistry);
+      setDocuments(documentResult.documents);
     } catch (reason) {
       setError(reason instanceof Error ? reason.message : "Chargement impossible.");
     } finally {
@@ -193,6 +253,53 @@ export default function KnowledgeRegistryPage() {
   }
 
   useEffect(() => { void load(); }, []);
+
+  async function uploadDocument(event: React.FormEvent) {
+    event.preventDefault();
+    if (!documentFile) {
+      setError("Choisissez un document.");
+      return;
+    }
+    const mimeType = knowledgeDocumentMime(documentFile.name, documentFile.type);
+    setBusy(true); setError(""); setNotice(""); setUploadProgress(0);
+    try {
+      const reservation = await apiFetch<{
+        document: KnowledgeDocument;
+        upload: { bucket: string; path: string; token: string };
+      }>("knowledge/admin/documents", {
+        method: "POST",
+        body: JSON.stringify({
+          ...documentDraft,
+          originalName: documentFile.name,
+          mimeType,
+          sizeBytes: documentFile.size,
+        }),
+      });
+      const uploadFile = documentFile.type === mimeType
+        ? documentFile
+        : new File([documentFile], documentFile.name, { type: mimeType });
+      await uploadKnowledgeDocument(uploadFile, reservation.upload, setUploadProgress);
+      await apiFetch(`knowledge/admin/documents/${reservation.document.id}/confirm`, {
+        method: "POST",
+      });
+      setNotice("Document reçu dans l’espace privé. Il n’est pas encore utilisé par l’agent.");
+      setDocumentOpen(false);
+      setDocumentFile(null);
+      setDocumentDraft({
+        title: "",
+        purposeDescription: "",
+        sourceType: "procedure",
+        classification: "internal",
+        serviceCodes: [],
+      });
+      await load();
+    } catch (reason) {
+      setError(reason instanceof Error ? reason.message : "Le dépôt du document a échoué.");
+    } finally {
+      setBusy(false);
+      setUploadProgress(0);
+    }
+  }
 
   async function createSource(event: React.FormEvent) {
     event.preventDefault();
@@ -311,7 +418,8 @@ export default function KnowledgeRegistryPage() {
         <button type="button" onClick={() => void load()} disabled={loading} title="Actualiser" className="inline-flex h-10 w-10 items-center justify-center rounded-md border bg-white text-slate-600 disabled:opacity-50"><RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} /></button>
       </header>
 
-      <section className="grid gap-3 sm:grid-cols-3" aria-label="État du registre">
+      <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4" aria-label="État du registre">
+        <Metric icon={FileText} label="Documents à traiter" value={documents.filter((document) => !["ready", "rejected"].includes(document.status)).length} />
         <Metric icon={BookOpenCheck} label="Compétences actives" value={registry.skills.filter((skill) => skill.enabled).length} />
         <Metric icon={Database} label="Sources validées" value={publishedSources.length} />
         <Metric icon={AlertTriangle} label="À vérifier" value={registry.versions.filter((version) => version.status === "review").length + registry.sources.filter((source) => source.status === "draft").length} />
@@ -321,12 +429,42 @@ export default function KnowledgeRegistryPage() {
       {notice ? <p role="status" className="rounded-md border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-800">{notice}</p> : null}
 
       <div className="flex flex-wrap gap-2 border-b border-slate-200">
+        <Tab active={tab === "documents"} onClick={() => setTab("documents")}><FileUp /> Documents</Tab>
         <Tab active={tab === "skills"} onClick={() => setTab("skills")}><BookOpenCheck /> Compétences</Tab>
         <Tab active={tab === "sources"} onClick={() => setTab("sources")}><Database /> Sources</Tab>
         <Tab active={tab === "history"} onClick={() => setTab("history")}><History /> Historique</Tab>
       </div>
 
       {loading ? <div className="flex min-h-64 items-center justify-center"><LoaderCircle className="h-7 w-7 animate-spin text-emerald-700" /></div> : null}
+
+      {!loading && tab === "documents" ? <section className="space-y-4">
+        <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-end">
+          <div><h2 className="text-lg font-bold">Documents confiés à l’agent</h2><p className="text-sm text-slate-500">Aucun document n’est actif avant votre validation.</p></div>
+          <button type="button" onClick={() => setDocumentOpen((value) => !value)} className="inline-flex items-center justify-center gap-2 rounded-md bg-emerald-700 px-4 py-2 text-sm font-semibold text-white"><FileUp className="h-4 w-4" /> Ajouter un document</button>
+        </div>
+        {documentOpen ? <DocumentUploadForm
+          draft={documentDraft}
+          setDraft={setDocumentDraft}
+          file={documentFile}
+          setFile={setDocumentFile}
+          progress={uploadProgress}
+          busy={busy}
+          onSubmit={uploadDocument}
+        /> : null}
+        <div className="divide-y border-y border-slate-200 bg-white">
+          {documents.map((document) => <article key={document.id} className="grid gap-3 px-4 py-4 md:grid-cols-[minmax(0,1fr)_180px_150px] md:items-center">
+            <div className="min-w-0">
+              <strong className="block truncate text-slate-950">{document.title}</strong>
+              <span className="block truncate text-xs text-slate-500">{document.originalName} · {formatBytes(document.sizeBytes)}</span>
+              <p className="mt-2 line-clamp-2 text-sm text-slate-600">{document.purposeDescription}</p>
+              {document.analysisError ? <p className="mt-2 text-xs text-red-700">{document.analysisError}</p> : null}
+            </div>
+            <div><span className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold ${DOCUMENT_STATUS[document.status].style}`}>{DOCUMENT_STATUS[document.status].label}</span><span className="mt-1 block text-xs text-slate-500">{document.classification}</span></div>
+            <time className="text-xs text-slate-500">Ajouté le<br />{dateLabel(document.createdAt)}</time>
+          </article>)}
+          {documents.length === 0 ? <Empty text="Aucun document n’a encore été confié à l’agent." /> : null}
+        </div>
+      </section> : null}
 
       {!loading && tab === "skills" ? <section className="space-y-4">
         <div className="flex justify-between gap-3"><div><h2 className="text-lg font-bold">Compétences de l’agent</h2><p className="text-sm text-slate-500">Une version publiée peut être retirée immédiatement.</p></div><button type="button" onClick={startNewSkill} className="inline-flex items-center gap-2 rounded-md bg-emerald-700 px-4 py-2 text-sm font-semibold text-white"><Plus className="h-4 w-4" /> Nouvelle</button></div>
@@ -359,6 +497,71 @@ function IconAction({ title, disabled, onClick, children }: { title: string; dis
 }
 
 function Empty({ text }: { text: string }) { return <p className="px-4 py-10 text-center text-sm text-slate-500">{text}</p>; }
+
+function formatBytes(value: number): string {
+  if (value < 1024 * 1024) return `${Math.max(1, Math.round(value / 1024))} Ko`;
+  return `${(value / (1024 * 1024)).toLocaleString("fr-FR", { maximumFractionDigits: 1 })} Mo`;
+}
+
+type DocumentDraft = {
+  title: string;
+  purposeDescription: string;
+  sourceType: string;
+  classification: string;
+  serviceCodes: string[];
+};
+
+function DocumentUploadForm({
+  draft,
+  setDraft,
+  file,
+  setFile,
+  progress,
+  busy,
+  onSubmit,
+}: {
+  draft: DocumentDraft;
+  setDraft: React.Dispatch<React.SetStateAction<DocumentDraft>>;
+  file: File | null;
+  setFile: React.Dispatch<React.SetStateAction<File | null>>;
+  progress: number;
+  busy: boolean;
+  onSubmit: (event: React.FormEvent) => void;
+}) {
+  const fileTooLarge = Boolean(file && file.size > KNOWLEDGE_DOCUMENT_MAX_BYTES);
+  const unsupportedFile = Boolean(file && !knowledgeDocumentMime(file.name, file.type));
+  return <form onSubmit={onSubmit} className="grid gap-4 border-y border-slate-200 bg-slate-50 p-4 sm:grid-cols-2">
+    <Field label="Document" wide>
+      <label className="flex min-h-28 cursor-pointer flex-col items-center justify-center border-2 border-dashed border-slate-300 bg-white px-4 py-5 text-center hover:border-emerald-600">
+        <FileUp className="h-6 w-6 text-emerald-700" />
+        <strong className="mt-2 text-sm text-slate-900">{file ? file.name : "Choisir un fichier"}</strong>
+        <span className="mt-1 text-xs text-slate-500">PDF, Word, Excel, PowerPoint, texte, CSV ou image · 50 Mo maximum</span>
+        <input
+          className="sr-only"
+          type="file"
+          required
+          accept=".pdf,.docx,.xlsx,.pptx,.txt,.csv,.jpg,.jpeg,.png"
+          disabled={busy}
+          onChange={(event) => {
+            const next = event.target.files?.[0] ?? null;
+            setFile(next);
+            if (next && !draft.title) {
+              setDraft((value) => ({ ...value, title: next.name.replace(/\.[^.]+$/, "") }));
+            }
+          }}
+        />
+      </label>
+      {file ? <small className={`mt-1 block text-xs ${fileTooLarge || unsupportedFile ? "text-red-700" : "text-slate-500"}`}>{fileTooLarge ? "Ce fichier dépasse la limite actuelle de 50 Mo." : unsupportedFile ? "Ce format n’est pas accepté." : formatBytes(file.size)}</small> : null}
+    </Field>
+    <Field label="Titre"><input className="field bg-white" required value={draft.title} onChange={(event) => setDraft((value) => ({ ...value, title: event.target.value }))} /></Field>
+    <Field label="Nature"><select className="field bg-white" value={draft.sourceType} onChange={(event) => setDraft((value) => ({ ...value, sourceType: event.target.value }))}><option value="procedure">Procédure</option><option value="internal_document">Document interne</option><option value="directory">Annuaire</option><option value="calendar">Calendrier</option></select></Field>
+    <Field label="Confidentialité"><select className="field bg-white" value={draft.classification} onChange={(event) => setDraft((value) => ({ ...value, classification: event.target.value, serviceCodes: event.target.value === "public" ? [] : value.serviceCodes }))}><option value="public">Public</option><option value="internal">Interne</option><option value="personal">Données personnelles</option><option value="sensitive">Sensible</option></select></Field>
+    <Field label="Service propriétaire"><select disabled={draft.classification === "public"} className="field bg-white" value={draft.serviceCodes[0] ?? ""} onChange={(event) => setDraft((value) => ({ ...value, serviceCodes: event.target.value ? [event.target.value] : [] }))}><option value="">Transverse</option>{SERVICE_OPTIONS.map(([value, label]) => <option value={value} key={value}>{label}</option>)}</select></Field>
+    <Field label="Ce que l’agent doit comprendre" wide><textarea className="field bg-white" rows={6} required minLength={20} maxLength={4000} placeholder="Expliquez le contenu, à qui il s’adresse, les règles importantes, les dates et ce que l’agent ne doit jamais déduire." value={draft.purposeDescription} onChange={(event) => setDraft((value) => ({ ...value, purposeDescription: event.target.value }))} /></Field>
+    {busy ? <div className="sm:col-span-2" role="status"><div className="mb-1 flex justify-between text-xs font-medium text-slate-600"><span>Transfert privé</span><span>{progress} %</span></div><div className="h-2 overflow-hidden bg-slate-200"><div className="h-full bg-emerald-600 transition-[width]" style={{ width: `${progress}%` }} /></div></div> : null}
+    <div className="sm:col-span-2"><button type="submit" disabled={busy || !file || fileTooLarge || unsupportedFile} className="inline-flex items-center gap-2 rounded-md bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-50">{busy ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <FileUp className="h-4 w-4" />} Déposer pour analyse</button></div>
+  </form>;
+}
 
 function SourceForm({ draft, setDraft, busy, onSubmit }: { draft: ReturnType<typeof sourceDefaults>; setDraft: React.Dispatch<React.SetStateAction<ReturnType<typeof sourceDefaults>>>; busy: boolean; onSubmit: (event: React.FormEvent) => void }) {
   return <form onSubmit={onSubmit} className="grid gap-4 border-y border-slate-200 bg-slate-50 p-4 sm:grid-cols-2"><Field label="Titre"><input className="field bg-white" required value={draft.title} onChange={(event) => setDraft((value) => ({ ...value, title: event.target.value }))} /></Field><Field label="Type"><select className="field bg-white" value={draft.sourceType} onChange={(event) => setDraft((value) => ({ ...value, sourceType: event.target.value }))}><option value="official_url">Page officielle</option><option value="internal_document">Document interne</option><option value="procedure">Procédure</option><option value="directory">Annuaire</option><option value="calendar">Calendrier</option></select></Field><Field label="Adresse ou référence privée" wide><input className="field bg-white" required value={draft.uri} onChange={(event) => setDraft((value) => ({ ...value, uri: event.target.value }))} /></Field><Field label="Classification"><select className="field bg-white" value={draft.classification} onChange={(event) => setDraft((value) => ({ ...value, classification: event.target.value, serviceCodes: event.target.value === "public" ? [] : value.serviceCodes }))}><option value="public">Publique</option><option value="internal">Interne</option><option value="personal">Personnelle</option><option value="sensitive">Sensible</option></select></Field><Field label="Service"><select disabled={draft.classification === "public"} className="field bg-white" value={draft.serviceCodes[0] ?? ""} onChange={(event) => setDraft((value) => ({ ...value, serviceCodes: event.target.value ? [event.target.value] : [] }))}><option value="">Transverse</option>{SERVICE_OPTIONS.map(([value, label]) => <option value={value} key={value}>{label}</option>)}</select></Field><Field label="Valide à partir du"><input type="datetime-local" className="field bg-white" required value={draft.validFrom} onChange={(event) => setDraft((value) => ({ ...value, validFrom: event.target.value }))} /></Field><Field label="Révision avant le"><input type="datetime-local" className="field bg-white" value={draft.expiresAt} onChange={(event) => setDraft((value) => ({ ...value, expiresAt: event.target.value }))} /></Field><Field label="Empreinte de contrôle du document" wide><input className="field bg-white font-mono text-xs" required minLength={64} maxLength={64} value={draft.checksum} onChange={(event) => setDraft((value) => ({ ...value, checksum: event.target.value.trim() }))} /><small className="mt-1 block text-xs text-slate-500">Elle garantit que l’agent utilise exactement la version validée.</small></Field><div className="sm:col-span-2"><button type="submit" disabled={busy} className="inline-flex items-center gap-2 rounded-md bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-50"><Database className="h-4 w-4" /> Enregistrer le brouillon</button></div></form>;

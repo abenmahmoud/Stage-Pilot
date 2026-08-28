@@ -62,6 +62,19 @@
 - [ ] T017 Bloquer techniquement toute exécution L4.
 - [ ] T018 Construire la boîte de validation L3 avec expiration, motif et audit.
 - [ ] T019 Mettre les pièces dans un stockage privé avec antivirus, type, taille et URL temporaire.
+- [ ] T019A Construire l'alimentation documentaire du registre : dépôt privé
+  reprenable, explication métier, classification, propriétaire, état d'analyse
+  et validation humaine avant toute activation.
+- [x] T019A1 Livrer en preview le premier jalon : bucket privé de 50 Mo,
+  transfert TUS reprenable, explication métier, classification, service
+  propriétaire, suivi d'état et séparation stricte du registre publié. Aucun
+  document réel n'a été importé et aucun dépôt ne peut activer l'agent.
+- [ ] T019B Extraire les PDF, DOCX, XLSX, PPTX, TXT et CSV par segments bornés,
+  calculer l'empreinte réelle côté worker et placer les fichiers en quarantaine
+  jusqu'au contrôle antivirus.
+- [ ] T019C Produire une proposition IA structurée et résistante aux injections,
+  afficher les conflits et questions, puis exiger une validation humaine avant
+  la création d'une source ou d'une compétence.
 - [ ] T020 Ajouter masquage des données, rétention, purge et journal d'accès.
 - [ ] T021 Ajouter les limites de débit par appareil, compte, contact et comportement.
 - [ ] T022 Tester injection de prompt, usurpation d'identité et accès croisé.

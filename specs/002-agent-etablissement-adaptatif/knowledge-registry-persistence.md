@@ -37,6 +37,33 @@ retrait ou un retour arrière exige en plus une session MFA `aal2` actuelle.
    dépendent.
 6. Une ancienne version publiée et encore valable peut être réactivée.
 
+## Alimentation documentaire administrateur
+
+Le responsable métier doit pouvoir alimenter l'agent sans modifier le code. Le
+parcours retenu est :
+
+1. déposer un document dans un bucket privé avec transfert direct et reprenable ;
+2. expliquer en français simple son objet, son public, son service propriétaire
+   et ce que l'agent doit apprendre ;
+3. contrôler le type, la taille, l'intégrité et l'absence de contenu dangereux ;
+4. extraire et indexer le document par pages ou segments bornés, sans envoyer un
+   très gros fichier entier au modèle ;
+5. produire une proposition structurée : résumé, faits, règles, dates, cas
+   ambigus, interdictions et questions à trancher ;
+6. faire relire la proposition par un humain puis seulement créer une source et
+   une version de compétence publiables.
+
+L'explication donnée au dépôt est un contexte métier, pas une preuve officielle.
+Un fichier déposé ne devient jamais automatiquement une connaissance active. Les
+documents personnels ou sensibles ne sont pas injectés directement dans le
+prompt général et nécessitent un outil contrôlé avec journal d'accès.
+
+Le premier jalon utilise un bucket `knowledge-ingest` privé et un enregistrement
+`knowledge_documents` distinct du registre publié. La limite applicative est
+configurable et reste plafonnée par les limites globales et par bucket du projet
+Supabase. Au-delà de 6 Mo, le navigateur utilise TUS avec reprise et progression,
+sans faire transiter le fichier par une fonction Vercel.
+
 ## Vérifications réalisées
 
 - migration appliquée au projet Supabase de preview `guichet-lycee-preview` ;
@@ -46,6 +73,14 @@ retrait ou un retour arrière exige en plus une session MFA `aal2` actuelle.
 - parseurs stricts pour les versions, sources, dates, empreintes et outils ;
 - tests unitaires de publication, expiration, cloisonnement et retour arrière ;
 - compilation de production réussie.
+- premier jalon d'alimentation documentaire appliqué à la base de preview :
+  table `knowledge_documents` vide, RLS forcé, aucun droit direct `anon` ou
+  `authenticated`, bucket `knowledge-ingest` privé limité à 50 Mo ;
+- transfert TUS direct et reprenable, formats bornés, chemin opaque par
+  établissement et tests empêchant la création automatique d'une source ;
+- 32 suites de tests ordinaires et compilation de production réussies le
+  28 août 2026 ; le test de charge, volontairement générateur de demandes, n'a
+  pas été rejoué pour ce lot.
 
 ## État du worker d'expiration
 

@@ -311,6 +311,52 @@ export const knowledgeSources = pgTable(
   ]
 );
 
+export const knowledgeDocuments = pgTable(
+  "knowledge_documents",
+  {
+    id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+    institutionId: uuid("institution_id")
+      .notNull()
+      .references(() => institutions.id, { onDelete: "cascade" }),
+    sourceId: uuid("source_id").references(() => knowledgeSources.id, {
+      onDelete: "restrict",
+    }),
+    title: text("title").notNull(),
+    purposeDescription: text("purpose_description").notNull(),
+    sourceType: text("source_type").notNull(),
+    classification: text("classification").notNull().default("internal"),
+    serviceCodes: text("service_codes")
+      .array()
+      .notNull()
+      .default(sql`array[]::text[]`),
+    originalName: text("original_name").notNull(),
+    mimeType: text("mime_type").notNull(),
+    sizeBytes: bigint("size_bytes", { mode: "number" }).notNull(),
+    storageBucket: text("storage_bucket").notNull().default("knowledge-ingest"),
+    storagePath: text("storage_path").notNull().unique(),
+    status: text("status").notNull().default("reserved"),
+    checksum: text("checksum"),
+    analysisSummary: text("analysis_summary"),
+    proposedKnowledge: jsonb("proposed_knowledge").notNull().default({}),
+    analysisError: text("analysis_error"),
+    uploadedBy: uuid("uploaded_by").notNull(),
+    reviewedBy: uuid("reviewed_by"),
+    uploadedAt: timestamp("uploaded_at", { withTimezone: true }),
+    analyzedAt: timestamp("analyzed_at", { withTimezone: true }),
+    reviewedAt: timestamp("reviewed_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    index("knowledge_documents_institution_status_idx").on(
+      table.institutionId,
+      table.status,
+      table.createdAt
+    ),
+    index("knowledge_documents_service_codes_idx").using("gin", table.serviceCodes),
+  ]
+);
+
 export const agentSkills = pgTable(
   "agent_skills",
   {

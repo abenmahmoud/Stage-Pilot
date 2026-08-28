@@ -451,6 +451,11 @@ sa specification.
 - Ajouter rappels telephoniques, relances SLA, doublons, tableau de sante et file
   d'echec administrable.
 - Mettre en place sauvegarde chiffree et test documente de restauration.
+- Le 28 août 2026, le premier jalon d'alimentation documentaire du registre a
+  été ajouté uniquement à la preview : dépôt privé TUS reprenable jusqu'à
+  50 Mo, explication métier, classification et service propriétaire. Le fichier
+  reste hors des connaissances actives tant que l'antivirus, l'extraction,
+  l'analyse structurée et la validation humaine ne sont pas terminés.
 
 ### Priorite A bis - Clarifier les communications de rentree
 
