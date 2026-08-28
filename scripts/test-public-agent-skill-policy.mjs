@@ -93,7 +93,10 @@ test("loads the registry dynamically and falls back when it is unavailable", () 
   const dynamicImport = sourceCode.indexOf('await import("./public-knowledge-context.js")');
   const modelRequest = sourceCode.indexOf('fetch("https://api.openai.com/v1/responses"');
   assert.ok(dynamicImport >= 0 && modelRequest > dynamicImport);
-  assert.match(sourceCode, /catch \{\s+publicKnowledgeContext = "";/);
+  assert.match(
+    sourceCode,
+    /catch \{\s+publicKnowledgeContext = \{ instructions: "", versions: \[\] \};/
+  );
 });
 
 test("never selects private source locators or ownership fields for the model", () => {
@@ -101,4 +104,12 @@ test("never selects private source locators or ownership fields for the model", 
   assert.doesNotMatch(loader, /uri:\s*knowledgeSources\.uri/);
   assert.doesNotMatch(loader, /checksum:\s*knowledgeSources\.checksum/);
   assert.doesNotMatch(loader, /ownerUserId:\s*knowledgeSources\.ownerUserId/);
+});
+
+test("keeps usage audit metadata free of messages and contact data", () => {
+  const loader = readFileSync(new URL("../api/_shared/public-knowledge-context.ts", import.meta.url), "utf8");
+  const auditSource = loader.slice(loader.indexOf("export async function recordPublicKnowledgeUsage"));
+  assert.match(auditSource, /action: "consult_public"/);
+  assert.match(auditSource, /actorId: null/);
+  assert.doesNotMatch(auditSource, /\b(query|reply|email|telephone|uri|checksum)\b/i);
 });

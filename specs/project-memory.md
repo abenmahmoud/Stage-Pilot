@@ -235,8 +235,9 @@ sa specification.
   désactive les compétences dépendantes ou en retard de revue et journalise une
   action système. L'assistant public consomme maintenant uniquement les versions
   actives, publiques, publiées et valides du bon établissement, avec contexte
-  borné et repli statique. Les niveaux authentifiés, les outils et l'audit de
-  consommation restent à construire.
+  borné et repli statique. Chaque version injectée est auditée après une réponse
+  IA réussie sans conserver le texte ni les coordonnées. Les niveaux
+  authentifiés et les outils restent à construire.
 - Le défaut où l'assistant répondait sans proposer clairement le dossier est
   corrigé localement : une demande scolaire complète passe à `offer_case`,
   affiche « Votre demande est prête » puis demande la vérification des coordonnées.
@@ -375,8 +376,8 @@ sa specification.
 
 - Nommer les responsables metier et inventorier les procedures reelles.
 - Definir les niveaux L0 a L4 et les validations attendues.
-- Étendre l'orchestrateur aux niveaux authentifiés et auditer les versions
-  consultées, puis valider les responsables des sources.
+- Étendre l'orchestrateur aux niveaux authentifiés et aux outils contrôlés, puis
+  valider les responsables des sources.
 - Publier progressivement `administration-scolarite`, `referent-numerique` et
   `coordination-etablissement` apres revue humaine.
 - Ajouter mesures de qualite, cout, latence, transferts et corrections.

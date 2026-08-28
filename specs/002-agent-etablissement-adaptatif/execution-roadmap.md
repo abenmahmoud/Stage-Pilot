@@ -101,8 +101,10 @@ l'autorisation de quota définie par le propriétaire.
   testée** : sélection par pertinence des seules versions actives, publiques,
   publiées et valides du bon établissement ; contrôle de toutes les sources
   obligatoires, contexte borné, aucun identifiant privé envoyé au modèle et repli
-  statique si Supabase est indisponible. Le registre de preview restant vide,
-  aucune procédure réelle n'est encore utilisée.
+  statique si Supabase est indisponible. Les UUID des versions réellement
+  injectées sont audités seulement après une réponse IA réussie, sans texte ni
+  coordonnées. Le registre de preview restant vide, aucune procédure réelle
+  n'est encore utilisée.
 - Lot N5 : files `À qualifier`, délais et dossiers sans propriétaire.
   **Visibilité opérationnelle implémentée et testée** : vue `À classer`, compteurs
   sans responsable et échéances dépassées, marqueurs par dossier et ordre par
@@ -173,7 +175,7 @@ l'autorisation de quota définie par le propriétaire.
    de nettoyage du pilote ; le dossier historique `BC-2026-000008` n'est pas
    déplacé silencieusement.
 2. Étendre l'orchestrateur aux niveaux authentifiés L1 à L4, avec autorisation
-   par service, outils contrôlés et audit des versions réellement consultées.
+   par service et outils contrôlés.
 3. Faire nommer les responsables et valider les premières sources et procédures
    avant toute compétence active contenant des informations réelles.
 

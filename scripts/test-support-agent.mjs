@@ -100,6 +100,7 @@ test("adds only the server-selected public registry context to model instruction
   const originalApiKey = process.env.OPENAI_API_KEY;
   process.env.OPENAI_API_KEY = "test-key";
   let requestBody;
+  let usageRecord;
   globalThis.fetch = async (_url, init) => {
     requestBody = JSON.parse(init.body);
     return new Response(JSON.stringify({
@@ -130,13 +131,105 @@ test("adds only the server-selected public registry context to model instruction
       safetyIdentifier: "test-session",
       knowledgeContextLoader: async (query) => {
         assert.match(query, /accès ENT/i);
-        return context;
+        return {
+          instructions: context,
+          versions: [{
+            institutionId: "00000000-0000-4000-8000-000000000001",
+            versionId: "00000000-0000-4000-8000-000000000002",
+          }],
+        };
       },
+      knowledgeUsageRecorder: async (record) => { usageRecord = record; },
     });
 
     assert.equal(result.usedAi, true);
     assert.match(requestBody.instructions, /Procédure ENT validée/);
     assert.match(requestBody.instructions, /ne prétends jamais l'avoir exécuté/i);
+    assert.deepEqual(usageRecord, {
+      versions: [{
+        institutionId: "00000000-0000-4000-8000-000000000001",
+        versionId: "00000000-0000-4000-8000-000000000002",
+      }],
+      sessionHash: "test-session",
+      model: "gpt-5.6-luna",
+      turnCount: 1,
+    });
+  } finally {
+    globalThis.fetch = originalFetch;
+    process.env.OPENAI_API_KEY = originalApiKey;
+  }
+});
+
+test("does not audit a selected skill when the model request fails", async () => {
+  const originalFetch = globalThis.fetch;
+  const originalApiKey = process.env.OPENAI_API_KEY;
+  process.env.OPENAI_API_KEY = "test-key";
+  let auditCalls = 0;
+  globalThis.fetch = async () => new Response("unavailable", { status: 503 });
+
+  try {
+    const result = await analyzeSupportConversation({
+      messages: messages("Mon accès ENT est bloqué depuis ce matin"),
+      attachments: [],
+      safetyIdentifier: "test-session",
+      knowledgeContextLoader: async () => ({
+        instructions: "<registre_public_valide>Procédure ENT</registre_public_valide>",
+        versions: [{
+          institutionId: "00000000-0000-4000-8000-000000000001",
+          versionId: "00000000-0000-4000-8000-000000000002",
+        }],
+      }),
+      knowledgeUsageRecorder: async () => { auditCalls += 1; },
+    });
+
+    assert.equal(result.usedAi, false);
+    assert.equal(auditCalls, 0);
+  } finally {
+    globalThis.fetch = originalFetch;
+    process.env.OPENAI_API_KEY = originalApiKey;
+  }
+});
+
+test("keeps a safe answer available when the usage journal is temporarily unavailable", async () => {
+  const originalFetch = globalThis.fetch;
+  const originalApiKey = process.env.OPENAI_API_KEY;
+  process.env.OPENAI_API_KEY = "test-key";
+  globalThis.fetch = async () => new Response(JSON.stringify({
+    output: [{
+      type: "message",
+      content: [{
+        type: "output_text",
+        text: JSON.stringify({
+          reply: "La procédure ENT est disponible.",
+          category: "ent",
+          requesterType: "eleve",
+          urgency: "normale",
+          missingInformation: [],
+          suggestedDocuments: [],
+          readyToCreate: false,
+          safetyNotice: null,
+        }),
+      }],
+    }],
+  }), { status: 200, headers: { "Content-Type": "application/json" } });
+
+  try {
+    const result = await analyzeSupportConversation({
+      messages: messages("Mon accès ENT est bloqué depuis ce matin"),
+      attachments: [],
+      safetyIdentifier: "test-session",
+      knowledgeContextLoader: async () => ({
+        instructions: "<registre_public_valide>Procédure ENT</registre_public_valide>",
+        versions: [{
+          institutionId: "00000000-0000-4000-8000-000000000001",
+          versionId: "00000000-0000-4000-8000-000000000002",
+        }],
+      }),
+      knowledgeUsageRecorder: async () => { throw new Error("audit unavailable"); },
+    });
+
+    assert.equal(result.usedAi, true);
+    assert.match(result.reply, /procédure ENT/i);
   } finally {
     globalThis.fetch = originalFetch;
     process.env.OPENAI_API_KEY = originalApiKey;

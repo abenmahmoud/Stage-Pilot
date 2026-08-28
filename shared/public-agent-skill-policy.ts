@@ -28,6 +28,8 @@ export type PublicAgentSkillCandidate = {
 };
 
 export type PublicAgentSkillContext = {
+  institutionId: string;
+  versionId: string;
   skillKey: string;
   name: string;
   domain: string;
@@ -146,6 +148,8 @@ export function selectPublicAgentSkillContext(input: {
       continue;
     }
     selected.push({
+      institutionId: candidate.institutionId,
+      versionId: candidate.versionId,
       skillKey: candidate.skillKey,
       name: candidate.name,
       domain: candidate.domain,

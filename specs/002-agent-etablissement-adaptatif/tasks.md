@@ -73,6 +73,9 @@
   actives et publiées de son établissement, avec version et revue valides,
   sources obligatoires publiques encore valides, budget de contexte borné et
   repli sur les règles statiques si le registre est indisponible.
+- [x] T023B Journaliser après une réponse IA réussie chaque version publique
+  réellement injectée, avec acteur système, hash de session, modèle et numéro de
+  tour, sans message, réponse, contact ni localisation privée de source.
 - [ ] T024 Construire la recherche limitée aux sources publiées, autorisées et non expirées.
 - [ ] T025 Afficher source et date de mise à jour dans les réponses de procédure.
 - [x] T026 Imposer une question essentielle à la fois et dix tours maximum par session.

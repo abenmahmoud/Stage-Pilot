@@ -19,6 +19,16 @@ export type SupportAttachmentHint = {
   size: number;
 };
 
+type RuntimeKnowledgeVersion = {
+  institutionId: string;
+  versionId: string;
+};
+
+type RuntimeKnowledgeContext = {
+  instructions: string;
+  versions: RuntimeKnowledgeVersion[];
+};
+
 export type SupportAgentResult = {
   reply: string;
   category:
@@ -240,7 +250,13 @@ export async function analyzeSupportConversation(input: {
   messages: SupportAgentMessage[];
   attachments: SupportAttachmentHint[];
   safetyIdentifier: string;
-  knowledgeContextLoader?: (query: string) => Promise<string>;
+  knowledgeContextLoader?: (query: string) => Promise<string | RuntimeKnowledgeContext>;
+  knowledgeUsageRecorder?: (input: {
+    versions: RuntimeKnowledgeVersion[];
+    sessionHash: string;
+    model: string;
+    turnCount: number;
+  }) => Promise<void>;
 }): Promise<SupportAgentResult> {
   const policy = evaluateConversationPolicy(input.messages);
   const fallback = localFallback(input.messages, input.attachments, policy);
@@ -263,19 +279,24 @@ export async function analyzeSupportConversation(input: {
   const apiKey = process.env.OPENAI_API_KEY;
   if (!apiKey) return fallback;
 
-  let publicKnowledgeContext = "";
+  let publicKnowledgeContext: RuntimeKnowledgeContext = { instructions: "", versions: [] };
+  let productionUsageRecorder: typeof input.knowledgeUsageRecorder;
   try {
     const latestRequesterMessage = [...input.messages]
       .reverse()
       .find((message) => message.role === "requester")?.content ?? "";
     if (input.knowledgeContextLoader) {
-      publicKnowledgeContext = await input.knowledgeContextLoader(latestRequesterMessage);
+      const loaded = await input.knowledgeContextLoader(latestRequesterMessage);
+      publicKnowledgeContext = typeof loaded === "string"
+        ? { instructions: loaded, versions: [] }
+        : loaded;
     } else {
-      const { loadPublicKnowledgeContext } = await import("./public-knowledge-context.js");
-      publicKnowledgeContext = await loadPublicKnowledgeContext({ query: latestRequesterMessage });
+      const runtime = await import("./public-knowledge-context.js");
+      publicKnowledgeContext = await runtime.loadPublicKnowledgeContext({ query: latestRequesterMessage });
+      productionUsageRecorder = runtime.recordPublicKnowledgeUsage;
     }
   } catch {
-    publicKnowledgeContext = "";
+    publicKnowledgeContext = { instructions: "", versions: [] };
   }
 
   const controller = new AbortController();
@@ -294,8 +315,8 @@ export async function analyzeSupportConversation(input: {
         reasoning: { effort: "low" },
         max_output_tokens: 450,
         safety_identifier: input.safetyIdentifier,
-        instructions: publicKnowledgeContext
-          ? `${INSTRUCTIONS}\n\n${publicKnowledgeContext}`
+        instructions: publicKnowledgeContext.instructions
+          ? `${INSTRUCTIONS}\n\n${publicKnowledgeContext.instructions}`
           : INSTRUCTIONS,
         input: JSON.stringify({
           conversation: input.messages.slice(-10).map((message) => ({
@@ -324,9 +345,22 @@ export async function analyzeSupportConversation(input: {
     const outputText = payload.output
       ?.flatMap((item) => item.content ?? [])
       .find((content) => content.type === "output_text")?.text;
-    return outputText
-      ? withPolicy(parseResult(outputText), policy, fallback.readyToCreate)
-      : fallback;
+    if (!outputText) return fallback;
+    const result = withPolicy(parseResult(outputText), policy, fallback.readyToCreate);
+    const usageRecorder = input.knowledgeUsageRecorder ?? productionUsageRecorder;
+    if (usageRecorder && publicKnowledgeContext.versions.length > 0) {
+      try {
+        await usageRecorder({
+          versions: publicKnowledgeContext.versions,
+          sessionHash: input.safetyIdentifier,
+          model: process.env.OPENAI_SUPPORT_MODEL || "gpt-5.6-luna",
+          turnCount: policy.turnCount,
+        });
+      } catch {
+        // A journal failure must not hide an otherwise safe answer from the user.
+      }
+    }
+    return result;
   } catch {
     return fallback;
   } finally {

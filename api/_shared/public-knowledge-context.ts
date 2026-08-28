@@ -2,6 +2,7 @@ import { and, asc, eq, inArray } from "drizzle-orm";
 import { db } from "../../db/index.js";
 import {
   agentSkills,
+  agentSkillAudit,
   agentSkillVersions,
   institutions,
   knowledgeSources,
@@ -15,6 +16,21 @@ import {
 
 const DEFAULT_INSTITUTION_SLUG = "blaise-cendrars-sevran";
 const MAX_DATABASE_CANDIDATES = 30;
+
+export type PublicKnowledgeVersionRef = {
+  institutionId: string;
+  versionId: string;
+};
+
+export type LoadedPublicKnowledgeContext = {
+  instructions: string;
+  versions: PublicKnowledgeVersionRef[];
+};
+
+const EMPTY_CONTEXT: LoadedPublicKnowledgeContext = {
+  instructions: "",
+  versions: [],
+};
 
 function definitionFields(value: unknown): { instructions: string; allowedTools: string[] } {
   if (!value || typeof value !== "object" || Array.isArray(value)) {
@@ -32,7 +48,7 @@ function definitionFields(value: unknown): { instructions: string; allowedTools:
 export async function loadPublicKnowledgeContext(input: {
   query: string;
   now?: Date;
-}): Promise<string> {
+}): Promise<LoadedPublicKnowledgeContext> {
   const now = input.now ?? new Date();
   const slug = process.env.SUPPORT_INSTITUTION_SLUG?.trim() || DEFAULT_INSTITUTION_SLUG;
   const [institution] = await db
@@ -40,7 +56,7 @@ export async function loadPublicKnowledgeContext(input: {
     .from(institutions)
     .where(eq(institutions.slug, slug))
     .limit(1);
-  if (!institution) return "";
+  if (!institution) return EMPTY_CONTEXT;
 
   const rows = await db
     .select({
@@ -64,7 +80,7 @@ export async function loadPublicKnowledgeContext(input: {
     .orderBy(asc(agentSkills.skillKey))
     .limit(MAX_DATABASE_CANDIDATES);
   const versionIds = rows.map((row) => row.versionId);
-  if (versionIds.length === 0) return "";
+  if (versionIds.length === 0) return EMPTY_CONTEXT;
 
   const sourceRows = await db
     .select({
@@ -119,12 +135,47 @@ export async function loadPublicKnowledgeContext(input: {
     };
   });
 
-  return formatPublicAgentSkillContext(
-    selectPublicAgentSkillContext({
-      candidates,
-      institutionId: institution.id,
-      query: input.query,
-      now: now.toISOString(),
-    })
+  const selected = selectPublicAgentSkillContext({
+    candidates,
+    institutionId: institution.id,
+    query: input.query,
+    now: now.toISOString(),
+  });
+  return {
+    instructions: formatPublicAgentSkillContext(selected),
+    versions: selected.map((skill) => ({
+      institutionId: skill.institutionId,
+      versionId: skill.versionId,
+    })),
+  };
+}
+
+export async function recordPublicKnowledgeUsage(input: {
+  versions: PublicKnowledgeVersionRef[];
+  sessionHash: string;
+  model: string;
+  turnCount: number;
+}): Promise<void> {
+  const versions = [...new Map(
+    input.versions.map((version) => [
+      `${version.institutionId}:${version.versionId}`,
+      version,
+    ])
+  ).values()];
+  if (versions.length === 0) return;
+  await db.insert(agentSkillAudit).values(
+    versions.map((version) => ({
+      institutionId: version.institutionId,
+      resourceType: "version",
+      resourceId: version.versionId,
+      action: "consult_public",
+      actorId: null,
+      summary: {
+        channel: "support_assistant",
+        sessionHash: input.sessionHash,
+        model: input.model.slice(0, 80),
+        turnCount: input.turnCount,
+      },
+    }))
   );
 }

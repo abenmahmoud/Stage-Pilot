@@ -78,12 +78,16 @@ retrait ou un retour arrière exige en plus une session MFA `aal2` actuelle.
 - les outils déclarés sont présentés comme indisponibles : le modèle ne peut pas
   prétendre les avoir exécutés ;
 - en cas d'erreur de lecture, le registre est ignoré et les règles statiques
-  sûres continuent de s'appliquer.
+  sûres continuent de s'appliquer ;
+- après une réponse IA structurée réussie, chaque version injectée produit une
+  entrée `consult_public` dans l'audit. Elle conserve seulement l'établissement,
+  l'UUID de version, un hash de session, le modèle et le numéro de tour ; aucun
+  texte de question/réponse ni contact n'est journalisé. Une réponse de repli ou
+  un échec OpenAI n'écrit pas de consommation fictive.
 
 ## Reste à faire
 
 - recette navigateur avec deux comptes nominatifs et récupération testée ;
 - responsables métier, règles de conservation et premières sources validées ;
-- lecture authentifiée par niveau L1 à L4, exécution contrôlée des outils et audit
-  des versions réellement utilisées dans chaque réponse ;
+- lecture authentifiée par niveau L1 à L4 et exécution contrôlée des outils ;
 - aucun passage en production avant ces validations et la décision DPO.
