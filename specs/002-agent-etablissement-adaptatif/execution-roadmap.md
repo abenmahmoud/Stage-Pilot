@@ -4,6 +4,20 @@
 **Périmètre** : feature `002-agent-etablissement-adaptatif` et dépendance `001`  
 **Principe** : avancer vite en preview, valider avant données réelles et production
 
+## Mode de recette décidé
+
+- Les lots continuent à recevoir leurs contrôles automatiques, builds et tests de
+  sécurité internes afin de détecter une régression au plus près du changement.
+- Le propriétaire ne réalise pas de micro-recettes entre les lots. Une version
+  candidate intégrée lui est présentée lorsque les liaisons prévues du jalon sont
+  terminées.
+- La recette utilisateur finale vérifie en une fois le parcours public, la
+  création et le suivi d'une demande, le traitement agent, les pièces, les
+  notifications, l'affichage ordinateur/téléphone et les droits.
+- Une recette réussie ne déclenche pas automatiquement la production : domaine,
+  DNS, données réelles et production conservent leurs portes d'autorisation et
+  leur procédure de retour arrière.
+
 ## Résultat visé
 
 Un portail public complet et installable, un guichet unique de demandes, des

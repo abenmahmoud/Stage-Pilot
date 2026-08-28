@@ -3,7 +3,22 @@
 **Derniere mise a jour** : 28 aout 2026
 **Branche de travail** : `codex/lycee-connect-prototype`
 **Depot** : `abenmahmoud/Stage-Pilot`
-**Dernier jalon de code verifie** : reprise locale des demandes et recette mobile
+**Dernier jalon de code verifie** : dépôt privé de documents de connaissance
+
+## Décision du 28 août 2026 - recette intégrée et accès de démonstration
+
+- Le propriétaire ne souhaite plus être interrompu pour tester chaque petit lot.
+  Codex conserve les contrôles automatiques et de sécurité pendant le
+  développement, puis présente une version candidate intégrée pour une seule
+  recette utilisateur complète couvrant portail, demandes, suivi, console,
+  notifications et données.
+- La recette utilisateur n'autorise pas à elle seule une bascule du domaine
+  officiel. La production, le DNS et Hostinger restent soumis à une autorisation
+  précise, à une sauvegarde vérifiée et à un retour arrière préparé.
+- Les adresses Vercel de preview sont actuellement protégées par l'authentification
+  de l'équipe. Un lien de partage temporaire peut ouvrir uniquement une
+  démonstration ; l'accès public durable devra utiliser un domaine candidat
+  explicitement choisi ou une mise en production autorisée.
 
 ## Jalon du 28 aout 2026 - memoire appareil et accessibilite
 
