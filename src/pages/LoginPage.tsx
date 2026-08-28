@@ -380,10 +380,12 @@ export default function LoginPage() {
               )}
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label htmlFor="staff-email" className="block text-sm font-medium text-gray-700 mb-1">
                   Adresse email
                 </label>
                 <input
+                  id="staff-email"
+                  name="email"
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
@@ -395,11 +397,13 @@ export default function LoginPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label htmlFor="staff-password" className="block text-sm font-medium text-gray-700 mb-1">
                   Mot de passe
                 </label>
                 <div className="relative">
                   <input
+                    id="staff-password"
+                    name="password"
                     type={showPw ? "text" : "password"}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
