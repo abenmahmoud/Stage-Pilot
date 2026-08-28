@@ -24,6 +24,11 @@
   des noms ou coordonnées sans les transmettre au modèle.
 - La preuve détaillée est conservée dans
   `docs/operations/IDENTITY_DIRECTORY_WORKER_VPS_2026-08-29.md`.
+- L'écran du répertoire peut générer localement un CSV de test contenant 1 200
+  élèves, 700 responsables, 200 personnels et 1 900 relations. Le test passe
+  4 000 lignes dans le parseur sans rejet et confirme l'absence de code ou de
+  domaine académique réel ; aucun utilisateur fictif n'est créé en base par le
+  téléchargement.
 - Le dépôt documentaire superadministrateur est désormais séparé du répertoire
   des personnes : plus de type annuaire, ajout du formulaire vierge, service
   responsable, périmètre, date d'effet et échéance de révision obligatoires. La

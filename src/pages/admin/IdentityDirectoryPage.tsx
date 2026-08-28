@@ -15,6 +15,7 @@ import {
   IDENTITY_DIRECTORY_MAX_BYTES,
   identityDirectoryMime,
 } from "../../../shared/identity-directory-input";
+import { generateFictitiousIdentityDirectory } from "../../../shared/fictitious-identity-directory";
 import IdentityDirectoryReport from "./IdentityDirectoryReport";
 
 type DirectoryStatus =
@@ -44,6 +45,20 @@ type DirectoryImport = {
   uploadedAt: string | null;
   createdAt: string;
 };
+
+function downloadLargeFictitiousDirectory() {
+  const blob = new Blob([generateFictitiousIdentityDirectory()], {
+    type: "text/csv;charset=utf-8",
+  });
+  const href = URL.createObjectURL(blob);
+  const anchor = document.createElement("a");
+  anchor.href = href;
+  anchor.download = "repertoire-fictif-2100-personnes.csv";
+  document.body.append(anchor);
+  anchor.click();
+  anchor.remove();
+  URL.revokeObjectURL(href);
+}
 
 const STATUS: Record<DirectoryStatus, { label: string; style: string }> = {
   reserved: { label: "Transfert à terminer", style: "bg-slate-100 text-slate-700" },
@@ -225,13 +240,22 @@ export default function IdentityDirectoryPage() {
               {tooLarge ? "Ce fichier dépasse 50 Mo." : unsupported ? "Ce format n’est pas accepté." : formatBytes(file.size)}
             </small>
           ) : null}
-          <a
-            href="/modeles/repertoire-identites-fictif.csv"
-            download
-            className="mt-3 inline-flex items-center gap-2 text-sm font-semibold text-emerald-700 hover:text-emerald-900"
-          >
-            <Download className="h-4 w-4" /> Télécharger le modèle fictif
-          </a>
+          <div className="mt-3 flex flex-wrap gap-x-4 gap-y-2">
+            <a
+              href="/modeles/repertoire-identites-fictif.csv"
+              download
+              className="inline-flex items-center gap-2 text-sm font-semibold text-emerald-700 hover:text-emerald-900"
+            >
+              <Download className="h-4 w-4" /> Télécharger le modèle fictif
+            </a>
+            <button
+              type="button"
+              onClick={downloadLargeFictitiousDirectory}
+              className="inline-flex items-center gap-2 text-sm font-semibold text-blue-700 hover:text-blue-900"
+            >
+              <FileSpreadsheet className="h-4 w-4" /> Générer 2 100 personnes fictives
+            </button>
+          </div>
           <p className="mt-3 border-l-4 border-amber-500 bg-amber-50 p-3 text-sm text-amber-950">
             N’ajoutez jamais de mot de passe, code ENT ou PRONOTE, secret
             d’activation, donnée médicale ou note disciplinaire. Toute colonne

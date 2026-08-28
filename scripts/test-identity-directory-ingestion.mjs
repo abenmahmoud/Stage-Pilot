@@ -7,6 +7,8 @@ import {
   parseIdentityDirectoryInput,
 } from "../shared/identity-directory-input.ts";
 import { identityDirectoryStoragePath } from "../api/_shared/identity-directory-path.ts";
+import { generateFictitiousIdentityDirectory } from "../shared/fictitious-identity-directory.ts";
+import { parseIdentityDirectoryBytes } from "../workers/identity-directory-parser.mjs";
 
 const migrationPath = new URL(
   "../supabase/migrations/20260828212703_create_identity_directory_intake.sql",
@@ -165,4 +167,18 @@ test("covers identity directory foreign keys used at school scale", async () => 
   assert.match(sql, /identity_directory_imports_approved_by_idx/);
   assert.match(sql, /identity_directory_rows_import_institution_idx/);
   assert.match(sql, /\(import_id, institution_id\)/);
+});
+
+test("generates a safe school-scale fictitious directory", () => {
+  const csv = generateFictitiousIdentityDirectory();
+  assert.doesNotMatch(csv, /@ac-creteil\.fr|code_ent|password|mot_de_passe/i);
+  const parsed = parseIdentityDirectoryBytes({
+    bytes: Buffer.from(csv, "utf8"),
+    fileName: "repertoire-fictif-2100-personnes.csv",
+    contactPepper: "test-only-pepper-with-at-least-32-characters",
+  });
+  assert.equal(parsed.summary.personCount, 2100);
+  assert.equal(parsed.summary.relationshipCount, 1900);
+  assert.equal(parsed.summary.rowCount, 4000);
+  assert.equal(parsed.summary.rejectedRowCount, 0);
 });

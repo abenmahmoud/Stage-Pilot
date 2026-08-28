@@ -45,6 +45,9 @@
   empreinte SHA-256, contacts en HMAC, rapport sans noms ni coordonnées en clair,
   approbation et activation distinctes avec MFA. La migration est appliquée sur
   la preview et vide ; le worker est préparé dans Git mais pas installé sur le VPS.
+- [x] T010B2A1 Ajouter dans l'interface un générateur local de 2 100 personnes
+  fictives et 1 900 relations, sans code ni domaine réel, validé intégralement
+  par le même parseur que les futurs imports.
 - [ ] T010B2B Fournir le secret HMAC au worker isolé, installer son timer VPS
   après autorisation précise, puis exécuter
   la recette antivirus, doublons, approbation, remplacement et suppression avec
