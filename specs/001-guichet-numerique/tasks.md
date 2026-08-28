@@ -51,7 +51,11 @@ quarantaine. Une panne d'envoi externe n'affecte pas le dossier.
   mention visible des réponses automatiques.
 - [x] **T014** Ajouter la distinction demandeur/bénéficiaire et le contexte de
   chaque fichier.
-- [ ] **T015** Ajouter IndexedDB pour brouillons et liste des dossiers du terminal.
+- [x] **T015** Ajouter IndexedDB pour brouillons et liste des dossiers du terminal.
+  Le brouillon expire apres 30 jours, conserve la cle d'idempotence et les
+  champs necessaires a la reprise, mais aucun fichier, jeton, cookie ou mot de
+  passe. La liste locale ne contient que le numero public et des metadonnees
+  minimales ; la session serveur reste obligatoire pour lire le dossier.
 - [x] **T016** Construire la page de suivi sécurisée et le fil de messages.
 - [x] **T016A** Actualiser automatiquement le fil et permettre l'ajout de pièces
   jointes après la création du dossier.

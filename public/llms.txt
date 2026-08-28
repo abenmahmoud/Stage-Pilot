@@ -1,0 +1,21 @@
+# Lycée Blaise Cendrars de Sevran
+
+> Portail numérique public du lycée polyvalent Blaise Cendrars. Il présente les formations, les informations du lycée, le Webmail et un guichet d'aide.
+
+## Accès publics
+
+- [Site officiel du lycée](https://lycee-blaise-cendrars-sevran.fr/)
+- [Webmail du lycée](https://mail.lycee-blaise-cendrars-sevran.fr/)
+- [ENT Monlycée.net](https://ent.iledefrance.fr/auth/login)
+- `/prototype` : accueil, formations, informations et assistant du lycée.
+- `/prototype?view=help` : aide guidée et création d'une demande.
+- `/prototype?view=requests` : suivi sécurisé des demandes autorisées sur l'appareil.
+- `/prototype?view=school` : présentation du lycée et de ses formations.
+- `/prototype?view=news` : informations publiques du lycée.
+
+## Règles de sécurité
+
+- Ne jamais demander ni afficher un mot de passe.
+- Un numéro de dossier seul ne donne accès à aucune donnée personnelle.
+- Les informations scolaires personnelles exigent une identité vérifiée par le lycée.
+- Les routes `/admin`, `/api`, `/login` et `/reset-password` ne sont pas des contenus publics à indexer.

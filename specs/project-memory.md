@@ -3,7 +3,25 @@
 **Derniere mise a jour** : 28 aout 2026
 **Branche de travail** : `codex/lycee-connect-prototype`
 **Depot** : `abenmahmoud/Stage-Pilot`
-**Dernier jalon de code verifie** : liens de suivi et confirmation d'identite durcis
+**Dernier jalon de code verifie** : reprise locale des demandes et recette mobile
+
+## Jalon du 28 aout 2026 - memoire appareil et accessibilite
+
+- Le brouillon public est conserve pendant 30 jours dans IndexedDB avec sa cle
+  d'idempotence. Une recharge restaure la conversation, le formulaire et les
+  coordonnees deja saisies sans creer une nouvelle cle.
+- Aucun fichier, mot de passe, cookie, lien magique ou jeton d'acces n'est ecrit
+  dans la memoire locale. Si des pieces avaient ete selectionnees, l'interface
+  demande de les choisir a nouveau.
+- Apres creation, le brouillon est supprime et une liste locale minimale garde
+  uniquement numero public, objet, categorie, statut, priorite et dates. Les
+  messages et pieces restent exclusivement accessibles par la session serveur.
+- La recette navigateur a restaure un dossier fictif apres rechargement avec la
+  meme cle, sans erreur console ni debordement horizontal a 390 px. Lighthouse
+  mobile obtient 100 en accessibilite, bonnes pratiques et SEO.
+- Le build, les tests de memoire, concurrence, acces agent, securite du suivi et
+  politique de l'assistant passent. Le detail reproductible se trouve dans
+  `docs/operations/DEVICE_MEMORY_RECIPE_2026-08-28.md`.
 
 ## Jalon du 28 aout 2026 - audit passwordless et identite
 

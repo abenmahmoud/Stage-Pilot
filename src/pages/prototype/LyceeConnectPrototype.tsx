@@ -44,6 +44,7 @@ import {
   StickyNote,
   Smartphone,
   TicketCheck,
+  Trash2,
   UserRound,
   Users,
   UsersRound,
@@ -52,6 +53,14 @@ import {
 } from "lucide-react";
 import { supabase } from "../../lib/supabase-browser";
 import { apiFetch } from "../../lib/api";
+import {
+  clearSupportDeviceDraft,
+  listRememberedSupportRequests,
+  readSupportDeviceDraft,
+  rememberSupportRequests,
+  saveSupportDeviceDraft,
+  type SupportDraftFormValues,
+} from "../../lib/support-device-memory";
 import {
   evaluateConversationPolicy,
   resolveAssistantAction,
@@ -122,6 +131,24 @@ const supportCategories = [
 
 type SupportCategory = (typeof supportCategories)[number]["value"];
 type IdentityStatus = "non_verifiee" | "contact_verifie" | "identite_confirmee";
+
+function defaultSupportFormValues(): SupportDraftFormValues {
+  return {
+    requesterFirstName: "",
+    requesterLastName: "",
+    beneficiaryFirstName: "",
+    beneficiaryLastName: "",
+    className: "",
+    subjectArea: "",
+    schoolTrack: "",
+    email: "",
+    phone: "",
+    preferredChannel: "email",
+    languagePreference: "francais_simple",
+    fallbackAllowed: true,
+    communicationSupport: false,
+  };
+}
 
 const requesterProfileLabels: Record<string, string> = {
   eleve: "Élève",
@@ -428,7 +455,7 @@ export default function LyceeConnectPrototype() {
         </div>
       </aside>
 
-      <div className="lycee-workspace">
+      <div className="lycee-workspace" role="main">
         <header className="lycee-topbar">
           <button
             className="lycee-menu-button"
@@ -449,7 +476,7 @@ export default function LyceeConnectPrototype() {
           <div className="lycee-top-actions">
             <button className="lycee-top-tool" type="button" onClick={() => changeView("news")} title="Voir les informations du lycée"><Newspaper aria-hidden="true" /><span>À la une</span></button>
             <a className="lycee-top-tool" href={WEBMAIL_URL} target="_blank" rel="noreferrer" title="Ouvrir le Webmail"><Mail aria-hidden="true" /><span>Webmail</span></a>
-            <button className="lycee-profile-button" type="button" onClick={() => changeView("agent")}>
+            <button className="lycee-profile-button" type="button" aria-label="Ouvrir l’espace agent" onClick={() => changeView("agent")}>
               <CircleUserRound aria-hidden="true" />
               <span>Espace agent</span>
             </button>
@@ -510,6 +537,8 @@ export default function LyceeConnectPrototype() {
             <p>Expliquez votre situation avec vos mots. L’assistant vous guide et prépare la demande pour le bon service.</p>
             <div className="lycee-composer">
               <textarea
+                id="lycee-home-help-message"
+                name="helpMessage"
                 value={message}
                 onChange={(event) => setMessage(event.target.value)}
                 rows={3}
@@ -938,14 +967,17 @@ function HelpDeskView({
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [attachmentWarning, setAttachmentWarning] = useState<string | null>(null);
+  const [draftNotice, setDraftNotice] = useState<string | null>(null);
   const [files, setFiles] = useState<File[]>([]);
+  const [formValues, setFormValues] = useState<SupportDraftFormValues>(defaultSupportFormValues);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const caseFormRef = useRef<HTMLFormElement>(null);
   const ticketCodeRef = useRef<HTMLElement>(null);
   const threadRef = useRef<HTMLDivElement>(null);
   const initialAnalysisStarted = useRef(false);
-  const [requestKey] = useState(() => crypto.randomUUID());
+  const [requestKey, setRequestKey] = useState<string>(() => crypto.randomUUID());
   const [assistantSessionId] = useState(supportAssistantSessionId);
+  const [draftReady, setDraftReady] = useState(false);
 
   const requesterMessages = chatMessages.filter((message) => message.role === "requester");
   const conversationDescription = requesterMessages.map((message) => message.content).join("\n\n").trim();
@@ -954,6 +986,76 @@ function HelpDeskView({
   useEffect(() => {
     threadRef.current?.scrollTo({ top: threadRef.current.scrollHeight, behavior: "smooth" });
   }, [chatMessages, assistantBusy]);
+
+  useEffect(() => {
+    let active = true;
+    if (initialMessage.trim() || initialClassicForm) {
+      setDraftReady(true);
+      return () => { active = false; };
+    }
+    void readSupportDeviceDraft<AssistantInsight>().then((draft) => {
+      if (!active || !draft) return;
+      setRequestKey(draft.requestKey);
+      setChatMessages(draft.chatMessages.map((message) => ({ ...message, id: crypto.randomUUID() })));
+      setInsight(draft.insight);
+      setShowDetails(draft.showDetails);
+      setClassicForm(draft.classicForm);
+      setProfile(draft.profile as RequesterProfile);
+      setCategory(draft.category as SupportCategory);
+      setClassicDescription(draft.classicDescription);
+      setFormValues(draft.formValues);
+      setDraftNotice(
+        draft.hadAttachments
+          ? "Votre demande inachevée a été retrouvée. Pour votre sécurité, sélectionnez de nouveau les documents à joindre."
+          : "Votre demande inachevée a été retrouvée sur cet appareil."
+      );
+    }).finally(() => {
+      if (active) setDraftReady(true);
+    });
+    return () => { active = false; };
+  }, []);
+
+  useEffect(() => {
+    if (!draftReady || ticketCode || submitting) return;
+    const hasDraft =
+      chatMessages.some((message) => message.role === "requester") ||
+      classicDescription.trim().length > 0 ||
+      profile.length > 0 ||
+      showDetails;
+    if (!hasDraft) {
+      void clearSupportDeviceDraft();
+      return;
+    }
+    const timer = window.setTimeout(() => {
+      void saveSupportDeviceDraft<AssistantInsight>({
+        requestKey,
+        chatMessages: chatMessages.map(({ role, content }) => ({ role, content })),
+        insight,
+        showDetails,
+        classicForm,
+        profile,
+        category,
+        classicDescription,
+        formValues,
+        hadAttachments: files.length > 0,
+      });
+    }, 350);
+    return () => window.clearTimeout(timer);
+  }, [
+    category,
+    chatMessages,
+    classicDescription,
+    classicForm,
+    draftReady,
+    files.length,
+    formValues,
+    insight,
+    profile,
+    requestKey,
+    showDetails,
+    submitting,
+    ticketCode,
+  ]);
 
   useEffect(() => {
     if (!initialMessage.trim() || initialAnalysisStarted.current) return;
@@ -1022,6 +1124,17 @@ function HelpDeskView({
     setFiles([]);
     setSubmitError(null);
     setAttachmentWarning(null);
+    setDraftNotice(null);
+    setFormValues(defaultSupportFormValues());
+    setRequestKey(crypto.randomUUID());
+    void clearSupportDeviceDraft();
+  }
+
+  function updateFormValue<K extends keyof SupportDraftFormValues>(
+    field: K,
+    value: SupportDraftFormValues[K]
+  ) {
+    setFormValues((current) => ({ ...current, [field]: value }));
   }
 
   function selectFiles(event: React.ChangeEvent<HTMLInputElement>) {
@@ -1065,7 +1178,7 @@ function HelpDeskView({
     setSubmitting(true);
     setSubmitError(null);
     try {
-      let publicCode = "BC-2026-0042";
+      let publicCode = "BC-2026-000042";
       if (SUPPORT_API_ENABLED) {
         const response = await fetch("/api/support/requests", {
           method: "POST",
@@ -1116,6 +1229,19 @@ function HelpDeskView({
       }
       setConfirmationChannel(preferredChannel === "phone" ? "phone" : "email");
       setTicketCode(publicCode);
+      const now = new Date().toISOString();
+      void Promise.all([
+        clearSupportDeviceDraft(),
+        rememberSupportRequests([{
+          publicCode,
+          subject: selectedCategory?.label ?? "Demande au lycée",
+          category,
+          status: "nouveau",
+          priority: "p3",
+          createdAt: now,
+          updatedAt: now,
+        }]),
+      ]);
       onTicketCreated(publicCode);
     } catch (error) {
       setSubmitError(error instanceof Error ? error.message : "Une erreur est survenue");
@@ -1199,6 +1325,7 @@ function HelpDeskView({
 
         <div className="lycee-chat-workspace">
           <div className="lycee-language-help"><Languages aria-hidden="true" /><span><strong>Le français est difficile ?</strong><small>Écrivez dans votre langue ou avec des mots simples. L’assistant vous aide sans vous juger.</small></span></div>
+          {draftNotice ? <div className="lycee-contact-guidance lycee-draft-guidance" role="status"><CheckCircle2 aria-hidden="true" /><span><strong>Brouillon récupéré</strong><small>{draftNotice}</small></span><button type="button" onClick={restartConversation}><Trash2 aria-hidden="true" /> Effacer</button></div> : null}
           {insight ? (
             <div className="lycee-live-analysis">
               <WandSparkles aria-hidden="true" />
@@ -1209,8 +1336,8 @@ function HelpDeskView({
 
           {!conversationStopped ? (
             <form className="lycee-chat-composer" onSubmit={sendChatMessage}>
-              <textarea value={chatInput} onChange={(event) => setChatInput(event.target.value)} rows={2} maxLength={1500} placeholder="Écrivez comme si vous parliez à l’accueil du lycée…" aria-label="Votre message" />
-              <input ref={fileInputRef} className="lycee-file-input" type="file" multiple accept={SUPPORT_FILE_TYPES.join(",")} onChange={selectFiles} />
+              <textarea id="lycee-chat-message" name="chatMessage" value={chatInput} onChange={(event) => setChatInput(event.target.value)} rows={2} maxLength={1500} placeholder="Écrivez comme si vous parliez à l’accueil du lycée…" aria-label="Votre message" />
+              <input id="lycee-support-files" name="supportFiles" aria-label="Documents à joindre" ref={fileInputRef} className="lycee-file-input" type="file" multiple accept={SUPPORT_FILE_TYPES.join(",")} onChange={selectFiles} />
               <button className="lycee-chat-attach" type="button" aria-label="Joindre un document" title="Joindre un document" disabled={files.length >= MAX_SUPPORT_FILES} onClick={() => fileInputRef.current?.click()}><Paperclip aria-hidden="true" /></button>
               <button className="lycee-chat-send" type="submit" aria-label="Envoyer le message" title="Envoyer" disabled={!chatInput.trim() || assistantBusy}><Send aria-hidden="true" /></button>
             </form>
@@ -1244,22 +1371,22 @@ function HelpDeskView({
             <form ref={caseFormRef} className="lycee-case-form" onSubmit={submitRequest}>
               <div className="lycee-case-form-head"><span><ShieldCheck aria-hidden="true" /></span><div><h2>{classicForm ? "Formulaire classique" : "Une dernière étape"}</h2><p>{classicForm ? "Tous les champs sont visibles pour ceux qui préfèrent écrire leur demande directement." : "Vos coordonnées permettent au lycée de vous répondre et de retrouver la bonne personne."}</p></div><button type="button" aria-label="Fermer" onClick={() => { setShowDetails(false); setClassicForm(false); }}>Fermer</button></div>
               <div className="lycee-fields-grid">
-                <label><span>Vous êtes</span><select value={profile} onChange={(event) => setProfile(event.target.value as RequesterProfile)} required><option value="">Sélectionner</option><option value="eleve">Élève</option><option value="parent">Parent</option><option value="professeur">Professeur</option><option value="personnel">Personnel</option><option value="autre">Autre</option></select></label>
-                {classicForm ? <label><span>Votre demande concerne</span><select value={category} onChange={(event) => setCategory(event.target.value as SupportCategory)}>{supportCategories.map((item) => <option value={item.value} key={item.value}>{item.label}</option>)}</select></label> : null}
-                <label><span>Votre prénom</span><input name="requesterFirstName" type="text" autoComplete="given-name" placeholder="Prénom" required /></label>
-                <label><span>Votre nom</span><input name="requesterLastName" type="text" autoComplete="family-name" placeholder="Nom" required /></label>
-                {profile === "parent" ? <><label><span>Prénom de l’élève</span><input name="beneficiaryFirstName" type="text" required /></label><label><span>Nom de l’élève</span><input name="beneficiaryLastName" type="text" required /></label></> : null}
-                {profile === "eleve" || profile === "parent" ? <label><span>Classe, si connue</span><input name="className" type="text" placeholder="Ex. 2GT4" /></label> : null}
-                {profile === "professeur" || profile === "personnel" ? <label><span>Matière ou service</span><input name="subjectArea" type="text" placeholder="Ex. Mathématiques, intendance" /></label> : null}
-                {profile === "professeur" ? <label><span>Voie</span><select name="schoolTrack"><option value="">Non précisée</option><option value="general">Générale et technologique</option><option value="professionnel">Professionnelle</option><option value="les_deux">Les deux</option></select></label> : null}
+                <label><span>Vous êtes</span><select id="lycee-requester-profile" name="requesterProfile" value={profile} onChange={(event) => setProfile(event.target.value as RequesterProfile)} required><option value="">Sélectionner</option><option value="eleve">Élève</option><option value="parent">Parent</option><option value="professeur">Professeur</option><option value="personnel">Personnel</option><option value="autre">Autre</option></select></label>
+                {classicForm ? <label><span>Votre demande concerne</span><select id="lycee-support-category" name="supportCategory" value={category} onChange={(event) => setCategory(event.target.value as SupportCategory)}>{supportCategories.map((item) => <option value={item.value} key={item.value}>{item.label}</option>)}</select></label> : null}
+                <label><span>Votre prénom</span><input name="requesterFirstName" type="text" autoComplete="given-name" placeholder="Prénom" value={formValues.requesterFirstName} onChange={(event) => updateFormValue("requesterFirstName", event.target.value)} required /></label>
+                <label><span>Votre nom</span><input name="requesterLastName" type="text" autoComplete="family-name" placeholder="Nom" value={formValues.requesterLastName} onChange={(event) => updateFormValue("requesterLastName", event.target.value)} required /></label>
+                {profile === "parent" ? <><label><span>Prénom de l’élève</span><input name="beneficiaryFirstName" type="text" autoComplete="off" value={formValues.beneficiaryFirstName} onChange={(event) => updateFormValue("beneficiaryFirstName", event.target.value)} required /></label><label><span>Nom de l’élève</span><input name="beneficiaryLastName" type="text" autoComplete="off" value={formValues.beneficiaryLastName} onChange={(event) => updateFormValue("beneficiaryLastName", event.target.value)} required /></label></> : null}
+                {profile === "eleve" || profile === "parent" ? <label><span>Classe, si connue</span><input name="className" type="text" autoComplete="off" placeholder="Ex. 2GT4" value={formValues.className} onChange={(event) => updateFormValue("className", event.target.value)} /></label> : null}
+                {profile === "professeur" || profile === "personnel" ? <label><span>Matière ou service</span><input name="subjectArea" type="text" autoComplete="organization-title" placeholder="Ex. Mathématiques, intendance" value={formValues.subjectArea} onChange={(event) => updateFormValue("subjectArea", event.target.value)} /></label> : null}
+                {profile === "professeur" ? <label><span>Voie</span><select name="schoolTrack" value={formValues.schoolTrack} onChange={(event) => updateFormValue("schoolTrack", event.target.value)}><option value="">Non précisée</option><option value="general">Générale et technologique</option><option value="professionnel">Professionnelle</option><option value="les_deux">Les deux</option></select></label> : null}
                 <div className="lycee-contact-requirement is-wide"><strong>Comment le lycée peut-il vous répondre ?</strong><span>Indiquez au moins une adresse email ou un numéro de téléphone.</span></div>
-                <label><span>Adresse email recommandée</span><input name="email" type="email" autoComplete="email" placeholder="nom@exemple.fr" /><small>Pour garder une trace et retrouver la demande sur un autre appareil.</small></label>
-                <label><span>Téléphone</span><input name="phone" type="tel" autoComplete="tel" placeholder="06 00 00 00 00" /><small>Pour un rappel si l’email ne suffit pas.</small></label>
-                <label><span>Moyen de contact principal</span><select name="preferredChannel" defaultValue="email"><option value="email">Email, recommandé</option><option value="phone">Téléphone</option></select></label>
-                <label><span>Langue de la réponse du lycée</span><select name="languagePreference" defaultValue="francais_simple"><option value="francais_simple">Français simple</option><option value="francais">Français</option><option value="arabe">Arabe</option><option value="anglais">Anglais</option><option value="espagnol">Espagnol</option><option value="portugais">Portugais</option><option value="turc">Turc</option><option value="autre">Autre langue, précisée dans le message</option></select></label>
-                <label className="lycee-fallback-choice"><input name="fallbackAllowed" type="checkbox" defaultChecked /><span>Utiliser l’autre moyen de contact si nécessaire</span></label>
-                <label className="lycee-fallback-choice"><input name="communicationSupport" type="checkbox" /><span>J’ai besoin d’un rappel pour mieux comprendre la réponse</span></label>
-                {classicForm ? <label className="is-wide"><span>Votre demande</span><textarea value={classicDescription} onChange={(event) => setClassicDescription(event.target.value)} rows={5} maxLength={5000} placeholder="Expliquez ce dont vous avez besoin." required /></label> : null}
+                <label><span>Adresse email recommandée</span><input name="email" type="email" autoComplete="email" placeholder="nom@exemple.fr" value={formValues.email} onChange={(event) => updateFormValue("email", event.target.value)} /><small>Pour garder une trace et retrouver la demande sur un autre appareil.</small></label>
+                <label><span>Téléphone</span><input name="phone" type="tel" autoComplete="tel" placeholder="06 00 00 00 00" value={formValues.phone} onChange={(event) => updateFormValue("phone", event.target.value)} /><small>Pour un rappel si l’email ne suffit pas.</small></label>
+                <label><span>Moyen de contact principal</span><select name="preferredChannel" value={formValues.preferredChannel} onChange={(event) => updateFormValue("preferredChannel", event.target.value as "email" | "phone")}><option value="email">Email, recommandé</option><option value="phone">Téléphone</option></select></label>
+                <label><span>Langue de la réponse du lycée</span><select name="languagePreference" value={formValues.languagePreference} onChange={(event) => updateFormValue("languagePreference", event.target.value)}><option value="francais_simple">Français simple</option><option value="francais">Français</option><option value="arabe">Arabe</option><option value="anglais">Anglais</option><option value="espagnol">Espagnol</option><option value="portugais">Portugais</option><option value="turc">Turc</option><option value="autre">Autre langue, précisée dans le message</option></select></label>
+                <label className="lycee-fallback-choice"><input name="fallbackAllowed" type="checkbox" checked={formValues.fallbackAllowed} onChange={(event) => updateFormValue("fallbackAllowed", event.target.checked)} /><span>Utiliser l’autre moyen de contact si nécessaire</span></label>
+                <label className="lycee-fallback-choice"><input name="communicationSupport" type="checkbox" checked={formValues.communicationSupport} onChange={(event) => updateFormValue("communicationSupport", event.target.checked)} /><span>J’ai besoin d’un rappel pour mieux comprendre la réponse</span></label>
+                {classicForm ? <label className="is-wide"><span>Votre demande</span><textarea id="lycee-classic-description" name="classicDescription" value={classicDescription} onChange={(event) => setClassicDescription(event.target.value)} rows={5} maxLength={5000} placeholder="Expliquez ce dont vous avez besoin." required /></label> : null}
                 {classicForm ? <div className="lycee-classic-files is-wide"><button type="button" onClick={() => fileInputRef.current?.click()} disabled={files.length >= MAX_SUPPORT_FILES}><Paperclip aria-hidden="true" /> Joindre un document</button><small>PDF, image, Word ou Excel, jusqu’à 10 Mo.</small>{files.map((file, index) => <div key={`${file.name}-${file.lastModified}`}><FileText aria-hidden="true" /><span>{file.name}</span><button type="button" onClick={() => setFiles((current) => current.filter((_, fileIndex) => fileIndex !== index))}>Retirer</button></div>)}</div> : null}
                 <label className="lycee-honeypot" aria-hidden="true"><span>Site web</span><input name="website" type="text" tabIndex={-1} autoComplete="off" /></label>
               </div>
@@ -1285,6 +1412,7 @@ type SupportRequestSummary = {
   identityStatus?: IdentityStatus;
   createdAt: string;
   updatedAt: string;
+  rememberedOnly?: boolean;
 };
 
 type SupportRequestDetail = {
@@ -1384,11 +1512,31 @@ function ConnectedRequestsView({ ticketCode, onBack }: { ticketCode: string | nu
       const payload = await readApiResponse<{ requests: SupportRequestSummary[] }>(
         fetch("/api/support/requests", { credentials: "include" })
       );
-      setRequests(payload.requests);
-      setSelectedCode((current) => current ?? payload.requests[0]?.publicCode ?? null);
+      await rememberSupportRequests(payload.requests);
+      const remembered = await listRememberedSupportRequests();
+      const serverCodes = new Set(payload.requests.map((request) => request.publicCode));
+      const merged: SupportRequestSummary[] = [
+        ...payload.requests,
+        ...remembered
+          .filter((request) => !serverCodes.has(request.publicCode))
+          .map((request) => ({ ...request, rememberedOnly: true })),
+      ];
+      setRequests(merged);
+      setSelectedCode((current) => current ?? merged[0]?.publicCode ?? null);
       setError(null);
     } catch (requestError) {
-      if (showLoading) setError(requestError instanceof Error ? requestError.message : "Impossible de charger les demandes");
+      const remembered = await listRememberedSupportRequests();
+      if (remembered.length > 0) {
+        setRequests(remembered.map((request) => ({ ...request, rememberedOnly: true })));
+        setSelectedCode((current) => current ?? remembered[0]?.publicCode ?? null);
+      }
+      if (showLoading) {
+        setError(
+          remembered.length > 0
+            ? "Les numéros mémorisés sont affichés. Reconnectez-vous à internet ou ouvrez le lien reçu par email pour actualiser les réponses."
+            : requestError instanceof Error ? requestError.message : "Impossible de charger les demandes"
+        );
+      }
     } finally {
       if (showLoading) setLoading(false);
     }
@@ -1501,13 +1649,13 @@ function ConnectedRequestsView({ ticketCode, onBack }: { ticketCode: string | nu
         <div className="lycee-track-grid">
           <section className="lycee-ticket-list">
             <div className="lycee-list-toolbar">
-              <label><Search aria-hidden="true" /><input value={query} onChange={(event) => setQuery(event.target.value)} aria-label="Rechercher une demande" placeholder="Numéro ou objet" /></label>
+              <label><Search aria-hidden="true" /><input id="lycee-request-search" name="requestSearch" value={query} onChange={(event) => setQuery(event.target.value)} aria-label="Rechercher une demande" placeholder="Numéro ou objet" /></label>
             </div>
             {visibleRequests.map((request) => (
               <button type="button" className={selectedCode === request.publicCode ? "is-selected" : ""} key={request.publicCode} onClick={() => setSelectedCode(request.publicCode)}>
                 <span className="lycee-ticket-icon"><KeyRound aria-hidden="true" /></span>
                 <span><strong>{request.subject}</strong><small>{request.publicCode} · {supportDate(request.createdAt)}</small></span>
-                <em>{supportStatusLabels[request.status] ?? request.status}</em>
+                <em>{request.rememberedOnly ? "À actualiser" : supportStatusLabels[request.status] ?? request.status}</em>
               </button>
             ))}
           </section>
@@ -1538,8 +1686,8 @@ function ConnectedRequestsView({ ticketCode, onBack }: { ticketCode: string | nu
                 </div>
               ) : null}
               <form className="lycee-followup-form" onSubmit={sendReply}>
-                <label><span>Ajouter un message</span><textarea rows={3} value={reply} onChange={(event) => setReply(event.target.value)} placeholder="Précisez votre demande ou répondez à l’agent." maxLength={5000} /></label>
-                <input ref={followupFileInputRef} className="lycee-file-input" type="file" multiple accept={SUPPORT_FILE_TYPES.join(",")} onChange={selectFollowupFiles} />
+                <label><span>Ajouter un message</span><textarea id="lycee-followup-message" name="followupMessage" rows={3} value={reply} onChange={(event) => setReply(event.target.value)} placeholder="Précisez votre demande ou répondez à l’agent." maxLength={5000} /></label>
+                <input id="lycee-followup-files" name="followupFiles" aria-label="Documents à ajouter au suivi" ref={followupFileInputRef} className="lycee-file-input" type="file" multiple accept={SUPPORT_FILE_TYPES.join(",")} onChange={selectFollowupFiles} />
                 {followupFiles.length > 0 ? <div className="lycee-selected-files lycee-followup-files">{followupFiles.map((file, index) => <div key={`${file.name}-${file.lastModified}`}><FileText aria-hidden="true" /><span><strong>{file.name}</strong><small>{(file.size / 1024 / 1024).toFixed(1)} Mo</small></span><button type="button" onClick={() => setFollowupFiles((current) => current.filter((_, fileIndex) => fileIndex !== index))}>Retirer</button></div>)}</div> : null}
                 <div className="lycee-followup-actions"><button className="lycee-secondary-action" type="button" disabled={(detail.attachments.length + followupFiles.length) >= MAX_SUPPORT_FILES} onClick={() => followupFileInputRef.current?.click()}><Paperclip aria-hidden="true" /> Joindre</button><button className="lycee-primary-action" type="submit" disabled={replying || !reply.trim()}>{replying ? "Envoi…" : "Envoyer"}<Send aria-hidden="true" /></button></div>
               </form>
@@ -1580,13 +1728,13 @@ function DemoRequestsView({ ticketCode, onBack }: { ticketCode: string | null; o
           </div>
           <button type="button" className="is-selected">
             <span className="lycee-ticket-icon"><KeyRound aria-hidden="true" /></span>
-            <span><strong>{ticketCode ? "Accès ENT de mon enfant" : "Je n’arrive plus à accéder à l’ENT"}</strong><small>{ticketCode ?? "BC-2026-0042"} · Aujourd’hui</small></span>
+            <span><strong>{ticketCode ? "Accès ENT de mon enfant" : "Je n’arrive plus à accéder à l’ENT"}</strong><small>{ticketCode ?? "BC-2026-000042"} · Aujourd’hui</small></span>
             <em>En cours</em>
           </button>
         </section>
         <article className="lycee-ticket-detail">
           <div className="lycee-ticket-detail-head">
-            <div><span>{ticketCode ?? "BC-2026-0042"}</span><h2>{ticketCode ? "Accès ENT de mon enfant" : "Problème de connexion ENT"}</h2></div>
+            <div><span>{ticketCode ?? "BC-2026-000042"}</span><h2>{ticketCode ? "Accès ENT de mon enfant" : "Problème de connexion ENT"}</h2></div>
             <em>En cours de traitement</em>
           </div>
           <div className="lycee-ticket-meta"><span><Users aria-hidden="true" /> Parent d’élève</span><span><Mail aria-hidden="true" /> Réponse par email</span></div>
@@ -1851,10 +1999,10 @@ function SchoolView({ onBack, onHelp }: { onBack: () => void; onHelp: (prompt?: 
 }
 
 const agentRequests = [
-  { id: "BC-2026-0042", name: "Nadia Benali", role: "Parent", subject: "Codes ENT non reçus", category: "Accès ENT", priority: "Normal", age: "Il y a 8 min" },
-  { id: "BC-2026-0041", name: "M. Laurent", role: "Professeur", subject: "Email académique bloqué", category: "Email", priority: "Urgent", age: "Il y a 14 min" },
-  { id: "BC-2026-0040", name: "Yanis K.", role: "Élève · 2GT4", subject: "Ordinateur ne démarre plus", category: "PC portable", priority: "Normal", age: "Il y a 31 min" },
-  { id: "BC-2026-0039", name: "Sarah M.", role: "Élève · TSTMG2", subject: "Question Grand Oral", category: "Grand Oral", priority: "Normal", age: "Il y a 1 h" },
+  { id: "BC-2026-000042", name: "Nadia Benali", role: "Parent", subject: "Codes ENT non reçus", category: "Accès ENT", priority: "Normal", age: "Il y a 8 min" },
+  { id: "BC-2026-000041", name: "M. Laurent", role: "Professeur", subject: "Email académique bloqué", category: "Email", priority: "Urgent", age: "Il y a 14 min" },
+  { id: "BC-2026-000040", name: "Yanis K.", role: "Élève · 2GT4", subject: "Ordinateur ne démarre plus", category: "PC portable", priority: "Normal", age: "Il y a 31 min" },
+  { id: "BC-2026-000039", name: "Sarah M.", role: "Élève · TSTMG2", subject: "Question Grand Oral", category: "Grand Oral", priority: "Normal", age: "Il y a 1 h" },
 ];
 
 type AgentRequest = {

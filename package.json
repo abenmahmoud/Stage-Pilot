@@ -19,6 +19,7 @@
     "test:support-routing": "node --experimental-strip-types scripts/test-support-routing.mjs",
     "test:support-conversation": "node --experimental-strip-types scripts/test-support-conversation.mjs",
     "test:support-concurrency": "node --experimental-strip-types scripts/test-support-concurrency.mjs",
+    "test:support-device-memory": "node --experimental-strip-types scripts/test-support-device-memory.mjs",
     "test:support-callback-policy": "node --experimental-strip-types scripts/test-support-callback-policy.mjs",
     "test:support-agent-access": "node --experimental-strip-types scripts/test-support-agent-access.mjs",
     "test:support-access-security": "node scripts/test-support-access-security.mjs",
