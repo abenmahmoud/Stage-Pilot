@@ -10,7 +10,7 @@ import {
   supportMessages,
   supportRequests,
 } from "../../../../db/schema.js";
-import { HttpError } from "../../../_shared/auth.js";
+import { HttpError, requireAal2 } from "../../../_shared/auth.js";
 import { handleApi, methodNotAllowed } from "../../../_shared/response.js";
 import {
   assertSupportRequestAccess,
@@ -168,6 +168,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         (nextIdentityMethod !== "official_roster" || (!request.studentId && !request.professeurId))
       ) {
         throw new HttpError(409, "Rapprochez d’abord la demande d’un élève ou professeur présent dans une liste officielle");
+      }
+      if (
+        nextIdentityStatus === "identite_confirmee" &&
+        currentIdentityStatus !== "identite_confirmee"
+      ) {
+        await requireAal2(req);
       }
       if (
         SENSITIVE_CATEGORIES.has(request.category) &&

@@ -15,6 +15,7 @@ import {
 } from "../../../db/schema.js";
 import { handleApi, methodNotAllowed } from "../../_shared/response.js";
 import {
+  SUPPORT_MAGIC_TOKEN_MINUTES,
   SUPPORT_SESSION_DAYS,
   enforceSupportRateLimit,
   idempotencyKey,
@@ -242,7 +243,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             contactId: emailContact.id,
             tokenHash: sha256(rawAccessToken),
             purpose: "support_access",
-            expiresAt: new Date(Date.now() + SUPPORT_SESSION_DAYS * 24 * 60 * 60 * 1000),
+            expiresAt: new Date(Date.now() + SUPPORT_MAGIC_TOKEN_MINUTES * 60 * 1000),
           });
 
           await tx.execute(sql`

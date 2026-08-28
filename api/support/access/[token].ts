@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { and, eq, gt, isNull } from "drizzle-orm";
+import { and, eq, gt, isNull, sql } from "drizzle-orm";
 import { db } from "../../../db/index.js";
 import {
   supportContacts,
@@ -39,7 +39,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     });
 
     const existingSessionToken = readSupportSessionToken(req);
-    const newSessionToken = existingSessionToken ?? opaqueToken();
+    const newSessionToken = opaqueToken();
     const result = await db.transaction(async (tx) => {
       const [magic] = await tx
         .select({
@@ -61,29 +61,74 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         .limit(1);
       if (!magic) throw new HttpError(410, "Ce lien de suivi est expiré ou déjà utilisé");
 
-      let [session] = await tx
-        .select({ id: supportDeviceSessions.id })
-        .from(supportDeviceSessions)
+      const now = new Date();
+      const [consumed] = await tx
+        .update(supportMagicTokens)
+        .set({
+          usedAt: now,
+          attemptCount: sql`${supportMagicTokens.attemptCount} + 1`,
+        })
         .where(
           and(
-            eq(supportDeviceSessions.sessionHash, sha256(newSessionToken)),
-            gt(supportDeviceSessions.expiresAt, new Date()),
-            isNull(supportDeviceSessions.revokedAt)
+            eq(supportMagicTokens.id, magic.id),
+            gt(supportMagicTokens.expiresAt, now),
+            isNull(supportMagicTokens.usedAt)
           )
         )
-        .limit(1);
-      if (!session) {
-        [session] = await tx
-          .insert(supportDeviceSessions)
-          .values({
-            sessionHash: sha256(newSessionToken),
-            label: "Lien sécurisé",
-            expiresAt: new Date(Date.now() + SUPPORT_SESSION_DAYS * 24 * 60 * 60 * 1000),
-          })
-          .returning({ id: supportDeviceSessions.id });
+        .returning({ id: supportMagicTokens.id });
+      if (!consumed) {
+        throw new HttpError(410, "Ce lien de suivi est expiré ou déjà utilisé");
       }
 
-      const now = new Date();
+      const [session] = await tx
+        .insert(supportDeviceSessions)
+        .values({
+          sessionHash: sha256(newSessionToken),
+          label: "Lien sécurisé",
+          expiresAt: new Date(Date.now() + SUPPORT_SESSION_DAYS * 24 * 60 * 60 * 1000),
+        })
+        .returning({ id: supportDeviceSessions.id });
+
+      if (existingSessionToken) {
+        const [previousSession] = await tx
+          .select({ id: supportDeviceSessions.id })
+          .from(supportDeviceSessions)
+          .where(
+            and(
+              eq(supportDeviceSessions.sessionHash, sha256(existingSessionToken)),
+              gt(supportDeviceSessions.expiresAt, now),
+              isNull(supportDeviceSessions.revokedAt)
+            )
+          )
+          .limit(1);
+        if (previousSession) {
+          const previousGrants = await tx
+            .select({ requestId: supportSessionRequests.requestId })
+            .from(supportSessionRequests)
+            .where(eq(supportSessionRequests.sessionId, previousSession.id));
+          if (previousGrants.length > 0) {
+            await tx
+              .insert(supportSessionRequests)
+              .values(
+                previousGrants.map((grant) => ({
+                  sessionId: session.id,
+                  requestId: grant.requestId,
+                }))
+              )
+              .onConflictDoNothing();
+          }
+          await tx
+            .update(supportDeviceSessions)
+            .set({ revokedAt: now })
+            .where(
+              and(
+                eq(supportDeviceSessions.id, previousSession.id),
+                isNull(supportDeviceSessions.revokedAt)
+              )
+            );
+        }
+      }
+
       await tx
         .insert(supportSessionRequests)
         .values({ sessionId: session.id, requestId: magic.requestId })
@@ -136,14 +181,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         });
       }
 
-      await tx
-        .update(supportMagicTokens)
-        .set({ usedAt: now, attemptCount: 1 })
-        .where(eq(supportMagicTokens.id, magic.id));
       return { publicCode: magic.publicCode };
     });
 
-    if (!existingSessionToken) setSupportSessionCookie(res, newSessionToken);
+    setSupportSessionCookie(res, newSessionToken);
     return { request: result };
   });
 }

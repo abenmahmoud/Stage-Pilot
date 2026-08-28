@@ -151,6 +151,14 @@ export function authorizeInstitutionAccess(input: {
   }
 
   if (
+    target.kind === "audit_log" &&
+    target.serviceCode === null &&
+    membership.role !== "admin"
+  ) {
+    return { ok: false, reason: "service_scope_required" };
+  }
+
+  if (
     target.serviceCode !== null &&
     !membership.serviceCodes.includes(target.serviceCode)
   ) {

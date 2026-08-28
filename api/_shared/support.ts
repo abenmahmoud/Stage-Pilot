@@ -17,6 +17,7 @@ import {
 
 export const SUPPORT_COOKIE = "bc_support_session";
 export const SUPPORT_SESSION_DAYS = 30;
+export const SUPPORT_MAGIC_TOKEN_MINUTES = 30;
 
 const requesterTypes = new Set([
   "eleve",

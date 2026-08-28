@@ -3,7 +3,29 @@
 **Derniere mise a jour** : 28 aout 2026
 **Branche de travail** : `codex/lycee-connect-prototype`
 **Depot** : `abenmahmoud/Stage-Pilot`
-**Dernier jalon de code verifie** : politique éditoriale et lecture publique testées
+**Dernier jalon de code verifie** : liens de suivi et confirmation d'identite durcis
+
+## Jalon du 28 aout 2026 - audit passwordless et identite
+
+- Une seule revue Claude Sonnet a ete autorisee et executee en lecture seule sur
+  une archive isolee de 16 fichiers, sans secret ni donnee reelle. Codex a
+  arbitre chaque signal ; le detail est conserve dans
+  `docs/audits/CLAUDE_PASSWORDLESS_SECURITY_REVIEW_2026-08-28.md`.
+- Un lien magique produit toujours une nouvelle session d'appareil. Les acces
+  deja legitimes du navigateur sont recopies, puis l'ancienne session est
+  revoquee afin de conserver la continuite sans reutiliser le meme jeton.
+- Les liens magiques expirent a 30 minutes et sont consommes atomiquement avant
+  tout octroi. Les sessions d'appareil restent distinctes et durent 30 jours.
+- Une reponse ne peut plus selectionner un contact desactive. Un journal global
+  est reserve a l'administrateur avec MFA ; un auditeur reste borne a ses
+  services.
+- La confirmation d'une identite scolaire exige maintenant une session agent
+  `aal2`, en plus du rapprochement avec une source officielle. Aucun annuaire
+  reel n'est importe et l'obligation MFA generale attend encore deux comptes
+  nominatifs et une recette de recuperation.
+- Les tests cibles passent (5/5 securite des liens, 12/12 identite) ainsi que la
+  compilation TypeScript et le build Vite. Un test d'integration concurrent sur
+  base de recette reste requis avant production.
 
 ## Jalon du 28 août 2026 - reprise de l'ancien site en preview
 

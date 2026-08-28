@@ -135,6 +135,13 @@ voir sa réponse dans le dossier. L'agent traite tout depuis une seule file.
 - [x] **T037D** Protéger les pages administratives par rôle côté interface,
   conserver la destination après connexion et ajouter la récupération du mot de
   passe par email avec écran de remplacement et tests de robustesse.
+- [x] **T037E** Faire auditer en lecture seule le parcours passwordless sur une
+  archive isolee, contre-verifier les constats, puis corriger la rotation de
+  session, la consommation atomique et l'expiration des jetons sans toucher aux
+  donnees reelles ni a la production.
+- [x] **T037F** Exclure les contacts desactives des reponses, reserver les
+  journaux globaux a un administrateur MFA et exiger `aal2` pour confirmer une
+  identite scolaire depuis une source officielle.
 - [ ] **T038** Exécuter tests mobile, desktop, clavier, charge et sécurité.
 - [x] **T038A** Relire les textes du parcours demandeur et agent, remplacer les
   codes internes par des libellés français et vérifier les principaux écrans.

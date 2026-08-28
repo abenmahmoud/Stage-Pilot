@@ -141,6 +141,28 @@ test("limits an MFA-protected auditor to its assigned service", () => {
     decide(actor, { kind: "audit_log", institutionId: "school-a", serviceCode: "secretariat" }),
     { ok: false, reason: "service_scope_required" }
   );
+  assert.deepEqual(
+    decide(actor, { kind: "audit_log", institutionId: "school-a", serviceCode: null }),
+    { ok: false, reason: "service_scope_required" }
+  );
+});
+
+test("allows only an MFA-protected institution admin to read institution-wide logs", () => {
+  const target = { kind: "audit_log", institutionId: "school-a", serviceCode: null };
+  const admin = {
+    institutionId: "school-a",
+    role: "admin",
+    serviceCodes: [],
+    status: "active",
+  };
+  assert.deepEqual(
+    decide({ ...baseActor, memberships: [admin], authenticatorLevel: "aal1" }, target),
+    { ok: false, reason: "mfa_required" }
+  );
+  assert.equal(
+    decide({ ...baseActor, memberships: [admin], authenticatorLevel: "aal2" }, target).ok,
+    true
+  );
 });
 
 test("keeps invited or disabled memberships outside every staff area", () => {

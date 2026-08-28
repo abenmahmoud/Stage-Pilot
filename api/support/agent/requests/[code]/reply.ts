@@ -12,7 +12,12 @@ import {
 } from "../../../../../db/schema.js";
 import { HttpError } from "../../../../_shared/auth.js";
 import { handleApi, methodNotAllowed } from "../../../../_shared/response.js";
-import { idempotencyKey, opaqueToken, sha256 } from "../../../../_shared/support.js";
+import {
+  idempotencyKey,
+  opaqueToken,
+  sha256,
+  SUPPORT_MAGIC_TOKEN_MINUTES,
+} from "../../../../_shared/support.js";
 import {
   assertSupportRequestAccess,
   requireSupportAgent,
@@ -99,7 +104,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const contacts = await db
       .select({ id: supportContacts.id, channel: supportContacts.channel })
       .from(supportContacts)
-      .where(eq(supportContacts.requestId, request.id));
+      .where(
+        and(
+          eq(supportContacts.requestId, request.id),
+          eq(supportContacts.usageScope, "support"),
+          isNull(supportContacts.disabledAt)
+        )
+      );
     const email = contacts.find((contact) => contact.channel === "email");
     const phone = contacts.find((contact) => contact.channel === "phone");
     if (!email && !phone) throw new HttpError(409, "Aucun moyen de réponse n'est disponible");
@@ -146,7 +157,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           contactId: email.id,
           tokenHash: sha256(rawAccessToken),
           purpose: "support_access",
-          expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+          expiresAt: new Date(Date.now() + SUPPORT_MAGIC_TOKEN_MINUTES * 60 * 1000),
         });
         await tx.execute(sql`
           select pgmq.send(
