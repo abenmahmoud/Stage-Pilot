@@ -41,11 +41,16 @@
   tests automatiques comparent ces destinations aux 28 contenus inventoriés.
 - [ ] T017 Vérifier français, liens, fichiers, 320 px et ordinateur.
   Le convertisseur et les 28 brouillons ne contiennent plus aucun lien interne
-  concaténé à l'adresse de l'accueil. La relecture éditoriale, les trois fichiers
-  refusés et la recette visuelle 320 px/ordinateur restent à terminer.
+  concaténé à l'adresse de l'accueil. La preview déployée passe les 28 anciennes
+  adresses, ne déborde pas à 320 px ni à 1440 px, ne remonte aucune image cassée
+  sur l'accueil et aucune erreur navigateur. La relecture éditoriale et les trois
+  fichiers refusés restent à terminer.
 
 ## Bascule
 
 - [ ] T018 Comparer l'ancien site et la preview rubrique par rubrique.
 - [ ] T019 Préparer sauvegarde, retour arrière et fenêtre de bascule.
+  La procédure est décrite dans
+  `docs/operations/SITE_PRODUCTION_CUTOVER_RUNBOOK.md`. Les sauvegardes réelles,
+  le test de restauration et la date autorisée restent à exécuter.
 - [ ] T020 Obtenir l'accord explicite puis seulement basculer le domaine.

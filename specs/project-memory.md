@@ -450,6 +450,10 @@ sa specification.
   d'audit; aucun contenu repris n'est publié.
 - Les 27 anciennes adresses hors accueil disposent d'une redirection testée par
   rapport à l'inventaire, y compris leur ancienne forme avec barre oblique.
+- La preview déployée passe 28/28 anciennes adresses et ne présente aucun
+  débordement horizontal à 320 px ou 1440 px sur l'accueil. La procédure de
+  bascule et de retour arrière est préparée, mais les sauvegardes restaurables,
+  la recette éditoriale et l'autorisation de production restent obligatoires.
 - Le portail distingue maintenant les articles des pages durables, relie les
   pages publiees a la rubrique lycee et exclut de l'API publique toute audience
   autre que `tous`.

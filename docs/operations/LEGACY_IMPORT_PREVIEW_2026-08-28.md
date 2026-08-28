@@ -42,6 +42,15 @@ Les redirections couvrent les `27` anciennes adresses hors accueil. La
 configuration Vercel supprime aussi la barre oblique finale historique avant
 d'appliquer la destination `/site/...`.
 
+Après déploiement du commit `48547bd`, la recette en ligne confirme :
+
+- `28/28` anciennes adresses aboutissent à la destination attendue ;
+- la forme historique `/bac-general/` est d'abord normalisée en
+  `/bac-general`, puis redirigée vers `/site/bac-general` ;
+- aucun débordement horizontal à `320 x 800` et `1440 x 900` sur l'accueil ;
+- aucune image cassée ni erreur de console sur ce parcours ;
+- CSP, HSTS, `X-Frame-Options: DENY` et cache API `no-store` présents.
+
 ## Échecs isolés
 
 1. Médias WordPress `1222` et `1223`, deux variantes de
