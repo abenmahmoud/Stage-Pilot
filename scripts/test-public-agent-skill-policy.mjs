@@ -57,6 +57,16 @@ test("selects a relevant published public skill with a current public source", (
   }]);
 });
 
+test("matches a password request to the validated ENT skill", () => {
+  const selected = select({}, "J'ai oublié mon mot de passe EduConnect");
+  assert.equal(selected.length, 1);
+  assert.equal(selected[0].skillKey, "assistance-ent");
+});
+
+test("does not confuse an unrelated code with a digital access procedure", () => {
+  assert.deepEqual(select({}, "Je veux modifier mon code postal"), []);
+});
+
 test("rejects disabled, inactive, unpublished and overdue skills", () => {
   assert.deepEqual(select({ enabled: false }), []);
   assert.deepEqual(select({ activeVersionId: "another-version" }), []);

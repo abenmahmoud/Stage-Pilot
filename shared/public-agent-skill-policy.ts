@@ -1,4 +1,5 @@
 import type { KnowledgeActor, KnowledgeActorLevel } from "./skill-registry-policy.js";
+import { knowledgeQueryTokens } from "./knowledge-query.js";
 
 export type PublicAgentSkillSource = {
   id: string;
@@ -46,11 +47,6 @@ export type PublicAgentSkillContext = {
 const MAX_SKILLS = 4;
 const MAX_SKILL_INSTRUCTIONS = 3_000;
 const MAX_TOTAL_INSTRUCTIONS = 6_000;
-const STOP_WORDS = new Set([
-  "avec", "avoir", "dans", "elle", "elles", "etre", "faire", "pour", "sans",
-  "sont", "tout", "tous", "une", "vous", "votre", "mais", "comme", "plus",
-  "quoi", "quel", "quelle", "besoin", "aide", "lycee",
-]);
 
 function timestamp(value: string | null): number {
   if (!value) return Number.NaN;
@@ -58,21 +54,8 @@ function timestamp(value: string | null): number {
   return Number.isFinite(parsed) ? parsed : Number.NaN;
 }
 
-function normalize(value: string): string {
-  return value
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, " ")
-    .trim();
-}
-
 function tokens(value: string): string[] {
-  return [...new Set(
-    normalize(value)
-      .split(/\s+/)
-      .filter((token) => token.length >= 3 && !STOP_WORDS.has(token))
-  )];
+  return knowledgeQueryTokens(value);
 }
 
 const ACTOR_RANK: Record<KnowledgeActorLevel, number> = {

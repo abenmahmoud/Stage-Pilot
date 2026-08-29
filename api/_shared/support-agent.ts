@@ -32,6 +32,8 @@ type RuntimeKnowledgeVersion = {
 type RuntimeKnowledgeSource = {
   institutionId: string;
   sourceId: string;
+  title?: string;
+  updatedAt?: string;
 };
 
 type RuntimeKnowledgeContext = {
@@ -67,11 +69,15 @@ export type SupportAgentResult = {
   turnCount: number;
   remainingTurns: number;
   limitReached: boolean;
+  sourceReferences: Array<{
+    title: string;
+    updatedAt: string;
+  }>;
 };
 
 type SupportAgentModelResult = Omit<
   SupportAgentResult,
-  "scope" | "action" | "turnCount" | "remainingTurns" | "limitReached"
+  "scope" | "action" | "turnCount" | "remainingTurns" | "limitReached" | "sourceReferences"
 >;
 
 const CATEGORY_LABELS: Record<SupportAgentResult["category"], string> = {
@@ -195,6 +201,7 @@ function withPolicy(
     turnCount: policy.turnCount,
     remainingTurns: policy.remainingTurns,
     limitReached: policy.limitReached,
+    sourceReferences: [],
   };
 }
 
@@ -443,7 +450,10 @@ export async function analyzeSupportConversation(input: {
       try {
         await usageRecorder({
           versions: publicKnowledgeContext.versions,
-          sources: publicKnowledgeContext.sources,
+          sources: publicKnowledgeContext.sources.map(({ institutionId, sourceId }) => ({
+            institutionId,
+            sourceId,
+          })),
           sessionHash: input.safetyIdentifier,
           model: process.env.OPENAI_SUPPORT_MODEL || "gpt-5.6-luna",
           turnCount: policy.turnCount,
@@ -452,7 +462,20 @@ export async function analyzeSupportConversation(input: {
         // A journal failure must not hide an otherwise safe answer from the user.
       }
     }
-    return result;
+    const sourceReferences = [...new Map(
+      publicKnowledgeContext.sources.flatMap((source) =>
+        source.title && source.updatedAt
+          ? [[`${source.title}:${source.updatedAt}`, {
+              title: source.title,
+              updatedAt: source.updatedAt,
+            }] as const]
+          : []
+      )
+    ).values()];
+    return {
+      ...result,
+      sourceReferences,
+    };
   } catch {
     return fallback;
   } finally {

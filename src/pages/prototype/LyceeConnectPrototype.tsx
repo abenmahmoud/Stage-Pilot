@@ -857,6 +857,12 @@ type AssistantChatMessage = {
   id: string;
   role: "assistant" | "requester";
   content: string;
+  sourceReferences?: AssistantSourceReference[];
+};
+
+type AssistantSourceReference = {
+  title: string;
+  updatedAt: string;
 };
 
 type AssistantInsight = {
@@ -875,6 +881,7 @@ type AssistantInsight = {
   turnCount: number;
   remainingTurns: number;
   limitReached: boolean;
+  sourceReferences: AssistantSourceReference[];
 };
 
 function inferSupportCategory(text: string): SupportCategory {
@@ -938,6 +945,7 @@ function localAssistantFallback(messages: AssistantChatMessage[], files: File[])
     turnCount: policy.turnCount,
     remainingTurns: policy.remainingTurns,
     limitReached: policy.limitReached,
+    sourceReferences: [],
   };
 }
 
@@ -1103,7 +1111,12 @@ function HelpDeskView({
     if (result.requesterType !== "inconnu" && !profile) setProfile(result.requesterType);
     setChatMessages((current) => [
       ...current,
-      { id: crypto.randomUUID(), role: "assistant", content: result.reply },
+      {
+        id: crypto.randomUUID(),
+        role: "assistant",
+        content: result.reply,
+        sourceReferences: result.sourceReferences,
+      },
     ]);
     setAssistantBusy(false);
   }
@@ -1331,7 +1344,22 @@ function HelpDeskView({
           {chatMessages.map((message) => (
             <div data-speaker={message.role} key={message.id}>
               {message.role === "assistant" ? <span><Bot aria-hidden="true" /></span> : null}
-              <p>{message.content}</p>
+              <div className="lycee-chat-message-body">
+                <p>{message.content}</p>
+                {message.sourceReferences?.length ? (
+                  <div className="lycee-agent-sources" aria-label="Sources utilisées">
+                    <BookOpenCheck aria-hidden="true" />
+                    <span>
+                      {message.sourceReferences.map((source) => (
+                        <small key={`${source.title}-${source.updatedAt}`}>
+                          <strong>{source.title}</strong>
+                          Mis à jour le {new Intl.DateTimeFormat("fr-FR", { dateStyle: "medium" }).format(new Date(source.updatedAt))}
+                        </small>
+                      ))}
+                    </span>
+                  </div>
+                ) : null}
+              </div>
             </div>
           ))}
           {assistantBusy ? <div data-speaker="assistant" className="is-thinking"><span><Bot aria-hidden="true" /></span><p><i /><i /><i /><b>J’analyse votre demande…</b></p></div> : null}

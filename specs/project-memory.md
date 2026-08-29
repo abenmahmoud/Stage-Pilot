@@ -5,6 +5,25 @@
 **Depot** : `abenmahmoud/Stage-Pilot`
 **Dernier jalon de code verifie** : candidate publiée sur la production Vercel
 
+## Jalon du 29 août 2026 - recherche usager et sources visibles
+
+- L'agent rapproche maintenant les formulations courantes des domaines validés :
+  un « mot de passe perdu » peut retrouver la compétence ENT et un « PC qui ne
+  démarre plus » la procédure ordinateur, sans supprimer les contrôles de
+  publication, classification, service, établissement, validité et révision.
+- Les réponses fondées sur des extraits sélectionnés affichent sous le message le
+  titre de la source et sa date de mise à jour. Cette liste est produite par le
+  serveur après la réponse structurée ; elle ne peut pas être inventée par le
+  modèle et n'expose aucun identifiant, chemin, empreinte ou propriétaire.
+- Le journal d'usage reste plus réduit que la réponse publique : il conserve
+  seulement les références opaques des versions et sources, le hash de session,
+  le modèle et le tour, jamais les titres, messages, coordonnées ou extraits.
+- Les tâches T024 et T025 sont closes par 39 contrôles ciblés et un build réussi.
+  Aucun document réel, donnée nominative, base de production, domaine, VPS,
+  Webmail, ENT ou PRONOTE n'a été modifié. Il faudra publier des compétences
+  validées et fictives pour voir ces références lors de la future recette
+  utilisateur intégrée.
+
 ## Jalon du 29 août 2026 - extraits documentaires minimaux
 
 - Les documents approuvés avec MFA peuvent désormais produire des extraits

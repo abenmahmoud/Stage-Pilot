@@ -189,8 +189,18 @@
 - [x] T024A Autoriser le contexte public à tous, le contexte interne uniquement
   aux agents L3/L4 du service de la source, et interdire l'injection directe des
   classifications personnelles ou sensibles, même pour un administrateur.
-- [ ] T024 Construire la recherche limitée aux sources publiées, autorisées et non expirées.
-- [ ] T025 Afficher source et date de mise à jour dans les réponses de procédure.
+- [x] T024 Construire la recherche limitée aux sources publiées, autorisées et
+  non expirées. La sélection partage désormais un vocabulaire métier borné pour
+  reconnaître notamment « mot de passe », ENT, email académique, PC, document de
+  scolarité, emploi du temps, restauration, inscription et vie scolaire, sans
+  recherche globale ni élargissement des droits. Les extraits restent chargés
+  seulement après le contrôle établissement, rôle, service, publication et
+  validité.
+- [x] T025 Afficher sous la réponse de procédure uniquement le titre et la date
+  de mise à jour des sources effectivement sélectionnées côté serveur. Les
+  références internes, chemins, empreintes et propriétaires ne sont jamais
+  exposés ; aucun modèle ne peut fabriquer la liste affichée et une réponse de
+  repli ne présente aucune source.
 - [x] T026 Imposer une question essentielle à la fois et dix tours maximum par session.
 - [x] T027 Créer ou compléter automatiquement un dossier `001` lors d'un transfert
   humain, en conservant le dialogue utile et les pièces sans demander de ressaisie.

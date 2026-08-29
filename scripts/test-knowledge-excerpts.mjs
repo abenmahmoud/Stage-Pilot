@@ -75,6 +75,24 @@ test("classe les extraits par pertinence", () => {
   assert.equal(result[0].id, "excerpt-1");
 });
 
+test("comprend les formulations usuelles sans exiger les mots du document", () => {
+  const ent = selectKnowledgeExcerpts({
+    query: "J'ai perdu mon mot de passe EduConnect",
+    candidates: [candidate({
+      id: "excerpt-ent",
+      sourceId: "source-ent",
+      sourceTitle: "Procédure d'accès ENT",
+      text: "L'identifiant numérique doit être vérifié par le service habilité.",
+    })],
+  });
+  const equipment = selectKnowledgeExcerpts({
+    query: "Mon PC ne démarre plus",
+    candidates: [candidate()],
+  });
+  assert.equal(ent[0]?.id, "excerpt-ent");
+  assert.equal(equipment[0]?.id, "excerpt-1");
+});
+
 test("ne fournit rien sans terme utile", () => {
   assert.deepEqual(
     selectKnowledgeExcerpts({ query: "bonjour merci", candidates: [candidate()] }),

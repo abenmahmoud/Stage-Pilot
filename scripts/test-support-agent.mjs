@@ -329,6 +329,8 @@ test("adds only the server-selected public registry context to model instruction
           sources: [{
             institutionId: "00000000-0000-4000-8000-000000000001",
             sourceId: "00000000-0000-4000-8000-000000000003",
+            title: "Procédure ENT de rentrée",
+            updatedAt: "2026-08-27T10:00:00.000Z",
           }],
         };
       },
@@ -338,6 +340,10 @@ test("adds only the server-selected public registry context to model instruction
     assert.equal(result.usedAi, true);
     assert.match(requestBody.instructions, /Procédure ENT validée/);
     assert.match(requestBody.instructions, /ne prétends jamais l'avoir exécuté/i);
+    assert.deepEqual(result.sourceReferences, [{
+      title: "Procédure ENT de rentrée",
+      updatedAt: "2026-08-27T10:00:00.000Z",
+    }]);
     assert.deepEqual(usageRecord, {
       versions: [{
         institutionId: "00000000-0000-4000-8000-000000000001",

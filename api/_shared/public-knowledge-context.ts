@@ -31,6 +31,8 @@ export type PublicKnowledgeVersionRef = {
 export type PublicKnowledgeSourceRef = {
   institutionId: string;
   sourceId: string;
+  title: string;
+  updatedAt: string;
 };
 
 export type LoadedPublicKnowledgeContext = {
@@ -111,6 +113,7 @@ export async function loadPublicKnowledgeContext(input: {
       serviceCodes: knowledgeSources.serviceCodes,
       validFrom: knowledgeSources.validFrom,
       expiresAt: knowledgeSources.expiresAt,
+      updatedAt: knowledgeSources.updatedAt,
     })
     .from(skillSourceLinks)
     .innerJoin(knowledgeSources, eq(skillSourceLinks.sourceId, knowledgeSources.id))
@@ -203,15 +206,25 @@ export async function loadPublicKnowledgeContext(input: {
       institutionId: skill.institutionId,
       versionId: skill.versionId,
     })),
-    sources: [...new Set(selectedExcerpts.map((excerpt) => excerpt.sourceId))].map(
-      (sourceId) => ({ institutionId: institution.id, sourceId })
+    sources: [...new Set(selectedExcerpts.map((excerpt) => excerpt.sourceId))].flatMap(
+      (sourceId) => {
+        const source = sourceRows.find((candidate) => candidate.id === sourceId);
+        return source
+          ? [{
+              institutionId: institution.id,
+              sourceId,
+              title: source.title,
+              updatedAt: source.updatedAt.toISOString(),
+            }]
+          : [];
+      }
     ),
   };
 }
 
 export async function recordPublicKnowledgeUsage(input: {
   versions: PublicKnowledgeVersionRef[];
-  sources?: PublicKnowledgeSourceRef[];
+  sources?: Array<Pick<PublicKnowledgeSourceRef, "institutionId" | "sourceId">>;
   sessionHash: string;
   model: string;
   turnCount: number;

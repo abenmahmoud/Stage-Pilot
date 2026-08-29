@@ -354,6 +354,7 @@
 .lycee-guided-thread > div { max-width: min(78%, 640px); display: flex; align-items: flex-start; gap: 9px; animation: lycee-message-in 220ms ease both; }
 .lycee-guided-thread > div > span { width: 30px; height: 30px; flex: 0 0 30px; display: grid; place-items: center; border-radius: 7px; background: #dfe8f4; color: #214c78; }
 .lycee-guided-thread > div > span svg { width: 16px; }
+.lycee-chat-message-body { min-width: 0; }
 .lycee-guided-thread p { margin: 0; padding: 11px 13px; border: 1px solid #d6e0eb; border-radius: 0 8px 8px 8px; background: #fff; color: #344a62; font-size: 12px; line-height: 1.55; overflow-wrap: anywhere; }
 .lycee-guided-thread > div[data-speaker="requester"] { align-self: flex-end; justify-content: flex-end; }
 .lycee-guided-thread > div[data-speaker="requester"] p { border-color: var(--lc-blue); border-radius: 8px 0 8px 8px; background: var(--lc-blue); color: #fff; }
@@ -362,6 +363,11 @@
 .lycee-guided-thread > div.is-thinking i:nth-child(2) { animation-delay: 120ms; }
 .lycee-guided-thread > div.is-thinking i:nth-child(3) { animation-delay: 240ms; }
 .lycee-guided-thread > div.is-thinking b { margin-left: 5px; color: #65778c; font-size: 9px; font-weight: 750; }
+.lycee-agent-sources { display: grid; grid-template-columns: 18px minmax(0, 1fr); gap: 7px; margin-top: 6px; padding: 8px 10px; border-left: 2px solid #13806f; background: #eaf6f3; color: #315f59; }
+.lycee-agent-sources > svg { width: 15px; height: 15px; margin-top: 1px; }
+.lycee-agent-sources > span { min-width: 0; display: grid; gap: 5px; }
+.lycee-agent-sources small { display: grid; gap: 1px; font-size: 8px; line-height: 1.35; }
+.lycee-agent-sources strong { overflow-wrap: anywhere; color: #174f48; font-size: 9px; }
 .lycee-conversation-form { display: grid; gap: 13px; padding: 20px 24px 24px; border-top: 1px solid var(--lc-line); }
 .lycee-chat-choices { min-width: 0; margin: 0; padding: 0; border: 0; }
 .lycee-chat-choices legend { margin-bottom: 12px; color: var(--lc-ink); font-size: 13px; font-weight: 850; }

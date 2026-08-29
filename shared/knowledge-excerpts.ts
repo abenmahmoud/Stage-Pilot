@@ -1,3 +1,5 @@
+import { knowledgeQueryTokens } from "./knowledge-query.js";
+
 export type CompiledKnowledgeExcerpt = {
   ordinal: number;
   text: string;
@@ -22,11 +24,7 @@ export const KNOWLEDGE_EXCERPT_SOURCE_BUDGET = 30_000;
 export const KNOWLEDGE_EXCERPT_PROMPT_COUNT = 6;
 export const KNOWLEDGE_EXCERPT_PROMPT_BUDGET = 4_000;
 
-const STOP_WORDS = new Set([
-  "avec", "avoir", "dans", "elle", "elles", "etre", "faire", "pour", "sans",
-  "sont", "tout", "tous", "une", "vous", "votre", "mais", "comme", "plus",
-  "quoi", "quel", "quelle", "besoin", "aide", "lycee", "document", "information",
-]);
+const EXCERPT_STOP_WORDS = new Set(["document", "information"]);
 
 function normalizeWhitespace(value: string): string {
   return value
@@ -122,21 +120,8 @@ export function compileKnowledgeExcerpts(text: string): CompiledKnowledgeExcerpt
   return excerpts;
 }
 
-function normalize(value: string): string {
-  return value
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, " ")
-    .trim();
-}
-
 function tokens(value: string): string[] {
-  return [...new Set(
-    normalize(value)
-      .split(/\s+/)
-      .filter((token) => token.length >= 3 && !STOP_WORDS.has(token))
-  )];
+  return knowledgeQueryTokens(value, EXCERPT_STOP_WORDS);
 }
 
 function relevance(candidate: KnowledgeExcerptCandidate, queryTokens: string[]): number {
