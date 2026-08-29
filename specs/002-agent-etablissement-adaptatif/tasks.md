@@ -121,9 +121,13 @@
   revue manuelle, ouvrir l'original par lien court et créer seulement une source
   en brouillon après validation humaine MFA. EICAR et le nettoyage à zéro sont
   vérifiés ; la publication et le contexte agent restent dans T014C/T014D.
-- [ ] T014D Exposer aux compétences uniquement des extraits minimaux de sources
+- [x] T014D Exposer aux compétences uniquement des extraits minimaux de sources
   publiées et autorisées ; interdire les listes nominatives, fichiers bruts et
-  documents personnels dans le contexte du modèle.
+  documents personnels dans le contexte du modèle. Une recette distante avec
+  source, document, extrait, compétence et évaluation entièrement fictifs a
+  vérifié sur la preview protégée la sélection, la réponse IA, deux audits
+  `consult_public` minimaux puis le nettoyage à zéro. La migration
+  `20260829103209` aligne la contrainte SQL sur cet audit.
 - [x] T014D1 Compiler après validation MFA au plus 40 extraits et 30 000
   caractères par source, retirer le texte intégral, puis sélectionner après le
   contrôle d'accès au plus six passages et 4 000 caractères. La table serveur,

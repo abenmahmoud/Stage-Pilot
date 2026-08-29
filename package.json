@@ -31,6 +31,7 @@
     "test:skill-registry": "node --experimental-strip-types scripts/test-skill-registry-policy.mjs",
     "test:knowledge-expiry": "node --experimental-strip-types scripts/test-knowledge-expiry-policy.mjs",
     "test:public-skill-context": "node --experimental-strip-types scripts/test-public-agent-skill-policy.mjs",
+    "test:preview-public-knowledge-flow": "node --import ./scripts/ts-test-resolver.mjs --experimental-strip-types scripts/test-preview-public-knowledge-flow.mjs --preview-only",
     "test:knowledge-actor": "node --experimental-strip-types scripts/test-knowledge-actor-policy.mjs",
     "test:knowledge-registry-security": "node --import ./scripts/ts-test-resolver.mjs --experimental-strip-types scripts/test-knowledge-registry-security.mjs",
     "test:knowledge-document-ingestion": "node --import ./scripts/ts-test-resolver.mjs --experimental-strip-types scripts/test-knowledge-document-ingestion.mjs",

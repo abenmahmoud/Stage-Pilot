@@ -847,6 +847,19 @@ taches et analyse de coherence avant une automatisation sensible.
   recherche. Toute intervention VPS ou donnée réelle nécessite une autorisation
   distincte et une recette entièrement fictive.
 
+### Jalon du 29 août 2026 - connaissances autorisées de l'agent
+
+- Une source, un document, un extrait, une compétence et une évaluation tous
+  fictifs ont été publiés temporairement sur la branche Supabase de preview.
+- L'API Vercel protégée a sélectionné cette connaissance et produit une réponse
+  IA sur une demande ENT fictive. Deux audits `consult_public` ont conservé
+  uniquement les références opaques, le hash de session, le modèle et le tour.
+- La contrainte SQL accepte désormais cet événement via la migration
+  `20260829103209`. Aucun message, extrait, contact, URI ou checksum n'entre dans
+  l'audit d'usage.
+- La recette a supprimé ses sources, documents, extraits, compétences, versions,
+  évaluations, liens et audits. Le contrôle final a confirmé un retour à zéro.
+
 ## 8. Prochain ordre recommande
 
 1. Publier et tester le pré-triage ordinateur portable avec des données fictives.

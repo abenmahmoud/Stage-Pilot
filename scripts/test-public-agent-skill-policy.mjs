@@ -111,11 +111,17 @@ test("never selects private source locators or ownership fields for the model", 
 
 test("keeps usage audit metadata free of messages and contact data", () => {
   const loader = readFileSync(new URL("../api/_shared/public-knowledge-context.ts", import.meta.url), "utf8");
+  const auditMigration = readFileSync(
+    new URL("../supabase/migrations/20260829103209_allow_public_knowledge_usage_audit.sql", import.meta.url),
+    "utf8"
+  );
   const auditSource = loader.slice(loader.indexOf("export async function recordPublicKnowledgeUsage"));
   assert.match(auditSource, /action: "consult_public"/);
   assert.match(auditSource, /resourceType: "source"/);
   assert.match(auditSource, /actorId: null/);
   assert.doesNotMatch(auditSource, /\b(query|reply|email|telephone|uri|checksum)\b/i);
+  assert.match(auditMigration, /'consult_public'/);
+  assert.match(auditMigration, /never stores message content/i);
 });
 
 test("allows an internal skill only for persisted staff in the source service", () => {
