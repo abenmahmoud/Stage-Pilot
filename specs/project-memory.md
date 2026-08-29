@@ -5,6 +5,22 @@
 **Depot** : `abenmahmoud/Stage-Pilot`
 **Dernier jalon de code verifie** : candidate publiée sur la production Vercel
 
+## Jalon du 29 août 2026 - frontières adverses vérifiées
+
+- Une phrase saisie dans le chat ne peut ni attribuer un rôle, ni confirmer une
+  identité, ni autoriser la consultation d'un tiers.
+- Le contact vérifié, l'identité scolaire et la relation parent-élève restent
+  trois preuves distinctes. Une relation active ne vaut que pour l'élève lié.
+- Les sessions publiques sont liées au hash de session, au code et au dossier ;
+  les agents sont limités à leurs services dans les files, statistiques, lectures
+  et écritures.
+- Les rôles proviennent uniquement des métadonnées serveur et la confirmation
+  d'identité exige toujours une action humaine avec MFA.
+- 47 contrôles ciblés et le build passent. T022A reste ouverte pour les scénarios
+  humains complets de la charte.
+- Lot preview uniquement : aucune donnée réelle, migration, production, DNS,
+  VPS, Hostinger, Webmail, ENT ou PRONOTE n'a été modifié.
+
 ## Jalon du 29 août 2026 - limites sans blocage collectif
 
 - Le guichet et l'assistant utilisent désormais des compteurs PostgreSQL

@@ -326,6 +326,12 @@ l'autorisation de quota définie par le propriétaire.
   sans clé de repli commune. RLS est forcée, les clients n'ont aucun droit et
   l'essai transactionnel ne laisse aucune ligne synthétique. Les seuils et la
   durée technique restent à observer puis valider avant production.
+- Lot N5V : frontières adverses du guichet. **Validé sur la preview** : une
+  revendication de rôle dans le chat ne crée aucun droit, le contact vérifié
+  reste distinct de l'identité scolaire, les relations, sessions et services
+  sont cloisonnés et la confirmation d'identité demeure humaine avec MFA. Les
+  47 contrôles ciblés et le build passent sans donnée réelle. Les scénarios
+  humains complets de la charte restent dans T022A.
 - Lot N6 : tests de non-régression, build, contrôle mobile et rapport d'écarts.
   **Partiellement validé en preview** : 200 transactions concurrentes sans perte
   ni reste après nettoyage, 135 contrôles de sécurité, build réussi, PWA active,

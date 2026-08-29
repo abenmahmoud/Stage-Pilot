@@ -193,7 +193,12 @@
   création, le suivi, les pièces et les écritures agent. Les clés sont hachées,
   le réseau reste un garde-fou très haut et aucun repli commun ne peut bloquer
   tout le lycée. Les seuils restent à observer et valider avant production.
-- [ ] T022 Tester injection de prompt, usurpation d'identité et accès croisé.
+- [x] T022 Tester injection de prompt, usurpation d'identité et accès croisé.
+  La matrice automatisée vérifie qu'une consigne saisie dans le chat ne donne
+  aucun rôle, qu'un contact vérifié ne devient pas une identité scolaire, que
+  les relations parent-élève, sessions de suivi et périmètres de service restent
+  cloisonnés, et que la confirmation d'identité demeure une action humaine MFA.
+  Les 47 contrôles ciblés passent avec le build sur la preview.
 - [ ] T022A Tester les scénarios de la charte : urgence sans permanence,
   fausse confirmation d'alerte, demande sur un tiers, appareil partagé,
   contact vérifié sans identité scolaire, santé minimisée et recours humain.
