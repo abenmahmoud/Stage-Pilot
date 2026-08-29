@@ -661,6 +661,49 @@ export const knowledgeDocuments = pgTable(
   ]
 );
 
+export const knowledgeSourceExcerpts = pgTable(
+  "knowledge_source_excerpts",
+  {
+    id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+    institutionId: uuid("institution_id")
+      .notNull()
+      .references(() => institutions.id, { onDelete: "cascade" }),
+    sourceId: uuid("source_id")
+      .notNull()
+      .references(() => knowledgeSources.id, { onDelete: "cascade" }),
+    documentId: uuid("document_id")
+      .notNull()
+      .references(() => knowledgeDocuments.id, { onDelete: "cascade" }),
+    ordinal: integer("ordinal").notNull(),
+    excerptText: text("excerpt_text").notNull(),
+    contentHash: text("content_hash").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    uniqueIndex("knowledge_source_excerpts_source_ordinal_uidx").on(
+      table.sourceId,
+      table.ordinal
+    ),
+    uniqueIndex("knowledge_source_excerpts_source_hash_uidx").on(
+      table.sourceId,
+      table.contentHash
+    ),
+    index("knowledge_source_excerpts_institution_source_idx").on(
+      table.institutionId,
+      table.sourceId,
+      table.ordinal
+    ),
+    index("knowledge_source_excerpts_source_institution_fk_idx").on(
+      table.sourceId,
+      table.institutionId
+    ),
+    index("knowledge_source_excerpts_document_institution_fk_idx").on(
+      table.documentId,
+      table.institutionId
+    ),
+  ]
+);
+
 export const agentSkills = pgTable(
   "agent_skills",
   {

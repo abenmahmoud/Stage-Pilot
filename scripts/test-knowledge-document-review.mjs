@@ -19,6 +19,9 @@ test("requires MFA and creates only a draft source after human document approval
   assert.match(source, /status: "draft"/);
   assert.match(source, /status: "ready"/);
   assert.match(source, /action: "review_document"/);
+  assert.match(source, /compileApprovedDocument\(document\)/);
+  assert.match(source, /proposedKnowledge: minimizedProposal/);
+  assert.match(source, /extractedTextRemoved: true/);
   assert.doesNotMatch(source, /insert\(agentSkills\)|insert\(agentSkillVersions\)/);
 });
 
@@ -41,6 +44,8 @@ test("opens originals only through a short-lived private manager link", async ()
 test("does not send extracted text or storage paths in the document list", async () => {
   const source = await readFile(listUrl, "utf8");
   assert.match(source, /\.select\(\{/);
+  assert.match(source, /excerptCount:/);
   assert.doesNotMatch(source, /proposedKnowledge: knowledgeDocuments\.proposedKnowledge/);
   assert.doesNotMatch(source, /storagePath: knowledgeDocuments\.storagePath/);
+  assert.doesNotMatch(source, /excerptText:/);
 });

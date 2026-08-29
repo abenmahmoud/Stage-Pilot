@@ -5,6 +5,28 @@
 **Depot** : `abenmahmoud/Stage-Pilot`
 **Dernier jalon de code verifie** : candidate publiée sur la production Vercel
 
+## Jalon du 29 août 2026 - extraits documentaires minimaux
+
+- Les documents approuvés avec MFA peuvent désormais produire des extraits
+  déterministes uniquement lorsqu'ils sont publics ou internes, sans signal de
+  donnée privée ni secret. Les classifications personnelles et sensibles restent
+  en lecture humaine.
+- Le compilateur conserve au plus 40 passages et 30 000 caractères par source,
+  puis supprime le texte intégral extrait. Pour une question, le contexte est
+  limité à six passages et 4 000 caractères sélectionnés après les contrôles
+  d'établissement, rôle, service, publication et validité.
+- Les balises réservées sont neutralisées et un extrait ne peut modifier ni les
+  droits, ni les outils, ni les règles système. L'espace superadministrateur
+  indique le nombre d'extraits utilisables ou « Lecture humaine uniquement ».
+- Les migrations `20260829034457` et `20260829034714` sont appliquées seulement
+  sur la branche Supabase de preview. La table est vide, RLS est forcée, les
+  clients n'ont aucun droit et les clés étrangères sont indexées. Aucun document
+  réel, VPS, Vercel production ou DNS n'a été modifié.
+- La preuve reproductible est dans
+  `docs/operations/KNOWLEDGE_EXCERPTS_PREVIEW_2026-08-29.md`. La publication et
+  la recette complète d'une première compétence entièrement fictive restent à
+  réaliser avant de fermer T014D.
+
 ## Jalon du 29 août 2026 - premier coffre chiffré du répertoire
 
 - La preview conserve désormais les noms et coordonnées strictement nécessaires

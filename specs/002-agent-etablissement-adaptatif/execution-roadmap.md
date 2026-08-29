@@ -270,6 +270,15 @@ l'autorisation de quota définie par le propriétaire.
   traitement ou à cinq minutes. L'activation du worker VPS, les secrets Vercel
   preview et la recette de bout en bout conservent une porte d'autorisation
   séparée.
+- Lot N5Q : extraits documentaires autorisés. **Socle applicatif et base de
+  preview terminés** : après antivirus, extraction locale et validation MFA,
+  seules les sources publiques ou internes produisent des passages bornés. Le
+  texte intégral est retiré, les documents personnels/sensibles restent en
+  lecture humaine et la sélection intervient après les contrôles d'établissement,
+  rôle, service, publication et validité. Au plus six extraits et 4 000
+  caractères rejoignent le contexte ; les balises sont neutralisées. La recette
+  fictive a été annulée et la table reste vide. La publication d'une première
+  source fictive liée à une compétence reste nécessaire pour fermer T014D.
 - Lot N6 : tests de non-régression, build, contrôle mobile et rapport d'écarts.
   **Partiellement validé en preview** : 200 transactions concurrentes sans perte
   ni reste après nettoyage, 135 contrôles de sécurité, build réussi, PWA active,

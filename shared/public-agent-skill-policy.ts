@@ -40,7 +40,7 @@ export type PublicAgentSkillContext = {
   accessLevel: KnowledgeActorLevel;
   instructions: string;
   allowedTools: string[];
-  sources: Array<{ title: string; expiresAt: string | null }>;
+  sources: Array<{ id: string; title: string; expiresAt: string | null }>;
 };
 
 const MAX_SKILLS = 4;
@@ -204,7 +204,11 @@ export function selectAuthorizedAgentSkillContext(input: {
       allowedTools: [...new Set(candidate.allowedTools)].sort(),
       sources: candidate.sources
         .filter((source) => source.required)
-        .map((source) => ({ title: source.title, expiresAt: source.expiresAt })),
+        .map((source) => ({
+          id: source.id,
+          title: source.title,
+          expiresAt: source.expiresAt,
+        })),
     });
     usedCharacters += instructions.length;
   }

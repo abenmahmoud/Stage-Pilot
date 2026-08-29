@@ -1,11 +1,14 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
+import { createHash } from "node:crypto";
 import { and, eq, inArray, sql } from "drizzle-orm";
 import { db } from "../../../../../db/index.js";
 import {
   agentSkillAudit,
   knowledgeDocuments,
+  knowledgeSourceExcerpts,
   knowledgeSources,
 } from "../../../../../db/schema.js";
+import { compileKnowledgeExcerpts } from "../../../../../shared/knowledge-excerpts.js";
 import { HttpError, supabaseAdmin } from "../../../../_shared/auth.js";
 import { requireKnowledgeManager } from "../../../../_shared/knowledge-registry.js";
 import { handleApi, methodNotAllowed } from "../../../../_shared/response.js";
@@ -36,6 +39,42 @@ function reviewInput(value: unknown): { action: "approve" | "reject"; note: stri
 function sourceType(value: string): "internal_document" | "procedure" | "calendar" {
   if (value === "procedure" || value === "calendar") return value;
   return "internal_document";
+}
+
+function compileApprovedDocument(document: {
+  classification: string;
+  proposedKnowledge: unknown;
+}) {
+  if (!["public", "internal"].includes(document.classification)) return [];
+  if (
+    !document.proposedKnowledge ||
+    typeof document.proposedKnowledge !== "object" ||
+    Array.isArray(document.proposedKnowledge)
+  ) return [];
+  const proposal = document.proposedKnowledge as Record<string, unknown>;
+  if (
+    proposal.state !== "extracted" ||
+    typeof proposal.extractedText !== "string" ||
+    (Array.isArray(proposal.privacySignals) && proposal.privacySignals.length > 0)
+  ) return [];
+  return compileKnowledgeExcerpts(proposal.extractedText);
+}
+
+function minimizedProposal(value: unknown, excerptCount: number) {
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
+    return { schemaVersion: 2, state: "manual_review", excerptCount: 0 };
+  }
+  const proposal = value as Record<string, unknown>;
+  return {
+    schemaVersion: 2,
+    state: typeof proposal.state === "string" ? proposal.state : "manual_review",
+    reason: typeof proposal.reason === "string" ? proposal.reason : null,
+    privacySignals: Array.isArray(proposal.privacySignals)
+      ? proposal.privacySignals.filter((signal): signal is string => typeof signal === "string").slice(0, 20)
+      : [],
+    truncated: proposal.truncated === true,
+    excerptCount,
+  };
 }
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
@@ -133,6 +172,19 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           checksum: document.checksum,
         })
         .returning();
+      const excerpts = compileApprovedDocument(document);
+      if (excerpts.length > 0) {
+        await tx.insert(knowledgeSourceExcerpts).values(
+          excerpts.map((excerpt) => ({
+            institutionId: context.institutionId,
+            sourceId: source.id,
+            documentId: document.id,
+            ordinal: excerpt.ordinal,
+            excerptText: excerpt.text,
+            contentHash: createHash("sha256").update(excerpt.text, "utf8").digest("hex"),
+          }))
+        );
+      }
       const [ready] = await tx
         .update(knowledgeDocuments)
         .set({
@@ -141,6 +193,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           reviewedBy: context.user.id,
           reviewedAt: new Date(),
           analysisError: null,
+          proposedKnowledge: minimizedProposal(document.proposedKnowledge, excerpts.length),
         })
         .where(
           and(
@@ -158,7 +211,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           resourceId: id,
           action: "review_document",
           actorId: context.user.id,
-          summary: { decision: "approve", note: input.note, sourceId: source.id },
+          summary: {
+            decision: "approve",
+            note: input.note,
+            sourceId: source.id,
+            excerptCount: excerpts.length,
+            extractedTextRemoved: true,
+          },
         },
         {
           institutionId: context.institutionId,

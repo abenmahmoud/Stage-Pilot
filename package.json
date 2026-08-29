@@ -36,6 +36,7 @@
     "test:knowledge-document-ingestion": "node --import ./scripts/ts-test-resolver.mjs --experimental-strip-types scripts/test-knowledge-document-ingestion.mjs",
     "test:knowledge-document-worker": "node scripts/test-knowledge-document-worker.mjs",
     "test:knowledge-document-review": "node scripts/test-knowledge-document-review.mjs",
+    "test:knowledge-excerpts": "node --experimental-strip-types scripts/test-knowledge-excerpts.mjs",
     "test:preview-knowledge-document-worker": "node scripts/test-preview-knowledge-document-worker.mjs",
     "test:identity-access": "node --experimental-strip-types scripts/test-identity-access-policy.mjs",
     "test:identity-directory": "node --experimental-strip-types scripts/test-identity-directory-ingestion.mjs",

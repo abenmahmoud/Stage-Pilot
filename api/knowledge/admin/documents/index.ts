@@ -1,7 +1,11 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { desc, eq } from "drizzle-orm";
+import { desc, eq, sql } from "drizzle-orm";
 import { db } from "../../../../db/index.js";
-import { agentSkillAudit, knowledgeDocuments } from "../../../../db/schema.js";
+import {
+  agentSkillAudit,
+  knowledgeDocuments,
+  knowledgeSourceExcerpts,
+} from "../../../../db/schema.js";
 import { parseKnowledgeDocumentInput } from "../../../../shared/knowledge-document-input.js";
 import { supabaseAdmin } from "../../../_shared/auth.js";
 import {
@@ -36,6 +40,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           analysisSummary: knowledgeDocuments.analysisSummary,
           analysisError: knowledgeDocuments.analysisError,
           sourceId: knowledgeDocuments.sourceId,
+          excerptCount: sql<number>`(
+            select count(*)::integer
+            from ${knowledgeSourceExcerpts}
+            where ${knowledgeSourceExcerpts.documentId} = ${knowledgeDocuments.id}
+              and ${knowledgeSourceExcerpts.institutionId} = ${knowledgeDocuments.institutionId}
+          )`,
           createdAt: knowledgeDocuments.createdAt,
           uploadedAt: knowledgeDocuments.uploadedAt,
           analyzedAt: knowledgeDocuments.analyzedAt,

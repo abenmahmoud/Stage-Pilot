@@ -5,6 +5,7 @@ import {
   agentSkillAudit,
   agentSkillVersions,
   institutions,
+  knowledgeSourceExcerpts,
   knowledgeSources,
   skillSourceLinks,
 } from "../../db/schema.js";
@@ -13,6 +14,10 @@ import {
   selectAuthorizedAgentSkillContext,
   type PublicAgentSkillCandidate,
 } from "../../shared/public-agent-skill-policy.js";
+import {
+  formatKnowledgeExcerptContext,
+  selectKnowledgeExcerpts,
+} from "../../shared/knowledge-excerpts.js";
 import type { KnowledgeActor } from "../../shared/skill-registry-policy.js";
 
 const DEFAULT_INSTITUTION_SLUG = "blaise-cendrars-sevran";
@@ -148,8 +153,46 @@ export async function loadPublicKnowledgeContext(input: {
     query: input.query,
     now: now.toISOString(),
   });
+  const selectedSources = new Map(
+    selected.flatMap((skill) => skill.sources).map((source) => [source.id, source])
+  );
+  const selectedSourceIds = [...selectedSources.keys()];
+  const excerptRows = selectedSourceIds.length === 0
+    ? []
+    : await db
+        .select({
+          id: knowledgeSourceExcerpts.id,
+          sourceId: knowledgeSourceExcerpts.sourceId,
+          ordinal: knowledgeSourceExcerpts.ordinal,
+          text: knowledgeSourceExcerpts.excerptText,
+        })
+        .from(knowledgeSourceExcerpts)
+        .where(
+          and(
+            eq(knowledgeSourceExcerpts.institutionId, institution.id),
+            inArray(knowledgeSourceExcerpts.sourceId, selectedSourceIds)
+          )
+        )
+        .orderBy(asc(knowledgeSourceExcerpts.sourceId), asc(knowledgeSourceExcerpts.ordinal))
+        .limit(240);
+  const excerptContext = formatKnowledgeExcerptContext(
+    selectKnowledgeExcerpts({
+      query: input.query,
+      candidates: excerptRows.flatMap((excerpt) => {
+        const source = selectedSources.get(excerpt.sourceId);
+        return source
+          ? [{
+              ...excerpt,
+              sourceTitle: source.title,
+              sourceExpiresAt: source.expiresAt,
+            }]
+          : [];
+      }),
+    })
+  );
+  const skillContext = formatPublicAgentSkillContext(selected);
   return {
-    instructions: formatPublicAgentSkillContext(selected),
+    instructions: excerptContext ? `${skillContext}\n\n${excerptContext}` : skillContext,
     versions: selected.map((skill) => ({
       institutionId: skill.institutionId,
       versionId: skill.versionId,

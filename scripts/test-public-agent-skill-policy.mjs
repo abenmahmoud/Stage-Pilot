@@ -51,6 +51,7 @@ test("selects a relevant published public skill with a current public source", (
   assert.equal(selected.length, 1);
   assert.equal(selected[0].skillKey, "assistance-ent");
   assert.deepEqual(selected[0].sources, [{
+    id: "source-public",
     title: "Procédure ENT de rentrée",
     expiresAt: "2026-09-30T23:59:59.000Z",
   }]);
