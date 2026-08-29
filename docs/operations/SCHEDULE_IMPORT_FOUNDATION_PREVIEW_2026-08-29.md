@@ -16,6 +16,7 @@ Les migrations de preview sont :
 - `20260829105141_create_schedule_import_foundation.sql` ;
 - `20260829105238_index_schedule_audit_institution.sql` ;
 - `20260829105632_harden_schedule_scope_integrity.sql`.
+- `20260829112115_create_schedule_document_scan_queue.sql`.
 
 ## Verifications
 
@@ -31,9 +32,11 @@ Les migrations de preview sont :
 
 ## Blocages maintenus
 
-Un PDF recu n'est ni lu ni active. Avant toute donnee reelle, il faut encore :
+Un PDF reçu est maintenant placé dans une file privée après confirmation, mais
+le worker n'est pas installé sur le VPS. Avant toute donnée réelle, il faut
+encore :
 
-1. le worker antivirus et le comptage fiable des pages ;
+1. installer le worker puis vérifier PDF sain, EICAR, panne et reprise ;
 2. le rapprochement humain page-reference ;
 3. l'approbation et l'activation atomiques avec retour arriere ;
 4. les liens de lecture courts et audites ;

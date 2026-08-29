@@ -1,0 +1,29 @@
+[Unit]
+Description=Lycee schedule PDF antivirus and page-count worker (preview)
+After=network-online.target clamav-daemon.service
+Wants=network-online.target clamav-daemon.service
+
+[Service]
+Type=oneshot
+User=lycee-support
+Group=lycee-support
+SupplementaryGroups=clamav
+WorkingDirectory=/opt/lycee-support-preview
+EnvironmentFile=/etc/lycee-support-preview/schedule-document-worker.env
+ExecStart=/usr/bin/node --max-old-space-size=512 /opt/lycee-support-preview/schedule-document-worker.mjs
+TimeoutStartSec=5min
+MemoryMax=768M
+TasksMax=64
+CPUQuota=100%
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+LockPersonality=true
+
+[Install]
+WantedBy=multi-user.target

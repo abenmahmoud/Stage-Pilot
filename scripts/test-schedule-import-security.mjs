@@ -14,6 +14,10 @@ const integrityMigration = readFileSync(
   new URL("../supabase/migrations/20260829105632_harden_schedule_scope_integrity.sql", import.meta.url),
   "utf8"
 );
+const queueMigration = readFileSync(
+  new URL("../supabase/migrations/20260829112115_create_schedule_document_scan_queue.sql", import.meta.url),
+  "utf8"
+);
 const reservation = readFileSync(
   new URL("../api/schedule/admin/imports/index.ts", import.meta.url),
   "utf8"
@@ -71,7 +75,18 @@ test("reserves a signed upload without exposing a permanent file URL", () => {
 test("confirms exact size and MIME but never activates the received PDF", () => {
   assert.match(confirmation, /uploadedSize !== source\.sizeBytes/);
   assert.match(confirmation, /uploadedMime !== source\.mimeType/);
-  assert.match(confirmation, /status: "uploaded"/);
+  assert.match(confirmation, /status: "quarantined"/);
+  assert.match(confirmation, /pgmq\.send\([\s\S]+'schedule_document_scan'/);
   assert.match(confirmation, /activation: "blocked"/);
   assert.doesNotMatch(confirmation, /status: "active"/);
+});
+
+test("keeps the schedule scan queue private", () => {
+  assert.match(queueMigration, /pgmq\.create\('schedule_document_scan'\)/);
+  assert.match(queueMigration, /q_schedule_document_scan enable row level security/i);
+  assert.match(queueMigration, /q_schedule_document_scan force row level security/i);
+  assert.match(
+    queueMigration,
+    /revoke all on table[\s\S]+q_schedule_document_scan[\s\S]+from public, anon, authenticated/i
+  );
 });

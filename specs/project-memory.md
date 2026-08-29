@@ -876,6 +876,22 @@ taches et analyse de coherence avant une automatisation sensible.
 - Les deux PDF réels restent sur le poste jusqu'au worker antivirus, au
   rapprochement humain, aux liens temporaires audités et à la conservation.
 
+### Jalon du 29 août 2026 - file antivirus des emplois du temps
+
+- La preview possède la file privée `schedule_document_scan`. RLS est activée et
+  forcée sur la file et son archive ; `anon` et `authenticated` n'ont aucun droit.
+- La confirmation d'un PDF le place en quarantaine et envoie le travail dans la
+  même transaction. Une reprise d'un ancien état `uploaded` est prévue.
+- Le worker versionné lance ClamAV avant toute lecture, vérifie la signature et
+  la structure PDF, calcule SHA-256 et compte de 1 à 500 pages. Il n'extrait ni
+  nom, ni horaire, ni salle, ni texte et ne contacte aucun modèle d'IA.
+- Les fichiers infectés ou structurellement invalides doivent être supprimés du
+  stockage avant l'état `rejected`. Un échec de suppression interdit de prétendre
+  que l'objet a disparu et provoque une reprise bornée.
+- La recette de file fictive est revenue à zéro. Les tests ciblés et le build
+  passent. Le worker est préparé mais non installé : aucune action VPS, aucun PDF
+  réel et aucune production n'ont été touchés.
+
 ## 8. Prochain ordre recommande
 
 1. Publier et tester le pré-triage ordinateur portable avec des données fictives.

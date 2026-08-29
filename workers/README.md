@@ -12,6 +12,9 @@ The workers run on the lycée VPS, not in the browser or in a Vercel function.
 - `knowledge-document-worker.mjs` consumes `knowledge_document_scan`, runs
   ClamAV and extracts bounded text locally from safe PDF, DOCX, XLSX, CSV and
   text files. Personal, sensitive or privacy-signalled content stays manual.
+- `schedule-document-worker.mjs` consumes `schedule_document_scan`, runs
+  ClamAV, verifies the PDF structure and counts pages without extracting names,
+  hours or timetable content.
 
 Required environment variables:
 

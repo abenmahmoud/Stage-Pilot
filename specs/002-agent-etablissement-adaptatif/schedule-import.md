@@ -64,3 +64,18 @@ compter les pages, construire le rapprochement humain, ouvrir les pages par lien
 temporaire audité, définir la conservation et vérifier les comptes nominatifs.
 Tant que ces protections ne sont pas actives, les PDF restent uniquement sur le
 poste local.
+
+## Jalon technique du 29 août 2026
+
+- La file durable `schedule_document_scan` est créée uniquement sur la preview,
+  avec RLS forcée et aucun droit `anon` ou `authenticated`.
+- La confirmation place désormais le PDF en quarantaine et crée atomiquement le
+  travail d'analyse ; un ancien dépôt `uploaded` peut être repris sans double
+  activation.
+- Le worker préparé dans Git exécute ClamAV avant l'inspection PDF, vérifie la
+  signature et la structure, calcule SHA-256 et compte au plus 500 pages.
+- Aucun texte, nom, horaire, salle ou contenu du PDF n'est extrait et aucun
+  fournisseur d'IA n'est appelé.
+- Le worker n'est pas encore installé sur le VPS : l'état `review` ne sera donc
+  opérationnel qu'après autorisation, installation additive et recette fictive
+  comprenant un PDF sain, EICAR, reprise et nettoyage.

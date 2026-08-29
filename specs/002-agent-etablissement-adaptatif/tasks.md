@@ -283,6 +283,14 @@
 - [ ] T042C2 Ajouter le worker antivirus et de comptage des pages, l'écran de
   rapprochement humain page-référence, l'approbation, l'activation, le lien
   temporaire de lecture et le retrait avec conservation validée.
+- [x] T042C2A Créer la file privée de preview et le worker borné qui exécute
+  ClamAV avant toute inspection, vérifie la structure PDF, calcule SHA-256 et
+  compte au plus 500 pages sans extraire le contenu. La file est vide, RLS est
+  forcée et les rôles client n'ont aucun droit. L'installation VPS reste
+  volontairement bloquée jusqu'à une autorisation précise.
+- [ ] T042C2B Installer le worker sur le runtime de preview, exécuter les recettes
+  PDF fictif/EICAR/reprise, puis construire le rapprochement humain et les liens
+  temporaires audités.
 - [ ] T042D Construire le modèle de lecture privé des créneaux, groupes, salles et
   périodes de validité, avec versions et possibilité de retour arrière.
 - [x] T042D1 Implémenter et tester sur données fictives la politique de lecture :

@@ -1,0 +1,12 @@
+[Unit]
+Description=Run the schedule PDF scanner every minute
+
+[Timer]
+OnBootSec=2min
+OnUnitActiveSec=1min
+AccuracySec=10s
+Persistent=true
+Unit=lycee-schedule-document-worker.service
+
+[Install]
+WantedBy=timers.target
