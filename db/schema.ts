@@ -634,6 +634,13 @@ export const knowledgeDocuments = pgTable(
     storageBucket: text("storage_bucket").notNull().default("knowledge-ingest"),
     storagePath: text("storage_path").notNull().unique(),
     status: text("status").notNull().default("reserved"),
+    retentionPolicyKey: text("retention_policy_key").notNull().default("pending_dpo"),
+    retentionUntil: timestamp("retention_until", { withTimezone: true }),
+    purgeStatus: text("purge_status").notNull().default("blocked"),
+    purgeRequestedAt: timestamp("purge_requested_at", { withTimezone: true }),
+    purgeStartedAt: timestamp("purge_started_at", { withTimezone: true }),
+    purgedAt: timestamp("purged_at", { withTimezone: true }),
+    lastPurgeError: text("last_purge_error"),
     checksum: text("checksum"),
     analysisSummary: text("analysis_summary"),
     proposedKnowledge: jsonb("proposed_knowledge").notNull().default({}),
@@ -658,6 +665,9 @@ export const knowledgeDocuments = pgTable(
       table.ownerServiceCode,
       table.reviewDueAt
     ),
+    index("knowledge_documents_purge_due_idx")
+      .on(table.retentionUntil, table.createdAt)
+      .where(sql`${table.retentionPolicyKey} = 'approved' and ${table.purgeStatus} in ('scheduled', 'failed') and ${table.sourceId} is null`),
   ]
 );
 

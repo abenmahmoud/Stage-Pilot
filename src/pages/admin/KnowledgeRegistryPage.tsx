@@ -70,7 +70,8 @@ type KnowledgeDocumentStatus =
   | "review"
   | "ready"
   | "rejected"
-  | "failed";
+  | "failed"
+  | "purged";
 type KnowledgeDocument = {
   id: string;
   title: string;
@@ -85,6 +86,10 @@ type KnowledgeDocument = {
   mimeType: string;
   sizeBytes: number;
   status: KnowledgeDocumentStatus;
+  retentionPolicyKey: "pending_dpo" | "approved";
+  retentionUntil: string | null;
+  purgeStatus: "blocked" | "scheduled" | "processing" | "failed" | "purged";
+  purgedAt: string | null;
   analysisSummary: string | null;
   analysisError: string | null;
   reviewProposal: DocumentReviewProposal | null;
@@ -156,6 +161,7 @@ const DOCUMENT_STATUS: Record<KnowledgeDocumentStatus, { label: string; style: s
   ready: { label: "Validé", style: "bg-emerald-100 text-emerald-800" },
   rejected: { label: "Refusé", style: "bg-red-100 text-red-800" },
   failed: { label: "Échec d’analyse", style: "bg-red-100 text-red-800" },
+  purged: { label: "Purgé", style: "bg-slate-200 text-slate-700" },
 };
 
 const SERVICE_OPTIONS = [
@@ -520,11 +526,13 @@ export default function KnowledgeRegistryPage() {
               <strong className="block truncate text-slate-950">{document.title}</strong>
               <span className="block truncate text-xs text-slate-500">{document.originalName} · {formatBytes(document.sizeBytes)}</span>
               <p className="mt-2 line-clamp-2 text-sm text-slate-600">{document.purposeDescription}</p>
+              {document.retentionPolicyKey === "pending_dpo" ? <p className="mt-2 text-xs font-semibold text-amber-800">Conservation à définir par la direction et le DPO · purge bloquée</p> : null}
+              {document.retentionUntil ? <p className="mt-1 text-xs text-slate-500">Conservation prévue jusqu’au {dateLabel(document.retentionUntil)}</p> : null}
               {document.analysisSummary ? <p className="mt-2 text-xs font-medium text-slate-700">{document.analysisSummary}</p> : null}
               {document.status === "review" && document.reviewProposal ? <DocumentProposalReview proposal={document.reviewProposal} /> : null}
               {document.status === "ready" ? <p className="mt-1 text-xs font-semibold text-emerald-700">{document.excerptCount > 0 ? `${document.excerptCount} extrait${document.excerptCount > 1 ? "s" : ""} disponible${document.excerptCount > 1 ? "s" : ""} pour l’agent` : "Lecture humaine uniquement"}</p> : null}
               {document.analysisError ? <p className="mt-2 text-xs text-red-700">{document.analysisError}</p> : null}
-              {!['reserved', 'quarantined', 'processing', 'rejected'].includes(document.status) ? <button type="button" disabled={busy} onClick={() => void openDocument(document.id)} className="mt-2 inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-700 hover:text-emerald-900 disabled:opacity-50"><FileText className="h-3.5 w-3.5" /> Ouvrir l’original privé</button> : null}
+              {!['reserved', 'quarantined', 'processing', 'rejected', 'purged'].includes(document.status) ? <button type="button" disabled={busy} onClick={() => void openDocument(document.id)} className="mt-2 inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-700 hover:text-emerald-900 disabled:opacity-50"><FileText className="h-3.5 w-3.5" /> Ouvrir l’original privé</button> : null}
               {document.status === "review" ? <div className="mt-3 space-y-2 border-l-2 border-amber-400 pl-3">
                 <label className="block text-xs font-semibold text-slate-700" htmlFor={`review-note-${document.id}`}>Note de validation humaine</label>
                 <textarea id={`review-note-${document.id}`} rows={2} className="field bg-white text-sm" value={documentNotes[document.id] ?? ""} placeholder="Ce que vous avez vérifié et la limite d’utilisation, sans nom ni coordonnée." onChange={(event) => setDocumentNotes((value) => ({ ...value, [document.id]: event.target.value }))} />

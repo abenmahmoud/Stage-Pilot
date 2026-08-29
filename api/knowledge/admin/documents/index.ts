@@ -6,6 +6,7 @@ import {
   knowledgeDocuments,
   knowledgeSourceExcerpts,
 } from "../../../../db/schema.js";
+import { maskKnowledgeDocumentListMetadata } from "../../../../shared/knowledge-document-governance.js";
 import { parseKnowledgeDocumentInput } from "../../../../shared/knowledge-document-input.js";
 import { supabaseAdmin } from "../../../_shared/auth.js";
 import {
@@ -94,6 +95,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           mimeType: knowledgeDocuments.mimeType,
           sizeBytes: knowledgeDocuments.sizeBytes,
           status: knowledgeDocuments.status,
+          retentionPolicyKey: knowledgeDocuments.retentionPolicyKey,
+          retentionUntil: knowledgeDocuments.retentionUntil,
+          purgeStatus: knowledgeDocuments.purgeStatus,
+          purgedAt: knowledgeDocuments.purgedAt,
           analysisSummary: knowledgeDocuments.analysisSummary,
           analysisError: knowledgeDocuments.analysisError,
           reviewProposalJson: sql<unknown>`${knowledgeDocuments.proposedKnowledge}->'reviewProposal'`,
@@ -114,10 +119,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         .orderBy(desc(knowledgeDocuments.createdAt))
         .limit(200);
       return {
-        documents: documents.map(({ reviewProposalJson, ...document }) => ({
-          ...document,
-          reviewProposal: reviewProposal(reviewProposalJson),
-        })),
+        documents: documents.map(({ reviewProposalJson, ...document }) =>
+          maskKnowledgeDocumentListMetadata({
+            ...document,
+            reviewProposal: reviewProposal(reviewProposalJson),
+          })
+        ),
       };
     });
   }

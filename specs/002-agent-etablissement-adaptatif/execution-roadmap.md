@@ -308,6 +308,17 @@ l'autorisation de quota définie par le propriétaire.
   règles système bloquent l'extraction et imposent une lecture humaine. Aucune
   source n'est publiée automatiquement, la validation MFA existante reste
   obligatoire et aucun modèle externe ne reçoit le fichier ou son contenu.
+- Lot N5T : conservation documentaire. **Socle appliqué sur la preview vide** :
+  les métadonnées personnelles et sensibles sont masquées dans les listes et
+  l'ouverture d'un original privé produit un événement d'accès minimal. La
+  politique `pending_dpo` bloque toute date et toute purge par défaut. Le worker
+  traite au plus vingt documents à la fois avec verrouillage concurrent, refuse
+  les sources encore liées, supprime le fichier par l'API Storage puis efface
+  les extraits et métadonnées. Il ne démarre que si
+  `KNOWLEDGE_PURGE_WORKER_ENABLED=true`. Aucune durée n'a été inventée, aucun
+  worker n'est activé et aucun document n'a été créé ou supprimé. T020 restera
+  ouvert jusqu'à validation direction/DPO, recette fictive et procédure de
+  restauration.
 - Lot N6 : tests de non-régression, build, contrôle mobile et rapport d'écarts.
   **Partiellement validé en preview** : 200 transactions concurrentes sans perte
   ni reste après nettoyage, 135 contrôles de sécurité, build réussi, PWA active,

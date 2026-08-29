@@ -183,6 +183,11 @@
   l'API sous une forme filtrée. Les consignes visant l'agent suppriment le texte
   extrait et imposent une lecture humaine ; aucun modèle externe n'est appelé.
 - [ ] T020 Ajouter masquage des données, rétention, purge et journal d'accès.
+- [x] T020A Livrer le socle fermé par défaut : métadonnées personnelles et
+  sensibles masquées dans la liste, ouverture privée auditée, politique
+  `pending_dpo` sans date ni purge, worker par lots avec interrupteur explicite
+  et suppression via l'API Storage. Les durées, l'activation et la recette de
+  purge restent nécessaires pour fermer T020.
 - [ ] T021 Ajouter les limites de débit par appareil, compte, contact et comportement.
 - [ ] T022 Tester injection de prompt, usurpation d'identité et accès croisé.
 - [ ] T022A Tester les scénarios de la charte : urgence sans permanence,

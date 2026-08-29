@@ -46,9 +46,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       institutionId: context.institutionId,
       resourceType: "document",
       resourceId: id,
-      action: "review_document",
+      action: "access_document",
       actorId: context.user.id,
-      summary: { decision: "open_for_review", expiresInSeconds: 60 },
+      summary: {
+        decision: "open_for_review",
+        purpose: "human_review",
+        classification: document.classification,
+        expiresInSeconds: 60,
+      },
     });
     return { url: data.signedUrl, expiresInSeconds: 60 };
   });

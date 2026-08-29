@@ -5,6 +5,25 @@
 **Depot** : `abenmahmoud/Stage-Pilot`
 **Dernier jalon de code verifie** : candidate publiée sur la production Vercel
 
+## Jalon du 29 août 2026 - conservation documentaire fermée par défaut
+
+- La branche Supabase de preview `guichet-lycee-preview` possède désormais les
+  états de conservation et de purge. Elle contient toujours zéro document et
+  les rôles `anon` et `authenticated` n'ont aucun accès à la table.
+- `pending_dpo` est le défaut obligatoire : aucune date de conservation et
+  aucune purge ne peuvent être planifiées avant une politique approuvée.
+- Les titres, descriptions et noms de fichiers personnels ou sensibles sont
+  masqués dans les listes. L'original reste accessible uniquement par une URL
+  privée de soixante secondes et chaque ouverture est auditée sans chemin ni nom.
+- Un worker par lots utilise `FOR UPDATE SKIP LOCKED`, refuse les documents liés
+  à une source et supprime le binaire via l'API Storage avant d'effacer extraits
+  et métadonnées. Un interrupteur serveur le maintient désactivé par défaut.
+- 45 contrôles documentaires passent avec le build. Les avis Supabase liés aux
+  tables privées sans politiques restent informatifs : RLS est forcée et tous
+  les droits clients sont révoqués.
+- Aucun chiffre de conservation, document réel, production, DNS, VPS, Webmail,
+  ENT ou PRONOTE n'a été ajouté, utilisé ou modifié.
+
 ## Jalon du 29 août 2026 - proposition documentaire avant validation
 
 - Les documents textuels sans donnée privée, secret ni consigne suspecte
