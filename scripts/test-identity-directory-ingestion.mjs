@@ -22,6 +22,10 @@ const indexMigrationPath = new URL(
   "../supabase/migrations/20260828224421_add_identity_directory_fk_indexes.sql",
   import.meta.url
 );
+const retirementMigrationPath = new URL(
+  "../supabase/migrations/20260829004115_add_identity_directory_retirement.sql",
+  import.meta.url
+);
 const reservePath = new URL("../api/identity/admin/imports/index.ts", import.meta.url);
 const confirmPath = new URL(
   "../api/identity/admin/imports/[id]/confirm.ts",
@@ -37,6 +41,10 @@ const approvePath = new URL(
 );
 const activatePath = new URL(
   "../api/identity/admin/imports/[id]/activate.ts",
+  import.meta.url
+);
+const retirePath = new URL(
+  "../api/identity/admin/imports/[id]/retire.ts",
   import.meta.url
 );
 const viewPath = new URL(
@@ -139,13 +147,15 @@ test("keeps parsed rows private and stores only keyed contact fingerprints", asy
 });
 
 test("exposes only a redacted report and requires MFA lifecycle actions", async () => {
-  const [report, approve, activate, view] = await Promise.all([
+  const [report, approve, activate, retire, view, retirementSql] = await Promise.all([
     readFile(reportPath, "utf8"),
     readFile(approvePath, "utf8"),
     readFile(activatePath, "utf8"),
+    readFile(retirePath, "utf8"),
     readFile(viewPath, "utf8"),
+    readFile(retirementMigrationPath, "utf8"),
   ]);
-  for (const source of [report, approve, activate]) {
+  for (const source of [report, approve, activate, retire]) {
     assert.match(source, /requireIdentityDirectoryManager\(req\)/);
   }
   assert.doesNotMatch(report, /academicEmailHash:/);
@@ -156,6 +166,17 @@ test("exposes only a redacted report and requires MFA lifecycle actions", async 
   assert.match(activate, /confirmation !== "ACTIVER"/);
   assert.match(activate, /status: "superseded"/);
   assert.match(activate, /status: "active"/);
+  assert.match(activate, /pg_advisory_xact_lock/);
+  assert.match(retire, /confirmation !== "RETIRER"/);
+  assert.match(retire, /candidate\.status === "active"/);
+  assert.match(retire, /schoolIdentities/);
+  assert.match(retire, /schoolRelationships/);
+  assert.match(retire, /\.remove\(\[candidate\.storagePath\]\)/);
+  assert.match(retire, /tx\.delete\(identityDirectoryRows\)/);
+  assert.match(retire, /status: "retired"/);
+  assert.match(retirementSql, /identity_directory_imports_retirement_check/i);
+  assert.match(retirementSql, /identity_directory_require_active_source/i);
+  assert.match(retirementSql, /'retire'/);
   assert.doesNotMatch(view, /storagePath:/);
   assert.doesNotMatch(view, /storageBucket:/);
   assert.doesNotMatch(view, /uploadedBy:/);

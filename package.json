@@ -41,6 +41,8 @@
     "test:identity-directory": "node --experimental-strip-types scripts/test-identity-directory-ingestion.mjs",
     "test:identity-directory-parser": "node scripts/test-identity-directory-parser.mjs",
     "test:identity-directory-worker": "node scripts/test-identity-directory-worker.mjs",
+    "test:preview-identity-directory-lifecycle": "node scripts/test-preview-identity-directory-lifecycle.mjs",
+    "apply:preview-identity-directory-retirement": "node scripts/apply-preview-identity-directory-retirement.mjs",
     "test:support-queue": "node --experimental-strip-types scripts/test-support-queue-policy.mjs",
     "test:legacy-import": "node --experimental-strip-types scripts/test-legacy-import.mjs",
     "test:legacy-links": "node scripts/test-legacy-content-links.mjs",

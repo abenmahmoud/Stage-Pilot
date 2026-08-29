@@ -1,11 +1,15 @@
 begin;
 
-select plan(20);
+select plan(24);
 
 select has_table('public', 'identity_directory_imports', 'identity imports table exists');
 select has_table('public', 'contact_verifications', 'contact verifications table exists');
 select has_table('public', 'school_identities', 'school identities table exists');
 select has_table('public', 'school_relationships', 'school relationships table exists');
+select has_column('public', 'identity_directory_imports', 'retired_by', 'identity imports record who retired a version');
+select has_column('public', 'identity_directory_imports', 'retired_at', 'identity imports record when a version was retired');
+select has_column('public', 'identity_directory_imports', 'retirement_reason', 'identity imports retain the human retirement reason');
+select has_function('public', 'identity_directory_require_active_source', array[]::text[], 'inactive directory versions cannot create identities');
 
 select is((select relrowsecurity from pg_class where oid = 'public.identity_directory_imports'::regclass), true, 'identity imports has RLS enabled');
 select is((select relforcerowsecurity from pg_class where oid = 'public.identity_directory_imports'::regclass), true, 'identity imports forces RLS');

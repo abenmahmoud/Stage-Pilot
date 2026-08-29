@@ -301,9 +301,12 @@ export const identityDirectoryImports = pgTable(
     validationSummary: jsonb("validation_summary").notNull().default({}),
     uploadedBy: uuid("uploaded_by").notNull(),
     approvedBy: uuid("approved_by"),
+    retiredBy: uuid("retired_by"),
     uploadedAt: timestamp("uploaded_at", { withTimezone: true }),
     approvedAt: timestamp("approved_at", { withTimezone: true }),
     activatedAt: timestamp("activated_at", { withTimezone: true }),
+    retiredAt: timestamp("retired_at", { withTimezone: true }),
+    retirementReason: text("retirement_reason"),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
   },
@@ -317,6 +320,9 @@ export const identityDirectoryImports = pgTable(
     index("identity_directory_imports_approved_by_idx")
       .on(table.approvedBy)
       .where(sql`${table.approvedBy} is not null`),
+    index("identity_directory_imports_retired_by_idx")
+      .on(table.retiredBy)
+      .where(sql`${table.retiredBy} is not null`),
   ]
 );
 

@@ -38,7 +38,7 @@
 - [x] T010B1 Créer le dépôt privé MFA du répertoire d'identités, les tables
   serveur de vérifications, identités, relations et audit, sans importer de
   personne réelle et sans rendre le répertoire utilisable par l'IA.
-- [ ] T010B2 Ajouter antivirus, empreinte, lecture structurée CSV/XLSX, lignes
+- [x] T010B2 Ajouter antivirus, empreinte, lecture structurée CSV/XLSX, lignes
   en quarantaine, rapport de doublons et activation humaine d'une seule version.
 - [x] T010B2A Implémenter le contrat borné et le parseur sur données fictives :
   25 000 lignes maximum, colonnes en liste blanche, refus des formules/macros,
@@ -48,10 +48,13 @@
 - [x] T010B2A1 Ajouter dans l'interface un générateur local de 2 100 personnes
   fictives et 1 900 relations, sans code ni domaine réel, validé intégralement
   par le même parseur que les futurs imports.
-- [ ] T010B2B Fournir le secret HMAC au worker isolé, installer son timer VPS
+- [x] T010B2B Fournir le secret HMAC au worker isolé, installer son timer VPS
   après autorisation précise, puis exécuter
   la recette antivirus, doublons, approbation, remplacement et suppression avec
-  un fichier entièrement fictif avant tout dépôt réel.
+  un fichier entièrement fictif avant tout dépôt réel. La recette finale a
+  approuvé deux versions fictives, activé une version unique, remplacé puis
+  retiré l'ancienne, supprimé son fichier privé et ses lignes, bloqué une
+  identité fondée sur une source inactive et confirmé un nettoyage à zéro.
 - [x] T010B2B1 Installer le worker isolé sur le VPS de preview après autorisation,
   créer un secret HMAC dédié, activer le timer d'une minute et vérifier un CSV
   fictif propre, le blocage EICAR et le nettoyage à zéro. L'approbation, le

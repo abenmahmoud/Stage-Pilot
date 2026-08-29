@@ -5,6 +5,26 @@
 **Depot** : `abenmahmoud/Stage-Pilot`
 **Dernier jalon de code verifie** : candidate publiée sur la production Vercel
 
+## Jalon du 29 août 2026 - cycle de vie du répertoire privé
+
+- La preview gère maintenant le parcours `review` → `approved` → `active` →
+  `superseded` → `retired`. L'activation est sérialisée par établissement et
+  l'index unique reste la seconde barrière garantissant une seule version active.
+- Le retrait exige direction, MFA, confirmation et justification. Une version
+  active ou encore référencée par une identité ou une relation ne peut pas être
+  retirée. Le fichier privé et les lignes de quarantaine sont supprimés ; seuls
+  le motif, l'horodatage, l'acteur et l'audit minimal subsistent.
+- Un déclencheur serveur refuse désormais toute nouvelle identité ou relation
+  fondée sur une version non active. Le répertoire reste séparé des connaissances
+  de l'agent et ne contient toujours aucun mot de passe ni code d'accès.
+- Le retour arrière de la migration a été vérifié avant application. La recette
+  de preview a utilisé deux versions et un établissement entièrement fictifs,
+  puis confirmé une seule version active, le blocage de la source remplacée, la
+  suppression du fichier et des lignes, et zéro reste de test.
+- La migration `20260829004115` est enregistrée uniquement sur la branche
+  Supabase `xijocumlwivhbmffrnlj`. La preuve détaillée est dans
+  `docs/operations/IDENTITY_DIRECTORY_LIFECYCLE_PREVIEW_2026-08-29.md`.
+
 ## Jalon du 29 août 2026 - analyse documentaire locale et validation humaine
 
 - La preview possède désormais une file privée `knowledge_document_scan` et un

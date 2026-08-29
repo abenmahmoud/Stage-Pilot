@@ -28,7 +28,8 @@ type DirectoryStatus =
   | "active"
   | "superseded"
   | "rejected"
-  | "failed";
+  | "failed"
+  | "retired";
 
 type DirectoryImport = {
   id: string;
@@ -71,6 +72,7 @@ const STATUS: Record<DirectoryStatus, { label: string; style: string }> = {
   superseded: { label: "Remplacé", style: "bg-slate-200 text-slate-600" },
   rejected: { label: "Refusé", style: "bg-red-100 text-red-800" },
   failed: { label: "Échec", style: "bg-red-100 text-red-800" },
+  retired: { label: "Retiré", style: "bg-slate-100 text-slate-500" },
 };
 
 function formatBytes(value: number): string {
@@ -315,7 +317,7 @@ export default function IdentityDirectoryPage() {
               <div>
                 <span className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold ${STATUS[item.status].style}`}>{STATUS[item.status].label}</span>
                 {item.rowCount !== null ? <small className="mt-1 block text-slate-500">{item.validRowCount ?? 0}/{item.rowCount} lignes valides</small> : null}
-                {["review", "approved", "active", "failed"].includes(item.status) ? (
+                {["review", "approved", "active", "superseded", "rejected", "failed", "retired"].includes(item.status) ? (
                   <button
                     type="button"
                     onClick={() => setSelectedImportId((value) => value === item.id ? null : item.id)}

@@ -6,6 +6,7 @@ import {
   ChevronRight,
   LoaderCircle,
   ShieldCheck,
+  Trash2,
   XCircle,
 } from "lucide-react";
 import { apiFetch } from "../../lib/api";
@@ -105,6 +106,8 @@ export default function IdentityDirectoryReport({
   const [notice, setNotice] = useState("");
   const [justification, setJustification] = useState("");
   const [activationConfirmed, setActivationConfirmed] = useState(false);
+  const [retirementReason, setRetirementReason] = useState("");
+  const [retirementConfirmed, setRetirementConfirmed] = useState(false);
 
   async function load(nextPage = page) {
     setLoading(true);
@@ -124,6 +127,10 @@ export default function IdentityDirectoryReport({
 
   useEffect(() => {
     setPage(1);
+    setJustification("");
+    setActivationConfirmed(false);
+    setRetirementReason("");
+    setRetirementConfirmed(false);
     void load(1);
   }, [importId]);
 
@@ -166,6 +173,26 @@ export default function IdentityDirectoryReport({
     }
   }
 
+  async function retire() {
+    setBusy(true);
+    setError("");
+    setNotice("");
+    try {
+      await apiFetch(`identity/admin/imports/${importId}/retire`, {
+        method: "POST",
+        body: JSON.stringify({ confirmation: "RETIRER", justification: retirementReason }),
+      });
+      setNotice("Version retirée : le fichier privé et ses lignes de contrôle ont été supprimés.");
+      setRetirementReason("");
+      setRetirementConfirmed(false);
+      await Promise.all([load(1), onChanged()]);
+    } catch (reason) {
+      setError(reason instanceof Error ? reason.message : "Retrait impossible.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
   if (loading && !report) {
     return <div className="flex min-h-40 items-center justify-center"><LoaderCircle className="h-6 w-6 animate-spin text-emerald-700" /></div>;
   }
@@ -175,6 +202,9 @@ export default function IdentityDirectoryReport({
   const totalPages = Math.max(1, Math.ceil(report.pagination.total / report.pagination.pageSize));
   const canApprove = report.import.status === "review" && report.import.rejectedRowCount === 0;
   const canActivate = report.import.status === "approved";
+  const canRetire = ["review", "approved", "superseded", "rejected", "failed"].includes(
+    report.import.status
+  );
 
   return (
     <div className="space-y-5 border-y border-slate-200 bg-slate-50 p-4 sm:p-6">
@@ -262,6 +292,45 @@ export default function IdentityDirectoryReport({
           >
             {busy ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <ShieldCheck className="h-4 w-4" />}
             {canApprove ? "Approuver le rapport" : "Activer cette version"}
+          </button>
+        </div>
+      ) : null}
+
+      {canRetire ? (
+        <div className="border-l-4 border-red-600 bg-white p-4">
+          <h4 className="text-sm font-bold text-slate-950">Retirer cette version</h4>
+          <p className="mt-1 text-sm text-slate-600">
+            Le fichier privé et les lignes de contrôle seront supprimés. Une preuve minimale du retrait restera dans le journal.
+          </p>
+          <label className="mt-3 block text-sm font-semibold text-slate-800">
+            Motif du retrait
+            <textarea
+              className="field mt-2 bg-white"
+              rows={3}
+              minLength={20}
+              maxLength={1000}
+              value={retirementReason}
+              onChange={(event) => setRetirementReason(event.target.value)}
+              placeholder="Expliquez pourquoi cette version ne doit plus être conservée."
+            />
+          </label>
+          <label className="mt-3 flex items-start gap-2 text-sm text-slate-700">
+            <input
+              type="checkbox"
+              className="mt-1"
+              checked={retirementConfirmed}
+              onChange={(event) => setRetirementConfirmed(event.target.checked)}
+            />
+            Je confirme la suppression du fichier privé et des lignes de contrôle.
+          </label>
+          <button
+            type="button"
+            disabled={busy || retirementReason.trim().length < 20 || !retirementConfirmed}
+            onClick={() => void retire()}
+            className="mt-3 inline-flex items-center gap-2 rounded-md bg-red-700 px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-50"
+          >
+            {busy ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
+            Retirer cette version
           </button>
         </div>
       ) : null}

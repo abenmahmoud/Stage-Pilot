@@ -1,5 +1,5 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { and, eq } from "drizzle-orm";
+import { and, eq, sql } from "drizzle-orm";
 import { db } from "../../../../../db/index.js";
 import {
   identityDirectoryAudit,
@@ -39,25 +39,29 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const context = await requireIdentityDirectoryManager(req);
     const id = routeId(req);
     const reason = activationInput(req);
-    const [candidate] = await db
-      .select()
-      .from(identityDirectoryImports)
-      .where(
-        and(
-          eq(identityDirectoryImports.id, id),
-          eq(identityDirectoryImports.institutionId, context.institutionId)
+    const result = await db.transaction(async (tx) => {
+      await tx.execute(sql`
+        select pg_advisory_xact_lock(
+          hashtextextended(${context.institutionId}::text, 934821)
         )
-      )
-      .limit(1);
-    if (!candidate) throw new HttpError(404, "Import introuvable");
-    if (candidate.status === "active") {
-      return { import: identityDirectoryView(candidate), duplicate: true };
-    }
-    if (candidate.status !== "approved") {
-      throw new HttpError(409, "Cette version doit d’abord être approuvée");
-    }
-
-    const activated = await db.transaction(async (tx) => {
+      `);
+      const [candidate] = await tx
+        .select()
+        .from(identityDirectoryImports)
+        .where(
+          and(
+            eq(identityDirectoryImports.id, id),
+            eq(identityDirectoryImports.institutionId, context.institutionId)
+          )
+        )
+        .limit(1);
+      if (!candidate) throw new HttpError(404, "Import introuvable");
+      if (candidate.status === "active") {
+        return { import: candidate, duplicate: true };
+      }
+      if (candidate.status !== "approved") {
+        throw new HttpError(409, "Cette version doit d’abord être approuvée");
+      }
       const previous = await tx
         .select({ id: identityDirectoryImports.id })
         .from(identityDirectoryImports)
@@ -108,8 +112,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         actorId: context.user.id,
         summary: { justification: reason, replacedCount: previous.length },
       });
-      return updated;
+      return { import: updated, duplicate: false };
     });
-    return { import: identityDirectoryView(activated), duplicate: false };
+    return { import: identityDirectoryView(result.import), duplicate: result.duplicate };
   });
 }

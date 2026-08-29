@@ -19,6 +19,8 @@ export function identityDirectoryView(value: IdentityDirectoryImport) {
     uploadedAt: value.uploadedAt,
     approvedAt: value.approvedAt,
     activatedAt: value.activatedAt,
+    retiredAt: value.retiredAt,
+    retirementReason: value.retirementReason,
     createdAt: value.createdAt,
     updatedAt: value.updatedAt,
   };

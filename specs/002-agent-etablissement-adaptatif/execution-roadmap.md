@@ -236,8 +236,12 @@ l'autorisation de quota définie par le propriétaire.
   Les API de rapport, approbation et activation refusent une visite anonyme. Le
   worker possède un secret HMAC dédié et un timer d'une minute. La recette
   intégrée a produit `review` pour quatre lignes fictives sans identité brute,
-  rejeté EICAR, puis confirmé zéro import, ligne, audit ou travail de test. Les
-  parcours humains d'approbation, remplacement et suppression restent à tester.
+  rejeté EICAR, puis confirmé zéro import, ligne, audit ou travail de test.
+  Le cycle de vie est également validé sur un établissement fictif isolé : deux
+  approbations, une seule version active, remplacement atomique, retrait de
+  l'ancienne avec suppression du fichier et des lignes, preuve d'audit minimale
+  et refus d'utiliser une source inactive. La migration `20260829004115` est
+  appliquée uniquement à la preview et aucune donnée de recette ne subsiste.
 - Lot N5N : gouvernance des documents confiés à l'agent. **Entrée renforcée en
   preview** : le type annuaire est retiré de ce dépôt, le formulaire vierge est
   identifié, et le service responsable, le périmètre, la date d'effet, la date

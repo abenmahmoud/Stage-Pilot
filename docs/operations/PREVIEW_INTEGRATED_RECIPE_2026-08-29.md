@@ -21,12 +21,21 @@
 - Le conseiller sécurité ne remonte aucun avertissement ou erreur lié au
   répertoire. Ses informations `RLS enabled no policy` sont intentionnelles pour
   ces tables accessibles uniquement au serveur avec droits clients révoqués.
-- Trois index de couverture ont été ajoutés après le conseiller performance ; il
-  ne remonte plus aucune clé étrangère non indexée pour le répertoire.
+- Trois index de couverture initiaux ont été ajoutés. Le conseiller performance
+  signale encore comme informations les futures clés des identités et relations ;
+  elles seront complétées avec le coffre opérationnel avant la charge réelle.
 - Le worker ClamAV est installé sur le VPS de preview avec un secret HMAC dédié
   et un timer d'une minute. Un CSV de quatre lignes entièrement fictives a atteint
   l'état `review` sans conserver de nom ni contact brut ; EICAR a été rejeté et
   le nettoyage a laissé zéro import, ligne, audit ou travail de test.
+- Deux versions supplémentaires, sur un établissement fictif isolé, ont parcouru
+  approbation, activation, remplacement et retrait. Une seule version est restée
+  active, une source remplacée n'a pas pu créer d'identité, le fichier et les
+  lignes retirés ont disparu et le nettoyage final est revenu à zéro.
+- La migration `20260829004115` ajoute le retrait traçable et la garde de source
+  active uniquement sur la preview. Son retour arrière a été testé avant
+  application. Le conseiller sécurité n'ajoute aucune alerte ; les informations
+  RLS sans politique restent intentionnelles pour les tables serveur privées.
 
 ## Test de pointe
 
@@ -76,8 +85,8 @@ file, pas encore la latence HTTP p95 ni la reprise du worker après panne.
 
 ## Limites avant données réelles
 
-1. Tester dans l'interface l'approbation, l'activation, le remplacement et la
-   suppression contrôlée d'une version fictive du répertoire.
+1. Rejouer dans le navigateur le cycle du répertoire avec une session direction
+   MFA ; les API, la base et le stockage sont déjà validés avec données fictives.
 2. Créer les comptes agents nominatifs restants et tester récupération plus MFA.
 3. Faire valider finalités, colonnes, rétention et droits par Direction/DPO.
 4. Tester la panne puis la reprise des workers et la livraison idempotente.
