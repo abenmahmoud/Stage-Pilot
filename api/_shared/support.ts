@@ -356,6 +356,14 @@ export function setSupportSessionCookie(res: VercelResponse, token: string): voi
   );
 }
 
+export function clearSupportSessionCookie(res: VercelResponse): void {
+  const secure = process.env.NODE_ENV === "production" ? "; Secure" : "";
+  res.setHeader(
+    "Set-Cookie",
+    `${SUPPORT_COOKIE}=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0; Expires=Thu, 01 Jan 1970 00:00:00 GMT${secure}`
+  );
+}
+
 export async function requireSupportAccess(
   req: VercelRequest,
   publicCode: string

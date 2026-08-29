@@ -219,6 +219,14 @@ export async function rememberSupportRequests(requests: RememberedSupportRequest
   }
 }
 
+export async function clearRememberedSupportRequests(): Promise<void> {
+  try {
+    await deleteRecord(REQUESTS_KEY);
+  } catch {
+    // The server session is revoked separately; local cleanup remains best effort.
+  }
+}
+
 export async function listRememberedSupportRequests(): Promise<RememberedSupportRequest[]> {
   try {
     const requests = await readRecord<unknown>(REQUESTS_KEY);

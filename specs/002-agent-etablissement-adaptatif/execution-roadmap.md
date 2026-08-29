@@ -332,6 +332,13 @@ l'autorisation de quota définie par le propriétaire.
   sont cloisonnés et la confirmation d'identité demeure humaine avec MFA. Les
   47 contrôles ciblés et le build passent sans donnée réelle. Les scénarios
   humains complets de la charte restent dans T022A.
+- Lot N5W : scénarios humains de la charte. **Implémenté et vérifié** : les
+  urgences ne promettent ni alerte ni permanence, le statut d'une alerte est
+  toujours négatif sans outil autorisé, les données d'un tiers sont arrêtées
+  avant l'IA et un appareil partagé peut révoquer sa session et sa mémoire
+  locale. La santé minimisée conserve le recours humain et un contact vérifié
+  ne devient pas une identité scolaire. Les 54 contrôles ciblés et le build
+  passent ; la validation des formulations et responsables réels reste humaine.
 - Lot N6 : tests de non-régression, build, contrôle mobile et rapport d'écarts.
   **Partiellement validé en preview** : 200 transactions concurrentes sans perte
   ni reste après nettoyage, 135 contrôles de sécurité, build réussi, PWA active,

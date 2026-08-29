@@ -27,6 +27,7 @@ import {
   Laptop,
   Languages,
   LifeBuoy,
+  LogOut,
   Mail,
   MapPin,
   Menu,
@@ -55,6 +56,7 @@ import { supabase } from "../../lib/supabase-browser";
 import { apiFetch } from "../../lib/api";
 import {
   clearSupportDeviceDraft,
+  clearRememberedSupportRequests,
   listRememberedSupportRequests,
   readSupportDeviceDraft,
   rememberSupportRequests,
@@ -106,16 +108,25 @@ const SUPPORT_FILE_TYPES = [
   "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
 ];
 
+const SUPPORT_ASSISTANT_DEVICE_KEY = "bc_support_assistant_session";
+
 function supportAssistantSessionId(): string {
-  const storageKey = "bc_support_assistant_session";
   try {
-    const existing = window.localStorage.getItem(storageKey);
+    const existing = window.localStorage.getItem(SUPPORT_ASSISTANT_DEVICE_KEY);
     if (existing && /^[a-zA-Z0-9-]{16,80}$/.test(existing)) return existing;
     const created = crypto.randomUUID();
-    window.localStorage.setItem(storageKey, created);
+    window.localStorage.setItem(SUPPORT_ASSISTANT_DEVICE_KEY, created);
     return created;
   } catch {
     return crypto.randomUUID();
+  }
+}
+
+function forgetSupportAssistantDevice(): void {
+  try {
+    window.localStorage.removeItem(SUPPORT_ASSISTANT_DEVICE_KEY);
+  } catch {
+    // The opaque rate-limit identifier contains no dossier or identity data.
   }
 }
 
@@ -1557,6 +1568,7 @@ function ConnectedRequestsView({ ticketCode, onBack }: { ticketCode: string | nu
   const [error, setError] = useState<string | null>(null);
   const [reply, setReply] = useState("");
   const [replying, setReplying] = useState(false);
+  const [forgettingDevice, setForgettingDevice] = useState(false);
   const [followupFiles, setFollowupFiles] = useState<File[]>([]);
   const followupFileInputRef = useRef<HTMLInputElement>(null);
 
@@ -1687,6 +1699,37 @@ function ConnectedRequestsView({ ticketCode, onBack }: { ticketCode: string | nu
     }
   }
 
+  async function forgetThisDevice() {
+    if (!window.confirm("Retirer de cet appareil l’accès à toutes les demandes suivies ?")) return;
+    setForgettingDevice(true);
+    setError(null);
+    try {
+      await readApiResponse(
+        await fetch("/api/support/session", {
+          method: "DELETE",
+          credentials: "include",
+        })
+      );
+      await Promise.all([
+        clearSupportDeviceDraft(),
+        clearRememberedSupportRequests(),
+      ]);
+      forgetSupportAssistantDevice();
+      setRequests([]);
+      setSelectedCode(null);
+      setDetail(null);
+      onBack();
+    } catch (forgetError) {
+      setError(
+        forgetError instanceof Error
+          ? forgetError.message
+          : "Impossible de fermer l’accès sur cet appareil"
+      );
+    } finally {
+      setForgettingDevice(false);
+    }
+  }
+
   const visibleRequests = requests.filter((request) =>
     `${request.publicCode} ${request.subject}`.toLowerCase().includes(query.toLowerCase())
   );
@@ -1694,6 +1737,10 @@ function ConnectedRequestsView({ ticketCode, onBack }: { ticketCode: string | nu
   return (
     <div className="lycee-page">
       <PageIntro eyebrow="Suivi" title="Mes demandes" description="Retrouvez les réponses sur cet appareil. Le lien reçu par email permet de reprendre depuis un autre téléphone ou ordinateur." onBack={onBack} />
+      <div className="lycee-shared-device-action">
+        <span><ShieldCheck aria-hidden="true" /><span><strong>Appareil partagé ?</strong><small>Fermez l’accès avant de le quitter.</small></span></span>
+        <button type="button" disabled={forgettingDevice} onClick={() => void forgetThisDevice()}><LogOut aria-hidden="true" />{forgettingDevice ? "Fermeture…" : "Oublier les demandes"}</button>
+      </div>
       {error ? <div className="lycee-form-error" role="alert"><CircleAlert aria-hidden="true" />{error}</div> : null}
       {loading ? <div className="lycee-loading-state"><Clock3 aria-hidden="true" /> Chargement des demandes…</div> : null}
       {!loading && requests.length === 0 ? (

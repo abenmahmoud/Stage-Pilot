@@ -5,6 +5,23 @@
 **Depot** : `abenmahmoud/Stage-Pilot`
 **Dernier jalon de code verifie** : candidate publiée sur la production Vercel
 
+## Jalon du 29 août 2026 - scénarios humains de la charte
+
+- Une urgence affiche le 15/112, le 3114 lorsque pertinent et un recours à un
+  adulte, mais affirme qu'aucune alerte n'a été transmise et qu'aucune permanence
+  du lycée n'est garantie.
+- Une question sur le statut d'une alerte reçoit une négation déterministe. Une
+  demande de donnée scolaire concernant un tiers est arrêtée avant l'appel IA.
+- Un signal récent de malaise ou de danger reste prioritaire même si la personne
+  le minimise ensuite ; la reprise humaine demeure proposée.
+- `Mes demandes` permet de fermer un appareil partagé : la session hachée est
+  révoquée, le cookie expire et la mémoire locale est effacée sans supprimer les
+  dossiers conservés côté serveur.
+- 54 contrôles ciblés, la recette de mémoire et le build passent. L'action reste
+  lisible sans débordement à 1 440 px et 390 px.
+- Lot preview uniquement : aucune donnée réelle, migration, production, DNS,
+  VPS, Hostinger, Webmail, ENT ou PRONOTE n'a été modifié.
+
 ## Jalon du 29 août 2026 - frontières adverses vérifiées
 
 - Une phrase saisie dans le chat ne peut ni attribuer un rôle, ni confirmer une

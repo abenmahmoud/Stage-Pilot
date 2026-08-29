@@ -81,11 +81,28 @@ function isSafetyConfirmation(text: string): boolean {
   );
 }
 
+function isAlertStatusQuestion(text: string): boolean {
+  return /\b(as[- ]?tu|avez[- ]?vous|tu as|vous avez|est[- ]?ce que tu as|est[- ]?ce que vous avez)\b.{0,45}\b(transmis une alerte|envoye une alerte|prevenu (?:les secours|la police|un adulte)|appele (?:le )?(?:15|17|18|112|les secours|la police)|fait un signalement)\b|\b(alerte|signalement)\b.{0,35}\b(envoyee?|transmise?|confirmee?)\b/.test(
+    text
+  );
+}
+
+function isThirdPartySchoolDataRequest(content: string): boolean {
+  const text = normalizeText(content);
+  const asksForSchoolData = /\b(emploi du temps|salle|classe|absence|retard|note|bulletin|resultat|sanction|dossier scolaire)\b/.test(
+    text
+  );
+  const namesAnotherPerson = /\b(mon enfant|mon fils|ma fille|un autre eleve|une autre eleve|l[' ]eleve|d[' ]un eleve|d[' ]une eleve|ce professeur|cet enseignant|cette personne)\b/.test(
+    text
+  );
+  return asksForSchoolData && namesAnotherPerson;
+}
+
 function explicitScope(content: string): AssistantScope {
   const text = normalizeText(content);
 
   if (
-    /\b(je vais (tres )?mal|je (ne )?vais pas bien|je me sens (tres )?mal|je suis en danger|on me menace|mes parents? (sont )?(perdus?|introuvables?|disparus?)|je veux mourir|me tuer|suicide|suicidaire|me faire du mal|automutilation)\b/.test(
+    /\b(je vais (tres )?mal|je (ne )?vais pas bien|je me sens (tres )?mal|je suis en danger|on me menace|mes parents? (sont )?(perdus?|introuvables?|disparus?)|je veux mourir|me tuer|suicide|suicidaire|me faire du mal|automutilation|je fais un malaise|j ai fait un malaise|je respire mal|j ai du mal a respirer|je saigne beaucoup|j ai pris trop de medicaments|surdose|overdose|intoxication)\b/.test(
       text
     )
   ) {
@@ -159,6 +176,23 @@ export function evaluateConversationPolicy(
     explicitScope(message.content)
   );
   const lastScope = scopes.at(-1) ?? "unknown";
+  const latestRequesterText = normalizeText(requesterMessages.at(-1)?.content ?? "");
+
+  if (isAlertStatusQuestion(latestRequesterText)) {
+    return {
+      scope: "wellbeing",
+      action: "human_transfer",
+      turnCount,
+      remainingTurns,
+      limitReached: false,
+      deterministicReply:
+        "Non. Cet assistant n’a transmis aucune alerte et ne peut pas garantir qu’un agent du lycée est disponible. Si le danger est immédiat, appelez le 15 ou le 112 et allez vers un adulte présent. Je peux préparer une demande pour qu’un agent humain la reprenne.",
+      category: "vie_scolaire",
+      urgency: "urgente",
+      readyToCreate: true,
+      safetyNotice: "Aucune alerte n’est considérée comme transmise sans confirmation d’un outil autorisé.",
+    };
+  }
 
   const latestSafetyIndex = explicitScopes.lastIndexOf("wellbeing");
   const safetyConfirmedAfter = requesterMessages
@@ -171,7 +205,7 @@ export function evaluateConversationPolicy(
 
   if (lastScope === "wellbeing" || unresolvedRecentSafety) {
     const reply =
-      "Je suis désolé que vous viviez cela. Si vous êtes en danger immédiat, appelez le 112. Si vous pensez à vous faire du mal, appelez le 3114. Allez aussi vers un adulte du lycée ou un adulte de confiance. Êtes-vous en sécurité maintenant ? Je peux vous aider à préparer une demande urgente pour le lycée, mais cela ne remplace pas un appel aux secours ou à un adulte présent.";
+      "Je suis désolé que vous viviez cela. Si le danger ou le problème de santé est immédiat, appelez le 15 ou le 112. Si vous pensez à vous faire du mal, appelez le 3114. Allez aussi vers un adulte du lycée ou un adulte de confiance. Cet assistant n’a transmis aucune alerte et ne peut pas garantir qu’un agent du lycée est disponible. Êtes-vous en sécurité maintenant ? Je peux préparer une demande urgente pour une reprise humaine.";
     return {
       scope: "wellbeing",
       action: "human_transfer",
@@ -183,6 +217,22 @@ export function evaluateConversationPolicy(
       urgency: "urgente",
       readyToCreate: true,
       safetyNotice: "Un adulte doit reprendre cette situation rapidement.",
+    };
+  }
+
+  if (isThirdPartySchoolDataRequest(requesterMessages.at(-1)?.content ?? "")) {
+    return {
+      scope: "school_support",
+      action: "offer_case",
+      turnCount,
+      remainingTurns,
+      limitReached: false,
+      deterministicReply:
+        "Je ne peux pas afficher ici l’emploi du temps, la salle, les absences ou le dossier d’une autre personne. Vous pouvez préparer une demande : le lycée vérifiera d’abord votre identité scolaire et votre relation avec la personne concernée.",
+      category: "affectation_classe",
+      urgency: "normale",
+      readyToCreate: true,
+      safetyNotice: "Aucune donnée concernant un tiers n’est transmise avant vérification de l’identité et de la relation.",
     };
   }
 

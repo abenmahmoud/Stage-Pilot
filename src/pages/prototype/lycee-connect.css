@@ -518,6 +518,15 @@
 .lycee-confirmation-actions { display: flex; justify-content: center; gap: 9px; margin-top: 22px; }
 
 .lycee-track-grid { display: grid; grid-template-columns: 340px minmax(0,1fr); gap: 14px; align-items: start; }
+.lycee-shared-device-action { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin: -10px 0 18px; padding: 11px 14px; border: 1px solid #cdd9e6; border-radius: 8px; background: #f7fafc; }
+.lycee-shared-device-action > span { min-width: 0; display: flex; align-items: center; gap: 10px; }
+.lycee-shared-device-action > span > svg { width: 19px; flex: 0 0 19px; color: var(--lc-green); }
+.lycee-shared-device-action > span > span { display: grid; gap: 2px; }
+.lycee-shared-device-action strong { font-size: 13px; }
+.lycee-shared-device-action small { color: var(--lc-muted); font-size: 12px; }
+.lycee-shared-device-action > button { min-height: 38px; display: inline-flex; align-items: center; justify-content: center; gap: 7px; padding: 0 12px; border: 1px solid #bdcad8; border-radius: 7px; background: #fff; color: var(--lc-ink); font-size: 12px; font-weight: 800; }
+.lycee-shared-device-action > button svg { width: 15px; }
+.lycee-shared-device-action > button:disabled { opacity: .55; cursor: wait; }
 .lycee-ticket-list, .lycee-ticket-detail { border: 1px solid var(--lc-line); border-radius: 8px; background: #fff; }
 .lycee-list-toolbar { padding: 12px; border-bottom: 1px solid var(--lc-line); }
 .lycee-list-toolbar label, .lycee-agent-toolbar label { display: flex; align-items: center; gap: 8px; min-height: 40px; padding: 0 11px; border: 1px solid #ccd6e2; border-radius: 7px; background: #f8fafc; color: #8794a5; }
@@ -970,6 +979,8 @@
   .lycee-help-ai { position: static; }
   .lycee-help-ai .lycee-chat-bubble:not(:last-of-type) { display: none; }
   .lycee-track-grid { grid-template-columns: 1fr; }
+  .lycee-shared-device-action { align-items: stretch; flex-direction: column; }
+  .lycee-shared-device-action > button { width: 100%; }
   .lycee-agent-workspace { grid-template-columns: 320px minmax(0,1fr); }
   .lycee-agent-stats { grid-template-columns: repeat(2,minmax(0,1fr)); }
   .lycee-specialties-grid { grid-template-columns: repeat(2,minmax(0,1fr)); }

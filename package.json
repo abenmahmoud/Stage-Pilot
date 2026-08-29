@@ -30,6 +30,7 @@
     "test:support-access-security": "node scripts/test-support-access-security.mjs",
     "test:support-rate-limits": "node --experimental-strip-types scripts/test-support-rate-limits.mjs",
     "test:adversarial-boundaries": "node --import ./scripts/ts-test-resolver.mjs --experimental-strip-types scripts/test-adversarial-boundaries.mjs",
+    "test:charter-scenarios": "node --import ./scripts/ts-test-resolver.mjs --experimental-strip-types scripts/test-charter-scenarios.mjs",
     "test:institution-membership-security": "node --experimental-strip-types scripts/test-institution-membership-security.mjs",
     "verify:preview-agent-memberships": "node scripts/test-preview-agent-memberships.mjs",
     "test:support-notification-routing": "node --experimental-strip-types scripts/test-support-notification-routing.mjs",

@@ -199,9 +199,13 @@
   les relations parent-élève, sessions de suivi et périmètres de service restent
   cloisonnés, et que la confirmation d'identité demeure une action humaine MFA.
   Les 47 contrôles ciblés passent avec le build sur la preview.
-- [ ] T022A Tester les scénarios de la charte : urgence sans permanence,
+- [x] T022A Tester les scénarios de la charte : urgence sans permanence,
   fausse confirmation d'alerte, demande sur un tiers, appareil partagé,
   contact vérifié sans identité scolaire, santé minimisée et recours humain.
+  Les réponses sensibles sont déterministes et arrêtent l'appel IA. Une action
+  visible révoque la session et efface la mémoire locale sur appareil partagé.
+  Neuf scénarios dédiés et 45 non-régressions passent avec le build ; aucune
+  permanence, alerte ou identité n'est inventée.
 
 ## Phase 3 - Agent et connaissances
 
