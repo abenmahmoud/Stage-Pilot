@@ -1,9 +1,10 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { and, eq, sql } from "drizzle-orm";
+import { and, count, eq, sql } from "drizzle-orm";
 import { db } from "../../../../../db/index.js";
 import {
   identityDirectoryAudit,
   identityDirectoryImports,
+  identityDirectoryPrivateRows,
 } from "../../../../../db/schema.js";
 import { HttpError } from "../../../../_shared/auth.js";
 import { requireIdentityDirectoryManager } from "../../../../_shared/identity-directory.js";
@@ -62,6 +63,20 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       if (candidate.status !== "approved") {
         throw new HttpError(409, "Cette version doit d’abord être approuvée");
       }
+      const summary = candidate.validationSummary as Record<string, unknown>;
+      const expectedPeople = Number(summary.personCount);
+      const [vaultCount] = await tx
+        .select({ value: count() })
+        .from(identityDirectoryPrivateRows)
+        .where(eq(identityDirectoryPrivateRows.importId, id));
+      if (
+        !Number.isSafeInteger(expectedPeople) ||
+        expectedPeople < 1 ||
+        Number(vaultCount?.value ?? 0) !== expectedPeople ||
+        Number(summary.encryptedPersonCount) !== expectedPeople
+      ) {
+        throw new HttpError(409, "Le coffre chiffré est incomplet ; activation refusée");
+      }
       const previous = await tx
         .select({ id: identityDirectoryImports.id })
         .from(identityDirectoryImports)
@@ -110,7 +125,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         resourceId: id,
         action: "activate",
         actorId: context.user.id,
-        summary: { justification: reason, replacedCount: previous.length },
+        summary: {
+          justification: reason,
+          replacedCount: previous.length,
+          encryptedPersonCount: expectedPeople,
+        },
       });
       return { import: updated, duplicate: false };
     });

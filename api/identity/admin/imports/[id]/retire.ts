@@ -4,6 +4,7 @@ import { db } from "../../../../../db/index.js";
 import {
   identityDirectoryAudit,
   identityDirectoryImports,
+  identityDirectoryPrivateRows,
   identityDirectoryRows,
   schoolIdentities,
   schoolRelationships,
@@ -101,7 +102,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         .select({ value: count() })
         .from(identityDirectoryRows)
         .where(eq(identityDirectoryRows.importId, id));
+      const [deletedPrivateRows] = await tx
+        .select({ value: count() })
+        .from(identityDirectoryPrivateRows)
+        .where(eq(identityDirectoryPrivateRows.importId, id));
       await tx.delete(identityDirectoryRows).where(eq(identityDirectoryRows.importId, id));
+      await tx
+        .delete(identityDirectoryPrivateRows)
+        .where(eq(identityDirectoryPrivateRows.importId, id));
       const retiredAt = new Date();
       const [retired] = await tx
         .update(identityDirectoryImports)
@@ -115,6 +123,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             retired: true,
             privateFileRemoved: true,
             quarantineRowsRemoved: Number(deletedRows?.value ?? 0),
+            encryptedRowsRemoved: Number(deletedPrivateRows?.value ?? 0),
           },
         })
         .where(
@@ -137,6 +146,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           justification: reason,
           privateFileRemoved: true,
           quarantineRowsRemoved: Number(deletedRows?.value ?? 0),
+          encryptedRowsRemoved: Number(deletedPrivateRows?.value ?? 0),
         },
       });
       return { import: retired, duplicate: false };

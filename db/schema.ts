@@ -377,6 +377,32 @@ export const identityDirectoryRows = pgTable(
   ]
 );
 
+export const identityDirectoryPrivateRows = pgTable(
+  "identity_directory_private_rows",
+  {
+    id: bigint("id", { mode: "number" }).primaryKey().generatedAlwaysAsIdentity(),
+    institutionId: uuid("institution_id")
+      .notNull()
+      .references(() => institutions.id, { onDelete: "cascade" }),
+    importId: uuid("import_id")
+      .notNull()
+      .references(() => identityDirectoryImports.id, { onDelete: "cascade" }),
+    personRef: text("person_ref").notNull(),
+    keyVersion: text("key_version").notNull(),
+    payloadSchema: integer("payload_schema").notNull().default(1),
+    iv: text("iv").notNull(),
+    authTag: text("auth_tag").notNull(),
+    ciphertext: text("ciphertext").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    index("identity_directory_private_rows_import_institution_idx").on(
+      table.importId,
+      table.institutionId
+    ),
+  ]
+);
+
 export const contactVerifications = pgTable(
   "contact_verifications",
   {

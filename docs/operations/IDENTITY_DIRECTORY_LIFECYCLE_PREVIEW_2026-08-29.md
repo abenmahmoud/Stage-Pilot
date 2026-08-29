@@ -31,9 +31,11 @@
 - Tentative de créer une identité depuis la version remplacée : refus SQL
   `23514` attendu.
 - Retrait de la version remplacée : fichier absent du bucket, zéro ligne de
-  quarantaine, un audit de retrait.
+  quarantaine, zéro fiche chiffrée, un audit de retrait.
 - Nettoyage : zéro établissement et zéro import de recette.
-- Neuf tests ciblés passent, ainsi que TypeScript et le build Vite.
+- Les contrôles ciblés passent : 12 règles d'accès, 10 règles d'ingestion,
+  8 contrôles parseur, 26 contrôles worker et 9 contrôles du coffre, ainsi que
+  TypeScript et le build Vite.
 - Conseiller Supabase : aucune nouvelle erreur ou alerte de sécurité. Les seules
   informations du module concernent RLS sans politique, volontaire car les
   privilèges clients sont révoqués, et des index encore inutilisés sur cette
@@ -44,6 +46,7 @@
 - Rejouer l'écran complet avec un compte direction nominatif et MFA.
 - Valider finalités, rétention, sauvegarde, responsables et procédure d'incident
   avec la Direction et le DPO.
-- Construire le coffre opérationnel chiffré séparé pour les noms et coordonnées
-  strictement nécessaires. Les codes et mots de passe restent interdits.
+- Le premier jalon du coffre chiffré est construit et vérifié ; il reste à
+  ajouter la recherche déterministe, la rotation de clé, la rétention et la
+  restauration. Les codes et mots de passe restent interdits.
 - Rapprocher les comptes seulement par outil déterministe, jamais par le modèle.

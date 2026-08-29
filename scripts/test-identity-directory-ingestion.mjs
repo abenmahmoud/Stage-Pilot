@@ -26,6 +26,10 @@ const retirementMigrationPath = new URL(
   "../supabase/migrations/20260829004115_add_identity_directory_retirement.sql",
   import.meta.url
 );
+const vaultMigrationPath = new URL(
+  "../supabase/migrations/20260829010855_create_identity_directory_vault.sql",
+  import.meta.url
+);
 const reservePath = new URL("../api/identity/admin/imports/index.ts", import.meta.url);
 const confirmPath = new URL(
   "../api/identity/admin/imports/[id]/confirm.ts",
@@ -146,6 +150,16 @@ test("keeps parsed rows private and stores only keyed contact fingerprints", asy
   assert.match(sql, /revoke all on table public\.identity_directory_rows from public, anon, authenticated/);
 });
 
+test("keeps operational identity payloads encrypted and server-only", async () => {
+  const sql = (await readFile(vaultMigrationPath, "utf8")).toLowerCase();
+  assert.match(sql, /create table public\.identity_directory_private_rows/);
+  assert.match(sql, /ciphertext text not null/);
+  assert.match(sql, /auth_tag text not null/);
+  assert.match(sql, /force row level security/);
+  assert.match(sql, /from public, anon, authenticated/);
+  assert.doesNotMatch(sql, /first_name|last_name|academic_email|personal_email|phone text/);
+});
+
 test("exposes only a redacted report and requires MFA lifecycle actions", async () => {
   const [report, approve, activate, retire, view, retirementSql] = await Promise.all([
     readFile(reportPath, "utf8"),
@@ -162,10 +176,14 @@ test("exposes only a redacted report and requires MFA lifecycle actions", async 
   assert.doesNotMatch(report, /personalEmailHash:/);
   assert.doesNotMatch(report, /phoneHash:/);
   assert.match(approve, /candidate\.rejectedRowCount !== 0/);
+  assert.match(approve, /identityDirectoryPrivateRows/);
+  assert.match(approve, /encryptedPersonCount/);
   assert.match(approve, /status: "approved"/);
   assert.match(activate, /confirmation !== "ACTIVER"/);
   assert.match(activate, /status: "superseded"/);
   assert.match(activate, /status: "active"/);
+  assert.match(activate, /identityDirectoryPrivateRows/);
+  assert.match(activate, /coffre chiffré est incomplet/);
   assert.match(activate, /pg_advisory_xact_lock/);
   assert.match(retire, /confirmation !== "RETIRER"/);
   assert.match(retire, /candidate\.status === "active"/);
@@ -173,6 +191,7 @@ test("exposes only a redacted report and requires MFA lifecycle actions", async 
   assert.match(retire, /schoolRelationships/);
   assert.match(retire, /\.remove\(\[candidate\.storagePath\]\)/);
   assert.match(retire, /tx\.delete\(identityDirectoryRows\)/);
+  assert.match(retire, /delete\(identityDirectoryPrivateRows\)/);
   assert.match(retire, /status: "retired"/);
   assert.match(retirementSql, /identity_directory_imports_retirement_check/i);
   assert.match(retirementSql, /identity_directory_require_active_source/i);

@@ -249,6 +249,19 @@ l'autorisation de quota définie par le propriétaire.
   appliquée sur la base isolée, vide, avec RLS forcée et aucun droit client.
   L'antivirus documentaire, l'extraction et la revue de publication restent à
   implémenter.
+- Lot N5O : coffre opérationnel du répertoire. **Premier jalon chiffré
+  implémenté et vérifié uniquement en preview** : les noms, emails et téléphones
+  validés sont chiffrés par le worker en AES-256-GCM avec nonce aléatoire et
+  contexte lié à l'établissement, à la version et à la référence opaque. La clé
+  `v1` de 32 octets a été générée sur le VPS sans être affichée ; elle n'est ni
+  dans Git, ni dans Supabase, ni dans Vercel. La table ne contient aucune colonne
+  nominative, force RLS et refuse tout droit client. Approbation et activation
+  exigent le nombre exact de fiches chiffrées ; le retrait les efface. Les tests
+  détectent altération, mauvais contexte et mauvaise clé. Une recette de trois
+  personnes fictives, EICAR et deux versions a confirmé le déchiffrement
+  contrôlé et un nettoyage à zéro. La recherche déterministe par un agent
+  habilité, la rotation de clé, la rétention et la restauration restent à
+  construire avant toute donnée réelle.
 - Lot N6 : tests de non-régression, build, contrôle mobile et rapport d'écarts.
   **Partiellement validé en preview** : 200 transactions concurrentes sans perte
   ni reste après nettoyage, 135 contrôles de sécurité, build réussi, PWA active,

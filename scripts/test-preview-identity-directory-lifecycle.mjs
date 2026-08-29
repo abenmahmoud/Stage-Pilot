@@ -1,4 +1,5 @@
 import { randomUUID } from "node:crypto";
+import { fileURLToPath, pathToFileURL } from "node:url";
 import { createClient } from "@supabase/supabase-js";
 import postgres from "postgres";
 import WebSocket from "ws";
@@ -8,6 +9,15 @@ const expectedProjectRef = process.env.IDENTITY_DIRECTORY_EXPECTED_PROJECT_REF;
 const databaseUrl = process.env.DATABASE_URL;
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL ?? process.env.VITE_SUPABASE_URL;
 const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+const defaultVaultPath = fileURLToPath(
+  new URL("../workers/identity-directory-vault.mjs", import.meta.url)
+);
+const vaultPath = process.env.IDENTITY_DIRECTORY_VAULT_PATH ?? defaultVaultPath;
+const {
+  encryptIdentityVaultPayload,
+  identityVaultConfig,
+} = await import(pathToFileURL(vaultPath).href);
+const vaultConfig = identityVaultConfig();
 
 if (confirmation !== "preview-only") {
   throw new Error("Set IDENTITY_DIRECTORY_TEST_CONFIRM=preview-only");
@@ -52,6 +62,7 @@ async function actorId() {
 
 async function createReviewedImport(actor, suffix) {
   const importId = randomUUID();
+  const personRef = `TEST-${suffix.toUpperCase()}-${marker}`;
   const path = `${institutionId}/lifecycle-test/${runId}/${suffix}.csv`;
   const bytes = Buffer.from(
     "record_type,person_ref,person_type,first_name,last_name\nperson,TEST-001,student,Test,Personne\n",
@@ -63,6 +74,19 @@ async function createReviewedImport(actor, suffix) {
   });
   if (error) throw new Error(`Storage upload failed: ${error.message}`);
   paths.push(path);
+  const encrypted = encryptIdentityVaultPayload({
+    value: {
+      firstName: "Test",
+      lastName: "Personne",
+      academicEmail: `${suffix}.${marker}@example.test`,
+      personalEmail: "",
+      phone: "+33600000001",
+    },
+    institutionId,
+    importId,
+    personRef,
+    config: vaultConfig,
+  });
 
   await sql.begin(async (tx) => {
     await tx`
@@ -76,7 +100,13 @@ async function createReviewedImport(actor, suffix) {
         'Recette automatisée avec données entièrement fictives sur la preview uniquement.',
         'csv', ${`${suffix}.csv`}, 'text/csv', ${bytes.length}, ${bucket}, ${path},
         ${"a".repeat(64)}, 'review', 1, 1, 0,
-        ${tx.json({ antivirus: "clamav_clean", readyForApproval: true })}, ${actor}, now()
+        ${tx.json({
+          antivirus: "clamav_clean",
+          readyForApproval: true,
+          personCount: 1,
+          encryptedPersonCount: 1,
+          vaultKeyVersion: encrypted.keyVersion,
+        })}, ${actor}, now()
       )
     `;
     await tx`
@@ -85,8 +115,18 @@ async function createReviewedImport(actor, suffix) {
         person_ref, person_type, validation_status, issues, fingerprint
       ) values (
         ${institutionId}, ${importId}, 'CSV', 2, 'person',
-        ${`TEST-${suffix.toUpperCase()}-${marker}`}, 'student', 'valid', '[]'::jsonb,
+        ${personRef}, 'student', 'valid', '[]'::jsonb,
         ${`${"b".repeat(56)}${marker}`}
+      )
+    `;
+    await tx`
+      insert into public.identity_directory_private_rows (
+        institution_id, import_id, person_ref, key_version, payload_schema,
+        iv, auth_tag, ciphertext
+      ) values (
+        ${institutionId}, ${importId}, ${personRef}, ${encrypted.keyVersion},
+        ${encrypted.payloadSchema}, ${encrypted.iv}, ${encrypted.authTag},
+        ${encrypted.ciphertext}
       )
     `;
   });
@@ -94,6 +134,12 @@ async function createReviewedImport(actor, suffix) {
 }
 
 async function approve(importId, actor) {
+  const [vault] = await sql`
+    select count(*)::int as encrypted_people
+    from public.identity_directory_private_rows
+    where import_id = ${importId}
+  `;
+  assert(vault.encrypted_people === 1, "Review does not have its encrypted identity row");
   const [updated] = await sql`
     update public.identity_directory_imports
     set status = 'approved', approved_by = ${actor}, approved_at = now()
@@ -119,6 +165,12 @@ async function activate(importId, actor) {
       select id from public.identity_directory_imports
       where institution_id = ${institutionId} and status = 'active'
     `;
+    const [vault] = await tx`
+      select count(*)::int as encrypted_people
+      from public.identity_directory_private_rows
+      where import_id = ${importId}
+    `;
+    assert(vault.encrypted_people === 1, "Approved version lost its encrypted identity row");
     await tx`
       update public.identity_directory_imports
       set status = 'superseded'
@@ -173,12 +225,23 @@ async function retire(importId, actor) {
     const { error } = await storage.from(bucket).remove([candidate.storage_path]);
     if (error) throw new Error(`Storage removal failed: ${error.message}`);
     await tx`delete from public.identity_directory_rows where import_id = ${importId}`;
+    const [privateRows] = await tx`
+      select count(*)::int as encrypted_rows
+      from public.identity_directory_private_rows
+      where import_id = ${importId}
+    `;
+    await tx`delete from public.identity_directory_private_rows where import_id = ${importId}`;
     const [updated] = await tx`
       update public.identity_directory_imports
       set status = 'retired', retired_by = ${actor}, retired_at = now(),
         retirement_reason = 'Version fictive remplacée puis retirée par la recette automatisée.',
         checksum = null,
-        validation_summary = ${tx.json({ retired: true, privateFileRemoved: true, quarantineRowsRemoved: 1 })}
+        validation_summary = ${tx.json({
+          retired: true,
+          privateFileRemoved: true,
+          quarantineRowsRemoved: 1,
+          encryptedRowsRemoved: privateRows.encrypted_rows,
+        })}
       where id = ${importId} and institution_id = ${institutionId} and status = 'superseded'
       returning id
     `;
@@ -188,7 +251,12 @@ async function retire(importId, actor) {
         institution_id, resource_type, resource_id, action, actor_id, summary
       ) values (
         ${institutionId}, 'import', ${importId}, 'retire', ${actor},
-        ${tx.json({ test: true, privateFileRemoved: true, quarantineRowsRemoved: 1 })}
+        ${tx.json({
+          test: true,
+          privateFileRemoved: true,
+          quarantineRowsRemoved: 1,
+          encryptedRowsRemoved: privateRows.encrypted_rows,
+        })}
       )
     `;
   });
@@ -245,11 +313,15 @@ try {
   const [retired] = await sql`
     select status, retirement_reason,
       (select count(*)::int from public.identity_directory_rows where import_id = ${first}) as rows,
+      (select count(*)::int from public.identity_directory_private_rows where import_id = ${first}) as private_rows,
       (select count(*)::int from public.identity_directory_audit where resource_id = ${first} and action = 'retire') as audits
     from public.identity_directory_imports where id = ${first}
   `;
   assert(retired.status === "retired", "Replaced version is not retired");
-  assert(retired.rows === 0 && retired.audits === 1, "Retirement proof or row cleanup is incomplete");
+  assert(
+    retired.rows === 0 && retired.private_rows === 0 && retired.audits === 1,
+    "Retirement proof or row cleanup is incomplete"
+  );
   const { data: retiredFiles, error: listError } = await storage
     .from(bucket)
     .list(`${institutionId}/lifecycle-test/${runId}`, { search: "first.csv" });
@@ -264,6 +336,7 @@ try {
     inactiveSourceBlocked,
     privateFileRemoved: true,
     quarantineRowsRemoved: retired.rows === 0,
+    encryptedRowsRemoved: retired.private_rows === 0,
   }));
 } finally {
   await cleanup();

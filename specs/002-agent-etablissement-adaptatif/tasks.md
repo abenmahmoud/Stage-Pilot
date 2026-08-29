@@ -62,6 +62,13 @@
 - [ ] T010B2C Concevoir puis implémenter le coffre opérationnel chiffré pour les
   noms et coordonnées strictement nécessaires, séparé des empreintes de
   vérification et inaccessible directement au modèle.
+- [x] T010B2C1 Créer en preview le premier jalon du coffre : chiffrement
+  applicatif AES-256-GCM par personne, nonce aléatoire, contexte lié à
+  l'établissement/version/référence, clé versionnée uniquement sur le worker,
+  table serveur sans colonne nominative, blocage de l'approbation et de
+  l'activation si le coffre est incomplet, retrait et nettoyage vérifiés sur
+  données fictives. La recherche déterministe, la rotation opérationnelle et la
+  rétention restent dans T010B2C.
 - [ ] T010B2D Refuser automatiquement mots de passe, codes ENT/PRONOTE et secrets
   dans tous les imports ; cadrer séparément une éventuelle remise de codes avec
   Direction/DPO, identité forte, durée courte et validation humaine.

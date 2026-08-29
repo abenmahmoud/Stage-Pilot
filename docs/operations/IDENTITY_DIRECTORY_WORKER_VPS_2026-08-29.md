@@ -29,16 +29,23 @@
 5. Nettoyage du test : zéro import, ligne, audit et message de file restant.
 6. Timer actif toutes les minutes et second déclenchement autonome avec code `0`.
 7. Workers email et pièces jointes restés actifs pendant toute l'opération.
+8. Le jalon chiffré ultérieur conserve désormais les trois fiches fictives dans
+   le coffre AES-256-GCM, sans valeur brute visible, puis les supprime pendant le
+   nettoyage. La preuve complète est dans
+   `IDENTITY_DIRECTORY_VAULT_PREVIEW_2026-08-29.md`.
 
 ## Limites restantes
 
-- Le rapport ne constitue pas encore un annuaire opérationnel : les noms et
-  coordonnées sont volontairement jetés après création de leurs empreintes.
-- L'approbation, l'activation, le remplacement et la suppression doivent encore
-  être testés dans l'interface avec une version fictive.
+- Le rapport reste anonymisé ; les noms et coordonnées nécessaires sont
+  désormais conservés uniquement dans le coffre chiffré séparé.
+- L'approbation, l'activation, le remplacement et le retrait ont été testés sur
+  la base avec des versions fictives. La recette visuelle complète avec un
+  compte direction nominatif et MFA reste à effectuer.
+- Aucun outil de recherche ou de déchiffrement n'est encore exposé à l'agent ou
+  au navigateur.
 - Aucun fichier réel avant validation Direction/DPO des colonnes, finalités,
   habilitations, durées et procédure d'incident.
-- Le disque du VPS disposait d'environ 22 Go libres lors de la recette ; sa
+- Le disque du VPS disposait d'environ 20 Go libres lors du dernier contrôle ; sa
   consommation doit être surveillée avant des dépôts importants.
 
 ## Arrêt contrôlé

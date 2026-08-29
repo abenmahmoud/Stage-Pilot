@@ -45,6 +45,9 @@ const serialized = JSON.stringify(parsedTemplate.rows);
 for (const rawValue of ["Lina", "Martin", "lina.martin@example.test", "+33600000001"]) {
   assert.equal(serialized.includes(rawValue), false, `raw value leaked: ${rawValue}`);
 }
+assert.equal(parsedTemplate.privateRows.length, 3);
+assert.equal(parsedTemplate.privateRows[0].value.firstName, "Lina");
+assert.equal(parsedTemplate.privateRows[0].value.academicEmail, "lina.martin@example.test");
 
 const alternate = parseIdentityDirectoryBytes({
   bytes: template,

@@ -1,7 +1,7 @@
 import { execFile } from "node:child_process";
 import { randomUUID } from "node:crypto";
 import { dirname } from "node:path";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 import { promisify } from "node:util";
 import { createClient } from "@supabase/supabase-js";
 import postgres from "postgres";
@@ -37,6 +37,15 @@ const defaultWorkerPath = fileURLToPath(
   new URL("../workers/identity-directory-worker.mjs", import.meta.url)
 );
 const workerPath = process.env.IDENTITY_DIRECTORY_WORKER_PATH ?? defaultWorkerPath;
+const defaultVaultPath = fileURLToPath(
+  new URL("../workers/identity-directory-vault.mjs", import.meta.url)
+);
+const vaultPath = process.env.IDENTITY_DIRECTORY_VAULT_PATH ?? defaultVaultPath;
+const {
+  decryptIdentityVaultPayload,
+  identityVaultConfig,
+} = await import(pathToFileURL(vaultPath).href);
+const vaultConfig = identityVaultConfig();
 const bucket = "identity-ingest";
 const runId = randomUUID();
 const marker = runId.slice(0, 8);
@@ -173,10 +182,14 @@ async function assertIsolatedQueue() {
     select
       (select count(*)::int from pgmq.q_identity_directory_scan) as queued,
       (select count(*)::int from public.identity_directory_imports
-        where title like '[TEST] Worker %') as stale_imports
+        where title like '[TEST] Worker %') as stale_imports,
+      (select count(*)::int from public.identity_directory_private_rows private_row
+        join public.identity_directory_imports directory_import on directory_import.id = private_row.import_id
+        where directory_import.title like '[TEST] Worker %') as stale_private_rows
   `;
   assert(state.queued === 0, "Identity scan queue is not empty before the test");
   assert(state.stale_imports === 0, "A stale identity worker test import exists");
+  assert(state.stale_private_rows === 0, "A stale encrypted identity test row exists");
 }
 
 async function enqueueImport({ institutionId, actorId, bytes, suffix }) {
@@ -257,7 +270,7 @@ async function cleanOwnResources() {
 
 async function verifyCleanup() {
   if (resources.length === 0) {
-    return { imports: 0, rows: 0, audits: 0, jobs: 0 };
+    return { imports: 0, rows: 0, private_rows: 0, audits: 0, jobs: 0 };
   }
   const ids = resources.map((resource) => resource.importId);
   const jobs = resources.map((resource) => resource.jobId);
@@ -267,12 +280,16 @@ async function verifyCleanup() {
         where id = any(${ids}::uuid[])) as imports,
       (select count(*)::int from public.identity_directory_rows
         where import_id = any(${ids}::uuid[])) as rows,
+      (select count(*)::int from public.identity_directory_private_rows
+        where import_id = any(${ids}::uuid[])) as private_rows,
       (select count(*)::int from public.identity_directory_audit
         where resource_id = any(${ids}::uuid[])) as audits,
       (select count(*)::int from pgmq.q_identity_directory_scan
         where message ->> 'job_id' = any(${jobs}::text[])) as jobs
   `;
-  assert(counts.imports === 0 && counts.rows === 0 && counts.audits === 0 && counts.jobs === 0,
+  assert(
+    counts.imports === 0 && counts.rows === 0 && counts.private_rows === 0
+      && counts.audits === 0 && counts.jobs === 0,
     "Integration test cleanup is incomplete");
   return counts;
 }
@@ -312,6 +329,43 @@ try {
     assert(!serialized.includes(forbidden), `Raw identity value retained: ${forbidden}`);
   }
 
+  const privateRows = await sql`
+    select person_ref, key_version, payload_schema, iv, auth_tag, ciphertext
+    from public.identity_directory_private_rows
+    where import_id = ${clean.importId}
+    order by person_ref
+  `;
+  assert(privateRows.length === 3, "Encrypted identity row count is incorrect");
+  const privateSerialized = JSON.stringify(privateRows);
+  for (const forbidden of [
+    "CamilleTest",
+    "NoraTest",
+    "AlexTest",
+    "MartinTest",
+    "DurandTest",
+    "@example.test",
+    "+33600000001",
+  ]) {
+    assert(!privateSerialized.includes(forbidden), `Raw value leaked into encrypted rows: ${forbidden}`);
+  }
+  const camille = privateRows.find((row) => row.person_ref === `TEST-STUDENT-${marker}`);
+  assert(camille, "Encrypted fictitious student is missing");
+  const decrypted = decryptIdentityVaultPayload({
+    envelope: {
+      keyVersion: camille.key_version,
+      payloadSchema: camille.payload_schema,
+      iv: camille.iv,
+      authTag: camille.auth_tag,
+      ciphertext: camille.ciphertext,
+    },
+    institutionId: actor.institution_id,
+    importId: clean.importId,
+    personRef: camille.person_ref,
+    key: vaultConfig.key,
+  });
+  assert(decrypted.firstName === "CamilleTest", "Encrypted first name did not round-trip");
+  assert(decrypted.academicEmail === `camille.${marker}@example.test`, "Encrypted email did not round-trip");
+
   const eicar = Buffer.from(
     "X5O!P%@AP[4\\PZX54(P^)7CC)7}$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!$H+H*",
     "ascii"
@@ -337,6 +391,8 @@ try {
       status: cleanState.status,
       rows: cleanState.row_count,
       rawIdentityRetained: false,
+      encryptedPeople: privateRows.length,
+      decryptRoundTrip: true,
     },
     threat: { outcome: threatOutcome, status: threatState.status },
   }));

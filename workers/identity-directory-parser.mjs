@@ -187,9 +187,8 @@ function parsePerson(record, base, pepper) {
   const personType = boundedText(record.person_type, "person_type", issues).toLowerCase();
   if (!PERSON_TYPES.has(personType)) issue(issues, "error", "invalid_person_type", "person_type");
 
-  // Names are checked for accidental oversized values, then deliberately discarded.
-  boundedText(record.first_name, "first_name", issues);
-  boundedText(record.last_name, "last_name", issues);
+  const firstName = boundedText(record.first_name, "first_name", issues);
+  const lastName = boundedText(record.last_name, "last_name", issues);
   const academicEmail = normalizeEmail(record.academic_email, "academic_email", issues);
   const personalEmail = normalizeEmail(record.personal_email, "personal_email", issues);
   const phone = normalizePhone(record.phone, issues);
@@ -226,6 +225,13 @@ function parsePerson(record, base, pepper) {
     phoneHash: keyedHash(phone, pepper),
     validFrom,
     validUntil,
+    privatePayload: {
+      firstName,
+      lastName,
+      academicEmail,
+      personalEmail,
+      phone,
+    },
   };
 }
 
@@ -481,6 +487,16 @@ export function parseIdentityDirectoryBytes({ bytes, fileName, contactPepper }) 
     row.validationStatus = statusFromIssues(row.issues);
     row.fingerprint = rowFingerprint(row);
   }
+  const privateRows = rows
+    .filter(
+      (row) =>
+        row.recordType === "person" &&
+        row.personRef &&
+        row.validationStatus !== "rejected" &&
+        row.privatePayload
+    )
+    .map((row) => ({ personRef: row.personRef, value: row.privatePayload }));
+  for (const row of rows) delete row.privatePayload;
   const rejected = rows.filter((row) => row.validationStatus === "rejected").length;
   const warnings = rows.filter((row) => row.validationStatus === "warning").length;
   const people = rows.filter((row) => row.recordType === "person").length;
@@ -489,6 +505,7 @@ export function parseIdentityDirectoryBytes({ bytes, fileName, contactPepper }) 
   return {
     checksum: createHash("sha256").update(bytes).digest("hex"),
     rows,
+    privateRows,
     summary: {
       parserVersion: 1,
       sheets: workbook.SheetNames.map((name) => name.slice(0, 80)),

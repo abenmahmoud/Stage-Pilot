@@ -10,6 +10,10 @@ import {
   IdentityDirectoryParseError,
   parseIdentityDirectoryBytes,
 } from "./identity-directory-parser.mjs";
+import {
+  encryptIdentityVaultPayload,
+  identityVaultConfig,
+} from "./identity-directory-vault.mjs";
 
 const execFileAsync = promisify(execFile);
 const databaseUrl = process.env.DATABASE_URL;
@@ -22,6 +26,7 @@ if (!databaseUrl || !supabaseUrl || !serviceRoleKey || !contactPepper) {
   );
 }
 if (contactPepper.length < 32) throw new Error("IDENTITY_CONTACT_PEPPER is too short");
+const vaultConfig = identityVaultConfig();
 
 const sql = postgres(databaseUrl, { prepare: false, max: 2, idle_timeout: 20 });
 const storage = createClient(supabaseUrl, serviceRoleKey, {
@@ -109,11 +114,52 @@ function databaseRows(parsed, directoryImport, json) {
   }));
 }
 
+function privateDatabaseRows(parsed, directoryImport) {
+  return parsed.privateRows.map((row) => {
+    const envelope = encryptIdentityVaultPayload({
+      value: row.value,
+      institutionId: directoryImport.institution_id,
+      importId: directoryImport.id,
+      personRef: row.personRef,
+      config: vaultConfig,
+    });
+    return {
+      institution_id: directoryImport.institution_id,
+      import_id: directoryImport.id,
+      person_ref: row.personRef,
+      key_version: envelope.keyVersion,
+      payload_schema: envelope.payloadSchema,
+      iv: envelope.iv,
+      auth_tag: envelope.authTag,
+      ciphertext: envelope.ciphertext,
+    };
+  });
+}
+
 async function persistReport(directoryImport, parsed, msgId) {
-  await sql.begin(async (transaction) => {
+  return sql.begin(async (transaction) => {
+    const [lockedImport] = await transaction`
+      select status
+      from public.identity_directory_imports
+      where id = ${directoryImport.id}
+        and institution_id = ${directoryImport.institution_id}
+      for update
+    `;
+    if (!lockedImport) throw new Error("identity_import_not_found");
+    if (lockedImport.status !== "parsing") {
+      if (["review", "approved", "active", "superseded"].includes(lockedImport.status)) {
+        await transaction`select pgmq.delete('identity_directory_scan', ${msgId}::bigint)`;
+        return false;
+      }
+      throw new Error("identity_import_not_processable");
+    }
     const rows = databaseRows(parsed, directoryImport, (value) => transaction.json(value));
+    const privateRows = privateDatabaseRows(parsed, directoryImport);
     await transaction`
       delete from public.identity_directory_rows where import_id = ${directoryImport.id}
+    `;
+    await transaction`
+      delete from public.identity_directory_private_rows where import_id = ${directoryImport.id}
     `;
     for (let offset = 0; offset < rows.length; offset += 500) {
       const chunk = rows.slice(offset, offset + 500);
@@ -143,6 +189,22 @@ async function persistReport(directoryImport, parsed, msgId) {
         )}
       `;
     }
+    for (let offset = 0; offset < privateRows.length; offset += 250) {
+      const chunk = privateRows.slice(offset, offset + 250);
+      await transaction`
+        insert into public.identity_directory_private_rows ${transaction(
+          chunk,
+          "institution_id",
+          "import_id",
+          "person_ref",
+          "key_version",
+          "payload_schema",
+          "iv",
+          "auth_tag",
+          "ciphertext"
+        )}
+      `;
+    }
     await transaction`
       update public.identity_directory_imports
       set status = 'review', checksum = ${parsed.checksum},
@@ -152,6 +214,9 @@ async function persistReport(directoryImport, parsed, msgId) {
           validation_summary = ${transaction.json({
             ...parsed.summary,
             antivirus: "clamav_clean",
+            encryptedPersonCount: privateRows.length,
+            vaultSchemaVersion: 1,
+            vaultKeyVersion: vaultConfig.version,
           })}
       where id = ${directoryImport.id} and institution_id = ${directoryImport.institution_id}
     `;
@@ -166,10 +231,13 @@ async function persistReport(directoryImport, parsed, msgId) {
           rowCount: parsed.summary.rowCount,
           rejectedRowCount: parsed.summary.rejectedRowCount,
           warningRowCount: parsed.summary.warningRowCount,
+          encryptedPersonCount: privateRows.length,
+          vaultKeyVersion: vaultConfig.version,
         })}
       )
     `;
     await transaction`select pgmq.delete('identity_directory_scan', ${msgId}::bigint)`;
+    return true;
   });
 }
 
@@ -253,8 +321,8 @@ async function processMessage(row) {
       fileName: loaded.directoryImport.original_name,
       contactPepper,
     });
-    await persistReport(loaded.directoryImport, parsed, row.msg_id);
-    return "review";
+    const persisted = await persistReport(loaded.directoryImport, parsed, row.msg_id);
+    return persisted ? "review" : "duplicate";
   } catch (error) {
     const code = error instanceof IdentityDirectoryParseError
       ? error.code

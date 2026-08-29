@@ -5,6 +5,30 @@
 **Depot** : `abenmahmoud/Stage-Pilot`
 **Dernier jalon de code verifie** : candidate publiée sur la production Vercel
 
+## Jalon du 29 août 2026 - premier coffre chiffré du répertoire
+
+- La preview conserve désormais les noms et coordonnées strictement nécessaires
+  dans une table serveur séparée, chiffrés en AES-256-GCM par le worker. Chaque
+  fiche utilise un nonce aléatoire et un contexte authentifié lié à
+  l'établissement, la version et la référence opaque ; le rapport demeure
+  anonymisé et ne contient que les empreintes HMAC.
+- La clé `v1` de 32 octets a été générée directement sur le VPS sans être
+  affichée. Elle n'est présente ni dans Git, ni dans Supabase, ni dans Vercel.
+  Le modèle d'IA et le navigateur n'ont aucun accès au coffre.
+- La migration `20260829010855` est appliquée uniquement à Supabase preview.
+  RLS est activée et forcée, les rôles clients n'ont aucun droit et la table est
+  vide hors recette.
+- Approbation et activation refusent un coffre incomplet ; le retrait efface les
+  fiches chiffrées. Les tests détectent aussi l'altération, le mauvais contexte
+  et la mauvaise clé.
+- Les recettes fictives ont validé trois personnes chiffrées, EICAR, deux
+  versions, une seule version active, remplacement, retrait et nettoyage à zéro.
+  Les quatre timers VPS restent actifs.
+- La recherche déterministe, la rotation opérationnelle de clé, la rétention, la
+  restauration et la validation Direction/DPO restent obligatoires avant toute
+  donnée réelle. La preuve est dans
+  `docs/operations/IDENTITY_DIRECTORY_VAULT_PREVIEW_2026-08-29.md`.
+
 ## Jalon du 29 août 2026 - cycle de vie du répertoire privé
 
 - La preview gère maintenant le parcours `review` → `approved` → `active` →

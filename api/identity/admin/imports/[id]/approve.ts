@@ -1,9 +1,10 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { and, eq } from "drizzle-orm";
+import { and, count, eq } from "drizzle-orm";
 import { db } from "../../../../../db/index.js";
 import {
   identityDirectoryAudit,
   identityDirectoryImports,
+  identityDirectoryPrivateRows,
 } from "../../../../../db/schema.js";
 import { HttpError } from "../../../../_shared/auth.js";
 import { requireIdentityDirectoryManager } from "../../../../_shared/identity-directory.js";
@@ -52,6 +53,20 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (!candidate.rowCount || candidate.rejectedRowCount !== 0) {
       throw new HttpError(409, "Corrigez toutes les lignes refusées avant l’approbation");
     }
+    const summary = candidate.validationSummary as Record<string, unknown>;
+    const expectedPeople = Number(summary.personCount);
+    const [vaultCount] = await db
+      .select({ value: count() })
+      .from(identityDirectoryPrivateRows)
+      .where(eq(identityDirectoryPrivateRows.importId, id));
+    if (
+      !Number.isSafeInteger(expectedPeople) ||
+      expectedPeople < 1 ||
+      Number(vaultCount?.value ?? 0) !== expectedPeople ||
+      Number(summary.encryptedPersonCount) !== expectedPeople
+    ) {
+      throw new HttpError(409, "Le coffre chiffré est incomplet ; relancez l’analyse du fichier");
+    }
 
     const [approved] = await db.transaction(async (tx) => {
       const updated = await tx
@@ -76,7 +91,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         resourceId: id,
         action: "approve",
         actorId: context.user.id,
-        summary: { justification: reason, rowCount: candidate.rowCount },
+        summary: {
+          justification: reason,
+          rowCount: candidate.rowCount,
+          encryptedPersonCount: expectedPeople,
+        },
       });
       return updated;
     });
