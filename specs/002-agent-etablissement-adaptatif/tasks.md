@@ -288,9 +288,15 @@
   compte au plus 500 pages sans extraire le contenu. La file est vide, RLS est
   forcée et les rôles client n'ont aucun droit. L'installation VPS reste
   volontairement bloquée jusqu'à une autorisation précise.
-- [ ] T042C2B Installer le worker sur le runtime de preview, exécuter les recettes
-  PDF fictif/EICAR/reprise, puis construire le rapprochement humain et les liens
-  temporaires audités.
+- [x] T042C2B Construire le rapprochement humain responsive : ouverture du PDF
+  direction par URL privée de 60 secondes, association page-référence opaque,
+  sauvegarde en brouillon, vérification distincte et audit minimal. Une recette
+  transactionnelle a bloqué page hors limites, mauvais périmètre et modification
+  après approbation, puis confirmé le retour à zéro.
+- [ ] T042C2C Installer le worker sur le runtime de preview et exécuter les
+  recettes PDF fictif, EICAR, panne antivirus et reprise avant tout PDF réel.
+- [ ] T042C2D Ajouter approbation, activation atomique, retour arrière, lien
+  temporaire limité à la bonne page pour l'agent et retrait selon conservation.
 - [ ] T042D Construire le modèle de lecture privé des créneaux, groupes, salles et
   périodes de validité, avec versions et possibilité de retour arrière.
 - [x] T042D1 Implémenter et tester sur données fictives la politique de lecture :

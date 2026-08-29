@@ -892,6 +892,24 @@ taches et analyse de coherence avant une automatisation sensible.
   passent. Le worker est préparé mais non installé : aucune action VPS, aucun PDF
   réel et aucune production n'ont été touchés.
 
+### Jalon du 29 août 2026 - rapprochement humain des pages
+
+- L'écran direction des emplois du temps propose un index vertical responsive :
+  choix d'une version contrôlée, ouverture privée du PDF pendant 60 secondes,
+  référence opaque par page, brouillon puis vérification explicite.
+- Les API exigent direction et MFA pour lire, enregistrer, vérifier ou ouvrir le
+  PDF. L'ouverture est auditée, non mise en cache et ne produit jamais d'URL
+  publique permanente.
+- La référence classe/personnel est dérivée du type de source et non choisie par
+  le navigateur. Aucune colonne de nom, email, téléphone, horaire ou salle n'est
+  ajoutée à l'index.
+- La migration `20260829113248` empêche en base les pages hors limites, les
+  périmètres incompatibles et les modifications hors état `review`.
+- Une recette fictive transactionnelle a vérifié ces trois refus puis le retour
+  à zéro. Les tests du contrat, des API et le build passent. L'approbation,
+  l'activation, le lien agent limité à une page et la conservation restent à
+  construire ; aucun PDF réel n'a été téléversé.
+
 ## 8. Prochain ordre recommande
 
 1. Publier et tester le pré-triage ordinateur portable avec des données fictives.

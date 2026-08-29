@@ -17,6 +17,7 @@ Les migrations de preview sont :
 - `20260829105238_index_schedule_audit_institution.sql` ;
 - `20260829105632_harden_schedule_scope_integrity.sql`.
 - `20260829112115_create_schedule_document_scan_queue.sql`.
+- `20260829113248_enforce_schedule_page_review_bounds.sql`.
 
 ## Verifications
 

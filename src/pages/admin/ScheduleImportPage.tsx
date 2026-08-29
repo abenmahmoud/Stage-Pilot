@@ -1,10 +1,13 @@
 import { useEffect, useRef, useState } from "react";
 import {
+  BadgeCheck,
   CalendarDays,
+  ExternalLink,
   FileLock2,
   FileText,
   LoaderCircle,
   RefreshCw,
+  Save,
   ShieldCheck,
   Upload,
 } from "lucide-react";
@@ -46,6 +49,23 @@ type ScheduleImport = {
   createdAt: string;
 };
 
+type SchedulePageMapping = {
+  id: string;
+  pageNumber: number;
+  subjectType: "class" | "teacher";
+  subjectRef: string;
+  reviewStatus: "draft" | "verified" | "rejected";
+  reviewedAt: string | null;
+};
+
+type SchedulePageSource = {
+  id: string;
+  sourceKind: ScheduleSourceKind;
+  title: string;
+  pageCount: number | null;
+  status: ScheduleStatus;
+};
+
 const STATUS: Record<ScheduleStatus, { label: string; style: string }> = {
   reserved: { label: "Transfert à terminer", style: "bg-slate-100 text-slate-700" },
   uploaded: { label: "Reçu, contrôle en attente", style: "bg-blue-100 text-blue-800" },
@@ -76,6 +96,10 @@ function formatDate(value: string): string {
   return new Intl.DateTimeFormat("fr-FR", { dateStyle: "medium" }).format(new Date(value));
 }
 
+function normalizeDraftRef(value: string): string {
+  return value.normalize("NFKC").trim().toUpperCase().replace(/\s+/g, "-");
+}
+
 export default function ScheduleImportPage() {
   const fileInput = useRef<HTMLInputElement>(null);
   const [imports, setImports] = useState<ScheduleImport[]>([]);
@@ -92,6 +116,12 @@ export default function ScheduleImportPage() {
   const [progress, setProgress] = useState(0);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
+  const [selectedImportId, setSelectedImportId] = useState("");
+  const [pageSource, setPageSource] = useState<SchedulePageSource | null>(null);
+  const [pages, setPages] = useState<SchedulePageMapping[]>([]);
+  const [pageDrafts, setPageDrafts] = useState<Record<number, string>>({});
+  const [pageLoading, setPageLoading] = useState(false);
+  const [pageBusy, setPageBusy] = useState<number | null>(null);
 
   async function load() {
     setLoading(true);
@@ -99,6 +129,12 @@ export default function ScheduleImportPage() {
     try {
       const result = await apiFetch<{ imports: ScheduleImport[] }>("schedule/admin/imports");
       setImports(result.imports);
+      setSelectedImportId((current) => {
+        if (current && result.imports.some((item) => item.id === current && item.status === "review")) {
+          return current;
+        }
+        return result.imports.find((item) => item.status === "review")?.id ?? "";
+      });
     } catch (reason) {
       setError(reason instanceof Error ? reason.message : "Chargement impossible.");
     } finally {
@@ -109,6 +145,95 @@ export default function ScheduleImportPage() {
   useEffect(() => {
     void load();
   }, []);
+
+  useEffect(() => {
+    if (!selectedImportId) {
+      setPageSource(null);
+      setPages([]);
+      setPageDrafts({});
+      return;
+    }
+    let cancelled = false;
+    setPageLoading(true);
+    apiFetch<{ source: SchedulePageSource; pages: SchedulePageMapping[] }>(
+      `schedule/admin/imports/${selectedImportId}/pages`
+    )
+      .then((result) => {
+        if (cancelled) return;
+        setPageSource(result.source);
+        setPages(result.pages);
+        setPageDrafts(Object.fromEntries(result.pages.map((page) => [page.pageNumber, page.subjectRef])));
+      })
+      .catch((reason) => {
+        if (!cancelled) setError(reason instanceof Error ? reason.message : "Indexation indisponible.");
+      })
+      .finally(() => {
+        if (!cancelled) setPageLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [selectedImportId]);
+
+  async function openPrivatePdf() {
+    if (!selectedImportId) return;
+    const popup = window.open("about:blank", "_blank");
+    if (popup) {
+      popup.opener = null;
+      popup.document.title = "Ouverture du PDF";
+      popup.document.body.textContent = "Ouverture du PDF privé...";
+    }
+    setError("");
+    try {
+      const result = await apiFetch<{ url: string }>(`schedule/admin/imports/${selectedImportId}/file`);
+      if (popup) popup.location.href = result.url;
+      else window.open(result.url, "_blank", "noopener,noreferrer");
+    } catch (reason) {
+      popup?.close();
+      setError(reason instanceof Error ? reason.message : "Ouverture du PDF impossible.");
+    }
+  }
+
+  async function saveMapping(pageNumber: number) {
+    if (!selectedImportId) return;
+    setPageBusy(pageNumber);
+    setError("");
+    try {
+      const result = await apiFetch<{ mapping: SchedulePageMapping }>(
+        `schedule/admin/imports/${selectedImportId}/pages`,
+        {
+          method: "POST",
+          body: JSON.stringify({ pageNumber, subjectRef: pageDrafts[pageNumber] ?? "" }),
+        }
+      );
+      setPages((current) => [
+        ...current.filter((item) => item.pageNumber !== pageNumber),
+        result.mapping,
+      ].sort((left, right) => left.pageNumber - right.pageNumber));
+      setPageDrafts((current) => ({ ...current, [pageNumber]: result.mapping.subjectRef }));
+    } catch (reason) {
+      setError(reason instanceof Error ? reason.message : "Enregistrement impossible.");
+    } finally {
+      setPageBusy(null);
+    }
+  }
+
+  async function verifyMapping(mapping: SchedulePageMapping) {
+    if (!selectedImportId) return;
+    setPageBusy(mapping.pageNumber);
+    setError("");
+    try {
+      const result = await apiFetch<{ mapping: SchedulePageMapping }>(
+        `schedule/admin/imports/${selectedImportId}/pages/${mapping.id}/verify`,
+        { method: "POST" }
+      );
+      setPages((current) => current.map((item) => item.id === mapping.id ? result.mapping : item));
+    } catch (reason) {
+      setError(reason instanceof Error ? reason.message : "Validation impossible.");
+    } finally {
+      setPageBusy(null);
+    }
+  }
 
   async function submit(event: React.FormEvent) {
     event.preventDefault();
@@ -170,6 +295,10 @@ export default function ScheduleImportPage() {
       (!file.name.toLowerCase().endsWith(".pdf") && file.type !== SCHEDULE_IMPORT_MIME)
     )
   );
+  const reviewImports = imports.filter((item) => item.status === "review" && item.pageCount);
+  const pageByNumber = new Map(pages.map((page) => [page.pageNumber, page]));
+  const verifiedCount = pages.filter((page) => page.reviewStatus === "verified").length;
+  const totalPages = pageSource?.pageCount ?? 0;
 
   return (
     <div className="mx-auto max-w-6xl space-y-6">
@@ -291,6 +420,110 @@ export default function ScheduleImportPage() {
               </article>
             ))}
             {imports.length === 0 ? <p className="px-4 py-10 text-center text-sm text-slate-500">Aucun PDF n'a encore été déposé.</p> : null}
+          </div>
+        ) : null}
+      </section>
+
+      <section className="space-y-4 border-t border-slate-200 pt-6">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <h2 className="text-lg font-bold text-slate-950">Index des pages</h2>
+            <p className="text-sm text-slate-500">{verifiedCount} page{verifiedCount > 1 ? "s" : ""} vérifiée{verifiedCount > 1 ? "s" : ""} sur {totalPages}</p>
+          </div>
+          {selectedImportId ? (
+            <button
+              type="button"
+              onClick={() => void openPrivatePdf()}
+              className="inline-flex min-h-10 items-center justify-center gap-2 rounded-md border border-slate-300 bg-white px-3 text-sm font-semibold text-slate-800"
+            >
+              <ExternalLink className="h-4 w-4" />
+              Ouvrir le PDF (60 s)
+            </button>
+          ) : null}
+        </div>
+
+        {reviewImports.length > 0 ? (
+          <label className="block max-w-xl text-sm font-medium text-slate-700">
+            Version à indexer
+            <select
+              className="field mt-1 bg-white"
+              value={selectedImportId}
+              onChange={(event) => setSelectedImportId(event.target.value)}
+            >
+              {reviewImports.map((item) => (
+                <option key={item.id} value={item.id}>{item.title} · {item.pageCount} pages</option>
+              ))}
+            </select>
+          </label>
+        ) : (
+          <p className="border-y border-slate-200 bg-white px-4 py-8 text-center text-sm text-slate-500">
+            L'indexation apparaîtra après le contrôle antivirus et le comptage des pages.
+          </p>
+        )}
+
+        {pageLoading ? (
+          <div className="flex min-h-32 items-center justify-center"><LoaderCircle className="h-7 w-7 animate-spin text-emerald-700" /></div>
+        ) : null}
+
+        {!pageLoading && pageSource?.pageCount ? (
+          <div className="border-y border-slate-200 bg-white">
+            {Array.from({ length: pageSource.pageCount }, (_, index) => index + 1).map((pageNumber) => {
+              const mapping = pageByNumber.get(pageNumber);
+              const rowBusy = pageBusy === pageNumber;
+              const draftRef = pageDrafts[pageNumber] ?? "";
+              const canSave = Boolean(
+                draftRef.trim() && normalizeDraftRef(draftRef) !== mapping?.subjectRef
+              );
+              return (
+                <div
+                  key={pageNumber}
+                  className="grid min-w-0 gap-3 border-b border-slate-100 px-4 py-3 last:border-b-0 sm:grid-cols-[52px_minmax(0,1fr)_auto] sm:items-center"
+                >
+                  <strong className="text-sm text-slate-600">P. {pageNumber}</strong>
+                  <label className="min-w-0 text-xs font-medium text-slate-600">
+                    <span className="sr-only">Référence opaque de la page {pageNumber}</span>
+                    <input
+                      className="field bg-white font-mono uppercase"
+                      value={draftRef}
+                      maxLength={80}
+                      placeholder={pageSource.sourceKind === "classes" ? "CLASSE-2NDE-01" : "PERSONNEL-0042"}
+                      disabled={rowBusy}
+                      onChange={(event) => setPageDrafts((current) => ({
+                        ...current,
+                        [pageNumber]: event.target.value,
+                      }))}
+                    />
+                  </label>
+                  <div className="flex min-w-0 flex-wrap items-center gap-2 sm:justify-end">
+                    {mapping?.reviewStatus === "verified" ? (
+                      <span className="inline-flex items-center gap-1 text-xs font-semibold text-emerald-700">
+                        <BadgeCheck className="h-4 w-4" /> Vérifiée
+                      </span>
+                    ) : null}
+                    <button
+                      type="button"
+                      onClick={() => void saveMapping(pageNumber)}
+                      disabled={rowBusy || !canSave}
+                      className="inline-flex min-h-9 items-center gap-1.5 rounded-md border border-slate-300 px-2.5 text-xs font-semibold text-slate-700 disabled:opacity-40"
+                    >
+                      {rowBusy ? <LoaderCircle className="h-3.5 w-3.5 animate-spin" /> : <Save className="h-3.5 w-3.5" />}
+                      {mapping ? "Modifier" : "Enregistrer"}
+                    </button>
+                    {mapping && mapping.reviewStatus !== "verified" ? (
+                      <button
+                        type="button"
+                        onClick={() => void verifyMapping(mapping)}
+                        disabled={rowBusy}
+                        className="inline-flex min-h-9 items-center gap-1.5 rounded-md bg-emerald-700 px-2.5 text-xs font-semibold text-white disabled:opacity-40"
+                      >
+                        <BadgeCheck className="h-3.5 w-3.5" />
+                        Vérifier
+                      </button>
+                    ) : null}
+                  </div>
+                </div>
+              );
+            })}
           </div>
         ) : null}
       </section>

@@ -26,6 +26,22 @@ const confirmation = readFileSync(
   new URL("../api/schedule/admin/imports/[id]/confirm.ts", import.meta.url),
   "utf8"
 );
+const pagesApi = readFileSync(
+  new URL("../api/schedule/admin/imports/[id]/pages/index.ts", import.meta.url),
+  "utf8"
+);
+const verifyApi = readFileSync(
+  new URL("../api/schedule/admin/imports/[id]/pages/[pageId]/verify.ts", import.meta.url),
+  "utf8"
+);
+const fileApi = readFileSync(
+  new URL("../api/schedule/admin/imports/[id]/file.ts", import.meta.url),
+  "utf8"
+);
+const reviewBoundsMigration = readFileSync(
+  new URL("../supabase/migrations/20260829113248_enforce_schedule_page_review_bounds.sql", import.meta.url),
+  "utf8"
+);
 const manager = readFileSync(
   new URL("../api/_shared/schedule-imports.ts", import.meta.url),
   "utf8"
@@ -89,4 +105,31 @@ test("keeps the schedule scan queue private", () => {
     queueMigration,
     /revoke all on table[\s\S]+q_schedule_document_scan[\s\S]+from public, anon, authenticated/i
   );
+});
+
+test("limits page mapping to a scanned source under human review", () => {
+  assert.match(pagesApi, /requireScheduleManager\(req\)/);
+  assert.match(pagesApi, /source\.status !== "review"/);
+  assert.match(pagesApi, /input\.pageNumber > source\.pageCount/);
+  assert.match(pagesApi, /source\.sourceKind === "classes" \? "class" : "teacher"/);
+  assert.match(pagesApi, /reviewStatus: "draft"/);
+  assert.doesNotMatch(pagesApi, /teacherName|studentName|personalEmail/);
+  assert.match(reviewBoundsMigration, /source_status <> 'review'/);
+  assert.match(reviewBoundsMigration, /new\.page_number > expected_page_count/);
+});
+
+test("verifies pages through a distinct audited action", () => {
+  assert.match(verifyApi, /requireScheduleManager\(req\)/);
+  assert.match(verifyApi, /page\.sourceStatus !== "review"/);
+  assert.match(verifyApi, /reviewStatus: "verified"/);
+  assert.match(verifyApi, /action: "verify_page"/);
+});
+
+test("opens only validated private PDFs with a short audited URL", () => {
+  assert.match(fileApi, /requireScheduleManager\(req\)/);
+  assert.match(fileApi, /createSignedUrl\(source\.storagePath, SIGNED_URL_SECONDS\)/);
+  assert.match(fileApi, /const SIGNED_URL_SECONDS = 60/);
+  assert.match(fileApi, /action: "open_page"/);
+  assert.match(fileApi, /Cache-Control", "no-store"/);
+  assert.doesNotMatch(fileApi, /getPublicUrl|publicUrl/);
 });

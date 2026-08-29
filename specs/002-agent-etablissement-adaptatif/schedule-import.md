@@ -79,3 +79,11 @@ poste local.
 - Le worker n'est pas encore installé sur le VPS : l'état `review` ne sera donc
   opérationnel qu'après autorisation, installation additive et recette fictive
   comprenant un PDF sain, EICAR, reprise et nettoyage.
+- Une version en `review` possède maintenant un poste de rapprochement vertical,
+  sans tableau horizontal : chaque page reçoit une référence opaque puis une
+  validation distincte. Modifier une ligne vérifiée la repasse en brouillon.
+- La base refuse une page supérieure au comptage vérifié, un type classe/personnel
+  incompatible et toute modification lorsque la source n'est plus en `review`.
+- La direction peut ouvrir le PDF entier par un lien privé de 60 secondes sous
+  MFA, avec audit et réponse `no-store`. Ce lien administratif ne constitue pas
+  encore le futur lien limité à une page pour l'agent.
