@@ -29,9 +29,15 @@ type RuntimeKnowledgeVersion = {
   versionId: string;
 };
 
+type RuntimeKnowledgeSource = {
+  institutionId: string;
+  sourceId: string;
+};
+
 type RuntimeKnowledgeContext = {
   instructions: string;
   versions: RuntimeKnowledgeVersion[];
+  sources: RuntimeKnowledgeSource[];
 };
 
 export type SupportAgentResult = {
@@ -320,6 +326,7 @@ export async function analyzeSupportConversation(input: {
   ) => Promise<string | RuntimeKnowledgeContext>;
   knowledgeUsageRecorder?: (input: {
     versions: RuntimeKnowledgeVersion[];
+    sources?: RuntimeKnowledgeSource[];
     sessionHash: string;
     model: string;
     turnCount: number;
@@ -346,7 +353,11 @@ export async function analyzeSupportConversation(input: {
   const apiKey = process.env.OPENAI_API_KEY;
   if (!apiKey) return fallback;
 
-  let publicKnowledgeContext: RuntimeKnowledgeContext = { instructions: "", versions: [] };
+  let publicKnowledgeContext: RuntimeKnowledgeContext = {
+    instructions: "",
+    versions: [],
+    sources: [],
+  };
   let productionUsageRecorder: typeof input.knowledgeUsageRecorder;
   try {
     const latestRequesterMessage = [...input.messages]
@@ -358,8 +369,8 @@ export async function analyzeSupportConversation(input: {
         input.knowledgeActor ?? null
       );
       publicKnowledgeContext = typeof loaded === "string"
-        ? { instructions: loaded, versions: [] }
-        : loaded;
+        ? { instructions: loaded, versions: [], sources: [] }
+        : { ...loaded, sources: loaded.sources ?? [] };
     } else {
       const runtime = await import("./public-knowledge-context.js");
       publicKnowledgeContext = await runtime.loadPublicKnowledgeContext({
@@ -369,7 +380,7 @@ export async function analyzeSupportConversation(input: {
       productionUsageRecorder = runtime.recordPublicKnowledgeUsage;
     }
   } catch {
-    publicKnowledgeContext = { instructions: "", versions: [] };
+    publicKnowledgeContext = { instructions: "", versions: [], sources: [] };
   }
 
   const controller = new AbortController();
@@ -432,6 +443,7 @@ export async function analyzeSupportConversation(input: {
       try {
         await usageRecorder({
           versions: publicKnowledgeContext.versions,
+          sources: publicKnowledgeContext.sources,
           sessionHash: input.safetyIdentifier,
           model: process.env.OPENAI_SUPPORT_MODEL || "gpt-5.6-luna",
           turnCount: policy.turnCount,

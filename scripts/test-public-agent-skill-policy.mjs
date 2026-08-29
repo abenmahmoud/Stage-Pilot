@@ -98,7 +98,7 @@ test("loads the registry dynamically and falls back when it is unavailable", () 
   assert.ok(dynamicImport >= 0 && modelRequest > dynamicImport);
   assert.match(
     sourceCode,
-    /catch \{\s+publicKnowledgeContext = \{ instructions: "", versions: \[\] \};/
+    /publicKnowledgeContext = \{ instructions: "", versions: \[\], sources: \[\] \};/
   );
 });
 
@@ -113,6 +113,7 @@ test("keeps usage audit metadata free of messages and contact data", () => {
   const loader = readFileSync(new URL("../api/_shared/public-knowledge-context.ts", import.meta.url), "utf8");
   const auditSource = loader.slice(loader.indexOf("export async function recordPublicKnowledgeUsage"));
   assert.match(auditSource, /action: "consult_public"/);
+  assert.match(auditSource, /resourceType: "source"/);
   assert.match(auditSource, /actorId: null/);
   assert.doesNotMatch(auditSource, /\b(query|reply|email|telephone|uri|checksum)\b/i);
 });

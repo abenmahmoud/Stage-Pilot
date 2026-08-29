@@ -18,6 +18,9 @@
 - Les balises réservées sont neutralisées et un extrait ne peut modifier ni les
   droits, ni les outils, ni les règles système. L'espace superadministrateur
   indique le nombre d'extraits utilisables ou « Lecture humaine uniquement ».
+- Après une réponse IA réussie, l'audit conserve la version de compétence et les
+  références opaques des sources réellement utilisées. Il ne conserve ni la
+  question, ni la réponse, ni les coordonnées, ni le texte des extraits.
 - Les migrations `20260829034457` et `20260829034714` sont appliquées seulement
   sur la branche Supabase de preview. La table est vide, RLS est forcée, les
   clients n'ont aucun droit et les clés étrangères sont indexées. Aucun document

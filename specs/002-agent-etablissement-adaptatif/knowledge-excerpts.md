@@ -33,6 +33,8 @@ d'acces restent la reference ; l'extrait n'est qu'un passage de consultation.
 5. Neutraliser les balises reservees et presenter les extraits comme references,
    jamais comme instructions systeme ou autorisation d'outil.
 6. Citer le titre de la source et sa date de validite dans le contexte.
+7. Apres une reponse IA reussie, journaliser la competence et chaque source
+   effectivement utilisee, sans question, reponse, coordonnee ni extrait.
 
 ## Refus et repli
 
@@ -52,4 +54,3 @@ d'acces restent la reference ; l'extrait n'est qu'un passage de consultation.
 - Resistance aux balises et aux consignes injectees dans un extrait.
 - Budget maximal respecte pour une question large.
 - Aucune regression du formulaire classique ou du routage des demandes.
-

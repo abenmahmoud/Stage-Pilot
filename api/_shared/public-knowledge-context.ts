@@ -28,14 +28,21 @@ export type PublicKnowledgeVersionRef = {
   versionId: string;
 };
 
+export type PublicKnowledgeSourceRef = {
+  institutionId: string;
+  sourceId: string;
+};
+
 export type LoadedPublicKnowledgeContext = {
   instructions: string;
   versions: PublicKnowledgeVersionRef[];
+  sources: PublicKnowledgeSourceRef[];
 };
 
 const EMPTY_CONTEXT: LoadedPublicKnowledgeContext = {
   instructions: "",
   versions: [],
+  sources: [],
 };
 
 function definitionFields(value: unknown): { instructions: string; allowedTools: string[] } {
@@ -175,21 +182,20 @@ export async function loadPublicKnowledgeContext(input: {
         )
         .orderBy(asc(knowledgeSourceExcerpts.sourceId), asc(knowledgeSourceExcerpts.ordinal))
         .limit(240);
-  const excerptContext = formatKnowledgeExcerptContext(
-    selectKnowledgeExcerpts({
-      query: input.query,
-      candidates: excerptRows.flatMap((excerpt) => {
-        const source = selectedSources.get(excerpt.sourceId);
-        return source
-          ? [{
-              ...excerpt,
-              sourceTitle: source.title,
-              sourceExpiresAt: source.expiresAt,
-            }]
-          : [];
-      }),
-    })
-  );
+  const selectedExcerpts = selectKnowledgeExcerpts({
+    query: input.query,
+    candidates: excerptRows.flatMap((excerpt) => {
+      const source = selectedSources.get(excerpt.sourceId);
+      return source
+        ? [{
+            ...excerpt,
+            sourceTitle: source.title,
+            sourceExpiresAt: source.expiresAt,
+          }]
+        : [];
+    }),
+  });
+  const excerptContext = formatKnowledgeExcerptContext(selectedExcerpts);
   const skillContext = formatPublicAgentSkillContext(selected);
   return {
     instructions: excerptContext ? `${skillContext}\n\n${excerptContext}` : skillContext,
@@ -197,11 +203,15 @@ export async function loadPublicKnowledgeContext(input: {
       institutionId: skill.institutionId,
       versionId: skill.versionId,
     })),
+    sources: [...new Set(selectedExcerpts.map((excerpt) => excerpt.sourceId))].map(
+      (sourceId) => ({ institutionId: institution.id, sourceId })
+    ),
   };
 }
 
 export async function recordPublicKnowledgeUsage(input: {
   versions: PublicKnowledgeVersionRef[];
+  sources?: PublicKnowledgeSourceRef[];
   sessionHash: string;
   model: string;
   turnCount: number;
@@ -212,20 +222,37 @@ export async function recordPublicKnowledgeUsage(input: {
       version,
     ])
   ).values()];
-  if (versions.length === 0) return;
+  const sources = [...new Map(
+    (input.sources ?? []).map((source) => [
+      `${source.institutionId}:${source.sourceId}`,
+      source,
+    ])
+  ).values()];
+  if (versions.length === 0 && sources.length === 0) return;
+  const summary = {
+    channel: "support_assistant",
+    sessionHash: input.sessionHash,
+    model: input.model.slice(0, 80),
+    turnCount: input.turnCount,
+  };
   await db.insert(agentSkillAudit).values(
-    versions.map((version) => ({
-      institutionId: version.institutionId,
-      resourceType: "version",
-      resourceId: version.versionId,
-      action: "consult_public",
-      actorId: null,
-      summary: {
-        channel: "support_assistant",
-        sessionHash: input.sessionHash,
-        model: input.model.slice(0, 80),
-        turnCount: input.turnCount,
-      },
-    }))
+    [
+      ...versions.map((version) => ({
+        institutionId: version.institutionId,
+        resourceType: "version",
+        resourceId: version.versionId,
+        action: "consult_public",
+        actorId: null,
+        summary,
+      })),
+      ...sources.map((source) => ({
+        institutionId: source.institutionId,
+        resourceType: "source",
+        resourceId: source.sourceId,
+        action: "consult_public",
+        actorId: null,
+        summary,
+      })),
+    ]
   );
 }

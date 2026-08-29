@@ -326,6 +326,10 @@ test("adds only the server-selected public registry context to model instruction
             institutionId: "00000000-0000-4000-8000-000000000001",
             versionId: "00000000-0000-4000-8000-000000000002",
           }],
+          sources: [{
+            institutionId: "00000000-0000-4000-8000-000000000001",
+            sourceId: "00000000-0000-4000-8000-000000000003",
+          }],
         };
       },
       knowledgeUsageRecorder: async (record) => { usageRecord = record; },
@@ -338,6 +342,10 @@ test("adds only the server-selected public registry context to model instruction
       versions: [{
         institutionId: "00000000-0000-4000-8000-000000000001",
         versionId: "00000000-0000-4000-8000-000000000002",
+      }],
+      sources: [{
+        institutionId: "00000000-0000-4000-8000-000000000001",
+        sourceId: "00000000-0000-4000-8000-000000000003",
       }],
       sessionHash: "test-session",
       model: "gpt-5.6-luna",

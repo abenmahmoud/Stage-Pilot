@@ -129,7 +129,9 @@
   contrôle d'accès au plus six passages et 4 000 caractères. La table serveur,
   les deux index de clés étrangères et les migrations `20260829034457` et
   `20260829034714` sont appliqués uniquement à la preview vide ; les documents
-  personnels/sensibles et les balises réservées restent exclus du modèle.
+  personnels/sensibles et les balises réservées restent exclus du modèle. Une
+  réponse IA réussie journalise aussi les références opaques des sources
+  réellement utilisées, jamais la question, la réponse ou les extraits.
 
 ## Phase 2 - Autorité et sécurité
 

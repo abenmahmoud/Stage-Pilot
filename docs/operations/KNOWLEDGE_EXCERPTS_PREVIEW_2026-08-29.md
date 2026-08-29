@@ -18,6 +18,8 @@ Date : 29 aout 2026
 - Suppression du texte integral de `proposed_knowledge` apres compilation.
 - Selection apres autorisation, limitee a six extraits et 4 000 caracteres.
 - Balises HTML/XML neutralisees avant insertion dans le contexte du modele.
+- Audit de la competence et des sources effectivement utilisees seulement apres
+  une reponse IA reussie, sans texte ni coordonnee.
 - L'interface indique le nombre d'extraits disponibles ou la lecture humaine.
 
 ## Migrations
@@ -63,4 +65,3 @@ vide.
   niveaux differents.
 - Confirmer dans la trace que seule la version autorisee a ete utilisee.
 - Garder toute source reelle bloquee jusqu'aux validations Direction/DPO.
-
