@@ -57,7 +57,11 @@ et ne clôture pas un dossier sans validation humaine.
     durable recommandée ; le téléphone reste un canal de rappel ou de secours.
 20. Une personne peut écrire dans sa langue ou demander un français simple. Ce
     besoin est conservé dans le dossier et visible par l'agent sans diminuer le
-    niveau de vérification d'identité.
+    niveau de vérification d'identité. Le message original reste la preuve du
+    contenu reçu ; l'assistant répond dans la langue détectée et prépare pour les
+    agents un résumé français distinct, pseudonymisé et explicitement à vérifier.
+    Ce résumé ne modifie jamais seul la catégorie, l'urgence, l'identité ou une
+    autorisation d'action.
 21. Lorsqu'une conversation avec l'assistant devient une demande, les messages
     utiles du demandeur et de l'assistant sont conservés dans l'ordre dans le fil
     du dossier. L'assistant reste identifié comme tel et ses réponses ne sont pas

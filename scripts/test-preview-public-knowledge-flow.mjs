@@ -166,6 +166,8 @@ async function exerciseAgent(context) {
             suggestedDocuments: [],
             readyToCreate: true,
             safetyNotice: "Ne communiquez jamais votre mot de passe.",
+            detectedLanguage: "français",
+            internalSummaryFr: "L'élève signale un blocage ENT et demande la procédure validée du lycée.",
           }),
         }],
       }],

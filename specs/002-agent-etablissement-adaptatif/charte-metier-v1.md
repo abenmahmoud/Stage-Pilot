@@ -151,6 +151,12 @@ sans juger la personne. Il pose une question essentielle a la fois, privilegie
 des phrases courtes, reste utilisable au clavier et conserve le formulaire comme
 solution sans IA. Une traduction n'eleve jamais le niveau d'identite.
 
+Pour le traitement interne, le texte d'origine reste toujours conserve. Une
+conversation assistee peut ajouter la langue detectee et un resume en francais,
+pseudonymise et signale comme automatique. Ce resume aide au classement et a la
+lecture mais ne remplace pas l'original, ne constitue pas une preuve et ne peut
+pas modifier seul l'urgence, l'identite, les droits ou une decision humaine.
+
 La voix pourra servir de moyen de saisie, jamais d'authentification. Elle reste
 desactivee tant que consentement, conservation, accessibilite et securite ne sont
 pas valides.

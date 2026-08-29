@@ -5,6 +5,22 @@
 **Depot** : `abenmahmoud/Stage-Pilot`
 **Dernier jalon de code verifie** : candidate publiée sur la production Vercel
 
+## Jalon du 29 août 2026 - accueil multilingue et traitement français
+
+- L'assistant répond désormais dans la langue principalement détectée et produit
+  en parallèle un résumé interne en français clair. Un scénario arabe classe une
+  demande ENT et conserve une réponse arabe avec un résumé français distinct.
+- Le message original reste intégralement dans le fil du dossier. Le résumé est
+  repseudonymisé côté serveur, limité à 700 caractères et marqué
+  `automatique_a_verifier` ; l'espace agent rappelle de vérifier l'original.
+- La traduction n'entre pas dans le routage déterministe et ne peut augmenter ni
+  l'urgence, ni le niveau d'identité, ni les droits. Une conversation de repli ou
+  un formulaire classique modifié n'envoie aucun ancien résumé IA.
+- 51 contrôles ciblés multilingues, conversation, routage, pseudonymisation et
+  politique de l'assistant
+  passent avec le build. Aucune donnée réelle, base distante, production, DNS,
+  VPS, Webmail, ENT ou PRONOTE n'a été modifié.
+
 ## Jalon du 29 août 2026 - recherche usager et sources visibles
 
 - L'agent rapproche maintenant les formulations courantes des domaines validés :

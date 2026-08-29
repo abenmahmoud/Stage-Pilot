@@ -14,6 +14,10 @@ import {
   SupportConversationValidationError,
   type SupportConversationTurn,
 } from "../../shared/support-conversation.js";
+import {
+  neutralizeSupportPromptMarkers,
+  pseudonymizeSupportText,
+} from "../../shared/support-pseudonymizer.js";
 
 export const SUPPORT_COOKIE = "bc_support_session";
 export const SUPPORT_SESSION_DAYS = 30;
@@ -138,6 +142,14 @@ export function parseSupportRequest(body: unknown): SupportRequestInput {
   const subject = cleanText(input.subject, "Objet", 180);
   const description = cleanText(input.description, "Description", 5000);
   const routing = routeSupportRequest({ category, subject, description });
+  const detectedLanguage = optionalText(input.detectedLanguage, "Langue détectée", 60);
+  const rawInternalSummaryFr = optionalText(input.internalSummaryFr, "Résumé français", 700);
+  if (Boolean(detectedLanguage) !== Boolean(rawInternalSummaryFr)) {
+    throw new HttpError(400, "La reformulation multilingue est incomplète");
+  }
+  const internalSummaryFr = rawInternalSummaryFr
+    ? neutralizeSupportPromptMarkers(pseudonymizeSupportText(rawInternalSummaryFr))
+    : null;
   let conversation: SupportConversationTurn[];
   try {
     conversation = normalizeSupportConversation(input.conversation);
@@ -180,6 +192,9 @@ export function parseSupportRequest(body: unknown): SupportRequestInput {
       subjectArea: contextValue(input.subjectArea, "Matière ou service"),
       schoolTrack: contextValue(input.schoolTrack, "Voie"),
       languagePreference: contextValue(input.languagePreference, "Langue souhaitée"),
+      detectedLanguage: detectedLanguage ?? undefined,
+      internalSummaryFr: internalSummaryFr ?? undefined,
+      normalizationStatus: internalSummaryFr ? "automatique_a_verifier" : "non_disponible",
       communicationSupport:
         callbackRequested
           ? "Rappel téléphonique souhaité pour faciliter la compréhension"

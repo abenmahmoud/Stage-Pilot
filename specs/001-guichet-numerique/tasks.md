@@ -125,7 +125,10 @@ voir sa réponse dans le dossier. L'agent traite tout depuis une seule file.
 - [x] **T036F** Rendre le suivi appareil + email explicite, recommander l'email
   comme trace durable et conserver le téléphone comme secours.
 - [x] **T036G** Recueillir la langue souhaitée et le besoin de rappel, adapter la
-  réponse de l'assistant et rendre ces besoins visibles dans l'espace agent.
+  réponse de l'assistant et rendre ces besoins visibles dans l'espace agent. La
+  conversation assistée détecte aussi la langue, répond dans cette langue et
+  conserve dans le dossier un résumé français pseudonymisé « automatique, à
+  vérifier », sans remplacer l'original ni influencer les droits ou le routage.
 - [ ] **T036H** Reprendre et faire valider toutes les rubriques de l'ancien site
   selon `content-migration.md` avant toute bascule du domaine principal.
 - [x] **T036I** Ajouter les premières pages détaillées STMG, STL, MELEC, PCEPC et

@@ -72,6 +72,8 @@ test("keeps a complete school request ready when the AI returns false", async ()
           suggestedDocuments: [],
           readyToCreate: false,
           safetyNotice: null,
+          detectedLanguage: "français",
+          internalSummaryFr: "L'élève rencontre un blocage d'accès à son ENT.",
         }),
       }],
     }],
@@ -115,6 +117,8 @@ test("falls back to deterministic rules when model confidence is low", async () 
           suggestedDocuments: [],
           readyToCreate: false,
           safetyNotice: null,
+          detectedLanguage: "français",
+          internalSummaryFr: "La demande reste trop imprécise pour être classée avec certitude.",
         }),
       }],
     }],
@@ -158,6 +162,8 @@ test("rejects an incomplete structured model response", async () => {
           suggestedDocuments: [],
           readyToCreate: true,
           safetyNotice: null,
+          detectedLanguage: "français",
+          internalSummaryFr: "Le demandeur signale un blocage de son accès ENT.",
         }),
       }],
     }],
@@ -202,6 +208,8 @@ test("treats prompt injection text and attachment names as untrusted data", asyn
             suggestedDocuments: [],
             readyToCreate: false,
             safetyNotice: null,
+            detectedLanguage: "français",
+            internalSummaryFr: "L'élève ne peut plus accéder à son ENT malgré plusieurs essais.",
           }),
         }],
       }],
@@ -259,6 +267,8 @@ test("rejects a model category that contradicts a certain local route", async ()
           suggestedDocuments: [],
           readyToCreate: true,
           safetyNotice: null,
+          detectedLanguage: "français",
+          internalSummaryFr: "L'élève signale un blocage persistant de son accès ENT.",
         }),
       }],
     }],
@@ -306,6 +316,8 @@ test("adds only the server-selected public registry context to model instruction
             suggestedDocuments: [],
             readyToCreate: false,
             safetyNotice: null,
+            detectedLanguage: "français",
+            internalSummaryFr: "L'élève demande de l'aide pour un accès ENT bloqué depuis le matin.",
           }),
         }],
       }],
@@ -412,6 +424,8 @@ test("keeps a safe answer available when the usage journal is temporarily unavai
           suggestedDocuments: [],
           readyToCreate: false,
           safetyNotice: null,
+          detectedLanguage: "français",
+          internalSummaryFr: "L'élève demande de l'aide pour un accès ENT bloqué depuis le matin.",
         }),
       }],
     }],
@@ -434,6 +448,56 @@ test("keeps a safe answer available when the usage journal is temporarily unavai
 
     assert.equal(result.usedAi, true);
     assert.match(result.reply, /procédure ENT/i);
+  } finally {
+    globalThis.fetch = originalFetch;
+    process.env.OPENAI_API_KEY = originalApiKey;
+  }
+});
+
+test("answers in the requester language and prepares a French internal summary", async () => {
+  const originalFetch = globalThis.fetch;
+  const originalApiKey = process.env.OPENAI_API_KEY;
+  process.env.OPENAI_API_KEY = "test-key";
+  let requestBody;
+  globalThis.fetch = async (_url, init) => {
+    requestBody = JSON.parse(String(init?.body));
+    return new Response(JSON.stringify({
+      output: [{
+        type: "message",
+        content: [{
+          type: "output_text",
+          text: JSON.stringify({
+            reply: "فهمت. حساب ENT الخاص بطفلكم لا يفتح وسأجهز طلبًا للفريق المختص.",
+            category: "ent",
+            requesterType: "parent",
+            urgency: "normale",
+            confidence: "high",
+            missingInformation: [],
+            suggestedDocuments: [],
+            readyToCreate: true,
+            safetyNotice: null,
+            detectedLanguage: "arabe",
+            internalSummaryFr: "Le parent ne parvient plus à ouvrir le compte ENT de son enfant et demande une assistance.",
+          }),
+        }],
+      }],
+    }), { status: 200, headers: { "Content-Type": "application/json" } });
+  };
+
+  try {
+    const result = await analyzeSupportConversation({
+      messages: messages("أنا والد ولا أستطيع الدخول إلى ENT الخاص بطفلي منذ هذا الصباح."),
+      attachments: [],
+      safetyIdentifier: "test-session-arabic",
+      knowledgeContextLoader: async () => "",
+    });
+
+    assert.match(requestBody.input, /ENT/);
+    assert.match(result.reply, /فهمت/);
+    assert.equal(result.detectedLanguage, "arabe");
+    assert.match(result.internalSummaryFr, /^Le parent/);
+    assert.equal(result.category, "ent");
+    assert.equal(result.readyToCreate, true);
   } finally {
     globalThis.fetch = originalFetch;
     process.env.OPENAI_API_KEY = originalApiKey;

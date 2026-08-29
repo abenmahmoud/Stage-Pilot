@@ -860,6 +860,12 @@
 .lycee-agent-ai dl > div { padding-top: 9px; border-top: 1px solid #c7e8df; }
 .lycee-agent-ai dt { color: #65877f; font-size: 8px; font-weight: 800; text-transform: uppercase; }
 .lycee-agent-ai dd { margin: 4px 0 0; color: #245d53; font-size: 10px; line-height: 1.35; }
+.lycee-agent-french-summary { display: grid; grid-template-columns: 28px minmax(0, 1fr); gap: 10px; margin-top: 14px; padding-top: 12px; border-top: 1px solid #b9d7ce; color: #254f49; }
+.lycee-agent-french-summary > svg { width: 18px; margin-top: 2px; color: #087c69; }
+.lycee-agent-french-summary > span { min-width: 0; display: grid; gap: 4px; }
+.lycee-agent-french-summary small { color: #087c69; font-size: 9px; font-weight: 850; text-transform: uppercase; }
+.lycee-agent-french-summary p { margin: 0; color: #263e4c; font-size: 11px; line-height: 1.55; overflow-wrap: anywhere; }
+.lycee-agent-french-summary em { color: #60726f; font-size: 9px; font-style: normal; }
 .lycee-agent-actions { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 10px; margin-top: 14px; }
 .lycee-agent-actions > div { min-width: 0; display: flex; flex-direction: column; gap: 9px; padding: 12px; border: 1px solid var(--lc-line); border-radius: 8px; background: #fff; }
 .lycee-agent-actions > div > span { display: grid; grid-template-columns: 22px minmax(0,1fr); column-gap: 7px; align-items: center; }
