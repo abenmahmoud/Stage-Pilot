@@ -17,6 +17,21 @@ d'acces restent la reference ; l'extrait n'est qu'un passage de consultation.
 - Seules les classifications `public` et `internal` produisent des extraits.
 - Les documents `personal` et `sensitive` restent en lecture humaine uniquement.
 
+## Proposition avant validation
+
+- Produire localement une proposition courte et structurée : résumé, points
+  clés, règles, interdictions, dates, contradictions possibles et questions.
+- Borner chaque champ et chaque liste avant stockage puis filtrer à nouveau la
+  réponse de l'API d'administration.
+- Ne jamais renvoyer dans la liste documentaire le texte intégral extrait, le
+  chemin privé ou un champ libre non attendu.
+- Détecter les marqueurs de prompt, les demandes de contournement, l'imitation
+  de rôle et les demandes visant les règles système. Dans ce cas, supprimer le
+  texte extrait et imposer une lecture humaine.
+- Présenter la proposition comme un brouillon à comparer à l'original privé.
+  Elle ne crée, ne publie et n'active jamais seule une source ou une compétence.
+- Ne transmettre ni fichier ni proposition à un modèle externe dans cette V1.
+
 ## Compilation
 
 - Decouper sur les paragraphes et phrases, jamais au milieu d'un mot.

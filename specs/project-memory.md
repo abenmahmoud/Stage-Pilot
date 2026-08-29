@@ -5,6 +5,22 @@
 **Depot** : `abenmahmoud/Stage-Pilot`
 **Dernier jalon de code verifie** : candidate publiée sur la production Vercel
 
+## Jalon du 29 août 2026 - proposition documentaire avant validation
+
+- Les documents textuels sans donnée privée, secret ni consigne suspecte
+  produisent localement une proposition de connaissance bornée : résumé, points
+  clés, règles, interdictions, dates, contradictions possibles et questions.
+- Une consigne visant à modifier les règles de l'agent, imiter un rôle ou obtenir
+  ses instructions supprime le texte extrait et impose une lecture humaine.
+- L'API d'administration ne renvoie que la proposition filtrée. Elle ne renvoie
+  ni texte intégral, ni chemin de stockage, ni contenu privé du fichier.
+- L'interface rappelle que la proposition ne publie rien. Une personne habilitée
+  doit comparer l'original privé et confirmer avec MFA avant de créer la source.
+- 36 contrôles ciblés passent avec le build. Les vues protégées redirigent vers
+  la connexion sans erreur console ni débordement à 1 440 px et 390 px.
+- Lot preview uniquement : aucun modèle externe, document réel, donnée distante,
+  production, DNS, VPS, Webmail, ENT ou PRONOTE n'a été utilisé ou modifié.
+
 ## Jalon du 29 août 2026 - secrets refusés avant analyse et stockage
 
 - Le guichet refuse désormais les mots de passe, codes reçus par SMS, codes

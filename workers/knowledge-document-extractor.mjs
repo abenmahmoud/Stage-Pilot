@@ -2,6 +2,10 @@ import { createHash } from "node:crypto";
 import mammoth from "mammoth";
 import * as XLSX from "xlsx";
 import yauzl from "yauzl";
+import {
+  buildKnowledgeReviewProposal,
+  documentInstructionSignals,
+} from "./knowledge-document-proposal.mjs";
 import { documentSecretSignals } from "./knowledge-document-secret-policy.mjs";
 
 export const KNOWLEDGE_EXTRACTED_TEXT_MAX_CHARS = 120_000;
@@ -197,6 +201,8 @@ function manualResult(bytes, reason, metadata = {}) {
       reason,
       extractedText: null,
       privacySignals: [],
+      safetySignals: [],
+      reviewProposal: null,
     },
   };
 }
@@ -236,6 +242,24 @@ export async function extractKnowledgeDocument({ bytes, mimeType, classification
         reason: "privacy_signal_detected",
         extractedText: null,
         privacySignals,
+        safetySignals: [],
+        reviewProposal: null,
+      },
+    };
+  }
+
+  const safetySignals = documentInstructionSignals(bounded.text);
+  if (safetySignals.length > 0) {
+    return {
+      ...manualResult(bytes, "instruction_signal_detected", { method: extracted.method }),
+      proposedKnowledge: {
+        schemaVersion: 1,
+        state: "manual_review",
+        reason: "instruction_signal_detected",
+        extractedText: null,
+        privacySignals: [],
+        safetySignals,
+        reviewProposal: buildKnowledgeReviewProposal(bounded.text),
       },
     };
   }
@@ -257,6 +281,8 @@ export async function extractKnowledgeDocument({ bytes, mimeType, classification
       state: "extracted",
       extractedText: bounded.text,
       privacySignals: [],
+      safetySignals: [],
+      reviewProposal: buildKnowledgeReviewProposal(bounded.text),
       truncated: bounded.truncated,
     },
   };

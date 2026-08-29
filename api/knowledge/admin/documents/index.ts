@@ -18,6 +18,63 @@ import {
 } from "../../../_shared/knowledge-registry.js";
 import { handleApi, methodNotAllowed } from "../../../_shared/response.js";
 
+type ReviewProposal = {
+  overview: string;
+  keyPoints: string[];
+  rules: string[];
+  prohibitions: string[];
+  datedStatements: string[];
+  conflicts: Array<{ first: string; second: string }>;
+  questions: string[];
+  instructionSignals: string[];
+};
+
+function proposalText(value: unknown, maxLength: number): string | null {
+  if (typeof value !== "string") return null;
+  const clean = value.replace(/[\u0000-\u001F\u007F]/g, "").trim();
+  return clean ? clean.slice(0, maxLength) : null;
+}
+
+function proposalList(value: unknown, maxItems = 6): string[] {
+  return Array.isArray(value)
+    ? value.flatMap((item) => proposalText(item, 320) ?? []).slice(0, maxItems)
+    : [];
+}
+
+function reviewProposal(value: unknown): ReviewProposal | null {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return null;
+  const input = value as Record<string, unknown>;
+  const overview = proposalText(input.overview, 640);
+  const conflicts = Array.isArray(input.conflicts)
+    ? input.conflicts.flatMap((item) => {
+        if (!item || typeof item !== "object" || Array.isArray(item)) return [];
+        const conflict = item as Record<string, unknown>;
+        const first = proposalText(conflict.first, 320);
+        const second = proposalText(conflict.second, 320);
+        return first && second ? [{ first, second }] : [];
+      }).slice(0, 4)
+    : [];
+  const allowedSignals = new Set([
+    "reserved_prompt_marker",
+    "instruction_override",
+    "system_prompt_request",
+    "role_impersonation",
+  ]);
+  const result = {
+    overview: overview ?? "",
+    keyPoints: proposalList(input.keyPoints),
+    rules: proposalList(input.rules),
+    prohibitions: proposalList(input.prohibitions),
+    datedStatements: proposalList(input.datedStatements),
+    conflicts,
+    questions: proposalList(input.questions),
+    instructionSignals: proposalList(input.instructionSignals, 4).filter((signal) => allowedSignals.has(signal)),
+  };
+  return result.overview || Object.values(result).some((item) => Array.isArray(item) && item.length > 0)
+    ? result
+    : null;
+}
+
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method === "GET") {
     return handleApi(res, async () => {
@@ -39,6 +96,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           status: knowledgeDocuments.status,
           analysisSummary: knowledgeDocuments.analysisSummary,
           analysisError: knowledgeDocuments.analysisError,
+          reviewProposalJson: sql<unknown>`${knowledgeDocuments.proposedKnowledge}->'reviewProposal'`,
           sourceId: knowledgeDocuments.sourceId,
           excerptCount: sql<number>`(
             select count(*)::integer
@@ -55,7 +113,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         .where(eq(knowledgeDocuments.institutionId, context.institutionId))
         .orderBy(desc(knowledgeDocuments.createdAt))
         .limit(200);
-      return { documents };
+      return {
+        documents: documents.map(({ reviewProposalJson, ...document }) => ({
+          ...document,
+          reviewProposal: reviewProposal(reviewProposalJson),
+        })),
+      };
     });
   }
 

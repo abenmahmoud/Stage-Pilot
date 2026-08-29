@@ -87,10 +87,21 @@ type KnowledgeDocument = {
   status: KnowledgeDocumentStatus;
   analysisSummary: string | null;
   analysisError: string | null;
+  reviewProposal: DocumentReviewProposal | null;
   sourceId: string | null;
   excerptCount: number;
   createdAt: string;
   uploadedAt: string | null;
+};
+type DocumentReviewProposal = {
+  overview: string;
+  keyPoints: string[];
+  rules: string[];
+  prohibitions: string[];
+  datedStatements: string[];
+  conflicts: Array<{ first: string; second: string }>;
+  questions: string[];
+  instructionSignals: string[];
 };
 type Evaluation = {
   skillVersionId: string;
@@ -510,6 +521,7 @@ export default function KnowledgeRegistryPage() {
               <span className="block truncate text-xs text-slate-500">{document.originalName} · {formatBytes(document.sizeBytes)}</span>
               <p className="mt-2 line-clamp-2 text-sm text-slate-600">{document.purposeDescription}</p>
               {document.analysisSummary ? <p className="mt-2 text-xs font-medium text-slate-700">{document.analysisSummary}</p> : null}
+              {document.status === "review" && document.reviewProposal ? <DocumentProposalReview proposal={document.reviewProposal} /> : null}
               {document.status === "ready" ? <p className="mt-1 text-xs font-semibold text-emerald-700">{document.excerptCount > 0 ? `${document.excerptCount} extrait${document.excerptCount > 1 ? "s" : ""} disponible${document.excerptCount > 1 ? "s" : ""} pour l’agent` : "Lecture humaine uniquement"}</p> : null}
               {document.analysisError ? <p className="mt-2 text-xs text-red-700">{document.analysisError}</p> : null}
               {!['reserved', 'quarantined', 'processing', 'rejected'].includes(document.status) ? <button type="button" disabled={busy} onClick={() => void openDocument(document.id)} className="mt-2 inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-700 hover:text-emerald-900 disabled:opacity-50"><FileText className="h-3.5 w-3.5" /> Ouvrir l’original privé</button> : null}
@@ -560,6 +572,28 @@ function IconAction({ title, disabled, onClick, children }: { title: string; dis
 }
 
 function Empty({ text }: { text: string }) { return <p className="px-4 py-10 text-center text-sm text-slate-500">{text}</p>; }
+
+function ProposalSection({ title, items }: { title: string; items: string[] }) {
+  if (items.length === 0) return null;
+  return <section><h4 className="text-xs font-bold text-slate-800">{title}</h4><ul className="mt-1 space-y-1 text-xs text-slate-600">{items.map((item, index) => <li className="break-words" key={`${title}-${index}`}>• {item}</li>)}</ul></section>;
+}
+
+function DocumentProposalReview({ proposal }: { proposal: DocumentReviewProposal }) {
+  return <details className="mt-3 border-l-2 border-emerald-600 bg-emerald-50/60 px-3 py-2 text-left">
+    <summary className="cursor-pointer text-xs font-bold text-emerald-900">Voir la proposition à vérifier</summary>
+    <div className="mt-3 grid min-w-0 gap-3 sm:grid-cols-2">
+      {proposal.overview ? <section className="sm:col-span-2"><h4 className="text-xs font-bold text-slate-800">Résumé extrait</h4><p className="mt-1 break-words text-xs leading-5 text-slate-700">{proposal.overview}</p></section> : null}
+      {proposal.instructionSignals.length > 0 ? <div className="sm:col-span-2 flex gap-2 border border-amber-300 bg-amber-50 p-2 text-xs text-amber-950"><AlertTriangle className="h-4 w-4 shrink-0" /><p>Consigne visant potentiellement l’agent détectée. Vérifiez l’original et ne créez aucune source avant correction.</p></div> : null}
+      <ProposalSection title="Points clés" items={proposal.keyPoints} />
+      <ProposalSection title="Règles" items={proposal.rules} />
+      <ProposalSection title="Interdictions" items={proposal.prohibitions} />
+      <ProposalSection title="Dates repérées" items={proposal.datedStatements} />
+      {proposal.conflicts.length > 0 ? <section className="sm:col-span-2"><h4 className="text-xs font-bold text-amber-900">Contradictions possibles</h4><div className="mt-1 space-y-2">{proposal.conflicts.map((conflict, index) => <div className="grid gap-1 border-l-2 border-amber-400 pl-2 text-xs text-slate-700" key={`conflict-${index}`}><p className="break-words">{conflict.first}</p><p className="break-words">{conflict.second}</p></div>)}</div></section> : null}
+      <ProposalSection title="Questions avant validation" items={proposal.questions} />
+      <p className="text-xs text-slate-500 sm:col-span-2">Cette proposition est automatique et ne publie rien. Comparez-la avec l’original privé avant votre décision.</p>
+    </div>
+  </details>;
+}
 
 function formatBytes(value: number): string {
   if (value < 1024 * 1024) return `${Math.max(1, Math.round(value / 1024))} Ko`;

@@ -45,6 +45,8 @@ test("does not send extracted text or storage paths in the document list", async
   const source = await readFile(listUrl, "utf8");
   assert.match(source, /\.select\(\{/);
   assert.match(source, /excerptCount:/);
+  assert.match(source, /reviewProposalJson:/);
+  assert.match(source, /reviewProposal: reviewProposal\(reviewProposalJson\)/);
   assert.doesNotMatch(source, /proposedKnowledge: knowledgeDocuments\.proposedKnowledge/);
   assert.doesNotMatch(source, /storagePath: knowledgeDocuments\.storagePath/);
   assert.doesNotMatch(source, /excerptText:/);

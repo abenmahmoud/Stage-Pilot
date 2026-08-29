@@ -299,6 +299,15 @@ l'autorisation de quota définie par le propriétaire.
   codes ENT/PRONOTE, jetons API et clés privées détectés retirent tout texte
   proposé et imposent une lecture humaine. Les images et présentations restent
   sans OCR automatique dans cette V1.
+- Lot N5S : proposition documentaire contrôlée. **Implémentée et testée
+  localement** : les documents textuels sûrs produisent une proposition bornée
+  avec résumé, points clés, règles, interdictions, dates, contradictions
+  possibles et questions à trancher. Le serveur ne renvoie à l'interface que ce
+  sous-ensemble filtré, jamais le texte extrait ni le chemin privé. Les marqueurs
+  de prompt, demandes de contournement, imitation de rôle ou extraction des
+  règles système bloquent l'extraction et imposent une lecture humaine. Aucune
+  source n'est publiée automatiquement, la validation MFA existante reste
+  obligatoire et aucun modèle externe ne reçoit le fichier ou son contenu.
 - Lot N6 : tests de non-régression, build, contrôle mobile et rapport d'écarts.
   **Partiellement validé en preview** : 200 transactions concurrentes sans perte
   ni reste après nettoyage, 135 contrôles de sécurité, build réussi, PWA active,

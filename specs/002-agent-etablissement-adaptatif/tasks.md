@@ -175,10 +175,13 @@
 - [x] T019B1 Extraire localement et de manière bornée PDF, DOCX, XLSX, TXT et CSV,
   précontrôler les archives, calculer SHA-256 et bloquer les signaux privés ;
   laisser PPTX et images en revue humaine jusqu'à une extraction locale validée.
-- [ ] T019C Produire une proposition structurée résistante aux injections,
+- [x] T019C Produire une proposition structurée résistante aux injections,
   afficher les conflits et questions, puis exiger une validation humaine avant
   la création d'une source ou d'une compétence. Un éventuel modèle externe ne
   reçoit que des extraits publics ou internes déjà approuvés, jamais le fichier.
+  La proposition est actuellement produite localement, bornée et exposée par
+  l'API sous une forme filtrée. Les consignes visant l'agent suppriment le texte
+  extrait et imposent une lecture humaine ; aucun modèle externe n'est appelé.
 - [ ] T020 Ajouter masquage des données, rétention, purge et journal d'accès.
 - [ ] T021 Ajouter les limites de débit par appareil, compte, contact et comportement.
 - [ ] T022 Tester injection de prompt, usurpation d'identité et accès croisé.

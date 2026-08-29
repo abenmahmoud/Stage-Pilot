@@ -98,6 +98,9 @@ function analysisLabel(result) {
   if (result.summary.reason === "sensitive_classification") {
     return "Antivirus validé. Document personnel ou sensible : aucune extraction automatique conservée.";
   }
+  if (result.summary.reason === "instruction_signal_detected") {
+    return "Antivirus validé. Consigne visant potentiellement l’agent détectée : lecture humaine obligatoire.";
+  }
   return "Antivirus validé. Ce format nécessite une lecture humaine.";
 }
 
@@ -122,6 +125,7 @@ async function persistReview(document, result, msgId) {
           method: result.summary.method ?? null,
           reason: result.summary.reason ?? null,
           privacySignals: result.proposedKnowledge.privacySignals ?? [],
+          safetySignals: result.proposedKnowledge.safetySignals ?? [],
           checksum: result.checksum,
         })}
       )
