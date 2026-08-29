@@ -291,9 +291,14 @@ l'autorisation de quota définie par le propriétaire.
   et métadonnées de pièces jointes refusent les mots de passe, OTP, codes
   ENT/PRONOTE et secrets techniques explicitement divulgués. Une demande normale
   de réinitialisation reste acceptée et le message de refus ne reprend jamais la
-  valeur détectée. L'inspection du contenu des PDF, documents et images reste à
-  construire avec extraction/OCR bornés et revue humaine ; aucune remise de code
-  n'est autorisée par ce lot.
+  valeur détectée. Le contenu non extractible des images et présentations reste
+  en lecture humaine ; aucune remise de code n'est autorisée par ce lot.
+  **L'extraction documentaire locale est également
+  renforcée** : PDF, DOCX, XLSX, TXT et CSV distinguent désormais une procédure
+  parlant d'un accès d'une valeur réellement divulguée. Les mots de passe, OTP,
+  codes ENT/PRONOTE, jetons API et clés privées détectés retirent tout texte
+  proposé et imposent une lecture humaine. Les images et présentations restent
+  sans OCR automatique dans cette V1.
 - Lot N6 : tests de non-régression, build, contrôle mobile et rapport d'écarts.
   **Partiellement validé en preview** : 200 transactions concurrentes sans perte
   ni reste après nettoyage, 135 contrôles de sécurité, build réussi, PWA active,

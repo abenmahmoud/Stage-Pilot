@@ -16,9 +16,13 @@
   perdu » reste acceptée. Le refus explique quoi retirer sans jamais répéter la
   valeur détectée.
 - Le binaire des PDF, documents et images reste en quarantaine antivirus mais son
-  contenu n'est pas encore analysé pour les secrets. Cette limite reste ouverte
-  dans T010B2D/T014C et interdit de prétendre que tous les documents sont sûrs.
-- 36 contrôles ciblés passent avec le build TypeScript/Vite. Lot preview
+  texte extrait localement est désormais analysé pour les valeurs de secrets.
+  Une détection retire le texte proposé et impose une lecture humaine ; une
+  simple procédure de réinitialisation sans valeur reste exploitable après MFA.
+- Les images et présentations sans extraction fiable restent en lecture humaine,
+  sans OCR automatique. Cette limite reste ouverte dans T010B2D/T014C et interdit
+  de prétendre que tous les documents sont sûrs.
+- 69 contrôles ciblés distincts passent avec le build TypeScript/Vite. Lot preview
   uniquement : aucune production, donnée réelle, base distante, DNS, VPS,
   Webmail, ENT ou PRONOTE n'a été modifié.
 

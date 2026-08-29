@@ -10,6 +10,9 @@ d'acces restent la reference ; l'extrait n'est qu'un passage de consultation.
 
 - Le document a termine l'antivirus et l'extraction locale.
 - Aucun signal de donnee privee, de code ou de secret n'a ete detecte.
+- La detection distingue une procedure qui cite un mot de passe sans valeur d'un
+  secret effectivement divulgue. Un mot de passe, OTP, code ENT/PRONOTE, jeton
+  API ou cle privee supprime le texte extrait et impose une lecture humaine.
 - Une personne habilitee approuve explicitement le document avec MFA.
 - Seules les classifications `public` et `internal` produisent des extraits.
 - Les documents `personal` et `sensitive` restent en lecture humaine uniquement.

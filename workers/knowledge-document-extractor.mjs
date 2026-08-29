@@ -2,6 +2,7 @@ import { createHash } from "node:crypto";
 import mammoth from "mammoth";
 import * as XLSX from "xlsx";
 import yauzl from "yauzl";
+import { documentSecretSignals } from "./knowledge-document-secret-policy.mjs";
 
 export const KNOWLEDGE_EXTRACTED_TEXT_MAX_CHARS = 120_000;
 const KNOWLEDGE_PDF_MAX_PAGES = 200;
@@ -45,9 +46,7 @@ export function documentPrivacySignals(value) {
   const signals = [];
   if (/\b[^\s@]+@[^\s@]+\.[^\s@]+\b/i.test(text)) signals.push("email_address");
   if (/(?:\+33|0)[1-9](?:[ .()-]*\d{2}){4}\b/.test(text)) signals.push("phone_number");
-  if (/\b(?:mot de passe|password|code ent|code pronote|secret d['’]activation)\b/i.test(text)) {
-    signals.push("credential_language");
-  }
+  signals.push(...documentSecretSignals(text));
   if (/\b(?:ine|num[ée]ro national [ée]l[èe]ve)\b/i.test(text)) signals.push("student_identifier");
   return signals;
 }

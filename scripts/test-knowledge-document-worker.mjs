@@ -41,9 +41,9 @@ test("extracts bounded safe text locally", async () => {
   assert.match(result.checksum, /^[a-f0-9]{64}$/);
 });
 
-test("stops automatic extraction when contact or credential signals are present", async () => {
-  const value = "Contacter personne@example.test ou utiliser le code ENT indiqué.";
-  assert.deepEqual(documentPrivacySignals(value), ["email_address", "credential_language"]);
+test("stops automatic extraction when contact or credential values are present", async () => {
+  const value = "Contacter personne@example.test. Code ENT: BC93-2026.";
+  assert.deepEqual(documentPrivacySignals(value), ["email_address", "school_access_code"]);
   const result = await extractKnowledgeDocument({
     bytes: Buffer.from(value, "utf8"),
     mimeType: "text/plain",
@@ -53,8 +53,41 @@ test("stops automatic extraction when contact or credential signals are present"
   assert.equal(result.proposedKnowledge.extractedText, null);
   assert.deepEqual(result.proposedKnowledge.privacySignals, [
     "email_address",
-    "credential_language",
+    "school_access_code",
   ]);
+});
+
+test("keeps a password reset procedure when it contains no credential value", async () => {
+  const value =
+    "Pour réinitialiser un mot de passe ENT, utilisez la procédure officielle. Ne communiquez jamais votre mot de passe ni un code reçu par SMS.";
+  assert.deepEqual(documentPrivacySignals(value), []);
+  const result = await extractKnowledgeDocument({
+    bytes: Buffer.from(value, "utf8"),
+    mimeType: "text/plain",
+    classification: "internal",
+  });
+  assert.equal(result.summary.state, "extracted");
+  assert.match(result.proposedKnowledge.extractedText, /procédure officielle/);
+});
+
+test("detects secrets in tabular imports and technical tokens without retaining text", async () => {
+  const cases = [
+    ["mot_de_passe,Azerty123!", "password_value"],
+    ["otp;739144", "one_time_code"],
+    ["code_pronote\tPRONOTE-2026", "school_access_code"],
+    ["api_key=sk-exampletoken123456789", "api_secret"],
+    ["-----BEGIN PRIVATE KEY-----", "private_key"],
+  ];
+  for (const [value, expectedSignal] of cases) {
+    const result = await extractKnowledgeDocument({
+      bytes: Buffer.from(value, "utf8"),
+      mimeType: "text/csv",
+      classification: "internal",
+    });
+    assert.equal(result.summary.state, "manual_review", value);
+    assert.equal(result.proposedKnowledge.extractedText, null, value);
+    assert.ok(result.proposedKnowledge.privacySignals.includes(expectedSignal), value);
+  }
 });
 
 test("never retains extracted text for personal or sensitive documents", async () => {

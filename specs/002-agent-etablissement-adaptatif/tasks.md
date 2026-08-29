@@ -79,6 +79,12 @@
   secrète restent acceptées et le refus n'affiche jamais la valeur détectée.
   L'inspection du contenu binaire ou extrait des documents reste dans T010B2D et
   T014C.
+- [x] T010B2D2 Inspecter localement le texte extrait des documents de connaissance
+  et des tableaux CSV/XLSX : une valeur de mot de passe, OTP, code ENT/PRONOTE,
+  jeton API ou clé privée impose une lecture humaine et supprime le texte proposé.
+  Une procédure qui mentionne seulement la réinitialisation d'un accès reste
+  exploitable après validation MFA. Les images et présentations sans extraction
+  fiable restent en lecture humaine, sans OCR automatique.
 - [ ] T010B3 Brancher l'OTP de contact à usage unique avec limites, expiration,
   session rotative et révocation, sans promouvoir ce contact en identité scolaire.
 - [ ] T010B4 Rapprocher une identité uniquement contre une version active du
