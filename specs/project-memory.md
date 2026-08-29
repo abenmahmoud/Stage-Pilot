@@ -5,6 +5,26 @@
 **Depot** : `abenmahmoud/Stage-Pilot`
 **Dernier jalon de code verifie** : candidate publiée sur la production Vercel
 
+## Jalon du 29 août 2026 - réponse agent multilingue contrôlée
+
+- L'agent peut partir d'une réponse française et préparer une traduction vers la
+  langue détectée du dossier. L'interface montre aussi une rétrotraduction en
+  français et bloque l'envoi tant que la comparaison humaine n'est pas cochée.
+- Les noms connus et coordonnées sont masqués avant le modèle puis seuls les
+  marqueurs nominatifs connus sont restaurés. Le modèle fonctionne avec
+  `store: false`, une limite par agent et aucune donnée du fil utilisateur.
+- Un reçu HMAC de quinze minutes lie le dossier, l'agent, le texte source, la
+  traduction exacte et la langue. Une modification, une réutilisation par un
+  autre agent ou une expiration est refusée côté serveur.
+- Pour ENT et messagerie académique avant identité confirmée, seule la traduction
+  du message sécurisé de vérification est autorisée. La validation est inscrite
+  dans l'événement d'envoi sans donner d'autorité supplémentaire à l'IA.
+- 59 contrôles ciblés passent avec le build TypeScript/Vite. Les scénarios
+  couvrent notamment le masquage, l'altération du texte, l'expiration, le mauvais
+  agent, les accès de service, la concurrence et la politique de l'assistant.
+- Lot preview uniquement : aucune production, donnée réelle, base distante, DNS,
+  VPS, Webmail, ENT ou PRONOTE n'a été modifié.
+
 ## Jalon du 29 août 2026 - accueil multilingue et traitement français
 
 - L'assistant répond désormais dans la langue principalement détectée et produit

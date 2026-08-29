@@ -78,6 +78,10 @@ import {
   type SupportReplyTemplate,
 } from "../../../shared/support-reply-templates";
 import { assessSupportQueueItem } from "../../../shared/support-queue-policy";
+import {
+  SUPPORT_IDENTITY_VERIFICATION_MESSAGE,
+  supportTranslationTargetLanguage,
+} from "../../../shared/support-reply-policy";
 import "./lycee-connect.css";
 
 type View = "home" | "services" | "help" | "requests" | "school" | "news" | "agent" | "trust";
@@ -2106,7 +2110,16 @@ type AgentAccess = {
   canRoute: boolean;
   canManageTemplates: boolean;
 };
-const IDENTITY_VERIFICATION_REPLY = "Bonjour, pour protéger vos accès, nous devons d’abord confirmer votre identité avec une source officielle du lycée. Ne transmettez aucun mot de passe ni aucun code reçu par SMS. Nous revenons vers vous dès que la vérification est terminée.";
+
+type AgentTranslationDraft = {
+  sourceMessage: string;
+  translatedText: string;
+  backTranslationFr: string;
+  warnings: string[];
+  targetLanguage: string;
+  receipt: string;
+  expiresAt: string;
+};
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null;
@@ -2137,6 +2150,20 @@ function isAgentRequestDetail(value: unknown): value is AgentRequestDetail {
     && Array.isArray(value.callbacks);
 }
 
+function isAgentTranslationPayload(value: unknown): value is {
+  translation: Omit<AgentTranslationDraft, "sourceMessage">;
+} {
+  if (!isRecord(value) || !isRecord(value.translation)) return false;
+  const translation = value.translation;
+  return typeof translation.translatedText === "string"
+    && typeof translation.backTranslationFr === "string"
+    && Array.isArray(translation.warnings)
+    && translation.warnings.every((warning) => typeof warning === "string")
+    && typeof translation.targetLanguage === "string"
+    && typeof translation.receipt === "string"
+    && typeof translation.expiresAt === "string";
+}
+
 function AgentView({ onBack }: { onBack: () => void }) {
   if (!SUPPORT_API_ENABLED) return <DemoAgentView onBack={onBack} />;
   return <ConnectedAgentView onBack={onBack} />;
@@ -2155,6 +2182,9 @@ function ConnectedAgentView({ onBack }: { onBack: () => void }) {
   const [detail, setDetail] = useState<AgentRequestDetail | null>(null);
   const [query, setQuery] = useState("");
   const [reply, setReply] = useState("");
+  const [translationDraft, setTranslationDraft] = useState<AgentTranslationDraft | null>(null);
+  const [translationValidated, setTranslationValidated] = useState(false);
+  const [translating, setTranslating] = useState(false);
   const [internalNote, setInternalNote] = useState("");
   const [callbackOutcome, setCallbackOutcome] = useState("");
   const [closureReason, setClosureReason] = useState("");
@@ -2164,6 +2194,7 @@ function ConnectedAgentView({ onBack }: { onBack: () => void }) {
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [sessionReady, setSessionReady] = useState(false);
+  const selectedCodeRef = useRef<string | null>(null);
 
   async function loadQueue() {
     try {
@@ -2213,7 +2244,10 @@ function ConnectedAgentView({ onBack }: { onBack: () => void }) {
   }, [page, query, queueMode, serviceFilter, sessionReady]);
   useEffect(() => {
     if (!selectedCode) return;
+    selectedCodeRef.current = selectedCode;
     setReply("");
+    setTranslationDraft(null);
+    setTranslationValidated(false);
     setInternalNote("");
     setCallbackOutcome("");
     setClosureReason("");
@@ -2227,6 +2261,45 @@ function ConnectedAgentView({ onBack }: { onBack: () => void }) {
       })
       .catch((loadError: Error) => setError(loadError.message));
   }, [selectedCode]);
+
+  function changeReply(value: string) {
+    setReply(value);
+    setTranslationDraft(null);
+    setTranslationValidated(false);
+  }
+
+  function clearTranslation() {
+    setTranslationDraft(null);
+    setTranslationValidated(false);
+  }
+
+  async function prepareTranslation() {
+    const request = detail?.request;
+    const code = selectedCode;
+    const sourceMessage = request && ["ent", "email_academique"].includes(request.category)
+      && request.identityStatus !== "identite_confirmee"
+      ? SUPPORT_IDENTITY_VERIFICATION_MESSAGE
+      : reply.trim();
+    if (!request || !code || !sourceMessage) return;
+    setTranslating(true);
+    try {
+      const payload = await apiFetch<unknown>(`support/agent/requests/${code}/translate`, {
+        method: "POST",
+        body: JSON.stringify({ sourceMessage }),
+      });
+      if (!isAgentTranslationPayload(payload)) {
+        throw new Error("La proposition de traduction est incomplète");
+      }
+      if (selectedCodeRef.current !== code) return;
+      setTranslationDraft({ ...payload.translation, sourceMessage });
+      setTranslationValidated(false);
+      setError(null);
+    } catch (translationError) {
+      setError(translationError instanceof Error ? translationError.message : "Traduction indisponible");
+    } finally {
+      setTranslating(false);
+    }
+  }
 
   useEffect(() => {
     apiFetch<unknown>("support/agent/templates")
@@ -2272,7 +2345,13 @@ function ConnectedAgentView({ onBack }: { onBack: () => void }) {
       ["ent", "email_academique"].includes(request.category) &&
       request.identityStatus !== "identite_confirmee"
     );
-    const outgoingMessage = requiresSafeTemplate ? IDENTITY_VERIFICATION_REPLY : reply.trim();
+    const sourceMessage = requiresSafeTemplate ? SUPPORT_IDENTITY_VERIFICATION_MESSAGE : reply.trim();
+    const useTranslation = Boolean(
+      translationDraft
+      && translationValidated
+      && translationDraft.sourceMessage === sourceMessage
+    );
+    const outgoingMessage = useTranslation ? translationDraft!.translatedText : sourceMessage;
     if (!selectedCode || !request || !outgoingMessage) return;
     setSaving(true);
     try {
@@ -2283,9 +2362,18 @@ function ConnectedAgentView({ onBack }: { onBack: () => void }) {
           message: outgoingMessage,
           expectedUpdatedAt: request.updatedAt,
           ...(requiresSafeTemplate ? { safeTemplate: "identity_verification" } : {}),
+          ...(useTranslation && translationDraft ? {
+            translation: {
+              sourceMessage,
+              targetLanguage: translationDraft.targetLanguage,
+              receipt: translationDraft.receipt,
+              validated: true,
+            },
+          } : {}),
         }),
       });
       setReply("");
+      clearTranslation();
       setDetail(await apiFetch<AgentRequestDetail>(`support/agent/requests/${selectedCode}`));
       await loadQueue();
     } catch (sendError) {
@@ -2308,7 +2396,7 @@ function ConnectedAgentView({ onBack }: { onBack: () => void }) {
     const template = templates.find((candidate) => candidate.id === templateId);
     const request = detail?.request;
     if (!template || !request) return;
-    setReply(renderSupportReplyTemplate(template.bodyText, {
+    changeReply(renderSupportReplyTemplate(template.bodyText, {
       prenom: request.requesterFirstName,
       numero: request.publicCode,
       objet: request.subject,
@@ -2415,6 +2503,18 @@ function ConnectedAgentView({ onBack }: { onBack: () => void }) {
     ["ent", "email_academique"].includes(selected.category) &&
     selected.identityStatus !== "identite_confirmee"
   );
+  const translationTargetLanguage = supportTranslationTargetLanguage(
+    selected?.subjectContext.detectedLanguage
+  );
+  const replySourceMessage = requiresSafeIdentityReply
+    ? SUPPORT_IDENTITY_VERIFICATION_MESSAGE
+    : reply.trim();
+  const translatedReplyReady = Boolean(
+    translationDraft
+    && translationValidated
+    && translationDraft.sourceMessage === replySourceMessage
+  );
+  const translationNeedsDecision = Boolean(translationDraft && !translationValidated);
   const visibleTemplates = selected
     ? templates.filter((template) => template.category === "all" || template.category === selected.category)
     : templates;
@@ -2492,7 +2592,17 @@ function ConnectedAgentView({ onBack }: { onBack: () => void }) {
               {detail.attachments.length > 0 ? <div className="lycee-tracked-files">{detail.attachments.map((attachment) => <div key={attachment.id}><FileText aria-hidden="true" /><span><strong>{attachment.originalName}</strong><small>{attachment.scanStatus === "clean" ? "Vérifié" : "Contrôle en cours"}</small></span>{attachment.scanStatus === "clean" ? <button type="button" onClick={() => void openAgentAttachment(attachment.id)} aria-label={`Ouvrir ${attachment.originalName}`}><ExternalLink aria-hidden="true" /></button> : null}</div>)}</div> : null}
               <section className="lycee-agent-ai"><div><WandSparkles aria-hidden="true" /><span><span className="lycee-eyebrow">Aide au traitement</span><h3>{supportCategoryLabel(selected.category)} · priorité {priorityLabels[selected.priority] ?? "Normale"}</h3></span></div><dl><div><dt>Personne</dt><dd>{selected.beneficiaryType === "self" ? "Demandeur" : `${selected.beneficiaryFirstName ?? ""} ${selected.beneficiaryLastName ?? ""}`}</dd></div><div><dt>Canal disponible</dt><dd>{detail.contacts.map((contact) => channelLabels[contact.channel] ?? contact.channel).join(" + ")}</dd></div><div><dt>Langue détectée</dt><dd>{selected.subjectContext.detectedLanguage ?? "Non déterminée"}</dd></div><div><dt>Langue de réponse</dt><dd>{languagePreferenceLabels[selected.subjectContext.languagePreference] ?? "Non précisée"}</dd></div><div><dt>Aide à la compréhension</dt><dd>{selected.subjectContext.communicationSupport ?? "Réponse écrite"}</dd></div><div><dt>Pièces</dt><dd>{detail.attachments.length} {detail.attachments.length > 1 ? "documents" : "document"}</dd></div></dl>{selected.subjectContext.internalSummaryFr ? <div className="lycee-agent-french-summary"><Languages aria-hidden="true" /><span><small>Résumé automatique en français</small><p>{selected.subjectContext.internalSummaryFr}</p><em>À vérifier avec le message original avant toute décision.</em></span></div> : null}</section>
               <section className="lycee-agent-actions"><div><span><StickyNote aria-hidden="true" /><strong>Note interne</strong><small>Visible uniquement par les agents.</small></span><textarea aria-label="Note interne" rows={3} value={internalNote} onChange={(event) => setInternalNote(event.target.value)} placeholder="Diagnostic, appel effectué ou prochaine action…" maxLength={5000} /><button type="button" disabled={saving || !internalNote.trim()} onClick={() => void saveInternalNote()}>Ajouter la note</button></div><div data-closed={selected.status === "clos"}><span><CheckCircle2 aria-hidden="true" /><strong>{selected.status === "clos" ? "Dossier clôturé" : "Clôturer proprement"}</strong><small>{selected.status === "clos" ? selected.subjectContext.closureReason ?? "Motif enregistré dans l’historique." : requiresSafeIdentityReply ? "Confirmez d’abord l’identité scolaire pour cette demande sensible." : "Un motif est obligatoire et reste dans l’audit."}</small></span>{selected.status === "clos" ? <button type="button" disabled={saving} onClick={() => void updateRequest({ status: "en_cours" })}>Rouvrir le dossier</button> : <><textarea aria-label="Motif de clôture" rows={3} value={closureReason} onChange={(event) => setClosureReason(event.target.value)} placeholder="Solution apportée ou raison de la clôture…" maxLength={500} /><button type="button" disabled={saving || !closureReason.trim() || requiresSafeIdentityReply} onClick={() => void updateRequest({ status: "clos", closureReason })}>Clôturer le dossier</button></>}</div></section>
-              <section className="lycee-reply-box"><div><span><Sparkles aria-hidden="true" /> {requiresSafeIdentityReply ? "Consigne de vérification sécurisée" : "Réponse à valider"}</span>{requiresSafeIdentityReply ? null : <select aria-label="Choisir un modèle de réponse" defaultValue="" onChange={(event) => { applyReplyTemplate(event.target.value); event.currentTarget.value = ""; }}><option value="">Choisir un modèle</option>{visibleTemplates.map((template) => <option value={template.id} key={template.id}>{template.name}</option>)}</select>}</div><textarea aria-label="Réponse à envoyer" rows={5} value={requiresSafeIdentityReply ? IDENTITY_VERIFICATION_REPLY : reply} readOnly={requiresSafeIdentityReply || selected.status === "clos"} onChange={(event) => setReply(event.target.value)} placeholder="Écrivez une réponse claire. Aucun mot de passe ne doit être demandé." />{showTemplateSave && !requiresSafeIdentityReply && access?.canManageTemplates ? <div className="lycee-template-save"><input aria-label="Nom du nouveau modèle" value={templateName} onChange={(event) => setTemplateName(event.target.value)} placeholder="Nom du modèle" maxLength={80} /><button type="button" disabled={saving || !templateName.trim() || !reply.trim()} onClick={() => void saveReplyTemplate()}>Enregistrer</button></div> : null}<div>{requiresSafeIdentityReply || !access?.canManageTemplates ? null : <button className="lycee-secondary-action" type="button" disabled={selected.status === "clos"} onClick={() => setShowTemplateSave((current) => !current)}><BookOpenCheck aria-hidden="true" /> Modèle</button>}<button className="lycee-secondary-action" type="button" disabled><Paperclip aria-hidden="true" /> Joindre</button><button className="lycee-primary-action" type="button" disabled={saving || selected.status === "clos" || (!requiresSafeIdentityReply && !reply.trim())} onClick={() => void sendAgentReply()}><Send aria-hidden="true" /> {saving ? "Enregistrement…" : "Valider et envoyer"}</button></div></section>
+              <section className="lycee-reply-box">
+                <div>
+                  <span><Sparkles aria-hidden="true" /> {requiresSafeIdentityReply ? "Consigne de vérification sécurisée" : "Réponse en français"}</span>
+                  {requiresSafeIdentityReply ? null : <select aria-label="Choisir un modèle de réponse" defaultValue="" onChange={(event) => { applyReplyTemplate(event.target.value); event.currentTarget.value = ""; }}><option value="">Choisir un modèle</option>{visibleTemplates.map((template) => <option value={template.id} key={template.id}>{template.name}</option>)}</select>}
+                </div>
+                <textarea aria-label="Réponse à envoyer" rows={5} value={requiresSafeIdentityReply ? SUPPORT_IDENTITY_VERIFICATION_MESSAGE : reply} readOnly={requiresSafeIdentityReply || selected.status === "clos"} onChange={(event) => changeReply(event.target.value)} placeholder="Écrivez une réponse claire. Aucun mot de passe ne doit être demandé." />
+                {translationTargetLanguage ? <div className="lycee-translation-command"><Languages aria-hidden="true" /><span><strong>Répondre aussi en {translationTargetLanguage}</strong><small>La version française reste la référence. Vous comparerez les deux textes avant l’envoi.</small></span><button type="button" disabled={translating || saving || selected.status === "clos" || !replySourceMessage} onClick={() => void prepareTranslation()}>{translating ? "Traduction…" : translationDraft ? "Repréparer" : "Préparer"}</button></div> : null}
+                {translationDraft ? <div className="lycee-translation-review" aria-live="polite"><div><Languages aria-hidden="true" /><strong>Version en {translationDraft.targetLanguage}</strong><button type="button" title="Abandonner la traduction" onClick={clearTranslation}><Trash2 aria-hidden="true" /><span>Garder le français</span></button></div><p dir="auto">{translationDraft.translatedText}</p><div className="lycee-translation-back"><small>Contrôle du sens en français</small><p>{translationDraft.backTranslationFr}</p></div>{translationDraft.warnings.length > 0 ? <ul>{translationDraft.warnings.map((warning) => <li key={warning}>{warning}</li>)}</ul> : null}<label><input type="checkbox" checked={translationValidated} onChange={(event) => setTranslationValidated(event.target.checked)} /><span><strong>J’ai comparé les deux versions.</strong><small>J’autorise l’envoi de cette traduction. L’agent humain reste responsable du message.</small></span></label></div> : null}
+                {showTemplateSave && !requiresSafeIdentityReply && access?.canManageTemplates ? <div className="lycee-template-save"><input aria-label="Nom du nouveau modèle" value={templateName} onChange={(event) => setTemplateName(event.target.value)} placeholder="Nom du modèle" maxLength={80} /><button type="button" disabled={saving || !templateName.trim() || !reply.trim()} onClick={() => void saveReplyTemplate()}>Enregistrer</button></div> : null}
+                <div>{requiresSafeIdentityReply || !access?.canManageTemplates ? null : <button className="lycee-secondary-action" type="button" disabled={selected.status === "clos"} onClick={() => setShowTemplateSave((current) => !current)}><BookOpenCheck aria-hidden="true" /> Modèle</button>}<button className="lycee-secondary-action" type="button" disabled><Paperclip aria-hidden="true" /> Joindre</button><button className="lycee-primary-action" type="button" disabled={saving || translating || translationNeedsDecision || selected.status === "clos" || (!requiresSafeIdentityReply && !reply.trim())} onClick={() => void sendAgentReply()}><Send aria-hidden="true" /> {saving ? "Enregistrement…" : translatedReplyReady && translationDraft ? `Valider et envoyer en ${translationDraft.targetLanguage}` : "Valider et envoyer"}</button></div>
+              </section>
             </>
           ) : <div className="lycee-loading-state"><Clock3 aria-hidden="true" /> Sélectionnez une demande</div>}
         </article>

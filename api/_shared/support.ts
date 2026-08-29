@@ -262,7 +262,8 @@ export async function enforceSupportRateLimit(input: {
     | "request_network"
     | "message_session"
     | "magic_token_network"
-    | "content_ai_user";
+    | "content_ai_user"
+    | "agent_translation_user";
   keyHash: string;
   limit: number;
   windowSeconds: number;

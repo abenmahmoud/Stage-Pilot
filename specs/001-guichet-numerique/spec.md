@@ -72,6 +72,14 @@ et ne clôture pas un dossier sans validation humaine.
     protections réellement actives, les secrets à ne jamais transmettre et le
     caractère de préproduction tant que la direction et le DPO n'ont pas validé
     les mentions définitives et les durées de conservation.
+24. Lorsqu'une autre langue fiable est détectée, un agent habilité peut préparer
+    la traduction de sa réponse française. Il voit la traduction et son contrôle
+    de sens en français côte à côte, puis doit confirmer explicitement sa relecture
+    avant l'envoi. Le serveur lie pendant quinze minutes le dossier, l'agent, le
+    texte français, la langue et la traduction par un reçu signé. Une traduction
+    modifiée, expirée ou réutilisée est refusée. Avant confirmation d'identité sur
+    une demande ENT ou de messagerie académique, seul le message sécurisé de
+    vérification peut être traduit.
 
 ## 3. Acteurs
 

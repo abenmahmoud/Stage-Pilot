@@ -884,6 +884,29 @@
 .lycee-reply-box > div:first-child button { border: 0; background: transparent; color: var(--lc-blue); font-size: 9px; font-weight: 800; }
 .lycee-reply-box > div:first-child select { max-width: 210px; height: 30px; padding: 0 7px; border: 1px solid #cbd5e1; border-radius: 6px; background: #fff; color: var(--lc-ink); font-size: 9px; font-weight: 750; }
 .lycee-reply-box textarea { width: 100%; resize: vertical; border: 0; outline: 0; padding: 13px; color: var(--lc-ink); font-size: 12px; line-height: 1.5; }
+.lycee-translation-command { display: grid; grid-template-columns: 24px minmax(0,1fr) auto; gap: 9px; align-items: center; padding: 10px 12px; border-top: 1px solid var(--lc-line); background: #f4f8ff; }
+.lycee-translation-command > svg { width: 16px; color: #145bd7; }
+.lycee-translation-command > span { min-width: 0; display: grid; gap: 2px; }
+.lycee-translation-command strong { color: #183b72; font-size: 10px; }
+.lycee-translation-command small { color: #64748b; font-size: 9px; line-height: 1.4; }
+.lycee-translation-command button { min-height: 32px; padding: 0 11px; border: 1px solid #9bb9ef; border-radius: 7px; background: #fff; color: #145bd7; font-size: 9px; font-weight: 850; }
+.lycee-translation-command button:disabled { opacity: .55; }
+.lycee-translation-review { display: grid; gap: 10px; padding: 12px; border-top: 1px solid #bcded5; background: #f3faf8; }
+.lycee-translation-review > div:first-child { display: flex; align-items: center; gap: 7px; color: #075f52; }
+.lycee-translation-review > div:first-child > svg { width: 16px; }
+.lycee-translation-review > div:first-child > strong { margin-right: auto; font-size: 10px; }
+.lycee-translation-review > div:first-child > button { min-height: 30px; display: inline-flex; align-items: center; gap: 5px; padding: 0 8px; border: 0; background: transparent; color: #526b66; font-size: 9px; font-weight: 800; }
+.lycee-translation-review > div:first-child > button svg { width: 13px; }
+.lycee-translation-review > p { margin: 0; padding: 10px; border-left: 3px solid #0b8a74; background: #fff; color: #18362f; font-size: 12px; line-height: 1.55; overflow-wrap: anywhere; white-space: pre-wrap; }
+.lycee-translation-back { display: grid; gap: 3px; padding-top: 8px; border-top: 1px solid #cde5df; }
+.lycee-translation-back small { color: #087c69; font-size: 8px; font-weight: 850; text-transform: uppercase; }
+.lycee-translation-back p { margin: 0; color: #4d625e; font-size: 10px; line-height: 1.45; overflow-wrap: anywhere; }
+.lycee-translation-review ul { margin: 0; padding-left: 17px; color: #8a5212; font-size: 9px; line-height: 1.5; }
+.lycee-translation-review > label { display: grid; grid-template-columns: 18px minmax(0,1fr); gap: 7px; align-items: start; padding-top: 9px; border-top: 1px solid #cde5df; cursor: pointer; }
+.lycee-translation-review > label input { width: 16px; height: 16px; margin: 0; accent-color: #087c69; }
+.lycee-translation-review > label span { min-width: 0; display: grid; gap: 2px; }
+.lycee-translation-review > label strong { color: #1d4d45; font-size: 10px; }
+.lycee-translation-review > label small { color: #60726f; font-size: 9px; line-height: 1.4; }
 .lycee-template-save { display: grid; grid-template-columns: minmax(0,1fr) auto; gap: 8px; padding: 9px 10px; border-top: 1px solid var(--lc-line); background: #f8fafc; }
 .lycee-template-save input { min-width: 0; height: 34px; padding: 0 9px; border: 1px solid #cbd5e1; border-radius: 7px; background: #fff; color: var(--lc-ink); font-size: 10px; }
 .lycee-template-save button { min-height: 34px; padding: 0 11px; border: 1px solid var(--lc-blue); border-radius: 7px; background: var(--lc-blue); color: #fff; font-size: 9px; font-weight: 850; }
@@ -1085,6 +1108,11 @@
   .lycee-reply-box > div:last-child button { width: 100%; }
   .lycee-reply-box > div:first-child { align-items: flex-start; flex-direction: column; gap: 8px; padding: 9px 11px; }
   .lycee-reply-box > div:first-child select { width: 100%; max-width: none; }
+  .lycee-translation-command { grid-template-columns: 22px minmax(0,1fr); }
+  .lycee-translation-command button { grid-column: 1 / -1; width: 100%; }
+  .lycee-translation-review > div:first-child { align-items: flex-start; flex-wrap: wrap; }
+  .lycee-translation-review > div:first-child > strong { min-width: calc(100% - 28px); }
+  .lycee-translation-review > div:first-child > button { width: 100%; justify-content: center; border: 1px solid #b9d7ce; }
   .lycee-template-save { grid-template-columns: 1fr; }
   .lycee-agent-mail small { display: none; }
   .lycee-news-feature > div { padding: 18px; }

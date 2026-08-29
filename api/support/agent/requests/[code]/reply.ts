@@ -27,8 +27,15 @@ import {
   parseSupportRevision,
   supportRevisionMatches,
 } from "../../../../../shared/support-concurrency.js";
-
-const IDENTITY_VERIFICATION_MESSAGE = "Bonjour, pour protéger vos accès, nous devons d’abord confirmer votre identité avec une source officielle du lycée. Ne transmettez aucun mot de passe ni aucun code reçu par SMS. Nous revenons vers vous dès que la vérification est terminée.";
+import {
+  SUPPORT_IDENTITY_VERIFICATION_MESSAGE,
+  normalizeSupportReplyText,
+  supportTranslationTargetLanguage,
+} from "../../../../../shared/support-reply-policy.js";
+import {
+  SupportTranslationFailure,
+  verifySupportTranslationReceipt,
+} from "../../../../_shared/support-translation.js";
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== "POST") return methodNotAllowed(res, ["POST"]);
@@ -40,9 +47,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       throw new HttpError(400, "Numéro de demande invalide");
     }
     const body = (req.body ?? {}) as Record<string, unknown>;
-    if (typeof body.message !== "string") throw new HttpError(400, "Message requis");
-    let messageText = body.message.replace(/[\u0000-\u001F]/g, "").trim();
-    if (!messageText || messageText.length > 10000) throw new HttpError(400, "Message invalide");
+    let messageText = normalizeSupportReplyText(body.message);
+    if (!messageText) throw new HttpError(400, "Message invalide");
     const idempotencyHash = sha256(idempotencyKey(req));
     const rawAccessToken = opaqueToken();
 
@@ -92,6 +98,44 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       throw new HttpError(409, "Ce dossier a été modifié par un autre agent. Il vient d’être actualisé.");
     }
     const identityContext = (request.subjectContext ?? {}) as Record<string, unknown>;
+    let translatedReply: { sourceMessage: string; targetLanguage: string } | null = null;
+    if (body.translation !== undefined) {
+      if (!body.translation || typeof body.translation !== "object" || Array.isArray(body.translation)) {
+        throw new HttpError(400, "Validation de traduction invalide");
+      }
+      const translation = body.translation as Record<string, unknown>;
+      const sourceMessage = normalizeSupportReplyText(translation.sourceMessage, 5_000);
+      const targetLanguage = supportTranslationTargetLanguage(translation.targetLanguage);
+      if (
+        translation.validated !== true
+        || typeof translation.receipt !== "string"
+        || translation.receipt.length > 2_000
+        || !sourceMessage
+        || !targetLanguage
+      ) {
+        throw new HttpError(400, "La traduction doit être vérifiée avant l’envoi");
+      }
+      let validReceipt = false;
+      try {
+        validReceipt = verifySupportTranslationReceipt({
+          receipt: translation.receipt,
+          requestId: request.id,
+          userId: user.id,
+          sourceMessage,
+          translatedMessage: messageText,
+          targetLanguage,
+        });
+      } catch (error) {
+        if (error instanceof SupportTranslationFailure && error.code === "not_configured") {
+          throw new HttpError(503, error.message);
+        }
+        throw error;
+      }
+      if (!validReceipt) {
+        throw new HttpError(409, "La traduction a expiré ou a été modifiée. Préparez-la de nouveau.");
+      }
+      translatedReply = { sourceMessage, targetLanguage };
+    }
     if (
       ["ent", "email_academique"].includes(request.category) &&
       identityContext.identityStatus !== "identite_confirmee"
@@ -99,7 +143,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       if (body.safeTemplate !== "identity_verification") {
         throw new HttpError(409, "Avant la confirmation d’identité, utilisez uniquement le message sécurisé de vérification");
       }
-      messageText = IDENTITY_VERIFICATION_MESSAGE;
+      if (translatedReply) {
+        if (translatedReply.sourceMessage !== SUPPORT_IDENTITY_VERIFICATION_MESSAGE) {
+          throw new HttpError(409, "Seule la traduction du message sécurisé peut être envoyée avant la confirmation d’identité");
+        }
+      } else {
+        messageText = SUPPORT_IDENTITY_VERIFICATION_MESSAGE;
+      }
     }
     const contacts = await db
       .select({ id: supportContacts.id, channel: supportContacts.channel })
@@ -219,7 +269,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         eventType: email ? "reply.queued" : "callback.created",
         actorType: "agent",
         actorId: user.id,
-        toValue: { messageId: created.id, channel: email ? "email" : "phone" },
+        toValue: {
+          messageId: created.id,
+          channel: email ? "email" : "phone",
+          translated: Boolean(translatedReply),
+          targetLanguage: translatedReply?.targetLanguage ?? null,
+          translationHumanValidated: Boolean(translatedReply),
+        },
         correlationId,
       });
       return { ...created, duplicate: false, channel: email ? "email" : "phone" };

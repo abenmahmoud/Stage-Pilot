@@ -129,6 +129,10 @@ voir sa réponse dans le dossier. L'agent traite tout depuis une seule file.
   conversation assistée détecte aussi la langue, répond dans cette langue et
   conserve dans le dossier un résumé français pseudonymisé « automatique, à
   vérifier », sans remplacer l'original ni influencer les droits ou le routage.
+- [x] **T036G2** Permettre à l'agent de préparer une réponse traduite avec
+  rétrotraduction française, masquage avant IA, reçu signé de quinze minutes et
+  validation humaine explicite. Une demande sensible non vérifiée limite la
+  traduction au message sécurisé de confirmation d'identité.
 - [ ] **T036H** Reprendre et faire valider toutes les rubriques de l'ancien site
   selon `content-migration.md` avant toute bascule du domaine principal.
 - [x] **T036I** Ajouter les premières pages détaillées STMG, STL, MELEC, PCEPC et

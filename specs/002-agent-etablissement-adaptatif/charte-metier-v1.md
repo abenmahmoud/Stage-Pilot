@@ -157,6 +157,14 @@ pseudonymise et signale comme automatique. Ce resume aide au classement et a la
 lecture mais ne remplace pas l'original, ne constitue pas une preuve et ne peut
 pas modifier seul l'urgence, l'identite, les droits ou une decision humaine.
 
+Pour une reponse sortante, l'agent redige d'abord en francais. L'IA peut proposer
+une traduction et une retrotraduction francaise de controle. Aucun envoi traduit
+n'est automatique : l'agent compare les deux versions et confirme explicitement
+la traduction. Un recu court signe lie le dossier, l'agent et les textes exacts ;
+toute modification ou expiration impose une nouvelle preparation. Avant la
+confirmation d'identite d'une demande sensible, seul le message de verification
+securise peut suivre ce parcours.
+
 La voix pourra servir de moyen de saisie, jamais d'authentification. Elle reste
 desactivee tant que consentement, conservation, accessibilite et securite ne sont
 pas valides.
