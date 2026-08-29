@@ -5,6 +5,21 @@
 **Depot** : `abenmahmoud/Stage-Pilot`
 **Dernier jalon de code verifie** : candidate publiée sur la production Vercel
 
+## Jalon du 29 août 2026 - priorité déterministe à la création
+
+- La catégorie et le texte attribuent déjà le service avant l'IA ; la demande
+  enregistre désormais aussi la priorité produite par cette même route.
+- La priorité normale reste le défaut. Un risque explicite de protection passe
+  en critique et un « incident grave » destiné à la direction passe en urgent.
+  Écrire seulement « urgent » n'augmente pas la priorité.
+- La surveillance des délais et les relances restent dans T029 : aucun délai
+  métier supplémentaire n'a été inventé dans ce lot.
+- 32 contrôles ciblés passent avec le build TypeScript/Vite. Ils couvrent le
+  routage, la persistance, la file agent, l'accueil multilingue et le parcours
+  agent existant.
+- Lot preview uniquement : aucune production, donnée réelle, base distante, DNS,
+  VPS, Webmail, ENT ou PRONOTE n'a été modifié.
+
 ## Jalon du 29 août 2026 - réponse agent multilingue contrôlée
 
 - L'agent peut partir d'une réponse française et préparer une traduction vers la

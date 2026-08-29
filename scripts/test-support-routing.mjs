@@ -1,6 +1,16 @@
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import test from "node:test";
 import { initialSupportStatus, routeSupportRequest } from "../shared/support-routing.ts";
+
+const requestRoute = readFileSync(
+  new URL("../api/support/requests/index.ts", import.meta.url),
+  "utf8"
+);
+const requestParser = readFileSync(
+  new URL("../api/_shared/support.ts", import.meta.url),
+  "utf8"
+);
 
 test("routes digital access and equipment to the digital lead", () => {
   const ent = routeSupportRequest({
@@ -10,6 +20,7 @@ test("routes digital access and equipment to the digital lead", () => {
   assert.equal(ent.service, "referent_numerique");
   assert.equal(ent.requiredIdentity, "school_identity");
   assert.equal(ent.confidence, "high");
+  assert.equal(ent.priority, "p3");
 
   const entBeforeSchedule = routeSupportRequest({
     category: "ent",
@@ -60,6 +71,7 @@ test("accepts urgent safeguarding intake without delaying it for identity", () =
   assert.equal(route.service, "vie_scolaire");
   assert.equal(route.requiredIdentity, "none");
   assert.equal(route.confidence, "high");
+  assert.equal(route.priority, "p1");
 });
 
 test("routes catering and grants to stewardship", () => {
@@ -69,6 +81,36 @@ test("routes catering and grants to stewardship", () => {
   });
   assert.equal(route.service, "intendance");
   assert.equal(route.confidence, "high");
+  assert.equal(route.priority, "p3");
+});
+
+test("keeps declared urgency conservative and reserves escalation for explicit risks", () => {
+  const selfDeclaredUrgent = routeSupportRequest({
+    category: "ent",
+    description: "C'est urgent, je n'arrive plus à ouvrir mon ENT",
+  });
+  assert.equal(selfDeclaredUrgent.priority, "p3");
+
+  const seriousIncident = routeSupportRequest({
+    category: "autre",
+    description: "Je souhaite signaler un incident grave à la direction",
+  });
+  assert.equal(seriousIncident.service, "direction");
+  assert.equal(seriousIncident.priority, "p2");
+
+  const immediateDanger = routeSupportRequest({
+    category: "autre",
+    description: "Je suis en danger et menacé dans le lycée",
+  });
+  assert.equal(immediateDanger.service, "vie_scolaire");
+  assert.equal(immediateDanger.priority, "p1");
+});
+
+test("persists the deterministic priority and its reason at request creation", () => {
+  assert.match(requestRoute, /priority: input\.routing\.priority/);
+  assert.match(requestRoute, /assignedTeam: input\.routing\.service/);
+  assert.match(requestParser, /routingPriority: routing\.priority/);
+  assert.match(requestParser, /routingReason: routing\.reason/);
 });
 
 test("routes vocational placements and PFMP to the DDFPT queue", () => {

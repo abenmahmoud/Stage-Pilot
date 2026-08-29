@@ -8,6 +8,7 @@ export type SchoolService =
   | "administration";
 
 export type RoutingConfidence = "high" | "medium" | "low";
+export type SupportPriority = "p1" | "p2" | "p3" | "p4";
 export type IdentityRequirement =
   | "none"
   | "verified_contact"
@@ -19,6 +20,7 @@ export type SupportRoute = {
   confidence: RoutingConfidence;
   reason: string;
   requiredIdentity: IdentityRequirement;
+  priority: SupportPriority;
 };
 
 export function initialSupportStatus(confidence: RoutingConfidence): "nouveau" | "a_qualifier" {
@@ -82,6 +84,7 @@ export function routeSupportRequest(input: {
       confidence: "high",
       reason: "protection_ou_vie_scolaire",
       requiredIdentity: "none",
+      priority: "p1",
     };
   }
   if (
@@ -92,6 +95,7 @@ export function routeSupportRequest(input: {
       confidence: "high",
       reason: "acces_ou_equipement_numerique",
       requiredIdentity: identity,
+      priority: "p3",
     };
   }
   if (
@@ -102,6 +106,7 @@ export function routeSupportRequest(input: {
       confidence: "high",
       reason: "absence_ou_vie_scolaire",
       requiredIdentity: identity,
+      priority: "p3",
     };
   }
   if (
@@ -112,6 +117,7 @@ export function routeSupportRequest(input: {
       confidence: "high",
       reason: "formation_professionnelle_ou_stage",
       requiredIdentity: identity,
+      priority: "p3",
     };
   }
   if (/\b(cantine|restauration|bourse|intendance|demi-pension|paiement)\b/.test(text)) {
@@ -120,6 +126,7 @@ export function routeSupportRequest(input: {
       confidence: "high",
       reason: "intendance_ou_aide_financiere",
       requiredIdentity: identity,
+      priority: "p3",
     };
   }
   if (
@@ -130,6 +137,7 @@ export function routeSupportRequest(input: {
       confidence: "high",
       reason: "scolarite_ou_dossier_administratif",
       requiredIdentity: identity,
+      priority: "p3",
     };
   }
   if (/\b(direction|proviseur|partenariat|reclamation|incident grave)\b/.test(text)) {
@@ -138,6 +146,7 @@ export function routeSupportRequest(input: {
       confidence: "medium",
       reason: "direction_ou_situation_transverse",
       requiredIdentity: identity,
+      priority: /\bincident grave\b/.test(text) ? "p2" : "p3",
     };
   }
 
@@ -147,5 +156,6 @@ export function routeSupportRequest(input: {
     confidence: categoryService && input.category !== "autre" ? "medium" : "low",
     reason: categoryService && input.category !== "autre" ? "categorie_declaree" : "qualification_humaine_requise",
     requiredIdentity: identity,
+    priority: "p3",
   };
 }

@@ -93,7 +93,11 @@ voir sa réponse dans le dossier. L'agent traite tout depuis une seule file.
 
 ## Jour 3 - Automatisation, PWA et exploitation
 
-- [ ] **T027** Ajouter règles déterministes de classement, priorité et attribution.
+- [x] **T027** Ajouter règles déterministes de classement, priorité et attribution.
+  Le texte et la catégorie attribuent le service avant l'IA. La priorité reste
+  normale par défaut ; seuls un risque explicite de protection passe en critique
+  et un « incident grave » adressé à la direction passe en urgent. Le simple mot
+  « urgent » ne suffit pas à élever la priorité.
 - [ ] **T028** Ajouter détection et validation manuelle des doublons.
 - [ ] **T029** Ajouter relances automatiques et surveillance des SLA.
 - [x] **T030** Installer le worker antivirus VPS et le déplacement quarantine/clean.

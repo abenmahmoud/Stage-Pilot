@@ -119,6 +119,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             preferredChannel: input.preferredChannel,
             fallbackAllowed: input.fallbackAllowed,
             status: initialSupportStatus(input.routing.confidence),
+            priority: input.routing.priority,
             assignedTeam: input.routing.service,
             slaDueAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
           })

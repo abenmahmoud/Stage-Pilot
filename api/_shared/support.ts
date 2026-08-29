@@ -202,6 +202,7 @@ export function parseSupportRequest(body: unknown): SupportRequestInput {
       routingConfidence: routing.confidence,
       routingReason: routing.reason,
       requiredIdentity: routing.requiredIdentity,
+      routingPriority: routing.priority,
     }).filter((entry): entry is [string, string] => Boolean(entry[1]))
   );
 
