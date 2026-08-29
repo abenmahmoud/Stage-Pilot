@@ -1,8 +1,9 @@
 import { randomUUID } from "node:crypto";
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { and, desc, eq, gt, isNull, sql } from "drizzle-orm";
+import { and, desc, eq, gt, inArray, isNull, ne, sql } from "drizzle-orm";
 import { db } from "../../../db/index.js";
 import { initialSupportStatus } from "../../../shared/support-routing.js";
+import { supportDuplicateWindowStart } from "../../../shared/support-duplicate-policy.js";
 import {
   supportContacts,
   supportCallbackTasks,
@@ -100,6 +101,26 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             .onConflictDoNothing();
           return { ...existing, sessionToken: session.rawToken, duplicate: true };
         }
+
+        const contactHashes = [input.email, input.phone]
+          .filter((value): value is string => Boolean(value))
+          .map((value) => personalHash(value));
+        const [duplicateCandidate] = contactHashes.length > 0
+          ? await tx
+              .select({
+                id: supportRequests.id,
+              })
+              .from(supportRequests)
+              .innerJoin(supportContacts, eq(supportContacts.requestId, supportRequests.id))
+              .where(and(
+                eq(supportRequests.category, input.category),
+                gt(supportRequests.createdAt, supportDuplicateWindowStart()),
+                ne(supportRequests.status, "indesirable"),
+                inArray(supportContacts.normalizedHash, contactHashes)
+              ))
+              .orderBy(desc(supportRequests.createdAt))
+              .limit(1)
+          : [];
 
         const [created] = await tx
           .insert(supportRequests)
@@ -217,6 +238,19 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           },
           correlationId,
         });
+
+        if (duplicateCandidate) {
+          await tx.insert(supportEvents).values({
+            requestId: created.id,
+            eventType: "request.duplicate_suspected",
+            actorType: "system",
+            toValue: {
+              candidateRequestId: duplicateCandidate.id,
+              reason: "same_contact_category_7_days",
+            },
+            correlationId,
+          });
+        }
 
         if (input.callbackRequested && phoneContact) {
           await tx.insert(supportCallbackTasks).values({

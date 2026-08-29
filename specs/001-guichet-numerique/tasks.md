@@ -98,7 +98,11 @@ voir sa réponse dans le dossier. L'agent traite tout depuis une seule file.
   normale par défaut ; seuls un risque explicite de protection passe en critique
   et un « incident grave » adressé à la direction passe en urgent. Le simple mot
   « urgent » ne suffit pas à élever la priorité.
-- [ ] **T028** Ajouter détection et validation manuelle des doublons.
+- [x] **T028** Ajouter détection et validation manuelle des doublons.
+  Même contact haché, même catégorie et création dans les sept jours produisent
+  uniquement un signal agent. Un agent confirme ou écarte le signal ; aucun
+  dossier n'est fusionné ou fermé automatiquement et le demandeur ne voit pas le
+  numéro du dossier candidat.
 - [ ] **T029** Ajouter relances automatiques et surveillance des SLA.
 - [x] **T030** Installer le worker antivirus VPS et le déplacement quarantine/clean.
 - [ ] **T031** Mettre en place la sauvegarde chiffrée DB + Storage et un test de

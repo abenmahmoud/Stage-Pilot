@@ -5,6 +5,24 @@
 **Depot** : `abenmahmoud/Stage-Pilot`
 **Dernier jalon de code verifie** : candidate publiée sur la production Vercel
 
+## Jalon du 29 août 2026 - doublons signalés et décidés par un humain
+
+- Une nouvelle demande est signalée comme doublon possible lorsque le même
+  contact haché a créé une demande de même catégorie dans les sept jours. Le
+  texte et les coordonnées en clair ne servent pas à cette recherche.
+- Le signal et la décision sont des événements d'audit. L'agent peut confirmer
+  ou écarter le rapprochement, mais aucun dossier n'est fusionné, fermé ou
+  supprimé automatiquement.
+- La file affiche un badge « Doublon ? » et un filtre dédié afin de traiter les
+  rapprochements sans ouvrir tous les dossiers.
+- Le demandeur ne reçoit aucune métadonnée de doublon ni le numéro d'un autre
+  dossier. Un agent doit être autorisé à consulter les deux dossiers avant de
+  voir le numéro candidat et d'enregistrer sa décision.
+- 39 contrôles ciblés passent avec le build TypeScript/Vite. Le contrôle visuel
+  passe à 1440 px et 390 px sans débordement ni erreur console.
+- Lot preview uniquement : aucune production, donnée réelle, base distante, DNS,
+  VPS, Webmail, ENT ou PRONOTE n'a été modifié.
+
 ## Jalon du 29 août 2026 - priorité déterministe à la création
 
 - La catégorie et le texte attribuent déjà le service avant l'IA ; la demande

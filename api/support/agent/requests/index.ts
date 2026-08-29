@@ -1,7 +1,7 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { and, asc, eq, ilike, inArray, isNull, or, sql, type SQL } from "drizzle-orm";
 import { db } from "../../../../db/index.js";
-import { supportCallbackTasks, supportRequests } from "../../../../db/schema.js";
+import { supportCallbackTasks, supportEvents, supportRequests } from "../../../../db/schema.js";
 import { HttpError } from "../../../_shared/auth.js";
 import { handleApi, methodNotAllowed } from "../../../_shared/response.js";
 import { requireSupportAgent } from "../../../_shared/support-agent-access.js";
@@ -32,6 +32,21 @@ function hasPendingCallback(): SQL<boolean> {
   )`;
 }
 
+function hasPendingDuplicateReview(): SQL<boolean> {
+  return sql<boolean>`(
+    select ${supportEvents.eventType}
+    from ${supportEvents}
+    where ${supportEvents.requestId} = ${supportRequests.id}
+      and ${supportEvents.eventType} in (
+        'request.duplicate_suspected',
+        'request.duplicate_confirmed',
+        'request.duplicate_dismissed'
+      )
+    order by ${supportEvents.createdAt} desc, ${supportEvents.id} desc
+    limit 1
+  ) = 'request.duplicate_suspected'`;
+}
+
 function queryValue(value: string | string[] | undefined): string {
   return Array.isArray(value) ? value[0] ?? "" : value ?? "";
 }
@@ -48,6 +63,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const urgentOnly = queryValue(req.query.urgent) === "true";
     const mineOnly = queryValue(req.query.assigned) === "me";
     const callbackOnly = queryValue(req.query.callback) === "pending";
+    const duplicateOnly = queryValue(req.query.duplicate) === "pending";
     const service = queryValue(req.query.service);
     const filters: SQL[] = [];
     const accessFilter = access.canViewAll
@@ -84,6 +100,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (urgentOnly) filters.push(sql`${supportRequests.priority} in ('p1', 'p2')`);
     if (mineOnly) filters.push(eq(supportRequests.assignedTo, user.id));
     if (callbackOnly) filters.push(hasPendingCallback());
+    if (duplicateOnly) filters.push(hasPendingDuplicateReview());
     if (serviceFilter) filters.push(serviceFilter);
 
     const where = filters.length > 0 ? and(...filters) : undefined;
@@ -107,6 +124,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         createdAt: supportRequests.createdAt,
         updatedAt: supportRequests.updatedAt,
         callbackPending: hasPendingCallback(),
+        duplicatePending: hasPendingDuplicateReview(),
       })
       .from(supportRequests)
       .where(where)
@@ -134,6 +152,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       unassigned: sql<number>`count(*) filter (where ${supportRequests.assignedTo} is null and ${supportRequests.status} not in ('resolu', 'clos', 'indesirable'))::int`,
       overdue: sql<number>`count(*) filter (where ${supportRequests.slaDueAt} < now() and ${supportRequests.status} not in ('resolu', 'clos', 'indesirable'))::int`,
       callbacks: sql<number>`count(*) filter (where ${hasPendingCallback()})::int`,
+      duplicates: sql<number>`count(*) filter (where ${hasPendingDuplicateReview()})::int`,
     }).from(supportRequests).where(statsWhere.length ? and(...statsWhere) : undefined);
 
     const serviceStatsQuery = db
@@ -161,7 +180,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       requests,
       access,
       serviceStats,
-      stats: statsRow ?? { total: 0, new: 0, qualify: 0, urgent: 0, active: 0, waitingRequester: 0, unassigned: 0, overdue: 0, callbacks: 0 },
+      stats: statsRow ?? { total: 0, new: 0, qualify: 0, urgent: 0, active: 0, waitingRequester: 0, unassigned: 0, overdue: 0, callbacks: 0, duplicates: 0 },
       pagination: { page, pageSize, total, totalPages: Math.max(1, Math.ceil(total / pageSize)) },
     };
   });

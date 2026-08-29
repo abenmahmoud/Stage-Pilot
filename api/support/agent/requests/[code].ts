@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { and, asc, eq, isNull, sql } from "drizzle-orm";
+import { and, asc, desc, eq, inArray, isNull, sql } from "drizzle-orm";
 import { db } from "../../../../db/index.js";
 import {
   supportAttachments,
@@ -22,6 +22,10 @@ import {
   parseSupportRevision,
   supportRevisionMatches,
 } from "../../../../shared/support-concurrency.js";
+import {
+  deriveSupportDuplicateReview,
+  SUPPORT_DUPLICATE_EVENT_TYPES,
+} from "../../../../shared/support-duplicate-policy.js";
 
 const STATUSES = new Set([
   "nouveau",
@@ -102,9 +106,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           : typeof body.assignedTeam === "string"
             ? body.assignedTeam
             : request.assignedTeam;
+      const duplicateDecision = body.duplicateDecision === undefined
+        ? null
+        : body.duplicateDecision === "confirmed" || body.duplicateDecision === "dismissed"
+          ? body.duplicateDecision
+          : "invalid";
       if (!STATUSES.has(nextStatus)) throw new HttpError(400, "Statut invalide");
       if (!PRIORITIES.has(nextPriority)) throw new HttpError(400, "Priorité invalide");
       if (!IDENTITY_STATUSES.has(nextIdentityStatus)) throw new HttpError(400, "Niveau de vérification invalide");
+      if (duplicateDecision === "invalid") throw new HttpError(400, "Décision de doublon invalide");
       if (
         body.assignedTeam !== undefined &&
         body.assignedTeam !== null &&
@@ -184,6 +194,34 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       }
 
       const now = new Date();
+      const duplicateEvents = duplicateDecision
+        ? await db
+            .select({
+              eventType: supportEvents.eventType,
+              toValue: supportEvents.toValue,
+              createdAt: supportEvents.createdAt,
+            })
+            .from(supportEvents)
+            .where(and(
+              eq(supportEvents.requestId, request.id),
+              inArray(supportEvents.eventType, [...SUPPORT_DUPLICATE_EVENT_TYPES])
+            ))
+            .orderBy(desc(supportEvents.createdAt))
+            .limit(10)
+        : [];
+      const duplicateReview = deriveSupportDuplicateReview(duplicateEvents);
+      if (duplicateDecision && !duplicateReview) {
+        throw new HttpError(409, "Aucun doublon potentiel n’est associé à ce dossier");
+      }
+      if (duplicateDecision && duplicateReview) {
+        const [candidate] = await db
+          .select({ assignedTeam: supportRequests.assignedTeam })
+          .from(supportRequests)
+          .where(eq(supportRequests.id, duplicateReview.candidateRequestId))
+          .limit(1);
+        if (!candidate) throw new HttpError(409, "Le dossier rapproché n’existe plus");
+        assertSupportRequestAccess(access, candidate.assignedTeam);
+      }
       const teamChanged = nextAssignedTeam !== request.assignedTeam;
       const nextAssignedTo = body.assignToMe === true
         ? user.id
@@ -270,12 +308,29 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           },
           correlationId: randomUUID(),
         });
+        if (duplicateDecision && duplicateReview) {
+          await tx.insert(supportEvents).values({
+            requestId: request.id,
+            eventType: duplicateDecision === "confirmed"
+              ? "request.duplicate_confirmed"
+              : "request.duplicate_dismissed",
+            actorType: "agent",
+            actorId: user.id,
+            fromValue: { status: duplicateReview.status },
+            toValue: {
+              status: duplicateDecision,
+              candidateRequestId: duplicateReview.candidateRequestId,
+              reason: duplicateReview.reason,
+            },
+            correlationId: randomUUID(),
+          });
+        }
         return [saved];
       });
       return { request: updated };
     }
 
-    const [contacts, messages, attachments, callbacks] = await Promise.all([
+    const [contacts, messages, attachments, callbacks, duplicateEvents] = await Promise.all([
       db
         .select({
           id: supportContacts.id,
@@ -318,7 +373,39 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         .from(supportCallbackTasks)
         .where(eq(supportCallbackTasks.requestId, request.id))
         .orderBy(asc(supportCallbackTasks.createdAt)),
+      db
+        .select({
+          eventType: supportEvents.eventType,
+          toValue: supportEvents.toValue,
+          createdAt: supportEvents.createdAt,
+        })
+        .from(supportEvents)
+        .where(and(
+          eq(supportEvents.requestId, request.id),
+          inArray(supportEvents.eventType, [...SUPPORT_DUPLICATE_EVENT_TYPES])
+        ))
+        .orderBy(desc(supportEvents.createdAt))
+        .limit(10),
     ]);
+
+    const duplicateReview = deriveSupportDuplicateReview(duplicateEvents);
+    const [duplicateCandidate] = duplicateReview
+      ? await db
+          .select({
+            id: supportRequests.id,
+            publicCode: supportRequests.publicCode,
+            assignedTeam: supportRequests.assignedTeam,
+          })
+          .from(supportRequests)
+          .where(eq(supportRequests.id, duplicateReview.candidateRequestId))
+          .limit(1)
+      : [];
+    const canViewDuplicateCandidate = Boolean(
+      duplicateCandidate && (
+        access.canViewAll ||
+        access.serviceCodes.some((serviceCode) => serviceCode === duplicateCandidate.assignedTeam)
+      )
+    );
 
     const identityContext = (request.subjectContext ?? {}) as Record<string, unknown>;
     const contextIdentityStatus = typeof identityContext.identityStatus === "string" && IDENTITY_STATUSES.has(identityContext.identityStatus)
@@ -350,6 +437,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         assigned: callback.assignedTo !== null,
         assignedToCurrentAgent: callback.assignedTo === user.id,
       })),
+      duplicateReview: duplicateReview ? {
+        status: duplicateReview.status,
+        reason: duplicateReview.reason,
+        decidedAt: duplicateReview.decidedAt,
+        candidatePublicCode: canViewDuplicateCandidate ? duplicateCandidate?.publicCode ?? null : null,
+      } : null,
       access,
     };
   });
