@@ -201,6 +201,7 @@ export default function KnowledgeRegistryPage() {
   const [versionSkillId, setVersionSkillId] = useState<string | null>(null);
   const [documentOpen, setDocumentOpen] = useState(false);
   const [documentFile, setDocumentFile] = useState<File | null>(null);
+  const [documentNotes, setDocumentNotes] = useState<Record<string, string>>({});
   const [uploadProgress, setUploadProgress] = useState(0);
   const [documentDraft, setDocumentDraft] = useState(() => ({
     title: "",
@@ -421,6 +422,42 @@ export default function KnowledgeRegistryPage() {
     finally { setBusy(false); }
   }
 
+  async function reviewDocument(id: string, action: "approve" | "reject") {
+    const note = (documentNotes[id] ?? "").trim();
+    if (note.length < 10) {
+      setError("Ajoutez une note de validation d’au moins 10 caractères.");
+      return;
+    }
+    setBusy(true); setError(""); setNotice("");
+    try {
+      await apiFetch(`knowledge/admin/documents/${id}/review`, {
+        method: "POST",
+        body: JSON.stringify({ action, note }),
+      });
+      setDocumentNotes((value) => {
+        const next = { ...value };
+        delete next[id];
+        return next;
+      });
+      setNotice(action === "approve"
+        ? "Document validé. Une source en brouillon a été créée ; l’agent ne l’utilise pas encore."
+        : "Document refusé et retiré du stockage privé.");
+      await load();
+    } catch (reason) {
+      setError(reason instanceof Error ? reason.message : "Validation impossible.");
+    } finally { setBusy(false); }
+  }
+
+  async function openDocument(id: string) {
+    setBusy(true); setError("");
+    try {
+      const result = await apiFetch<{ url: string }>(`knowledge/admin/documents/${id}/download`);
+      window.open(result.url, "_blank", "noopener,noreferrer");
+    } catch (reason) {
+      setError(reason instanceof Error ? reason.message : "Ouverture impossible.");
+    } finally { setBusy(false); }
+  }
+
   return (
     <div className="mx-auto max-w-7xl space-y-6">
       <header className="flex flex-col justify-between gap-4 border-b border-slate-200 pb-5 sm:flex-row sm:items-end">
@@ -471,7 +508,17 @@ export default function KnowledgeRegistryPage() {
               <strong className="block truncate text-slate-950">{document.title}</strong>
               <span className="block truncate text-xs text-slate-500">{document.originalName} · {formatBytes(document.sizeBytes)}</span>
               <p className="mt-2 line-clamp-2 text-sm text-slate-600">{document.purposeDescription}</p>
+              {document.analysisSummary ? <p className="mt-2 text-xs font-medium text-slate-700">{document.analysisSummary}</p> : null}
               {document.analysisError ? <p className="mt-2 text-xs text-red-700">{document.analysisError}</p> : null}
+              {!['reserved', 'quarantined', 'processing', 'rejected'].includes(document.status) ? <button type="button" disabled={busy} onClick={() => void openDocument(document.id)} className="mt-2 inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-700 hover:text-emerald-900 disabled:opacity-50"><FileText className="h-3.5 w-3.5" /> Ouvrir l’original privé</button> : null}
+              {document.status === "review" ? <div className="mt-3 space-y-2 border-l-2 border-amber-400 pl-3">
+                <label className="block text-xs font-semibold text-slate-700" htmlFor={`review-note-${document.id}`}>Note de validation humaine</label>
+                <textarea id={`review-note-${document.id}`} rows={2} className="field bg-white text-sm" value={documentNotes[document.id] ?? ""} placeholder="Ce que vous avez vérifié et la limite d’utilisation, sans nom ni coordonnée." onChange={(event) => setDocumentNotes((value) => ({ ...value, [document.id]: event.target.value }))} />
+                <div className="flex flex-wrap gap-2">
+                  <button type="button" disabled={busy} onClick={() => void reviewDocument(document.id, "approve")} className="inline-flex items-center gap-1.5 rounded-md bg-emerald-700 px-3 py-2 text-xs font-semibold text-white disabled:opacity-50"><FileCheck2 className="h-3.5 w-3.5" /> Créer la source</button>
+                  <button type="button" disabled={busy} onClick={() => void reviewDocument(document.id, "reject")} className="inline-flex items-center gap-1.5 rounded-md border border-red-200 bg-white px-3 py-2 text-xs font-semibold text-red-700 disabled:opacity-50"><Ban className="h-3.5 w-3.5" /> Refuser</button>
+                </div>
+              </div> : null}
             </div>
             <div><span className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold ${DOCUMENT_STATUS[document.status].style}`}>{DOCUMENT_STATUS[document.status].label}</span><span className="mt-1 block text-xs text-slate-500">{document.classification}</span></div>
             <time className="text-xs text-slate-500">Ajouté le<br />{dateLabel(document.createdAt)}</time>

@@ -5,6 +5,30 @@
 **Depot** : `abenmahmoud/Stage-Pilot`
 **Dernier jalon de code verifie** : candidate publiée sur la production Vercel
 
+## Jalon du 29 août 2026 - analyse documentaire locale et validation humaine
+
+- La preview possède désormais une file privée `knowledge_document_scan` et un
+  worker VPS d'une minute exécuté sous `lycee-support`. ClamAV précède toute
+  lecture ; PDF, DOCX, XLSX, TXT et CSV sont extraits localement avec des limites
+  strictes. PPTX et images restent manuels.
+- Les documents personnels/sensibles ou contenant des signaux d'email,
+  téléphone, identifiant élève ou codes ne conservent aucun texte extrait. Aucun
+  fichier brut n'est transmis à OpenAI, Claude, Kimi ou un autre modèle.
+- La recette intégrée a placé un texte fictif en `review`, bloqué et supprimé
+  EICAR, puis confirmé zéro document, audit ou travail de test restant. Le second
+  passage autonome s'est terminé avec le code `0` ; les autres workers sont
+  restés actifs.
+- L'écran direction peut ouvrir l'original par un lien privé de 60 secondes,
+  ajouter une note et, avec MFA, créer une source en brouillon ou refuser puis
+  supprimer le fichier. Une source brouillon n'est ni publiée, ni reliée à une
+  compétence, ni utilisée par l'agent.
+- La migration `20260828234000` est enregistrée uniquement sur la base de
+  preview. Les rôles clients n'ont pas accès à la file. La preuve détaillée est
+  dans `docs/operations/KNOWLEDGE_DOCUMENT_WORKER_VPS_2026-08-29.md`.
+- Avant des documents réels : validation Direction/DPO, rétention et sauvegardes,
+  supervision des 20 Go libres, et migration planifiée du runtime VPS Node 20
+  vers une version prise en charge.
+
 ## Jalon du 29 août 2026 - worker du répertoire privé sur le VPS de preview
 
 - Après autorisation explicite, le worker d'annuaire a été installé de manière

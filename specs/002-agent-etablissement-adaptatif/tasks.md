@@ -94,6 +94,11 @@
   en preview une nature, un service responsable, un périmètre, une date d'effet,
   une échéance de révision et une explication métier. Les codes et secrets sont
   signalés comme interdits ; l'analyse reste dans T014C.
+- [x] T014C2 Installer en preview la file privée et le worker local ClamAV pour
+  PDF, DOCX, XLSX, TXT et CSV, conserver les documents personnels/sensibles en
+  revue manuelle, ouvrir l'original par lien court et créer seulement une source
+  en brouillon après validation humaine MFA. EICAR et le nettoyage à zéro sont
+  vérifiés ; la publication et le contexte agent restent dans T014C/T014D.
 - [ ] T014D Exposer aux compétences uniquement des extraits minimaux de sources
   publiées et autorisées ; interdire les listes nominatives, fichiers bruts et
   documents personnels dans le contexte du modèle.
@@ -110,7 +115,7 @@
 - [ ] T017 Bloquer techniquement toute exécution L4.
 - [ ] T018 Construire la boîte de validation L3 avec expiration, motif et audit.
 - [ ] T019 Mettre les pièces dans un stockage privé avec antivirus, type, taille et URL temporaire.
-- [ ] T019A Construire l'alimentation documentaire du registre : dépôt privé
+- [x] T019A Construire l'alimentation documentaire du registre : dépôt privé
   reprenable, explication métier, classification, propriétaire, état d'analyse
   et validation humaine avant toute activation.
 - [x] T019A1 Livrer en preview le premier jalon : bucket privé de 50 Mo,
@@ -120,9 +125,13 @@
 - [ ] T019B Extraire les PDF, DOCX, XLSX, PPTX, TXT et CSV par segments bornés,
   calculer l'empreinte réelle côté worker et placer les fichiers en quarantaine
   jusqu'au contrôle antivirus.
-- [ ] T019C Produire une proposition IA structurée et résistante aux injections,
+- [x] T019B1 Extraire localement et de manière bornée PDF, DOCX, XLSX, TXT et CSV,
+  précontrôler les archives, calculer SHA-256 et bloquer les signaux privés ;
+  laisser PPTX et images en revue humaine jusqu'à une extraction locale validée.
+- [ ] T019C Produire une proposition structurée résistante aux injections,
   afficher les conflits et questions, puis exiger une validation humaine avant
-  la création d'une source ou d'une compétence.
+  la création d'une source ou d'une compétence. Un éventuel modèle externe ne
+  reçoit que des extraits publics ou internes déjà approuvés, jamais le fichier.
 - [ ] T020 Ajouter masquage des données, rétention, purge et journal d'accès.
 - [ ] T021 Ajouter les limites de débit par appareil, compte, contact et comportement.
 - [ ] T022 Tester injection de prompt, usurpation d'identité et accès croisé.

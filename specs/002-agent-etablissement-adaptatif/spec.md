@@ -152,6 +152,11 @@ leur date, leur responsable et leur état de validité.
   être publié comme source ou modèle ; toute liste de participants ou pièce
   nominative associée reste dans un stockage privé séparé et n'est jamais
   intégrée aux connaissances générales.
+- **FR-046** : l'antivirus et l'extraction d'un document de connaissance sont
+  exécutés localement sur le worker du lycée. Un document personnel, sensible ou
+  contenant des signaux de coordonnées, identifiants ou codes ne conserve aucun
+  texte extrait automatiquement. L'original n'est consultable que par un lien
+  privé court et aucune analyse ne publie seule une source ou une compétence.
 
 ## Exigences non fonctionnelles
 
@@ -173,6 +178,10 @@ leur date, leur responsable et leur état de validité.
 - **NFR-014** : chaque import privé possède une version, une empreinte, un
   responsable, une durée de conservation, une procédure de remplacement et une
   preuve de suppression ou d'archivage contrôlé.
+- **NFR-015** : l'analyse documentaire utilise une file durable privée, des
+  limites de pages, feuilles, lignes, entrées d'archive, mémoire et durée ; les
+  erreurs transitoires sont reprises et un échec déterministe reste visible sans
+  perdre le fichier ni activer l'agent.
 
 ## Règles d'autorité
 

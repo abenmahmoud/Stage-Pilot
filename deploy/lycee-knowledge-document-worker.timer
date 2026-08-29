@@ -1,0 +1,12 @@
+[Unit]
+Description=Run the knowledge document scanner every minute
+
+[Timer]
+OnBootSec=2min
+OnUnitActiveSec=1min
+AccuracySec=10s
+Persistent=true
+Unit=lycee-knowledge-document-worker.service
+
+[Install]
+WantedBy=timers.target

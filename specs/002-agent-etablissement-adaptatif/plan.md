@@ -137,8 +137,9 @@ Chaque ligne de données V2 porte un `institution_id`. Le premier déploiement r
 - OpenAI uniquement côté serveur, avec budget, journal des usages et aucun secret dans le navigateur.
 - Les gros documents de connaissance sont déposés directement dans un bucket
   privé par transfert TUS reprenable. Une file asynchrone réalise antivirus,
-  extraction, segmentation et proposition IA ; Vercel ne reçoit jamais le corps
-  complet du fichier et aucun dépôt n'est publié automatiquement.
+  extraction locale bornée et proposition de connaissance pour revue ; Vercel
+  ne reçoit jamais le corps complet du fichier, le fichier brut n'est transmis à
+  aucun fournisseur de modèle et aucun dépôt n'est publié automatiquement.
 
 ## Déploiement progressif
 

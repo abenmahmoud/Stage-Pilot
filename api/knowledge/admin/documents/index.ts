@@ -19,7 +19,28 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return handleApi(res, async () => {
       const context = await requireKnowledgeManager(req);
       const documents = await db
-        .select()
+        .select({
+          id: knowledgeDocuments.id,
+          title: knowledgeDocuments.title,
+          purposeDescription: knowledgeDocuments.purposeDescription,
+          sourceType: knowledgeDocuments.sourceType,
+          classification: knowledgeDocuments.classification,
+          ownerServiceCode: knowledgeDocuments.ownerServiceCode,
+          serviceCodes: knowledgeDocuments.serviceCodes,
+          validFrom: knowledgeDocuments.validFrom,
+          reviewDueAt: knowledgeDocuments.reviewDueAt,
+          originalName: knowledgeDocuments.originalName,
+          mimeType: knowledgeDocuments.mimeType,
+          sizeBytes: knowledgeDocuments.sizeBytes,
+          status: knowledgeDocuments.status,
+          analysisSummary: knowledgeDocuments.analysisSummary,
+          analysisError: knowledgeDocuments.analysisError,
+          sourceId: knowledgeDocuments.sourceId,
+          createdAt: knowledgeDocuments.createdAt,
+          uploadedAt: knowledgeDocuments.uploadedAt,
+          analyzedAt: knowledgeDocuments.analyzedAt,
+          reviewedAt: knowledgeDocuments.reviewedAt,
+        })
         .from(knowledgeDocuments)
         .where(eq(knowledgeDocuments.institutionId, context.institutionId))
         .orderBy(desc(knowledgeDocuments.createdAt))
