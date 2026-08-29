@@ -18,6 +18,10 @@ import {
   neutralizeSupportPromptMarkers,
   pseudonymizeSupportText,
 } from "../../shared/support-pseudonymizer.js";
+import {
+  detectForbiddenSupportSecret,
+  FORBIDDEN_SUPPORT_SECRET_MESSAGE,
+} from "../../shared/support-secret-policy.js";
 
 export const SUPPORT_COOKIE = "bc_support_session";
 export const SUPPORT_SESSION_DAYS = 30;
@@ -80,7 +84,14 @@ function cleanText(value: unknown, field: string, maxLength: number): string {
   if (clean.length > maxLength) {
     throw new HttpError(400, `${field} dépasse ${maxLength} caractères`);
   }
+  assertNoForbiddenSupportSecret(clean);
   return clean;
+}
+
+export function assertNoForbiddenSupportSecret(value: string): void {
+  if (detectForbiddenSupportSecret(value)) {
+    throw new HttpError(422, FORBIDDEN_SUPPORT_SECRET_MESSAGE);
+  }
 }
 
 function optionalText(value: unknown, field: string, maxLength: number): string | null {
@@ -159,6 +170,7 @@ export function parseSupportRequest(body: unknown): SupportRequestInput {
     }
     throw error;
   }
+  for (const turn of conversation) assertNoForbiddenSupportSecret(turn.content);
 
   if (!email && !phone) {
     throw new HttpError(400, "Indiquez un email ou un téléphone pour recevoir la réponse");

@@ -285,6 +285,15 @@ l'autorisation de quota définie par le propriétaire.
   Vercel protégée, obtenu une réponse IA, écrit deux audits minimaux puis remis
   les six familles de données de test à zéro. T014D est fermé ; aucune source
   réelle n'est publiée.
+- Lot N5R : refus des secrets dans le guichet. **Canaux texte applicatifs
+  protégés avant analyse et stockage** : la création, le chat public, le suivi,
+  les réponses reçues par email, les notes, modèles, traductions, réponses agent
+  et métadonnées de pièces jointes refusent les mots de passe, OTP, codes
+  ENT/PRONOTE et secrets techniques explicitement divulgués. Une demande normale
+  de réinitialisation reste acceptée et le message de refus ne reprend jamais la
+  valeur détectée. L'inspection du contenu des PDF, documents et images reste à
+  construire avec extraction/OCR bornés et revue humaine ; aucune remise de code
+  n'est autorisée par ce lot.
 - Lot N6 : tests de non-régression, build, contrôle mobile et rapport d'écarts.
   **Partiellement validé en preview** : 200 transactions concurrentes sans perte
   ni reste après nettoyage, 135 contrôles de sécurité, build réussi, PWA active,

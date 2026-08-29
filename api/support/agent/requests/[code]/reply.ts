@@ -13,6 +13,7 @@ import {
 import { HttpError } from "../../../../_shared/auth.js";
 import { handleApi, methodNotAllowed } from "../../../../_shared/response.js";
 import {
+  assertNoForbiddenSupportSecret,
   idempotencyKey,
   opaqueToken,
   sha256,
@@ -49,6 +50,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const body = (req.body ?? {}) as Record<string, unknown>;
     let messageText = normalizeSupportReplyText(body.message);
     if (!messageText) throw new HttpError(400, "Message invalide");
+    assertNoForbiddenSupportSecret(messageText);
     const idempotencyHash = sha256(idempotencyKey(req));
     const rawAccessToken = opaqueToken();
 
@@ -115,6 +117,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       ) {
         throw new HttpError(400, "La traduction doit être vérifiée avant l’envoi");
       }
+      assertNoForbiddenSupportSecret(sourceMessage);
       let validReceipt = false;
       try {
         validReceipt = verifySupportTranslationReceipt({

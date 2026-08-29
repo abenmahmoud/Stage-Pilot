@@ -5,6 +5,23 @@
 **Depot** : `abenmahmoud/Stage-Pilot`
 **Dernier jalon de code verifie** : candidate publiée sur la production Vercel
 
+## Jalon du 29 août 2026 - secrets refusés avant analyse et stockage
+
+- Le guichet refuse désormais les mots de passe, codes reçus par SMS, codes
+  ENT/PRONOTE et secrets techniques explicitement fournis. Le contrôle a lieu
+  avant l'appel au modèle et avant toute insertion dans la base.
+- La règle couvre création, conversation, suivi web, email entrant, note interne,
+  modèle, traduction, réponse agent, nom et métadonnées de pièce jointe.
+- Une phrase normale comme « j'ai oublié mon mot de passe » ou « mon code ENT est
+  perdu » reste acceptée. Le refus explique quoi retirer sans jamais répéter la
+  valeur détectée.
+- Le binaire des PDF, documents et images reste en quarantaine antivirus mais son
+  contenu n'est pas encore analysé pour les secrets. Cette limite reste ouverte
+  dans T010B2D/T014C et interdit de prétendre que tous les documents sont sûrs.
+- 36 contrôles ciblés passent avec le build TypeScript/Vite. Lot preview
+  uniquement : aucune production, donnée réelle, base distante, DNS, VPS,
+  Webmail, ENT ou PRONOTE n'a été modifié.
+
 ## Jalon du 29 août 2026 - doublons signalés et décidés par un humain
 
 - Une nouvelle demande est signalée comme doublon possible lorsque le même

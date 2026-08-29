@@ -9,7 +9,11 @@ import {
 } from "../../../../../db/schema.js";
 import { HttpError } from "../../../../_shared/auth.js";
 import { handleApi, methodNotAllowed } from "../../../../_shared/response.js";
-import { idempotencyKey, sha256 } from "../../../../_shared/support.js";
+import {
+  assertNoForbiddenSupportSecret,
+  idempotencyKey,
+  sha256,
+} from "../../../../_shared/support.js";
 import {
   assertSupportRequestAccess,
   requireSupportAgent,
@@ -31,6 +35,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       .replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F]/g, "")
       .trim();
     if (!note || note.length > 5000) throw new HttpError(400, "Note invalide");
+    assertNoForbiddenSupportSecret(note);
 
     const [request] = await db
       .select({ id: supportRequests.id, assignedTeam: supportRequests.assignedTeam })

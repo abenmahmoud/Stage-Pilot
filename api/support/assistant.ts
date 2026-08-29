@@ -2,6 +2,7 @@ import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { HttpError } from "../_shared/auth.js";
 import { handleApi, methodNotAllowed } from "../_shared/response.js";
 import {
+  assertNoForbiddenSupportSecret,
   enforceSupportRateLimit,
   personalHash,
   requestIpHash,
@@ -31,6 +32,7 @@ function cleanMessages(value: unknown): SupportAgentMessage[] {
     if (typeof record.content !== "string") throw new HttpError(400, "Le message est invalide");
     const content = record.content.replace(/[\u0000-\u001F]/g, " ").trim();
     if (!content || content.length > 1500) throw new HttpError(400, "Le message est trop long");
+    assertNoForbiddenSupportSecret(content);
     totalLength += content.length;
     return { role, content };
   });
@@ -47,8 +49,10 @@ function cleanAttachments(value: unknown): SupportAttachmentHint[] {
     if (typeof record.name !== "string" || typeof record.type !== "string" || typeof record.size !== "number") {
       throw new HttpError(400, "Une pièce jointe est invalide");
     }
+    const name = record.name.slice(0, 160);
+    assertNoForbiddenSupportSecret(name);
     return {
-      name: record.name.slice(0, 160),
+      name,
       type: record.type.slice(0, 100),
       size: Math.max(0, Math.min(record.size, 10 * 1024 * 1024)),
     };

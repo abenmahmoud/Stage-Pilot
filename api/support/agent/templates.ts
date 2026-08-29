@@ -9,6 +9,7 @@ import {
 } from "../../../shared/support-reply-templates.js";
 import { HttpError } from "../../_shared/auth.js";
 import { handleApi, methodNotAllowed } from "../../_shared/response.js";
+import { assertNoForbiddenSupportSecret } from "../../_shared/support.js";
 import { requireSupportAgent } from "../../_shared/support-agent-access.js";
 
 const ALLOWED_VARIABLES = new Set<string>(SUPPORT_TEMPLATE_VARIABLES);
@@ -37,6 +38,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       const body = (req.body ?? {}) as Record<string, unknown>;
       const name = cleanText(body.name, "Nom du modèle", 80);
       const bodyText = cleanText(body.bodyText, "Texte du modèle", 5000);
+      assertNoForbiddenSupportSecret(bodyText);
       const category = typeof body.category === "string" && body.category.trim()
         ? cleanText(body.category, "Catégorie", 60)
         : "all";

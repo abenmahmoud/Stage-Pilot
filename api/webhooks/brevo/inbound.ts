@@ -11,7 +11,7 @@ import {
 } from "../../../db/schema.js";
 import { HttpError, secretMatches } from "../../_shared/auth.js";
 import { handleApi, methodNotAllowed } from "../../_shared/response.js";
-import { sha256 } from "../../_shared/support.js";
+import { assertNoForbiddenSupportSecret, sha256 } from "../../_shared/support.js";
 
 type Mailbox = { Address?: string; Name?: string };
 type InboundAttachment = {
@@ -118,6 +118,28 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             payloadHash,
             status: "rejected",
             errorCode: "sender_mismatch",
+            processedAt: new Date(),
+          })
+          .onConflictDoNothing();
+        rejected += 1;
+        continue;
+      }
+
+      try {
+        assertNoForbiddenSupportSecret(text);
+        for (const attachment of (item.Attachments ?? []).slice(0, 5)) {
+          if (attachment.Name) assertNoForbiddenSupportSecret(attachment.Name);
+        }
+      } catch (error) {
+        if (!(error instanceof HttpError) || error.status !== 422) throw error;
+        await db
+          .insert(supportWebhookReceipts)
+          .values({
+            provider: "brevo-inbound",
+            externalId,
+            payloadHash,
+            status: "rejected",
+            errorCode: "forbidden_secret",
             processedAt: new Date(),
           })
           .onConflictDoNothing();

@@ -5,7 +5,10 @@ import { db } from "../../../../db/index.js";
 import { supportAttachments } from "../../../../db/schema.js";
 import { HttpError, supabaseAdmin } from "../../../_shared/auth.js";
 import { handleApi, methodNotAllowed } from "../../../_shared/response.js";
-import { requireSupportAccess } from "../../../_shared/support.js";
+import {
+  assertNoForbiddenSupportSecret,
+  requireSupportAccess,
+} from "../../../_shared/support.js";
 
 const MAX_FILE_BYTES = 10 * 1024 * 1024;
 const MAX_FILES_PER_REQUEST = 5;
@@ -51,6 +54,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const access = await requireSupportAccess(req, code);
     const body = (req.body ?? {}) as Record<string, unknown>;
     const originalName = requiredText(body.fileName, "Nom du fichier", 180);
+    assertNoForbiddenSupportSecret(originalName);
     const declaredMime = requiredText(body.mimeType, "Type du fichier", 150).toLowerCase();
     const sizeBytes = Number(body.sizeBytes);
     if (!Number.isSafeInteger(sizeBytes) || sizeBytes < 1 || sizeBytes > MAX_FILE_BYTES) {
@@ -69,6 +73,20 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       throw new HttpError(503, "Le dépôt de fichiers est momentanément indisponible");
     }
 
+    const concernsType = requiredText(body.concernsType ?? "demande", "Personne concernée", 50);
+    const concernsLabel =
+      typeof body.concernsLabel === "string" && body.concernsLabel.trim()
+        ? body.concernsLabel.trim().slice(0, 180)
+        : null;
+    const documentType = requiredText(body.documentType ?? "justificatif", "Type de document", 80);
+    const note =
+      typeof body.note === "string" && body.note.trim()
+        ? body.note.trim().slice(0, 500)
+        : null;
+    for (const value of [concernsType, concernsLabel, documentType, note]) {
+      if (value) assertNoForbiddenSupportSecret(value);
+    }
+
     await db.transaction(async (tx) => {
       await tx.execute(sql`
         select pg_advisory_xact_lock(hashtextextended(${access.requestId}::text, 0))
@@ -85,16 +103,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       await tx.insert(supportAttachments).values({
         id: attachmentId,
         requestId: access.requestId,
-        concernsType: requiredText(body.concernsType ?? "demande", "Personne concernée", 50),
-        concernsLabel:
-          typeof body.concernsLabel === "string" && body.concernsLabel.trim()
-            ? body.concernsLabel.trim().slice(0, 180)
-            : null,
-        documentType: requiredText(body.documentType ?? "justificatif", "Type de document", 80),
-        note:
-          typeof body.note === "string" && body.note.trim()
-            ? body.note.trim().slice(0, 500)
-            : null,
+        concernsType,
+        concernsLabel,
+        documentType,
+        note,
         originalName,
         declaredMime,
         sizeBytes,

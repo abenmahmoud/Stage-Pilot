@@ -6,6 +6,7 @@ import { supportEvents, supportMessages, supportRequests } from "../../../../db/
 import { HttpError } from "../../../_shared/auth.js";
 import { handleApi, methodNotAllowed } from "../../../_shared/response.js";
 import {
+  assertNoForbiddenSupportSecret,
   enforceSupportRateLimit,
   idempotencyKey,
   personalHash,
@@ -35,6 +36,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       .replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F]/g, "")
       .trim();
     if (!text || text.length > 5000) throw new HttpError(400, "Message invalide");
+    assertNoForbiddenSupportSecret(text);
 
     const correlationId = randomUUID();
     const jobId = randomUUID();

@@ -72,6 +72,13 @@
 - [ ] T010B2D Refuser automatiquement mots de passe, codes ENT/PRONOTE et secrets
   dans tous les imports ; cadrer séparément une éventuelle remise de codes avec
   Direction/DPO, identité forte, durée courte et validation humaine.
+- [x] T010B2D1 Refuser avant analyse IA ou stockage les mots de passe, OTP, codes
+  ENT/PRONOTE et secrets techniques présents dans les champs, conversations,
+  suivis web, emails entrants, notes, modèles, traductions, réponses et
+  métadonnées de pièces jointes du guichet. Les demandes d'aide sans valeur
+  secrète restent acceptées et le refus n'affiche jamais la valeur détectée.
+  L'inspection du contenu binaire ou extrait des documents reste dans T010B2D et
+  T014C.
 - [ ] T010B3 Brancher l'OTP de contact à usage unique avec limites, expiration,
   session rotative et révocation, sans promouvoir ce contact en identité scolaire.
 - [ ] T010B4 Rapprocher une identité uniquement contre une version active du

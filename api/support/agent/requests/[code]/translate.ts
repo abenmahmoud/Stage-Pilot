@@ -14,6 +14,7 @@ import {
   requireSupportAgent,
 } from "../../../../_shared/support-agent-access.js";
 import {
+  assertNoForbiddenSupportSecret,
   enforceSupportRateLimit,
   personalHash,
 } from "../../../../_shared/support.js";
@@ -34,6 +35,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const body = (req.body ?? {}) as Record<string, unknown>;
     const sourceMessage = normalizeSupportReplyText(body.sourceMessage, 5_000);
     if (!sourceMessage) throw new HttpError(400, "Rédigez d’abord la réponse en français");
+    assertNoForbiddenSupportSecret(sourceMessage);
 
     const [request] = await db
       .select({
