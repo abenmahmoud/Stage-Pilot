@@ -158,9 +158,18 @@
   scolaire, révocation, MFA et aucun passe-droit administrateur hors périmètre.
 - [ ] T015B Brancher cette matrice avant l'IA et chaque outil sur les futures
   tables d'identités, relations et adhésions, puis la renforcer par les RLS.
-- [ ] T016 Implémenter les listes blanches d'outils et schémas d'entrée par compétence.
-- [ ] T017 Bloquer techniquement toute exécution L4.
+- [x] T016 Implémenter les listes blanches d'outils et schémas d'entrée par compétence.
+  Le contrat serveur exige une compétence publiée, la clé exacte de l'outil et
+  un schéma fermé qui refuse les champs inconnus, types, valeurs et références
+  invalides. Aucun outil n'est activé par ce jalon.
+- [x] T017 Bloquer techniquement toute exécution L4. Le niveau d'autorité `A4`,
+  qui remplace l'ancien usage ambigu de L4 pour les actions, est refusé avant
+  tout autre contrôle, y compris pour un superadministrateur sous MFA avec une
+  approbation.
 - [ ] T018 Construire la boîte de validation L3 avec expiration, motif et audit.
+  Le contrat A3 exige déjà une approbation indépendante liée à l'action, l'outil
+  et l'empreinte de l'entrée, non expirée et non consommée. La persistance,
+  l'interface, la consommation atomique et l'audit restent à construire.
 - [ ] T019 Mettre les pièces dans un stockage privé avec antivirus, type, taille et URL temporaire.
 - [x] T019A Construire l'alimentation documentaire du registre : dépôt privé
   reprenable, explication métier, classification, propriétaire, état d'analyse
@@ -288,6 +297,9 @@
   au compte nominatif du propriétaire dans la preview uniquement, conserver une
   adhésion `admin` active et actualiser la session avant de charger la console.
 - [ ] T028 N'afficher une réussite qu'après `confirmed_at` fourni par l'outil.
+  Le validateur de résultat refuse déjà les états non réussis, les actions ou
+  outils discordants, les confirmations absentes, antérieures ou futures. Le
+  branchement à une action persistée et à l'interface reste requis.
 - [x] T029 Ajouter formulaire classique et création de demande sans dépendance à l'IA.
 - [ ] T030 Ajouter mesure du coût, de la latence, des transferts et des corrections.
 

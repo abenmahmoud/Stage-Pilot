@@ -347,6 +347,14 @@ l'autorisation de quota définie par le propriétaire.
   confirmée revient aux règles locales sans source affichée ni audit fictif.
   T028 reste ouverte : aucun adaptateur d'action sensible et aucun contrat
   `confirmed_at` ne sont activés par ce lot.
+- Lot N5Y : autorisation des futurs outils. **Socle implémenté et testé
+  localement** : une compétence publiée doit lister l'outil exact, son entrée est
+  validée par un schéma fermé et les contrôles établissement, identité, rôle,
+  service, relation et MFA restent séparés. A3 attend une approbation indépendante
+  liée à l'action, l'outil et l'empreinte d'entrée ; une approbation expirée,
+  consommée ou rejouée est refusée. A4 est bloqué sans exception. La preuve
+  `confirmed_at` est validée, mais T018 et T028 restent ouvertes jusqu'à la
+  persistance atomique, l'interface et un premier adaptateur réel autorisé.
 - Lot N6 : tests de non-régression, build, contrôle mobile et rapport d'écarts.
   **Partiellement validé en preview** : 200 transactions concurrentes sans perte
   ni reste après nettoyage, 135 contrôles de sécurité, build réussi, PWA active,

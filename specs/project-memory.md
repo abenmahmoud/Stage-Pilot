@@ -1143,6 +1143,21 @@ taches et analyse de coherence avant une automatisation sensible.
 - Ce jalon ne ferme pas la future preuve d'outil T028 : aucune action sensible,
   aucun connecteur ENT/PRONOTE et aucun `confirmed_at` n'ont été activés.
 
+### Jalon du 30 août 2026 - autorisation des futurs outils
+
+- Le contrat central des outils exige une compétence publiée, une liste blanche
+  exacte et un schéma d'entrée fermé avant toute exécution.
+- Établissement, identité `I0-I4`, rôle, service, relation et MFA sont contrôlés
+  séparément. `A4` est refusé sans exception, même pour un superadministrateur.
+- Une action `A3` attend une approbation indépendante, non expirée, non consommée
+  et liée à l'action, à l'outil et à l'empreinte de l'entrée afin d'empêcher le
+  rejeu d'une décision.
+- Une réussite future nécessite un résultat correspondant, l'état `succeeded`,
+  une date `confirmed_at` cohérente et une référence opaque. La persistance et
+  l'affichage restent ouverts dans T018/T028.
+- Aucun outil, connecteur, compte, donnée réelle ou environnement de production
+  n'a été activé par ce jalon.
+
 ## 8. Prochain ordre recommande
 
 1. Publier et tester le pré-triage ordinateur portable avec des données fictives.
