@@ -293,6 +293,52 @@ test("rejects a model category that contradicts a certain local route", async ()
   }
 });
 
+test("rejects a model claim that an unavailable action succeeded", async () => {
+  const originalFetch = globalThis.fetch;
+  const originalApiKey = process.env.OPENAI_API_KEY;
+  process.env.OPENAI_API_KEY = "test-key";
+  globalThis.fetch = async () => new Response(JSON.stringify({
+    output: [{
+      type: "message",
+      content: [{
+        type: "output_text",
+        text: JSON.stringify({
+          reply: "J’ai réinitialisé votre accès ENT. Vous pouvez vous connecter.",
+          category: "ent",
+          requesterType: "eleve",
+          urgency: "normale",
+          confidence: "high",
+          missingInformation: [],
+          suggestedDocuments: [],
+          readyToCreate: false,
+          safetyNotice: null,
+          detectedLanguage: "français",
+          internalSummaryFr: "L’élève signale un blocage persistant de son accès ENT.",
+        }),
+      }],
+    }],
+  }), { status: 200, headers: { "Content-Type": "application/json" } });
+
+  try {
+    const result = await analyzeSupportConversation({
+      messages: messages(
+        "Je suis élève et mon accès ENT est bloqué depuis hier malgré plusieurs essais."
+      ),
+      attachments: [],
+      safetyIdentifier: "test-session",
+      knowledgeContextLoader: async () => "",
+    });
+
+    assert.equal(result.usedAi, false);
+    assert.equal(result.category, "ent");
+    assert.equal(result.action, "offer_case");
+    assert.doesNotMatch(result.reply, /réinitialisé/i);
+  } finally {
+    globalThis.fetch = originalFetch;
+    process.env.OPENAI_API_KEY = originalApiKey;
+  }
+});
+
 test("adds only the server-selected public registry context to model instructions", async () => {
   const originalFetch = globalThis.fetch;
   const originalApiKey = process.env.OPENAI_API_KEY;
@@ -352,6 +398,7 @@ test("adds only the server-selected public registry context to model instruction
     assert.equal(result.usedAi, true);
     assert.match(requestBody.instructions, /Procédure ENT validée/);
     assert.match(requestBody.instructions, /ne prétends jamais l'avoir exécuté/i);
+    assert.equal(requestBody.tools, undefined);
     assert.deepEqual(result.sourceReferences, [{
       title: "Procédure ENT de rentrée",
       updatedAt: "2026-08-27T10:00:00.000Z",

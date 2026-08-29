@@ -209,7 +209,14 @@
 
 ## Phase 3 - Agent et connaissances
 
-- [ ] T023 Construire l'orchestrateur de compétences et les sorties structurées.
+- [x] T023 Construire l'orchestrateur de compétences et les sorties structurées.
+  Le contrat d'orchestration fixe désormais l'ordre des contrôles : politique
+  déterministe, pré-triage métier, registre autorisé, modèle sans outil, schéma
+  strict, calcul serveur de la prochaine action et audit des seules sources
+  réellement sélectionnées. Une sortie incomplète, contradictoire, peu fiable ou
+  prétendant qu'une action indisponible a réussi déclenche le repli local. Les
+  tests dédiés prouvent aussi qu'une réponse déterministe ou le pré-triage PC
+  arrêtent le flux avant le registre et avant le modèle.
 - [x] T023A Brancher l'assistant public sur les seules compétences pertinentes,
   actives et publiées de son établissement, avec version et revue valides,
   sources obligatoires publiques encore valides, budget de contexte borné et

@@ -728,8 +728,8 @@ sa specification.
 - Le nouveau test de charge nettoyable n'a pas ete relance sur ce poste, faute
   d'URL de connexion directe a la base de preview dans l'environnement local.
 - L'agent V2 possede une specification, un plan et des taches. Son registre de
-  competences est maintenant persiste et administrable ; son orchestrateur ne
-  consomme pas encore les seules versions publiees.
+  competences est persiste et administrable ; son orchestrateur consomme
+  uniquement les versions publiees, actives, autorisees et encore valides.
 - La matrice d'accès V2 est implémentée et testée sur objets fictifs : un contact
   vérifié ne devient jamais une identité scolaire, les relations propres ou
   parent-enfant doivent être actives, les établissements et services sont
@@ -1128,6 +1128,20 @@ taches et analyse de coherence avant une automatisation sensible.
 - Le flux est prêt dans la preview mais ne justifie encore aucun import réel :
   l'installation et la recette du worker, le lien agent limité à une page et la
   conservation restent bloquants.
+
+### Jalon du 29 août 2026 - contrat d'orchestration public
+
+- L'ordre serveur est maintenant documenté et couvert : règles déterministes,
+  pré-triage ordinateur, registre publié autorisé, modèle sans outil, schéma
+  strict puis prochaine action calculée par le serveur.
+- Une règle déterministe ou un pré-triage concluant arrête le traitement avant
+  toute lecture du registre et tout appel au modèle.
+- Une sortie IA incomplète, contradictoire, peu fiable ou prétendant avoir
+  réinitialisé, envoyé, transmis ou exécuté une action indisponible est rejetée
+  au profit du repli local. Elle ne produit ni référence publique ni journal
+  d'usage fictif.
+- Ce jalon ne ferme pas la future preuve d'outil T028 : aucune action sensible,
+  aucun connecteur ENT/PRONOTE et aucun `confirmed_at` n'ont été activés.
 
 ## 8. Prochain ordre recommande
 

@@ -281,6 +281,21 @@ function safeAttachmentSummary(attachments: SupportAttachmentHint[]) {
   });
 }
 
+function claimsUnconfirmedActionSuccess(value: string): boolean {
+  const text = value
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[’`]/g, "'")
+    .toLowerCase();
+  const completedAction =
+    "(?:reinitialise|debloque|modifie|supprime|active|cree|enregistre|envoye|transmis|signale|alerte|contacte|appele)";
+
+  return new RegExp(
+    `\\b(?:j[' ]ai|nous avons|le lycee a|un agent a)\\b.{0,90}\\b${completedAction}\\b|` +
+      `\\b(?:votre|le|la|l[' ])[^.!?]{0,50}\\b(?:a ete|est)\\s+${completedAction}e?s?\\b`
+  ).test(text);
+}
+
 function parseResult(value: string): SupportAgentModelResult {
   const raw = JSON.parse(value) as unknown;
   if (!raw || typeof raw !== "object" || Array.isArray(raw)) {
@@ -459,6 +474,7 @@ export async function analyzeSupportConversation(input: {
       .find((content) => content.type === "output_text")?.text;
     if (!outputText) return fallback;
     const parsedResult = parseResult(outputText);
+    if (claimsUnconfirmedActionSuccess(parsedResult.reply)) return fallback;
     if (parsedResult.confidence === "low") return fallback;
     if (fallback.confidence === "high" && parsedResult.category !== fallback.category) {
       return fallback;

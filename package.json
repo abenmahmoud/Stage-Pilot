@@ -13,6 +13,7 @@
     "worker:knowledge-document-purge": "node workers/knowledge-document-purge-worker.mjs",
     "test:assistant-policy": "node --experimental-strip-types scripts/test-assistant-policy.mjs",
     "test:support-agent": "node --import ./scripts/ts-test-resolver.mjs --experimental-strip-types scripts/test-support-agent.mjs",
+    "test:agent-orchestration": "node --import ./scripts/ts-test-resolver.mjs --experimental-strip-types scripts/test-agent-orchestration.mjs",
     "test:support-multilingual": "node --import ./scripts/ts-test-resolver.mjs --experimental-transform-types scripts/test-support-multilingual.mjs",
     "test:support-translation": "node --import ./scripts/ts-test-resolver.mjs --experimental-strip-types scripts/test-support-translation.mjs",
     "test:support-pseudonymizer": "node --experimental-strip-types scripts/test-support-pseudonymizer.mjs",

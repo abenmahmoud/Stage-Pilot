@@ -339,6 +339,14 @@ l'autorisation de quota définie par le propriétaire.
   locale. La santé minimisée conserve le recours humain et un contact vérifié
   ne devient pas une identité scolaire. Les 54 contrôles ciblés et le build
   passent ; la validation des formulations et responsables réels reste humaine.
+- Lot N5X : contrat d'orchestration public. **Implémenté et testé localement** :
+  la politique déterministe et le pré-triage PC coupent le flux avant le registre
+  et le modèle ; le modèle reçoit un contexte borné et aucun outil ; son JSON est
+  validé strictement et la prochaine action reste calculée côté serveur. Une
+  sortie invalide, contradictoire, peu fiable ou annonçant une action non
+  confirmée revient aux règles locales sans source affichée ni audit fictif.
+  T028 reste ouverte : aucun adaptateur d'action sensible et aucun contrat
+  `confirmed_at` ne sont activés par ce lot.
 - Lot N6 : tests de non-régression, build, contrôle mobile et rapport d'écarts.
   **Partiellement validé en preview** : 200 transactions concurrentes sans perte
   ni reste après nettoyage, 135 contrôles de sécurité, build réussi, PWA active,
