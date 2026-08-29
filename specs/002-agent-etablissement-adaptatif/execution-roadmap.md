@@ -262,6 +262,14 @@ l'autorisation de quota définie par le propriétaire.
   contrôlé et un nettoyage à zéro. La recherche déterministe par un agent
   habilité, la rotation de clé, la rétention et la restauration restent à
   construire avant toute donnée réelle.
+- Lot N5P : recherche contrôlée du répertoire. **Canal applicatif implémenté et
+  fermé par défaut** : accès direction nominatif avec MFA, motif obligatoire,
+  recherche exacte uniquement, requête et résultat chiffrés, reçu lié à l'agent
+  et résultat minimal sans donnée transmise à l'IA. Les deux migrations sont
+  appliquées sur la preview vide, avec RLS forcée et charges chiffrées purgées au
+  traitement ou à cinq minutes. L'activation du worker VPS, les secrets Vercel
+  preview et la recette de bout en bout conservent une porte d'autorisation
+  séparée.
 - Lot N6 : tests de non-régression, build, contrôle mobile et rapport d'écarts.
   **Partiellement validé en preview** : 200 transactions concurrentes sans perte
   ni reste après nettoyage, 135 contrôles de sécurité, build réussi, PWA active,

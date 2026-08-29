@@ -1,6 +1,6 @@
 begin;
 
-select plan(27);
+select plan(33);
 
 select has_table('public', 'identity_directory_imports', 'identity imports table exists');
 select has_table('public', 'contact_verifications', 'contact verifications table exists');
@@ -13,6 +13,12 @@ select has_function('public', 'identity_directory_require_active_source', array[
 select has_table('public', 'identity_directory_private_rows', 'encrypted private identity rows table exists');
 select is((select relrowsecurity from pg_class where oid = 'public.identity_directory_private_rows'::regclass), true, 'private identity rows has RLS enabled');
 select is((select relforcerowsecurity from pg_class where oid = 'public.identity_directory_private_rows'::regclass), true, 'private identity rows forces RLS');
+select has_table('public', 'identity_directory_lookup_requests', 'encrypted identity lookup table exists');
+select has_table('pgmq', 'q_identity_directory_lookup', 'private identity lookup queue exists');
+select is((select relrowsecurity from pg_class where oid = 'public.identity_directory_lookup_requests'::regclass), true, 'identity lookup requests has RLS enabled');
+select is((select relforcerowsecurity from pg_class where oid = 'public.identity_directory_lookup_requests'::regclass), true, 'identity lookup requests forces RLS');
+select ok(not has_table_privilege('anon', 'public.identity_directory_lookup_requests', 'select'), 'anon cannot read identity lookup requests');
+select ok(not has_table_privilege('authenticated', 'public.identity_directory_lookup_requests', 'select'), 'authenticated cannot read identity lookup requests directly');
 
 select is((select relrowsecurity from pg_class where oid = 'public.identity_directory_imports'::regclass), true, 'identity imports has RLS enabled');
 select is((select relforcerowsecurity from pg_class where oid = 'public.identity_directory_imports'::regclass), true, 'identity imports forces RLS');

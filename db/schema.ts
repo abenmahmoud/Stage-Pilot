@@ -403,6 +403,49 @@ export const identityDirectoryPrivateRows = pgTable(
   ]
 );
 
+export const identityDirectoryLookupRequests = pgTable(
+  "identity_directory_lookup_requests",
+  {
+    id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+    institutionId: uuid("institution_id")
+      .notNull()
+      .references(() => institutions.id, { onDelete: "cascade" }),
+    actorId: uuid("actor_id").notNull(),
+    searchType: text("search_type").notNull(),
+    reasonCategory: text("reason_category").notNull(),
+    justificationHash: text("justification_hash").notNull(),
+    requestSchema: integer("request_schema").default(1),
+    requestKeyVersion: text("request_key_version"),
+    requestWrappedKey: text("request_wrapped_key"),
+    requestIv: text("request_iv"),
+    requestAuthTag: text("request_auth_tag"),
+    requestCiphertext: text("request_ciphertext"),
+    status: text("status").notNull().default("queued"),
+    matchedImportId: uuid("matched_import_id"),
+    resultSchema: integer("result_schema"),
+    resultIv: text("result_iv"),
+    resultAuthTag: text("result_auth_tag"),
+    resultCiphertext: text("result_ciphertext"),
+    resultCount: integer("result_count"),
+    errorCode: text("error_code"),
+    expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+    startedAt: timestamp("started_at", { withTimezone: true }),
+    completedAt: timestamp("completed_at", { withTimezone: true }),
+    readAt: timestamp("read_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    index("identity_directory_lookup_actor_idx").on(
+      table.institutionId,
+      table.actorId,
+      table.createdAt
+    ),
+    index("identity_directory_lookup_expiry_idx").on(table.expiresAt),
+    index("identity_directory_lookup_status_idx").on(table.status, table.createdAt),
+  ]
+);
+
 export const contactVerifications = pgTable(
   "contact_verifications",
   {

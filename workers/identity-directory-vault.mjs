@@ -62,8 +62,13 @@ function aad({ institutionId, importId, personRef, version }) {
 
 export function identityVaultConfig(env = process.env) {
   const version = keyVersion(env.IDENTITY_DIRECTORY_ENCRYPTION_KEY_VERSION);
+  return { version, key: identityVaultKeyForVersion(version, env) };
+}
+
+export function identityVaultKeyForVersion(versionValue, env = process.env) {
+  const version = keyVersion(versionValue);
   const encodedKey = env[`IDENTITY_DIRECTORY_ENCRYPTION_KEY_${version.toUpperCase()}`];
-  return { version, key: encryptionKey(encodedKey) };
+  return encryptionKey(encodedKey);
 }
 
 export function encryptIdentityVaultPayload({

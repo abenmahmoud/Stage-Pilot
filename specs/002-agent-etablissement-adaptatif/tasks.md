@@ -76,6 +76,18 @@
   session rotative et révocation, sans promouvoir ce contact en identité scolaire.
 - [ ] T010B4 Rapprocher une identité uniquement contre une version active du
   répertoire, avec MFA agent, justification, gestion des conflits et audit.
+- [ ] T010B4A Construire en preview le canal de recherche déterministe chiffré :
+  requête exacte, reçu éphémère lié à l'agent, résultat minimal, états absent ou
+  ambigu sans fuite, file privée et audit sans donnée nominative. L'activation
+  du worker VPS et toute donnée réelle nécessitent une autorisation séparée.
+- [x] T010B4A1 Implémenter et tester le canal applicatif fermé par défaut :
+  migration privée, enveloppes RSA-OAEP/AES-GCM, API MFA, limites de débit,
+  reçu de cinq minutes, interface direction, purge des charges chiffrées et
+  recette transactionnelle fictive à zéro résidu sur la preview.
+- [ ] T010B4A2 Après autorisation VPS explicite, générer la paire de transport,
+  installer le worker séparé, configurer uniquement la clé publique et le secret
+  de reçu sur Vercel preview, puis valider les cas unique, absent, ambigu, panne,
+  reprise et expiration avec un répertoire entièrement fictif.
 - [ ] T010C Définir les liens élève-responsable, personnel-service et classe-groupe,
   puis tester qu'un compte ne consulte jamais les données d'un autre foyer.
 - [x] T011 Implémenter le parseur et le validateur du format de compétence.

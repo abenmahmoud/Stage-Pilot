@@ -805,6 +805,23 @@ taches et analyse de coherence avant une automatisation sensible.
   Les tests de panne fournisseur et de rejeu sur une base de recette restent à
   exécuter avant de considérer le retour email complètement opérationnel.
 
+### Jalon du 29 août 2026 - consultation contrôlée des identités
+
+- La recherche V1 est réservée à la direction et à la superadministration avec
+  MFA `aal2`, motif structuré et justification de 20 à 500 caractères.
+- Seules les recherches exactes par email académique, email personnel,
+  téléphone ou référence opaque sont autorisées. La recherche par nom,
+  l'export et l'accès de l'agent IA sont interdits.
+- La requête est chiffrée pour le worker avec RSA-OAEP et AES-256-GCM. Le
+  résultat minimal est chiffré avec une clé éphémère conservée dans un reçu de
+  cinq minutes lié au compte, à l'établissement et à la requête.
+- La table et la file privées sont appliquées uniquement à la branche Supabase
+  de preview, vides, avec RLS forcée et sans droit client. Une charge de requête
+  disparaît au traitement et le résultat disparaît à l'expiration.
+- Le worker et les secrets ne sont pas activés : l'écran l'indique et refuse la
+  recherche. Toute intervention VPS ou donnée réelle nécessite une autorisation
+  distincte et une recette entièrement fictive.
+
 ## 8. Prochain ordre recommande
 
 1. Publier et tester le pré-triage ordinateur portable avec des données fictives.
