@@ -1,0 +1,43 @@
+# Coffre des emplois du temps en preview
+
+## Etat livre
+
+- `schedule_source_versions` : versions PDF classes/professeurs, date d'effet,
+  statut et responsables nominatifs.
+- `schedule_page_indexes` : une page vers une reference opaque de classe ou de
+  personnel, avec verification humaine obligatoire.
+- `schedule_audit` : actions minimales, acteur et date sans identite scolaire ni
+  contenu d'emploi du temps.
+- `schedule-ingest` : bucket prive, PDF seulement, 50 Mo maximum.
+- `/admin/emplois-du-temps` : reservation et confirmation d'un depot sous MFA.
+
+Les migrations de preview sont :
+
+- `20260829105141_create_schedule_import_foundation.sql` ;
+- `20260829105238_index_schedule_audit_institution.sql` ;
+- `20260829105632_harden_schedule_scope_integrity.sql`.
+
+## Verifications
+
+- Migration complete creee dans une transaction puis annulee sans reste.
+- Trois tables presentes et vides apres application.
+- Bucket prive conforme et aucun droit de lecture/ecriture client direct.
+- Une version active fictive et une page fictive verifiee acceptees.
+- Une deuxieme version active du meme perimetre refusee par la contrainte unique.
+- Recette entierement annulee : zero version, page et audit de test.
+- Conseiller Supabase : aucun index de cle etrangere manquant pour ces tables.
+  Les seuls messages de performance sont des index inutilises, resultat attendu
+  sur des tables vides.
+
+## Blocages maintenus
+
+Un PDF recu n'est ni lu ni active. Avant toute donnee reelle, il faut encore :
+
+1. le worker antivirus et le comptage fiable des pages ;
+2. le rapprochement humain page-reference ;
+3. l'approbation et l'activation atomiques avec retour arriere ;
+4. les liens de lecture courts et audites ;
+5. une duree de conservation validee et des comptes agents nominatifs testes.
+
+La production, Hostinger, le DNS, le VPS, PRONOTE, l'ENT et les deux PDF reels
+n'ont pas ete modifies.

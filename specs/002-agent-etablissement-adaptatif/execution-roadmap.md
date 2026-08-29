@@ -123,8 +123,12 @@ l'autorisation de quota définie par le propriétaire.
   preview. Les comptes usagers, l'OTP, l'analyse du répertoire et le
   rapprochement restent à construire avant tout usage réel.
 - Lot N3 : schéma privé et réversible des versions d'emploi du temps, sans importer
-  les PDF ni les noms en preview. **Contrat et politique de lecture fictive testés ;
-  migration privée encore requise**.
+  les PDF ni les noms en preview. **Coffre de preview et interface direction
+  terminés** : bucket PDF privé limité à 50 Mo, trois tables serveur sans droit
+  client, versions classes/professeurs, une seule version active par année,
+  index de page opaque et audit. Le dépôt exige MFA et reste bloqué à l'état
+  reçu ; antivirus, comptage des pages, rapprochement humain, activation et
+  retrait restent requis avant les deux PDF réels.
 - Lot N4 : compétence cours/salles/changements et scénarios interdits.
 - Lot N4A : politique de publication, accès aux sources, expiration et retour
   arrière du registre de compétences. **Socle persistant implémenté et testé** :

@@ -199,15 +199,37 @@ Relie une version de compétence à une ou plusieurs sources. La publication éc
 |---|---|---|
 | `id` | uuid | Clé primaire |
 | `institution_id` | uuid | Cloison obligatoire |
-| `source_type` | enum | `pdf_import`, `official_export`, `official_connector` |
-| `storage_ref` | text | Objet privé, jamais URL publique permanente |
-| `content_hash` | text | Détection d'altération et doublons |
-| `effective_from` | timestamptz | Début de validité |
-| `effective_until` | timestamptz nullable | Fin de validité |
-| `status` | enum | `uploaded`, `parsed`, `review`, `active`, `superseded`, `rejected` |
+| `source_kind` | enum | `classes`, `teachers` |
+| `source_format` | enum | `pdf_import` en V1 |
+| `school_year` | text | Année consécutive, par exemple `2026-2027` |
+| `version` | integer | Incrément atomique par périmètre |
+| `storage_bucket/path` | text | Objet privé, jamais URL publique permanente |
+| `checksum` | text nullable | Ajouté après contrôle antivirus |
+| `effective_from` | date | Début de validité métier |
+| `page_count` | integer nullable | Renseigné après lecture technique |
+| `status` | enum | `reserved`, `uploaded`, `quarantined`, `processing`, `review`, `approved`, `active`, `superseded`, `rejected`, `failed`, `retired` |
 | `uploaded_by` | uuid | Compte individuel |
 | `approved_by` | uuid nullable | Validation humaine requise |
 | `activated_at` | timestamptz nullable | Une seule version active par périmètre |
+
+### `schedule_page_indexes`
+
+| Champ | Type | Règle |
+|---|---|---|
+| `id` | uuid | Clé primaire |
+| `institution_id` | uuid | Même établissement que la source |
+| `source_version_id` | uuid | Version PDF immuable |
+| `page_number` | integer | De 1 à 500, unique dans la version |
+| `subject_type` | enum | `class`, `teacher` |
+| `subject_ref` | text | Référence opaque, jamais nom de personne |
+| `review_status` | enum | `draft`, `verified`, `rejected` |
+| `reviewed_by/at` | uuid/timestamptz | Obligatoires hors brouillon |
+
+### `schedule_audit`
+
+Le journal conserve la version, la page éventuelle, l'action, le compte agent,
+la date et un résumé minimal. Il ne conserve ni nom, emploi du temps complet,
+question utilisateur ou coordonnées.
 
 ### `schedule_slots`
 

@@ -274,6 +274,15 @@
   humaine avant activation. L'autorisation d'utiliser les fichiers réels est
   enregistrée ; ne les importer qu'après création du stockage protégé, des
   habilitations nominatives, du journal d'accès et de la conservation.
+- [x] T042C1 Créer sur la preview le coffre PDF privé, les versions classes et
+  professeurs, l'index de pages par référence opaque, l'audit et le dépôt
+  direction sous MFA. Les migrations `20260829105141`, `20260829105238` et
+  `20260829105632` sont
+  appliquées sur trois tables vides ; une recette fictive a vérifié l'unicité de
+  la version active et le retour à zéro. Aucun PDF réel n'est encore importé.
+- [ ] T042C2 Ajouter le worker antivirus et de comptage des pages, l'écran de
+  rapprochement humain page-référence, l'approbation, l'activation, le lien
+  temporaire de lecture et le retrait avec conservation validée.
 - [ ] T042D Construire le modèle de lecture privé des créneaux, groupes, salles et
   périodes de validité, avec versions et possibilité de retour arrière.
 - [x] T042D1 Implémenter et tester sur données fictives la politique de lecture :

@@ -21,6 +21,7 @@ import {
   BookOpenCheck,
   IdCard,
   Activity,
+  CalendarDays,
 } from "lucide-react";
 
 const navCls = ({ isActive }: { isActive: boolean }) =>
@@ -164,6 +165,10 @@ export default function AppLayout() {
                 <NavLink to="/admin/sante-demandes" className={navCls}>
                   <Activity className="w-4 h-4" />
                   Santé des demandes
+                </NavLink>
+                <NavLink to="/admin/emplois-du-temps" className={navCls}>
+                  <CalendarDays className="w-4 h-4" />
+                  Emplois du temps
                 </NavLink>
               </>
             )}

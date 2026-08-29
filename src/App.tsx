@@ -36,6 +36,7 @@ const ContentManagerPage = lazy(() => import("./pages/admin/ContentManagerPage")
 const KnowledgeRegistryPage = lazy(() => import("./pages/admin/KnowledgeRegistryPage"));
 const IdentityDirectoryPage = lazy(() => import("./pages/admin/IdentityDirectoryPage"));
 const SupportOperationsPage = lazy(() => import("./pages/admin/SupportOperationsPage"));
+const ScheduleImportPage = lazy(() => import("./pages/admin/ScheduleImportPage"));
 
 function PageFallback() {
   return (
@@ -242,6 +243,14 @@ export default function App() {
             element={
               <RoleRoute allowedRoles={["superadmin", "proviseur"]}>
                 <SupportOperationsPage />
+              </RoleRoute>
+            }
+          />
+          <Route
+            path="admin/emplois-du-temps"
+            element={
+              <RoleRoute allowedRoles={["superadmin", "proviseur"]}>
+                <ScheduleImportPage />
               </RoleRoute>
             }
           />

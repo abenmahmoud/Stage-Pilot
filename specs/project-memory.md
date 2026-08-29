@@ -860,6 +860,22 @@ taches et analyse de coherence avant une automatisation sensible.
 - La recette a supprimé ses sources, documents, extraits, compétences, versions,
   évaluations, liens et audits. Le contrôle final a confirmé un retour à zéro.
 
+### Jalon du 29 août 2026 - coffre des emplois du temps
+
+- Le bucket privé `schedule-ingest` accepte uniquement les PDF de 50 Mo maximum.
+  Aucun droit direct n'est accordé à `anon` ou `authenticated`.
+- Trois tables serveur versionnent les PDF classes/professeurs, indexent les
+  pages par référence opaque et journalisent les actions sans nom de personne.
+- L'écran direction `/admin/emplois-du-temps` exige une session agent sous MFA,
+  réserve un transfert signé et vérifie la taille et le type exacts reçus.
+- Un PDF confirmé reste `uploaded` avec antivirus, indexation et activation
+  bloqués. L'interface ne propose pas d'activation prématurée.
+- Les migrations `20260829105141`, `20260829105238` et `20260829105632` sont appliquées uniquement
+  à la preview. Les tables sont vides. Une recette fictive transactionnelle a
+  vérifié l'index de page, l'unicité de la version active et le retour à zéro.
+- Les deux PDF réels restent sur le poste jusqu'au worker antivirus, au
+  rapprochement humain, aux liens temporaires audités et à la conservation.
+
 ## 8. Prochain ordre recommande
 
 1. Publier et tester le pré-triage ordinateur portable avec des données fictives.

@@ -846,6 +846,126 @@ export const agentSkillAudit = pgTable(
   ]
 );
 
+export const scheduleSourceVersions = pgTable(
+  "schedule_source_versions",
+  {
+    id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+    institutionId: uuid("institution_id")
+      .notNull()
+      .references(() => institutions.id, { onDelete: "cascade" }),
+    sourceKind: text("source_kind").notNull(),
+    sourceFormat: text("source_format").notNull().default("pdf_import"),
+    schoolYear: text("school_year").notNull(),
+    version: integer("version").notNull(),
+    title: text("title").notNull(),
+    purposeDescription: text("purpose_description").notNull(),
+    effectiveFrom: date("effective_from").notNull(),
+    originalName: text("original_name").notNull(),
+    mimeType: text("mime_type").notNull(),
+    sizeBytes: bigint("size_bytes", { mode: "number" }).notNull(),
+    storageBucket: text("storage_bucket").notNull().default("schedule-ingest"),
+    storagePath: text("storage_path").notNull().unique(),
+    checksum: text("checksum"),
+    pageCount: integer("page_count"),
+    status: text("status").notNull().default("reserved"),
+    validationSummary: jsonb("validation_summary").notNull().default({}),
+    uploadedBy: uuid("uploaded_by").notNull(),
+    reviewedBy: uuid("reviewed_by"),
+    approvedBy: uuid("approved_by"),
+    activatedBy: uuid("activated_by"),
+    uploadedAt: timestamp("uploaded_at", { withTimezone: true }),
+    reviewedAt: timestamp("reviewed_at", { withTimezone: true }),
+    approvedAt: timestamp("approved_at", { withTimezone: true }),
+    activatedAt: timestamp("activated_at", { withTimezone: true }),
+    retiredAt: timestamp("retired_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    uniqueIndex("schedule_source_versions_scope_version_uidx").on(
+      table.institutionId,
+      table.sourceKind,
+      table.schoolYear,
+      table.version
+    ),
+    index("schedule_source_versions_institution_status_idx").on(
+      table.institutionId,
+      table.status,
+      table.createdAt
+    ),
+  ]
+);
+
+export const schedulePageIndexes = pgTable(
+  "schedule_page_indexes",
+  {
+    id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+    institutionId: uuid("institution_id")
+      .notNull()
+      .references(() => institutions.id, { onDelete: "cascade" }),
+    sourceVersionId: uuid("source_version_id")
+      .notNull()
+      .references(() => scheduleSourceVersions.id, { onDelete: "cascade" }),
+    pageNumber: integer("page_number").notNull(),
+    subjectType: text("subject_type").notNull(),
+    subjectRef: text("subject_ref").notNull(),
+    reviewStatus: text("review_status").notNull().default("draft"),
+    reviewedBy: uuid("reviewed_by"),
+    reviewedAt: timestamp("reviewed_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    uniqueIndex("schedule_page_indexes_source_page_uidx").on(
+      table.sourceVersionId,
+      table.pageNumber
+    ),
+    uniqueIndex("schedule_page_indexes_source_subject_uidx").on(
+      table.sourceVersionId,
+      table.subjectType,
+      table.subjectRef
+    ),
+    index("schedule_page_indexes_subject_idx").on(
+      table.institutionId,
+      table.subjectType,
+      table.subjectRef,
+      table.reviewStatus
+    ),
+  ]
+);
+
+export const scheduleAudit = pgTable(
+  "schedule_audit",
+  {
+    id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+    institutionId: uuid("institution_id")
+      .notNull()
+      .references(() => institutions.id, { onDelete: "cascade" }),
+    sourceVersionId: uuid("source_version_id")
+      .notNull()
+      .references(() => scheduleSourceVersions.id, { onDelete: "cascade" }),
+    pageIndexId: uuid("page_index_id").references(() => schedulePageIndexes.id, {
+      onDelete: "restrict",
+    }),
+    action: text("action").notNull(),
+    actorId: uuid("actor_id").notNull(),
+    summary: jsonb("summary").notNull().default({}),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    index("schedule_audit_source_idx").on(
+      table.sourceVersionId,
+      table.institutionId,
+      table.createdAt
+    ),
+    index("schedule_audit_institution_created_idx").on(
+      table.institutionId,
+      table.createdAt
+    ),
+    index("schedule_audit_actor_idx").on(table.actorId, table.createdAt),
+  ]
+);
+
 export const siteContentTemplates = pgTable("site_content_templates", {
   id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
   slug: text("slug").notNull().unique(),

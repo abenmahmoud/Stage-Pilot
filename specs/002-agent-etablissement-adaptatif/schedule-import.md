@@ -46,7 +46,21 @@ Cette autorisation est enregistrée et n'a pas besoin d'être redemandée pour
 construire le flux d'import privé en preview.
 
 Les fichiers ne doivent toutefois jamais être ajoutés à Git, intégrés au bundle
-web ou servis par une URL publique. Avant leur premier téléversement, il reste à
-créer le stockage privé, les comptes agents habilités, la journalisation des
-accès et la durée de conservation. Tant que ces protections ne sont pas actives,
-les PDF restent uniquement sur le poste local.
+web ou servis par une URL publique.
+
+Le 29 aout 2026, le socle suivant est appliqué uniquement à la preview :
+
+- bucket `schedule-ingest` privé, PDF seulement, 50 Mo maximum ;
+- tables serveur `schedule_source_versions`, `schedule_page_indexes` et
+  `schedule_audit`, avec RLS forcée et droits client révoqués ;
+- dépôt réservé à la direction sous MFA, version automatique et confirmation de
+  la taille et du type reçus ;
+- une seule version active par établissement, périmètre et année scolaire ;
+- pages rattachées uniquement à une référence opaque de classe ou de personnel ;
+- aucune activation depuis l'écran tant que les contrôles suivants manquent.
+
+Avant le premier téléversement réel, il reste à installer et tester l'antivirus,
+compter les pages, construire le rapprochement humain, ouvrir les pages par lien
+temporaire audité, définir la conservation et vérifier les comptes nominatifs.
+Tant que ces protections ne sont pas actives, les PDF restent uniquement sur le
+poste local.
