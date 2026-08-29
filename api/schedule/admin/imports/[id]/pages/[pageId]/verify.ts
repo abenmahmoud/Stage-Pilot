@@ -1,5 +1,5 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { and, eq } from "drizzle-orm";
+import { and, eq, sql } from "drizzle-orm";
 import { db } from "../../../../../../../db/index.js";
 import {
   scheduleAudit,
@@ -26,6 +26,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const pageId = routeUuid(req, "pageId");
 
     const mapping = await db.transaction(async (tx) => {
+      await tx.execute(sql`
+        select pg_advisory_xact_lock(hashtextextended(${id}::text, 61744))
+      `);
       const [page] = await tx
         .select({
           id: schedulePageIndexes.id,

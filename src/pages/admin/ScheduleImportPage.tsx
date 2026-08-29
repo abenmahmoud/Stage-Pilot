@@ -117,6 +117,10 @@ export default function ScheduleImportPage() {
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
   const [selectedImportId, setSelectedImportId] = useState("");
+  const [actionTargetId, setActionTargetId] = useState("");
+  const [actionJustification, setActionJustification] = useState("");
+  const [actionConfirmation, setActionConfirmation] = useState("");
+  const [promotionBusy, setPromotionBusy] = useState(false);
   const [pageSource, setPageSource] = useState<SchedulePageSource | null>(null);
   const [pages, setPages] = useState<SchedulePageMapping[]>([]);
   const [pageDrafts, setPageDrafts] = useState<Record<number, string>>({});
@@ -134,6 +138,12 @@ export default function ScheduleImportPage() {
           return current;
         }
         return result.imports.find((item) => item.status === "review")?.id ?? "";
+      });
+      setActionTargetId((current) => {
+        const candidates = result.imports.filter((item) =>
+          ["review", "approved", "superseded"].includes(item.status)
+        );
+        return candidates.some((item) => item.id === current) ? current : candidates[0]?.id ?? "";
       });
     } catch (reason) {
       setError(reason instanceof Error ? reason.message : "Chargement impossible.");
@@ -235,6 +245,43 @@ export default function ScheduleImportPage() {
     }
   }
 
+  async function runPromotion() {
+    const target = imports.find((item) => item.id === actionTargetId);
+    if (!target) return;
+    const action = target.status === "review"
+      ? "approve"
+      : target.status === "approved"
+        ? "activate"
+        : "rollback";
+    setPromotionBusy(true);
+    setError("");
+    setNotice("");
+    try {
+      await apiFetch(`schedule/admin/imports/${target.id}/${action}`, {
+        method: "POST",
+        body: JSON.stringify({
+          justification: actionJustification,
+          ...(action === "activate" ? { confirmation: "ACTIVER" } : {}),
+          ...(action === "rollback" ? { confirmation: "RESTAURER" } : {}),
+        }),
+      });
+      setNotice(
+        action === "approve"
+          ? "Version approuvée. Une confirmation distincte reste nécessaire pour l'activer."
+          : action === "activate"
+            ? "Version activée. La version précédente reste disponible pour un retour arrière."
+            : "Version restaurée. L'opération est conservée dans l'audit."
+      );
+      setActionJustification("");
+      setActionConfirmation("");
+      await load();
+    } catch (reason) {
+      setError(reason instanceof Error ? reason.message : "Action impossible.");
+    } finally {
+      setPromotionBusy(false);
+    }
+  }
+
   async function submit(event: React.FormEvent) {
     event.preventDefault();
     if (!file) {
@@ -299,6 +346,36 @@ export default function ScheduleImportPage() {
   const pageByNumber = new Map(pages.map((page) => [page.pageNumber, page]));
   const verifiedCount = pages.filter((page) => page.reviewStatus === "verified").length;
   const totalPages = pageSource?.pageCount ?? 0;
+  const actionCandidates = imports.filter((item) =>
+    ["review", "approved", "superseded"].includes(item.status)
+  );
+  const actionTarget = actionCandidates.find((item) => item.id === actionTargetId) ?? null;
+  const actionKind = actionTarget?.status === "review"
+    ? "approve"
+    : actionTarget?.status === "approved"
+      ? "activate"
+      : actionTarget?.status === "superseded"
+        ? "rollback"
+        : null;
+  const expectedConfirmation = actionKind === "activate"
+    ? "ACTIVER"
+    : actionKind === "rollback"
+      ? "RESTAURER"
+      : "";
+  const mappingComplete = Boolean(
+    actionTarget?.status !== "review" ||
+    (
+      actionTarget.id === selectedImportId &&
+      actionTarget.pageCount &&
+      verifiedCount === actionTarget.pageCount
+    )
+  );
+  const canPromote = Boolean(
+    actionTarget &&
+    actionJustification.trim().length >= 20 &&
+    mappingComplete &&
+    (!expectedConfirmation || actionConfirmation === expectedConfirmation)
+  );
 
   return (
     <div className="mx-auto max-w-6xl space-y-6">
@@ -423,6 +500,74 @@ export default function ScheduleImportPage() {
           </div>
         ) : null}
       </section>
+
+      {actionCandidates.length > 0 ? (
+        <section className="space-y-4 border-y border-slate-200 bg-white p-4 sm:p-6">
+          <div>
+            <h2 className="text-lg font-bold text-slate-950">Validation de la version</h2>
+            <p className="text-sm text-slate-500">Approbation, mise en service ou retour arrière avec preuve.</p>
+          </div>
+          <label className="block max-w-2xl text-sm font-medium text-slate-700">
+            Version
+            <select
+              className="field mt-1 bg-white"
+              value={actionTargetId}
+              disabled={promotionBusy}
+              onChange={(event) => {
+                const nextId = event.target.value;
+                const next = imports.find((item) => item.id === nextId);
+                setActionTargetId(nextId);
+                setActionConfirmation("");
+                if (next?.status === "review") setSelectedImportId(nextId);
+              }}
+            >
+              {actionCandidates.map((item) => (
+                <option key={item.id} value={item.id}>
+                  {item.title} · {STATUS[item.status].label}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="block max-w-2xl text-sm font-medium text-slate-700">
+            Vérification effectuée
+            <textarea
+              className="field mt-1 bg-white"
+              rows={3}
+              minLength={20}
+              maxLength={1000}
+              value={actionJustification}
+              disabled={promotionBusy}
+              onChange={(event) => setActionJustification(event.target.value)}
+              placeholder="Indiquez les contrôles réalisés et la raison de cette décision."
+            />
+          </label>
+          {expectedConfirmation ? (
+            <label className="block max-w-sm text-sm font-medium text-slate-700">
+              Saisissez {expectedConfirmation}
+              <input
+                className="field mt-1 bg-white font-mono uppercase"
+                value={actionConfirmation}
+                disabled={promotionBusy}
+                onChange={(event) => setActionConfirmation(event.target.value.toUpperCase())}
+              />
+            </label>
+          ) : null}
+          {actionTarget?.status === "review" && !mappingComplete ? (
+            <p className="text-sm font-medium text-amber-800">
+              Vérifiez d'abord les {actionTarget.pageCount ?? 0} pages de cette version.
+            </p>
+          ) : null}
+          <button
+            type="button"
+            onClick={() => void runPromotion()}
+            disabled={promotionBusy || !canPromote}
+            className="inline-flex min-h-10 items-center justify-center gap-2 rounded-md bg-slate-950 px-4 text-sm font-semibold text-white disabled:opacity-40"
+          >
+            {promotionBusy ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <BadgeCheck className="h-4 w-4" />}
+            {actionKind === "approve" ? "Approuver" : actionKind === "activate" ? "Activer" : "Restaurer"}
+          </button>
+        </section>
+      ) : null}
 
       <section className="space-y-4 border-t border-slate-200 pt-6">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">

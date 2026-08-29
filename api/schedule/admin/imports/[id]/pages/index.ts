@@ -1,5 +1,5 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { and, asc, eq, ne } from "drizzle-orm";
+import { and, asc, eq, ne, sql } from "drizzle-orm";
 import { db } from "../../../../../../db/index.js";
 import {
   scheduleAudit,
@@ -80,6 +80,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       }
 
       const mapping = await db.transaction(async (tx) => {
+        await tx.execute(sql`
+          select pg_advisory_xact_lock(hashtextextended(${id}::text, 61744))
+        `);
         const [source] = await tx
           .select({
             sourceKind: scheduleSourceVersions.sourceKind,

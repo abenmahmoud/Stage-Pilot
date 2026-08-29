@@ -87,3 +87,23 @@ poste local.
 - La direction peut ouvrir le PDF entier par un lien privé de 60 secondes sous
   MFA, avec audit et réponse `no-store`. Ce lien administratif ne constitue pas
   encore le futur lien limité à une page pour l'agent.
+
+## Contrat d'approbation et d'activation
+
+- L'approbation exige une source en `review`, un contrôle antivirus propre, une
+  empreinte SHA-256, un comptage vérifié et exactement une référence vérifiée
+  pour chacune des pages du PDF.
+- L'approbation et l'activation exigent une justification de 20 à 1 000
+  caractères. L'activation demande en plus la confirmation explicite
+  `ACTIVER` ; un retour arrière demande `RESTAURER`.
+- Chaque mutation prend un verrou transactionnel. L'activation verrouille le
+  périmètre établissement-type-année, remplace l'éventuelle version active et
+  journalise les deux opérations dans la même transaction.
+- Le retour arrière ne recrée pas les données : il réactive une version
+  `superseded`, remplace la version courante et conserve toutes les preuves.
+- Une contrainte PostgreSQL revalide les pages et le contrôle du document à
+  chaque promotion. Les routes applicatives ne peuvent donc pas contourner ces
+  invariants.
+- Ce contrat prépare le flux en preview mais n'autorise ni import réel ni
+  activation réelle avant la recette du worker et la validation des comptes
+  nominatifs.

@@ -32,6 +32,7 @@
     "test:schedule-import-security": "node scripts/test-schedule-import-security.mjs",
     "test:schedule-document-worker": "node scripts/test-schedule-document-worker.mjs",
     "test:schedule-page-input": "node --experimental-strip-types scripts/test-schedule-page-input.mjs",
+    "test:schedule-promotion-input": "node --experimental-strip-types scripts/test-schedule-promotion-input.mjs",
     "test:schedule-import-ui": "node scripts/test-schedule-import-ui.mjs",
     "test:skill-registry": "node --experimental-strip-types scripts/test-skill-registry-policy.mjs",
     "test:knowledge-expiry": "node --experimental-strip-types scripts/test-knowledge-expiry-policy.mjs",

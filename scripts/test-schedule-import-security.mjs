@@ -42,6 +42,26 @@ const reviewBoundsMigration = readFileSync(
   new URL("../supabase/migrations/20260829113248_enforce_schedule_page_review_bounds.sql", import.meta.url),
   "utf8"
 );
+const promotionMigration = readFileSync(
+  new URL("../supabase/migrations/20260829114151_enforce_schedule_promotion_integrity.sql", import.meta.url),
+  "utf8"
+);
+const validationSummaryMigration = readFileSync(
+  new URL("../supabase/migrations/20260829114935_harden_schedule_validation_summary.sql", import.meta.url),
+  "utf8"
+);
+const approveApi = readFileSync(
+  new URL("../api/schedule/admin/imports/[id]/approve.ts", import.meta.url),
+  "utf8"
+);
+const activateApi = readFileSync(
+  new URL("../api/schedule/admin/imports/[id]/activate.ts", import.meta.url),
+  "utf8"
+);
+const rollbackApi = readFileSync(
+  new URL("../api/schedule/admin/imports/[id]/rollback.ts", import.meta.url),
+  "utf8"
+);
 const manager = readFileSync(
   new URL("../api/_shared/schedule-imports.ts", import.meta.url),
   "utf8"
@@ -132,4 +152,36 @@ test("opens only validated private PDFs with a short audited URL", () => {
   assert.match(fileApi, /action: "open_page"/);
   assert.match(fileApi, /Cache-Control", "no-store"/);
   assert.doesNotMatch(fileApi, /getPublicUrl|publicUrl/);
+});
+
+test("locks mapping and approval against concurrent edits", () => {
+  assert.match(pagesApi, /pg_advisory_xact_lock\(hashtextextended\(\$\{id\}::text, 61744\)\)/);
+  assert.match(verifyApi, /pg_advisory_xact_lock\(hashtextextended\(\$\{id\}::text, 61744\)\)/);
+  assert.match(approveApi, /pg_advisory_xact_lock\(hashtextextended\(\$\{id\}::text, 61744\)\)/);
+});
+
+test("requires a clean complete page index before approval", () => {
+  assert.match(approveApi, /validation\.securityScan !== "clean"/);
+  assert.match(approveApi, /validation\.pageCountVerified !== true/);
+  assert.match(approveApi, /count\(\*\) filter/);
+  assert.match(approveApi, /action: "approve"/);
+  assert.match(promotionMigration, /Every schedule page must be mapped and verified/);
+  assert.match(promotionMigration, /Schedule document validation is incomplete/);
+  assert.match(validationSummaryMigration, /securityScan'\) is distinct from 'clean'/i);
+  assert.match(validationSummaryMigration, /pageCountVerified'\) is distinct from 'true'/i);
+});
+
+test("activates one version per scope in an audited transaction", () => {
+  assert.match(activateApi, /parseSchedulePromotionInput\(req\.body, "ACTIVER"\)/);
+  assert.match(activateApi, /pg_advisory_xact_lock/);
+  assert.match(activateApi, /status: "superseded"/);
+  assert.match(activateApi, /activatedBy: context\.user\.id/);
+  assert.match(activateApi, /action: "activate"/);
+});
+
+test("restores only a superseded version with an explicit audit", () => {
+  assert.match(rollbackApi, /parseSchedulePromotionInput\(req\.body, "RESTAURER"\)/);
+  assert.match(rollbackApi, /candidate\.status !== "superseded"/);
+  assert.match(rollbackApi, /action: "rollback"/);
+  assert.match(promotionMigration, /'rollback'/);
 });

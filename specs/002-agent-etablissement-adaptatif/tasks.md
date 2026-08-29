@@ -297,6 +297,10 @@
   recettes PDF fictif, EICAR, panne antivirus et reprise avant tout PDF réel.
 - [ ] T042C2D Ajouter approbation, activation atomique, retour arrière, lien
   temporaire limité à la bonne page pour l'agent et retrait selon conservation.
+- [x] T042C2D1 Ajouter les invariants SQL et les actions direction sous MFA pour
+  approuver une indexation complète, activer atomiquement une version et
+  restaurer une version remplacée, avec justification et audit. Le lien agent
+  limité à une page et le retrait restent séparés.
 - [ ] T042D Construire le modèle de lecture privé des créneaux, groupes, salles et
   périodes de validité, avec versions et possibilité de retour arrière.
 - [x] T042D1 Implémenter et tester sur données fictives la politique de lecture :

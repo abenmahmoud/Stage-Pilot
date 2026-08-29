@@ -910,11 +910,34 @@ taches et analyse de coherence avant une automatisation sensible.
   l'activation, le lien agent limité à une page et la conservation restent à
   construire ; aucun PDF réel n'a été téléversé.
 
+### Jalon du 29 août 2026 - promotion réversible des emplois du temps
+
+- Les actions direction `Approuver`, `Activer` et `Restaurer` exigent MFA,
+  justification et confirmation explicite pour les deux actions de mise en
+  service. Chaque opération est auditée sans contenu du PDF.
+- La migration preview `20260829114151` interdit directement dans PostgreSQL
+  l'approbation d'un document non contrôlé ou d'un index incomplet, le saut de
+  `review` vers `active` et la coexistence de deux versions actives.
+- La migration `20260829114935` refuse explicitement les clés de validation JSON
+  absentes, sans dépendre de la sémantique `NULL` de PostgreSQL. Une seconde
+  recette a vérifié le refus des clés absentes et l'acceptation des preuves
+  complètes, puis a été annulée.
+- Les mutations de page et de version partagent des verrous transactionnels.
+  L'activation et la restauration verrouillent d'abord le périmètre
+  établissement-type-année afin d'éviter les promotions concurrentes.
+- La recette fictive a validé six scénarios : approbation complète, refus de
+  l'activation directe, refus d'un index incomplet, restauration, audit de la
+  restauration et refus d'une seconde version active. La transaction a été
+  annulée et les trois tables sont revenues à zéro ligne.
+- Le flux est prêt dans la preview mais ne justifie encore aucun import réel :
+  l'installation et la recette du worker, le lien agent limité à une page et la
+  conservation restent bloquants.
+
 ## 8. Prochain ordre recommande
 
 1. Publier et tester le pré-triage ordinateur portable avec des données fictives.
-2. Construire l'import privé et réversible des emplois du temps, sans déposer les
-   PDF réels avant validation du stockage et des habilitations.
+2. Installer puis éprouver le worker d'emplois du temps sur données fictives,
+   avant tout dépôt réel ; construire ensuite le lien agent limité à une page.
 3. Reprendre le skill ENT après ouverture de l'accès administrateur du référent.
 4. Terminer le retour email, la sauvegarde, les tests de charge et les comptes
    agents nominatifs.

@@ -15,9 +15,11 @@ Les migrations de preview sont :
 
 - `20260829105141_create_schedule_import_foundation.sql` ;
 - `20260829105238_index_schedule_audit_institution.sql` ;
-- `20260829105632_harden_schedule_scope_integrity.sql`.
-- `20260829112115_create_schedule_document_scan_queue.sql`.
-- `20260829113248_enforce_schedule_page_review_bounds.sql`.
+- `20260829105632_harden_schedule_scope_integrity.sql` ;
+- `20260829112115_create_schedule_document_scan_queue.sql` ;
+- `20260829113248_enforce_schedule_page_review_bounds.sql` ;
+- `20260829114151_enforce_schedule_promotion_integrity.sql` ;
+- `20260829114935_harden_schedule_validation_summary.sql`.
 
 ## Verifications
 
@@ -38,10 +40,8 @@ le worker n'est pas installé sur le VPS. Avant toute donnée réelle, il faut
 encore :
 
 1. installer le worker puis vérifier PDF sain, EICAR, panne et reprise ;
-2. le rapprochement humain page-reference ;
-3. l'approbation et l'activation atomiques avec retour arriere ;
-4. les liens de lecture courts et audites ;
-5. une duree de conservation validee et des comptes agents nominatifs testes.
+2. le lien agent limité à la page autorisée ;
+3. une durée de conservation validée et des comptes agents nominatifs testés.
 
 La production, Hostinger, le DNS, le VPS, PRONOTE, l'ENT et les deux PDF reels
 n'ont pas ete modifies.
