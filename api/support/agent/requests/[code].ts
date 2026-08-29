@@ -17,6 +17,7 @@ import {
   assertSupportTransferAccess,
   requireSupportAgent,
 } from "../../../_shared/support-agent-access.js";
+import { enforceAgentWriteRateLimit } from "../../../_shared/support-rate-limits.js";
 import {
   formatSupportRevision,
   parseSupportRevision,
@@ -77,6 +78,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     assertSupportRequestAccess(access, request.assignedTeam);
 
     if (req.method === "PATCH") {
+      await enforceAgentWriteRateLimit(user.id);
       const body = (req.body ?? {}) as Record<string, unknown>;
       const expectedRevision = parseSupportRevision(body.expectedUpdatedAt);
       if (!expectedRevision) {

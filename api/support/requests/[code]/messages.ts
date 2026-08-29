@@ -13,6 +13,7 @@ import {
   requireSupportAccess,
   sha256,
 } from "../../../_shared/support.js";
+import { SUPPORT_RATE_LIMIT_POLICIES } from "../../../../shared/support-rate-limit-policy.js";
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== "POST") return methodNotAllowed(res, ["POST"]);
@@ -24,10 +25,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
     const access = await requireSupportAccess(req, code);
     await enforceSupportRateLimit({
-      scope: "message_session",
+      ...SUPPORT_RATE_LIMIT_POLICIES.messageSessionBurst,
       keyHash: personalHash(`message:${access.sessionId}`),
-      limit: 60,
-      windowSeconds: 10 * 60,
     });
     const messageIdempotencyHash = sha256(idempotencyKey(req));
     const body = req.body as Record<string, unknown>;

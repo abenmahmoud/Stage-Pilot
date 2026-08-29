@@ -5,6 +5,25 @@
 **Depot** : `abenmahmoud/Stage-Pilot`
 **Dernier jalon de code verifie** : candidate publiée sur la production Vercel
 
+## Jalon du 29 août 2026 - limites sans blocage collectif
+
+- Le guichet et l'assistant utilisent désormais des compteurs PostgreSQL
+  partagés par appareil, contact haché, compte agent et comportement répété.
+- La connexion réseau collective reste seulement un garde-fou très haut. Il
+  n'existe plus de clé `network:unknown` commune à tous les usagers et, sur
+  Vercel, seul l'en-tête réseau de confiance est accepté.
+- Messages, réservations de fichiers, confirmations et écritures de la console
+  possèdent aussi leurs propres limites. Les appels IA coûteux conservent leurs
+  plafonds par compte déjà existants.
+- La migration `20260829205947` est appliquée uniquement à la branche Supabase
+  de preview. Les 17 compteurs présents ont été conservés ; l'essai synthétique
+  a été annulé et n'a laissé aucun résidu.
+- 48 contrôles ciblés et le build passent. RLS est forcée, les clients n'ont
+  aucun droit et aucune donnée réelle, production, DNS, VPS, Webmail, ENT ou
+  PRONOTE n'a été modifié.
+- Les seuils V1 et la suppression progressive des compteurs expirés doivent être
+  observés puis validés avec la direction et le DPO avant production.
+
 ## Jalon du 29 août 2026 - conservation documentaire fermée par défaut
 
 - La branche Supabase de preview `guichet-lycee-preview` possède désormais les

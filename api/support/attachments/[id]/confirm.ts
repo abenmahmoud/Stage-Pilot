@@ -6,6 +6,7 @@ import { supportAttachments, supportEvents } from "../../../../db/schema.js";
 import { HttpError, supabaseAdmin } from "../../../_shared/auth.js";
 import { handleApi, methodNotAllowed } from "../../../_shared/response.js";
 import { requireSupportAccess } from "../../../_shared/support.js";
+import { enforceAttachmentConfirmationRateLimit } from "../../../_shared/support-rate-limits.js";
 
 const MAX_FILE_BYTES = 10 * 1024 * 1024;
 
@@ -48,6 +49,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
 
     const access = await requireSupportAccess(req, publicCode);
+    await enforceAttachmentConfirmationRateLimit(access.sessionId);
     const [attachment] = await db
       .select()
       .from(supportAttachments)

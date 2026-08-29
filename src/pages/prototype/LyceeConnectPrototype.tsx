@@ -1104,6 +1104,7 @@ function HelpDeskView({
       try {
         result = await apiFetch<AssistantInsight>("support/assistant", {
           method: "POST",
+          headers: { "X-Support-Device": assistantSessionId },
           body: JSON.stringify({
             sessionId: assistantSessionId,
             messages: nextMessages.slice(-21).map(({ role, content }) => ({ role, content })),
@@ -1221,6 +1222,7 @@ function HelpDeskView({
           headers: {
             "Content-Type": "application/json",
             "Idempotency-Key": requestKey,
+            "X-Support-Device": assistantSessionId,
           },
           body: JSON.stringify({
             requesterType: profile,

@@ -188,7 +188,11 @@
   `pending_dpo` sans date ni purge, worker par lots avec interrupteur explicite
   et suppression via l'API Storage. Les durées, l'activation et la recette de
   purge restent nécessaires pour fermer T020.
-- [ ] T021 Ajouter les limites de débit par appareil, compte, contact et comportement.
+- [x] T021 Ajouter les limites de débit par appareil, compte, contact et
+  comportement. Le compteur PostgreSQL atomique est branché sur l'assistant, la
+  création, le suivi, les pièces et les écritures agent. Les clés sont hachées,
+  le réseau reste un garde-fou très haut et aucun repli commun ne peut bloquer
+  tout le lycée. Les seuils restent à observer et valider avant production.
 - [ ] T022 Tester injection de prompt, usurpation d'identité et accès croisé.
 - [ ] T022A Tester les scénarios de la charte : urgence sans permanence,
   fausse confirmation d'alerte, demande sur un tiers, appareil partagé,

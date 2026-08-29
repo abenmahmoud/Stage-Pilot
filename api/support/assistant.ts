@@ -3,21 +3,14 @@ import { HttpError } from "../_shared/auth.js";
 import { handleApi, methodNotAllowed } from "../_shared/response.js";
 import {
   assertNoForbiddenSupportSecret,
-  enforceSupportRateLimit,
-  personalHash,
-  requestIpHash,
 } from "../_shared/support.js";
+import { enforceAssistantRateLimits } from "../_shared/support-rate-limits.js";
 import {
   analyzeSupportConversation,
   type SupportAgentMessage,
   type SupportAttachmentHint,
 } from "../_shared/support-agent.js";
 import { resolveKnowledgeActorFromRequest } from "../_shared/knowledge-actor.js";
-
-const SESSION_WINDOW_SECONDS = 24 * 60 * 60;
-const NETWORK_WINDOW_SECONDS = 60 * 60;
-const SESSION_RATE_LIMIT = 24;
-const NETWORK_RATE_LIMIT = 800;
 
 function cleanMessages(value: unknown): SupportAgentMessage[] {
   if (!Array.isArray(value) || value.length === 0 || value.length > 21) {
@@ -59,14 +52,6 @@ function cleanAttachments(value: unknown): SupportAttachmentHint[] {
   });
 }
 
-function clientKeys(req: VercelRequest, sessionId: string): { session: string; network: string } {
-  const network = requestIpHash(req) ?? personalHash("network:unknown");
-  return {
-    session: personalHash(`assistant:${network}:${sessionId}`),
-    network,
-  };
-}
-
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== "POST") return methodNotAllowed(res, ["POST"]);
   return handleApi(res, async () => {
@@ -75,24 +60,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (typeof input.sessionId !== "string" || !/^[a-zA-Z0-9-]{16,80}$/.test(input.sessionId)) {
       throw new HttpError(400, "La session est invalide");
     }
-    const keys = clientKeys(req, input.sessionId);
-    await enforceSupportRateLimit({
-      scope: "assistant_network",
-      keyHash: keys.network,
-      limit: NETWORK_RATE_LIMIT,
-      windowSeconds: NETWORK_WINDOW_SECONDS,
-    });
-    await enforceSupportRateLimit({
-      scope: "assistant_session",
-      keyHash: keys.session,
-      limit: SESSION_RATE_LIMIT,
-      windowSeconds: SESSION_WINDOW_SECONDS,
-    });
+    const deviceKey = await enforceAssistantRateLimits(req, input.sessionId);
     const knowledgeActor = await resolveKnowledgeActorFromRequest(req);
     return analyzeSupportConversation({
       messages: cleanMessages(input.messages),
       attachments: cleanAttachments(input.attachments),
-      safetyIdentifier: keys.session,
+      safetyIdentifier: deviceKey,
       knowledgeActor,
     });
   });

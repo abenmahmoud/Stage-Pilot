@@ -22,6 +22,7 @@ import {
   detectForbiddenSupportSecret,
   FORBIDDEN_SUPPORT_SECRET_MESSAGE,
 } from "../../shared/support-secret-policy.js";
+import type { SupportRateLimitScope } from "../../shared/support-rate-limit-policy.js";
 
 export const SUPPORT_COOKIE = "bc_support_session";
 export const SUPPORT_SESSION_DAYS = 30;
@@ -262,26 +263,40 @@ function firstHeaderValue(value: string | string[] | undefined): string | null {
 }
 
 export function requestIpHash(req: VercelRequest): string | null {
-  const value =
-    firstHeaderValue(req.headers["x-vercel-forwarded-for"]) ??
-    firstHeaderValue(req.headers["x-forwarded-for"]);
+  const vercelAddress = firstHeaderValue(req.headers["x-vercel-forwarded-for"]);
+  const localForwardedAddress =
+    process.env.NODE_ENV === "production"
+      ? null
+      : firstHeaderValue(req.headers["x-forwarded-for"]);
+  const value = vercelAddress ?? localForwardedAddress;
   return value ? personalHash(value) : null;
 }
 
 export async function enforceSupportRateLimit(input: {
-  scope:
-    | "assistant_session"
-    | "assistant_network"
-    | "request_network"
-    | "message_session"
-    | "magic_token_network"
-    | "content_ai_user"
-    | "agent_translation_user";
+  scope: SupportRateLimitScope;
   keyHash: string;
   limit: number;
   windowSeconds: number;
+  message?: string;
 }): Promise<void> {
+  if (!/^[a-f0-9]{64}$/.test(input.keyHash)) throw new Error("invalid_rate_limit_key");
+  if (!Number.isInteger(input.limit) || input.limit < 1 || input.limit > 100_000) {
+    throw new Error("invalid_rate_limit_limit");
+  }
+  if (!Number.isInteger(input.windowSeconds) || input.windowSeconds < 1 || input.windowSeconds > 604_800) {
+    throw new Error("invalid_rate_limit_window");
+  }
   const result = await db.execute(sql<{ request_count: number }>`
+    with expired as (
+      delete from public.support_rate_limits
+      where (scope, key_hash) in (
+        select scope, key_hash
+        from public.support_rate_limits
+        where expires_at < now() - interval '1 day'
+        order by expires_at
+        limit 100
+      )
+    )
     insert into public.support_rate_limits (
       scope, key_hash, window_started_at, request_count, expires_at
     ) values (
@@ -308,7 +323,10 @@ export async function enforceSupportRateLimit(input: {
     returning request_count
   `);
   if (Array.from(result as unknown as Array<{ request_count: number }>).length === 0) {
-    throw new HttpError(429, "Trop de demandes envoyées. Réessayez dans quelques minutes.");
+    throw new HttpError(
+      429,
+      input.message ?? "Trop de demandes envoyées. Réessayez dans quelques minutes."
+    );
   }
 }
 

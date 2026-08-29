@@ -319,6 +319,13 @@ l'autorisation de quota définie par le propriétaire.
   worker n'est activé et aucun document n'a été créé ou supprimé. T020 restera
   ouvert jusqu'à validation direction/DPO, recette fictive et procédure de
   restauration.
+- Lot N5U : limitation multidimensionnelle du guichet. **Validé sur la
+  preview** : création, assistant, suivi, fichiers et écritures agent consomment
+  des compteurs PostgreSQL atomiques par appareil, contact, compte ou répétition.
+  Les clés sont des HMAC et le réseau partagé n'est qu'un garde-fou très haut,
+  sans clé de repli commune. RLS est forcée, les clients n'ont aucun droit et
+  l'essai transactionnel ne laisse aucune ligne synthétique. Les seuils et la
+  durée technique restent à observer puis valider avant production.
 - Lot N6 : tests de non-régression, build, contrôle mobile et rapport d'écarts.
   **Partiellement validé en preview** : 200 transactions concurrentes sans perte
   ni reste après nettoyage, 135 contrôles de sécurité, build réussi, PWA active,

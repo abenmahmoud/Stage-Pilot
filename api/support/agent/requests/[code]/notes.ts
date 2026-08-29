@@ -18,6 +18,7 @@ import {
   assertSupportRequestAccess,
   requireSupportAgent,
 } from "../../../../_shared/support-agent-access.js";
+import { enforceAgentWriteRateLimit } from "../../../../_shared/support-rate-limits.js";
 
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
@@ -44,6 +45,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       .limit(1);
     if (!request) throw new HttpError(404, "Demande introuvable");
     assertSupportRequestAccess(access, request.assignedTeam);
+    await enforceAgentWriteRateLimit(user.id);
 
     const idempotencyHash = sha256(idempotencyKey(req));
     const result = await db.transaction(async (tx) => {

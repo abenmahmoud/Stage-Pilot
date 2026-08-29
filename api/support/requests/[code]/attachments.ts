@@ -9,6 +9,7 @@ import {
   assertNoForbiddenSupportSecret,
   requireSupportAccess,
 } from "../../../_shared/support.js";
+import { enforceAttachmentReservationRateLimit } from "../../../_shared/support-rate-limits.js";
 
 const MAX_FILE_BYTES = 10 * 1024 * 1024;
 const MAX_FILES_PER_REQUEST = 5;
@@ -52,6 +53,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
 
     const access = await requireSupportAccess(req, code);
+    await enforceAttachmentReservationRateLimit(access.sessionId);
     const body = (req.body ?? {}) as Record<string, unknown>;
     const originalName = requiredText(body.fileName, "Nom du fichier", 180);
     assertNoForbiddenSupportSecret(originalName);

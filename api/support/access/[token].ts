@@ -14,14 +14,12 @@ import { HttpError } from "../../_shared/auth.js";
 import { handleApi, methodNotAllowed } from "../../_shared/response.js";
 import {
   SUPPORT_SESSION_DAYS,
-  enforceSupportRateLimit,
   opaqueToken,
-  personalHash,
   readSupportSessionToken,
-  requestIpHash,
   setSupportSessionCookie,
   sha256,
 } from "../../_shared/support.js";
+import { enforceMagicTokenNetworkGuard } from "../../_shared/support-rate-limits.js";
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== "POST") return methodNotAllowed(res, ["POST"]);
@@ -31,12 +29,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (!rawMagicToken || !/^[A-Za-z0-9_-]{40,60}$/.test(rawMagicToken)) {
       throw new HttpError(400, "Lien de suivi invalide");
     }
-    await enforceSupportRateLimit({
-      scope: "magic_token_network",
-      keyHash: requestIpHash(req) ?? personalHash("network:unknown"),
-      limit: 1000,
-      windowSeconds: 10 * 60,
-    });
+    await enforceMagicTokenNetworkGuard(req);
 
     const existingSessionToken = readSupportSessionToken(req);
     const newSessionToken = opaqueToken();

@@ -18,16 +18,20 @@ import { handleApi, methodNotAllowed } from "../../_shared/response.js";
 import {
   SUPPORT_MAGIC_TOKEN_MINUTES,
   SUPPORT_SESSION_DAYS,
-  enforceSupportRateLimit,
   idempotencyKey,
   opaqueToken,
   parseSupportRequest,
   personalHash,
   readSupportSessionToken,
-  requestIpHash,
   setSupportSessionCookie,
   sha256,
 } from "../../_shared/support.js";
+import {
+  enforceSupportRequestCreationLimits,
+  enforceSupportRequestNetworkGuard,
+  recordInvalidSupportRequest,
+  supportDeviceRateKey,
+} from "../../_shared/support-rate-limits.js";
 
 type DeviceSession = { id: string; rawToken: string | null };
 
@@ -67,14 +71,16 @@ async function getOrCreateDeviceSession(
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method === "POST") {
     return handleApi(res, async () => {
-      const input = parseSupportRequest(req.body);
-      const networkKeyHash = requestIpHash(req) ?? personalHash("network:unknown");
-      await enforceSupportRateLimit({
-        scope: "request_network",
-        keyHash: networkKeyHash,
-        limit: 1000,
-        windowSeconds: 10 * 60,
-      });
+      const deviceKey = supportDeviceRateKey(req);
+      await enforceSupportRequestNetworkGuard(req);
+      let input;
+      try {
+        input = parseSupportRequest(req.body);
+      } catch (error) {
+        await recordInvalidSupportRequest(deviceKey);
+        throw error;
+      }
+      await enforceSupportRequestCreationLimits({ parsed: input, deviceKey });
       const idempotencyHash = sha256(idempotencyKey(req));
       const correlationId = randomUUID();
       const requesterJobId = randomUUID();

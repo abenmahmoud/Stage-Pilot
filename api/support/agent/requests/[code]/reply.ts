@@ -23,6 +23,7 @@ import {
   assertSupportRequestAccess,
   requireSupportAgent,
 } from "../../../../_shared/support-agent-access.js";
+import { enforceAgentWriteRateLimit } from "../../../../_shared/support-rate-limits.js";
 import {
   formatSupportRevision,
   parseSupportRevision,
@@ -92,6 +93,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         },
       };
     }
+    await enforceAgentWriteRateLimit(user.id);
     const expectedRevision = parseSupportRevision(body.expectedUpdatedAt);
     if (!expectedRevision) {
       throw new HttpError(400, "La version du dossier est requise");
