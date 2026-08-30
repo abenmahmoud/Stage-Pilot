@@ -245,6 +245,8 @@ voir sa réponse dans le dossier. L'agent traite tout depuis une seule file.
   parseur sur la confirmation sans payload et conserver le dépôt privé direct.
 - [x] **T037R** Borner les mutations du centre de communications selon la taille
   métier et conserver le dépôt direct des documents dans le stockage privé.
+- [x] **T037S** Borner les commandes d'emploi du temps, désactiver le parseur sur
+  les actions sans payload et conserver le dépôt direct des PDF privés.
 - [x] **T037F** Exclure les contacts desactives des reponses, reserver les
   journaux globaux a un administrateur MFA et exiger `aal2` pour confirmer une
   identite scolaire depuis une source officielle.

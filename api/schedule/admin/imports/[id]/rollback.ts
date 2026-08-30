@@ -129,3 +129,5 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return { import: result.source, duplicate: result.duplicate };
   });
 }
+
+export const config = { api: { bodyParser: { sizeLimit: "4kb" } } };

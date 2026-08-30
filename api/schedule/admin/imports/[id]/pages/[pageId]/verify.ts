@@ -93,3 +93,5 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return { mapping };
   });
 }
+
+export const config = { api: { bodyParser: false } };

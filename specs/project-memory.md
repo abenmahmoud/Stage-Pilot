@@ -2913,3 +2913,16 @@ taches et analyse de coherence avant une automatisation sensible.
   donnée réelle, compte distant ou modification Supabase.
 - Le brief Claude est préparé mais non exécuté, faute de modèle exact et de
   plafond propres à cette mission ; aucun jeton externe n'a été consommé.
+
+### Jalon du 30 août 2026 - commandes d'emploi du temps bornées
+
+- La réservation d'un PDF est limitée à 8 Ko ; approbation, activation,
+  restauration et association de page sont limitées à 4 Ko.
+- La confirmation du dépôt et la vérification d'une page n'acceptent aucun
+  payload et désactivent le parseur de corps Vercel.
+- Le PDF de 50 Mo maximum continue de transiter directement vers le stockage
+  privé signé ; le rôle de gestionnaire reste exigé sur les sept commandes.
+- T037S est terminée par analyse statique et tests locaux, sans emploi du temps
+  réel, compte distant ou modification Supabase.
+- Le brief Claude est préparé mais non exécuté, faute de modèle exact et de
+  plafond propres à cette mission ; aucun jeton externe n'a été consommé.
