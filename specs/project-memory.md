@@ -2800,3 +2800,15 @@ taches et analyse de coherence avant une automatisation sensible.
   chargement hostile, aucune erreur et aucun débordement horizontal.
 - Le brief Claude est préparé mais non exécuté, faute de modèle exact et de
   plafond propres à cette mission ; aucun jeton externe n'a été consommé.
+
+### Jalon du 30 août 2026 - client PDF authentifié
+
+- Les PDF administratifs sont lus en flux avec un plafond de 20 Mo, un type MIME
+  PDF obligatoire et une signature `%PDF-` vérifiée avant création du Blob.
+- Les erreurs réutilisent le lecteur JSON borné ; les fenêtres sont isolées et
+  les liens externes limités au portail HTTPS ou à l'origine Supabase configurée.
+- T037I est terminée avec des tests de dépassement annoncé et chunké, de faux
+  contenu, d'origine hostile et d'isolation de fenêtre, uniquement sur données
+  synthétiques.
+- Le brief Claude est préparé mais non exécuté, faute de modèle exact et de
+  plafond propres à cette mission ; aucun jeton externe n'a été consommé.

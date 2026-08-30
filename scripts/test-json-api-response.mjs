@@ -2,6 +2,10 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { readFileSync } from "node:fs";
 import { readJsonApiResponse } from "../shared/json-api-response.ts";
+import {
+  isAllowedExternalApiFileUrl,
+  readApiPdfResponse,
+} from "../shared/api-file-response.ts";
 
 const apiClient = readFileSync(new URL("../src/lib/api.ts", import.meta.url), "utf8");
 
@@ -84,4 +88,69 @@ test("route les succès et erreurs JSON du client privé vers le lecteur borné"
   assert.equal(apiFetchSource.match(/readJsonApiResponse<T>\(res\)/g)?.length, 2);
   assert.doesNotMatch(apiFetchSource, /res\.json\(\)/);
   assert.match(apiFetchSource, /if \(!contentType\.includes\("application\/json"\)\)/);
+});
+
+test("accepte uniquement les URL de document sur les origines HTTPS approuvées", () => {
+  const app = "https://gestion.example.fr";
+  const storage = "https://school-project.supabase.co";
+  assert.equal(isAllowedExternalApiFileUrl(`${app}/api/document.pdf`, app, storage), true);
+  assert.equal(isAllowedExternalApiFileUrl(`${storage}/storage/v1/object/sign/private/file.pdf?token=signed`, app, storage), true);
+  assert.equal(isAllowedExternalApiFileUrl("https://evil.example/document.pdf", app, storage), false);
+  assert.equal(isAllowedExternalApiFileUrl("http://gestion.example.fr/document.pdf", app, storage), false);
+  assert.equal(isAllowedExternalApiFileUrl("https://user@gestion.example.fr/document.pdf", app, storage), false);
+  assert.equal(isAllowedExternalApiFileUrl(`${app}/document.pdf#secret`, app, storage), false);
+});
+
+test("lit un PDF authentifié borné avec une signature valide", async () => {
+  const bytes = new TextEncoder().encode("%PDF-1.7\n%%EOF");
+  const blob = await readApiPdfResponse(new Response(bytes, {
+    headers: { "content-type": "application/pdf", "content-length": String(bytes.length) },
+  }), 128);
+  assert.equal(blob.type, "application/pdf");
+  assert.equal(blob.size, bytes.length);
+});
+
+test("refuse le mauvais type, la fausse signature et la taille annoncée", async () => {
+  await assert.rejects(
+    () => readApiPdfResponse(new Response("%PDF-1.7", { headers: { "content-type": "text/html" } }), 128),
+    /document reçu est invalide/u
+  );
+  await assert.rejects(
+    () => readApiPdfResponse(new Response("not-a-pdf", { headers: { "content-type": "application/pdf" } }), 128),
+    /document reçu est invalide/u
+  );
+  await assert.rejects(
+    () => readApiPdfResponse(new Response("%PDF-1.7", {
+      headers: { "content-type": "application/pdf", "content-length": "129" },
+    }), 128),
+    /document reçu est invalide/u
+  );
+});
+
+test("interrompt un flux PDF sans taille annoncée au dépassement", async () => {
+  let cancelled = false;
+  const body = new ReadableStream({
+    start(controller) {
+      controller.enqueue(new TextEncoder().encode("%PDF-" + "a".repeat(40)));
+      controller.enqueue(new TextEncoder().encode("b".repeat(40)));
+    },
+    cancel() {
+      cancelled = true;
+    },
+  });
+  await assert.rejects(
+    () => readApiPdfResponse(new Response(body, { headers: { "content-type": "application/pdf" } }), 64),
+    /document reçu est invalide/u
+  );
+  assert.equal(cancelled, true);
+});
+
+test("sécurise l'ouverture des fichiers dans le client authentifié", () => {
+  const fileSource = apiClient.slice(apiClient.indexOf("export async function openApiFile"));
+  assert.doesNotMatch(fileSource, /res\.json\(\)|res\.blob\(\)/);
+  assert.match(fileSource, /readJsonApiResponse<Record<string, unknown>>\(res\)/);
+  assert.match(fileSource, /readApiPdfResponse\(res\)/);
+  assert.match(fileSource, /isAllowedExternalApiFileUrl/);
+  assert.match(fileSource, /popup\.opener = null/g);
+  assert.match(fileSource, /noopener,noreferrer/);
 });

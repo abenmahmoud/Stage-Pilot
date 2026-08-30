@@ -222,6 +222,9 @@ voir sa réponse dans le dossier. L'agent traite tout depuis une seule file.
 - [x] **T037H** Router les réponses JSON authentifiées de `apiFetch` vers le
   lecteur borné commun pour les succès comme pour les erreurs, sans casser les
   réponses sans contenu.
+- [x] **T037I** Borner à 20 Mo les PDF authentifiés ouverts dans le navigateur,
+  vérifier leur type et leur signature, isoler la nouvelle fenêtre et refuser
+  les URL externes hors des origines HTTPS approuvées.
 - [x] **T037F** Exclure les contacts desactives des reponses, reserver les
   journaux globaux a un administrateur MFA et exiger `aal2` pour confirmer une
   identite scolaire depuis une source officielle.

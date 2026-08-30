@@ -1,5 +1,9 @@
 import { supabase } from "./supabase-browser";
 import { readJsonApiResponse } from "../../shared/json-api-response";
+import {
+  isAllowedExternalApiFileUrl,
+  readApiPdfResponse,
+} from "../../shared/api-file-response";
 
 const API_BASE = "/api";
 
@@ -58,10 +62,17 @@ export async function openApiFile(
   }
 
   if (/^https?:\/\//i.test(path)) {
+    const env = import.meta.env as Record<string, string | undefined>;
+    const storageOrigin = env.VITE_SUPABASE_URL ?? env.NEXT_PUBLIC_SUPABASE_URL;
+    if (!isAllowedExternalApiFileUrl(path, window.location.origin, storageOrigin)) {
+      if (popup) popup.close();
+      throw new Error("L’adresse de ce document n’est pas autorisée.");
+    }
     if (popup) {
+      popup.opener = null;
       popup.location.href = path;
     } else {
-      window.open(path, "_blank");
+      window.open(path, "_blank", "noopener,noreferrer");
     }
     return;
   }
@@ -73,23 +84,29 @@ export async function openApiFile(
 
   const res = await fetch(apiUrl(path), { headers });
   if (!res.ok) {
-    let message = `API error ${res.status}`;
     try {
-      const body = await res.json();
-      if (body?.error) message = body.error;
-    } catch {
-      // pas un JSON, on garde le message par defaut
+      await readJsonApiResponse<Record<string, unknown>>(res);
+    } catch (error) {
+      if (popup) popup.close();
+      throw error;
     }
     if (popup) popup.close();
-    throw new Error(message);
+    throw new Error("Le document ne peut pas être chargé pour le moment.");
   }
 
-  const blob = await res.blob();
+  let blob: Blob;
+  try {
+    blob = await readApiPdfResponse(res);
+  } catch (error) {
+    if (popup) popup.close();
+    throw error;
+  }
   const url = URL.createObjectURL(blob);
   if (popup) {
+    popup.opener = null;
     popup.location.href = url;
   } else {
-    window.open(url, "_blank");
+    window.open(url, "_blank", "noopener,noreferrer");
   }
   window.setTimeout(() => URL.revokeObjectURL(url), 60_000);
 }
