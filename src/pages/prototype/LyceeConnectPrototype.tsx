@@ -2450,7 +2450,7 @@ function ConnectedAgentView({ onBack }: { onBack: () => void }) {
   const [serviceStats, setServiceStats] = useState<AgentServiceStats[]>([]);
   const [pagination, setPagination] = useState<AgentQueuePagination>({ page: 1, pageSize: 30, total: 0, totalPages: 1 });
   const [access, setAccess] = useState<AgentAccess | null>(null);
-  const [queueMode, setQueueMode] = useState<"all" | "qualify" | "urgent" | "callbacks" | "duplicates" | "mine">("all");
+  const [queueMode, setQueueMode] = useState<"all" | "qualify" | "urgent" | "overdue" | "callbacks" | "duplicates" | "mine">("all");
   const [serviceFilter, setServiceFilter] = useState("");
   const [page, setPage] = useState(1);
   const [selectedCode, setSelectedCode] = useState<string | null>(null);
@@ -2476,6 +2476,7 @@ function ConnectedAgentView({ onBack }: { onBack: () => void }) {
       const params = new URLSearchParams({ page: String(page), pageSize: "30" });
       if (query.trim()) params.set("q", query.trim());
       if (queueMode === "urgent") params.set("urgent", "true");
+      if (queueMode === "overdue") params.set("overdue", "true");
       if (queueMode === "qualify") params.set("status", "a_qualifier");
       if (queueMode === "mine") params.set("assigned", "me");
       if (queueMode === "callbacks") params.set("callback", "pending");
@@ -2826,7 +2827,7 @@ function ConnectedAgentView({ onBack }: { onBack: () => void }) {
       <div className="lycee-agent-workspace">
         <section className="lycee-agent-queue">
           <div className="lycee-agent-toolbar"><label><Search aria-hidden="true" /><input value={query} onChange={(event) => { setQuery(event.target.value); setPage(1); }} placeholder="Nom, numéro ou objet" /></label><button className={queueMode === "mine" ? "is-active" : ""} type="button" aria-label="Afficher mes demandes" aria-pressed={queueMode === "mine"} title="Afficher mes demandes" onClick={() => { setQueueMode((current) => current === "mine" ? "all" : "mine"); setPage(1); }}><Filter aria-hidden="true" /></button><select aria-label="Filtrer par service" value={serviceFilter} onChange={(event) => { setServiceFilter(event.target.value); setPage(1); }}><option value="">{access?.canViewAll ? "Tous les services" : "Mon périmètre"}</option>{access?.canViewAll ? <option value="unassigned">À orienter</option> : null}{availableTeams.map((team) => <option value={team.value} key={team.value}>{team.label}</option>)}</select></div>
-          <div className="lycee-agent-tabs"><button className={queueMode === "all" ? "is-active" : ""} type="button" onClick={() => { setQueueMode("all"); setPage(1); }}>Toutes <span>{stats.total}</span></button><button className={queueMode === "qualify" ? "is-active" : ""} type="button" onClick={() => { setQueueMode("qualify"); setPage(1); }}>À classer <span>{stats.qualify}</span></button><button className={queueMode === "urgent" ? "is-active" : ""} type="button" onClick={() => { setQueueMode("urgent"); setPage(1); }}>Urgentes <span>{stats.urgent}</span></button><button className={queueMode === "callbacks" ? "is-active" : ""} type="button" onClick={() => { setQueueMode("callbacks"); setPage(1); }}>Rappels <span>{stats.callbacks}</span></button><button className={queueMode === "duplicates" ? "is-active" : ""} type="button" onClick={() => { setQueueMode("duplicates"); setPage(1); }}>Doublons <span>{stats.duplicates}</span></button></div>
+          <div className="lycee-agent-tabs"><button className={queueMode === "all" ? "is-active" : ""} type="button" onClick={() => { setQueueMode("all"); setPage(1); }}>Toutes <span>{stats.total}</span></button><button className={queueMode === "qualify" ? "is-active" : ""} type="button" onClick={() => { setQueueMode("qualify"); setPage(1); }}>À classer <span>{stats.qualify}</span></button><button className={queueMode === "urgent" ? "is-active" : ""} type="button" onClick={() => { setQueueMode("urgent"); setPage(1); }}>Urgentes <span>{stats.urgent}</span></button><button className={queueMode === "overdue" ? "is-active" : ""} type="button" onClick={() => { setQueueMode("overdue"); setPage(1); }}>En retard <span>{stats.overdue}</span></button><button className={queueMode === "callbacks" ? "is-active" : ""} type="button" onClick={() => { setQueueMode("callbacks"); setPage(1); }}>Rappels <span>{stats.callbacks}</span></button><button className={queueMode === "duplicates" ? "is-active" : ""} type="button" onClick={() => { setQueueMode("duplicates"); setPage(1); }}>Doublons <span>{stats.duplicates}</span></button></div>
           <div className="lycee-agent-list">
             {requests.map((request) => {
               const queueState = assessSupportQueueItem(request, new Date().toISOString());

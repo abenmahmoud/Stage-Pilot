@@ -2333,6 +2333,22 @@ taches et analyse de coherence avant une automatisation sensible.
 - Le brief Claude est préparé mais non exécuté, faute de modèle exact et de
   plafond propres à cette mission ; aucun jeton externe n'a été consommé.
 
+### Jalon du 30 août 2026 - surveillance des échéances explicites
+
+- Une nouvelle demande ne reçoit plus un délai arbitraire de vingt-quatre
+  heures. Le champ d'échéance reste vide tant qu'une règle locale validée ne
+  l'alimente pas.
+- La file agent accepte un filtre serveur `overdue=true` limité aux dossiers
+  ouverts dont l'échéance enregistrée est réellement dépassée. Le cloisonnement
+  par établissement et par service reste appliqué avant ce filtre.
+- L'onglet `En retard` rend ces dossiers directement accessibles sans lancer de
+  rappel, d'email ou d'escalade.
+- T029A est terminée ; T029 et T027B2 restent ouvertes jusqu'à validation des
+  durées, horaires, responsables et canaux de relance. Les cinq domaines
+  comptent 384 identifiants uniques : 265 lignes terminées et 119 ouvertes.
+- Le brief Claude est préparé mais non exécuté, faute de modèle exact et de
+  plafond propres à cette mission ; aucun jeton externe n'a été consommé.
+
 ## 8. Prochain ordre recommande
 
 1. Publier et tester le pré-triage ordinateur portable avec des données fictives.

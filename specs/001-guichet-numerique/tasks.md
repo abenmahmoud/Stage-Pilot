@@ -118,6 +118,11 @@ voir sa réponse dans le dossier. L'agent traite tout depuis une seule file.
   dossier n'est fusionné ou fermé automatiquement et le demandeur ne voit pas le
   numéro du dossier candidat.
 - [ ] **T029** Ajouter relances automatiques et surveillance des SLA.
+- [x] **T029A** Rendre les échéances explicitement enregistrées actionnables dans
+  la file agent : filtre serveur cloisonné aux demandes ouvertes et échues,
+  onglet `En retard` et absence de SLA automatique à la création. Aucun délai,
+  destinataire, rappel ou niveau d'escalade n'est inventé ; T029 reste ouverte
+  jusqu'à validation des règles propres à chaque service.
 - [x] **T030** Installer le worker antivirus VPS et le déplacement quarantine/clean.
 - [ ] **T031** Mettre en place la sauvegarde chiffrée DB + Storage et un test de
   restauration.

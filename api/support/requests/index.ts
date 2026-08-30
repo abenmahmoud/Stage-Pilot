@@ -170,7 +170,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             status: initialSupportStatus(input.routing.confidence),
             priority: input.routing.priority,
             assignedTeam: input.routing.service,
-            slaDueAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
+            // A service deadline must come from a validated local policy. Until
+            // that policy exists, a new request must not receive an invented SLA.
+            slaDueAt: null,
           })
           .onConflictDoNothing({
             target: [supportRequests.institutionId, supportRequests.idempotencyKeyHash],

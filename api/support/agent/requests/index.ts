@@ -64,6 +64,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const mineOnly = queryValue(req.query.assigned) === "me";
     const callbackOnly = queryValue(req.query.callback) === "pending";
     const duplicateOnly = queryValue(req.query.duplicate) === "pending";
+    const overdueOnly = queryValue(req.query.overdue) === "true";
     const service = queryValue(req.query.service);
     const filters: SQL[] = [eq(supportRequests.institutionId, institutionId)];
     const accessFilter = access.canViewAll
@@ -101,6 +102,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (mineOnly) filters.push(eq(supportRequests.assignedTo, user.id));
     if (callbackOnly) filters.push(hasPendingCallback());
     if (duplicateOnly) filters.push(hasPendingDuplicateReview());
+    if (overdueOnly) {
+      filters.push(sql`${supportRequests.slaDueAt} < now() and ${supportRequests.status} not in ('resolu', 'clos', 'indesirable')`);
+    }
     if (serviceFilter) filters.push(serviceFilter);
 
     const where = filters.length > 0 ? and(...filters) : undefined;

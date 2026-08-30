@@ -28,6 +28,11 @@ test("detects an overdue open request without inventing a new deadline", () => {
   assert.equal(result.overdue, true);
 });
 
+test("does not treat a request without an explicit deadline as overdue", () => {
+  const result = assessSupportQueueItem({ ...request, slaDueAt: null }, now);
+  assert.equal(result.overdue, false);
+});
+
 test("does not flag a resolved or closed request as unassigned or overdue", () => {
   for (const status of ["resolu", "clos", "indesirable"]) {
     const result = assessSupportQueueItem(
