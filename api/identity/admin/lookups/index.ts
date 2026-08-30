@@ -188,3 +188,5 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return { requestId, status: "queued", receipt, expiresAt: expiresAt.toISOString() };
   });
 }
+
+export const config = { api: { bodyParser: { sizeLimit: "4kb" } } };

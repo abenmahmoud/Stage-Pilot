@@ -2889,3 +2889,14 @@ taches et analyse de coherence avant une automatisation sensible.
 - T037P est terminée par tests locaux, sans compte, donnée ou base distante.
 - Le brief Claude est préparé mais non exécuté, faute de modèle exact et de
   plafond propres à cette mission ; aucun jeton externe n'a été consommé.
+
+### Jalon du 30 août 2026 - commandes du répertoire des identités bornées
+
+- La réservation d'un fichier est limitée à 8 Ko ; les consultations,
+  approbations, activations et retraits sont limités à 4 Ko avant validation.
+- La confirmation d'un dépôt ne lit aucun corps HTTP et le fichier de 50 Mo
+  maximum continue de transiter directement vers le stockage privé signé.
+- T037Q est terminée par analyse statique et tests locaux, sans donnée réelle,
+  compte distant ou modification Supabase.
+- Le brief Claude est préparé mais non exécuté, faute de modèle exact et de
+  plafond propres à cette mission ; aucun jeton externe n'a été consommé.

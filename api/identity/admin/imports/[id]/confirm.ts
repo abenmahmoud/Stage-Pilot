@@ -148,3 +148,5 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return { import: identityDirectoryView(confirmed), duplicate: false };
   });
 }
+
+export const config = { api: { bodyParser: false } };

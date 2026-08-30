@@ -103,3 +103,5 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return { import: identityDirectoryView(approved), duplicate: false };
   });
 }
+
+export const config = { api: { bodyParser: { sizeLimit: "4kb" } } };
