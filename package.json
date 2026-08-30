@@ -19,6 +19,7 @@
     "test:agent-action-persistence": "node scripts/test-agent-action-persistence-security.mjs",
     "test:agent-approval-inbox": "node --import ./scripts/ts-test-resolver.mjs --experimental-strip-types scripts/test-agent-approval-inbox.mjs",
     "test:agent-runtime-metrics": "node --import ./scripts/ts-test-resolver.mjs --experimental-strip-types scripts/test-agent-runtime-metrics.mjs",
+    "test:agent-observability": "npm run test:agent-runtime-metrics && npm run test:support-assistant-routing-review",
     "test:support-assistant-routing-receipt": "node --import ./scripts/ts-test-resolver.mjs --experimental-strip-types scripts/test-support-assistant-routing-receipt.mjs",
     "test:support-assistant-routing-review": "node scripts/test-support-assistant-routing-review.mjs",
     "test:support-institution-scope": "node scripts/test-support-institution-scope.mjs",

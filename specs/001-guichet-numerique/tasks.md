@@ -224,7 +224,11 @@ Le support continue à fonctionner si l'IA est coupée.
   sortie structurée côté serveur et revenir aux règles déterministes si la
   sortie est invalide ou de confiance faible. Une route locale de confiance
   faible ouvre le dossier dans la file `a_qualifier`.
-- [ ] **T046** Journaliser coût, durée, version et validation humaine.
+- [x] **T046** Journaliser coût, durée, version et validation humaine. Les
+  mesures append-only conservent modèle, latence, jetons et coût estimé seulement
+  lorsque les tarifs sont configurés. Le reçu de routage lie le modèle au
+  dossier, puis une décision humaine MFA confirme ou corrige ce classement ;
+  aucune conversation, identité ou coordonnée n'entre dans les métriques.
 - [x] **T047** Neutraliser et tester les injections de consignes dans les
   descriptions et métadonnées de fichiers : balises réservées supprimées,
   contenu des fichiers jamais transmis, nom complet omis, type MIME limité et

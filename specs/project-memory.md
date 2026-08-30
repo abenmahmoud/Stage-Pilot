@@ -2393,6 +2393,23 @@ taches et analyse de coherence avant une automatisation sensible.
 - Le brief Claude est préparé mais non exécuté, faute de modèle exact et de
   plafond propres à cette mission ; aucun jeton externe n'a été consommé.
 
+### Jalon du 30 août 2026 - observabilité de l'agent convergée
+
+- Chaque exécution de l'assistant produit une mesure technique append-only :
+  résultat fermé, modèle, latence, jetons, sources et nombre de tours.
+- Le coût est estimé uniquement avec deux tarifs explicitement configurés ; il
+  reste `null` sinon et l'interface le présente comme non configuré.
+- Un reçu signé et court relie le modèle ayant proposé le routage au dossier.
+  L'agent sous MFA confirme ou corrige ensuite ce classement dans un journal
+  distinct, sans confondre réussite technique et validation humaine.
+- Les métriques et tableaux agrégés ne lisent ni conversation, identité,
+  coordonnées ou nom de pièce. `npm run test:agent-observability` vérifie le
+  contrat complet.
+- T046 est terminée. Les cinq domaines comptent 386 identifiants uniques : 270
+  lignes terminées et 116 ouvertes.
+- Le brief Claude est préparé mais non exécuté, faute de modèle exact et de
+  plafond propres à cette mission ; aucun jeton externe n'a été consommé.
+
 ## 8. Prochain ordre recommande
 
 1. Publier et tester le pré-triage ordinateur portable avec des données fictives.
