@@ -2,9 +2,11 @@ import type { CommunicationJobFailureCode } from "./communication-job-policy.js"
 import {
   verifyCommunicationWebmailDeliveryToken,
 } from "./communication-webmail-delivery.js";
+import type { VerifiedCommunicationWebmailDeliveryCommand } from "./communication-webmail-delivery.js";
 import {
   verifyCommunicationWebmailDeliveryReceiptToken,
 } from "./communication-webmail-receipt.js";
+import type { VerifiedCommunicationWebmailDeliveryReceipt } from "./communication-webmail-receipt.js";
 import {
   planCommunicationWebmailCompletion,
   type CommunicationWebmailCompletionDecision,
@@ -34,6 +36,18 @@ export type CommunicationWebmailClientResult =
   | {
     ok: true;
     decision: CommunicationWebmailCompletionDecision;
+  }
+  | {
+    ok: false;
+    failureCode: CommunicationJobFailureCode;
+  };
+
+export type CommunicationWebmailExchangeResult =
+  | {
+    ok: true;
+    decision: CommunicationWebmailCompletionDecision;
+    command: VerifiedCommunicationWebmailDeliveryCommand;
+    receipt: VerifiedCommunicationWebmailDeliveryReceipt;
   }
   | {
     ok: false;
@@ -81,12 +95,12 @@ function validTimeout(value: number): number {
   return value;
 }
 
-export async function runCommunicationWebmailDelivery(input: {
+export async function runCommunicationWebmailDeliveryExchange(input: {
   item: CommunicationWebmailClientInput;
   transport: CommunicationWebmailTransport;
   timeoutMs?: number;
   now?: Date;
-}): Promise<CommunicationWebmailClientResult> {
+}): Promise<CommunicationWebmailExchangeResult> {
   const now = input.now ?? new Date();
   const timeoutMs = validTimeout(input.timeoutMs ?? 10_000);
   const command = verifyCommunicationWebmailDeliveryToken({
@@ -122,6 +136,8 @@ export async function runCommunicationWebmailDelivery(input: {
       return {
         ok: true,
         decision: planCommunicationWebmailCompletion({ state: input.item.state, command, receipt }),
+        command,
+        receipt,
       };
     } catch {
       return { ok: false, failureCode: "scope_invalid" };
@@ -134,6 +150,17 @@ export async function runCommunicationWebmailDelivery(input: {
   } finally {
     if (timer) clearTimeout(timer);
   }
+}
+
+export async function runCommunicationWebmailDelivery(input: {
+  item: CommunicationWebmailClientInput;
+  transport: CommunicationWebmailTransport;
+  timeoutMs?: number;
+  now?: Date;
+}): Promise<CommunicationWebmailClientResult> {
+  const result = await runCommunicationWebmailDeliveryExchange(input);
+  if (!result.ok) return result;
+  return { ok: true, decision: result.decision };
 }
 
 export async function runCommunicationWebmailDeliveryBatch(input: {

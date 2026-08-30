@@ -8,6 +8,13 @@ rejeu d'un reçu, l'unicité d'une commande et son immutabilité. Sa structure e
 validée localement, mais son exécution distante reste bloquée tant que la
 migration de poignée de main n'est pas appliquée explicitement sur la preview.
 
+## Runner local du 30 août 2026
+
+Le runner sépare désormais transport et persistance. Une panne de persistance
+après acceptation ne relance pas immédiatement le transport : le verrou périmé
+et l'idempotence Webmail assurent la reprise. Le lot entier est contrôlé avant
+le premier effet et reste limité à vingt travaux.
+
 ## Résultat
 
 La proposition est cohérente avec les fonctionnalités `001`, `002`, `003` et

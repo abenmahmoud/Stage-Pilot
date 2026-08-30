@@ -114,6 +114,10 @@
   reverrouillés, la décision est recalculée, l'audit est idempotent puis les
   deux états sont modifiés dans la transaction appelante. T018 reste ouvert
   jusqu'au worker qui orchestre l'appel distant.
+- [x] T018F Orchestrer localement un lot déjà réclamé : validation complète
+  avant transport, concurrence bornée, reçu vérifié puis persistance du succès
+  ou de la panne. Le runner reste sans Cron, endpoint ou transport par défaut ;
+  T018 reste ouvert jusqu'à l'adaptateur Webmail séparé.
 - [ ] T019 Enregistrer livré, différé, rejeté, spam et désinscrit.
 - [x] T019A Définir le contrat Brevo de délivrabilité avant toute route. Un
   Bearer fort est comparé en temps constant ; seuls les événements documentés
@@ -163,6 +167,9 @@
   fermée, essais, date et reprise confirmée en deux temps. Aucun identifiant ni
   état de livraison n'entre dans le navigateur. T020 reste ouvert jusqu'à la
   recette DB et au runner.
+- [x] T020H Laisser un travail accepté mais non persisté sous verrou pour la
+  récupération différée, sans seconde tentative immédiate. Le runner propage
+  uniquement des codes fermés et T020 reste ouvert jusqu'à la recette DB.
 - [x] T021A Ajouter un aperçu éditorial local sûr avant la relecture : rendu
   Markdown borné, images distantes neutralisées, liens isolés et absence de
   destinataire, publication ou envoi.

@@ -13,6 +13,14 @@
 - Son exécution distante attend une application contrôlée de la migration sur
   la branche Supabase de preview ; aucune migration distante n'a été lancée.
 
+## Jalon du 30 août 2026 - runner Webmail local
+
+- Le runner traite au maximum 20 travaux déjà réclamés avec concurrence bornée.
+- Succès et panne empruntent deux persistances explicites ; aucune prose
+  fournisseur ne remonte.
+- Une panne de base après acceptation reste sous verrou pour la récupération
+  différée et ne provoque jamais une seconde tentative immédiate.
+
 ## Jalon du 29 août 2026 - scénarios humains de la charte
 
 - Une urgence affiche le 15/112, le 3114 lorsque pertinent et un recours à un
