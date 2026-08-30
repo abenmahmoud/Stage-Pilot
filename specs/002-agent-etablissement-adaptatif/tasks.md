@@ -149,10 +149,12 @@
 - [x] T014B2 Marquer automatiquement les sources expirées, désactiver les
   compétences qui en dépendent ou dont la revue est échue, écrire un audit
   système et protéger la maintenance par `CRON_SECRET`.
-- [ ] T014C Terminer le pipeline des documents confiés à l'agent : antivirus,
+- [x] T014C Terminer le pipeline des documents confiés à l'agent : antivirus,
   extraction locale bornée, proposition de classement, objet expliqué par le
   superadministrateur, propriétaire, périmètre, validité, revue et publication
-  humaine.
+  humaine. La preview conserve le fichier en bucket privé, exécute l'analyse
+  locale via une file dédiée, crée seulement une source en brouillon après revue
+  MFA et exige encore une publication humaine distincte avant tout contexte IA.
 - [x] T014C1 Séparer l'entrée documentaire du répertoire des personnes et exiger
   en preview une nature, un service responsable, un périmètre, une date d'effet,
   une échéance de révision et une explication métier. Les codes et secrets sont
@@ -221,7 +223,10 @@
   validations périmées du seul périmètre autorisé sont fermées sous verrous et
   auditées comme action système. Les futurs adaptateurs restent dans T028 et
   doivent consommer la validation avant toute exécution.
-- [ ] T019 Mettre les pièces dans un stockage privé avec antivirus, type, taille et URL temporaire.
+- [x] T019 Mettre les pièces dans un stockage privé avec antivirus, type, taille
+  et URL temporaire. La recette de convergence confirme le bucket privé de 50 Mo,
+  les formats bornés, la file ClamAV, le lien manager de 60 secondes, la RLS
+  forcée et l'absence de droit client direct.
 - [x] T019A Construire l'alimentation documentaire du registre : dépôt privé
   reprenable, explication métier, classification, propriétaire, état d'analyse
   et validation humaine avant toute activation.

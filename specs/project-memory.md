@@ -3254,3 +3254,19 @@ taches et analyse de coherence avant une automatisation sensible.
 - T011 et T012A de la spécification 001 sont terminées. Le brief Claude reste
   préparé mais non exécuté faute de modèle exact et de plafond propres à cette
   mission ; aucun jeton externe n'a été consommé.
+
+### Jalon du 30 août 2026 - convergence du pipeline documentaire agent
+
+- Une nouvelle preuve locale passe 51 contrôles sur la réservation privée,
+  l'extraction PDF/DOCX/XLSX/PPTX/TXT/CSV, les limites d'archives, les secrets,
+  les injections, la validation humaine, les extraits minimaux et la rétention
+  fermée par défaut.
+- La branche Supabase de preview confirme le bucket `knowledge-ingest` privé et
+  limité à 50 Mo, la file `knowledge_document_scan`, la RLS forcée sur les
+  documents et l'absence de droit direct pour `anon` et `authenticated`.
+- Un document validé sous MFA produit uniquement une source en brouillon. Sa
+  publication demeure une action humaine séparée ; l'agent ne reçoit ensuite que
+  des extraits publiés, autorisés, datés et bornés, jamais le fichier brut.
+- T014C et T019 de la spécification 002 ainsi que T009 de la spécification 005
+  sont alignées comme terminées. Aucun document, interrupteur ou environnement
+  réel n'a été activé.

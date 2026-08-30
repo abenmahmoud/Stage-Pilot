@@ -27,7 +27,9 @@
 
 ## Phase 3 - Préparation et publication
 
-- [ ] T009 Ajouter l'entrée `Communications` dans l'espace administratif.
+- [x] T009 Ajouter l'entrée `Communications` dans l'espace administratif. La route
+  et la navigation responsive existent ; l'interrupteur reste volontairement
+  fermé jusqu'à l'autorisation du pilote.
 - [x] T009A Ajouter la route et l'entrée de navigation responsive derrière
   `VITE_COMMUNICATIONS_ENABLED=false`. Un accès direct affiche l'état fermé ;
   le menu reste absent tant que le pilote n'est pas autorisé.
