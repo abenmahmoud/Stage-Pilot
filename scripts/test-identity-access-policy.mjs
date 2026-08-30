@@ -36,7 +36,7 @@ test("does not turn a verified email into a school identity", () => {
   const actor = { ...baseActor, verifiedContactInstitutionIds: ["school-a"] };
   assert.deepEqual(
     decide(actor, { kind: "school_data", institutionId: "school-a", subjectPersonRef: "student-1" }),
-    { ok: false, reason: "school_identity_required" }
+    { ok: false, reason: "identity_i3_required" }
   );
 });
 

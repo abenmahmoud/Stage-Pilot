@@ -36,7 +36,7 @@ function failurePriority(result: ScheduleReadResult): number {
     source_stale: 3,
     no_authorized_course: 2,
     source_unavailable: 1,
-    school_identity_required: 0,
+    identity_i3_required: 0,
   }[result.reason];
 }
 
@@ -55,8 +55,8 @@ export async function readNextCourseFromPrivateSchedule(input: {
     authorizedTeacherRefs: teacherRefs,
   };
 
-  if (!["school_identity", "agent"].includes(viewer.identityLevel)) {
-    return { ok: false, reason: "school_identity_required" };
+  if (!["I3", "I4"].includes(viewer.identityLevel)) {
+    return { ok: false, reason: "identity_i3_required" };
   }
 
   const sourceKinds = [

@@ -1,8 +1,5 @@
-export type ScheduleIdentityLevel =
-  | "visitor"
-  | "contact_verified"
-  | "school_identity"
-  | "agent";
+import { identityAtLeast } from "./agent-identity-policy.js";
+import type { AgentIdentityLevel } from "./agent-identity-policy.js";
 
 export type ScheduleSourceType =
   | "pdf_import"
@@ -10,7 +7,7 @@ export type ScheduleSourceType =
   | "official_connector";
 
 export type ScheduleViewer = {
-  identityLevel: ScheduleIdentityLevel;
+  identityLevel: AgentIdentityLevel;
   authorizedClassRefs: string[];
   authorizedGroupRefs: string[];
   authorizedTeacherRefs: string[];
@@ -79,7 +76,7 @@ export type ScheduleReadResult =
   | {
       ok: false;
       reason:
-        | "school_identity_required"
+        | "identity_i3_required"
         | "source_unavailable"
         | "source_stale"
         | "no_authorized_course"
@@ -164,8 +161,8 @@ export function readNextAuthorizedCourse(input: {
   slots: ScheduleSlot[];
   changes: ScheduleChange[];
 }): ScheduleReadResult {
-  if (!["school_identity", "agent"].includes(input.viewer.identityLevel)) {
-    return { ok: false, reason: "school_identity_required" };
+  if (!identityAtLeast(input.viewer.identityLevel, "I3")) {
+    return { ok: false, reason: "identity_i3_required" };
   }
 
   const now = timestamp(input.now);

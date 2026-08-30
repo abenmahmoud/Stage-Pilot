@@ -34,8 +34,9 @@ cartographie oriente la recherche, elle n'autorise aucune mutation.
   selon une procedure du lycee.
 - Comptes agents individuels et authentification renforcee en production; aucun
   code direction partage pour la console definitive.
-- L0-L2 peuvent etre automatises selon une regle publiee; L3 exige validation;
-  L4 est transfere et ne doit jamais etre execute par l'IA.
+- A0-A2 peuvent etre automatises selon une regle publiee; A3 exige validation;
+  A4 est transfere et ne doit jamais etre execute par l'IA. La preuve d'identite
+  I0-I4 et le role sont controles separement avant chaque action.
 
 ## Livraison
 

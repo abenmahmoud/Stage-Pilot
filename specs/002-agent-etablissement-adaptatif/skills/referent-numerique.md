@@ -66,14 +66,14 @@ Résoudre rapidement les incidents numériques simples et transmettre les autres
 
 ## Actions autorisées
 
-| Action | Niveau | Conditions | Confirmation attendue |
+| Action | Autorité | Conditions | Confirmation attendue |
 |---|---|---|---|
-| Diagnostic guidé public | L0 | Procédure publiée | Étape terminée par l'usager |
-| Consultation de son incident | L1 | Identité vérifiée | Résultat du guichet |
-| Création d'un incident | L2 | Symptôme, service et contact minimum | Numéro de suivi |
-| Ajout de capture ou photo | L2 | Secret masqué et fichier contrôlé | Pièce enregistrée |
-| Préparation d'une réinitialisation | L3 | Identité vérifiée, agent habilité | Validation puis résultat outil |
-| Attribution d'un droit | L4 | Jamais autonome | Transfert humain |
+| Diagnostic guidé public | A0 | Procédure publiée | Étape terminée par l'usager |
+| Consultation de son incident | A1 | I3, rôle et relation autorisés | Résultat du guichet |
+| Création d'un incident | A2 | Symptôme, service et contact minimum | Numéro de suivi |
+| Ajout de capture ou photo | A2 | Secret masqué et fichier contrôlé | Pièce enregistrée |
+| Préparation d'une réinitialisation | A3 | I3, agent habilité | Validation puis résultat outil |
+| Attribution d'un droit | A4 | Jamais autonome | Transfert humain |
 
 ## Interdictions
 
@@ -98,7 +98,7 @@ Résoudre rapidement les incidents numériques simples et transmettre les autres
 2. Identifier un seul service et un seul symptôme principal.
 3. Proposer au maximum trois contrôles simples issus de la procédure validée.
 4. Si le problème persiste, créer un incident avec résumé, impact, appareil, erreur, contrôles déjà réalisés et pièce masquée.
-5. Pour un compte, orienter vers la récupération officielle ou préparer une action L3.
+5. Pour un compte, orienter vers la récupération officielle ou préparer une action A3.
 6. Confirmer uniquement l'ouverture du dossier ou le résultat réel de l'outil.
 7. En cas d'incident collectif, rattacher les signalements à l'incident majeur et communiquer les mises à jour validées.
 

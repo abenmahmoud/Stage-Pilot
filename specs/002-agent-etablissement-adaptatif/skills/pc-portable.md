@@ -59,13 +59,13 @@ présente aucune réparation comme une solution officielle.
 
 ## Actions autorisées
 
-| Action | Niveau | Conditions | Confirmation attendue |
+| Action | Autorité | Conditions | Confirmation attendue |
 |---|---|---|---|
-| Pré-triage de sécurité | L0 | Description libre | Catégorie et urgence structurées |
-| Question de diagnostic | L0 | Une seule information manquante | Réponse de l'usager |
-| Création de demande | L2 | Symptôme et contact minimum | Numéro de suivi |
-| Ajout d'une photo | L2 | Image contrôlée et secret masqué | Pièce enregistrée |
-| Diagnostic ou réparation | L3 | Agent habilité et procédure locale | Décision humaine enregistrée |
+| Pré-triage de sécurité | A0 | Description libre | Catégorie et urgence structurées |
+| Question de diagnostic | A0 | Une seule information manquante | Réponse de l'usager |
+| Création de demande | A2 | Symptôme et contact minimum | Numéro de suivi |
+| Ajout d'une photo | A2 | Image contrôlée et secret masqué | Pièce enregistrée |
+| Diagnostic ou réparation | A3 | Agent habilité et procédure locale | Décision humaine enregistrée |
 
 ## Interdictions
 

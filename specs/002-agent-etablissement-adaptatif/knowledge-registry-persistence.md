@@ -120,26 +120,24 @@ sans faire transiter le fichier par une fonction Vercel.
   texte de question/réponse ni contact n'est journalisé. Une réponse de repli ou
   un échec OpenAI n'écrit pas de consommation fictive.
 
-## Identité progressive du contexte
+## Identité, rôle et autorité du contexte
 
-- `L0 visiteur` : aucune session ou preuve confirmée, sources publiques seulement ;
-- `L1 contact vérifié` : compte Supabase avec email confirmé, sans déduire une
-  identité scolaire ; sources publiques seulement ;
-- `L2 identité scolaire` : compte relié par `auth_user_id` à une fiche élève ou
-  professeur ; les données personnelles restent hors prompt et nécessiteront un
-  outil contrôlé ;
-- `L3 agent` : adhésion d'établissement active de rôle `agent` ; accès aux
-  procédures internes seulement si le service de la source appartient à son
-  périmètre ;
-- `L4 responsable` : adhésion active `service_manager` ou `admin`, avec le même
-  cloisonnement par service. Les actions privilégiées et sources sensibles ne
-  sont pas activées sans MFA et outil dédié ;
+- `I0` : aucune session ou preuve confirmée, sources publiques seulement ;
+- `I1` : compte déclaré mais contact non confirmé, sources publiques seulement ;
+- `I2` : contact Supabase confirmé, sans déduire une identité scolaire ;
+- `I3` : compte relié par `auth_user_id` à une fiche scolaire ou adhésion active ;
+  les données personnelles restent hors prompt et nécessitent un outil contrôlé ;
+- `I4` : session renforcée récente `aal2`, jamais déduite d'un ancien libellé ;
+- le rôle `agent`, `service_manager` ou `admin` vient uniquement d'une adhésion
+  active et reste séparé de I0-I4. Les procédures internes exigent un rôle
+  habilité et le service de la source ; les sources sensibles exigent I4, un
+  rôle responsable et un outil dédié ;
 - une adhésion invitée, désactivée, d'un autre établissement ou de rôle
   `auditor` n'accorde aucun rôle opérationnel ;
 - le texte de la conversation et le type de demandeur déclaré ne participent
   jamais à la montée de niveau ;
 - le frontend envoie le token Supabase s'il existe via `apiFetch`, mais l'absence
-  de session conserve le parcours public L0 sans erreur.
+  de session conserve le parcours public I0 sans erreur.
 
 ## Reste à faire
 

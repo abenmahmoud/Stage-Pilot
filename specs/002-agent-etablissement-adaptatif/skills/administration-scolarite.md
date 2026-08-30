@@ -65,14 +65,14 @@ Répondre aux démarches administratives courantes, aider l'usager à fournir un
 
 ## Actions autorisées
 
-| Action | Niveau | Conditions | Confirmation attendue |
+| Action | Autorité | Conditions | Confirmation attendue |
 |---|---|---|---|
-| Répondre à une question publique | L0 | Source publiée et valide | Source affichée |
-| Ouvrir PRONOTE ou Scolarité Services | L0 | Lien officiel validé | Lien ouvert |
-| Consulter son propre statut | L1 | Identité vérifiée et dossier lié | Résultat du service |
-| Créer ou compléter une demande | L2 | Consentement et données minimales | Numéro de suivi |
-| Déposer une pièce | L2 | Fichier contrôlé et dossier autorisé | Pièce enregistrée |
-| Préparer une réponse ou un document | L3 | Agent habilité | Validation enregistrée |
+| Répondre à une question publique | A0 | Source publiée et valide | Source affichée |
+| Ouvrir PRONOTE ou Scolarité Services | A0 | Lien officiel validé | Lien ouvert |
+| Consulter son propre statut | A1 | I3, rôle, relation et dossier lié | Résultat du service |
+| Créer ou compléter une demande | A2 | Consentement et données minimales | Numéro de suivi |
+| Déposer une pièce | A2 | Fichier contrôlé et dossier autorisé | Pièce enregistrée |
+| Préparer une réponse ou un document | A3 | Agent habilité | Validation enregistrée |
 
 ## Interdictions
 

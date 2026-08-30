@@ -61,14 +61,14 @@ Transformer une demande libre en dossier clair, dirigé vers le bon service, sui
 
 ## Actions autorisées
 
-| Action | Niveau | Conditions | Confirmation attendue |
+| Action | Autorité | Conditions | Confirmation attendue |
 |---|---|---|---|
-| Qualifier une demande | L2 | Catégorie et service justifiés | Dossier mis à jour |
-| Assigner à un service | L2 | Règle publiée et droits agent | Assignation confirmée |
-| Fusionner les signaux d'un incident | L2 | Même cause probable, dossiers conservés | Liens créés |
-| Préparer une communication | L3 | Source et destinataires validés | Approbation direction |
-| Envoyer une convocation | L3 | Motif et agent habilité | Approbation puis envoi confirmé |
-| Décider d'une mesure sensible | L4 | Jamais autonome | Transfert humain |
+| Qualifier une demande | A2 | Catégorie et service justifiés | Dossier mis à jour |
+| Assigner à un service | A2 | Règle publiée et droits agent | Assignation confirmée |
+| Fusionner les signaux d'un incident | A2 | Même cause probable, dossiers conservés | Liens créés |
+| Préparer une communication | A3 | Source et destinataires validés | Approbation direction |
+| Envoyer une convocation | A3 | Motif et agent habilité | Approbation puis envoi confirmé |
+| Décider d'une mesure sensible | A4 | Jamais autonome | Transfert humain |
 
 ## Interdictions
 
@@ -103,7 +103,7 @@ Ces exemples ne deviennent actifs qu'après validation de la direction.
 3. Choisir service et priorité à partir des règles publiées ; enregistrer la justification.
 4. Assigner le dossier et envoyer un accusé avec référence et canal.
 5. Surveiller les délais, relancer selon la procédure et signaler les dossiers sans propriétaire.
-6. Pour une réponse collective ou officielle, préparer le contenu et les destinataires puis attendre L3.
+6. Pour une réponse collective ou officielle, préparer le contenu et les destinataires puis attendre la validation A3.
 7. Fermer seulement après résultat enregistré et notifier l'usager ; permettre la réouverture contrôlée.
 
 ## Exceptions et escalade

@@ -7,13 +7,13 @@
 - [ ] T003 Vérifier licence, hébergement, ENT et connecteurs PRONOTE disponibles.
 - [ ] T004 Classer les données et fixer leur durée de conservation avec le DPO.
 - [ ] T005 Décider si une AIPD est nécessaire et enregistrer la décision.
-- [ ] T006 Définir les actions L0 à L4 et les rôles habilités pour le lycée pilote.
+- [ ] T006 Définir les actions A0 à A4 et les rôles habilités pour le lycée pilote.
 - [x] T006A Arbitrer les chartes Claude/Kimi et séparer la preuve d'identité
   `I0-I4`, les rôles/relations et l'autorité d'action `A0-A4` dans la charte
   métier canonique, sans activer les propositions non validées.
-- [ ] T006B Inventorier puis migrer les usages historiques ambigus de `L0-L4`
-  vers `I0-I4` et `A0-A4`, avec compatibilité des données, tests des droits et
-  aucun élargissement implicite d'accès.
+- [x] T006B Inventorier puis migrer les usages historiques ambigus de `L0-L4`
+  vers `I0-I4` et `A0-A4`, avec compatibilité fermée des anciens libellés,
+  rôles séparés et tests garantissant qu'aucun ancien niveau ne produit `I4`.
 - [ ] T007 Remplacer tout accès agent partagé par des comptes individuels avec authentification renforcée.
 - [x] T007A Ajouter l’enrôlement TOTP, le défi à la connexion et l’exigence
   automatique pour chaque agent ayant déjà activé son second facteur, dans
@@ -172,11 +172,11 @@
   Le contrat serveur exige une compétence publiée, la clé exacte de l'outil et
   un schéma fermé qui refuse les champs inconnus, types, valeurs et références
   invalides. Aucun outil n'est activé par ce jalon.
-- [x] T017 Bloquer techniquement toute exécution L4. Le niveau d'autorité `A4`,
-  qui remplace l'ancien usage ambigu de L4 pour les actions, est refusé avant
+- [x] T017 Bloquer techniquement toute exécution A4. Le niveau d'autorité `A4`
+  est refusé avant
   tout autre contrôle, y compris pour un superadministrateur sous MFA avec une
   approbation.
-- [x] T018 Construire la boîte de validation L3 avec expiration, motif et audit.
+- [x] T018 Construire la boîte de validation A3 avec expiration, motif et audit.
   L'espace agent dispose désormais d'une file responsive protégée par MFA,
   limitée aux services persistés et au rôle exact du valideur. Une approbation,
   un refus motivé ou une expiration sont décidés sous verrous et audités ; aucune
@@ -256,11 +256,11 @@
 - [x] T023B Journaliser après une réponse IA réussie chaque version publique
   réellement injectée, avec acteur système, hash de session, modèle et numéro de
   tour, sans message, réponse, contact ni localisation privée de source.
-- [x] T023C Résoudre progressivement L0 à L4 à partir du token Supabase, de
+- [x] T023C Résoudre progressivement I0 à I4 à partir du token Supabase, de
   l'email confirmé, des fiches élève/professeur liées et des adhésions actives,
-  puis transmettre facultativement la session via le frontend sans bloquer L0.
+  puis transmettre facultativement la session via le frontend sans bloquer I0.
 - [x] T024A Autoriser le contexte public à tous, le contexte interne uniquement
-  aux agents L3/L4 du service de la source, et interdire l'injection directe des
+  aux agents de rôle habilité avec I3 ou I4 dans le service de la source, et interdire l'injection directe des
   classifications personnelles ou sensibles, même pour un administrateur.
 - [x] T024 Construire la recherche limitée aux sources publiées, autorisées et
   non expirées. La sélection partage désormais un vocabulaire métier borné pour

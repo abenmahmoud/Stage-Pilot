@@ -9,7 +9,10 @@ import {
 } from "../../db/schema.js";
 import { resolveKnowledgeActor } from "../../shared/knowledge-actor-policy.js";
 import type { KnowledgeActor } from "../../shared/skill-registry-policy.js";
-import { getUserFromRequest } from "./auth.js";
+import {
+  getAuthenticatorLevelFromRequest,
+  getUserFromRequest,
+} from "./auth.js";
 
 const DEFAULT_INSTITUTION_SLUG = "blaise-cendrars-sevran";
 
@@ -70,11 +73,18 @@ export async function resolveKnowledgeActorFromRequest(
         .limit(1),
     ]);
 
+    const schoolRole = student ? "student" : teacher ? "staff" : null;
+    const authenticatorLevel = membership
+      ? await getAuthenticatorLevelFromRequest(req)
+      : "aal1";
+
     return resolveKnowledgeActor({
       institutionId: institution.id,
       authenticated: true,
       emailConfirmed: user.emailConfirmedAt !== null,
       schoolRecordMatched: Boolean(student || teacher),
+      schoolRole,
+      authenticatorLevel,
       membership: membership ?? null,
     });
   } catch {

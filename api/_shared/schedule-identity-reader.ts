@@ -121,7 +121,7 @@ export async function resolveVerifiedScheduleScope(
 
   return {
     institutionId: institution.id,
-    identityLevel: "school_identity",
+    identityLevel: "I3",
     authorizedClassRefs: isOwnStaffSchedule
       ? []
       : personRows.flatMap((row) => row.classRef ? [row.classRef] : []),

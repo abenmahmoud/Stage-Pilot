@@ -63,7 +63,7 @@ test("requires a confirmed school identity without calling the model", async () 
     messages: messages("Quel est mon prochain cours ?"),
     attachments: [],
     safetyIdentifier: "schedule-assistant-identity",
-    scheduleReader: async () => ({ ok: false, reason: "school_identity_required" }),
+    scheduleReader: async () => ({ ok: false, reason: "identity_i3_required" }),
   });
 
   assert.equal(result.usedAi, false);

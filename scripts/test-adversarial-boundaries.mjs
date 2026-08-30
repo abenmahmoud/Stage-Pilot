@@ -68,7 +68,7 @@ test("verified contact is not a school identity and cannot read a third party", 
       target: { kind: "school_data", institutionId: "school-a", subjectPersonRef: "student-2" },
       now,
     }),
-    { ok: false, reason: "school_identity_required" }
+    { ok: false, reason: "identity_i3_required" }
   );
 });
 

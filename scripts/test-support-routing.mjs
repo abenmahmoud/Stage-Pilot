@@ -18,7 +18,7 @@ test("routes digital access and equipment to the digital lead", () => {
     description: "Je n'ai plus mon code EduConnect",
   });
   assert.equal(ent.service, "referent_numerique");
-  assert.equal(ent.requiredIdentity, "school_identity");
+  assert.equal(ent.requiredIdentity, "I3");
   assert.equal(ent.confidence, "high");
   assert.equal(ent.priority, "p3");
 
@@ -44,7 +44,7 @@ test("routes school administration to the secretariat", () => {
     description: "Il manque une pièce dans le dossier d'inscription",
   });
   assert.equal(route.service, "secretariat");
-  assert.equal(route.requiredIdentity, "verified_contact");
+  assert.equal(route.requiredIdentity, "I2");
 });
 
 test("routes absences and student life to the CPE queue", () => {
@@ -53,14 +53,14 @@ test("routes absences and student life to the CPE queue", () => {
     description: "Mon professeur est absent, est-ce que mon cours est annulé ?",
   });
   assert.equal(route.service, "vie_scolaire");
-  assert.equal(route.requiredIdentity, "school_identity");
+  assert.equal(route.requiredIdentity, "I3");
 
   const room = routeSupportRequest({
     category: "autre",
     description: "Dans quelle salle est mon prochain cours ?",
   });
   assert.equal(room.service, "vie_scolaire");
-  assert.equal(room.requiredIdentity, "school_identity");
+  assert.equal(room.requiredIdentity, "I3");
 });
 
 test("accepts urgent safeguarding intake without delaying it for identity", () => {
@@ -69,7 +69,7 @@ test("accepts urgent safeguarding intake without delaying it for identity", () =
     description: "Je suis en danger et on me menace au lycée",
   });
   assert.equal(route.service, "vie_scolaire");
-  assert.equal(route.requiredIdentity, "none");
+  assert.equal(route.requiredIdentity, "I0");
   assert.equal(route.confidence, "high");
   assert.equal(route.priority, "p1");
 });

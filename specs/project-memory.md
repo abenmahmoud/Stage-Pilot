@@ -3,7 +3,17 @@
 **Derniere mise a jour** : 30 aout 2026
 **Branche de travail** : `codex/lycee-connect-prototype`
 **Depot** : `abenmahmoud/Stage-Pilot`
-**Dernier jalon de code verifie** : candidate publiée sur la production Vercel
+**Dernier jalon de code verifie** : branche de preview Vercel
+
+## Jalon du 30 août 2026 - identité, rôle et autorité séparés
+
+- Le runtime utilise désormais I0-I4 pour la preuve d'identité et conserve le
+  rôle d'établissement dans un champ distinct.
+- I4 exige une session agent `aal2`; une ancienne valeur ne peut jamais le
+  produire par compatibilité.
+- Les compétences et plans utilisent A0-A4 pour l'autorité d'action. Les tests
+  du registre, des outils et des emplois du temps vérifient l'absence
+  d'élargissement implicite des droits.
 
 ## Jalon du 30 août 2026 - recette Webmail de masse préparée
 
@@ -787,9 +797,10 @@ sa specification.
   action système. L'assistant public consomme maintenant uniquement les versions
   actives, publiques, publiées et valides du bon établissement, avec contexte
   borné et repli statique. Chaque version injectée est auditée après une réponse
-  IA réussie sans conserver le texte ni les coordonnées. Les niveaux
-  L0 à L4 sont maintenant résolus à partir de preuves persistées : token, email
-  confirmé, fiche scolaire liée ou adhésion active et service. Les outils pour
+  IA réussie sans conserver le texte ni les coordonnées. Les preuves d'identité
+  I0 à I4 sont maintenant résolues à partir de preuves persistées : token, email
+  confirmé, fiche scolaire liée, adhésion active et session renforcée. Le rôle
+  et le service sont contrôlés séparément. Les outils pour
   données personnelles ou sensibles restent à construire.
 - Le défaut où l'assistant répondait sans proposer clairement le dossier est
   corrigé localement : une demande scolaire complète passe à `offer_case`,
@@ -933,7 +944,7 @@ sa specification.
 ### Priorite C - Agent d'etablissement V2
 
 - Nommer les responsables metier et inventorier les procedures reelles.
-- Definir les niveaux L0 a L4 et les validations attendues.
+- Faire valider les autorités A0 à A4, les preuves I0 à I4 et les rôles attendus.
 - Construire les outils contrôlés avec MFA pour les données personnelles ou
   sensibles, puis valider les responsables des sources.
 - Publier progressivement `administration-scolarite`, `referent-numerique` et

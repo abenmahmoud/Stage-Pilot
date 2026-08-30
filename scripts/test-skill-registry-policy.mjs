@@ -115,7 +115,8 @@ test("rejects malformed tool names before publication", () => {
 test("limits each source to the correct actor level and access path", () => {
   const publicSource = { ...source, classification: "public" };
   const visitor = {
-    level: "visitor",
+    identityLevel: "I0",
+    role: "visitor",
     institutionId: source.institutionId,
     serviceCodes: [],
   };
@@ -126,7 +127,7 @@ test("limits each source to the correct actor level and access path", () => {
   assert.deepEqual(
     authorizeKnowledgeSource({
       source,
-      actor: { ...visitor, level: "school_identity" },
+      actor: { ...visitor, identityLevel: "I3", role: "requester" },
       purpose: "answer",
       now,
     }),
@@ -136,7 +137,7 @@ test("limits each source to the correct actor level and access path", () => {
   assert.deepEqual(
     authorizeKnowledgeSource({
       source: personalSource,
-      actor: { ...visitor, level: "school_identity" },
+      actor: { ...visitor, identityLevel: "I3", role: "student" },
       purpose: "answer",
       now,
     }),
@@ -145,7 +146,7 @@ test("limits each source to the correct actor level and access path", () => {
   assert.deepEqual(
     authorizeKnowledgeSource({
       source: personalSource,
-      actor: { ...visitor, level: "school_identity" },
+      actor: { ...visitor, identityLevel: "I3", role: "student" },
       purpose: "tool",
       now,
     }),
@@ -155,7 +156,8 @@ test("limits each source to the correct actor level and access path", () => {
 
 test("enforces institution and service scope even for staff", () => {
   const agent = {
-    level: "agent",
+    identityLevel: "I3",
+    role: "agent",
     institutionId: source.institutionId,
     serviceCodes: ["secretariat"],
   };
@@ -177,6 +179,43 @@ test("enforces institution and service scope even for staff", () => {
       source,
       actor: { ...agent, institutionId: "autre-etablissement-fictif", serviceCodes: ["vie_scolaire"] },
       purpose: "answer",
+      now,
+    }),
+    { ok: false, reason: "access_denied" }
+  );
+});
+
+test("requires I4 and an authorized role for sensitive tool access", () => {
+  const sensitiveSource = { ...source, classification: "sensitive" };
+  const baseActor = {
+    identityLevel: "I3",
+    role: "service_manager",
+    institutionId: source.institutionId,
+    serviceCodes: ["vie_scolaire"],
+  };
+  assert.deepEqual(
+    authorizeKnowledgeSource({
+      source: sensitiveSource,
+      actor: baseActor,
+      purpose: "tool",
+      now,
+    }),
+    { ok: false, reason: "access_denied" }
+  );
+  assert.deepEqual(
+    authorizeKnowledgeSource({
+      source: sensitiveSource,
+      actor: { ...baseActor, identityLevel: "I4" },
+      purpose: "tool",
+      now,
+    }),
+    { ok: true }
+  );
+  assert.deepEqual(
+    authorizeKnowledgeSource({
+      source: sensitiveSource,
+      actor: { ...baseActor, identityLevel: "I4", role: "requester" },
+      purpose: "tool",
       now,
     }),
     { ok: false, reason: "access_denied" }

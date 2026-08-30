@@ -1,6 +1,8 @@
 import { createHash } from "node:crypto";
+import { identityAtLeast } from "./agent-identity-policy.js";
+import type { AgentIdentityLevel } from "./agent-identity-policy.js";
 
-export type AgentIdentityLevel = "I0" | "I1" | "I2" | "I3" | "I4";
+export type { AgentIdentityLevel } from "./agent-identity-policy.js";
 export type AgentActionAuthority = "A0" | "A1" | "A2" | "A3" | "A4";
 export type AgentToolRole =
   | "visitor"
@@ -99,14 +101,6 @@ export type AgentToolDecision =
   | { ok: false; status: "awaiting_approval" | "refused"; reason: AgentToolDecisionReason };
 
 const TOOL_KEY_PATTERN = /^[a-z][a-z0-9_]*(?:\.[a-z][a-z0-9_]*)+$/;
-const LEVEL_RANK: Record<AgentIdentityLevel, number> = {
-  I0: 0,
-  I1: 1,
-  I2: 2,
-  I3: 3,
-  I4: 4,
-};
-
 function parsedTime(value: string | null): number {
   if (value === null) return Number.NaN;
   const parsed = Date.parse(value);
@@ -262,7 +256,7 @@ export function authorizeAgentToolInvocation(input: {
   ) {
     return { ok: false, status: "refused", reason: "input_invalid" };
   }
-  if (LEVEL_RANK[input.actor.identityLevel] < LEVEL_RANK[input.tool.requiredIdentity]) {
+  if (!identityAtLeast(input.actor.identityLevel, input.tool.requiredIdentity)) {
     return { ok: false, status: "refused", reason: "identity_insufficient" };
   }
   if (!input.tool.allowedRoles.includes(input.actor.role)) {

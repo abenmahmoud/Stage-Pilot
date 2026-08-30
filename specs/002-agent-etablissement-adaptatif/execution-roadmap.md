@@ -104,9 +104,9 @@ l'autorisation de quota définie par le propriétaire.
   services de cantine ou vocaux et les durees de conservation non validees ne
   sont pas presentes comme disponibles.
 - Le vocabulaire canonique separe desormais `I0-I4` pour la preuve d'identite,
-  les roles et relations, puis `A0-A4` pour l'autorite d'action. Les anciens
-  libelles `L0-L4` restent temporairement dans le code jusqu'a une migration
-  testee afin de ne pas modifier les droits en silence.
+  les roles et relations, puis `A0-A4` pour l'autorite d'action. La migration
+  runtime est testee : les anciens libelles sont lus seulement par un
+  convertisseur ferme qui ne peut jamais deduire `I4`.
 - La charte reste soumise a la direction et au DPO avant tout pilote reel. Le
   detail des decisions est conserve dans
   `docs/audits/CLAUDE_KIMI_AGENT_CHARTER_ADJUDICATION_2026-08-28.md`.
@@ -146,9 +146,10 @@ l'autorisation de quota définie par le propriétaire.
   injectées sont audités seulement après une réponse IA réussie, sans texte ni
   coordonnées. Le registre de preview restant vide, aucune procédure réelle
   n'est encore utilisée.
-- Lot N4C : identité progressive du contexte. **Implémentée et testée** : L0
-  anonyme, L1 email Supabase confirmé, L2 fiche élève/professeur liée, L3 agent et
-  L4 responsable issus d'une adhésion active. Les procédures internes sont
+- Lot N4C : identité progressive du contexte. **Implémentée et testée** : I0
+  anonyme, I1 compte déclaré, I2 contact Supabase confirmé, I3 identité ou
+  adhésion scolaire persistée et I4 réservé à une session agent renforcée. Le
+  rôle agent/responsable reste séparé du niveau d'identité. Les procédures internes sont
   limitées au service de la source ; les catégories personnelles et sensibles
   restent exclues du prompt et les déclarations dans le chat ne donnent aucun
   droit. Le token est facultatif et transmis uniquement via `apiFetch`.

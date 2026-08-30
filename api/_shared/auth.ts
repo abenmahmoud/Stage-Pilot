@@ -57,6 +57,21 @@ export async function requireUser(req: VercelRequest): Promise<AuthUser> {
   return user;
 }
 
+export async function getAuthenticatorLevelFromRequest(
+  req: VercelRequest
+): Promise<"aal1" | "aal2"> {
+  const authHeader = req.headers.authorization;
+  const token = authHeader?.startsWith("Bearer ")
+    ? authHeader.slice("Bearer ".length).trim()
+    : "";
+  if (!token) return "aal1";
+
+  const { data, error } =
+    await supabaseAdmin.auth.mfa.getAuthenticatorAssuranceLevel(token);
+  if (error || data.currentLevel !== "aal2") return "aal1";
+  return "aal2";
+}
+
 export async function requireRole(
   req: VercelRequest,
   allowedRoles: readonly string[]

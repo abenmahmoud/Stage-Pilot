@@ -75,7 +75,12 @@ export async function loadPublicKnowledgeContext(input: {
   if (!institution) return EMPTY_CONTEXT;
   const actor: KnowledgeActor = input.actor?.institutionId === institution.id
     ? input.actor
-    : { level: "visitor", institutionId: institution.id, serviceCodes: [] };
+    : {
+        identityLevel: "I0",
+        role: "visitor",
+        institutionId: institution.id,
+        serviceCodes: [],
+      };
 
   const rows = await db
     .select({

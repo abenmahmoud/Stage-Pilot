@@ -87,7 +87,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           });
         } catch (error) {
           if (error instanceof HttpError && (error.status === 401 || error.status === 403)) {
-            return { ok: false, reason: "school_identity_required" } as const;
+            return { ok: false, reason: "identity_i3_required" } as const;
           }
           throw error;
         }

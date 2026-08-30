@@ -10,34 +10,34 @@ L'IA assiste les personnels. Elle ne remplace ni leur responsabilité, ni les d�
 
 | Service ou fonction | Valeur pour l'usager | Source de vérité | Comportement V2 | Niveau | Validation humaine |
 |---|---|---|---|---|---|
-| Certificat de scolarité et attestations | Télécharger un document sans appeler le secrétariat | PRONOTE / établissement | Expliquer le chemin, ouvrir le bon écran, puis permettre une récupération autorisée si un connecteur officiel existe | L1 | Non pour la consultation autorisée |
-| Casier numérique | Recevoir certificat, attestation, courrier ou plusieurs pièces jointes | PRONOTE | Signaler qu'un document est disponible et ouvrir le casier | L1 | Non |
-| Dépôt de justificatifs | Transmettre assurance, domicile, absence ou autre document | PRONOTE / support lycée | Collecter le strict nécessaire, contrôler format et lisibilité, puis transmettre | L2 | Selon la procédure |
-| Signature électronique | Signer bulletin, convention ou document conditionnel | PRONOTE | Préparer et expliquer ; ne jamais signer à la place de l'usager | L3 | Oui |
-| Absences et retards | Consulter, justifier et joindre une preuve | PRONOTE vie scolaire | Expliquer, recueillir la demande et suivre son traitement | L2 | Oui pour accepter ou refuser |
-| Emploi du temps et remplacements | Voir les changements de dernière minute | PRONOTE | Afficher en lecture seule après authentification officielle | L1 | Non |
-| Notes, compétences, bulletins et bilans | Consulter les résultats et documents publiés | PRONOTE | Afficher ou orienter sans interprétation décisionnelle | L1 | Non |
-| Orientation | Saisir des voeux et répondre aux propositions | PRONOTE / Scolarité Services | Expliquer les étapes, dates et pièces ; ouvrir le service officiel | L1 | Oui pour toute décision |
-| Inscription et réinscription | Mettre à jour les données, options et pièces | Scolarité Services / établissement | Produire une liste personnalisée des pièces et suivre les éléments manquants | L2 | Oui pour valider le dossier |
-| Bourses et aides | Comprendre l'éligibilité et suivre la démarche | Scolarité Services / ministère | Guider vers le service officiel et créer un rappel ou une demande d'aide | L1 | Oui pour la décision |
-| Discussions, informations et sondages | Communiquer avec les bons destinataires | PRONOTE | Préparer un message et sa liste ; publication après contrôle | L3 | Oui |
-| Rendez-vous et convocations | Demander ou organiser un échange | PRONOTE / agenda lycée | Proposer un créneau, créer une demande et notifier | L2-L3 | Oui pour une convocation officielle |
-| Listes de diffusion | Joindre une classe, un groupe ou un service | PRONOTE / Webmail Lycée | Préparer le ciblage sans révéler les adresses personnelles | L3 | Oui avant envoi collectif |
-| Stages | Entreprises, conventions, signatures et suivi | LycéeGest / PRONOTE | Ouvrir LycéeGest et transmettre le contexte utile, sans dupliquer le module | L1-L2 | Selon l'action |
-| Maintenance informatique | Signaler ENT, compte, messagerie, poste ou équipement | Guichet numérique | Diagnostiquer les cas simples, créer et classer une demande | L2 | Non, sauf accès sensible |
-| Travaux et matériel | Signaler un local ou réserver une ressource | PRONOTE / intendance | Créer une demande et l'assigner selon les règles du lycée | L2 | Selon le type |
-| Vie scolaire et discipline | Suivre incidents, punitions, sanctions et convocations | PRONOTE | Orienter et transmettre seulement ; aucune décision autonome | L4 | Toujours |
-| Santé, harcèlement et décrochage | Accéder rapidement au bon professionnel | Services compétents | Détecter l'urgence, limiter les données, alerter un humain | L4 | Toujours et immédiatement |
-| Administration des droits | Gérer profils et habilitations détaillés | PRONOTE / annuaire | Créer une demande d'accès ; ne jamais attribuer de droit seul | L4 | Toujours |
-| Exports réglementaires | SIECLE, STS Web, LSU/LSL, Parcoursup, Cyclades | Applications officielles | Contrôler une liste de préparation, sans modifier ni soumettre seul | L3-L4 | Toujours |
+| Certificat de scolarité et attestations | Télécharger un document sans appeler le secrétariat | PRONOTE / établissement | Expliquer le chemin, ouvrir le bon écran, puis permettre une récupération autorisée si un connecteur officiel existe | A1 | Non pour la consultation autorisée |
+| Casier numérique | Recevoir certificat, attestation, courrier ou plusieurs pièces jointes | PRONOTE | Signaler qu'un document est disponible et ouvrir le casier | A1 | Non |
+| Dépôt de justificatifs | Transmettre assurance, domicile, absence ou autre document | PRONOTE / support lycée | Collecter le strict nécessaire, contrôler format et lisibilité, puis transmettre | A2 | Selon la procédure |
+| Signature électronique | Signer bulletin, convention ou document conditionnel | PRONOTE | Préparer et expliquer ; ne jamais signer à la place de l'usager | A3 | Oui |
+| Absences et retards | Consulter, justifier et joindre une preuve | PRONOTE vie scolaire | Expliquer, recueillir la demande et suivre son traitement | A2 | Oui pour accepter ou refuser |
+| Emploi du temps et remplacements | Voir les changements de dernière minute | PRONOTE | Afficher en lecture seule après authentification officielle | A1 | Non |
+| Notes, compétences, bulletins et bilans | Consulter les résultats et documents publiés | PRONOTE | Afficher ou orienter sans interprétation décisionnelle | A1 | Non |
+| Orientation | Saisir des voeux et répondre aux propositions | PRONOTE / Scolarité Services | Expliquer les étapes, dates et pièces ; ouvrir le service officiel | A1 | Oui pour toute décision |
+| Inscription et réinscription | Mettre à jour les données, options et pièces | Scolarité Services / établissement | Produire une liste personnalisée des pièces et suivre les éléments manquants | A2 | Oui pour valider le dossier |
+| Bourses et aides | Comprendre l'éligibilité et suivre la démarche | Scolarité Services / ministère | Guider vers le service officiel et créer un rappel ou une demande d'aide | A1 | Oui pour la décision |
+| Discussions, informations et sondages | Communiquer avec les bons destinataires | PRONOTE | Préparer un message et sa liste ; publication après contrôle | A3 | Oui |
+| Rendez-vous et convocations | Demander ou organiser un échange | PRONOTE / agenda lycée | Proposer un créneau, créer une demande et notifier | A2-A3 | Oui pour une convocation officielle |
+| Listes de diffusion | Joindre une classe, un groupe ou un service | PRONOTE / Webmail Lycée | Préparer le ciblage sans révéler les adresses personnelles | A3 | Oui avant envoi collectif |
+| Stages | Entreprises, conventions, signatures et suivi | LycéeGest / PRONOTE | Ouvrir LycéeGest et transmettre le contexte utile, sans dupliquer le module | A1-A2 | Selon l'action |
+| Maintenance informatique | Signaler ENT, compte, messagerie, poste ou équipement | Guichet numérique | Diagnostiquer les cas simples, créer et classer une demande | A2 | Non, sauf accès sensible |
+| Travaux et matériel | Signaler un local ou réserver une ressource | PRONOTE / intendance | Créer une demande et l'assigner selon les règles du lycée | A2 | Selon le type |
+| Vie scolaire et discipline | Suivre incidents, punitions, sanctions et convocations | PRONOTE | Orienter et transmettre seulement ; aucune décision autonome | A4 | Toujours |
+| Santé, harcèlement et décrochage | Accéder rapidement au bon professionnel | Services compétents | Détecter l'urgence, limiter les données, alerter un humain | A4 | Toujours et immédiatement |
+| Administration des droits | Gérer profils et habilitations détaillés | PRONOTE / annuaire | Créer une demande d'accès ; ne jamais attribuer de droit seul | A4 | Toujours |
+| Exports réglementaires | SIECLE, STS Web, LSU/LSL, Parcoursup, Cyclades | Applications officielles | Contrôler une liste de préparation, sans modifier ni soumettre seul | A3-A4 | Toujours |
 
 ## Niveaux d'automatisation
 
-- **L0 - Information publique** : réponse automatique depuis une source validée, avec lien et date de mise à jour.
-- **L1 - Lecture personnelle** : consultation après authentification et contrôle d'autorisation.
-- **L2 - Démarche préparée** : création ou mise à jour d'une demande, avec confirmation et journal d'audit.
-- **L3 - Action officielle** : brouillon ou préparation automatique, exécution uniquement après validation humaine.
-- **L4 - Action autonome interdite** : décision, divulgation ou modification sensible réservée aux professionnels habilités.
+- **A0 - Information publique** : réponse automatique depuis une source validée, avec lien et date de mise à jour.
+- **A1 - Lecture personnelle** : consultation après preuve I3, rôle, relation et contrôle d'autorisation.
+- **A2 - Démarche contrôlée** : création ou mise à jour d'une demande, avec confirmation et journal d'audit.
+- **A3 - Action officielle préparée** : brouillon ou préparation automatique, exécution uniquement après validation humaine.
+- **A4 - Action autonome interdite** : décision, divulgation ou modification sensible réservée aux professionnels habilités.
 
 ## Services administratifs à intégrer
 

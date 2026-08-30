@@ -109,7 +109,7 @@ test("verified contact still cannot read school data without school identity", (
     },
     now: "2026-08-29T12:00:00.000Z",
   });
-  assert.deepEqual(decision, { ok: false, reason: "school_identity_required" });
+  assert.deepEqual(decision, { ok: false, reason: "identity_i3_required" });
 });
 
 test("shared-device logout revokes only the current hashed session", () => {

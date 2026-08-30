@@ -5,7 +5,7 @@
 - [x] Les utilisateurs et leurs parcours prioritaires sont définis.
 - [x] La V2 réutilise le suivi `001` au lieu de créer un système concurrent.
 - [x] Les fonctions PRONOTE utiles sont recensées à partir de sources officielles.
-- [x] Les niveaux d'automatisation L0 à L4 sont définis.
+- [x] Les preuves I0-I4, les rôles et les autorités A0-A4 sont définis séparément.
 - [x] Les actions autonomes interdites sont explicites.
 - [x] Les exigences de fichiers, suivi, notifications, charge, mobile et PWA sont présentes.
 - [x] Les critères de réussite sont mesurables.

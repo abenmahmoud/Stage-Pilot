@@ -1,4 +1,5 @@
-import type { KnowledgeActor, KnowledgeActorLevel } from "./skill-registry-policy.js";
+import type { AgentInstitutionRole } from "./agent-identity-policy.js";
+import type { KnowledgeActor } from "./skill-registry-policy.js";
 
 export type KnowledgeMembershipEvidence = {
   institutionId: string;
@@ -7,7 +8,7 @@ export type KnowledgeMembershipEvidence = {
   status: "invited" | "active" | "disabled" | string;
 };
 
-const STAFF_LEVELS: Partial<Record<KnowledgeMembershipEvidence["role"], KnowledgeActorLevel>> = {
+const STAFF_ROLES: Partial<Record<KnowledgeMembershipEvidence["role"], AgentInstitutionRole>> = {
   agent: "agent",
   service_manager: "service_manager",
   admin: "admin",
@@ -18,36 +19,50 @@ export function resolveKnowledgeActor(input: {
   authenticated: boolean;
   emailConfirmed: boolean;
   schoolRecordMatched: boolean;
+  schoolRole?: "student" | "staff" | null;
+  authenticatorLevel?: "aal1" | "aal2";
   membership: KnowledgeMembershipEvidence | null;
 }): KnowledgeActor {
   const membership = input.membership;
-  const staffLevel = membership?.institutionId === input.institutionId && membership.status === "active"
-    ? STAFF_LEVELS[membership.role]
+  const staffRole = membership?.institutionId === input.institutionId && membership.status === "active"
+    ? STAFF_ROLES[membership.role]
     : undefined;
 
-  if (staffLevel) {
+  if (staffRole) {
     return {
-      level: staffLevel,
+      identityLevel: input.authenticatorLevel === "aal2" ? "I4" : "I3",
+      role: staffRole,
       institutionId: input.institutionId,
       serviceCodes: [...new Set(membership?.serviceCodes ?? [])].sort(),
     };
   }
   if (input.authenticated && input.schoolRecordMatched) {
     return {
-      level: "school_identity",
+      identityLevel: "I3",
+      role: input.schoolRole ?? "requester",
       institutionId: input.institutionId,
       serviceCodes: [],
     };
   }
   if (input.authenticated && input.emailConfirmed) {
     return {
-      level: "contact_verified",
+      identityLevel: "I2",
+      role: "requester",
+      institutionId: input.institutionId,
+      serviceCodes: [],
+    };
+  }
+  if (input.authenticated) {
+    return {
+      identityLevel: "I1",
+      role: "requester",
       institutionId: input.institutionId,
       serviceCodes: [],
     };
   }
   return {
-    level: "visitor",
+    identityLevel: "I0",
+    role: "visitor",
     institutionId: input.institutionId,
     serviceCodes: [],
   };

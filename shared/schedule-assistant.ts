@@ -97,7 +97,7 @@ export function scheduleAssistantAnswer(result: ScheduleReadResult): ScheduleAss
     reply: string;
     safetyNotice: string | null;
   }> = {
-    school_identity_required: {
+    identity_i3_required: {
       reply: "Je peux rechercher votre prochain cours, mais votre identité scolaire doit d'abord être confirmée. Vous pouvez transmettre une demande au lycée si vous ne pouvez pas effectuer cette vérification.",
       safetyNotice: "Une adresse ou une classe écrite dans la conversation ne donne aucun accès à un emploi du temps personnel.",
     },

@@ -12,7 +12,7 @@ La V2 étend le guichet numérique existant. Elle réutilise ses demandes, messa
 4. **Registre de compétences** : charge des documents versionnés propres à l'établissement.
 5. **Base de connaissances** : ne recherche que dans les procédures et sources publiées, avec date d'expiration.
 6. **Adaptateurs d'outils** : guichet numérique, LycéeGest, Webmail Lycée, Brevo, liens Scolarité Services et connecteur PRONOTE officiel lorsqu'il est autorisé.
-7. **Boîte de validation** : permet à un agent habilité de contrôler une action L3.
+7. **Boîte de validation** : permet à un agent habilité de contrôler une action A3.
 8. **Journal et évaluation** : conserve les actions, sources, décisions, coûts et résultats de tests sans exposer les secrets.
 
 ## Flux de traitement
@@ -23,7 +23,7 @@ La V2 étend le guichet numérique existant. Elle réutilise ses demandes, messa
 4. Appliquer les règles de sécurité et sélectionner les compétences autorisées.
 5. Chercher dans les sources publiées de l'établissement.
 6. Produire une réponse structurée ou préparer un appel d'outil.
-7. Exécuter automatiquement L0 à L2 selon la règle ; placer L3 en validation ; transférer L4.
+7. Exécuter automatiquement A0 à A2 selon la règle ; placer A3 en validation ; transférer A4.
 8. Enregistrer résultat, source, événements et notification dans le dossier existant.
 9. N'affirmer la réussite qu'après retour confirmé de l'outil.
 
@@ -36,7 +36,7 @@ La V2 étend le guichet numérique existant. Elle réutilise ses demandes, messa
   d'un SSO ; accès aux seules données scolaires propres à la personne et à ses
   enfants ou groupes autorisés.
 - **Agent** : traitement des files de son service.
-- **Responsable de service** : validation d'actions L3 et publication de procédures.
+- **Responsable de service** : validation d'actions A3 et publication de procédures.
 - **Administrateur** : configuration et habilitations, sans accès automatique au contenu hors de son périmètre.
 
 L'accès usager pourra combiner jeton de suivi, code à usage unique par courriel/SMS et, plus tard, SSO officiel. L'espace agent exige un compte individuel et une authentification renforcée ; aucun mot de passe direction partagé en production.

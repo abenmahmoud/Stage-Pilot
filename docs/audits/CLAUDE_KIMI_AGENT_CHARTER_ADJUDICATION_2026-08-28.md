@@ -66,9 +66,10 @@ la preuve d'identite et parfois le niveau d'automatisation. La reference devient
 - role separe pour eleve, responsable, personnel, agent et responsable de service ;
 - `A0-A4` pour l'autorite de l'action.
 
-Le code existant conserve provisoirement ses libelles historiques. Leur migration
-sera faite par une tache distincte, avec tests de non-regression et sans modifier
-silencieusement les droits.
+La migration est réalisée par T006B : le runtime utilise I0-I4 et un rôle
+séparé, les compétences utilisent A0-A4 et le convertisseur des anciens libellés
+ne peut jamais déduire I4. Les tests de non-régression vérifient les accès aux
+sources, aux outils et aux emplois du temps.
 
 ## Capacites actuelles et promesses interdites
 

@@ -1,19 +1,18 @@
+import { identityAtLeast } from "./agent-identity-policy.js";
+import type {
+  AgentIdentityLevel,
+  AgentInstitutionRole,
+} from "./agent-identity-policy.js";
+
 export type KnowledgeClassification =
   | "public"
   | "internal"
   | "personal"
   | "sensitive";
 
-export type KnowledgeActorLevel =
-  | "visitor"
-  | "contact_verified"
-  | "school_identity"
-  | "agent"
-  | "service_manager"
-  | "admin";
-
 export type KnowledgeActor = {
-  level: KnowledgeActorLevel;
+  identityLevel: AgentIdentityLevel;
+  role: AgentInstitutionRole;
   institutionId: string;
   serviceCodes: string[];
 };
@@ -180,29 +179,36 @@ export function authorizeKnowledgeSource(input: {
     return { ok: false, reason: "source_unavailable" };
   }
 
-  const actorRank: Record<KnowledgeActorLevel, number> = {
-    visitor: 0,
-    contact_verified: 1,
-    school_identity: 2,
-    agent: 3,
-    service_manager: 4,
-    admin: 5,
-  };
-  const minimumRank: Record<KnowledgeClassification, number> = {
-    public: 0,
-    internal: 3,
-    personal: 2,
-    sensitive: 4,
-  };
+  const staffRoles = new Set<AgentInstitutionRole>([
+    "agent",
+    "service_manager",
+    "admin",
+  ]);
 
   if (input.actor.institutionId !== input.source.institutionId) {
     return { ok: false, reason: "access_denied" };
   }
-  if (actorRank[input.actor.level] < minimumRank[input.source.classification]) {
+  if (input.source.classification === "internal" && (
+    !identityAtLeast(input.actor.identityLevel, "I3") ||
+    !staffRoles.has(input.actor.role)
+  )) {
     return { ok: false, reason: "access_denied" };
   }
   if (
-    actorRank[input.actor.level] >= actorRank.agent &&
+    input.source.classification === "personal" &&
+    !identityAtLeast(input.actor.identityLevel, "I3")
+  ) {
+    return { ok: false, reason: "access_denied" };
+  }
+  if (
+    input.source.classification === "sensitive" &&
+    (!identityAtLeast(input.actor.identityLevel, "I4") ||
+      !["service_manager", "admin"].includes(input.actor.role))
+  ) {
+    return { ok: false, reason: "access_denied" };
+  }
+  if (
+    staffRoles.has(input.actor.role) &&
     input.source.serviceCodes.length > 0 &&
     !input.source.serviceCodes.some((service) => input.actor.serviceCodes.includes(service))
   ) {

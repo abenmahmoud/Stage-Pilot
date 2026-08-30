@@ -45,7 +45,7 @@ export type InstitutionAccessTarget =
 export type InstitutionAccessReason =
   | "contact_verification_required"
   | "owner_mismatch"
-  | "school_identity_required"
+  | "identity_i3_required"
   | "identity_revoked"
   | "institution_mismatch"
   | "relationship_missing"
@@ -115,7 +115,7 @@ export function authorizeInstitutionAccess(input: {
 
   if (target.kind === "school_data") {
     const identity = actor.schoolIdentity;
-    if (!identity) return { ok: false, reason: "school_identity_required" };
+    if (!identity) return { ok: false, reason: "identity_i3_required" };
     if (identity.revokedAt !== null) return { ok: false, reason: "identity_revoked" };
     if (identity.institutionId !== target.institutionId) {
       return { ok: false, reason: "institution_mismatch" };

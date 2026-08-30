@@ -1,3 +1,5 @@
+import type { AgentIdentityLevel } from "./agent-identity-policy.js";
+
 export type SchoolService =
   | "referent_numerique"
   | "ddfpt"
@@ -9,17 +11,11 @@ export type SchoolService =
 
 export type RoutingConfidence = "high" | "medium" | "low";
 export type SupportPriority = "p1" | "p2" | "p3" | "p4";
-export type IdentityRequirement =
-  | "none"
-  | "verified_contact"
-  | "school_identity"
-  | "agent";
-
 export type SupportRoute = {
   service: SchoolService;
   confidence: RoutingConfidence;
   reason: string;
-  requiredIdentity: IdentityRequirement;
+  requiredIdentity: AgentIdentityLevel;
   priority: SupportPriority;
 };
 
@@ -48,24 +44,24 @@ function normalize(value: string): string {
     .toLowerCase();
 }
 
-function requiredIdentity(category: string, text: string): IdentityRequirement {
+function requiredIdentity(category: string, text: string): AgentIdentityLevel {
   if (
     ["ent", "email_academique"].includes(category) ||
     /\b(code|identifiant|mot de passe|compte academique|educonnect)\b/.test(text)
   ) {
-    return "school_identity";
+    return "I3";
   }
   if (
     category === "affectation_classe" ||
     category === "vie_scolaire" ||
     /\b(mon emploi du temps|ma salle|mon cours|mon prochain cours|quelle salle|salle.{0,20}cours|cours (annule|deplace|maintenu)|professeur absent|justificatif|absence)\b/.test(text)
   ) {
-    return "school_identity";
+    return "I3";
   }
   if (["documents_scolarite", "inscription", "restauration_bourse"].includes(category)) {
-    return "verified_contact";
+    return "I2";
   }
-  return "none";
+  return "I0";
 }
 
 export function routeSupportRequest(input: {
@@ -83,7 +79,7 @@ export function routeSupportRequest(input: {
       service: "vie_scolaire",
       confidence: "high",
       reason: "protection_ou_vie_scolaire",
-      requiredIdentity: "none",
+      requiredIdentity: "I0",
       priority: "p1",
     };
   }

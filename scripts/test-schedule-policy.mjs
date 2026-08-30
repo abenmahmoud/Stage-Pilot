@@ -26,7 +26,7 @@ const slot = {
   reviewStatus: "approved",
 };
 const studentViewer = {
-  identityLevel: "school_identity",
+  identityLevel: "I3",
   authorizedClassRefs: ["classe-fictive-a"],
   authorizedGroupRefs: ["groupe-fictif-1"],
   authorizedTeacherRefs: [],
@@ -45,9 +45,9 @@ function read(overrides = {}) {
 }
 
 test("requires a school identity before reading a personal schedule", () => {
-  for (const identityLevel of ["visitor", "contact_verified"]) {
+  for (const identityLevel of ["I0", "I1", "I2"]) {
     const result = read({ viewer: { ...studentViewer, identityLevel } });
-    assert.deepEqual(result, { ok: false, reason: "school_identity_required" });
+    assert.deepEqual(result, { ok: false, reason: "identity_i3_required" });
   }
 });
 

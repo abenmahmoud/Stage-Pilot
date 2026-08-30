@@ -56,12 +56,12 @@ d'un personnel.
 
 ## Actions autorisées
 
-| Action | Niveau | Conditions | Confirmation attendue |
+| Action | Autorité | Conditions | Confirmation attendue |
 |---|---|---|---|
-| Lire son prochain cours | L1 | Identité scolaire et groupe autorisé | Créneau et version de source |
-| Lire un changement | L1 | Flux officiel actuel | État, heure de synchronisation |
-| Signaler une contradiction | L2 | Créneau concerné et contact | Numéro de suivi |
-| Corriger ou publier un changement | L3 | Personnel habilité | Validation enregistrée |
+| Lire son prochain cours | A1 | I3 et groupe autorisé | Créneau et version de source |
+| Lire un changement | A1 | I3 et flux officiel actuel | État, heure de synchronisation |
+| Signaler une contradiction | A2 | Créneau concerné et contact | Numéro de suivi |
+| Corriger ou publier un changement | A3 | Personnel habilité | Validation enregistrée |
 
 ## Interdictions
 

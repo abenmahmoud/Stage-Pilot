@@ -153,15 +153,19 @@ test("allows an internal skill only for persisted staff in the source service", 
 
   assert.equal(selectAuthorizedAgentSkillContext({
     ...base,
-    actor: { level: "agent", institutionId: "school-a", serviceCodes: ["numerique"] },
+    actor: { identityLevel: "I3", role: "agent", institutionId: "school-a", serviceCodes: ["numerique"] },
   }).length, 1);
   assert.deepEqual(selectAuthorizedAgentSkillContext({
     ...base,
-    actor: { level: "agent", institutionId: "school-a", serviceCodes: ["vie_scolaire"] },
+    actor: { identityLevel: "I3", role: "agent", institutionId: "school-a", serviceCodes: ["vie_scolaire"] },
   }), []);
   assert.deepEqual(selectAuthorizedAgentSkillContext({
     ...base,
-    actor: { level: "school_identity", institutionId: "school-a", serviceCodes: [] },
+    actor: { identityLevel: "I3", role: "student", institutionId: "school-a", serviceCodes: [] },
+  }), []);
+  assert.deepEqual(selectAuthorizedAgentSkillContext({
+    ...base,
+    actor: { identityLevel: "I2", role: "agent", institutionId: "school-a", serviceCodes: ["numerique"] },
   }), []);
 });
 
@@ -173,7 +177,7 @@ test("never injects personal or sensitive procedures directly into the prompt", 
         dataClassification: classification,
         sources: [{ ...source, classification }],
       }],
-      actor: { level: "admin", institutionId: "school-a", serviceCodes: ["direction"] },
+      actor: { identityLevel: "I4", role: "admin", institutionId: "school-a", serviceCodes: ["direction"] },
       query: "Mon accès ENT est bloqué",
       now,
     }), []);

@@ -37,9 +37,9 @@ Décrire en une phrase le résultat utile pour l'usager et pour l'établissement
 
 ## Actions autorisées
 
-| Action | Niveau | Conditions | Confirmation attendue |
+| Action | Autorité | Conditions | Confirmation attendue |
 |---|---|---|---|
-| Exemple | L2 | Conditions minimales | Résultat structuré de l'outil |
+| Exemple | A2 | Conditions minimales | Résultat structuré de l'outil |
 
 ## Interdictions
 

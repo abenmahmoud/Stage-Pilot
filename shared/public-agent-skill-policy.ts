@@ -1,4 +1,9 @@
-import type { KnowledgeActor, KnowledgeActorLevel } from "./skill-registry-policy.js";
+import { identityAtLeast } from "./agent-identity-policy.js";
+import type {
+  AgentIdentityLevel,
+  AgentInstitutionRole,
+} from "./agent-identity-policy.js";
+import type { KnowledgeActor } from "./skill-registry-policy.js";
 import { knowledgeQueryTokens } from "./knowledge-query.js";
 
 export type PublicAgentSkillSource = {
@@ -38,7 +43,8 @@ export type PublicAgentSkillContext = {
   name: string;
   domain: string;
   version: string;
-  accessLevel: KnowledgeActorLevel;
+  identityLevel: AgentIdentityLevel;
+  role: AgentInstitutionRole;
   instructions: string;
   allowedTools: string[];
   sources: Array<{ id: string; title: string; expiresAt: string | null }>;
@@ -58,14 +64,11 @@ function tokens(value: string): string[] {
   return knowledgeQueryTokens(value);
 }
 
-const ACTOR_RANK: Record<KnowledgeActorLevel, number> = {
-  visitor: 0,
-  contact_verified: 1,
-  school_identity: 2,
-  agent: 3,
-  service_manager: 4,
-  admin: 5,
-};
+const INTERNAL_ROLES = new Set<AgentInstitutionRole>([
+  "agent",
+  "service_manager",
+  "admin",
+]);
 
 function classificationIsPromptSafe(
   classification: PublicAgentSkillCandidate["dataClassification"],
@@ -73,7 +76,7 @@ function classificationIsPromptSafe(
 ): boolean {
   if (classification === "public") return true;
   if (classification !== "internal") return false;
-  return ACTOR_RANK[actor.level] >= ACTOR_RANK.agent;
+  return identityAtLeast(actor.identityLevel, "I3") && INTERNAL_ROLES.has(actor.role);
 }
 
 function sourceIsAuthorizedAndCurrent(
@@ -143,7 +146,8 @@ export function selectPublicAgentSkillContext(input: {
   return selectAuthorizedAgentSkillContext({
     candidates: input.candidates,
     actor: {
-      level: "visitor",
+      identityLevel: "I0",
+      role: "visitor",
       institutionId: input.institutionId,
       serviceCodes: [],
     },
@@ -182,7 +186,8 @@ export function selectAuthorizedAgentSkillContext(input: {
       name: candidate.name,
       domain: candidate.domain,
       version: candidate.version,
-      accessLevel: input.actor.level,
+      identityLevel: input.actor.identityLevel,
+      role: input.actor.role,
       instructions,
       allowedTools: [...new Set(candidate.allowedTools)].sort(),
       sources: candidate.sources
@@ -207,7 +212,7 @@ export function formatPublicAgentSkillContext(skills: PublicAgentSkillContext[])
     const tools = skill.allowedTools.length > 0
       ? `Outils déclarés mais non exécutables dans cette conversation : ${skill.allowedTools.join(", ")}.`
       : "Aucun outil externe n'est autorisé pour cette compétence.";
-    return `${index + 1}. ${skill.name} [${skill.skillKey}@${skill.version}]\nDomaine : ${skill.domain}\nNiveau d'accès vérifié : ${skill.accessLevel}\nSources autorisées et validées : ${sources}\n${tools}\nInstructions validées :\n${skill.instructions}`;
+    return `${index + 1}. ${skill.name} [${skill.skillKey}@${skill.version}]\nDomaine : ${skill.domain}\nPreuve d'identité : ${skill.identityLevel}\nRôle vérifié : ${skill.role}\nSources autorisées et validées : ${sources}\n${tools}\nInstructions validées :\n${skill.instructions}`;
   });
   return `<registre_autorise_valide>\n${blocks.join("\n\n")}\n</registre_autorise_valide>`;
 }

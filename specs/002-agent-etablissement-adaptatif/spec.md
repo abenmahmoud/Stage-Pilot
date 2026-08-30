@@ -102,8 +102,8 @@ leur date, leur responsable et leur état de validité.
 - **FR-008** : l'usager peut retrouver sa demande sur le même appareil et via un jeton de suivi ; une consultation personnelle exige une preuve supplémentaire adaptée au risque.
 - **FR-009** : les notifications utilisent le canal autorisé disponible : courriel, puis téléphone/SMS lorsque ce canal sera activé.
 - **FR-010** : les agents peuvent corriger la catégorie, le service, la priorité et la personne concernée sans perdre l'historique.
-- **FR-011** : une boîte de validation regroupe les réponses, publications, documents et actions de niveau L3.
-- **FR-012** : les cas L4 sont transférés au service habilité avec un message de sécurité ; aucune décision n'est produite par l'IA.
+- **FR-011** : une boîte de validation regroupe les réponses, publications, documents et actions d'autorité A3.
+- **FR-012** : les cas d'autorité A4 sont transférés au service habilité avec un message de sécurité ; aucune décision n'est produite par l'IA.
 - **FR-013** : les procédures sont fournies par des paquets de compétences versionnés et configurables par établissement.
 - **FR-014** : toute compétence possède un responsable, des sources, une date de révision et des tests.
 - **FR-015** : les réponses humaines ne modifient une compétence qu'après proposition, revue et publication d'une nouvelle version.
@@ -197,8 +197,8 @@ leur date, leur responsable et leur état de validité.
 
 - 95 % des demandes confirmées possèdent un accusé de réception et un numéro de suivi.
 - 90 % des demandes courantes sont dirigées vers le bon service après correction éventuelle.
-- 100 % des actions L3 possèdent une validation enregistrée.
-- 100 % des cas L4 testés refusent l'action autonome et indiquent la bonne escalade.
+- 100 % des actions A3 possèdent une validation enregistrée.
+- 100 % des cas A4 testés refusent l'action autonome et indiquent la bonne escalade.
 - Aucun document privé n'est accessible avec une URL publique permanente.
 - 80 % des questions publiques de référence reçoivent une réponse correcte, sourcée et à jour.
 - Le test de pointe de 200 créations simultanées ne perd ni ne duplique de dossier.
