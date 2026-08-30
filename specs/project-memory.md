@@ -3465,3 +3465,22 @@ taches et analyse de coherence avant une automatisation sensible.
 - T028F de la spécification 002 est terminée sans migration, donnée réelle ni
   production. T028 reste ouverte pour le premier adaptateur complet du registre
   d'actions. Aucun audit externe n'a été exécuté sans autorisation bornée.
+
+### Jalon du 31 août 2026 - cycle des rappels récupérable et confirmé
+
+- Programmer, prendre, terminer ou annuler un rappel exige désormais une clé
+  UUID stable et un reçu issu de l'événement exact de la transaction.
+- La création produite depuis une réponse téléphonique inscrit aussi
+  l'identifiant du rappel dans `callback.created`. Les deux chemins de création
+  sont donc reliés au même objet auditable. Si un rappel actif est repris, un
+  événement `callback.creation_reused` conserve la nouvelle clé sans créer de
+  doublon, y compris si son reçu réseau est perdu puis que son état évolue.
+- Après une coupure, un rejeu retrouve l'action par sa corrélation. Il vérifie le
+  dossier, le rappel, l'agent, la transition et, pour terminer ou annuler, le
+  résultat normalisé. Une clé discordante est refusée.
+- La console relit le rappel et son état avant tout succès. Le résultat d'appel
+  reste dans l'éditeur tant que la terminaison n'est pas prouvée et relue.
+- T028G de la spécification 002 est terminée sans migration, appel réel, donnée
+  réelle ni production. T028 reste ouverte pour le premier adaptateur complet
+  du registre d'actions. Aucun audit externe n'a été exécuté sans autorisation
+  bornée.

@@ -343,6 +343,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         }
       }
 
+      let callbackId: string | null = null;
       if (email) {
         await tx.insert(supportMagicTokens).values({
           requestId: request.id,
@@ -379,14 +380,20 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             )
           )
           .limit(1);
-        if (!activeCallback) {
-          await tx.insert(supportCallbackTasks).values({
+        if (activeCallback) {
+          callbackId = activeCallback.id;
+        } else {
+          const [createdCallback] = await tx.insert(supportCallbackTasks).values({
             requestId: request.id,
             phoneContactId: phone.id,
             assignedTo: user.id,
             status: "in_progress",
             dueAt: new Date(),
-          });
+          }).returning({ id: supportCallbackTasks.id });
+          callbackId = createdCallback?.id ?? null;
+          if (!callbackId) {
+            throw new HttpError(409, "Le rappel n'a pas pu être confirmé");
+          }
         }
       }
 
@@ -415,6 +422,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         actorId: user.id,
         toValue: {
           messageId: created.id,
+          callbackId,
           channel: email ? "email" : "phone",
           translated: Boolean(translatedReply),
           targetLanguage: translatedReply?.targetLanguage ?? null,

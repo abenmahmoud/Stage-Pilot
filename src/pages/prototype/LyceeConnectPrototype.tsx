@@ -81,6 +81,7 @@ import { verifySupportRequestMutationConfirmation } from "../../../shared/suppor
 import { verifySupportAgentReplyConfirmation } from "../../../shared/support-agent-reply-confirmation";
 import { verifySupportRequesterMessageConfirmation } from "../../../shared/support-requester-message-confirmation";
 import { verifySupportInternalNoteConfirmation } from "../../../shared/support-internal-note-confirmation";
+import { verifySupportCallbackConfirmation } from "../../../shared/support-callback-confirmation";
 import {
   DEFAULT_SUPPORT_REPLY_TEMPLATES,
   renderSupportReplyTemplate,
@@ -3064,6 +3065,8 @@ function ConnectedAgentView({ onBack }: { onBack: () => void }) {
   const agentFileInputRef = useRef<HTMLInputElement>(null);
   const replySubmissionRef = useRef<{ fingerprint: string; idempotencyKey: string } | null>(null);
   const internalNoteSubmissionRef = useRef<{ fingerprint: string; idempotencyKey: string } | null>(null);
+  const callbackCreateSubmissionRef = useRef<{ fingerprint: string; idempotencyKey: string } | null>(null);
+  const callbackActionSubmissionRef = useRef<{ fingerprint: string; idempotencyKey: string } | null>(null);
 
   async function loadQueue() {
     const loadId = ++queueLoadIdRef.current;
@@ -3130,6 +3133,8 @@ function ConnectedAgentView({ onBack }: { onBack: () => void }) {
     setReply("");
     replySubmissionRef.current = null;
     internalNoteSubmissionRef.current = null;
+    callbackCreateSubmissionRef.current = null;
+    callbackActionSubmissionRef.current = null;
     setTranslationDraft(null);
     setTranslationValidated(false);
     setSelectedAgentAttachmentIds([]);
@@ -3482,13 +3487,48 @@ function ConnectedAgentView({ onBack }: { onBack: () => void }) {
 
   async function createCallback(phoneContactId: string) {
     if (!selectedCode) return;
+    const code = selectedCode;
+    const submissionFingerprint = JSON.stringify({ publicCode: code, phoneContactId });
+    if (callbackCreateSubmissionRef.current?.fingerprint !== submissionFingerprint) {
+      callbackCreateSubmissionRef.current = {
+        fingerprint: submissionFingerprint,
+        idempotencyKey: crypto.randomUUID(),
+      };
+    }
+    const idempotencyKey = callbackCreateSubmissionRef.current.idempotencyKey;
     setSaving(true);
     try {
-      await apiFetch(`support/agent/requests/${selectedCode}/callbacks`, {
+      const payload = await apiFetch<unknown>(`support/agent/requests/${code}/callbacks`, {
         method: "POST",
+        headers: { "Idempotency-Key": idempotencyKey },
         body: JSON.stringify({ phoneContactId }),
       });
-      setDetail(await fetchAgentRequestDetail(selectedCode));
+      const confirmation = verifySupportCallbackConfirmation({
+        expectedOperation: "support_callback_create",
+        expectedPublicCode: code,
+        confirmation: payload && typeof payload === "object" && !Array.isArray(payload)
+          ? (payload as Record<string, unknown>).confirmation
+          : null,
+      });
+      if (!confirmation) {
+        throw new Error("La programmation du rappel n'a pas été confirmée. Réessayez sans changer de contact.");
+      }
+      const refreshedDetail = await fetchAgentRequestDetail(code);
+      const persistedCallback = refreshedDetail.callbacks.find((callback) =>
+        callback.id === confirmation.callbackId
+        && callback.phoneContactId === phoneContactId
+        && callback.status === confirmation.callbackStatus
+      );
+      if (!persistedCallback) {
+        throw new Error("Le rappel est peut-être programmé, mais sa relecture a échoué. Réessayez sans changer de contact.");
+      }
+      if (
+        selectedCodeRef.current !== code
+        || callbackCreateSubmissionRef.current?.fingerprint !== submissionFingerprint
+        || callbackCreateSubmissionRef.current.idempotencyKey !== idempotencyKey
+      ) return;
+      callbackCreateSubmissionRef.current = null;
+      setDetail(refreshedDetail);
       setError(null);
     } catch (callbackError) {
       setError(callbackError instanceof Error ? callbackError.message : "Rappel non programmé");
@@ -3499,18 +3539,54 @@ function ConnectedAgentView({ onBack }: { onBack: () => void }) {
 
   async function updateCallback(callbackId: string, action: "claim" | "complete") {
     if (!selectedCode) return;
+    const code = selectedCode;
+    const outcome = action === "complete" ? callbackOutcome.trim() : "";
+    const submissionFingerprint = JSON.stringify({ publicCode: code, callbackId, action, outcome });
+    if (callbackActionSubmissionRef.current?.fingerprint !== submissionFingerprint) {
+      callbackActionSubmissionRef.current = {
+        fingerprint: submissionFingerprint,
+        idempotencyKey: crypto.randomUUID(),
+      };
+    }
+    const idempotencyKey = callbackActionSubmissionRef.current.idempotencyKey;
     setSaving(true);
     try {
-      await apiFetch(`support/agent/requests/${selectedCode}/callbacks`, {
+      const payload = await apiFetch<unknown>(`support/agent/requests/${code}/callbacks`, {
         method: "PATCH",
+        headers: { "Idempotency-Key": idempotencyKey },
         body: JSON.stringify({
           callbackId,
           action,
-          ...(action === "complete" ? { outcome: callbackOutcome } : {}),
+          ...(action === "complete" ? { outcome } : {}),
         }),
       });
-      setCallbackOutcome("");
-      setDetail(await fetchAgentRequestDetail(selectedCode));
+      const confirmation = verifySupportCallbackConfirmation({
+        expectedOperation: action === "claim" ? "support_callback_claim" : "support_callback_complete",
+        expectedPublicCode: code,
+        expectedCallbackId: callbackId,
+        confirmation: payload && typeof payload === "object" && !Array.isArray(payload)
+          ? (payload as Record<string, unknown>).confirmation
+          : null,
+      });
+      if (!confirmation) {
+        throw new Error("L'action sur le rappel n'a pas été confirmée. Réessayez sans modifier le résultat.");
+      }
+      const refreshedDetail = await fetchAgentRequestDetail(code);
+      const persistedCallback = refreshedDetail.callbacks.find((callback) =>
+        callback.id === confirmation.callbackId
+        && callback.status === confirmation.callbackStatus
+      );
+      if (!persistedCallback) {
+        throw new Error("Le rappel est peut-être modifié, mais sa relecture a échoué. Actualisez le dossier.");
+      }
+      if (
+        selectedCodeRef.current !== code
+        || callbackActionSubmissionRef.current?.fingerprint !== submissionFingerprint
+        || callbackActionSubmissionRef.current.idempotencyKey !== idempotencyKey
+      ) return;
+      if (action === "complete") setCallbackOutcome("");
+      callbackActionSubmissionRef.current = null;
+      setDetail(refreshedDetail);
       setError(null);
     } catch (callbackError) {
       setError(callbackError instanceof Error ? callbackError.message : "Rappel non modifié");
@@ -3680,7 +3756,7 @@ function ConnectedAgentView({ onBack }: { onBack: () => void }) {
                   <div>
                     {!activeCallback ? <button type="button" disabled={saving || selected.status === "clos"} onClick={() => void createCallback(phoneContact.id)}>Programmer</button> : null}
                     {activeCallback?.status === "todo" ? <button type="button" disabled={saving} onClick={() => void updateCallback(activeCallback.id, "claim")}>Prendre le rappel</button> : null}
-                    {activeCallback?.status === "in_progress" && activeCallback.assignedToCurrentAgent ? <><textarea aria-label="Résultat du rappel" rows={2} maxLength={1000} value={callbackOutcome} onChange={(event) => setCallbackOutcome(event.target.value)} placeholder="Résultat de l’appel…" /><button type="button" disabled={saving || callbackOutcome.trim().length < 2} onClick={() => void updateCallback(activeCallback.id, "complete")}>Terminer</button></> : null}
+                    {activeCallback?.status === "in_progress" && activeCallback.assignedToCurrentAgent ? <><textarea aria-label="Résultat du rappel" rows={2} maxLength={1000} value={callbackOutcome} disabled={saving} onChange={(event) => setCallbackOutcome(event.target.value)} placeholder="Résultat de l’appel…" /><button type="button" disabled={saving || callbackOutcome.trim().length < 2} onClick={() => void updateCallback(activeCallback.id, "complete")}>Terminer</button></> : null}
                     {activeCallback?.status === "in_progress" && !activeCallback.assignedToCurrentAgent ? <small>Pris en charge par un autre agent</small> : null}
                   </div>
                 </section>
@@ -3692,7 +3768,7 @@ function ConnectedAgentView({ onBack }: { onBack: () => void }) {
               <div className="lycee-agent-thread">{detail.messages.map((message) => <div data-direction={message.direction} data-author={message.authorLabel === "Assistant du lycée" ? "assistant" : undefined} key={message.id}><span><strong>{message.direction === "internal" ? "Note interne" : message.authorLabel ?? "Utilisateur"}</strong><small>{supportDate(message.createdAt)}{message.direction === "internal" ? " · invisible pour l’utilisateur" : message.authorLabel === "Assistant du lycée" ? " · réponse automatique" : ` · ${supportDeliveryLabel(message.deliveryStatus)}`}</small></span><p>{message.bodyText}</p></div>)}</div>
               {detail.attachments.length > 0 ? <div className="lycee-tracked-files">{detail.attachments.map((attachment) => <div key={attachment.id}><FileText aria-hidden="true" /><span><strong>{attachment.originalName}</strong><small>{attachment.direction === "agent" ? attachment.releasedAt ? "Envoyé au demandeur · " : "Préparé par un agent · " : "Reçu du demandeur · "}{attachment.scanStatus === "clean" ? "vérifié" : attachment.scanStatus === "blocked" ? "refusé" : attachment.scanStatus === "scan_error" ? "contrôle indisponible" : "contrôle en cours"}</small></span>{attachment.scanStatus === "clean" ? <button type="button" onClick={() => void openAgentAttachment(attachment.id)} aria-label={`Ouvrir ${attachment.originalName}`}><ExternalLink aria-hidden="true" /></button> : null}</div>)}</div> : null}
               <section className="lycee-agent-ai"><div><WandSparkles aria-hidden="true" /><span><span className="lycee-eyebrow">Aide au traitement</span><h3>{supportCategoryLabel(selected.category)} · priorité {priorityLabels[selected.priority] ?? "Normale"}</h3></span></div><dl><div><dt>Personne</dt><dd>{selected.beneficiaryType === "self" ? "Demandeur" : `${selected.beneficiaryFirstName ?? ""} ${selected.beneficiaryLastName ?? ""}`}</dd></div><div><dt>Canal disponible</dt><dd>{detail.contacts.map((contact) => channelLabels[contact.channel] ?? contact.channel).join(" + ")}</dd></div><div><dt>Langue détectée</dt><dd>{selected.subjectContext.detectedLanguage ?? "Non déterminée"}</dd></div><div><dt>Langue de réponse</dt><dd>{languagePreferenceLabels[selected.subjectContext.languagePreference] ?? "Non précisée"}</dd></div><div><dt>Aide à la compréhension</dt><dd>{selected.subjectContext.communicationSupport ?? "Réponse écrite"}</dd></div><div><dt>Pièces</dt><dd>{detail.attachments.length} {detail.attachments.length > 1 ? "documents" : "document"}</dd></div></dl>{selected.subjectContext.internalSummaryFr ? <div className="lycee-agent-french-summary"><Languages aria-hidden="true" /><span><small>Résumé automatique en français</small><p>{selected.subjectContext.internalSummaryFr}</p><em>À vérifier avec le message original avant toute décision.</em></span></div> : null}</section>
-              <section className="lycee-agent-actions"><div><span><StickyNote aria-hidden="true" /><strong>Note interne</strong><small>Visible uniquement par les agents.</small></span><textarea aria-label="Note interne" rows={3} value={internalNote} onChange={(event) => setInternalNote(event.target.value)} placeholder="Diagnostic, appel effectué ou prochaine action…" maxLength={5000} /><button type="button" disabled={saving || !internalNote.trim()} onClick={() => void saveInternalNote()}>Ajouter la note</button></div><div data-closed={selected.status === "clos"}><span><CheckCircle2 aria-hidden="true" /><strong>{selected.status === "clos" ? "Dossier clôturé" : "Clôturer proprement"}</strong><small>{selected.status === "clos" ? selected.subjectContext.closureReason ?? "Motif enregistré dans l’historique." : requiresSafeIdentityReply ? "Confirmez d’abord l’identité scolaire pour cette demande sensible." : "Un motif est obligatoire et reste dans l’audit."}</small></span>{selected.status === "clos" ? <button type="button" disabled={saving} onClick={() => void updateRequest({ status: "en_cours" })}>Rouvrir le dossier</button> : <><textarea aria-label="Motif de clôture" rows={3} value={closureReason} onChange={(event) => setClosureReason(event.target.value)} placeholder="Solution apportée ou raison de la clôture…" maxLength={500} /><button type="button" disabled={saving || !closureReason.trim() || requiresSafeIdentityReply} onClick={() => void updateRequest({ status: "clos", closureReason })}>Clôturer le dossier</button></>}</div></section>
+              <section className="lycee-agent-actions"><div><span><StickyNote aria-hidden="true" /><strong>Note interne</strong><small>Visible uniquement par les agents.</small></span><textarea aria-label="Note interne" rows={3} value={internalNote} disabled={saving} onChange={(event) => setInternalNote(event.target.value)} placeholder="Diagnostic, appel effectué ou prochaine action…" maxLength={5000} /><button type="button" disabled={saving || !internalNote.trim()} onClick={() => void saveInternalNote()}>Ajouter la note</button></div><div data-closed={selected.status === "clos"}><span><CheckCircle2 aria-hidden="true" /><strong>{selected.status === "clos" ? "Dossier clôturé" : "Clôturer proprement"}</strong><small>{selected.status === "clos" ? selected.subjectContext.closureReason ?? "Motif enregistré dans l’historique." : requiresSafeIdentityReply ? "Confirmez d’abord l’identité scolaire pour cette demande sensible." : "Un motif est obligatoire et reste dans l’audit."}</small></span>{selected.status === "clos" ? <button type="button" disabled={saving} onClick={() => void updateRequest({ status: "en_cours" })}>Rouvrir le dossier</button> : <><textarea aria-label="Motif de clôture" rows={3} value={closureReason} onChange={(event) => setClosureReason(event.target.value)} placeholder="Solution apportée ou raison de la clôture…" maxLength={500} /><button type="button" disabled={saving || !closureReason.trim() || requiresSafeIdentityReply} onClick={() => void updateRequest({ status: "clos", closureReason })}>Clôturer le dossier</button></>}</div></section>
               <section className="lycee-reply-box">
                 <div>
                   <span><Sparkles aria-hidden="true" /> {requiresSafeIdentityReply ? "Consigne de vérification sécurisée" : "Réponse en français"}</span>

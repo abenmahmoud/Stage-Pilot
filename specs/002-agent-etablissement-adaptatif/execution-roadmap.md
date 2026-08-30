@@ -613,6 +613,15 @@ l'autorisation de quota définie par le propriétaire.
   l'horodatage, puis seulement vide l'éditeur. Le reçu n'expose ni texte ni
   identifiant d'agent. T028 reste ouverte pour le premier adaptateur complet du
   registre d'actions agent.
+- Lot N5ZX : preuves transactionnelles des rappels. **Implémenté sans migration,
+  appel téléphonique ni donnée réelle** : création, prise en charge, terminaison
+  et annulation utilisent une clé UUID stable et l'événement exact comme reçu.
+  La création depuis une réponse téléphonique inscrit désormais aussi
+  l'identifiant du rappel dans `callback.created`. La reprise d'un rappel actif
+  conserve sa nouvelle clé dans `callback.creation_reused`. Un rejeu vérifie
+  rappel, agent, transition et résultat ; une clé discordante est refusée. La console
+  relit l'état exact et ne vide le résultat qu'après cette preuve. T028 reste
+  ouverte pour le premier adaptateur complet du registre d'actions agent.
 
 ## Prochaine séquence verrouillée
 

@@ -31,7 +31,7 @@ export type CallbackTransitionResult =
       reason: "invalid_status" | "already_finished" | "owned_by_other" | "outcome_required";
     };
 
-function cleanOutcome(value: unknown): string | null {
+export function normalizeSupportCallbackOutcome(value: unknown): string | null {
   if (typeof value !== "string") return null;
   const clean = value
     .replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F]/g, "")
@@ -63,7 +63,7 @@ export function planSupportCallbackTransition(
     };
   }
 
-  const outcome = cleanOutcome(input.outcome);
+  const outcome = normalizeSupportCallbackOutcome(input.outcome);
   if (!outcome) return { ok: false, reason: "outcome_required" };
   return {
     ok: true,

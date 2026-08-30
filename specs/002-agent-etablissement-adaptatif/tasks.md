@@ -440,6 +440,15 @@
   même trace. L'éditeur n'est vidé qu'après relecture de la note interne exacte.
   T028 reste ouverte pour le premier adaptateur métier complet inscrit dans le
   registre des actions agent.
+- [x] T028G Exiger pour la création, la prise en charge, la terminaison et
+  l'annulation d'un rappel une preuve issue de l'événement exact, liée au dossier,
+  au rappel, à la transition, à l'agent et à une clé stable. La console relit le
+  rappel et son état avant tout succès ; le résultat d'appel n'est effacé qu'après
+  cette relecture. La reprise d'un rappel actif journalise aussi sa propre clé.
+  Une réponse réseau perdue retrouve ainsi l'action existante et une
+  clé réutilisée pour un autre rappel ou résultat est refusée. T028 reste ouverte
+  pour le premier adaptateur métier complet inscrit dans le registre des actions
+  agent.
 - [x] T029 Ajouter formulaire classique et création de demande sans dépendance à l'IA.
 - [x] T030 Ajouter mesure du coût, de la latence, des transferts et des corrections.
 - [x] T030A Mesurer chaque passage de l'assistant public sans contenu personnel :

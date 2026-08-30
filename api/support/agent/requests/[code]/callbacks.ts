@@ -1,6 +1,5 @@
-import { randomUUID } from "node:crypto";
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { and, eq, inArray, isNull, sql } from "drizzle-orm";
+import { and, desc, eq, inArray, isNull, sql } from "drizzle-orm";
 import { db } from "../../../../../db/index.js";
 import {
   supportCallbackTasks,
@@ -10,16 +9,43 @@ import {
 } from "../../../../../db/schema.js";
 import { HttpError } from "../../../../_shared/auth.js";
 import { handleApi, methodNotAllowed } from "../../../../_shared/response.js";
+import { idempotencyKey } from "../../../../_shared/support.js";
 import {
   assertSupportRequestAccess,
   requireSupportAgent,
 } from "../../../../_shared/support-agent-access.js";
+import { enforceAgentWriteRateLimit } from "../../../../_shared/support-rate-limits.js";
 import {
+  normalizeSupportCallbackOutcome,
   planSupportCallbackTransition,
   type SupportCallbackAction,
+  type SupportCallbackStatus,
 } from "../../../../../shared/support-callback-policy.js";
+import {
+  createSupportCallbackConfirmation,
+  type SupportCallbackConfirmationOperation,
+} from "../../../../../shared/support-callback-confirmation.js";
 
 const CALLBACK_ACTIONS = new Set<SupportCallbackAction>(["claim", "complete", "cancel"]);
+
+function callbackOperation(action: SupportCallbackAction): SupportCallbackConfirmationOperation {
+  if (action === "claim") return "support_callback_claim";
+  if (action === "complete") return "support_callback_complete";
+  return "support_callback_cancel";
+}
+
+function callbackEventType(action: SupportCallbackAction): string {
+  if (action === "claim") return "callback.in_progress";
+  if (action === "complete") return "callback.done";
+  return "callback.cancelled";
+}
+
+function callbackStatus(value: string): SupportCallbackStatus {
+  if (!["todo", "in_progress", "done", "cancelled"].includes(value)) {
+    throw new HttpError(409, "État du rappel invalide");
+  }
+  return value as SupportCallbackStatus;
+}
 
 function publicCode(req: VercelRequest): string {
   const code = Array.isArray(req.query.code) ? req.query.code[0] : req.query.code;
@@ -34,29 +60,6 @@ function uuid(value: unknown, field: string): string {
     throw new HttpError(400, `${field} invalide`);
   }
   return value;
-}
-
-function callbackView<T extends {
-  id: string;
-  phoneContactId: string;
-  assignedTo: string | null;
-  dueAt: Date | null;
-  status: string;
-  outcome: string | null;
-  completedAt: Date | null;
-  createdAt: Date;
-}>(callback: T, userId: string) {
-  return {
-    id: callback.id,
-    phoneContactId: callback.phoneContactId,
-    dueAt: callback.dueAt,
-    status: callback.status,
-    outcome: callback.outcome,
-    completedAt: callback.completedAt,
-    createdAt: callback.createdAt,
-    assigned: callback.assignedTo !== null,
-    assignedToCurrentAgent: callback.assignedTo === userId,
-  };
 }
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
@@ -105,9 +108,53 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         ? phoneContacts.find((contact) => contact.id === requestedPhoneId)
         : phoneContacts[0];
       if (!phone) throw new HttpError(409, "Aucun téléphone actif n'est disponible pour ce dossier");
+      const operationId = uuid(idempotencyKey(req), "Clé de rappel");
+      await enforceAgentWriteRateLimit(user.id);
 
       const result = await db.transaction(async (tx) => {
         await tx.execute(sql`select pg_advisory_xact_lock(hashtext(${`support-callback:${request.id}`}))`);
+        const [operationEvent] = await tx
+          .select({
+            eventType: supportEvents.eventType,
+            actorId: supportEvents.actorId,
+            callbackId: sql<string | null>`${supportEvents.toValue}->>'callbackId'`,
+            createdAt: supportEvents.createdAt,
+            correlationId: supportEvents.correlationId,
+          })
+          .from(supportEvents)
+          .where(and(
+            eq(supportEvents.requestId, request.id),
+            eq(supportEvents.correlationId, operationId)
+          ))
+          .orderBy(desc(supportEvents.createdAt))
+          .limit(1);
+        if (operationEvent) {
+          if (
+            !["callback.created", "callback.creation_reused"].includes(operationEvent.eventType)
+            || operationEvent.actorId !== user.id
+            || !operationEvent.callbackId
+          ) {
+            throw new HttpError(409, "Cette clé de rappel a déjà été utilisée pour une autre action");
+          }
+          const [replayed] = await tx
+            .select()
+            .from(supportCallbackTasks)
+            .where(and(
+              eq(supportCallbackTasks.requestId, request.id),
+              eq(supportCallbackTasks.id, operationEvent.callbackId)
+            ))
+            .limit(1);
+          if (!replayed || replayed.phoneContactId !== phone.id) {
+            throw new HttpError(409, "Cette clé de rappel correspond à un autre contact");
+          }
+          return {
+            callback: replayed,
+            duplicate: true,
+            confirmedAt: operationEvent.createdAt,
+            correlationId: operationEvent.correlationId,
+          };
+        }
+
         const [existing] = await tx
           .select()
           .from(supportCallbackTasks)
@@ -119,7 +166,35 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             )
           )
           .limit(1);
-        if (existing) return { callback: existing, duplicate: true };
+        if (existing) {
+          if (existing.phoneContactId !== phone.id) {
+            throw new HttpError(409, "Un rappel actif existe déjà pour un autre téléphone");
+          }
+          const [reuseEvent] = await tx.insert(supportEvents).values({
+            requestId: request.id,
+            eventType: "callback.creation_reused",
+            actorType: "agent",
+            actorId: user.id,
+            toValue: {
+              callbackId: existing.id,
+              status: existing.status,
+              reused: true,
+            },
+            correlationId: operationId,
+          }).returning({
+            createdAt: supportEvents.createdAt,
+            correlationId: supportEvents.correlationId,
+          });
+          if (!reuseEvent) {
+            throw new HttpError(409, "La reprise du rappel n'a pas été confirmée par le journal du dossier");
+          }
+          return {
+            callback: existing,
+            duplicate: true,
+            confirmedAt: reuseEvent.createdAt,
+            correlationId: reuseEvent.correlationId,
+          };
+        }
 
         const [created] = await tx
           .insert(supportCallbackTasks)
@@ -129,18 +204,40 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             dueAt: new Date(),
           })
           .returning();
-        await tx.insert(supportEvents).values({
+        const [createdEvent] = await tx.insert(supportEvents).values({
           requestId: request.id,
           eventType: "callback.created",
           actorType: "agent",
           actorId: user.id,
-          toValue: { callbackId: created.id },
-          correlationId: randomUUID(),
+          toValue: { callbackId: created.id, status: created.status },
+          correlationId: operationId,
+        }).returning({
+          createdAt: supportEvents.createdAt,
+          correlationId: supportEvents.correlationId,
         });
-        return { callback: created, duplicate: false };
+        if (!createdEvent) {
+          throw new HttpError(409, "Le rappel n'a pas été confirmé par le journal du dossier");
+        }
+        return {
+          callback: created,
+          duplicate: false,
+          confirmedAt: createdEvent.createdAt,
+          correlationId: createdEvent.correlationId,
+        };
       });
       res.status(result.duplicate ? 200 : 201);
-      return { callback: callbackView(result.callback, user.id), duplicate: result.duplicate };
+      return {
+        confirmation: createSupportCallbackConfirmation({
+          operation: "support_callback_create",
+          publicCode: code,
+          callbackId: result.callback.id,
+          previousStatus: null,
+          callbackStatus: callbackStatus(result.callback.status),
+          duplicate: result.duplicate,
+          confirmedAt: result.confirmedAt,
+          correlationId: result.correlationId,
+        }),
+      };
     }
 
     const callbackId = uuid(body.callbackId, "Rappel");
@@ -148,6 +245,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       ? (body.action as SupportCallbackAction)
       : null;
     if (!action) throw new HttpError(400, "Action de rappel invalide");
+    const operationId = uuid(idempotencyKey(req), "Clé d'action");
+    const operation = callbackOperation(action);
+    const expectedEventType = callbackEventType(action);
+    await enforceAgentWriteRateLimit(user.id);
     const [callback] = await db
       .select()
       .from(supportCallbackTasks)
@@ -159,6 +260,53 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       )
       .limit(1);
     if (!callback) throw new HttpError(404, "Rappel introuvable");
+
+    const [operationEvent] = await db
+      .select({
+        eventType: supportEvents.eventType,
+        actorId: supportEvents.actorId,
+        callbackId: sql<string | null>`${supportEvents.toValue}->>'callbackId'`,
+        previousStatus: sql<string | null>`${supportEvents.fromValue}->>'status'`,
+        callbackStatus: sql<string | null>`${supportEvents.toValue}->>'status'`,
+        createdAt: supportEvents.createdAt,
+        correlationId: supportEvents.correlationId,
+      })
+      .from(supportEvents)
+      .where(and(
+        eq(supportEvents.requestId, request.id),
+        eq(supportEvents.correlationId, operationId)
+      ))
+      .orderBy(desc(supportEvents.createdAt))
+      .limit(1);
+    if (operationEvent) {
+      if (
+        operationEvent.eventType !== expectedEventType
+        || operationEvent.actorId !== user.id
+        || operationEvent.callbackId !== callback.id
+        || !operationEvent.previousStatus
+        || !operationEvent.callbackStatus
+      ) {
+        throw new HttpError(409, "Cette clé d'action a déjà été utilisée pour un autre rappel");
+      }
+      if (action !== "claim") {
+        const repeatedOutcome = normalizeSupportCallbackOutcome(body.outcome);
+        if (!repeatedOutcome || repeatedOutcome !== callback.outcome) {
+          throw new HttpError(409, "Cette clé d'action correspond à un autre résultat de rappel");
+        }
+      }
+      return {
+        confirmation: createSupportCallbackConfirmation({
+          operation,
+          publicCode: code,
+          callbackId: callback.id,
+          previousStatus: callbackStatus(operationEvent.previousStatus),
+          callbackStatus: callbackStatus(operationEvent.callbackStatus),
+          duplicate: true,
+          confirmedAt: operationEvent.createdAt,
+          correlationId: operationEvent.correlationId,
+        }),
+      };
+    }
 
     const completedAt = new Date();
     const transition = planSupportCallbackTransition({
@@ -179,13 +327,43 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       throw new HttpError(transition.reason === "outcome_required" ? 400 : 409, messages[transition.reason]);
     }
     if (!transition.changed) {
-      return { callback: callbackView(callback, user.id), duplicate: true };
+      const [existingEvent] = await db
+        .select({
+          previousStatus: sql<string | null>`${supportEvents.fromValue}->>'status'`,
+          callbackStatus: sql<string | null>`${supportEvents.toValue}->>'status'`,
+          createdAt: supportEvents.createdAt,
+          correlationId: supportEvents.correlationId,
+        })
+        .from(supportEvents)
+        .where(and(
+          eq(supportEvents.requestId, request.id),
+          eq(supportEvents.eventType, expectedEventType),
+          eq(supportEvents.actorId, user.id),
+          sql`${supportEvents.toValue}->>'callbackId' = ${callback.id}`
+        ))
+        .orderBy(desc(supportEvents.createdAt))
+        .limit(1);
+      if (!existingEvent?.previousStatus || !existingEvent.callbackStatus) {
+        throw new HttpError(409, "Le rappel pris en charge n'a pas de confirmation exploitable");
+      }
+      return {
+        confirmation: createSupportCallbackConfirmation({
+          operation,
+          publicCode: code,
+          callbackId: callback.id,
+          previousStatus: callbackStatus(existingEvent.previousStatus),
+          callbackStatus: callbackStatus(existingEvent.callbackStatus),
+          duplicate: true,
+          confirmedAt: existingEvent.createdAt,
+          correlationId: existingEvent.correlationId,
+        }),
+      };
     }
 
     const assignmentCondition = callback.assignedTo === null
       ? isNull(supportCallbackTasks.assignedTo)
       : eq(supportCallbackTasks.assignedTo, callback.assignedTo);
-    const [updated] = await db.transaction(async (tx) => {
+    const result = await db.transaction(async (tx) => {
       const [saved] = await tx
         .update(supportCallbackTasks)
         .set({
@@ -205,7 +383,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       if (!saved) {
         throw new HttpError(409, "Ce rappel vient d'être modifié par un autre agent");
       }
-      await tx.insert(supportEvents).values({
+      const [transitionEvent] = await tx.insert(supportEvents).values({
         requestId: request.id,
         eventType: `callback.${transition.status}`,
         actorType: "agent",
@@ -216,11 +394,32 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           status: saved.status,
           outcomeRecorded: Boolean(saved.outcome),
         },
-        correlationId: randomUUID(),
+        correlationId: operationId,
+      }).returning({
+        createdAt: supportEvents.createdAt,
+        correlationId: supportEvents.correlationId,
       });
-      return [saved];
+      if (!transitionEvent) {
+        throw new HttpError(409, "L'action de rappel n'a pas été confirmée par le journal du dossier");
+      }
+      return {
+        callback: saved,
+        confirmedAt: transitionEvent.createdAt,
+        correlationId: transitionEvent.correlationId,
+      };
     });
-    return { callback: callbackView(updated, user.id), duplicate: false };
+    return {
+      confirmation: createSupportCallbackConfirmation({
+        operation,
+        publicCode: code,
+        callbackId: result.callback.id,
+        previousStatus: callbackStatus(callback.status),
+        callbackStatus: callbackStatus(result.callback.status),
+        duplicate: false,
+        confirmedAt: result.confirmedAt,
+        correlationId: result.correlationId,
+      }),
+    };
   });
 }
 
