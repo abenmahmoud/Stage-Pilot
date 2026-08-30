@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { and, eq, sql } from "drizzle-orm";
+import { and, desc, eq, sql } from "drizzle-orm";
 import { db } from "../../../../db/index.js";
 import { supportEvents, supportMessages, supportRequests } from "../../../../db/schema.js";
 import { HttpError } from "../../../_shared/auth.js";
@@ -14,6 +14,7 @@ import {
   sha256,
 } from "../../../_shared/support.js";
 import { SUPPORT_RATE_LIMIT_POLICIES } from "../../../../shared/support-rate-limit-policy.js";
+import { createSupportRequesterMessageConfirmation } from "../../../../shared/support-requester-message-confirmation.js";
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== "POST") return methodNotAllowed(res, ["POST"]);
@@ -57,7 +58,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
       if (!created) {
         const [existing] = await tx
-          .select({ id: supportMessages.id, createdAt: supportMessages.createdAt })
+          .select({
+            id: supportMessages.id,
+            createdAt: supportMessages.createdAt,
+            bodyText: supportMessages.bodyText,
+          })
           .from(supportMessages)
           .where(and(
             eq(supportMessages.requestId, access.requestId),
@@ -65,7 +70,31 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           ))
           .limit(1);
         if (!existing) throw new Error("Idempotent message could not be recovered");
-        return { ...existing, duplicate: true };
+        if (existing.bodyText !== text) {
+          throw new HttpError(409, "Cette clé correspond déjà à un autre message");
+        }
+        const [existingEvent] = await tx
+          .select({
+            createdAt: supportEvents.createdAt,
+            correlationId: supportEvents.correlationId,
+          })
+          .from(supportEvents)
+          .where(and(
+            eq(supportEvents.requestId, access.requestId),
+            eq(supportEvents.eventType, "message.received"),
+            sql`${supportEvents.toValue}->>'messageId' = ${existing.id}`
+          ))
+          .orderBy(desc(supportEvents.createdAt))
+          .limit(1);
+        if (!existingEvent?.correlationId) {
+          throw new HttpError(409, "Le message enregistré n'a pas de confirmation exploitable");
+        }
+        return {
+          ...existing,
+          duplicate: true,
+          confirmedAt: existingEvent.createdAt,
+          correlationId: existingEvent.correlationId,
+        };
       }
 
       const [reopened] = await tx
@@ -80,14 +109,17 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         )
         .returning({ id: supportRequests.id });
 
-      await tx.insert(supportEvents).values({
+      const [messageEvent] = await tx.insert(supportEvents).values({
         requestId: access.requestId,
         eventType: "message.received",
         actorType: "requester",
         actorId: access.sessionId,
         toValue: { messageId: created.id, channel: "web", status: reopened ? "en_cours" : undefined },
         correlationId,
-      });
+      }).returning({ createdAt: supportEvents.createdAt });
+      if (!messageEvent) {
+        throw new HttpError(409, "Le message n'a pas été confirmé par le journal du dossier");
+      }
 
       await tx.execute(sql`
         select pgmq.send(
@@ -104,11 +136,25 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         )
       `);
 
-      return { ...created, duplicate: false };
+      return {
+        ...created,
+        duplicate: false,
+        confirmedAt: messageEvent.createdAt,
+        correlationId,
+      };
     });
 
     res.status(message.duplicate ? 200 : 201);
-    return { message: { id: message.id, createdAt: message.createdAt }, duplicate: message.duplicate };
+    return {
+      confirmation: createSupportRequesterMessageConfirmation({
+        publicCode: code,
+        messageId: message.id,
+        duplicate: message.duplicate,
+        messageCreatedAt: message.createdAt,
+        confirmedAt: message.confirmedAt,
+        correlationId: message.correlationId,
+      }),
+    };
   });
 }
 

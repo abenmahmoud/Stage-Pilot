@@ -15,11 +15,12 @@ test("confirms the attachment before treating the upload as complete", () => {
 
 test("confirms a follow-up message before clearing the editor", () => {
   const send = page.indexOf("async function sendReply");
-  const validation = page.indexOf("if (!isSupportMessageMutationPayload(confirmation))", send);
-  const clear = page.indexOf('setReply("")', validation);
+  const validation = page.indexOf("verifySupportRequesterMessageConfirmation", send);
+  const reread = page.indexOf("const persistedMessage", validation);
+  const clear = page.indexOf('setReply("")', reread);
   assert.notEqual(send, -1);
-  assert.ok(send < validation && validation < clear);
-  assert.match(page, /Date\.parse\(value\.message\.createdAt\) <= Date\.now\(\) \+ \(5 \* 60_000\)/);
+  assert.ok(send < validation && validation < reread && reread < clear);
+  assert.match(page, /message\.createdAt === confirmation\.messageCreatedAt/);
 });
 
 test("confirms server-side session closure before clearing device memory", () => {

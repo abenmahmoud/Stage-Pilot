@@ -597,6 +597,14 @@ l'autorisation de quota définie par le propriétaire.
   le même brouillon, vérifie le reçu, relit l'identifiant et l'horodatage du
   message sortant, puis seulement vide l'éditeur. T028 reste ouverte pour le
   premier adaptateur complet du registre d'actions agent.
+- Lot N5ZV : preuve transactionnelle d'un message demandeur. **Implémentée sans
+  notification réelle, migration ni donnée réelle** : l'API lie le reçu à
+  l'événement `message.received` écrit dans la transaction. Un rejeu idempotent
+  est accepté uniquement si son texte correspond au message persisté et si sa
+  trace existe. Le navigateur conserve la clé de la tentative après une coupure,
+  vérifie le reçu, relit l'identifiant, la direction entrante et l'horodatage,
+  puis seulement vide l'éditeur. T028 reste ouverte pour le premier adaptateur
+  complet du registre d'actions agent.
 
 ## Prochaine séquence verrouillée
 

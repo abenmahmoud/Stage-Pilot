@@ -79,6 +79,7 @@ import {
 import { verifySupportRequestPersistenceConfirmation } from "../../../shared/support-request-confirmation";
 import { verifySupportRequestMutationConfirmation } from "../../../shared/support-request-mutation-confirmation";
 import { verifySupportAgentReplyConfirmation } from "../../../shared/support-agent-reply-confirmation";
+import { verifySupportRequesterMessageConfirmation } from "../../../shared/support-requester-message-confirmation";
 import {
   DEFAULT_SUPPORT_REPLY_TEMPLATES,
   renderSupportReplyTemplate,
@@ -1693,6 +1694,7 @@ function ConnectedRequestsView({ ticketCode, onBack }: { ticketCode: string | nu
   );
   const [followupFiles, setFollowupFiles] = useState<File[]>([]);
   const followupFileInputRef = useRef<HTMLInputElement>(null);
+  const requesterReplySubmissionRef = useRef<{ fingerprint: string; idempotencyKey: string } | null>(null);
   const notificationsEnabledRef = useRef(false);
   const selectedCodeRef = useRef<string | null>(ticketCode);
   const requestsLoadIdRef = useRef(0);
@@ -1830,6 +1832,7 @@ function ConnectedRequestsView({ ticketCode, onBack }: { ticketCode: string | nu
 
   useEffect(() => {
     selectedCodeRef.current = selectedCode;
+    requesterReplySubmissionRef.current = null;
     detailLoadIdRef.current += 1;
     setDetail(null);
     setDetailError(null);
@@ -1918,25 +1921,57 @@ function ConnectedRequestsView({ ticketCode, onBack }: { ticketCode: string | nu
   async function sendReply(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!selectedCode || !reply.trim()) return;
+    const messageText = reply.trim();
+    const submissionFingerprint = JSON.stringify({ publicCode: selectedCode, message: messageText });
+    if (requesterReplySubmissionRef.current?.fingerprint !== submissionFingerprint) {
+      requesterReplySubmissionRef.current = {
+        fingerprint: submissionFingerprint,
+        idempotencyKey: crypto.randomUUID(),
+      };
+    }
+    const idempotencyKey = requesterReplySubmissionRef.current.idempotencyKey;
     setReplying(true);
     setError(null);
     try {
       let uploadWarning: string | null = null;
-      const confirmation = await readApiResponse<unknown>(
+      const payload = await readApiResponse<unknown>(
         await fetch(`/api/support/requests/${selectedCode}/messages`, {
           method: "POST",
           credentials: "include",
           headers: {
             "Content-Type": "application/json",
-            "Idempotency-Key": crypto.randomUUID(),
+            "Idempotency-Key": idempotencyKey,
           },
-          body: JSON.stringify({ message: reply }),
+          body: JSON.stringify({ message: messageText }),
         })
       );
-      if (!isSupportMessageMutationPayload(confirmation)) {
-        throw new Error("La confirmation du message reçue est invalide.");
+      const confirmation = isRecord(payload)
+        ? verifySupportRequesterMessageConfirmation({
+            expectedPublicCode: selectedCode,
+            confirmation: payload.confirmation,
+          })
+        : null;
+      if (!confirmation) {
+        throw new Error("La confirmation du message reçue est invalide. Réessayez sans modifier le message.");
       }
+
+      const persistedPayload = await readApiResponse<unknown>(
+        fetch(`/api/support/requests/${selectedCode}`, { credentials: "include" })
+      );
+      if (!isPublicSupportRequestDetailPayload(persistedPayload) || persistedPayload.request.publicCode !== selectedCode) {
+        throw new Error("Le message est peut-être enregistré, mais sa relecture a échoué. Réessayez sans modifier le message.");
+      }
+      const persistedMessage = persistedPayload.messages.find((message) =>
+        message.id === confirmation.messageId
+        && message.direction === "inbound"
+        && message.createdAt === confirmation.messageCreatedAt
+      );
+      if (!persistedMessage) {
+        throw new Error("Le message n'a pas pu être relu après son enregistrement. Réessayez sans le modifier.");
+      }
+
       setReply("");
+      requesterReplySubmissionRef.current = null;
       if (followupFiles.length > 0) {
         const uploads = await Promise.allSettled(
           followupFiles.map((file) => uploadSupportFile(selectedCode, file))
@@ -2001,6 +2036,7 @@ function ConnectedRequestsView({ ticketCode, onBack }: { ticketCode: string | nu
       forgetSupportAssistantDevice();
       setRequests([]);
       setSelectedCode(null);
+      requesterReplySubmissionRef.current = null;
       setDetail(null);
       setDetailError(null);
       onBack();
@@ -2559,18 +2595,6 @@ function isSupportAttachmentConfirmationPayload(value: unknown, expectedId: stri
     && isRecord(value.attachment)
     && value.attachment.id === expectedId
     && ["quarantine", "clean"].includes(String(value.attachment.scanStatus))
-    && typeof value.duplicate === "boolean";
-}
-
-function isSupportMessageMutationPayload(value: unknown): value is {
-  message: { id: string; createdAt: string };
-  duplicate: boolean;
-} {
-  if (!isRecord(value) || !isRecord(value.message)) return false;
-  return typeof value.message.id === "string"
-    && /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value.message.id)
-    && isPublicSupportDate(value.message.createdAt)
-    && Date.parse(value.message.createdAt) <= Date.now() + (5 * 60_000)
     && typeof value.duplicate === "boolean";
 }
 

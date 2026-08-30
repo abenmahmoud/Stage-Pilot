@@ -1,6 +1,6 @@
 # Memoire durable - Portail numerique du Lycee Blaise Cendrars
 
-**Derniere mise a jour** : 30 aout 2026
+**Derniere mise a jour** : 31 aout 2026
 **Branche de travail** : `codex/lycee-connect-prototype`
 **Depot** : `abenmahmoud/Stage-Pilot`
 **Dernier jalon de code verifie** : branche de preview Vercel
@@ -3434,3 +3434,19 @@ taches et analyse de coherence avant une automatisation sensible.
   distant, donnée réelle ni production. T028 reste ouverte pour le premier
   adaptateur complet du registre d'actions. Le brief Claude est préparé mais non
   exécuté dans l'attente de l'autorisation bornée de cette mission.
+
+### Jalon du 31 août 2026 - message demandeur récupérable et confirmé
+
+- Un message de suivi public ne vide plus son éditeur sur un simple succès HTTP.
+  Le reçu lie le dossier, le message, sa création et l'événement transactionnel
+  `message.received`.
+- Une tentative conserve la même clé tant que son dossier et son texte ne
+  changent pas. Un rejeu retrouve seulement le même texte et exige la trace
+  correspondante ; une clé réutilisée pour un autre contenu est refusée.
+- L'interface valide le reçu, relit le dossier et exige le même identifiant, la
+  direction entrante et le même horodatage avant d'effacer la saisie. Une panne
+  ou une preuve invalide conserve donc le message pour un nouvel essai sûr.
+- T028E de la spécification 002 est terminée sans notification, migration,
+  donnée réelle ni production. T028 reste ouverte pour le premier adaptateur
+  complet du registre d'actions. Le brief Claude est préparé en lecture seule ;
+  aucune exécution externe n'est comptée tant que son lancement n'est pas borné.
