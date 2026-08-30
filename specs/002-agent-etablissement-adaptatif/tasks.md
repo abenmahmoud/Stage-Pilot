@@ -608,10 +608,20 @@
 
 - [ ] T053 Inventorier chaque page, formation, document, contact et redirection de
   l'ancien site, avec propriétaire et date de vérification.
+- [x] T053A Terminer l'inventaire technique et sa surveillance : 28 contenus,
+  81 médias accessibles, 9 catégories et 27 redirections sont versionnés ; le
+  contrôle public borné ne détecte aucune dérive. T053 reste ouverte pour nommer
+  les propriétaires réels et enregistrer les dates de vérification humaine.
 - [ ] T054 Importer les contenus publics en brouillons réversibles, faire relire
   grammaire, liens et informations, puis publier uniquement après validation.
-- [ ] T055 Finaliser l'éditeur d'actualités et documents : modèles, dates,
-  prévisualisation mobile, programmation, retrait et historique.
+- [x] T054A Importer en preview les 28 contenus comme brouillons réversibles,
+  conserver leur provenance et bloquer leur publication tant que la reprise
+  n'est pas vérifiée. T054 reste ouverte pour la relecture et la publication
+  humaines.
+- [x] T055 Finaliser l'éditeur d'actualités et documents : modèles, dates,
+  prévisualisation mobile, programmation, retrait et historique. La
+  spécification 003 est entièrement validée ; les contrats éditoriaux, droits,
+  brouillons non enregistrés, médias privés et flux public restent testés.
 - [ ] T056 Construire les tableaux de bord secrétariat, CPE, intendance, direction
   et numérique avec comptes individuels et périmètres séparés.
 - [x] T056A Ajouter en preview la vue superadministrateur de la charge ouverte,

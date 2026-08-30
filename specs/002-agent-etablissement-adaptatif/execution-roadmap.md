@@ -528,6 +528,12 @@ l'autorisation de quota définie par le propriétaire.
   empreinte. Les suppressions, permutations, altérations, mauvaises clés,
   traversées de chemins et périmètres différents sont refusés. Ce lot ne touche
   aucun service distant et ne clôt pas la sauvegarde opérationnelle T031.
+- Lot N7A : convergence du portail éditorial. **Alignée avec les spécifications
+  spécialisées** : l'inventaire technique couvre 28 contenus, 81 médias
+  accessibles, 9 catégories et 27 redirections sans dérive ; les 28 contenus
+  restent des brouillons réversibles. L'éditeur T055 est fermé sur les preuves
+  de la spécification 003. T053 et T054 demeurent ouvertes pour propriétaires,
+  dates de vérification, relecture et publication humaines.
 
 ## Prochaine séquence verrouillée
 

@@ -3284,3 +3284,16 @@ taches et analyse de coherence avant une automatisation sensible.
   visuelle et éditoriale humaine et les trois médias refusés restent bloquants.
 - Le brief Claude est préparé mais non exécuté, faute de modèle exact et de
   plafond propres à cette mission ; aucun jeton externe n'a été consommé.
+
+### Jalon du 30 août 2026 - phase 7 du portail convergée
+
+- Les tâches générales du portail sont rapprochées des preuves spécialisées :
+  T053A confirme l'inventaire technique et T054A l'import réversible de 28
+  brouillons, sans fermer les validations humaines parentes.
+- T055 est terminée sur la preuve complète de la spécification 003 : modèles,
+  dates, aperçu mobile/ordinateur, programmation, retrait, historique, médias
+  privés, droits et flux public testés.
+- Aucune page n'est vérifiée ou publiée par cette convergence. Les propriétaires,
+  dates de revue et validations des services restent à renseigner.
+- Le brief Claude est préparé mais non exécuté, faute de modèle exact et de
+  plafond propres à cette mission ; aucun jeton externe n'a été consommé.
