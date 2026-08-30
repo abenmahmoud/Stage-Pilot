@@ -107,3 +107,11 @@ annulés immédiatement ; un travail en cours attend un point de contrôle. Une
 livraison déjà envoyée ou livrée reste non rappelable même si un travail local
 est ensuite annulé. Le worker, le verrou SQL et la reprise humaine restent à
 implémenter.
+
+T020B sépare la reprise humaine de la reprise automatique. Une session MFA de
+direction doit confirmer la correction, puis un nouveau travail idempotent est
+créé sans réécrire l'échec original. La clé HMAC dépend de l'établissement et
+du travail mort ; une même demande ne peut donc pas créer deux successeurs. Les
+erreurs exigeant une nouvelle version ou un contact corrigé et les livraisons
+terminales sont refusées. La transaction atomique et l'interface restent à
+implémenter.

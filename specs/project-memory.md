@@ -1598,6 +1598,19 @@ taches et analyse de coherence avant une automatisation sensible.
 - Le brief Claude est préparé mais non exécuté, faute de modèle exact et de
   plafond de consommation propres à cette mission.
 
+### Jalon du 30 août 2026 - reprise humaine des communications en échec
+
+- La reprise manuelle est réservée au superadmin ou au proviseur sous MFA, sur
+  un travail `dead` et après confirmation explicite de la correction.
+- L'échec d'origine reste intact. Un successeur idempotent repart à zéro avec
+  une clé HMAC cloisonnée ; les erreurs de source et les livraisons terminales
+  ne sont pas relancées.
+- Six tests dédiés couvrent droits, MFA, confirmation, états terminaux, champs
+  refusés et idempotence. T020B est terminé ; la transaction et l'interface de
+  preview restent ouvertes dans T020.
+- Le brief Claude est préparé mais non exécuté, faute de modèle exact et de
+  plafond de consommation propres à cette mission.
+
 ### Jalon du 30 août 2026 - contrat de délivrabilité Brevo
 
 - Un vérificateur Bearer commun protège désormais les futurs webhooks entrants

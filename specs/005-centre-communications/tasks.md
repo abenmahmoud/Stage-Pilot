@@ -106,6 +106,11 @@
   contrôle et un email envoyé ou livré est explicitement non rappelable. T020
   reste ouvert jusqu'au worker transactionnel, à la reprise manuelle et à
   l'interface de boîte d'échec sur la preview.
+- [x] T020B Définir la reprise humaine d'un travail mort. Seuls superadmin et
+  proviseur sous MFA peuvent confirmer une cause corrigée ; l'échec d'origine
+  reste intact et un successeur idempotent repart à zéro. Les erreurs de source
+  ainsi que les livraisons absentes ou terminales ne sont jamais relancées. T020 reste ouvert
+  jusqu'à la transaction atomique, à la route et à l'interface de preview.
 - [x] T021A Ajouter un aperçu éditorial local sûr avant la relecture : rendu
   Markdown borné, images distantes neutralisées, liens isolés et absence de
   destinataire, publication ou envoi.
