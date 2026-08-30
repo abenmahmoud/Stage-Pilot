@@ -2480,6 +2480,16 @@ taches et analyse de coherence avant une automatisation sensible.
 - Le brief Claude est préparé mais non exécuté, faute de modèle exact et de
   plafond propres à cette mission ; aucun jeton externe n'a été consommé.
 
+### Jalon du 30 août 2026 - frontière des méthodes API
+
+- Les 94 routes Vercel inspectent explicitement la méthode HTTP et utilisent la
+  réponse `405` partagée pour toute méthode non autorisée.
+- Le contrôle est transversal : une future route permissive fera échouer la
+  barrière de sécurité de la preview.
+- T037AA est terminée localement, sans requête distante ni donnée utilisateur.
+- Le brief Claude est préparé mais non exécuté, faute de modèle exact et de
+  plafond propres à cette mission ; aucun jeton externe n'a été consommé.
+
 ### Jalon du 30 août 2026 - couverture des commandes sans payload
 
 - Le test transversal couvre maintenant les handlers de mutation qui ne lisent

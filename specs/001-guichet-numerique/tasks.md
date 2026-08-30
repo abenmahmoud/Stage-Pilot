@@ -266,6 +266,9 @@ voir sa réponse dans le dossier. L'agent traite tout depuis une seule file.
   d'accès et pour les imports historiques qui en génèrent encore.
 - [x] **T037Z** Étendre la barrière transversale aux commandes sans payload et
   désactiver le parseur des tâches cron concernées.
+- [x] **T037AA** Étendre la barrière transversale aux méthodes HTTP : chaque
+  route inspecte la méthode et utilise la réponse `405` partagée. Les 94 routes
+  Vercel présentes sont couvertes automatiquement.
 - [x] **T037F** Exclure les contacts desactives des reponses, reserver les
   journaux globaux a un administrateur MFA et exiger `aal2` pour confirmer une
   identite scolaire depuis une source officielle.
