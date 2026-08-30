@@ -117,6 +117,11 @@ voir sa réponse dans le dossier. L'agent traite tout depuis une seule file.
 - [x] **T030** Installer le worker antivirus VPS et le déplacement quarantine/clean.
 - [ ] **T031** Mettre en place la sauvegarde chiffrée DB + Storage et un test de
   restauration.
+- [x] **T031A** Éprouver localement le format d'un paquet fictif DB + Storage :
+  chiffrement authentifié par artefact, manifeste authentifié, limites avant
+  déchiffrement, contrôle établissement/paquet et restitution intégrale sans
+  écriture. T031 reste ouverte jusqu'à la sauvegarde programmée et à une vraie
+  restauration en environnement isolé.
 - [x] **T032** Finaliser PWA : hors-ligne limité, mise à jour, icônes, installation.
 - [x] **T032A** Forcer la vérification du service worker et charger les navigations
   en ligne sans cache afin qu'un nouveau déploiement ne reste pas masqué par

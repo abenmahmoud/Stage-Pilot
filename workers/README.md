@@ -23,6 +23,10 @@ The workers run on the lycée VPS, not in the browser or in a Vercel function.
 - `schedule-document-worker.mjs` consumes `schedule_document_scan`, runs
   ClamAV, verifies the PDF structure and counts pages without extracting names,
   hours or timetable content.
+- `recovery-sample-bundle.mjs` construit et vérifie localement un petit paquet
+  fictif DB + Storage chiffré. Il ne sauvegarde ni ne restaure un service distant
+  et sert uniquement à éprouver le format et la reprise intégrale avant le vrai
+  dispositif d'exploitation.
 
 Required environment variables:
 

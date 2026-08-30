@@ -114,6 +114,7 @@
     "test:identity-directory-parser": "node scripts/test-identity-directory-parser.mjs",
     "test:identity-directory-worker": "node scripts/test-identity-directory-worker.mjs",
     "test:identity-directory-vault": "node scripts/test-identity-directory-vault.mjs",
+    "test:recovery-sample-bundle": "node scripts/test-recovery-sample-bundle.mjs",
     "test:identity-directory-lookup": "node --import ./scripts/ts-test-resolver.mjs --experimental-strip-types scripts/test-identity-directory-lookup.mjs",
     "apply:preview-identity-directory-lookup": "node scripts/apply-preview-identity-directory-lookup.mjs",
     "test:preview-identity-directory-lifecycle": "node scripts/test-preview-identity-directory-lifecycle.mjs",

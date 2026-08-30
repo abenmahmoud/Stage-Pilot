@@ -2088,6 +2088,23 @@ taches et analyse de coherence avant une automatisation sensible.
 - Le brief Claude est préparé mais non exécuté, faute de modèle exact et de
   plafond de consommation propres à cette mission.
 
+### Jalon du 30 août 2026 - preuve locale de restauration chiffrée
+
+- Un format local borné rassemble obligatoirement un extrait fictif de base et
+  un fichier Storage fictif. Chaque artefact est chiffré en AES-256-GCM avec un
+  nonce neuf ; chemins, types MIME, empreintes et contenu restent chiffrés.
+- Le manifeste complet est authentifié avec une clé dérivée. Établissement,
+  identifiant de sauvegarde, ordre, nombre, catégorie et taille sont aussi liés
+  aux enveloppes pour empêcher retrait, permutation ou mélange de paquets.
+- La vérification refuse mauvaise clé, autre établissement, paquet inattendu,
+  altération, chemin dangereux, champ inconnu, doublon et dépassement de taille.
+  Elle ne retourne les artefacts qu'après contrôle intégral et n'écrit rien.
+- T031A est terminé avec 28 contrôles locaux. T031 reste ouverte : aucun export
+  distant, planificateur, coffre de clés ou test de restauration isolée réel n'a
+  été exécuté.
+- Le brief Claude est préparé mais non exécuté, faute de modèle exact et de
+  plafond de consommation propres à cette mission.
+
 ## 8. Prochain ordre recommande
 
 1. Publier et tester le pré-triage ordinateur portable avec des données fictives.

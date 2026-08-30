@@ -500,6 +500,14 @@ l'autorisation de quota définie par le propriétaire.
   320 à 1 440 px. Restent le p95 HTTP, la reprise des workers, les écrans agents
   authentifiés au lecteur d'écran et la restauration.
 
+- Lot N5ZG : paquet fictif de restauration chiffré. **Validé localement** : un
+  extrait binaire de base et un objet Storage fictif sont chiffrés séparément,
+  liés au même établissement et au même identifiant de sauvegarde, puis
+  restitués seulement après validation intégrale du manifeste et de chaque
+  empreinte. Les suppressions, permutations, altérations, mauvaises clés,
+  traversées de chemins et périmètres différents sont refusés. Ce lot ne touche
+  aucun service distant et ne clôt pas la sauvegarde opérationnelle T031.
+
 ## Prochaine séquence verrouillée
 
 1. Conserver `BC-2026-000009` comme preuve fictive de recette jusqu'à la décision
