@@ -340,6 +340,9 @@
   correction de routage comme le déplacement humain d'un dossier d'un service
   assigné vers un autre. La direction voit le volume et la part de ces
   réorientations sans lire le motif, le contenu ou l'identité du dossier.
+- [x] T030C Distinguer dans l'écran direction une sortie IA retenue par les
+  contrôles techniques d'une validation humaine, qui n'est jamais déduite de
+  `model_success` ni annoncée sans événement humain explicite.
 
 ## Phase 4 - Compétences du pilote
 

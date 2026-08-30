@@ -14,6 +14,10 @@ appelé, la latence, les jetons, le nombre de sources, le nombre de tours et une
 estimation de coût. Elle ne contient aucun texte, nom, compte, contact, session,
 document, catégorie métier ou erreur brute.
 
+`model_success` signifie uniquement que la sortie structurée a franchi les
+contrôles techniques et a été retenue pour la réponse. Il ne prouve pas une
+validation humaine ; l'interface l'indique explicitement.
+
 ## Coût estimé
 
 Le calcul est désactivé tant que les deux variables suivantes ne sont pas

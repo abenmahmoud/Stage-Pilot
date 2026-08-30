@@ -195,5 +195,8 @@ test("shows only aggregate measures in the protected operations view", async () 
   assert.match(page, /7, 30/);
   assert.match(page, /Réorientations humaines/);
   assert.match(page, /déplace un dossier d’un service déjà assigné vers un autre/);
+  assert.match(page, /Réponses IA retenues par les règles/);
+  assert.match(page, /Cela ne signifie pas qu’un agent humain l’a validée/);
+  assert.doesNotMatch(page, /Réponses IA validées|IA validée/);
   assert.doesNotMatch(page, /requesterName|requesterEmail|bodyText|attachmentName/);
 });

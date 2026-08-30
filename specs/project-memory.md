@@ -1214,7 +1214,7 @@ taches et analyse de coherence avant une automatisation sensible.
 
 - L'assistant public journalise désormais une seule issue technique par passage :
   réponse locale, pré-triage, indisponibilité, sortie invalide, repli de sécurité
-  ou réponse IA validée. Le journal n'enregistre aucun texte, identité, contact,
+  ou réponse IA retenue par les règles. Le journal n'enregistre aucun texte, identité, contact,
   session, pièce jointe, catégorie métier ou erreur brute.
 - Les jetons proviennent uniquement du reçu du fournisseur. Le coût est calculé
   en micro-euros seulement si les variables
@@ -1239,6 +1239,9 @@ taches et analyse de coherence avant une automatisation sensible.
   était actif ou en pilote. Il filtre désormais l'établissement porté par
   chaque demande. La recette fictive a obtenu deux changements, une
   réorientation puis zéro dossier et événement après `ROLLBACK`.
+- T030C corrige la sémantique de l'écran : `model_success` signifie seulement
+  que la sortie structurée a franchi les contrôles techniques. Le tableau ne la
+  présente plus comme une validation humaine et le rappelle explicitement.
 - L'audit externe Claude de ce lot n'a pas été exécuté sans fiche
   d'autorisation courante précisant modèle, périmètre et limite. Le dossier
   d'audit est prêt ; les vérifications Codex, Supabase et tests automatisés ont
