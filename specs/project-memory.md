@@ -2873,3 +2873,11 @@ taches et analyse de coherence avant une automatisation sensible.
 - T046C est terminée sans upload, stockage, donnée réelle ou appel IA.
 - Le brief Claude est préparé mais non exécuté, faute de modèle exact et de
   plafond propres à cette mission ; aucun jeton externe n'a été consommé.
+
+### Jalon du 30 août 2026 - corps des requêtes IA bornés
+
+- L'assistant public est limité à 32 Ko et les deux aides de rédaction à 64 Ko
+  avant validation, limite de débit ou appel fournisseur.
+- T037O est terminée par analyse statique et tests locaux, sans appel OpenAI.
+- Le brief Claude est préparé mais non exécuté, faute de modèle exact et de
+  plafond propres à cette mission ; aucun jeton externe n'a été consommé.
