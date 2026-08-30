@@ -2095,6 +2095,13 @@ taches et analyse de coherence avant une automatisation sensible.
   la preview Vercel de `codex/lycee-connect-prototype`. T030D2 est terminé ; le
   lot parent attend encore une confirmation et une correction applicatives sur
   deux dossiers entièrement fictifs.
+- Les recettes T030D3 savent créer un compte éphémère, atteindre MFA `aal2`,
+  appeler les API protégées, contrôler les agrégats et nettoyer. Leur première
+  exécution a été arrêtée avant les décisions : Vercel remplace huit secrets de
+  preview par des marqueurs non utilisables sur ce poste. La tentative SQL de
+  diagnostic n'a créé aucune décision ; compte, identité, adhésion, demandes,
+  revues, facteurs, sessions et événements ont tous été contrôlés à zéro après
+  nettoyage. T030D et T030D3 restent donc ouverts.
 - Le brief Claude est préparé mais non exécuté, faute de modèle exact et de
   plafond de consommation propres à cette mission.
 

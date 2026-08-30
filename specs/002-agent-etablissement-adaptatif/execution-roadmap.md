@@ -418,8 +418,12 @@ l'autorisation de quota définie par le propriétaire.
 - Activation effectuée uniquement sur la preview `xijocumlwivhbmffrnlj` : la
   migration `20260830090500` est enregistrée, la recette fictive corrigée passe
   avec `ROLLBACK` et laisse zéro résidu. L'interrupteur Vercel est limité à la
-  branche `codex/lycee-connect-prototype`. La recette applicative avec deux
-  dossiers fictifs reste nécessaire avant de fermer le lot parent T030D.
+  branche `codex/lycee-connect-prototype`. Deux recettes applicatives bornées
+  sont prêtes : une autonome avec clé de service locale et une partie cliente
+  sans privilège. Vercel masque les secrets de preview lors de leur export ; la
+  tentative a donc été arrêtée avant création de compte. Les fixtures SQL de
+  diagnostic ont été supprimées avec zéro résidu. Une confirmation et une
+  correction réelles via les API restent nécessaires avant de fermer T030D.
 - Lot N5ZD : cloisonnement des demandes par établissement. **Appliqué uniquement
   à la preview et testé par transaction annulée** : `institution_id` est
   obligatoire, référencé et immuable sur chaque demande. La création publique,

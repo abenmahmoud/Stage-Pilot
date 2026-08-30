@@ -49,7 +49,26 @@ la table sous périmètre établissement.
 - `SUPPORT_ASSISTANT_ROUTING_REVIEW_ENABLED=true` est configuré comme variable
   Vercel de preview limitée à `codex/lycee-connect-prototype`.
 
-Le prochain contrôle est applicatif : créer deux dossiers fictifs après le
-redéploiement, confirmer le premier, corriger le service du second sous MFA,
-vérifier les agrégats puis nettoyer toutes les données de recette. Ne jamais
-utiliser ce protocole sur le projet Supabase principal.
+## Recette applicative restante
+
+Deux recettes bornées ont été ajoutées :
+
+- `recipe:preview-support-assistant-routing-review` crée et supprime lui-même un
+  compte fictif, son MFA et deux dossiers lorsque la clé de service preview est
+  fournie localement ;
+- `recipe:preview-routing-review-client` ne détient aucun privilège serveur et
+  exécute seulement la connexion MFA, les API et les contrôles d'agrégats sur
+  des fixtures préparées séparément.
+
+La tentative du 30 août a confirmé que Vercel remplace huit secrets de preview
+par le marqueur `[SENSITIVE]` lors de l'export local. Le script refuse désormais
+explicitement ce marqueur. Une fixture SQL de diagnostic a aussi montré que la
+création directe d'un utilisateur Auth n'est pas une voie de recette fiable ;
+aucune décision applicative n'a été enregistrée. Toutes les lignes réservées ont
+été supprimées et les compteurs utilisateur, identité, adhésion, MFA, session,
+demande, revue et événement ont été contrôlés à zéro.
+
+Le prochain contrôle reste donc applicatif : injecter localement une clé de
+service de la preview, confirmer le premier dossier, corriger le second sous MFA,
+vérifier les agrégats puis le nettoyage automatique. Ne jamais utiliser ce
+protocole sur le projet Supabase principal.

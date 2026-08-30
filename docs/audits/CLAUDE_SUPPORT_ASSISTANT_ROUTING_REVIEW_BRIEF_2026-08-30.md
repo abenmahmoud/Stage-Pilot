@@ -19,7 +19,8 @@ de consommation de cette mission n'ont pas été confirmés. Zéro jeton externe
 - `supabase/tests/support_assistant_routing_review_security.test.sql`
 - `src/pages/prototype/LyceeConnectPrototype.tsx`
 - `src/pages/admin/SupportOperationsPage.tsx`
-- les deux tests `test-support-assistant-routing-*`
+- les tests `test-support-assistant-routing-*` et les trois scripts de recette
+  `test-preview-*routing-review*`
 
 ## Mission proposée
 
@@ -28,7 +29,9 @@ d'établissement, course concurrente, double décision, contournement MFA, fuite
 contenu personnel, persistance du reçu dans le navigateur et métrique trompeuse.
 Vérifier aussi que l'interrupteur actif uniquement sur la preview ne modifie pas
 le comportement sans reçu valide et que le scénario SQL corrigé atteint bien la
-clé composite inter-établissement. Ne modifier aucun fichier, secret,
+clé composite inter-établissement. Contrôler que les recettes refusent une cible
+de production, un secret Vercel masqué, toute sortie sensible et qu'elles
+nettoient leurs fixtures même après erreur. Ne modifier aucun fichier, secret,
 environnement, base ou déploiement.
 
 ## Sortie attendue

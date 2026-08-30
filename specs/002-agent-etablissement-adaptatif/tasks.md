@@ -421,6 +421,11 @@
 - [x] T030D2 Appliquer `20260830090500` uniquement à la base preview, exécuter
   la recette fictive avec `ROLLBACK`, contrôler les auditeurs puis activer
   `SUPPORT_ASSISTANT_ROUTING_REVIEW_ENABLED=true` uniquement sur la preview.
+- [ ] T030D3 Exécuter sur la preview une confirmation et une correction via les
+  API protégées avec un compte fictif éphémère sous MFA `aal2`, vérifier les
+  agrégats puis contrôler le nettoyage complet. Les recettes sont préparées ;
+  leur exécution attend une clé de service preview injectée localement, jamais
+  exportée ou journalisée.
 
 ## Phase 4 - Compétences du pilote
 
