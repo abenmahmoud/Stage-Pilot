@@ -551,6 +551,14 @@ l'autorisation de quota définie par le propriétaire.
   ensemble. Les pièces déjà libérées et les contrôles en cours restent protégés.
   L'état SQL supplémentaire est appliqué uniquement à la branche Supabase de
   preview ; RLS forcée et absence de droits clients sont reconfirmées.
+- Lot N5ZP : supervision des retraits interrompus. **Implémenté sans nouvelle
+  migration ni donnée réelle** : l'écran direction compte les brouillons agent
+  encore en `removal_pending` ou revenus en erreur après une panne Storage. Le
+  calcul est limité à l'établissement actif, aux documents non publiés et ne
+  retourne aucun nom, chemin, contenu, dossier ou utilisateur. Un compteur non
+  nul fait sortir la santé globale de l'état nominal ; aucune réparation ou
+  suppression automatique n'est déclenchée. T057 reste ouverte pour la
+  restauration, les alertes externes et la procédure d'incident complète.
 
 ## Prochaine séquence verrouillée
 

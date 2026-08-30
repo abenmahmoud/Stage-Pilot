@@ -46,3 +46,20 @@ test("shows only unresolved failures without exposing contact values", async () 
   assert.match(source, /\.limit\(50\)/);
   assert.doesNotMatch(source, /supportContacts\.value/);
 });
+
+test("counts interrupted attachment removals without exposing storage details", async () => {
+  const source = await readFile(new URL("../api/support/agent/operations/index.ts", import.meta.url), "utf8");
+  const page = await readFile(new URL("../src/pages/admin/SupportOperationsPage.tsx", import.meta.url), "utf8");
+
+  assert.match(source, /attachmentRemovalStats/);
+  assert.match(source, /supportRequests\.institutionId, context\.institutionId/);
+  assert.match(source, /supportAttachments\.direction, "agent"/);
+  assert.match(source, /supportAttachments\.scanStatus} = 'removal_pending'/);
+  assert.match(source, /supportAttachments\.scanDetail} = 'storage_removal_failed'/);
+  assert.match(source, /isNull\(supportAttachments\.messageId\)/);
+  assert.match(source, /isNull\(supportAttachments\.releasedAt\)/);
+  assert.doesNotMatch(source, /originalName: supportAttachments\.originalName/);
+  assert.doesNotMatch(source, /storagePath: supportAttachments\.storagePath/);
+  assert.match(page, /summary\.attachmentRemovalsWaiting === 0/);
+  assert.match(page, /Retraits à reprendre/);
+});

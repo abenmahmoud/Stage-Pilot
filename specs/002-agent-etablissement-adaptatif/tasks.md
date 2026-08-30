@@ -628,6 +628,11 @@
   urgente et en retard par service, reliée aux files cloisonnées.
 - [ ] T057 Ajouter supervision, alertes, sauvegarde restaurable, file d'échec,
   journal d'accès et procédure d'incident.
+- [x] T057A Signaler dans la santé des demandes les retraits de brouillons agent
+  interrompus ou en échec de stockage, sous forme d'un compteur agrégé par
+  établissement, sans nom de fichier, chemin privé, contenu ni identité. La
+  reprise reste une action explicite de l'agent propriétaire ; T057 demeure
+  ouverte pour les alertes externes, la restauration et la procédure d'incident.
 - [ ] T058 Faire valider le cadre ESSUF GROUP-lycée : rôles RGPD, support,
   propriété, mentions, réversibilité et fin de partenariat.
 - [ ] T059 Exécuter un pilote avec données minimales, responsables nommés et plan

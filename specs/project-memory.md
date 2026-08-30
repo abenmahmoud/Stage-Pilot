@@ -3339,3 +3339,18 @@ taches et analyse de coherence avant une automatisation sensible.
   débordement ni erreur de console.
 - Le brief Claude est préparé mais non exécuté, faute de modèle exact et de
   plafond propres à cette mission ; aucun jeton externe n'a été consommé.
+
+### Jalon du 30 août 2026 - supervision des retraits interrompus
+
+- L'écran direction de santé des demandes compte désormais les brouillons agent
+  dont le retrait est resté en cours ou a échoué après l'appel au stockage.
+- Le calcul filtre l'établissement actif, la direction `agent`, l'absence de
+  message et l'absence de libération. La réponse ne contient aucun nom de
+  fichier, chemin privé, contenu, numéro de dossier ou identité.
+- Un retrait à reprendre rend la santé non nominale, mais n'entraîne aucune
+  suppression ni réparation automatique. Seul l'agent propriétaire reprend
+  explicitement l'opération depuis son dossier.
+- T057A est terminée sans migration, donnée réelle ni action distante. T057
+  reste ouverte pour la sauvegarde restaurable, les alertes et la procédure
+  d'incident. Le brief Claude est préparé mais non exécuté faute de modèle exact
+  et de plafond propres à cette mission ; aucun jeton externe n'a été consommé.

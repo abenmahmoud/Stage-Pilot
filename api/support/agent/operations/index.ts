@@ -101,6 +101,26 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         )
       );
 
+    const [attachmentRemovalStats] = await db
+      .select({ count: sql<number>`count(*)`.mapWith(Number) })
+      .from(supportAttachments)
+      .innerJoin(supportRequests, eq(supportRequests.id, supportAttachments.requestId))
+      .where(
+        and(
+          eq(supportRequests.institutionId, context.institutionId),
+          eq(supportAttachments.direction, "agent"),
+          isNull(supportAttachments.messageId),
+          isNull(supportAttachments.releasedAt),
+          sql`(
+            ${supportAttachments.scanStatus} = 'removal_pending'
+            or (
+              ${supportAttachments.scanStatus} = 'scan_error'
+              and ${supportAttachments.scanDetail} = 'storage_removal_failed'
+            )
+          )`
+        )
+      );
+
     const [failureStats] = await db
       .select({ count: sql<number>`count(*)`.mapWith(Number) })
       .from(supportFailedJobs)
@@ -142,6 +162,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         webhookAlerts24h: webhookStats?.count ?? 0,
         deliveryAlerts24h: deliveryStats?.count ?? 0,
         attachmentsWaiting: attachmentStats?.count ?? 0,
+        attachmentRemovalsWaiting: attachmentRemovalStats?.count ?? 0,
         lastSuccessAt: jobStats?.lastSuccessAt ?? null,
       },
       activity30d: {

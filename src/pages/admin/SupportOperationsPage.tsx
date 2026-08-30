@@ -11,6 +11,7 @@ import {
   RotateCcw,
   ShieldCheck,
   Timer,
+  Trash2,
 } from "lucide-react";
 import { apiFetch } from "../../lib/api";
 
@@ -21,6 +22,7 @@ type OperationsSummary = {
   webhookAlerts24h: number;
   deliveryAlerts24h: number;
   attachmentsWaiting: number;
+  attachmentRemovalsWaiting: number;
   lastSuccessAt: string | null;
 };
 
@@ -196,7 +198,12 @@ export default function SupportOperationsPage() {
   }
 
   const summary = payload?.summary;
-  const healthy = Boolean(summary && summary.failuresWaiting === 0 && summary.jobFailures24h === 0);
+  const healthy = Boolean(
+    summary
+    && summary.failuresWaiting === 0
+    && summary.jobFailures24h === 0
+    && summary.attachmentRemovalsWaiting === 0
+  );
 
   return (
     <div className="mx-auto max-w-6xl space-y-6">
@@ -225,11 +232,12 @@ export default function SupportOperationsPage() {
             <div><strong className="text-slate-950">{healthy ? "Aucun blocage détecté" : "Une vérification est nécessaire"}</strong><p className="mt-1 text-sm text-slate-600">Dernier envoi réussi : {dateLabel(summary.lastSuccessAt)} · {summary.jobFailures24h} essai en échec sur 24 h</p></div>
           </section>
 
-          <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4" aria-label="Indicateurs des dernières 24 heures">
+          <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5" aria-label="Indicateurs de santé des demandes">
             <div className="border-t-4 border-emerald-600 bg-white p-4 shadow-sm"><CheckCircle2 className="h-5 w-5 text-emerald-700" /><strong className="mt-3 block text-2xl text-slate-950">{summary.jobSuccesses24h}</strong><span className="text-sm text-slate-500">Envois réussis</span></div>
             <div className="border-t-4 border-red-600 bg-white p-4 shadow-sm"><AlertTriangle className="h-5 w-5 text-red-700" /><strong className="mt-3 block text-2xl text-slate-950">{summary.failuresWaiting}</strong><span className="text-sm text-slate-500">Échecs à traiter</span></div>
             <div className="border-t-4 border-amber-500 bg-white p-4 shadow-sm"><Clock3 className="h-5 w-5 text-amber-700" /><strong className="mt-3 block text-2xl text-slate-950">{summary.deliveryAlerts24h + summary.webhookAlerts24h}</strong><span className="text-sm text-slate-500">Alertes email</span></div>
             <div className="border-t-4 border-blue-600 bg-white p-4 shadow-sm"><Clock3 className="h-5 w-5 text-blue-700" /><strong className="mt-3 block text-2xl text-slate-950">{summary.attachmentsWaiting}</strong><span className="text-sm text-slate-500">Fichiers en attente</span></div>
+            <div className="border-t-4 border-rose-600 bg-white p-4 shadow-sm"><Trash2 className="h-5 w-5 text-rose-700" /><strong className="mt-3 block text-2xl text-slate-950">{summary.attachmentRemovalsWaiting}</strong><span className="text-sm text-slate-500">Retraits à reprendre</span></div>
           </section>
 
           <section className="grid gap-5 border-y border-slate-200 py-5 lg:grid-cols-[minmax(0,1.3fr)_minmax(280px,0.7fr)]" aria-labelledby="request-activity-title">
