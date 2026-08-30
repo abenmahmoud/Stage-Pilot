@@ -3354,3 +3354,20 @@ taches et analyse de coherence avant une automatisation sensible.
   reste ouverte pour la sauvegarde restaurable, les alertes et la procédure
   d'incident. Le brief Claude est préparé mais non exécuté faute de modèle exact
   et de plafond propres à cette mission ; aucun jeton externe n'a été consommé.
+
+### Jalon du 30 août 2026 - journal d'accès aux pièces du guichet
+
+- Chaque lien privé délivré à un demandeur ou un agent produit désormais
+  `attachment.download_link_issued` après signature réussie et avant la réponse.
+- L'accès demandeur exige la session liée au dossier. L'accès agent exige le
+  compte, l'établissement et le service. La trace conserve seulement
+  l'identifiant opaque de la pièce, sa direction et l'expiration de 60 secondes.
+- Le nom, le bucket, le chemin, l'URL signée et le contenu restent exclus. Les
+  limites sont de 120 ouvertures par session sur dix minutes et de 600 par
+  compte agent sur une heure, avec des clés HMAC pseudonymes.
+- La migration `20260830190000` est appliquée uniquement à
+  `guichet-lycee-preview`. Les deux portées sont présentes, la contrainte HMAC
+  demeure, la RLS est activée et forcée et les rôles clients n'ont aucun droit.
+- T034A de la spécification 001 et T020B de la spécification 002 sont terminées.
+  Le brief Claude est préparé mais non exécuté faute de modèle exact et de
+  plafond propres à cette mission ; aucun jeton externe n'a été consommé.

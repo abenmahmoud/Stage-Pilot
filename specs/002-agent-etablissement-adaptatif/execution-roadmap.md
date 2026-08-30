@@ -559,6 +559,15 @@ l'autorisation de quota définie par le propriétaire.
   nul fait sortir la santé globale de l'état nominal ; aucune réparation ou
   suppression automatique n'est déclenchée. T057 reste ouverte pour la
   restauration, les alertes externes et la procédure d'incident complète.
+- Lot N5ZQ : journal d'accès aux pièces du guichet. **Appliqué uniquement à la
+  preview** : la délivrance d'une URL privée de 60 secondes exige d'abord la
+  session liée au dossier ou le compte agent dans son établissement et son
+  service. Après signature réussie, un événement append-only conserve seulement
+  l'identifiant opaque, la direction et l'expiration ; aucun nom, chemin, lien
+  ou contenu n'est journalisé. Les ouvertures sont limitées à 120 par session
+  sur dix minutes et 600 par compte agent sur une heure, avec clés HMAC. La
+  migration étend seulement la liste des portées de la table privée ; RLS
+  activée et forcée, contrainte HMAC et absence de droits clients sont vérifiées.
 
 ## Prochaine séquence verrouillée
 

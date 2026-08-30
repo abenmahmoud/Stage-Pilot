@@ -138,6 +138,12 @@ Journal append-only.
 
 Aucune politique UPDATE ou DELETE pour les agents.
 
+La délivrance d'un lien privé de pièce jointe ajoute
+`attachment.download_link_issued` après la signature réussie et avant la
+réponse HTTP. L'événement conserve seulement l'identifiant opaque de la pièce,
+sa direction et l'expiration de 60 secondes. Le nom, le chemin Storage, le lien
+signé et le contenu n'entrent jamais dans le journal.
+
 ## 2. Accès public sécurisé
 
 ### `support_magic_tokens`

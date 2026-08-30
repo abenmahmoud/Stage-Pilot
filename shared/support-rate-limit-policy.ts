@@ -14,6 +14,8 @@ export type SupportRateLimitScope =
   | "request_invalid_device"
   | "attachment_reserve_session"
   | "attachment_confirm_session"
+  | "attachment_download_session"
+  | "agent_attachment_download_user"
   | "agent_write_user";
 
 export type SupportRateLimitPolicy = {
@@ -105,6 +107,18 @@ export const SUPPORT_RATE_LIMIT_POLICIES = {
     limit: 30,
     windowSeconds: 10 * 60,
     message: "Trop de fichiers ont été contrôlés. Réessayez dans quelques minutes.",
+  },
+  attachmentDownloadSession: {
+    scope: "attachment_download_session",
+    limit: 120,
+    windowSeconds: 10 * 60,
+    message: "Trop de fichiers ont été ouverts. Attendez quelques minutes puis réessayez.",
+  },
+  agentAttachmentDownloadAccount: {
+    scope: "agent_attachment_download_user",
+    limit: 600,
+    windowSeconds: 60 * 60,
+    message: "Ce compte a ouvert trop de fichiers rapprochés. Attendez quelques minutes puis recommencez.",
   },
   agentWriteAccount: {
     scope: "agent_write_user",

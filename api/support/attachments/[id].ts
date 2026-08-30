@@ -1,10 +1,12 @@
+import { randomUUID } from "node:crypto";
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { and, eq, isNotNull, or } from "drizzle-orm";
 import { db } from "../../../db/index.js";
-import { supportAttachments } from "../../../db/schema.js";
+import { supportAttachments, supportEvents } from "../../../db/schema.js";
 import { HttpError, supabaseAdmin } from "../../_shared/auth.js";
 import { handleApi, methodNotAllowed } from "../../_shared/response.js";
 import { requireSupportAccess } from "../../_shared/support.js";
+import { enforceAttachmentDownloadRateLimit } from "../../_shared/support-rate-limits.js";
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== "GET") return methodNotAllowed(res, ["GET"]);
@@ -16,8 +18,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (!code || !/^BC-\d{4}-\d{6}$/.test(code)) throw new HttpError(400, "Numéro de demande invalide");
 
     const access = await requireSupportAccess(req, code);
+    await enforceAttachmentDownloadRateLimit(access.sessionId);
     const [attachment] = await db
       .select({
+        requestId: supportAttachments.requestId,
+        direction: supportAttachments.direction,
         originalName: supportAttachments.originalName,
         storageBucket: supportAttachments.storageBucket,
         storagePath: supportAttachments.storagePath,
@@ -46,6 +51,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       .from(attachment.storageBucket)
       .createSignedUrl(attachment.storagePath, 60, { download: attachment.originalName });
     if (error || !data?.signedUrl) throw new HttpError(503, "Ouverture du fichier impossible");
+    await db.insert(supportEvents).values({
+      requestId: attachment.requestId,
+      eventType: "attachment.download_link_issued",
+      actorType: "requester",
+      actorId: access.sessionId,
+      toValue: { attachmentId: id, direction: attachment.direction, expiresIn: 60 },
+      correlationId: randomUUID(),
+    });
     return { url: data.signedUrl, expiresIn: 60 };
   });
 }

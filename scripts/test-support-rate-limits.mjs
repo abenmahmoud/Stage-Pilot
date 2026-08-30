@@ -15,16 +15,18 @@ const accessRoute = readFileSync(new URL("../api/support/access/[token].ts", imp
 const messageRoute = readFileSync(new URL("../api/support/requests/[code]/messages.ts", import.meta.url), "utf8");
 const reserveRoute = readFileSync(new URL("../api/support/requests/[code]/attachments.ts", import.meta.url), "utf8");
 const confirmRoute = readFileSync(new URL("../api/support/attachments/[id]/confirm.ts", import.meta.url), "utf8");
+const downloadRoute = readFileSync(new URL("../api/support/attachments/[id].ts", import.meta.url), "utf8");
+const agentDownloadRoute = readFileSync(new URL("../api/support/agent/attachments/[id].ts", import.meta.url), "utf8");
 const replyRoute = readFileSync(new URL("../api/support/agent/requests/[code]/reply.ts", import.meta.url), "utf8");
 const noteRoute = readFileSync(new URL("../api/support/agent/requests/[code]/notes.ts", import.meta.url), "utf8");
 const updateRoute = readFileSync(new URL("../api/support/agent/requests/[code].ts", import.meta.url), "utf8");
 const contentAiRoute = readFileSync(new URL("../api/content/admin/assist.ts", import.meta.url), "utf8");
 const translationRoute = readFileSync(new URL("../api/support/agent/requests/[code]/translate.ts", import.meta.url), "utf8");
 const prototype = readFileSync(new URL("../src/pages/prototype/LyceeConnectPrototype.tsx", import.meta.url), "utf8");
-const migration = readFileSync(
-  new URL("../supabase/migrations/20260829205947_add_multidimensional_support_rate_limits.sql", import.meta.url),
-  "utf8"
-);
+const migration = [
+  "../supabase/migrations/20260829205947_add_multidimensional_support_rate_limits.sql",
+  "../supabase/migrations/20260830190000_add_attachment_download_rate_limits.sql",
+].map((path) => readFileSync(new URL(path, import.meta.url), "utf8")).join("\n");
 
 test("normalizes only bounded opaque device identifiers", () => {
   assert.equal(normalizedSupportDeviceId("123e4567-e89b-12d3-a456-426614174000"), "123e4567-e89b-12d3-a456-426614174000");
@@ -82,6 +84,8 @@ test("protects messages, files and staff writes with their own dimensions", () =
   assert.match(messageRoute, /messageSessionBurst/);
   assert.match(reserveRoute, /enforceAttachmentReservationRateLimit\(access\.sessionId\)/);
   assert.match(confirmRoute, /enforceAttachmentConfirmationRateLimit\(access\.sessionId\)/);
+  assert.match(downloadRoute, /enforceAttachmentDownloadRateLimit\(access\.sessionId\)/);
+  assert.match(agentDownloadRoute, /enforceAgentAttachmentDownloadRateLimit\(user\.id\)/);
   assert.match(replyRoute, /enforceAgentWriteRateLimit\(user\.id\)/);
   assert.match(noteRoute, /enforceAgentWriteRateLimit\(user\.id\)/);
   assert.match(updateRoute, /req\.method === "PATCH"[\s\S]*enforceAgentWriteRateLimit\(user\.id\)/);

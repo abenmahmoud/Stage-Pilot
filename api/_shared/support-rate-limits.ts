@@ -119,6 +119,20 @@ export async function enforceAttachmentConfirmationRateLimit(sessionId: string):
   );
 }
 
+export async function enforceAttachmentDownloadRateLimit(sessionId: string): Promise<void> {
+  await enforce(
+    SUPPORT_RATE_LIMIT_POLICIES.attachmentDownloadSession,
+    personalHash(`attachment-download:${sessionId}`)
+  );
+}
+
+export async function enforceAgentAttachmentDownloadRateLimit(userId: string): Promise<void> {
+  await enforce(
+    SUPPORT_RATE_LIMIT_POLICIES.agentAttachmentDownloadAccount,
+    personalHash(`agent-attachment-download:${userId}`)
+  );
+}
+
 export async function enforceAgentWriteRateLimit(userId: string): Promise<void> {
   await enforce(
     SUPPORT_RATE_LIMIT_POLICIES.agentWriteAccount,

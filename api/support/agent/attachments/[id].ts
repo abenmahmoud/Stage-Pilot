@@ -13,7 +13,10 @@ import {
   assertSupportRequestAccess,
   requireSupportAgent,
 } from "../../../_shared/support-agent-access.js";
-import { enforceAgentWriteRateLimit } from "../../../_shared/support-rate-limits.js";
+import {
+  enforceAgentAttachmentDownloadRateLimit,
+  enforceAgentWriteRateLimit,
+} from "../../../_shared/support-rate-limits.js";
 
 const REMOVABLE_DRAFT_STATUSES = ["clean", "blocked", "scan_error"] as const;
 
@@ -200,8 +203,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return { attachment: { id: removed.id }, removed: true, duplicate: removed.duplicate };
     }
 
+    await enforceAgentAttachmentDownloadRateLimit(user.id);
     const [attachment] = await db
       .select({
+        requestId: supportAttachments.requestId,
+        direction: supportAttachments.direction,
         originalName: supportAttachments.originalName,
         storageBucket: supportAttachments.storageBucket,
         storagePath: supportAttachments.storagePath,
@@ -224,6 +230,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       .from(attachment.storageBucket)
       .createSignedUrl(attachment.storagePath, 60, { download: attachment.originalName });
     if (error || !data?.signedUrl) throw new HttpError(503, "Ouverture du fichier impossible");
+    await db.insert(supportEvents).values({
+      requestId: attachment.requestId,
+      eventType: "attachment.download_link_issued",
+      actorType: "agent",
+      actorId: user.id,
+      toValue: { attachmentId: id, direction: attachment.direction, expiresIn: 60 },
+      correlationId: randomUUID(),
+    });
     return { url: data.signedUrl, expiresIn: 60 };
   });
 }
