@@ -2449,6 +2449,18 @@ taches et analyse de coherence avant une automatisation sensible.
 - Le brief Claude est préparé mais non exécuté, faute de modèle exact et de
   plafond propres à cette mission ; aucun jeton externe n'a été consommé.
 
+### Jalon du 30 août 2026 - statut visible dans la file
+
+- Chaque dossier affiche désormais son statut en français sans imposer son
+  ouverture : nouvelle demande, à classer, assignée, en cours, en attente usager,
+  à vérifier, résolue, fermée ou classée sans suite.
+- Le statut reste visuellement distinct des alertes opérationnelles : urgence,
+  rappel, doublon, absence d'agent et échéance dépassée.
+- T027B5 est terminée. Les cinq domaines comptent 390 identifiants uniques : 274
+  lignes terminées et 116 ouvertes.
+- Le brief Claude est préparé mais non exécuté, faute de modèle exact et de
+  plafond propres à cette mission ; aucun jeton externe n'a été consommé.
+
 ## 8. Prochain ordre recommande
 
 1. Publier et tester le pré-triage ordinateur portable avec des données fictives.

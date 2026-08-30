@@ -816,6 +816,7 @@
 .lycee-agent-list em { color: #8995a5; font-size: 9px; font-style: normal; }
 .lycee-request-flags { position: absolute; right: 10px; bottom: 9px; display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 4px; max-width: calc(100% - 58px); }
 .lycee-request-flags b { padding: 4px 6px; border-radius: 999px; background: #fff0ed; color: var(--lc-coral); font-size: 8px; }
+.lycee-request-flags b[data-kind="status"] { background: #eef5f4; color: #315e58; }
 .lycee-request-flags b[data-kind="unassigned"] { background: #edf2ff; color: var(--lc-blue); }
 .lycee-request-flags b[data-kind="overdue"] { background: #fff1e4; color: #9a4a00; }
 .lycee-request-flags b[data-kind="callback"] { background: #e8f7f3; color: #0b7563; }
