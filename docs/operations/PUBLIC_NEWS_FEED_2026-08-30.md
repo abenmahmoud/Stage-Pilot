@@ -19,9 +19,12 @@ sans recharger la page.
 - la recherche ne demande aucune nouvelle API et ne journalise pas la requête ;
 - aucun corps de document, contact ou champ interne n'entre dans l'index local.
 
-## Limite volontaire
+## Pagination
 
-L'API retourne au plus 100 contenus. La durée et la visibilité des archives
-publiques n'ont pas encore été décidées. T015 reste donc ouverte pour une
-pagination serveur et une politique d'archives validée, sans inventer ces règles
-dans le code.
+L'API retourne au plus 100 contenus par appel et fournit un curseur opaque pour
+la suite. Le bouton `Charger plus d'informations` ajoute les éléments sans
+doublon et conserve la page courante en cas d'échec.
+
+La durée et la visibilité des archives publiques n'ont pas encore été décidées.
+T015 reste donc ouverte pour cette politique, sans inventer ces règles dans le
+code.

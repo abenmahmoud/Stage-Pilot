@@ -733,6 +733,11 @@
 .lycee-news-list time { display: block; margin-top: 3px; color: var(--lc-muted); font-size: 9px; }
 .lycee-news-list p { display: -webkit-box; margin: 5px 0 0; overflow: hidden; color: var(--lc-muted); font-size: 10px; line-height: 1.4; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
 .lycee-news-list button > svg { width: 16px; color: var(--lc-blue); }
+.lycee-news-load-more { display: grid; justify-items: center; gap: 8px; margin-top: 22px; }
+.lycee-news-load-more button { min-height: 44px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 9px 16px; border: 1px solid #9cb4ca; border-radius: 7px; background: #fff; color: var(--lc-blue); font-size: 11px; font-weight: 850; }
+.lycee-news-load-more button:disabled { cursor: wait; opacity: .65; }
+.lycee-news-load-more button svg { width: 16px; height: 16px; }
+.lycee-news-load-more p { margin: 0; color: #a33b31; font-size: 10px; text-align: center; }
 .lycee-news-empty { display: flex; min-height: 330px; flex-direction: column; align-items: center; justify-content: center; border: 1px solid var(--lc-line); border-radius: 8px; background: #fff; padding: 30px; text-align: center; }
 .lycee-news-empty > svg { width: 34px; color: var(--lc-blue); }
 .lycee-news-empty h2 { margin: 13px 0 0; font-size: 20px; }

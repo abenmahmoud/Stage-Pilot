@@ -757,20 +757,47 @@ function NewsView({ onBack }: { onBack: () => void }) {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState("all");
+  const [nextCursor, setNextCursor] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState("");
+  const [moreError, setMoreError] = useState("");
+  const loadingMoreRef = useRef(false);
 
   useEffect(() => {
     fetch("/api/content/public")
-      .then((response) => readApiResponse<{ items: PublicContent[] }>(response))
+      .then((response) => readApiResponse<{ items: PublicContent[]; nextCursor: string | null }>(response))
       .then((payload) => {
         const newsItems = payload.items.filter((item) => item.contentType !== "page");
         setItems(newsItems);
         setSelectedId(newsItems[0]?.id ?? null);
+        setNextCursor(payload.nextCursor);
       })
       .catch(() => setError("Les informations ne peuvent pas être chargées pour le moment."))
       .finally(() => setLoading(false));
   }, []);
+
+  const loadMore = async () => {
+    if (!nextCursor || loadingMoreRef.current) return;
+    loadingMoreRef.current = true;
+    setLoadingMore(true);
+    setMoreError("");
+    try {
+      const response = await fetch(`/api/content/public?cursor=${encodeURIComponent(nextCursor)}`);
+      const payload = await readApiResponse<{ items: PublicContent[]; nextCursor: string | null }>(response);
+      const newsItems = payload.items.filter((item) => item.contentType !== "page");
+      setItems((current) => {
+        const knownIds = new Set(current.map((item) => item.id));
+        return [...current, ...newsItems.filter((item) => !knownIds.has(item.id))];
+      });
+      setNextCursor(payload.nextCursor);
+    } catch {
+      setMoreError("La suite des informations ne peut pas être chargée pour le moment.");
+    } finally {
+      loadingMoreRef.current = false;
+      setLoadingMore(false);
+    }
+  };
 
   const categories = publicContentFeedCategories(items);
   const filteredItems = filterPublicContentFeed(items, query, category);
@@ -803,7 +830,7 @@ function NewsView({ onBack }: { onBack: () => void }) {
               {categories.map((item) => <option key={item} value={item}>{item}</option>)}
             </select>
           </label>
-          <p aria-live="polite">{filteredItems.length} information{filteredItems.length > 1 ? "s" : ""}</p>
+          <p aria-live="polite">{filteredItems.length} information{filteredItems.length > 1 ? "s" : ""} affichée{filteredItems.length > 1 ? "s" : ""}</p>
         </section>
       ) : null}
       {!loading && !error && !selected ? (
@@ -829,6 +856,15 @@ function NewsView({ onBack }: { onBack: () => void }) {
           </article>
           {filteredItems.length > 1 ? <section className="lycee-news-list" aria-labelledby="news-list-title"><div className="lycee-section-title"><div><span className="lycee-eyebrow">Toutes les informations</span><h2 id="news-list-title">Publié par le lycée</h2></div></div><div>{filteredItems.map((item) => { const image = item.assets.find((asset) => asset.assetKind === "image" && asset.signedUrl); return <button className={item.id === selected.id ? "is-active" : ""} type="button" key={item.id} onClick={() => { setSelectedId(item.id); window.scrollTo({ top: 0, behavior: "smooth" }); }}>{image ? <img src={image.signedUrl ?? ""} alt="" /> : <span><Newspaper aria-hidden="true" /></span>}<div><small>{item.featured ? "À retenir · " : ""}{item.category}</small><strong>{item.title}</strong><time dateTime={item.publishedAt ?? undefined}>{publicContentDateLabel(item.publishedAt)}</time><p>{item.summary}</p></div><ChevronRight aria-hidden="true" /></button>; })}</div></section> : null}
         </>
+      ) : null}
+      {!loading && !error && nextCursor ? (
+        <div className="lycee-news-load-more">
+          <button type="button" onClick={loadMore} disabled={loadingMore}>
+            <RefreshCw aria-hidden="true" />
+            {loadingMore ? "Chargement…" : "Charger plus d’informations"}
+          </button>
+          {moreError ? <p role="alert">{moreError}</p> : null}
+        </div>
       ) : null}
     </div>
   );

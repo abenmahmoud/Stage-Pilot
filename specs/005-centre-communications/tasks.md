@@ -92,6 +92,11 @@
   éditoriale. L'API conserve l'ordre épinglé/date, la version publiée et la
   fenêtre d'expiration ; l'interface passe en une colonne sous 720 px. T015
   reste ouvert pour la politique d'archives et la pagination au-delà de 100.
+- [x] T015B Paginer le flux public au-delà de 100 contenus avec un curseur
+  opaque, borné et validé. L'ordre `priorité, date, identifiant` est stable,
+  chaque page reconfirme audience publique, publication et expiration, et
+  l'interface fusionne sans doublon avec reprise locale en cas d'échec. T015
+  reste ouvert uniquement pour la politique d'archives à faire valider.
 
 ## Phase 4 - Diffusion sécurisée
 

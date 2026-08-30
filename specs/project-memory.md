@@ -2138,7 +2138,7 @@ taches et analyse de coherence avant une automatisation sensible.
 
 ### Jalon du 30 août 2026 - analyse de cohérence Spec Kit
 
-- Les cinq domaines comptent 375 identifiants uniques : 255 lignes terminées et
+- Les cinq domaines comptent 376 identifiants uniques : 256 lignes terminées et
   120 ouvertes. Ces nombres restent un inventaire, jamais un pourcentage global.
 - Les parents encore ouverts correspondent bien à des preuves absentes :
   opérations distantes, décisions métier/DPO, comptes nominatifs, données
@@ -2190,9 +2190,25 @@ taches et analyse de coherence avant une automatisation sensible.
   validité, hors archive et avec une limite de 100 éléments.
 - Les contrôles passent en une colonne sous 720 px et disposent de libellés et
   d'un compteur annoncés aux technologies d'assistance.
-- T015 reste ouverte pour décider la politique d'archives et paginer au-delà de
-  100. Le brief Claude est préparé mais non exécuté, faute de modèle exact et de
-  plafond de consommation propres à cette mission.
+- À ce jalon, T015 restait ouverte pour décider la politique d'archives et
+  paginer au-delà de 100 ; la pagination est fermée au jalon suivant. Le brief
+  Claude est préparé mais non exécuté, faute de modèle exact et de plafond de
+  consommation propres à cette mission.
+
+### Jalon du 30 août 2026 - pagination publique stable
+
+- L'API publique accepte désormais un curseur opaque et au plus 100 contenus
+  par page. Le curseur ne contient que priorité, date publiée et identifiant
+  technique ; il est borné, strictement validé et ne transporte aucune donnée
+  personnelle ni contenu éditorial.
+- L'ordre total `priorité, date, identifiant` évite les doublons entre deux
+  pages. Chaque appel reconfirme côté SQL puis côté instantané l'audience
+  publique, le statut, la publication et l'expiration.
+- `À la une` charge la suite à la demande, conserve les éléments déjà visibles,
+  élimine les doublons et n'efface pas la page si un chargement suivant échoue.
+- T015 reste ouverte uniquement pour la durée de visibilité et le traitement
+  public des archives. Le brief Claude est préparé mais non exécuté, faute de
+  modèle exact et de plafond de consommation propres à cette mission.
 
 ## 8. Prochain ordre recommande
 

@@ -2,6 +2,11 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
 import {
+  encodePublicContentCursor,
+  parsePublicContentCursor,
+  parsePublicContentPageSize,
+} from "../api/_shared/public-content-pagination.ts";
+import {
   filterPublicContentFeed,
   publicContentDateLabel,
   publicContentFeedCategories,
@@ -30,13 +35,40 @@ test("formats a public date without inventing one", () => {
   assert.equal(publicContentDateLabel("invalid"), "Date non disponible");
 });
 
+test("round-trips a bounded opaque cursor and rejects malformed pagination", () => {
+  const cursor = encodePublicContentCursor({
+    featured: true,
+    publishedAt: new Date("2026-08-30T08:00:00.000Z"),
+    id: "55c4f7ca-2cdb-4a9d-8b9a-24f422e7dc2d",
+  });
+  assert.doesNotMatch(cursor, /55c4f7ca/);
+  assert.deepEqual(parsePublicContentCursor(cursor), {
+    featured: true,
+    publishedAt: new Date("2026-08-30T08:00:00.000Z"),
+    id: "55c4f7ca-2cdb-4a9d-8b9a-24f422e7dc2d",
+  });
+  assert.equal(parsePublicContentCursor(undefined), null);
+  assert.equal(parsePublicContentPageSize(undefined), 100);
+  assert.equal(parsePublicContentPageSize("25"), 25);
+  assert.throws(() => parsePublicContentCursor("cursor-falsifie"), /cursor_invalid/);
+  assert.throws(() => parsePublicContentPageSize("101"), /limit_invalid/);
+  assert.throws(() => parsePublicContentPageSize("1.5"), /limit_invalid/);
+});
+
 test("keeps the public API limited to published, current and non-expired snapshots", async () => {
   const route = await readFile(new URL("../api/content/public.ts", import.meta.url), "utf8");
   assert.match(route, /isNotNull\(siteContentItems\.publishedVersion\)/);
+  assert.match(route, /isNotNull\(siteContentItems\.publishedAt\)/);
   assert.match(route, /ne\(siteContentItems\.status, "archive"\)/);
+  assert.match(route, /eq\(siteContentItems\.audience, "tous"\)/);
+  assert.match(route, /lte\(siteContentItems\.publishAt, now\)/);
+  assert.match(route, /gt\(siteContentItems\.expiresAt, now\)/);
   assert.match(route, /isSiteContentPublicAt\(content, now\)/);
-  assert.match(route, /orderBy\(desc\(siteContentItems\.featured\), desc\(siteContentItems\.publishedAt\)\)/);
-  assert.match(route, /limit\(requestedSlug \? 1 : 100\)/);
+  assert.match(route, /desc\(siteContentItems\.featured\)/);
+  assert.match(route, /desc\(siteContentItems\.publishedAt\)/);
+  assert.match(route, /desc\(siteContentItems\.id\)/);
+  assert.match(route, /limit\(requestedSlug \? 1 : pageSize \+ 1\)/);
+  assert.match(route, /return \{ items, nextCursor \}/);
   assert.doesNotMatch(route, /communications|communicationVersions|approvedBy|createdBy/);
 });
 
@@ -49,8 +81,12 @@ test("adds accessible metadata-only search and responsive controls", async () =>
   assert.match(page, /filterPublicContentFeed\(items, query, category\)/);
   assert.match(page, /publicContentDateLabel\(selected\.publishedAt\)/);
   assert.match(page, /Effacer les filtres/);
+  assert.match(page, /Charger plus d’informations/);
+  assert.match(page, /knownIds\.has\(item\.id\)/);
+  assert.match(page, /loadingMoreRef\.current/);
   assert.doesNotMatch(page, /filterPublicContentFeed\([^\n]*bodyMarkdown/);
   assert.match(css, /\.lycee-news-controls \{[^}]*grid-template-columns: minmax\(0,1fr\)/);
   assert.match(css, /@media \(max-width: 720px\)[\s\S]*\.lycee-news-controls \{ grid-template-columns: 1fr; \}/);
   assert.match(css, /\.lycee-news-controls input, \.lycee-news-controls select \{[^}]*min-width: 0/);
+  assert.match(css, /\.lycee-news-load-more button \{[^}]*min-height: 44px/);
 });
