@@ -45,6 +45,9 @@ relire et aucun ne peut être publié automatiquement.
 ## Lecture de l'état
 
 - **Couverture technique** : 28 contenus sur 28 ont un brouillon de preview.
+- **Parité de l'inventaire** : le contrôle public borné du 30 août 2026 retrouve
+  28 contenus sur 28, sans ajout, retrait ou modification. La commande
+  `npm run legacy:check-drift` permet de répéter cette preuve sans rien écrire.
 - **Conservation des adresses** : les 27 anciennes adresses hors accueil ont une
   redirection versionnée ; l'accueil relève de la future bascule globale.
 - **Décisions éditoriales** : 15 contenus durables, 7 archives et 6 contenus à
@@ -59,3 +62,6 @@ T018 reste ouverte jusqu'à une comparaison visuelle et éditoriale des 28 ligne
 par la direction ou le service responsable. La validation doit contrôler le
 français, les dates, les responsables, les fichiers, les liens et le rendu
 mobile/ordinateur ; elle ne peut pas être déduite de cette matrice.
+
+La preuve technique détaillée est conservée dans
+`docs/operations/LEGACY_WORDPRESS_DRIFT_CHECK_2026-08-30.md`.

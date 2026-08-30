@@ -3270,3 +3270,15 @@ taches et analyse de coherence avant une automatisation sensible.
 - T014C et T019 de la spécification 002 ainsi que T009 de la spécification 005
   sont alignées comme terminées. Aucun document, interrupteur ou environnement
   réel n'a été activé.
+
+### Jalon du 30 août 2026 - dérive de l'ancien site contrôlée
+
+- Une commande en lecture seule compare désormais l'inventaire versionné aux
+  pages et articles publics du WordPress officiel, avec origine codée en dur,
+  redirections refusées, délai de 15 secondes et réponse limitée à 1 Mo.
+- La preuve réelle retrouve 28 contenus sur 28, sans ajout, retrait ni
+  modification de titre, date ou adresse. Aucun contenu n'est importé ou publié.
+- T018B de la spécification 004 est terminée. T018 reste ouverte pour la relecture
+  visuelle et éditoriale humaine et les trois médias refusés restent bloquants.
+- Le brief Claude est préparé mais non exécuté, faute de modèle exact et de
+  plafond propres à cette mission ; aucun jeton externe n'a été consommé.
