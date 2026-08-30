@@ -2605,6 +2605,51 @@ function isAgentTranslationPayload(value: unknown): value is {
     && typeof translation.expiresAt === "string";
 }
 
+function isSupportReplyTemplate(value: unknown): value is SupportReplyTemplate {
+  if (!isRecord(value)) return false;
+  const allowedVariables = ["prenom", "numero", "objet"];
+  return typeof value.id === "string" && value.id.length > 0 && value.id.length <= 200
+    && typeof value.category === "string" && value.category.length > 0 && value.category.length <= 60
+    && typeof value.name === "string" && value.name.length > 0 && value.name.length <= 80
+    && typeof value.bodyText === "string" && value.bodyText.length > 0 && value.bodyText.length <= 5_000
+    && Array.isArray(value.allowedVariables)
+    && value.allowedVariables.length <= allowedVariables.length
+    && value.allowedVariables.every((item) => typeof item === "string" && allowedVariables.includes(item))
+    && new Set(value.allowedVariables).size === value.allowedVariables.length
+    && (value.builtIn === undefined || typeof value.builtIn === "boolean");
+}
+
+function isSupportTemplateListPayload(value: unknown): value is { templates: SupportReplyTemplate[] } {
+  return isRecord(value)
+    && Array.isArray(value.templates)
+    && value.templates.every(isSupportReplyTemplate);
+}
+
+function isSupportTemplateCreatePayload(value: unknown): value is { template: SupportReplyTemplate } {
+  return isRecord(value) && isSupportReplyTemplate(value.template);
+}
+
+function isAllowedSupportAttachmentPayload(value: unknown): value is { url: string; expiresIn: number } {
+  if (!isRecord(value) || typeof value.url !== "string" || !isPositiveInteger(value.expiresIn) || value.expiresIn > 300) {
+    return false;
+  }
+  const configuredUrl = import.meta.env.VITE_SUPABASE_URL ?? import.meta.env.NEXT_PUBLIC_SUPABASE_URL;
+  if (typeof configuredUrl !== "string" || !configuredUrl) return false;
+  try {
+    const target = new URL(value.url);
+    const configured = new URL(configuredUrl);
+    return target.protocol === "https:"
+      && configured.protocol === "https:"
+      && target.origin === configured.origin
+      && target.pathname.startsWith("/storage/v1/object/sign/")
+      && !target.username
+      && !target.password
+      && target.hash === "";
+  } catch {
+    return false;
+  }
+}
+
 function AgentView({ onBack }: { onBack: () => void }) {
   if (!SUPPORT_API_ENABLED) return <DemoAgentView onBack={onBack} />;
   return <ConnectedAgentView onBack={onBack} />;
@@ -2782,10 +2827,10 @@ function ConnectedAgentView({ onBack }: { onBack: () => void }) {
   useEffect(() => {
     apiFetch<unknown>("support/agent/templates")
       .then((payload) => {
-        if (!isRecord(payload) || !Array.isArray(payload.templates)) {
+        if (!isSupportTemplateListPayload(payload)) {
           throw new Error("Réponse invalide du service de modèles");
         }
-        setTemplates(payload.templates as SupportReplyTemplate[]);
+        setTemplates(payload.templates);
       })
       .catch(() => setTemplates(DEFAULT_SUPPORT_REPLY_TEMPLATES));
   }, []);
@@ -2944,7 +2989,7 @@ function ConnectedAgentView({ onBack }: { onBack: () => void }) {
     if (!request || !templateName.trim() || !reply.trim()) return;
     setSaving(true);
     try {
-      const payload = await apiFetch<{ template: SupportReplyTemplate }>("support/agent/templates", {
+      const payload = await apiFetch<unknown>("support/agent/templates", {
         method: "POST",
         body: JSON.stringify({
           name: templateName,
@@ -2952,6 +2997,9 @@ function ConnectedAgentView({ onBack }: { onBack: () => void }) {
           category: request.category,
         }),
       });
+      if (!isSupportTemplateCreatePayload(payload)) {
+        throw new Error("Réponse invalide du service de modèles");
+      }
       setTemplates((current) => [...current, payload.template]);
       setTemplateName("");
       setShowTemplateSave(false);
@@ -2966,8 +3014,14 @@ function ConnectedAgentView({ onBack }: { onBack: () => void }) {
   async function openAgentAttachment(id: string) {
     const popup = window.open("about:blank", "_blank");
     try {
-      const payload = await apiFetch<{ url: string }>(`support/agent/attachments/${id}`);
-      if (popup) popup.location.href = payload.url;
+      const payload = await apiFetch<unknown>(`support/agent/attachments/${id}`);
+      if (!isAllowedSupportAttachmentPayload(payload)) {
+        throw new Error("Lien temporaire de fichier invalide");
+      }
+      if (popup) {
+        popup.opener = null;
+        popup.location.href = payload.url;
+      }
       else window.open(payload.url, "_blank", "noopener,noreferrer");
     } catch (openError) {
       popup?.close();

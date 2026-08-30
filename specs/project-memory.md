@@ -2607,6 +2607,19 @@ taches et analyse de coherence avant une automatisation sensible.
 - Le brief Claude est préparé mais non exécuté, faute de modèle exact et de
   plafond propres à cette mission ; aucun jeton externe n'a été consommé.
 
+### Jalon du 30 août 2026 - réponses auxiliaires agent
+
+- Les modèles de réponse chargés ou créés sont validés et limités aux variables
+  connues avant d'atteindre l'interface.
+- Les pièces jointes s'ouvrent uniquement via une URL HTTPS signée de l'origine
+  Supabase configurée, avec expiration courte et sans accès retour à la console.
+- La recette Playwright liste incomplète et lien `javascript:` passe à 320 et
+  1440 px : repli intégré, navigation refusée, fenêtre fermée et zéro crash.
+- T027B16 est terminée. Les cinq domaines comptent 403 identifiants uniques :
+  287 lignes terminées et 116 ouvertes.
+- Le brief Claude est préparé mais non exécuté, faute de modèle exact et de
+  plafond propres à cette mission ; aucun jeton externe n'a été consommé.
+
 ## 8. Prochain ordre recommande
 
 1. Publier et tester le pré-triage ordinateur portable avec des données fictives.

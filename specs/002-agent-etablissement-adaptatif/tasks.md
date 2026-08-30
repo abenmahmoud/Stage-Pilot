@@ -352,6 +352,8 @@
   demande, accès, contacts, messages, pièces, rappels et revues avant affichage.
 - [x] T027B15 Faire passer la lecture initiale et toutes les relectures après une
   action agent par le même validateur de détail à l'exécution.
+- [x] T027B16 Valider les modèles reçus et créés, puis limiter l'ouverture des
+  pièces aux URL HTTPS signées du stockage configuré avec expiration bornée.
 - [ ] T027B2 Ajouter les relances internes et l'escalade après validation des
   délais propres à chaque service et des responsables à notifier.
 - [ ] T027C Créer les adhésions de service puis appliquer le périmètre dans les
