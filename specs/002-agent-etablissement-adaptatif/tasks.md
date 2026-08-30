@@ -482,6 +482,10 @@
   MFA, données fictives, scénario/attendu/observé bornés, refus des secrets,
   cinq cas positifs, trois ambigus et trois interdits avant publication. T046
   reste ouverte jusqu’à l’exécution effective de chaque version publiée.
+- [x] T046B Importer localement une matrice Markdown bornée dans le procès-verbal,
+  contrôler son format, ses minima, ses doublons et ses secrets, puis préparer
+  chaque scénario en état « à revoir » sans upload ni résultat automatique.
+  L’exécution humaine et T046 restent distinctes et ouvertes.
 - [ ] T047 Tester 200 créations simultanées, reprise worker et idempotence des notifications.
 - [x] T047A Exécuter sur la preview le test nettoyable de 200 transactions de
   création avec concurrence 20 : 200 dossiers, messages, sessions et travaux,

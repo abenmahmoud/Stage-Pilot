@@ -23,6 +23,10 @@ import {
   KNOWLEDGE_DOCUMENT_MAX_BYTES,
   knowledgeDocumentMime,
 } from "../../../shared/knowledge-document-input";
+import {
+  parseSkillScenarioPlan,
+  type SkillScenarioPlanItem,
+} from "../../../shared/skill-scenario-plan";
 
 type SourceStatus = "draft" | "published" | "expired" | "revoked";
 type VersionStatus = "draft" | "review" | "published" | "retired";
@@ -723,6 +727,35 @@ function SkillForm({ draft, setDraft, sources, busy, onSubmit, isVersion }: { dr
 }
 
 function EvaluationForm({ draft, setDraft, tests, busy, onSubmit, onClose }: { draft: ReturnType<typeof evaluationDefaults>; setDraft: React.Dispatch<React.SetStateAction<ReturnType<typeof evaluationDefaults>>>; tests: Evaluation[]; busy: boolean; onSubmit: (event: React.FormEvent) => void; onClose: () => void }) {
+  const [plan, setPlan] = useState<SkillScenarioPlanItem[]>([]);
+  const [planName, setPlanName] = useState("");
+  const [planError, setPlanError] = useState("");
+
+  async function loadPlan(event: React.ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+    if (!file) return;
+    try {
+      const nextPlan = parseSkillScenarioPlan(await file.text());
+      setPlan(nextPlan);
+      setPlanName(file.name);
+      setPlanError("");
+    } catch (error) {
+      setPlan([]);
+      setPlanName("");
+      setPlanError(error instanceof Error ? error.message : "Cette matrice de tests est invalide");
+    }
+  }
+
+  function prepare(item: SkillScenarioPlanItem) {
+    setDraft({
+      ...evaluationDefaults(item.testCaseKey),
+      kind: item.kind,
+      scenario: item.scenario,
+      expected: item.expected,
+    });
+  }
+
   function reuse(test: Evaluation) {
     setDraft({
       testCaseKey: test.testCaseKey,
@@ -735,7 +768,75 @@ function EvaluationForm({ draft, setDraft, tests, busy, onSubmit, onClose }: { d
       confirmed: false,
     });
   }
-  return <form onSubmit={onSubmit} className="grid gap-4 border-y border-emerald-200 bg-emerald-50/60 p-4 sm:grid-cols-2"><div className="sm:col-span-2"><h3 className="font-bold text-slate-950">Procès-verbal d’un test exécuté</h3><p className="text-sm text-slate-600">Utilisez uniquement des données fictives. Il faut 5 tests normaux, 3 ambigus et 3 interdits.</p></div>{tests.length > 0 ? <div className="divide-y border-y border-emerald-200 bg-white sm:col-span-2"><p className="px-3 py-2 text-xs font-bold uppercase text-slate-500">Tests déjà enregistrés</p>{tests.map((test) => <div key={test.testCaseKey} className="flex flex-wrap items-center gap-2 px-3 py-2 text-sm"><strong className="min-w-0 flex-1 break-words text-slate-900">{test.testCaseKey}</strong><span className="text-xs text-slate-500">{test.kind === "positive" ? "Normal" : test.kind === "ambiguous" ? "Ambigu" : "Interdit"} · {dateLabel(test.runAt)}</span><span className={test.result === "pass" ? "text-xs font-semibold text-emerald-700" : "text-xs font-semibold text-amber-700"}>{test.result === "pass" ? "Réussi" : test.result === "fail" ? "Échec" : "À revoir"}</span><button type="button" disabled={busy} onClick={() => reuse(test)} className="inline-flex h-10 items-center gap-1.5 rounded-md border bg-white px-3 text-xs font-semibold text-slate-700 disabled:opacity-50"><RefreshCw className="h-3.5 w-3.5" /> Rejouer</button></div>)}</div> : null}<Field label="Identifiant du scénario"><input className="field bg-white" required minLength={2} maxLength={100} value={draft.testCaseKey} onChange={(event) => setDraft((value) => ({ ...value, testCaseKey: event.target.value.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") }))} /></Field><Field label="Type de scénario"><select className="field bg-white" value={draft.kind} onChange={(event) => setDraft((value) => ({ ...value, kind: event.target.value as typeof value.kind }))}><option value="positive">Normal</option><option value="ambiguous">Ambigu</option><option value="forbidden">Interdit</option></select></Field><Field label="Mode d’exécution"><select className="field bg-white" value={draft.runner} onChange={(event) => setDraft((value) => ({ ...value, runner: event.target.value as typeof value.runner }))}><option value="manual">Vérification humaine</option><option value="deterministic">Test automatisé déterministe</option></select></Field><Field label="Résultat"><select className="field bg-white" value={draft.result} onChange={(event) => setDraft((value) => ({ ...value, result: event.target.value as typeof value.result }))}><option value="needs_review">À revoir</option><option value="pass">Réussi</option><option value="fail">Échec</option></select></Field><Field label="Scénario réellement essayé" wide><textarea className="field bg-white" required minLength={10} maxLength={1500} rows={3} value={draft.scenario} onChange={(event) => setDraft((value) => ({ ...value, scenario: event.target.value }))} /></Field><Field label="Comportement attendu"><textarea className="field bg-white" required minLength={10} maxLength={1500} rows={3} value={draft.expected} onChange={(event) => setDraft((value) => ({ ...value, expected: event.target.value }))} /></Field><Field label="Comportement observé"><textarea className="field bg-white" required minLength={10} maxLength={2500} rows={3} value={draft.observed} onChange={(event) => setDraft((value) => ({ ...value, observed: event.target.value }))} /></Field><label className="flex items-start gap-2 border-l-4 border-amber-500 bg-amber-50 p-3 text-sm text-amber-950 sm:col-span-2"><input className="mt-1" type="checkbox" checked={draft.confirmed} onChange={(event) => setDraft((value) => ({ ...value, confirmed: event.target.checked }))} /><span>Je confirme avoir exécuté ce scénario sur la version en validation, avec des données fictives et sans mot de passe ni code secret.</span></label><div className="flex flex-wrap gap-2 sm:col-span-2"><button type="submit" disabled={busy || !draft.confirmed} className="inline-flex items-center gap-2 rounded-md bg-emerald-700 px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-50"><ClipboardCheck className="h-4 w-4" /> Enregistrer ce test</button><button type="button" disabled={busy} onClick={onClose} className="rounded-md border bg-white px-4 py-2.5 text-sm font-semibold text-slate-700">Fermer</button></div></form>;
+  return (
+    <form onSubmit={onSubmit} className="grid gap-4 border-y border-emerald-200 bg-emerald-50/60 p-4 sm:grid-cols-2">
+      <div className="sm:col-span-2">
+        <h3 className="font-bold text-slate-950">Procès-verbal d’un test exécuté</h3>
+        <p className="text-sm text-slate-600">Utilisez uniquement des données fictives. Il faut 5 tests normaux, 3 ambigus et 3 interdits.</p>
+      </div>
+
+      <div className="border-y border-emerald-200 bg-white p-3 sm:col-span-2">
+        <div className="flex flex-wrap items-center gap-3">
+          <div className="min-w-0 flex-1">
+            <p className="text-sm font-bold text-slate-900">Matrice de tests locale</p>
+            <p className="text-xs text-slate-500">Le fichier Markdown est lu uniquement dans ce navigateur. Aucun résultat n’est validé automatiquement.</p>
+          </div>
+          <label className="inline-flex h-10 cursor-pointer items-center gap-2 rounded-md border border-emerald-300 bg-white px-3 text-sm font-semibold text-emerald-800">
+            <FileUp className="h-4 w-4" />
+            Importer
+            <input className="sr-only" type="file" accept=".md,text/markdown,text/plain" onChange={(event) => void loadPlan(event)} />
+          </label>
+        </div>
+        {planError ? <p role="alert" className="mt-3 border-l-4 border-red-500 bg-red-50 p-3 text-sm text-red-800">{planError}</p> : null}
+        {plan.length > 0 ? (
+          <div className="mt-3 divide-y border-y border-slate-200">
+            <p className="px-3 py-2 text-xs font-bold uppercase text-slate-500">{planName} · {plan.length} scénarios conformes</p>
+            {plan.map((item) => {
+              const recorded = tests.some((test) => test.testCaseKey === item.testCaseKey);
+              return (
+                <div key={item.testCaseKey} className="flex flex-wrap items-center gap-2 px-3 py-2 text-sm">
+                  <div className="min-w-0 flex-1">
+                    <strong className="block break-words text-slate-900">{item.testCaseKey}</strong>
+                    <span className="block break-words text-xs text-slate-500">{item.scenario}</span>
+                  </div>
+                  <span className={recorded ? "text-xs font-semibold text-emerald-700" : "text-xs font-semibold text-slate-500"}>
+                    {recorded ? "Consigné" : "À exécuter"}
+                  </span>
+                  <button type="button" disabled={busy} onClick={() => prepare(item)} className="inline-flex h-10 items-center gap-1.5 rounded-md border bg-white px-3 text-xs font-semibold text-slate-700 disabled:opacity-50">
+                    <ClipboardCheck className="h-3.5 w-3.5" /> Préparer
+                  </button>
+                </div>
+              );
+            })}
+          </div>
+        ) : null}
+      </div>
+
+      {tests.length > 0 ? (
+        <div className="divide-y border-y border-emerald-200 bg-white sm:col-span-2">
+          <p className="px-3 py-2 text-xs font-bold uppercase text-slate-500">Tests déjà enregistrés</p>
+          {tests.map((test) => (
+            <div key={test.testCaseKey} className="flex flex-wrap items-center gap-2 px-3 py-2 text-sm">
+              <strong className="min-w-0 flex-1 break-words text-slate-900">{test.testCaseKey}</strong>
+              <span className="text-xs text-slate-500">{test.kind === "positive" ? "Normal" : test.kind === "ambiguous" ? "Ambigu" : "Interdit"} · {dateLabel(test.runAt)}</span>
+              <span className={test.result === "pass" ? "text-xs font-semibold text-emerald-700" : "text-xs font-semibold text-amber-700"}>{test.result === "pass" ? "Réussi" : test.result === "fail" ? "Échec" : "À revoir"}</span>
+              <button type="button" disabled={busy} onClick={() => reuse(test)} className="inline-flex h-10 items-center gap-1.5 rounded-md border bg-white px-3 text-xs font-semibold text-slate-700 disabled:opacity-50"><RefreshCw className="h-3.5 w-3.5" /> Rejouer</button>
+            </div>
+          ))}
+        </div>
+      ) : null}
+
+      <Field label="Identifiant du scénario"><input className="field bg-white" required minLength={2} maxLength={100} value={draft.testCaseKey} onChange={(event) => setDraft((value) => ({ ...value, testCaseKey: event.target.value.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") }))} /></Field>
+      <Field label="Type de scénario"><select className="field bg-white" value={draft.kind} onChange={(event) => setDraft((value) => ({ ...value, kind: event.target.value as typeof value.kind }))}><option value="positive">Normal</option><option value="ambiguous">Ambigu</option><option value="forbidden">Interdit</option></select></Field>
+      <Field label="Mode d’exécution"><select className="field bg-white" value={draft.runner} onChange={(event) => setDraft((value) => ({ ...value, runner: event.target.value as typeof value.runner }))}><option value="manual">Vérification humaine</option><option value="deterministic">Test automatisé déterministe</option></select></Field>
+      <Field label="Résultat"><select className="field bg-white" value={draft.result} onChange={(event) => setDraft((value) => ({ ...value, result: event.target.value as typeof value.result }))}><option value="needs_review">À revoir</option><option value="pass">Réussi</option><option value="fail">Échec</option></select></Field>
+      <Field label="Scénario réellement essayé" wide><textarea className="field bg-white" required minLength={10} maxLength={1500} rows={3} value={draft.scenario} onChange={(event) => setDraft((value) => ({ ...value, scenario: event.target.value }))} /></Field>
+      <Field label="Comportement attendu"><textarea className="field bg-white" required minLength={10} maxLength={1500} rows={3} value={draft.expected} onChange={(event) => setDraft((value) => ({ ...value, expected: event.target.value }))} /></Field>
+      <Field label="Comportement observé"><textarea className="field bg-white" required minLength={10} maxLength={2500} rows={3} value={draft.observed} onChange={(event) => setDraft((value) => ({ ...value, observed: event.target.value }))} /></Field>
+      <label className="flex items-start gap-2 border-l-4 border-amber-500 bg-amber-50 p-3 text-sm text-amber-950 sm:col-span-2"><input className="mt-1" type="checkbox" checked={draft.confirmed} onChange={(event) => setDraft((value) => ({ ...value, confirmed: event.target.checked }))} /><span>Je confirme avoir exécuté ce scénario sur la version en validation, avec des données fictives et sans mot de passe ni code secret.</span></label>
+      <div className="flex flex-wrap gap-2 sm:col-span-2"><button type="submit" disabled={busy || !draft.confirmed} className="inline-flex items-center gap-2 rounded-md bg-emerald-700 px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-50"><ClipboardCheck className="h-4 w-4" /> Enregistrer ce test</button><button type="button" disabled={busy} onClick={onClose} className="rounded-md border bg-white px-4 py-2.5 text-sm font-semibold text-slate-700">Fermer</button></div>
+    </form>
+  );
 }
 
 function evaluationDefaults(testCaseKey = "") { return { testCaseKey, kind: "positive" as "positive" | "ambiguous" | "forbidden", result: "needs_review" as "pass" | "fail" | "needs_review", runner: "manual" as "manual" | "deterministic", scenario: "", expected: "", observed: "", confirmed: false }; }

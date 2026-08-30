@@ -2241,6 +2241,24 @@ taches et analyse de coherence avant une automatisation sensible.
   terminées et 119 ouvertes. Le brief Claude est préparé mais non exécuté, faute
   de modèle exact et de plafond propres à cette mission.
 
+### Jalon du 30 août 2026 - matrice d’évaluation importée localement
+
+- L’espace direction peut ouvrir un document Markdown de compétence et préparer
+  successivement ses onze scénarios sans recopier leur texte.
+- La lecture reste dans le navigateur : aucun fichier, scénario ou attendu n’est
+  transmis pendant l’import. Le parseur borne la taille et le nombre de cas,
+  exige cinq positifs, trois ambigus et trois interdits, puis refuse les doublons,
+  mauvais préfixes, champs hors limites et secrets.
+- Un cas importé reçoit toujours le statut « à revoir », une observation vide et
+  une confirmation décochée. Il ne devient une preuve qu’après une exécution
+  humaine et l’enregistrement MFA déjà protégé côté serveur.
+- T046B est terminée ; T046 reste ouverte jusqu’à l’exécution effective des jeux
+  de tests. Les cinq domaines comptent 379 identifiants uniques : 260 lignes
+  terminées et 119 ouvertes.
+- Le brief Claude est préparé mais non exécuté, faute de modèle exact et de
+  plafond de consommation propres à cette mission ; aucun jeton externe n’a été
+  consommé.
+
 ## 8. Prochain ordre recommande
 
 1. Publier et tester le pré-triage ordinateur portable avec des données fictives.

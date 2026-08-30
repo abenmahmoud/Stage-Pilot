@@ -99,6 +99,7 @@
     "test:skill-registry": "node --import ./scripts/ts-test-resolver.mjs --experimental-strip-types scripts/test-skill-registry-policy.mjs",
     "test:skill-evaluations": "node --import ./scripts/ts-test-resolver.mjs --experimental-strip-types scripts/test-knowledge-registry-security.mjs",
     "test:skill-scenarios": "node scripts/test-skill-scenario-coverage.mjs",
+    "test:skill-scenario-plan": "node --import ./scripts/ts-test-resolver.mjs --experimental-strip-types scripts/test-skill-scenario-plan.mjs",
     "test:spec-integrity": "node scripts/test-spec-task-integrity.mjs",
     "test:migration-integrity": "node scripts/test-migration-version-integrity.mjs",
     "test:knowledge-expiry": "node --experimental-strip-types scripts/test-knowledge-expiry-policy.mjs",

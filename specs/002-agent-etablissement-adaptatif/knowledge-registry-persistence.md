@@ -154,3 +154,19 @@ sans faire transiter le fichier par une fonction Vercel.
 - exécution contrôlée des outils pour les données personnelles ou sensibles,
   avec MFA et journal d'accès ;
 - aucun passage en production avant ces validations et la décision DPO.
+
+## Import local de la matrice d’évaluation
+
+- un fichier Markdown de compétence peut être lu localement par l’écran de
+  procès-verbal ; le fichier et la matrice complète ne sont pas envoyés au
+  serveur ;
+- le parseur accepte au plus 100 000 caractères et 100 scénarios, impose les
+  sections cinq cas positifs, trois ambigus et trois interdits, refuse les
+  identifiants en double, les mauvais préfixes, les champs hors limites et les
+  secrets ;
+- choisir un scénario préremplit seulement l’identifiant, le type, le scénario
+  et le comportement attendu. Le résultat reste « à revoir », l’observation est
+  vide et la confirmation d’exécution reste décochée ;
+- seul l’enregistrement volontaire du procès-verbal utilise ensuite la route
+  MFA existante. L’import ne constitue donc ni une exécution ni une preuve de
+  réussite.
