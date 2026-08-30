@@ -98,6 +98,14 @@
   future. T019 reste ouvert jusqu'à la route, la persistance idempotente et la
   recette de rejeu sur la preview.
 - [ ] T020 Construire la boîte d'échec, la reprise et l'annulation des travaux.
+- [x] T020A Définir le contrat de panne et d'annulation avant le worker. Les
+  erreurs sont des codes fermés sans texte fournisseur ; les pannes temporaires
+  repartent après 1, 5, 15, 60 puis 360 minutes, tandis qu'une erreur permanente
+  ou un plafond atteint ouvre la boîte d'échec. L'annulation directe est limitée
+  aux travaux `pending` ou `retry`, un travail `running` attend un point de
+  contrôle et un email envoyé ou livré est explicitement non rappelable. T020
+  reste ouvert jusqu'au worker transactionnel, à la reprise manuelle et à
+  l'interface de boîte d'échec sur la preview.
 - [x] T021A Ajouter un aperçu éditorial local sûr avant la relecture : rendu
   Markdown borné, images distantes neutralisées, liens isolés et absence de
   destinataire, publication ou envoi.

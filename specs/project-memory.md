@@ -1584,6 +1584,20 @@ taches et analyse de coherence avant une automatisation sensible.
 - Le brief Claude est préparé mais non exécuté, faute de modèle exact et de
   plafond de consommation propres à cette mission.
 
+### Jalon du 30 août 2026 - panne et annulation des travaux de communication
+
+- Une politique locale distingue codes temporaires et permanents sans accepter
+  de message fournisseur. Les reprises suivent 1, 5, 15, 60 puis 360 minutes et
+  une erreur définitive ou un plafond atteint ouvre la future boîte d'échec.
+- Seuls les travaux en attente ou en reprise sont annulables directement. Un
+  travail en cours attend un point de contrôle ; un email envoyé ou livré est
+  explicitement non rappelable.
+- Cinq tests dédiés et la compilation complète passent. T020A est terminé ;
+  T020 reste ouvert jusqu'au worker transactionnel, à la reprise manuelle et à
+  l'interface de boîte d'échec.
+- Le brief Claude est préparé mais non exécuté, faute de modèle exact et de
+  plafond de consommation propres à cette mission.
+
 ### Jalon du 30 août 2026 - contrat de délivrabilité Brevo
 
 - Un vérificateur Bearer commun protège désormais les futurs webhooks entrants

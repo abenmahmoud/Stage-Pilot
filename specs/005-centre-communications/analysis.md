@@ -97,3 +97,13 @@ de message sortant sert au rapprochement, tandis qu'un domaine HMAC distinct
 produit la clé de rejeu à partir du message, de l'état et de l'horodatage UTC en
 millisecondes. Aucune adresse, objet, raison, IP ou étiquette fournisseur ne
 sort du parseur. La route et l'écriture transactionnelle restent à construire.
+
+T020A rend explicites les décisions du futur worker sans modifier la base. Un
+travail ne peut déclarer un échec que lorsqu'il est `running`. Les erreurs
+temporaires utilisent une reprise déterministe bornée et les codes permanents
+ou tentatives épuisées passent en `dead`, visible dans la boîte d'échec. Aucun
+texte fournisseur n'est accepté. Seuls `pending` et `retry` peuvent être
+annulés immédiatement ; un travail en cours attend un point de contrôle. Une
+livraison déjà envoyée ou livrée reste non rappelable même si un travail local
+est ensuite annulé. Le worker, le verrou SQL et la reprise humaine restent à
+implémenter.
