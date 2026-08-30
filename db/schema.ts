@@ -1499,3 +1499,41 @@ export const agentActionAudit = pgTable(
     index("agent_action_audit_actor_user_fk_idx").on(table.actorUserId),
   ]
 );
+
+/**
+ * Mesures techniques agrégables de l'agent. Aucun contenu utilisateur n'est stocké.
+ */
+export const agentRuntimeMetrics = pgTable(
+  "agent_runtime_metrics",
+  {
+    id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+    institutionId: uuid("institution_id")
+      .notNull()
+      .references(() => institutions.id, { onDelete: "restrict" }),
+    operation: text("operation").notNull(),
+    outcome: text("outcome").notNull(),
+    model: text("model"),
+    aiAttempted: boolean("ai_attempted").notNull().default(false),
+    usedAi: boolean("used_ai").notNull().default(false),
+    latencyMs: integer("latency_ms").notNull(),
+    inputTokens: integer("input_tokens"),
+    outputTokens: integer("output_tokens"),
+    totalTokens: integer("total_tokens"),
+    estimatedCostMicros: bigint("estimated_cost_micros", { mode: "number" }),
+    pricingConfigured: boolean("pricing_configured").notNull().default(false),
+    sourceCount: integer("source_count").notNull().default(0),
+    turnCount: integer("turn_count").notNull().default(0),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    index("agent_runtime_metrics_institution_created_idx").on(
+      table.institutionId,
+      table.createdAt
+    ),
+    index("agent_runtime_metrics_institution_outcome_created_idx").on(
+      table.institutionId,
+      table.outcome,
+      table.createdAt
+    ),
+  ]
+);

@@ -377,6 +377,15 @@ l'autorisation de quota définie par le propriétaire.
   puis l'expiration automatique et le refus de l'action associée. Une approbation
   accordée peut expirer seulement si elle n'a pas été consommée. Chaque recette
   se termine par `ROLLBACK` avec zéro ligne restante. Aucun connecteur n'est activé.
+- Lot N5ZB : observabilité minimale de l'assistant. **Appliqué uniquement à la
+  preview et testé avec des mesures fictives annulées** : chaque passage produit
+  au plus une mesure technique sans conversation ni identité. La direction voit
+  sur 7 ou 30 jours le volume, les réponses IA acceptées, les replis, la latence,
+  les jetons, les résultats techniques et le coût estimé si les tarifs sont
+  explicitement configurés. L'API exige MFA, adhésion persistée et rôle direction
+  ou superadministration. La table est append-only ; `anon` et `authenticated`
+  ne peuvent pas la lire, et le rôle serveur ne peut ni la modifier ni la
+  supprimer. T030 reste ouverte pour les transferts et corrections humaines.
 - Lot N6 : tests de non-régression, build, contrôle mobile et rapport d'écarts.
   **Partiellement validé en preview** : 200 transactions concurrentes sans perte
   ni reste après nettoyage, 135 contrôles de sécurité, build réussi, PWA active,

@@ -12,6 +12,13 @@ import {
   neutralizeSupportPromptMarkers,
   pseudonymizeSupportText,
 } from "../../shared/support-pseudonymizer.js";
+import {
+  estimateAgentCostMicros,
+  parseOpenAiTokenUsage,
+  type AgentRuntimeMetric,
+  type AgentRuntimeOutcome,
+  type AgentTokenUsage,
+} from "../../shared/agent-runtime-metrics.js";
 
 export type SupportAgentMessage = {
   role: "assistant" | "requester";
@@ -372,12 +379,61 @@ export async function analyzeSupportConversation(input: {
     model: string;
     turnCount: number;
   }) => Promise<void>;
+  runtimeMetricsRecorder?: (metric: AgentRuntimeMetric) => Promise<void>;
 }): Promise<SupportAgentResult> {
+  const startedAt = Date.now();
+  const model = process.env.OPENAI_SUPPORT_MODEL || "gpt-5.6-luna";
   const policy = evaluateConversationPolicy(input.messages);
   const fallback = localFallback(input.messages, input.attachments, policy);
-  if (policy.deterministicReply) return deterministicResult(policy, fallback);
+  let metricRecorded = false;
+  const emptyUsage: AgentTokenUsage = {
+    inputTokens: null,
+    outputTokens: null,
+    totalTokens: null,
+  };
+  const recordRuntime = async (
+    outcome: AgentRuntimeOutcome,
+    aiAttempted: boolean,
+    usedAi: boolean,
+    usage: AgentTokenUsage = emptyUsage
+  ): Promise<void> => {
+    if (!input.runtimeMetricsRecorder || metricRecorded) return;
+    metricRecorded = true;
+    const cost = estimateAgentCostMicros(usage, {
+      inputEurPerMillion: process.env.OPENAI_SUPPORT_INPUT_EUR_PER_MILLION_TOKENS,
+      outputEurPerMillion: process.env.OPENAI_SUPPORT_OUTPUT_EUR_PER_MILLION_TOKENS,
+    });
+    try {
+      await input.runtimeMetricsRecorder({
+        operation: "support_assistant",
+        outcome,
+        model: aiAttempted ? model : null,
+        aiAttempted,
+        usedAi,
+        latencyMs: Date.now() - startedAt,
+        ...usage,
+        ...cost,
+        sourceCount: Math.min(publicKnowledgeContext.sources.length, 20),
+        turnCount: policy.turnCount,
+      });
+    } catch {
+      // Metrics must never alter the answer returned to the user.
+    }
+  };
+
+  let publicKnowledgeContext: RuntimeKnowledgeContext = {
+    instructions: "",
+    versions: [],
+    sources: [],
+  };
+
+  if (policy.deterministicReply) {
+    await recordRuntime("deterministic", false, false);
+    return deterministicResult(policy, fallback);
+  }
   const laptopIntake = evaluateLaptopIntake(input.messages, input.attachments.length);
   if (laptopIntake) {
+    await recordRuntime("pretriage", false, false);
     return {
       ...fallback,
       reply: laptopIntake.reply,
@@ -392,13 +448,11 @@ export async function analyzeSupportConversation(input: {
     };
   }
   const apiKey = process.env.OPENAI_API_KEY;
-  if (!apiKey) return fallback;
+  if (!apiKey) {
+    await recordRuntime("model_unavailable", false, false);
+    return fallback;
+  }
 
-  let publicKnowledgeContext: RuntimeKnowledgeContext = {
-    instructions: "",
-    versions: [],
-    sources: [],
-  };
   let productionUsageRecorder: typeof input.knowledgeUsageRecorder;
   try {
     const latestRequesterMessage = [...input.messages]
@@ -435,7 +489,7 @@ export async function analyzeSupportConversation(input: {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: process.env.OPENAI_SUPPORT_MODEL || "gpt-5.6-luna",
+        model,
         store: false,
         reasoning: { effort: "low" },
         max_output_tokens: 450,
@@ -465,18 +519,43 @@ export async function analyzeSupportConversation(input: {
         },
       }),
     });
-    if (!response.ok) return fallback;
+    if (!response.ok) {
+      await recordRuntime("provider_error", true, false);
+      return fallback;
+    }
     const payload = (await response.json()) as {
       output?: Array<{ type?: string; content?: Array<{ type?: string; text?: string }> }>;
+      usage?: {
+        input_tokens?: number;
+        output_tokens?: number;
+        total_tokens?: number;
+      };
     };
+    const tokenUsage = parseOpenAiTokenUsage(payload);
     const outputText = payload.output
       ?.flatMap((item) => item.content ?? [])
       .find((content) => content.type === "output_text")?.text;
-    if (!outputText) return fallback;
-    const parsedResult = parseResult(outputText);
-    if (claimsUnconfirmedActionSuccess(parsedResult.reply)) return fallback;
-    if (parsedResult.confidence === "low") return fallback;
+    if (!outputText) {
+      await recordRuntime("invalid_output", true, false, tokenUsage);
+      return fallback;
+    }
+    let parsedResult: SupportAgentModelResult;
+    try {
+      parsedResult = parseResult(outputText);
+    } catch {
+      await recordRuntime("invalid_output", true, false, tokenUsage);
+      return fallback;
+    }
+    if (claimsUnconfirmedActionSuccess(parsedResult.reply)) {
+      await recordRuntime("policy_fallback", true, false, tokenUsage);
+      return fallback;
+    }
+    if (parsedResult.confidence === "low") {
+      await recordRuntime("low_confidence", true, false, tokenUsage);
+      return fallback;
+    }
     if (fallback.confidence === "high" && parsedResult.category !== fallback.category) {
+      await recordRuntime("category_conflict", true, false, tokenUsage);
       return fallback;
     }
     const result = withPolicy(parsedResult, policy, fallback.readyToCreate);
@@ -490,7 +569,7 @@ export async function analyzeSupportConversation(input: {
             sourceId,
           })),
           sessionHash: input.safetyIdentifier,
-          model: process.env.OPENAI_SUPPORT_MODEL || "gpt-5.6-luna",
+          model,
           turnCount: policy.turnCount,
         });
       } catch {
@@ -507,11 +586,17 @@ export async function analyzeSupportConversation(input: {
           : []
       )
     ).values()];
+    await recordRuntime("model_success", true, true, tokenUsage);
     return {
       ...result,
       sourceReferences,
     };
-  } catch {
+  } catch (error) {
+    await recordRuntime(
+      error instanceof Error && error.name === "AbortError" ? "timeout" : "provider_error",
+      true,
+      false
+    );
     return fallback;
   } finally {
     clearTimeout(timeout);

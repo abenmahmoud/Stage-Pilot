@@ -339,6 +339,32 @@ un cours est calculée à partir du créneau autorisé et d'un changement offici
 | `evidence` | jsonb | Sortie masquée et raisons |
 | `run_at` | timestamptz | Date du test |
 
+### `agent_runtime_metrics`
+
+| Champ | Type | Règle |
+|---|---|---|
+| `id` | uuid | Clé primaire opaque |
+| `institution_id` | uuid | Cloison obligatoire |
+| `operation` | enum | `support_assistant` en V1 |
+| `outcome` | enum | Résultat technique fermé, jamais une erreur brute |
+| `model` | text nullable | Modèle appelé, absent pour une réponse locale |
+| `ai_attempted` | boolean | Appel fournisseur tenté |
+| `used_ai` | boolean | Sortie IA acceptée après les contrôles locaux |
+| `latency_ms` | integer | Durée bornée à 120 secondes |
+| `input_tokens` | integer nullable | Usage fournisseur borné |
+| `output_tokens` | integer nullable | Usage fournisseur borné |
+| `total_tokens` | integer nullable | Usage fournisseur borné |
+| `estimated_cost_micros` | bigint nullable | Estimation en micro-euros, jamais une facture |
+| `pricing_configured` | boolean | Vrai seulement si les deux tarifs explicites existent |
+| `source_count` | integer | Nombre borné de sources, sans leur identité |
+| `turn_count` | integer | Nombre borné de tours, sans le texte |
+| `created_at` | timestamptz | Heure serveur immuable |
+
+Cette table ne contient ni conversation, session, compte, nom, contact, pièce
+jointe, catégorie métier ou message d'erreur. Elle est append-only, sans accès
+`anon` ou `authenticated`; le rôle serveur possède uniquement `SELECT/INSERT`.
+La conservation finale reste soumise à la validation direction/DPO.
+
 ## Entités `001` réutilisées
 
 - `support_requests` : dossier, identité déclarée, catégorie, service, priorité et statut.

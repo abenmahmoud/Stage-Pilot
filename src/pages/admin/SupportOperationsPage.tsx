@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import {
+  Activity,
   AlertTriangle,
+  BrainCircuit,
   CheckCircle2,
   Clock3,
   LoaderCircle,
@@ -37,12 +39,60 @@ type OperationsPayload = {
   failures: FailedJob[];
 };
 
+type AgentMetricsPayload = {
+  generatedAt: string;
+  days: 7 | 30;
+  summary: {
+    total: number;
+    aiAttempts: number;
+    aiSuccesses: number;
+    localOrFallback: number;
+    averageLatencyMs: number;
+    p95LatencyMs: number;
+    inputTokens: number;
+    outputTokens: number;
+    totalTokens: number;
+    estimatedCostMicros: number;
+    pricedRuns: number;
+    pricingConfigured: boolean;
+    pricingComplete: boolean;
+  };
+  outcomes: Array<{ outcome: string; count: number }>;
+  daily: Array<{ date: string; total: number; aiSuccesses: number; averageLatencyMs: number }>;
+};
+
 const JOB_LABELS: Record<string, string> = {
   notify_requester_request_created: "Confirmation au demandeur",
   notify_agent_request_created: "Alerte de nouvelle demande",
   notify_agent_message_received: "Alerte de nouvelle réponse",
   send_requester_reply: "Réponse de l’agent au demandeur",
 };
+
+const OUTCOME_LABELS: Record<string, string> = {
+  deterministic: "Réponse de sécurité",
+  pretriage: "Prédiagnostic ordinateur",
+  model_unavailable: "IA non configurée",
+  provider_error: "Service IA indisponible",
+  invalid_output: "Réponse IA invalide",
+  policy_fallback: "Réponse bloquée par les règles",
+  low_confidence: "Confiance insuffisante",
+  category_conflict: "Classement contradictoire",
+  model_success: "Réponse IA validée",
+  timeout: "Délai IA dépassé",
+};
+
+function compactNumber(value: number): string {
+  return new Intl.NumberFormat("fr-FR", { notation: "compact", maximumFractionDigits: 1 }).format(value);
+}
+
+function euroFromMicros(value: number): string {
+  return new Intl.NumberFormat("fr-FR", {
+    style: "currency",
+    currency: "EUR",
+    minimumFractionDigits: value >= 1_000_000 ? 2 : 4,
+    maximumFractionDigits: value >= 1_000_000 ? 2 : 4,
+  }).format(value / 1_000_000);
+}
 
 function dateLabel(value: string | null): string {
   if (!value) return "Aucun envoi récent";
@@ -54,16 +104,31 @@ function dateLabel(value: string | null): string {
 
 export default function SupportOperationsPage() {
   const [payload, setPayload] = useState<OperationsPayload | null>(null);
+  const [agentMetrics, setAgentMetrics] = useState<AgentMetricsPayload | null>(null);
+  const [metricsDays, setMetricsDays] = useState<7 | 30>(7);
   const [loading, setLoading] = useState(true);
   const [retryingId, setRetryingId] = useState<string | null>(null);
   const [error, setError] = useState("");
+  const [metricsError, setMetricsError] = useState("");
   const [notice, setNotice] = useState("");
 
   async function load() {
     setLoading(true);
     setError("");
+    setMetricsError("");
     try {
-      setPayload(await apiFetch<OperationsPayload>("support/agent/operations"));
+      const [operations, metrics] = await Promise.allSettled([
+        apiFetch<OperationsPayload>("support/agent/operations"),
+        apiFetch<AgentMetricsPayload>(`support/agent/metrics?days=${metricsDays}`),
+      ]);
+      if (operations.status === "rejected") throw operations.reason;
+      setPayload(operations.value);
+      if (metrics.status === "fulfilled") {
+        setAgentMetrics(metrics.value);
+      } else {
+        setAgentMetrics(null);
+        setMetricsError("Les mesures de l’assistant sont momentanément indisponibles.");
+      }
     } catch (reason) {
       setError(reason instanceof Error ? reason.message : "État des demandes indisponible.");
     } finally {
@@ -73,7 +138,7 @@ export default function SupportOperationsPage() {
 
   useEffect(() => {
     void load();
-  }, []);
+  }, [metricsDays]);
 
   async function retry(job: FailedJob) {
     setRetryingId(job.id);
@@ -126,6 +191,45 @@ export default function SupportOperationsPage() {
             <div className="border-t-4 border-amber-500 bg-white p-4 shadow-sm"><Clock3 className="h-5 w-5 text-amber-700" /><strong className="mt-3 block text-2xl text-slate-950">{summary.deliveryAlerts24h + summary.webhookAlerts24h}</strong><span className="text-sm text-slate-500">Alertes email</span></div>
             <div className="border-t-4 border-blue-600 bg-white p-4 shadow-sm"><Clock3 className="h-5 w-5 text-blue-700" /><strong className="mt-3 block text-2xl text-slate-950">{summary.attachmentsWaiting}</strong><span className="text-sm text-slate-500">Fichiers en attente</span></div>
           </section>
+
+          {agentMetrics ? (
+            <section className="space-y-4 border-y border-slate-200 py-5" aria-labelledby="agent-runtime-title">
+              <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-end">
+                <div>
+                  <p className="flex items-center gap-2 text-sm font-semibold text-emerald-700"><BrainCircuit className="h-4 w-4" /> Assistant du lycée</p>
+                  <h2 id="agent-runtime-title" className="mt-1 text-lg font-bold text-slate-950">Mesures de fonctionnement</h2>
+                  <p className="mt-1 text-sm text-slate-500">Statistiques techniques sans conversation, identité ni coordonnées.</p>
+                </div>
+                <div className="inline-flex w-fit rounded-md border border-slate-200 bg-white p-1" aria-label="Période des mesures">
+                  {([7, 30] as const).map((days) => <button key={days} type="button" onClick={() => setMetricsDays(days)} aria-pressed={metricsDays === days} className={`min-w-20 rounded px-3 py-1.5 text-sm font-semibold ${metricsDays === days ? "bg-slate-950 text-white" : "text-slate-600 hover:bg-slate-100"}`}>{days} jours</button>)}
+                </div>
+              </div>
+
+              <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
+                <div className="border-l-4 border-emerald-600 bg-white p-4 shadow-sm"><strong className="block text-2xl text-slate-950">{agentMetrics.summary.total}</strong><span className="text-sm text-slate-500">Conversations mesurées</span></div>
+                <div className="border-l-4 border-blue-600 bg-white p-4 shadow-sm"><strong className="block text-2xl text-slate-950">{agentMetrics.summary.aiSuccesses}</strong><span className="text-sm text-slate-500">Réponses IA validées</span></div>
+                <div className="border-l-4 border-amber-500 bg-white p-4 shadow-sm"><strong className="block text-2xl text-slate-950">{agentMetrics.summary.localOrFallback}</strong><span className="text-sm text-slate-500">Réponses locales ou repli</span></div>
+                <div className="border-l-4 border-violet-600 bg-white p-4 shadow-sm"><strong className="block text-2xl text-slate-950">{agentMetrics.summary.p95LatencyMs} ms</strong><span className="text-sm text-slate-500">Latence au 95e centile</span></div>
+                <div className="border-l-4 border-slate-700 bg-white p-4 shadow-sm"><strong className="block text-2xl text-slate-950">{agentMetrics.summary.pricingConfigured ? euroFromMicros(agentMetrics.summary.estimatedCostMicros) : "Non configuré"}</strong><span className="text-sm text-slate-500">Coût estimé{agentMetrics.summary.pricingConfigured && !agentMetrics.summary.pricingComplete ? " partiel" : ""}, hors facturation</span></div>
+              </div>
+
+              <div className="grid gap-5 lg:grid-cols-[minmax(0,1.3fr)_minmax(280px,0.7fr)]">
+                <div className="min-w-0 overflow-x-auto border border-slate-200 bg-white">
+                  <table className="w-full min-w-[520px] text-left text-sm">
+                    <thead className="bg-slate-50 text-slate-600"><tr><th className="px-4 py-3 font-semibold">Jour</th><th className="px-4 py-3 font-semibold">Utilisations</th><th className="px-4 py-3 font-semibold">IA validée</th><th className="px-4 py-3 font-semibold">Latence moyenne</th></tr></thead>
+                    <tbody className="divide-y divide-slate-100">{agentMetrics.daily.map((day) => <tr key={day.date}><td className="px-4 py-3 font-medium text-slate-900">{new Intl.DateTimeFormat("fr-FR", { day: "2-digit", month: "short" }).format(new Date(`${day.date}T12:00:00`))}</td><td className="px-4 py-3">{day.total}</td><td className="px-4 py-3">{day.aiSuccesses}</td><td className="px-4 py-3">{day.averageLatencyMs} ms</td></tr>)}</tbody>
+                  </table>
+                  {agentMetrics.daily.length === 0 ? <p className="px-4 py-10 text-center text-sm text-slate-500">Les mesures apparaîtront après les prochains essais de l’assistant.</p> : null}
+                </div>
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2"><Activity className="h-4 w-4 text-slate-500" /><h3 className="font-bold text-slate-950">Résultats techniques</h3></div>
+                  <div className="divide-y border-y border-slate-200 bg-white">{agentMetrics.outcomes.map((item) => <div key={item.outcome} className="flex items-center justify-between gap-3 px-3 py-2.5"><span className="text-sm text-slate-600">{OUTCOME_LABELS[item.outcome] ?? "Autre résultat"}</span><strong className="text-sm text-slate-950">{item.count}</strong></div>)}{agentMetrics.outcomes.length === 0 ? <p className="px-3 py-8 text-center text-sm text-slate-500">Aucune mesure</p> : null}</div>
+                  <p className="text-xs text-slate-500">{compactNumber(agentMetrics.summary.totalTokens)} jetons mesurés. Le coût reste masqué tant que les tarifs du modèle ne sont pas configurés explicitement.</p>
+                </div>
+              </div>
+            </section>
+          ) : null}
+          {metricsError ? <section className="flex items-start gap-3 border border-amber-200 bg-amber-50 p-4" role="status"><AlertTriangle className="h-5 w-5 shrink-0 text-amber-700" /><div><strong className="text-slate-950">Mesures de l’assistant indisponibles</strong><p className="mt-1 text-sm text-slate-600">La santé des demandes reste accessible. Réessayez avec le bouton d’actualisation.</p></div></section> : null}
 
           <section className="space-y-3">
             <div><h2 className="text-lg font-bold text-slate-950">Opérations à reprendre</h2><p className="text-sm text-slate-500">Une relance crée un nouvel essai audité. Aucun ancien lien de connexion n’est réutilisé.</p></div>

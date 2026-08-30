@@ -316,6 +316,11 @@
   branchement à un adaptateur réel et à l'interface reste requis.
 - [x] T029 Ajouter formulaire classique et création de demande sans dépendance à l'IA.
 - [ ] T030 Ajouter mesure du coût, de la latence, des transferts et des corrections.
+- [x] T030A Mesurer chaque passage de l'assistant public sans contenu personnel :
+  issue fermée, appel IA ou repli local, latence, jetons, sources utilisées et
+  coût estimé seulement lorsque les tarifs du modèle sont configurés. La
+  direction consulte des agrégats sur 7 ou 30 jours sous MFA et adhésion
+  persistée ; transferts et corrections restent dans T030.
 
 ## Phase 4 - Compétences du pilote
 

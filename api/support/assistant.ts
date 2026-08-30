@@ -11,6 +11,7 @@ import {
   type SupportAttachmentHint,
 } from "../_shared/support-agent.js";
 import { resolveKnowledgeActorFromRequest } from "../_shared/knowledge-actor.js";
+import { recordAgentRuntimeMetric } from "../_shared/agent-runtime-metrics.js";
 
 function cleanMessages(value: unknown): SupportAgentMessage[] {
   if (!Array.isArray(value) || value.length === 0 || value.length > 21) {
@@ -67,6 +68,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       attachments: cleanAttachments(input.attachments),
       safetyIdentifier: deviceKey,
       knowledgeActor,
+      runtimeMetricsRecorder: knowledgeActor
+        ? (metric) => recordAgentRuntimeMetric(knowledgeActor.institutionId, metric)
+        : undefined,
     });
   });
 }

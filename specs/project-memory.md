@@ -1210,6 +1210,31 @@ taches et analyse de coherence avant une automatisation sensible.
   remonte que les avis informatifs attendus des tables privées sans politique
   client et des index encore inutilisés.
 
+### Jalon du 30 août 2026 - mesures techniques de l'agent
+
+- L'assistant public journalise désormais une seule issue technique par passage :
+  réponse locale, pré-triage, indisponibilité, sortie invalide, repli de sécurité
+  ou réponse IA validée. Le journal n'enregistre aucun texte, identité, contact,
+  session, pièce jointe, catégorie métier ou erreur brute.
+- Les jetons proviennent uniquement du reçu du fournisseur. Le coût est calculé
+  en micro-euros seulement si les variables
+  `OPENAI_SUPPORT_INPUT_EUR_PER_MILLION_TOKENS` et
+  `OPENAI_SUPPORT_OUTPUT_EUR_PER_MILLION_TOKENS` sont toutes les deux définies ;
+  aucun tarif instable n'est codé en dur et l'interface parle d'estimation.
+- L'écran existant `/admin/sante-demandes` affiche des agrégats sur 7 ou 30
+  jours. L'API exige MFA, adhésion persistée, vue globale et rôle direction ou
+  superadministration. Aucun enregistrement individuel n'est renvoyé.
+- Les migrations `20260830013502` et `20260830014140` sont installées seulement
+  sur `guichet-lycee-preview`. Une recette a vérifié l'insertion fictive,
+  l'immutabilité et les privilèges, puis `ROLLBACK`; la table reste vide.
+- Le contrôle dynamique a révélé puis corrigé les privilèges `UPDATE/DELETE`
+  hérités par défaut par `service_role`. Il ne conserve que `SELECT/INSERT`.
+  T030 reste ouverte pour la mesure des transferts et corrections humaines.
+- L'audit externe Claude de ce lot n'a pas été exécuté sans fiche
+  d'autorisation courante précisant modèle, périmètre et limite. Le dossier
+  d'audit est prêt ; les vérifications Codex, Supabase et tests automatisés ont
+  été exécutées sans prétendre remplacer cette revue indépendante.
+
 ## 8. Prochain ordre recommande
 
 1. Publier et tester le pré-triage ordinateur portable avec des données fictives.
