@@ -73,3 +73,10 @@ interrupteur exact, borne les lots et réduit chaque événement à des HMAC
 et compteurs non identifiants. Il ne crée aucune route et ne stocke encore aucun
 message : l'authentification HTTP réelle, la persistance privée et la preuve de
 rejeu restent nécessaires pour fermer T022.
+
+Le rattachement T023A ne devine jamais une conversation depuis une adresse. Il
+compare le HMAC de `In-Reply-To` au HMAC enregistré sur une livraison du même
+établissement et limite la projection SQL à deux candidats afin de détecter une
+ambiguïté. Une contrainte additive impose le format HMAC et une unicité partielle
+par établissement. Cette migration n'est pas appliquée à distance dans ce lot ;
+T023 restera ouvert jusqu'à la recette transactionnelle du webhook fermé.

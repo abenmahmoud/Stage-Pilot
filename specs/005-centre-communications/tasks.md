@@ -110,6 +110,12 @@
   nom de fichier et jeton de téléchargement ne sortent jamais du parseur. T022
   reste ouvert jusqu'à la route, la persistance privée et la recette de rejeu.
 - [ ] T023 Rattacher chaque réponse à la bonne communication.
+- [x] T023A Définir le rattachement strict avant la persistance. La référence
+  `In-Reply-To` entrante utilise le même HMAC secret que l'identifiant du message
+  sortant. Seule une livraison du même établissement et portant cette référence
+  exacte peut être proposée ; absence, ambiguïté, champ de contact ou croisement
+  d'établissement sont refusés sans repli sur une adresse. Une migration impose
+  l'unicité par établissement mais reste à appliquer sur la preview avant T023.
 - [ ] T024 Classer retrait, correction de contact, question et réponse libre.
 - [x] T024A Définir et tester le classificateur local avant son raccordement. Il
   produit seulement les quatre catégories prévues, comprend des signaux bornés

@@ -1867,6 +1867,9 @@ export const communicationDeliveries = pgTable(
     index("communication_deliveries_version_scope_fk_idx").on(table.versionId, table.institutionId, table.communicationId, table.version),
     index("communication_deliveries_scope_status_idx").on(table.institutionId, table.communicationId, table.status, table.updatedAt),
     index("communication_deliveries_version_idx").on(table.versionId, table.institutionId),
+    uniqueIndex("communication_deliveries_institution_provider_message_uidx")
+      .on(table.institutionId, table.providerMessageRef)
+      .where(sql`${table.providerMessageRef} is not null`),
   ]
 );
 

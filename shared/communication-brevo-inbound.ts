@@ -27,8 +27,8 @@ const MAX_TOTAL_ATTACHMENT_BYTES = 25 * 1024 * 1024;
 const MAX_MESSAGE_LENGTH = 998;
 const MAX_EXTRACTED_LENGTH = 100_000;
 const HASH_DOMAINS = {
-  message: "lyceegest:communication:brevo:message:v1",
-  reply: "lyceegest:communication:brevo:reply:v1",
+  inboundMessage: "lyceegest:communication:brevo:inbound-message:v1",
+  outboundMessage: "lyceegest:communication:brevo:outbound-message:v1",
   recipient: "lyceegest:communication:brevo:recipient:v1",
 } as const;
 
@@ -146,6 +146,17 @@ function spamScore(value: unknown): number | null {
   return parsed;
 }
 
+export function hashCommunicationProviderOutboundMessageId(
+  value: unknown,
+  hashingSecret: string
+): string {
+  if (!secretValid(hashingSecret)) {
+    throw new CommunicationBrevoInboundError("hashing_secret_invalid");
+  }
+  const messageId = boundedHeaderValue(value, "provider_message_id", true) as string;
+  return digest(HASH_DOMAINS.outboundMessage, messageId, hashingSecret);
+}
+
 function parseItem(value: unknown, hashingSecret: string): CommunicationBrevoInboundReceipt {
   if (!value || typeof value !== "object" || Array.isArray(value)) {
     throw new CommunicationBrevoInboundError("item_invalid");
@@ -164,8 +175,10 @@ function parseItem(value: unknown, hashingSecret: string): CommunicationBrevoInb
 
   return {
     provider: "brevo_inbound",
-    externalMessageHash: digest(HASH_DOMAINS.message, messageId, hashingSecret),
-    inReplyToHash: inReplyTo ? digest(HASH_DOMAINS.reply, inReplyTo, hashingSecret) : null,
+    externalMessageHash: digest(HASH_DOMAINS.inboundMessage, messageId, hashingSecret),
+    inReplyToHash: inReplyTo
+      ? hashCommunicationProviderOutboundMessageId(inReplyTo, hashingSecret)
+      : null,
     recipientAliasHashes,
     attachmentCount: attachments.count,
     attachmentBytes: attachments.bytes,

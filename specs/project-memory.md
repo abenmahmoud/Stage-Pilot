@@ -1737,6 +1737,22 @@ taches et analyse de coherence avant une automatisation sensible.
 - Le brief Claude est préparé mais non exécuté, faute de modèle exact et de
   plafond de consommation propres à cette mission.
 
+### Jalon du 30 août 2026 - rattachement strict des réponses
+
+- `In-Reply-To` et l'identifiant du message sortant partagent désormais une
+  primitive HMAC dédiée. L'identifiant du message entrant conserve un domaine
+  distinct afin d'éviter toute confusion de rôle.
+- Le rapprochement exige une référence exacte et un candidat du même
+  établissement. Il ne se replie jamais sur les adresses et détecte explicitement
+  les absences et ambiguïtés.
+- Une migration additive impose un HMAC de 64 caractères et une unicité sur
+  `(institution_id, provider_message_ref)`. Elle est prête mais non appliquée,
+  car la preview Supabase attendue n'est pas accessible depuis le connecteur.
+- T023A est terminé avec cinq tests locaux. T023 reste ouvert jusqu'à la requête
+  atomique, à la persistance et à la recette concurrente sur la preview.
+- Le brief Claude est préparé mais non exécuté, faute de modèle exact et de
+  plafond de consommation propres à cette mission.
+
 ## 8. Prochain ordre recommande
 
 1. Publier et tester le pré-triage ordinateur portable avec des données fictives.
