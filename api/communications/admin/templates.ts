@@ -100,3 +100,5 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   return methodNotAllowed(res, ["GET", "PATCH"]);
 }
+
+export const config = { api: { bodyParser: { sizeLimit: "128kb" } } };

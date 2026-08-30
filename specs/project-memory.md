@@ -2900,3 +2900,16 @@ taches et analyse de coherence avant une automatisation sensible.
   compte distant ou modification Supabase.
 - Le brief Claude est préparé mais non exécuté, faute de modèle exact et de
   plafond propres à cette mission ; aucun jeton externe n'a été consommé.
+
+### Jalon du 30 août 2026 - mutations du centre de communications bornées
+
+- Les brouillons, limités métier à 100 000 caractères, ont un plafond HTTP de
+  512 Ko ; les modèles, limités à 20 000 caractères, ont un plafond de 128 Ko.
+- Les demandes de vérification, validations, publications et réservations de
+  documents sont limitées à 4 Ko avant leur contrôle métier.
+- Les fichiers PDF et DOCX continuent de transiter directement vers le stockage
+  privé signé ; les rôles rédaction, direction et publication restent séparés.
+- T037R est terminée par analyse statique et tests locaux, sans communication,
+  donnée réelle, compte distant ou modification Supabase.
+- Le brief Claude est préparé mais non exécuté, faute de modèle exact et de
+  plafond propres à cette mission ; aucun jeton externe n'a été consommé.
