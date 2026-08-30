@@ -30,3 +30,11 @@ test("validates both optional review objects", () => {
   assert.match(source, /isAgentRoutingReview\(value\.routingReview\)/);
   assert.match(source, /\["pending", "confirmed", "corrected"\]\.includes/);
 });
+
+test("routes every detail refresh through the runtime validator", () => {
+  assert.match(source, /async function fetchAgentRequestDetail\(code: string\)/);
+  assert.match(source, /const payload = await apiFetch<unknown>\(`/);
+  assert.match(source, /if \(!isAgentRequestDetail\(payload\)\)/);
+  assert.doesNotMatch(source, /apiFetch<AgentRequestDetail>/);
+  assert.doesNotMatch(source, /setDetail\(await apiFetch/);
+});

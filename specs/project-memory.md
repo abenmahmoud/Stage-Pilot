@@ -2594,6 +2594,19 @@ taches et analyse de coherence avant une automatisation sensible.
 - Le brief Claude est préparé mais non exécuté, faute de modèle exact et de
   plafond propres à cette mission ; aucun jeton externe n'a été consommé.
 
+### Jalon du 30 août 2026 - relectures du détail agent
+
+- La sélection initiale et chaque relecture après modification, réponse, note ou
+  rappel passent par une fonction unique qui valide le contrat complet.
+- Aucun cast `AgentRequestDetail` ne peut désormais remplacer le contrôle à
+  l'exécution avant `setDetail`.
+- La recette Playwright note acceptée puis relecture incomplète passe à 320 et
+  1440 px : état valide conservé, alerte explicite et aucune erreur navigateur.
+- T027B15 est terminée. Les cinq domaines comptent 402 identifiants uniques :
+  286 lignes terminées et 116 ouvertes.
+- Le brief Claude est préparé mais non exécuté, faute de modèle exact et de
+  plafond propres à cette mission ; aucun jeton externe n'a été consommé.
+
 ## 8. Prochain ordre recommande
 
 1. Publier et tester le pré-triage ordinateur portable avec des données fictives.

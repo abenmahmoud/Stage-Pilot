@@ -2583,6 +2583,14 @@ function isAgentRequestDetail(value: unknown): value is AgentRequestDetail {
     && isAgentAccess(value.access);
 }
 
+async function fetchAgentRequestDetail(code: string): Promise<AgentRequestDetail> {
+  const payload = await apiFetch<unknown>(`support/agent/requests/${code}`);
+  if (!isAgentRequestDetail(payload)) {
+    throw new Error("Réponse invalide du détail de la demande");
+  }
+  return payload;
+}
+
 function isAgentTranslationPayload(value: unknown): value is {
   translation: Omit<AgentTranslationDraft, "sourceMessage">;
 } {
@@ -2717,12 +2725,9 @@ function ConnectedAgentView({ onBack }: { onBack: () => void }) {
     setInternalNote("");
     setCallbackOutcome("");
     setClosureReason("");
-    apiFetch<unknown>(`support/agent/requests/${code}`)
+    fetchAgentRequestDetail(code)
       .then((payload) => {
         if (selectedCodeRef.current !== code) return;
-        if (!isAgentRequestDetail(payload)) {
-          throw new Error("Réponse invalide du détail de la demande");
-        }
         setDetail(payload);
         setError(null);
       })
@@ -2793,13 +2798,13 @@ function ConnectedAgentView({ onBack }: { onBack: () => void }) {
         method: "PATCH",
         body: JSON.stringify({ ...changes, expectedUpdatedAt: detail.request.updatedAt }),
       });
-      setDetail(await apiFetch<AgentRequestDetail>(`support/agent/requests/${selectedCode}`));
+      setDetail(await fetchAgentRequestDetail(selectedCode));
       await loadQueue();
     } catch (saveError) {
       const message = saveError instanceof Error ? saveError.message : "Modification impossible";
       if (/modifié|pris en charge|transféré/i.test(message)) {
         try {
-          setDetail(await apiFetch<AgentRequestDetail>(`support/agent/requests/${selectedCode}`));
+          setDetail(await fetchAgentRequestDetail(selectedCode));
           await loadQueue();
         } catch {
           // Le message de conflit initial reste le plus utile pour l'agent.
@@ -2847,13 +2852,13 @@ function ConnectedAgentView({ onBack }: { onBack: () => void }) {
       });
       setReply("");
       clearTranslation();
-      setDetail(await apiFetch<AgentRequestDetail>(`support/agent/requests/${selectedCode}`));
+      setDetail(await fetchAgentRequestDetail(selectedCode));
       await loadQueue();
     } catch (sendError) {
       const message = sendError instanceof Error ? sendError.message : "Réponse non enregistrée";
       if (/modifié|transféré/i.test(message) && selectedCode) {
         try {
-          setDetail(await apiFetch<AgentRequestDetail>(`support/agent/requests/${selectedCode}`));
+          setDetail(await fetchAgentRequestDetail(selectedCode));
           await loadQueue();
         } catch {
           // Le message de conflit initial reste le plus utile pour l'agent.
@@ -2886,7 +2891,7 @@ function ConnectedAgentView({ onBack }: { onBack: () => void }) {
         body: JSON.stringify({ note: internalNote }),
       });
       setInternalNote("");
-      setDetail(await apiFetch<AgentRequestDetail>(`support/agent/requests/${selectedCode}`));
+      setDetail(await fetchAgentRequestDetail(selectedCode));
       setError(null);
     } catch (noteError) {
       setError(noteError instanceof Error ? noteError.message : "Note interne non enregistrée");
@@ -2903,7 +2908,7 @@ function ConnectedAgentView({ onBack }: { onBack: () => void }) {
         method: "POST",
         body: JSON.stringify({ phoneContactId }),
       });
-      setDetail(await apiFetch<AgentRequestDetail>(`support/agent/requests/${selectedCode}`));
+      setDetail(await fetchAgentRequestDetail(selectedCode));
       setError(null);
     } catch (callbackError) {
       setError(callbackError instanceof Error ? callbackError.message : "Rappel non programmé");
@@ -2925,7 +2930,7 @@ function ConnectedAgentView({ onBack }: { onBack: () => void }) {
         }),
       });
       setCallbackOutcome("");
-      setDetail(await apiFetch<AgentRequestDetail>(`support/agent/requests/${selectedCode}`));
+      setDetail(await fetchAgentRequestDetail(selectedCode));
       setError(null);
     } catch (callbackError) {
       setError(callbackError instanceof Error ? callbackError.message : "Rappel non modifié");
