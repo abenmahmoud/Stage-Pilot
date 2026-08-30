@@ -442,6 +442,16 @@ l'autorisation de quota définie par le propriétaire.
   la réponse ne contient ni identité, ni sujet, ni description, ni référence de
   dossier. La preview compte actuellement 11 demandes ouvertes et aucune
   résolution ; l'interface affiche alors explicitement `Aucune résolution`.
+- Lot N5ZI : lecture structurée des emplois du temps. **Socle privé appliqué à la
+  preview et recette fictive annulée** : les créneaux portent établissement,
+  version, références opaques de classe/groupe/personnel, matière, salle,
+  horaires et validation humaine. RLS est forcée et les rôles client n'ont aucun
+  droit. Le lecteur serveur borne les références, filtre établissement, version
+  active, période, fraîcheur et créneau approuvé, puis retourne seulement le
+  prochain cours autorisé et sa source. La recette a refusé un croisement entre
+  établissements et une modification après activation, puis `ROLLBACK` avec
+  zéro résidu. La résolution depuis l'identité scolaire et l'appel par l'agent
+  restent ouverts dans T042D2.
 - Lot N6 : tests de non-régression, build, contrôle mobile et rapport d'écarts.
   **Partiellement validé en preview** : 200 transactions concurrentes sans perte
   ni reste après nettoyage, 135 contrôles de sécurité, build réussi, PWA active,

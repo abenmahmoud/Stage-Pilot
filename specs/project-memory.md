@@ -1341,6 +1341,29 @@ taches et analyse de coherence avant une automatisation sensible.
   et frontières adversariales passent. La revue Claude est préparée mais non
   exécutée sans modèle et plafond de consommation explicitement autorisés.
 
+### Jalon du 30 août 2026 - créneaux d'emploi du temps privés
+
+- La preview possède `schedule_slots`, reliée par clé composite à une version et
+  à son établissement. Un créneau contient seulement des références opaques,
+  une matière, une salle, des horaires, une confiance de parsing et l'état de
+  revue humaine. Les dates de fin de validité et de fraîcheur complètent la source.
+- RLS est activée et forcée. `anon` et `authenticated` n'ont aucun droit direct ;
+  seul le serveur peut lire ou écrire. L'établissement et la version sont
+  immuables, puis tout le créneau est figé lorsque la source devient active.
+- Le lecteur serveur accepte au maximum 40 références opaques par périmètre,
+  filtre les versions actives et les créneaux approuvés de l'établissement, et
+  retourne uniquement le prochain cours autorisé avec une source datée. Il ne
+  renvoie jamais la référence du professeur.
+- Une transaction fictive a prouvé le refus d'un croisement d'établissement,
+  d'un doublon et d'une modification après activation. Le `ROLLBACK` laisse zéro source, zéro
+  établissement et zéro créneau de recette. L'auditeur ne signale plus de clé
+  étrangère sans index ; les seules remarques propres à la table sont attendues
+  pour une table serveur vide et sans politique client.
+- L'adaptateur n'est pas encore exposé à l'agent : T042D2 doit résoudre le
+  périmètre depuis une identité scolaire confirmée avant son premier appel.
+- La revue Claude est préparée mais non exécutée sans modèle et plafond de
+  consommation explicitement autorisés.
+
 ## 8. Prochain ordre recommande
 
 1. Publier et tester le pré-triage ordinateur portable avec des données fictives.

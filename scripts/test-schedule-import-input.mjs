@@ -11,6 +11,8 @@ const valid = {
   title: "Emplois du temps classes - rentrée",
   purposeDescription: "Version entièrement fictive destinée à la recette de la preview.",
   effectiveFrom: "2026-08-25",
+  effectiveUntil: "2027-06-30",
+  freshUntil: "2026-09-01",
   originalName: "emplois-du-temps-classes.pdf",
   mimeType: "application/pdf",
   sizeBytes: 42_000,
@@ -25,6 +27,7 @@ test("accepts the teacher scope and a date in the second calendar year", () => {
     ...valid,
     sourceKind: "teachers",
     effectiveFrom: "2027-01-05",
+    freshUntil: "2027-01-12",
   });
   assert.equal(result.sourceKind, "teachers");
 });
@@ -32,6 +35,21 @@ test("accepts the teacher scope and a date in the second calendar year", () => {
 test("rejects non-consecutive school years and out-of-scope dates", () => {
   assert.throws(() => parseScheduleImportInput({ ...valid, schoolYear: "2026-2028" }), /format 2026-2027/i);
   assert.throws(() => parseScheduleImportInput({ ...valid, effectiveFrom: "2028-01-05" }), /année scolaire/i);
+});
+
+test("requires freshness inside the declared validity period", () => {
+  assert.throws(
+    () => parseScheduleImportInput({ ...valid, freshUntil: "2026-08-24" }),
+    /recontrôle.*période/i
+  );
+  assert.throws(
+    () => parseScheduleImportInput({ ...valid, effectiveUntil: "2026-08-24" }),
+    /fin.*précéder/i
+  );
+  assert.throws(
+    () => parseScheduleImportInput({ ...valid, freshUntil: "2027-07-01" }),
+    /recontrôle.*période/i
+  );
 });
 
 test("rejects unsafe paths and non-PDF documents", () => {

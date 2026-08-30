@@ -40,6 +40,8 @@ type ScheduleImport = {
   title: string;
   purposeDescription: string;
   effectiveFrom: string;
+  effectiveUntil: string | null;
+  freshUntil: string | null;
   originalName: string;
   sizeBytes: number;
   pageCount: number | null;
@@ -86,6 +88,12 @@ function defaultSchoolYear(): string {
   return `${start}-${start + 1}`;
 }
 
+function dateAfter(days: number): string {
+  const value = new Date();
+  value.setUTCDate(value.getUTCDate() + days);
+  return value.toISOString().slice(0, 10);
+}
+
 function formatBytes(value: number): string {
   return value < 1024 * 1024
     ? `${Math.max(1, Math.round(value / 1024))} Ko`
@@ -107,6 +115,8 @@ export default function ScheduleImportPage() {
   const [sourceKind, setSourceKind] = useState<ScheduleSourceKind>("classes");
   const [schoolYear, setSchoolYear] = useState(defaultSchoolYear);
   const [effectiveFrom, setEffectiveFrom] = useState(new Date().toISOString().slice(0, 10));
+  const [effectiveUntil, setEffectiveUntil] = useState("");
+  const [freshUntil, setFreshUntil] = useState(() => dateAfter(7));
   const [title, setTitle] = useState("");
   const [purposeDescription, setPurposeDescription] = useState(
     "Emploi du temps officiel à indexer par page et à consulter uniquement après validation humaine."
@@ -308,6 +318,8 @@ export default function ScheduleImportPage() {
           title,
           purposeDescription,
           effectiveFrom,
+          effectiveUntil: effectiveUntil || null,
+          freshUntil,
           originalName: file.name,
           mimeType: SCHEDULE_IMPORT_MIME,
           sizeBytes: file.size,
@@ -458,6 +470,15 @@ export default function ScheduleImportPage() {
           <input className="field mt-1 bg-white" type="date" required value={effectiveFrom} onChange={(event) => setEffectiveFrom(event.target.value)} />
         </label>
         <label className="text-sm font-medium text-slate-700">
+          Fin de validité <span className="font-normal text-slate-500">(facultatif)</span>
+          <input className="field mt-1 bg-white" type="date" min={effectiveFrom} value={effectiveUntil} onChange={(event) => setEffectiveUntil(event.target.value)} />
+        </label>
+        <label className="text-sm font-medium text-slate-700 sm:col-span-2">
+          À recontrôler avant le
+          <input className="field mt-1 bg-white" type="date" min={effectiveFrom} max={effectiveUntil || undefined} required value={freshUntil} onChange={(event) => setFreshUntil(event.target.value)} />
+          <small className="mt-1 block font-normal text-slate-500">Après cette date, l'agent refuse de répondre jusqu'à validation d'une source à jour.</small>
+        </label>
+        <label className="text-sm font-medium text-slate-700">
           Nom de la version
           <input className="field mt-1 bg-white" required minLength={2} maxLength={180} value={title} onChange={(event) => setTitle(event.target.value)} />
         </label>
@@ -492,6 +513,7 @@ export default function ScheduleImportPage() {
                 </div>
                 <div className="text-xs text-slate-500">
                   <span className="block">Effet : {formatDate(item.effectiveFrom)}</span>
+                  <span className="block">Recontrôle : {item.freshUntil ? formatDate(item.freshUntil) : "à définir avant activation"}</span>
                   <span className="mt-1 block break-words">{item.originalName}</span>
                 </div>
               </article>

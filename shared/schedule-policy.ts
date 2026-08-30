@@ -92,11 +92,12 @@ function timestamp(value: string): number {
 }
 
 function isAuthorized(viewer: ScheduleViewer, slot: ScheduleSlot): boolean {
-  return (
-    (slot.classRef !== null && viewer.authorizedClassRefs.includes(slot.classRef)) ||
-    (slot.groupRef !== null && viewer.authorizedGroupRefs.includes(slot.groupRef)) ||
-    (slot.teacherRef !== null && viewer.authorizedTeacherRefs.includes(slot.teacherRef))
-  );
+  const teacherAuthorized =
+    slot.teacherRef !== null && viewer.authorizedTeacherRefs.includes(slot.teacherRef);
+  const learnerAuthorized = slot.groupRef !== null
+    ? viewer.authorizedGroupRefs.includes(slot.groupRef)
+    : slot.classRef !== null && viewer.authorizedClassRefs.includes(slot.classRef);
+  return teacherAuthorized || learnerAuthorized;
 }
 
 function selectActiveVersion(

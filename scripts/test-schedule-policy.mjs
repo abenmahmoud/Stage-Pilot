@@ -71,6 +71,17 @@ test("does not reveal whether another class has a course", () => {
   assert.deepEqual(result, { ok: false, reason: "no_authorized_course" });
 });
 
+test("does not grant a group course to the whole class", () => {
+  const result = read({
+    viewer: {
+      ...studentViewer,
+      authorizedClassRefs: ["classe-fictive-a"],
+      authorizedGroupRefs: ["groupe-fictif-2"],
+    },
+  });
+  assert.deepEqual(result, { ok: false, reason: "no_authorized_course" });
+});
+
 test("refuses a stale or unapproved source", () => {
   assert.deepEqual(
     read({ versions: [{ ...version, freshUntil: "2026-08-26T17:00:00.000Z" }] }),

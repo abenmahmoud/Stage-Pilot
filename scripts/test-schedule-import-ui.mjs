@@ -14,6 +14,8 @@ const checks = [
   ["le PDF prive est ouvert par un lien temporaire", source.includes("Ouvrir le PDF (60 s)")],
   ["l'activation demande une confirmation explicite", source.includes('"ACTIVER"')],
   ["le retour arriere demande une confirmation explicite", source.includes('"RESTAURER"')],
+  ["la direction choisit la date de recontrole", source.includes("À recontrôler avant le")],
+  ["la consequence d'une source perimee est expliquee", source.includes("l'agent refuse de répondre")],
 ];
 
 for (const [label, passed] of checks) {

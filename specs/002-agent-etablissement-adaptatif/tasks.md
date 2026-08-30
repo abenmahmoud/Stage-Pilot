@@ -407,6 +407,11 @@
   toute consultation de la version réelle datée.
 - [ ] T042D2 Brancher cette politique sur les tables privées et les politiques RLS
   après migration, sans importer les PDF réels avant autorisation.
+- [x] T042D2A Créer en preview les créneaux structurés privés, leur période de
+  validité et fraîcheur, les rendre immuables après activation et ajouter le
+  lecteur serveur borné par établissement et références opaques autorisées. La
+  résolution automatique identité-vers-périmètre et l'appel depuis l'agent
+  restent dans T042D2 ; aucune donnée réelle n'est importée.
 - [ ] T043 Ajouter le connecteur ou export PRONOTE officiel après autorisation écrite.
 - [ ] T043A Ajouter un flux officiel de changements de cours avec état de santé,
   heure de dernière synchronisation et blocage des réponses périmées.

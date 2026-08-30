@@ -8,6 +8,7 @@ import {
   jsonb,
   uuid,
   bigint,
+  numeric,
   primaryKey,
   index,
   uniqueIndex,
@@ -870,6 +871,8 @@ export const scheduleSourceVersions = pgTable(
     title: text("title").notNull(),
     purposeDescription: text("purpose_description").notNull(),
     effectiveFrom: date("effective_from").notNull(),
+    effectiveUntil: date("effective_until"),
+    freshUntil: timestamp("fresh_until", { withTimezone: true }),
     originalName: text("original_name").notNull(),
     mimeType: text("mime_type").notNull(),
     sizeBytes: bigint("size_bytes", { mode: "number" }).notNull(),
@@ -973,6 +976,71 @@ export const scheduleAudit = pgTable(
       table.createdAt
     ),
     index("schedule_audit_actor_idx").on(table.actorId, table.createdAt),
+  ]
+);
+
+export const scheduleSlots = pgTable(
+  "schedule_slots",
+  {
+    id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+    institutionId: uuid("institution_id")
+      .notNull()
+      .references(() => institutions.id, { onDelete: "cascade" }),
+    sourceVersionId: uuid("source_version_id")
+      .notNull()
+      .references(() => scheduleSourceVersions.id, { onDelete: "cascade" }),
+    classRef: text("class_ref"),
+    groupRef: text("group_ref"),
+    teacherRef: text("teacher_ref"),
+    subjectCode: text("subject_code").notNull(),
+    subjectLabel: text("subject_label").notNull(),
+    roomCode: text("room_code"),
+    startsAt: timestamp("starts_at", { withTimezone: true }).notNull(),
+    endsAt: timestamp("ends_at", { withTimezone: true }).notNull(),
+    weekPattern: text("week_pattern"),
+    parseConfidence: numeric("parse_confidence", { precision: 4, scale: 3 })
+      .notNull()
+      .default("0"),
+    reviewStatus: text("review_status").notNull().default("pending"),
+    reviewedBy: uuid("reviewed_by"),
+    reviewedAt: timestamp("reviewed_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    index("schedule_slots_source_start_idx").on(
+      table.sourceVersionId,
+      table.startsAt,
+      table.endsAt
+    ),
+    index("schedule_slots_source_institution_idx").on(
+      table.sourceVersionId,
+      table.institutionId
+    ),
+    index("schedule_slots_class_start_idx").on(
+      table.institutionId,
+      table.classRef,
+      table.startsAt
+    ),
+    index("schedule_slots_group_start_idx").on(
+      table.institutionId,
+      table.groupRef,
+      table.startsAt
+    ),
+    index("schedule_slots_teacher_start_idx").on(
+      table.institutionId,
+      table.teacherRef,
+      table.startsAt
+    ),
+    uniqueIndex("schedule_slots_source_identity_time_uidx").on(
+      table.sourceVersionId,
+      sql`coalesce(${table.classRef}, '')`,
+      sql`coalesce(${table.groupRef}, '')`,
+      sql`coalesce(${table.teacherRef}, '')`,
+      table.subjectCode,
+      table.startsAt,
+      table.endsAt
+    ),
   ]
 );
 

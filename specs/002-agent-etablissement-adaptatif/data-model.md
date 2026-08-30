@@ -206,6 +206,8 @@ Relie une version de compétence à une ou plusieurs sources. La publication éc
 | `storage_bucket/path` | text | Objet privé, jamais URL publique permanente |
 | `checksum` | text nullable | Ajouté après contrôle antivirus |
 | `effective_from` | date | Début de validité métier |
+| `effective_until` | date nullable | Fin de validité métier, jamais antérieure au début |
+| `fresh_until` | timestamptz nullable | Obligatoire pour toute nouvelle activation ; au-delà, l'agent refuse de répondre |
 | `page_count` | integer nullable | Renseigné après lecture technique |
 | `status` | enum | `reserved`, `uploaded`, `quarantined`, `processing`, `review`, `approved`, `active`, `superseded`, `rejected`, `failed`, `retired` |
 | `uploaded_by` | uuid | Compte individuel |
