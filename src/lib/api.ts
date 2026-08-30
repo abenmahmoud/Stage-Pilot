@@ -1,4 +1,5 @@
 import { supabase } from "./supabase-browser";
+import { readJsonApiResponse } from "../../shared/json-api-response";
 
 const API_BASE = "/api";
 
@@ -31,14 +32,7 @@ export async function apiFetch<T = unknown>(
   });
 
   if (!res.ok) {
-    let message = `API error ${res.status}`;
-    try {
-      const body = await res.json();
-      if (body?.error) message = body.error;
-    } catch {
-      // pas un JSON, on garde le message par défaut
-    }
-    throw new Error(message);
+    return readJsonApiResponse<T>(res);
   }
 
   // Certaines routes ne renvoient pas de JSON (204 No Content par exemple)
@@ -46,7 +40,7 @@ export async function apiFetch<T = unknown>(
   if (!contentType.includes("application/json")) {
     return {} as T;
   }
-  return res.json() as Promise<T>;
+  return readJsonApiResponse<T>(res);
 }
 
 export async function openApiFile(

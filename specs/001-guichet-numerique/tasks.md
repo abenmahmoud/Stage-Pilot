@@ -212,6 +212,9 @@ voir sa réponse dans le dossier. L'agent traite tout depuis une seule file.
 - [x] **T037G** Borner la lecture des réponses JSON dans le navigateur, interrompre
   les flux dépassant le plafond même sans taille annoncée et intégrer ce contrôle
   à la barrière de sécurité permanente.
+- [x] **T037H** Router les réponses JSON authentifiées de `apiFetch` vers le
+  lecteur borné commun pour les succès comme pour les erreurs, sans casser les
+  réponses sans contenu.
 - [x] **T037F** Exclure les contacts desactives des reponses, reserver les
   journaux globaux a un administrateur MFA et exiger `aal2` pour confirmer une
   identite scolaire depuis une source officielle.

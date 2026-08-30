@@ -1,6 +1,9 @@
 import assert from "node:assert/strict";
 import test from "node:test";
+import { readFileSync } from "node:fs";
 import { readJsonApiResponse } from "../shared/json-api-response.ts";
+
+const apiClient = readFileSync(new URL("../src/lib/api.ts", import.meta.url), "utf8");
 
 test("retourne un objet JSON valide", async () => {
   const payload = await readJsonApiResponse(new Response(JSON.stringify({ ok: true }), {
@@ -71,4 +74,14 @@ test("accepte un plafond explicite valide", async () => {
     headers: { "content-type": "application/json" },
   }), { maxBytes: 128 });
   assert.deepEqual(payload, { ok: true });
+});
+
+test("route les succès et erreurs JSON du client privé vers le lecteur borné", () => {
+  const apiFetchSource = apiClient.slice(
+    apiClient.indexOf("export async function apiFetch"),
+    apiClient.indexOf("export async function openApiFile")
+  );
+  assert.equal(apiFetchSource.match(/readJsonApiResponse<T>\(res\)/g)?.length, 2);
+  assert.doesNotMatch(apiFetchSource, /res\.json\(\)/);
+  assert.match(apiFetchSource, /if \(!contentType\.includes\("application\/json"\)\)/);
 });

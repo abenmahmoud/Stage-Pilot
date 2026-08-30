@@ -5,6 +5,17 @@
 **Depot** : `abenmahmoud/Stage-Pilot`
 **Dernier jalon de code verifie** : branche de preview Vercel
 
+## Jalon du 30 août 2026 - client API privé raccordé au lecteur borné
+
+- `apiFetch` applique désormais le même lecteur borné aux succès et erreurs JSON
+  de toutes les consoles authentifiées.
+- Les réponses `204` ou non JSON attendues restent compatibles ; les corps HTML,
+  invalides ou surdimensionnés utilisent seulement les messages publics sûrs.
+- La recette Chromium injecte plus de 4 Mio dans l'assistant puis confirme son
+  repli local à 320 et 1 440 px, sans afficher le texte injecté.
+- Lot preview uniquement : aucun compte réel, appel distant ou environnement de
+  production n'a été utilisé ou modifié.
+
 ## Jalon du 30 août 2026 - réponses JSON bornées avant analyse
 
 - Le navigateur lit désormais les réponses API par morceaux avec un plafond de
