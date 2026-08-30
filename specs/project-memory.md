@@ -2865,3 +2865,11 @@ taches et analyse de coherence avant une automatisation sensible.
 - T037N est terminée avec des données synthétiques, sans export ni base réelle.
 - Le brief Claude est préparé mais non exécuté, faute de modèle exact et de
   plafond propres à cette mission ; aucun jeton externe n'a été consommé.
+
+### Jalon du 30 août 2026 - matrice locale bornée avant lecture
+
+- La matrice Markdown des scénarios est refusée au-delà de 100 Ko avant
+  `file.text()`, puis reste soumise aux plafonds et contrôles du parseur.
+- T046C est terminée sans upload, stockage, donnée réelle ou appel IA.
+- Le brief Claude est préparé mais non exécuté, faute de modèle exact et de
+  plafond propres à cette mission ; aucun jeton externe n'a été consommé.

@@ -7,7 +7,8 @@ export type SkillScenarioPlanItem = {
   expected: string;
 };
 
-const MAX_MARKDOWN_LENGTH = 100_000;
+export const SKILL_SCENARIO_PLAN_MAX_BYTES = 100_000;
+const MAX_MARKDOWN_LENGTH = SKILL_SCENARIO_PLAN_MAX_BYTES;
 const MAX_SCENARIOS = 100;
 const SECTION_KIND = new Map<string, SkillScenarioPlanItem["kind"]>([
   ["### Cas positifs", "positive"],

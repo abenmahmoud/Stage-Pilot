@@ -535,6 +535,8 @@
   contrôler son format, ses minima, ses doublons et ses secrets, puis préparer
   chaque scénario en état « à revoir » sans upload ni résultat automatique.
   L’exécution humaine et T046 restent distinctes et ouvertes.
+- [x] T046C Refuser une matrice Markdown de plus de 100 Ko avant sa lecture dans
+  le navigateur, tout en conservant l'import strictement local.
 - [ ] T047 Tester 200 créations simultanées, reprise worker et idempotence des notifications.
 - [x] T047A Exécuter sur la preview le test nettoyable de 200 transactions de
   création avec concurrence 20 : 200 dossiers, messages, sessions et travaux,

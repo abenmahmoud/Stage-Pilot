@@ -25,6 +25,7 @@ import {
 } from "../../../shared/knowledge-document-input";
 import {
   parseSkillScenarioPlan,
+  SKILL_SCENARIO_PLAN_MAX_BYTES,
   type SkillScenarioPlanItem,
 } from "../../../shared/skill-scenario-plan";
 
@@ -736,6 +737,9 @@ function EvaluationForm({ draft, setDraft, tests, busy, onSubmit, onClose }: { d
     event.target.value = "";
     if (!file) return;
     try {
+      if (file.size < 1 || file.size > SKILL_SCENARIO_PLAN_MAX_BYTES) {
+        throw new Error("La matrice de tests doit faire moins de 100 Ko");
+      }
       const nextPlan = parseSkillScenarioPlan(await file.text());
       setPlan(nextPlan);
       setPlanName(file.name);

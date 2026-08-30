@@ -1,7 +1,10 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
-import { parseSkillScenarioPlan } from "../shared/skill-scenario-plan.ts";
+import {
+  parseSkillScenarioPlan,
+  SKILL_SCENARIO_PLAN_MAX_BYTES,
+} from "../shared/skill-scenario-plan.ts";
 
 const skillUrl = new URL(
   "../specs/002-agent-etablissement-adaptatif/skills/pc-portable.md",
@@ -58,6 +61,11 @@ test("keeps the Markdown import local and never pre-validates a result", async (
     page.indexOf("function EvaluationForm"),
     page.indexOf("function evaluationDefaults")
   );
+  assert.equal(SKILL_SCENARIO_PLAN_MAX_BYTES, 100_000);
+  const sizeGuard = form.indexOf("file.size > SKILL_SCENARIO_PLAN_MAX_BYTES");
+  const read = form.indexOf("await file.text()");
+  assert.notEqual(sizeGuard, -1);
+  assert.ok(sizeGuard < read);
   assert.match(form, /parseSkillScenarioPlan\(await file\.text\(\)\)/u);
   assert.match(form, /accept="\.md,text\/markdown,text\/plain"/u);
   assert.match(form, /\.\.\.evaluationDefaults\(item\.testCaseKey\)/u);
