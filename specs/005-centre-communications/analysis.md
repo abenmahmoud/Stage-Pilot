@@ -1,5 +1,13 @@
 # Analyse de cohérence - Centre de communication
 
+## Recette de file Webmail du 30 août 2026
+
+Une recette transactionnelle prépare désormais 200 livraisons fictives et les
+répartit entre succès, reprise, échec définitif et attente. Elle teste aussi le
+rejeu d'un reçu, l'unicité d'une commande et son immutabilité. Sa structure est
+validée localement, mais son exécution distante reste bloquée tant que la
+migration de poignée de main n'est pas appliquée explicitement sur la preview.
+
 ## Résultat
 
 La proposition est cohérente avec les fonctionnalités `001`, `002`, `003` et

@@ -251,6 +251,10 @@
 - [x] T029E Définir la concurrence de prise : vingt travaux au plus par appel,
   ordre stable, verrous ignorés entre workers et récupération bornée de cent
   travaux interrompus. T029 reste ouvert jusqu'à la recette DB de concurrence.
+- [x] T029F Préparer la recette DB fictive de 200 livraisons : 160 succès, 20
+  reprises, 10 échecs définitifs et 10 attentes, avec rejeu, immutabilité et
+  `ROLLBACK` contrôlé. T029 reste ouvert jusqu'à son exécution sur la branche de
+  preview après application contrôlée de la migration de poignée de main.
 - [x] T030 Vérifier PDF, image, DOCX, fichier invalide et données personnelles.
   Les PDF/DOCX fictifs sûrs sont extraits localement ; image, faux PDF et type
   incohérent sont refusés. Une adresse ou un code scolaire supprime le texte

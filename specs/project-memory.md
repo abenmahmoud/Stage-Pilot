@@ -5,6 +5,14 @@
 **Depot** : `abenmahmoud/Stage-Pilot`
 **Dernier jalon de code verifie** : candidate publiée sur la production Vercel
 
+## Jalon du 30 août 2026 - recette Webmail de masse préparée
+
+- Une recette SQL avec `ROLLBACK` couvre 200 livraisons fictives sans adresse.
+- Répartition contractuelle : 160 succès, 20 reprises, 10 échecs définitifs et
+  10 attentes.
+- Son exécution distante attend une application contrôlée de la migration sur
+  la branche Supabase de preview ; aucune migration distante n'a été lancée.
+
 ## Jalon du 29 août 2026 - scénarios humains de la charte
 
 - Une urgence affiche le 15/112, le 3114 lorsque pertinent et un recours à un
