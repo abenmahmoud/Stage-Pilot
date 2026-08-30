@@ -2563,6 +2563,19 @@ taches et analyse de coherence avant une automatisation sensible.
 - Le brief Claude est préparé mais non exécuté, faute de modèle exact et de
   plafond propres à cette mission ; aucun jeton externe n'a été consommé.
 
+### Jalon du 30 août 2026 - publication atomique des communications
+
+- T014 est terminée sur la branche Supabase de preview avec deux communications
+  strictement fictives et le vrai cycle brouillon, relecture, validation.
+- Une publication complète crée la page, son instantané, le rattachement et les
+  deux audits sans audience, livraison ou travail d'envoi.
+- Une panne forcée après les écritures annule intégralement la seconde
+  publication ; le rollback final laisse huit compteurs à zéro.
+- L'advisor Supabase reste à 60 informations et zéro avertissement ou erreur.
+- Aucun interrupteur Vercel, domaine public, donnée réelle ou envoi n'a été
+  activé. Le brief Claude est préparé mais non exécuté faute de modèle exact et
+  de plafond propres à cette mission ; zéro jeton externe consommé.
+
 ### Jalon du 30 août 2026 - couverture RLS du guichet préparée
 
 - Une migration locale impose la RLS et retire les droits directs sur les seize

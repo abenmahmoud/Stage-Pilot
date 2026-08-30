@@ -79,13 +79,20 @@
   et proviseur peuvent enregistrer une personnalisation versionnée et auditée,
   sans publication, audience ou envoi. Le choix préremplit le brouillon dans
   l'interface fermée et conserve la référence du modèle.
-- [ ] T014 Publier la version validée dans le flux daté du site.
+- [x] T014 Publier la version validée dans le flux daté du site.
 - [x] T014A Préparer la publication atomique dans `À la une`. Une confirmation
   direction séparée, les interrupteurs environnement et base, le statut public
   et la version approuvée sont tous requis. La transaction crée la page et sa
   version, rattache la communication et journalise l'action ; questions,
   secrets, coordonnées et contenus trop longs sont refusés. L'interrupteur
-  reste fermé et T014 reste ouvert jusqu'à une recette fictive en preview.
+  reste fermé ; la recette fictive est apportée par T014B.
+- [x] T014B Prouver la publication atomique sur la preview avec deux
+  communications fictives. La première crée exactement une page et sa version,
+  rattache la communication, écrit les deux audits et reste visible selon les
+  critères du flux public sans audience, livraison ou travail d'envoi. Une
+  panne forcée sur la seconde annule page, version, lien et audit. Les rôles
+  clients n'ont aucun accès direct et le rollback final laisse huit résidus à
+  zéro. Aucun interrupteur d'environnement ni domaine public n'est activé.
 - [ ] T015 Ajouter recherche, filtres, épinglage, expiration et archives publics.
 - [x] T015A Rendre `À la une` consultable sous volume : recherche locale sur
   titre, résumé et catégorie, filtre de catégorie, compteur, dates et priorité

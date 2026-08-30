@@ -1,39 +1,37 @@
-# Brief Claude - publication des communications
+# Brief d'audit Claude - publication atomique d'une communication
 
 ## Statut
 
-Brief préparé, non exécuté. Le modèle Claude exact et le plafond de consommation
-doivent être autorisés pour cette mission précise.
+Préparé le 30 août 2026. Audit non exécuté : le modèle Claude exact et le
+plafond de consommation propres à cette mission n'ont pas été confirmés. Zéro
+jeton externe consommé.
+
+## Périmètre strict
+
+- `shared/communication-publication.ts`
+- `api/_shared/communications.ts`
+- `api/communications/admin/[id]/review.ts`
+- `api/communications/admin/[id]/approve.ts`
+- `api/communications/admin/[id]/publish.ts`
+- `api/content/public.ts`
+- `scripts/test-communication-publication.mjs`
+- `scripts/test-communication-publication-persistence.mjs`
+- `supabase/tests/communication_publication_atomicity_security.test.sql`
+- `docs/operations/COMMUNICATION_PUBLICATION_PREVIEW_2026-08-30.md`
 
 ## Mission proposée
 
-Auditer en lecture seule le passage relecture, validation direction et
-publication publique. Chercher en priorité une course, un contournement des
-interrupteurs, une publication d'une version non approuvée, une fuite de contenu
-privé ou un état partiellement persisté.
+Auditer T014 en lecture seule. Chercher un contournement du rôle direction ou
+de l'AAL2, une publication sans confirmation séparée, une course entre versions,
+une publication partielle, un contenu interne rendu public, une coordonnée ou
+un secret accepté, une fenêtre de date incohérente, une fuite de contenu privé
+dans la réponse, un doublon de page, ou un couplage implicite avec l'envoi.
+Vérifier que la recette fictive démontre réellement l'atomicité et le rollback.
 
-## Périmètre minimal
+Ne modifier aucun fichier, secret, environnement, navigateur ou déploiement.
 
-- `shared/communication-publication.ts` ;
-- `api/_shared/communications.ts` ;
-- `api/communications/admin/[id]/review.ts` ;
-- `api/communications/admin/[id]/approve.ts` ;
-- `api/communications/admin/[id]/publish.ts` ;
-- `src/pages/admin/CommunicationsPage.tsx` ;
-- `scripts/test-communication-publication.mjs` ;
-- diff Git du lot.
+## Sortie attendue
 
-Aucun accès Vercel, Supabase, `.env`, secret ou donnée réelle.
-
-## Questions
-
-1. Une requête concurrente peut-elle publier deux articles ?
-2. Les rôles, MFA, établissement et doubles interrupteurs ferment-ils le flux ?
-3. La version créée dans le site correspond-elle exactement à la version validée ?
-4. Une réponse API ou l'interface expose-t-elle du contenu ou un identifiant privé ?
-5. Un échec intermédiaire laisse-t-il une publication partielle ?
-
-## Arrêt
-
-Un rapport court classé par sévérité, avec fichier et correction minimale. Une
-seule passe, sans relance ni élargissement.
+- constats classés par gravité avec fichier et ligne ;
+- correctif minimal et test de non-régression proposé ;
+- mention explicite si aucun défaut bloquant n'est trouvé.

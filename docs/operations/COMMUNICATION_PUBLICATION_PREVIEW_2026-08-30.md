@@ -1,42 +1,54 @@
-# Publication des communications dans la preview
+# Publication d'une communication dans À la une - preuve preview
 
-## État livré
+## Périmètre
 
-Le parcours technique comporte désormais quatre états distincts : brouillon,
-relecture, validation direction et publication. La publication crée dans une
-transaction unique un article `site_content_items`, sa version publique, le
-rattachement à la communication et les deux journaux d'audit.
+La recette ferme T014 avec des données strictement fictives sur la branche
+Supabase de preview. Elle ne publie rien sur le domaine public, n'active aucune
+variable Vercel et ne prépare aucun destinataire ni email.
 
-La route privée exige :
+## Transaction attendue
 
-- un compte superadmin ou proviseur sous MFA ;
-- le module communications actif côté environnement et base ;
-- la publication active côté environnement et base ;
-- une communication publique et une version courante approuvée ;
-- la confirmation exacte `PUBLIER` ;
-- aucune question ouverte, coordonnée, secret ou dépassement des limites du site.
+Après validation humaine, une seule transaction :
 
-## Interrupteurs
+1. verrouille la communication dans son établissement ;
+2. exige une racine et une version courante `approved`, publiques et datées ;
+3. crée une page `site_content_items` et son instantané publié ;
+4. relie la communication à cette page et passe son état à `published` ;
+5. écrit l'audit éditorial et l'événement de communication ;
+6. retourne uniquement l'identifiant, l'état, le slug et la date de publication.
 
-Les trois valeurs suivantes restent fermées dans ce lot :
+La publication reste séparée de la diffusion. Aucune audience, livraison ou
+tâche d'envoi n'est créée par ce chemin.
 
-- `COMMUNICATION_PUBLICATION_ENABLED` ;
-- `VITE_COMMUNICATION_PUBLICATION_ENABLED` ;
-- `communication_settings.publication_enabled`.
+## Garde de la route
 
-Le code déployé ne constitue donc pas une activation.
+`POST /api/communications/admin/:id/publish` exige un compte `proviseur` ou
+`superadmin` sous MFA, la confirmation exacte `PUBLIER`, les interrupteurs de
+module et de publication côté serveur et base, ainsi qu'une communication
+publique dont la version courante a déjà été validée. Questions ouvertes,
+coordonnées, secrets, contenu trop long, publication future et contenu expiré
+sont refusés avant toute écriture publique.
 
-## Recette future
+La réponse ne contient ni corps, ni résumé, ni acteur : seulement l'identifiant
+de communication, l'état, la visibilité, le slug et la date de publication.
 
-Sur une base de preview isolée et avec un compte fictif sous MFA :
+## Preuves attendues
 
-1. activer temporairement les trois interrupteurs ;
-2. créer un brouillon fictif sans coordonnée ;
-3. choisir `Site public`, demander la relecture puis valider ;
-4. publier et vérifier une seule page dans `À la une` ;
-5. rejouer la confirmation et vérifier l'absence de doublon ;
-6. tenter secret, email, téléphone, version interne et question ouverte ;
-7. supprimer les données fictives et refermer les interrupteurs.
+`supabase/tests/communication_publication_atomicity_security.test.sql` vérifie :
 
-Aucune donnée réelle, aucun destinataire et aucun envoi Brevo ne participent à
-cette recette.
+- une page publique liée à sa version publiée et à la communication validée ;
+- les critères réellement utilisés par l'API publique : audience `tous`, date
+  atteinte, non-expiration et instantané publié ;
+- exactement un audit et un événement ;
+- zéro audience, livraison ou travail d'envoi ;
+- l'annulation complète d'une seconde publication après une panne forcée ;
+- l'absence de lecture directe des tables par `anon` et `authenticated` ;
+- huit compteurs à zéro après le rollback final.
+
+La recette a été exécutée avec succès sur `xijocumlwivhbmffrnlj`. Les huit
+compteurs de résidus valent zéro après rollback. L'advisor Supabase retourne 60
+informations et aucun avertissement ni erreur.
+
+L'interrupteur de base n'est activé que dans la transaction annulée. Les
+interrupteurs d'environnement restent absents et la production n'est pas
+touchée.

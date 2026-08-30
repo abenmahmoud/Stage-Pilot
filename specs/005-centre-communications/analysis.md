@@ -260,3 +260,11 @@ rejeux avant de créer un brouillon `internal`, sa version et son audit. La
 recette fictive de preview confirme une seule création, aucune audience,
 livraison ou tâche, zéro privilège client et sept compteurs nuls après rollback.
 T025 est fermé sans configurer Gmail, Brevo ou un environnement.
+
+T014B ferme la preuve de publication dans `À la une`. La recette de preview
+rejoue le cycle brouillon, relecture et validation, puis crée atomiquement une
+page publique, sa version, le lien retour et les deux traces d'audit. Une
+seconde publication provoque une erreur après ses écritures : la sous-
+transaction les annule toutes et laisse la communication validée intacte. Le
+scénario complet laisse huit compteurs à zéro après rollback, sans audience,
+livraison, tâche d'envoi, donnée réelle ou exposition directe des tables.

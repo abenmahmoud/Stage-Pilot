@@ -40,6 +40,13 @@ de son navigateur.
 Les contenus publics continuent d'utiliser `site_content_items`, ses versions et
 ses fichiers. Une communication interne ne reçoit jamais de version publique.
 
+La publication publique a été éprouvée séparément sur la branche Supabase de
+preview. La page, son instantané, le rattachement de la communication et les
+deux traces d'audit partagent la même transaction. Une panne tardive annule
+l'ensemble. Ce chemin ne crée jamais d'audience, de livraison ou de travail
+d'envoi ; les interrupteurs Vercel restent fermés tant qu'un pilote public n'est
+pas explicitement autorisé.
+
 ## Automatisation
 
 1. La source est enregistrée avant analyse.
