@@ -17,8 +17,10 @@ réutilisation de source périmée dans le socle T042D2A, sans modifier les fich
 - `supabase/migrations/20260830025506_harden_schedule_slot_freshness.sql`
 - `db/schema.ts`
 - `api/_shared/schedule-reader.ts`
+- `api/_shared/schedule-identity-reader.ts`
 - `shared/schedule-policy.ts`
 - `scripts/test-private-schedule-reader.mjs`
+- `scripts/test-schedule-identity-reader.mjs`
 - `scripts/test-schedule-policy.mjs`
 - `docs/operations/SCHEDULE_PRIVATE_READER_PREVIEW_2026-08-30.md`
 

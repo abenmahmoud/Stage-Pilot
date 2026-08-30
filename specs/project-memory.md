@@ -1364,6 +1364,20 @@ taches et analyse de coherence avant une automatisation sensible.
 - La revue Claude est préparée mais non exécutée sans modèle et plafond de
   consommation explicitement autorisés.
 
+### Jalon du 30 août 2026 - identité vers périmètre d'emploi du temps
+
+- Le serveur peut désormais résoudre le périmètre d'une identité scolaire
+  confirmée sans faire confiance à la conversation ou aux métadonnées du compte.
+- L'identité doit être non révoquée et provenir d'un annuaire actif. Les lignes
+  de personne et d'appartenance doivent être `valid`, actives à la date courante
+  et appartenir au même établissement.
+- Une personne consulte sa propre classe et ses groupes. Un personnel ne reçoit
+  que sa propre référence opaque. Une cible différente exige une relation
+  persistée `guardian_of`, active, datée et issue d'un annuaire encore actif.
+- Le résolveur appelle ensuite le lecteur privé, mais aucun endpoint public ni
+  outil de conversation ne l'expose encore. Une recette avec comptes et identités
+  entièrement fictifs reste requise avant de fermer T042D2.
+
 ## 8. Prochain ordre recommande
 
 1. Publier et tester le pré-triage ordinateur portable avec des données fictives.

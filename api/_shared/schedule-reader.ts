@@ -16,7 +16,13 @@ export type TrustedScheduleScope = ScheduleViewer & {
 };
 
 function boundedRefs(values: string[]): string[] {
-  const refs = [...new Set(values.map((value) => value.trim()).filter(Boolean))];
+  const refs = [
+    ...new Set(
+      values
+        .map((value) => value.normalize("NFKC").trim().toUpperCase())
+        .filter(Boolean)
+    ),
+  ];
   if (refs.length > MAX_SCOPE_REFS || refs.some((value) => !SCOPE_REF.test(value))) {
     throw new Error("Invalid trusted schedule scope");
   }

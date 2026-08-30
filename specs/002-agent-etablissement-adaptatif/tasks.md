@@ -412,6 +412,11 @@
   lecteur serveur borné par établissement et références opaques autorisées. La
   résolution automatique identité-vers-périmètre et l'appel depuis l'agent
   restent dans T042D2 ; aucune donnée réelle n'est importée.
+- [x] T042D2B Résoudre côté serveur un périmètre de lecture depuis une identité
+  scolaire non révoquée et une version active de l'annuaire : propre classe et
+  groupes, propre référence personnel, ou enfant relié par `guardian_of` actif.
+  Les métadonnées du navigateur ne donnent aucun droit. L'appel depuis la
+  conversation de l'agent reste dans T042D2.
 - [ ] T043 Ajouter le connecteur ou export PRONOTE officiel après autorisation écrite.
 - [ ] T043A Ajouter un flux officiel de changements de cours avec état de santé,
   heure de dernière synchronisation et blocage des réponses périmées.

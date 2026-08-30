@@ -46,6 +46,7 @@
     "test:support-resolution-metrics": "node scripts/test-support-resolution-metrics.mjs",
     "test:schedule-policy": "node --experimental-strip-types scripts/test-schedule-policy.mjs",
     "test:schedule-private-reader": "node scripts/test-private-schedule-reader.mjs",
+    "test:schedule-identity-reader": "node scripts/test-schedule-identity-reader.mjs",
     "test:schedule-import-input": "node --experimental-strip-types scripts/test-schedule-import-input.mjs",
     "test:schedule-import-security": "node scripts/test-schedule-import-security.mjs",
     "test:schedule-document-worker": "node scripts/test-schedule-document-worker.mjs",

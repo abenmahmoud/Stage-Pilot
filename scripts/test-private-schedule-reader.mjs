@@ -39,6 +39,8 @@ test("requires reviewed slots and immutable activated sources", () => {
 
 test("bounds trusted scopes and filters both reads by institution", () => {
   assert.match(reader, /MAX_SCOPE_REFS = 40/);
+  assert.match(reader, /normalize\("NFKC"\)/);
+  assert.match(reader, /toUpperCase\(\)/);
   assert.match(reader, /Invalid trusted schedule scope/);
   const institutionFilters = reader.match(/eq\([\s\S]{0,80}institutionId, input\.scope\.institutionId\)/g) ?? [];
   assert.equal(institutionFilters.length, 2);

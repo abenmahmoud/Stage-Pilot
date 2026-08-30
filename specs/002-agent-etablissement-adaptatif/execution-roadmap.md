@@ -452,6 +452,14 @@ l'autorisation de quota définie par le propriétaire.
   établissements et une modification après activation, puis `ROLLBACK` avec
   zéro résidu. La résolution depuis l'identité scolaire et l'appel par l'agent
   restent ouverts dans T042D2.
+- Lot N5ZJ : périmètre d'emploi du temps issu de l'identité. **Implémenté côté
+  serveur et non exposé** : le résolveur exige un compte authentifié, une identité
+  scolaire non révoquée et son annuaire actif. Il calcule les références valides
+  à la date courante ; une cible différente exige une relation `guardian_of`
+  active, datée et issue d'un annuaire encore actif. Un personnel ne reçoit que
+  sa propre référence. Aucun rôle déclaré dans la conversation ou métadonnée
+  modifiable ne peut élargir ce périmètre. Le raccordement à la conversation et
+  la recette avec comptes fictifs restent ouverts dans T042D2.
 - Lot N6 : tests de non-régression, build, contrôle mobile et rapport d'écarts.
   **Partiellement validé en preview** : 200 transactions concurrentes sans perte
   ni reste après nettoyage, 135 contrôles de sécurité, build réussi, PWA active,

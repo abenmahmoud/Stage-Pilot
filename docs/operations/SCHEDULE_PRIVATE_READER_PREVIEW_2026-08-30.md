@@ -32,9 +32,12 @@ Lorsqu'un créneau porte un groupe, l'appartenance à la classe ne suffit pas : 
 référence de groupe doit elle aussi être autorisée. Un professeur ne passe que
 par sa propre référence opaque.
 
-Le branchement identité scolaire-vers-références autorisées reste volontairement
-ouvert. Tant qu'il n'est pas construit, cet adaptateur n'est pas exposé au public
-ni appelé par l'assistant.
+Le branchement serveur identité scolaire-vers-références autorisées est préparé :
+identité non révoquée, annuaire actif, lignes valides et datées. Une cible tierce
+exige une relation `guardian_of` active. Cet adaptateur n'est pas exposé au public
+ni appelé par l'assistant avant sa recette avec comptes fictifs. Les références
+du périmètre sont normalisées au format canonique de l'emploi du temps ; le
+périmètre propre d'un personnel ne contient que sa référence enseignant.
 
 ## Recette
 
