@@ -250,3 +250,13 @@ ont été prouvées dans une transaction de preview annulée ; une catégorie
 `automatic_action` est refusée par la contrainte et les rôles clients gardent
 zéro privilège. T024 est fermé sans stockage du message, sans webhook actif et
 sans action automatique.
+
+T025B ferme le chemin de création depuis un transfert. La route reste absente
+par défaut (`COMMUNICATION_FORWARD_ENABLED` faux) et exige quatre preuves
+serveur : Bearer dédié, secret HMAC fort, expéditeur autorisé et alias de
+collecte autorisé. Le créateur configuré doit être un `admin` actif du même
+établissement. Dans une seule transaction, l'empreinte du message absorbe les
+rejeux avant de créer un brouillon `internal`, sa version et son audit. La
+recette fictive de preview confirme une seule création, aucune audience,
+livraison ou tâche, zéro privilège client et sept compteurs nuls après rollback.
+T025 est fermé sans configurer Gmail, Brevo ou un environnement.

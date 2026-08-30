@@ -263,7 +263,7 @@
   preview prouve les quatre catégories, le refus d'une action automatique,
   l'absence de privilèges clients et quatre résidus nuls après rollback. Aucun
   retrait, correction ou réponse n'est exécuté et le webhook reste fermé.
-- [ ] T025 Créer un brouillon depuis un email transféré autorisé.
+- [x] T025 Créer un brouillon depuis un email transféré autorisé.
 - [x] T025A Définir le contrat local avant toute boîte de collecte. Seule une
   source déjà autorisée côté serveur peut produire un brouillon ; l'identifiant
   fournisseur reste un HMAC et devient une empreinte anti-doublon. Les en-têtes
@@ -272,6 +272,13 @@
   avant toute aide IA. Le résultat reste `internal`, `draft`, sans publication,
   audience ni notification, avec relecture humaine obligatoire. T025 reste
   ouvert jusqu'à la route privée, la persistance et la recette de rejeu.
+- [x] T025B Ajouter une route Brevo fermée par défaut qui exige un Bearer
+  distinct, un expéditeur HMAC autorisé, un alias de collecte HMAC autorisé et
+  un acteur technique `admin` actif du même établissement. La transaction crée
+  un seul entrant, brouillon interne, version et événement ; le rejeu ne crée
+  rien. La recette de preview prouve l'absence d'audience, livraison et travail,
+  les privilèges clients nuls et sept résidus à zéro après rollback. Aucun
+  environnement, filtre Gmail, secret ou webhook n'est activé.
 - [ ] T026 Configurer le domaine et le filtre Gmail uniquement après autorisation.
 
 ## Phase 6 - Validation

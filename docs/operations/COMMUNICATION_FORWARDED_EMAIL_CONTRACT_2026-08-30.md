@@ -2,13 +2,17 @@
 
 ## Périmètre
 
-Ce lot prépare T025 sans créer de boîte de collecte, de route HTTP, de filtre
-Gmail ou de connexion fournisseur. Il traite seulement un texte déjà extrait
-dans un contexte serveur fictif et autorisé.
+Ce lot termine le chemin technique T025 sans configurer de boîte, filtre Gmail
+ou connexion fournisseur. La route existe mais reste fermée par défaut ; les
+tests traitent seulement des messages fictifs.
 
 ## Garde-fous
 
 - la source doit être marquée autorisée par le serveur ;
+- l'expéditeur et l'alias secret de collecte doivent correspondre à deux listes
+  HMAC serveur distinctes ;
+- un Bearer dédié et un secret HMAC fort sont obligatoires ;
+- l'acteur configuré doit être `admin` actif du même établissement ;
 - l'identifiant externe est un HMAC hexadécimal de 64 caractères ;
 - le nombre de pièces jointes est borné à vingt et aucun nom n'est exposé ;
 - seuls le sujet et le texte extrait sont acceptés ;
@@ -30,6 +34,27 @@ transfert autorisé, refus des contextes invalides, empreinte stable, retrait de
 l'ancien fil et des images distantes, puis signalement des données personnelles
 et refus des secrets ou du balisage actif.
 
-La route privée, la persistance, l'idempotence transactionnelle et la recette de
-rejeu restent dans T025. Aucun email, domaine, filtre, secret, donnée réelle ou
-environnement de production n'a été utilisé.
+## Route et transaction
+
+`POST /api/webhooks/brevo/communications-forwarded` accepte exactement un
+message lorsque `COMMUNICATION_FORWARD_ENABLED=true`. L'expéditeur et l'alias
+ne sortent jamais du parseur. La transaction crée d'abord un reçu entrant
+idempotent, puis un `communications` interne, sa première version et un
+événement borné. L'entrant passe à `processed` et pointe vers le même brouillon.
+Un rejeu retourne seulement `duplicate: true` et ne crée aucune autre ligne.
+
+Le brouillon ne reçoit ni audience, ni livraison, ni travail de diffusion. Les
+données personnelles éventuelles sont signalées dans l'audit et les questions
+de revue ; elles interdisent l'aide IA avant masquage.
+
+## Preuve preview
+
+`supabase/tests/communication_forwarded_draft_security.test.sql` a été exécuté
+sur `xijocumlwivhbmffrnlj` dans une transaction annulée. La recette prouve une
+seule création après rejeu, les liaisons de même établissement, l'acteur actif,
+l'absence d'audience, livraison ou travail, les privilèges clients nuls et sept
+résidus à zéro.
+
+T025 est terminé. Aucun email, domaine, filtre, secret, variable Vercel, donnée
+réelle ou environnement de production n'a été utilisé ou activé. T026 garde la
+configuration externe sous autorisation explicite.

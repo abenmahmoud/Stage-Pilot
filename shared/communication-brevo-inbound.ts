@@ -164,6 +164,18 @@ export function hashCommunicationProviderOutboundMessageId(
   return digest(HASH_DOMAINS.outboundMessage, messageId, hashingSecret);
 }
 
+export function hashCommunicationRecipientAlias(
+  value: unknown,
+  hashingSecret: string
+): string {
+  if (!isCommunicationWebhookSecret(hashingSecret)) {
+    throw new CommunicationBrevoInboundError("hashing_secret_invalid");
+  }
+  const address = mailboxAddress(value);
+  if (!address) throw new CommunicationBrevoInboundError("recipient_invalid");
+  return digest(HASH_DOMAINS.recipient, address, hashingSecret);
+}
+
 function parseItem(value: unknown, hashingSecret: string): CommunicationBrevoInboundReceipt {
   if (!value || typeof value !== "object" || Array.isArray(value)) {
     throw new CommunicationBrevoInboundError("item_invalid");
@@ -176,7 +188,7 @@ function parseItem(value: unknown, hashingSecret: string): CommunicationBrevoInb
     throw new CommunicationBrevoInboundError("recipients_invalid");
   }
   const recipientAliasHashes = [...new Set(recipients.map((address) =>
-    digest(HASH_DOMAINS.recipient, address, hashingSecret)
+    hashCommunicationRecipientAlias(address, hashingSecret)
   ))].sort();
   const attachments = attachmentSummary(item.Attachments);
   const classification = classifyExtractedMessage(item.ExtractedMarkdownMessage);

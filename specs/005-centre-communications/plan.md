@@ -50,6 +50,12 @@ ses fichiers. Une communication interne ne reçoit jamais de version publique.
 6. Les webhooks mettent à jour les livraisons de manière idempotente.
 7. Les réponses rejoignent la boîte de traitement de la communication.
 
+Pour un email transféré, l'entrée automatique reste plus stricte : Bearer
+fournisseur, expéditeur HMAC et alias HMAC doivent tous être autorisés côté
+serveur. Un acteur technique doit aussi être administrateur actif du même
+établissement. La transaction ne crée qu'un brouillon interne à relire ; le
+rejeu est absorbé avant toute seconde version.
+
 La boîte de traitement ne reçoit d'abord que la catégorie, l'état, la date et
 la communication rattachée. Le texte brut reste absent tant que le stockage
 privé et son contrôle antivirus ne sont pas validés. Toutes les catégories sont

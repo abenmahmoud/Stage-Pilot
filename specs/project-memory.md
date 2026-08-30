@@ -5,6 +5,21 @@
 **Depot** : `abenmahmoud/Stage-Pilot`
 **Dernier jalon de code verifie** : branche de preview Vercel
 
+## Jalon du 30 août 2026 - brouillon depuis transfert autorisé
+
+- Une nouvelle route Brevo reste fermée par défaut et exige un Bearer dédié,
+  un expéditeur HMAC autorisé et un alias de collecte HMAC autorisé.
+- L'acteur technique doit être un `admin` actif du même établissement ; un UUID
+  configuré seul ne suffit pas.
+- Un transfert valide crée atomiquement un seul entrant, un brouillon interne,
+  sa version et un événement borné. Le rejeu ne crée aucune seconde ligne.
+- Le brouillon n'a ni audience, ni livraison, ni tâche ; les données
+  personnelles signalées doivent être masquées avant toute aide IA.
+- La recette Supabase de preview laisse sept résidus à zéro. T025 est terminé,
+  mais le webhook, Gmail, Brevo et toutes les variables restent désactivés.
+- Le brief Claude est prêt mais non exécuté faute de modèle exact et de plafond
+  de mission ; zéro jeton externe consommé.
+
 ## Jalon du 30 août 2026 - classement privé des réponses entrantes
 
 - Le parseur Brevo entrant classe localement retrait, correction de contact,
