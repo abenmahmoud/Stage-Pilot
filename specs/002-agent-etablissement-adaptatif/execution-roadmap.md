@@ -386,6 +386,14 @@ l'autorisation de quota définie par le propriétaire.
   ou superadministration. La table est append-only ; `anon` et `authenticated`
   ne peuvent pas la lire, et le rôle serveur ne peut ni la modifier ni la
   supprimer. T030 reste ouverte pour les transferts et corrections humaines.
+- Lot N5ZC : qualité du routage. **Implémenté sans nouvelle donnée métier** :
+  l'API agrège les événements immuables `request.updated` déjà produits par les
+  agents. Un changement de service compare seulement les anciennes et nouvelles
+  valeurs de `assignedTeam`; une correction exige deux services non vides et
+  différents. L'écran affiche le volume et le taux sur la période choisie sans
+  exposer dossier, motif, agent ou demandeur. T030 est fermé.
+  Tant que `support_requests` n'a pas son cloisonnement établissement de T015B,
+  l'agrégat refuse de répondre dès que plusieurs établissements actifs existent.
 - Lot N6 : tests de non-régression, build, contrôle mobile et rapport d'écarts.
   **Partiellement validé en preview** : 200 transactions concurrentes sans perte
   ni reste après nettoyage, 135 contrôles de sécurité, build réussi, PWA active,

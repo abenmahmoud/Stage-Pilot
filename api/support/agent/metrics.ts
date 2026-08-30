@@ -1,7 +1,7 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { and, asc, eq, gte, sql } from "drizzle-orm";
+import { and, asc, eq, gte, inArray, sql } from "drizzle-orm";
 import { db } from "../../../db/index.js";
-import { agentRuntimeMetrics } from "../../../db/schema.js";
+import { agentRuntimeMetrics, institutions, supportEvents } from "../../../db/schema.js";
 import { HttpError } from "../../_shared/auth.js";
 import { requireAgentApprovalReviewer } from "../../_shared/agent-approvals.js";
 import { handleApi, methodNotAllowed } from "../../_shared/response.js";
@@ -26,6 +26,16 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
     const days = requestedDays(req);
     const since = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
+    const [supportScope] = await db
+      .select({ count: sql<number>`count(*)`.mapWith(Number) })
+      .from(institutions)
+      .where(inArray(institutions.status, ["pilot", "active"]));
+    if ((supportScope?.count ?? 0) !== 1) {
+      throw new HttpError(
+        503,
+        "Les mesures de routage attendent le cloisonnement des demandes par établissement."
+      );
+    }
     const scope = and(
       eq(agentRuntimeMetrics.institutionId, context.institutionId),
       gte(agentRuntimeMetrics.createdAt, since)
@@ -58,6 +68,26 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       .groupBy(agentRuntimeMetrics.outcome)
       .orderBy(asc(agentRuntimeMetrics.outcome));
 
+    const [routing] = await db
+      .select({
+        serviceChanges: sql<number>`count(*) filter (
+          where ${supportEvents.eventType} = 'request.updated'
+            and ${supportEvents.actorType} = 'agent'
+            and coalesce(${supportEvents.fromValue} ->> 'assignedTeam', '')
+              is distinct from coalesce(${supportEvents.toValue} ->> 'assignedTeam', '')
+        )`.mapWith(Number),
+        routingCorrections: sql<number>`count(*) filter (
+          where ${supportEvents.eventType} = 'request.updated'
+            and ${supportEvents.actorType} = 'agent'
+            and nullif(${supportEvents.fromValue} ->> 'assignedTeam', '') is not null
+            and nullif(${supportEvents.toValue} ->> 'assignedTeam', '') is not null
+            and (${supportEvents.fromValue} ->> 'assignedTeam')
+              is distinct from (${supportEvents.toValue} ->> 'assignedTeam')
+        )`.mapWith(Number),
+      })
+      .from(supportEvents)
+      .where(gte(supportEvents.createdAt, since));
+
     const daily = await db
       .select({
         date: sql<string>`to_char(date_trunc('day', ${agentRuntimeMetrics.createdAt} at time zone 'Europe/Paris'), 'YYYY-MM-DD')`,
@@ -89,6 +119,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         pricingComplete:
           (summary?.aiSuccesses ?? 0) > 0 &&
           (summary?.pricedRuns ?? 0) === (summary?.aiSuccesses ?? 0),
+        serviceChanges: routing?.serviceChanges ?? 0,
+        routingCorrections: routing?.routingCorrections ?? 0,
+        routingCorrectionRate:
+          (routing?.serviceChanges ?? 0) > 0
+            ? Math.round(
+                ((routing?.routingCorrections ?? 0) / (routing?.serviceChanges ?? 1)) * 1000
+              ) / 10
+            : 0,
       },
       outcomes,
       daily,

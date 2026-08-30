@@ -8,7 +8,8 @@ Claude, confirmer le périmètre ci-dessous et fixer la limite de consommation.
 ## Objectif unique
 
 Chercher des failles de confidentialité, d'autorisation, d'intégrité, de coût
-ou de disponibilité dans le lot T030A, sans modifier les fichiers.
+ou de disponibilité dans les lots T030A/T030B, y compris l'agrégation des
+réorientations humaines, sans modifier les fichiers.
 
 ## Périmètre en lecture seule
 

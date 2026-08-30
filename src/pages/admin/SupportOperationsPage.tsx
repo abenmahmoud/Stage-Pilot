@@ -56,6 +56,9 @@ type AgentMetricsPayload = {
     pricedRuns: number;
     pricingConfigured: boolean;
     pricingComplete: boolean;
+    serviceChanges: number;
+    routingCorrections: number;
+    routingCorrectionRate: number;
   };
   outcomes: Array<{ outcome: string; count: number }>;
   daily: Array<{ date: string; total: number; aiSuccesses: number; averageLatencyMs: number }>;
@@ -212,6 +215,13 @@ export default function SupportOperationsPage() {
                 <div className="border-l-4 border-violet-600 bg-white p-4 shadow-sm"><strong className="block text-2xl text-slate-950">{agentMetrics.summary.p95LatencyMs} ms</strong><span className="text-sm text-slate-500">Latence au 95e centile</span></div>
                 <div className="border-l-4 border-slate-700 bg-white p-4 shadow-sm"><strong className="block text-2xl text-slate-950">{agentMetrics.summary.pricingConfigured ? euroFromMicros(agentMetrics.summary.estimatedCostMicros) : "Non configuré"}</strong><span className="text-sm text-slate-500">Coût estimé{agentMetrics.summary.pricingConfigured && !agentMetrics.summary.pricingComplete ? " partiel" : ""}, hors facturation</span></div>
               </div>
+
+              <div className="grid gap-px overflow-hidden border border-slate-200 bg-slate-200 sm:grid-cols-3" aria-label="Qualité du routage humain">
+                <div className="bg-white px-4 py-3"><span className="text-xs font-semibold uppercase text-slate-500">Changements de service</span><strong className="mt-1 block text-xl text-slate-950">{agentMetrics.summary.serviceChanges}</strong></div>
+                <div className="bg-white px-4 py-3"><span className="text-xs font-semibold uppercase text-slate-500">Réorientations humaines</span><strong className="mt-1 block text-xl text-slate-950">{agentMetrics.summary.routingCorrections}</strong></div>
+                <div className="bg-white px-4 py-3"><span className="text-xs font-semibold uppercase text-slate-500">Part des réorientations</span><strong className="mt-1 block text-xl text-slate-950">{agentMetrics.summary.routingCorrectionRate.toLocaleString("fr-FR", { maximumFractionDigits: 1 })} %</strong></div>
+              </div>
+              <p className="text-xs text-slate-500">Une réorientation est comptée uniquement lorsqu’un agent déplace un dossier d’un service déjà assigné vers un autre. Aucun motif ni contenu du dossier n’est lu par cet indicateur.</p>
 
               <div className="grid gap-5 lg:grid-cols-[minmax(0,1.3fr)_minmax(280px,0.7fr)]">
                 <div className="min-w-0 overflow-x-auto border border-slate-200 bg-white">

@@ -1230,6 +1230,15 @@ taches et analyse de coherence avant une automatisation sensible.
 - Le contrôle dynamique a révélé puis corrigé les privilèges `UPDATE/DELETE`
   hérités par défaut par `service_role`. Il ne conserve que `SELECT/INSERT`.
   T030 reste ouverte pour la mesure des transferts et corrections humaines.
+- Le complément T030B réutilise ensuite les événements `request.updated` déjà
+  immuables. Il compte tout changement d'affectation et qualifie de correction
+  de routage uniquement le passage d'un service non vide à un autre service non
+  vide. Les agrégats ne lisent ni motif, contenu, identité ou identifiant de
+  dossier. T030 est désormais fermé.
+- Comme `support_requests` ne possède pas encore son `institution_id` de T015B,
+  le calcul des réorientations vérifie qu'un seul établissement est actif ou en
+  pilote et échoue fermé sinon. La recette fictive a obtenu deux changements,
+  une réorientation puis zéro dossier et événement après `ROLLBACK`.
 - L'audit externe Claude de ce lot n'a pas été exécuté sans fiche
   d'autorisation courante précisant modèle, périmètre et limite. Le dossier
   d'audit est prêt ; les vérifications Codex, Supabase et tests automatisés ont

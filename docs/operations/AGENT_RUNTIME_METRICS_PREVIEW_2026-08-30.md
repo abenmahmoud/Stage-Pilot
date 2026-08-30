@@ -36,6 +36,9 @@ jamais un montant de facturation.
 - Un déclencheur refuse toute modification ou suppression.
 - API limitée à l'établissement de l'adhésion active, sous MFA.
 - Réponse API agrégée, sans ligne individuelle.
+- Transferts calculés depuis l'audit existant, sans nouveau journal nominatif.
+- Refus fermé si plusieurs établissements actifs partagent la base avant l'ajout
+  d'un `institution_id` obligatoire aux demandes historiques.
 
 ## Résultat de la recette
 
@@ -50,8 +53,14 @@ Vercel et Drizzle ; le correctif automatique proposé imposerait des changements
 majeurs forcés. Ils restent suivis comme risque d'outillage et ne sont pas
 masqués par une rétrogradation non testée.
 
+Une seconde transaction fictive a écrit une affectation, une réorientation et
+une mise à jour sans transfert. L'agrégat a retourné deux changements de service
+et une correction, puis `ROLLBACK`; le contrôle final retrouve zéro dossier et
+zéro événement synthétiques.
+
 ## Reste à décider
 
 - Durée de conservation avec la direction et le DPO.
 - Tarifs exacts du modèle avant d'afficher un coût.
-- Mesure des transferts de service et corrections humaines dans T030.
+- Relier les corrections de catégorie si une interface humaine dédiée est un
+  jour validée ; la V1 mesure les corrections de routage entre services.

@@ -315,12 +315,16 @@
   schéma persistant exige désormais la preuve complète pour `succeeded` ; le
   branchement à un adaptateur réel et à l'interface reste requis.
 - [x] T029 Ajouter formulaire classique et création de demande sans dépendance à l'IA.
-- [ ] T030 Ajouter mesure du coût, de la latence, des transferts et des corrections.
+- [x] T030 Ajouter mesure du coût, de la latence, des transferts et des corrections.
 - [x] T030A Mesurer chaque passage de l'assistant public sans contenu personnel :
   issue fermée, appel IA ou repli local, latence, jetons, sources utilisées et
   coût estimé seulement lorsque les tarifs du modèle sont configurés. La
   direction consulte des agrégats sur 7 ou 30 jours sous MFA et adhésion
-  persistée ; transferts et corrections restent dans T030.
+  persistée ; transferts et corrections sont complétés par T030B ci-dessous.
+- [x] T030B Agréger les changements de service déjà audités et définir une
+  correction de routage comme le déplacement humain d'un dossier d'un service
+  assigné vers un autre. La direction voit le volume et la part de ces
+  réorientations sans lire le motif, le contenu ou l'identité du dossier.
 
 ## Phase 4 - Compétences du pilote
 
