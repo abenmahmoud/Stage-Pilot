@@ -110,6 +110,10 @@
   reçu, délai borné, concurrence maximale de vingt et erreurs fournisseur
   converties en codes fermés. Aucun endpoint ni appel distant n'est activé.
   T018 reste ouvert jusqu'au raccordement transactionnel.
+- [x] T018E Ajouter l'adaptateur de persistance : travail et livraison sont
+  reverrouillés, la décision est recalculée, l'audit est idempotent puis les
+  deux états sont modifiés dans la transaction appelante. T018 reste ouvert
+  jusqu'au worker qui orchestre l'appel distant.
 - [ ] T019 Enregistrer livré, différé, rejeté, spam et désinscrit.
 - [x] T019A Définir le contrat Brevo de délivrabilité avant toute route. Un
   Bearer fort est comparé en temps constant ; seuls les événements documentés
@@ -213,6 +217,9 @@
 - [x] T029C Simuler 200 appels individuels avec une concurrence de dix, ordre de
   résultat stable, reçus uniques et délai d'abandon. T029 reste ouvert jusqu'à
   la recette avec la file et l'adaptateur Webmail de preview.
+- [x] T029D Verrouiller la fenêtre de course à la complétion : les mises à jour
+  exigent encore le statut et l'empreinte de commande lus sous verrou, et un
+  conflit annule toute la transaction. T029 reste ouvert jusqu'à la recette DB.
 - [x] T030 Vérifier PDF, image, DOCX, fichier invalide et données personnelles.
   Les PDF/DOCX fictifs sûrs sont extraits localement ; image, faux PDF et type
   incohérent sont refusés. Une adresse ou un code scolaire supprime le texte

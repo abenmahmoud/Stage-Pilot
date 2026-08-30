@@ -1689,6 +1689,19 @@ taches et analyse de coherence avant une automatisation sensible.
   simulent 200 envois avec une concurrence de dix, un délai, les statuts HTTP et
   les entrées invalides. T018D et T029C sont terminés sans appel distant.
 
+### Jalon du 30 août 2026 - persistance atomique de la complétion
+
+- L'adaptateur Drizzle reverrouille le travail et la livraison dans le même
+  établissement, puis recalcule la décision sous verrou.
+- Il ajoute un événement idempotent, met à jour la livraison sous statut et
+  empreintes attendus, puis termine exactement le travail `running` dans la
+  transaction fournie par le futur worker.
+- Un conflit sur l'une des lignes lève une erreur et laisse la transaction se
+  rabattre intégralement. Le résultat ne contient que les états et le drapeau de
+  doublon.
+- Cinq tests de structure contrôlent le verrou, le cloisonnement, l'audit, les
+  gardes d'écriture et la sortie. T018E et T029D sont terminés sans base distante.
+
 ### Jalon du 30 août 2026 - contrat de délivrabilité Brevo
 
 - Un vérificateur Bearer commun protège désormais les futurs webhooks entrants

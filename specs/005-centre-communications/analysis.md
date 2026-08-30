@@ -153,3 +153,9 @@ l'appel, puis le reçu avant toute décision. Les lots comptent au plus 500 lign
 et vingt appels simultanés ; le profil retenu pour 200 destinataires en utilise
 dix. Délais et statuts distants deviennent des codes fermés, sans corps d'erreur
 fournisseur dans le résultat ou l'audit.
+
+T018E ferme la course locale : l'adaptateur relit et verrouille le travail et sa
+livraison dans le même périmètre établissement, puis recalcule la politique avec
+la commande et le reçu vérifiés. Audit, livraison et travail partagent la
+transaction appelante ; une ligne modifiée entre-temps provoque un conflit et
+aucun état partiel n'est conservé.
