@@ -24,8 +24,10 @@ test("makes the legacy review queue visible and filterable", () => {
   assert.match(editorSource, /reviewCounts\.pending/);
 });
 
-test("keeps public wording simple and removes the inactive notification control", () => {
+test("keeps public wording simple and notifications inside request tracking", () => {
   assert.doesNotMatch(prototypeSource, /analyse IA|analyse locale/);
-  assert.doesNotMatch(prototypeSource, /aria-label="Notifications"/);
+  assert.doesNotMatch(prototypeSource, /lycee-icon-button[^>]+Notifications/);
+  assert.match(prototypeSource, /toggleActiveNotifications/);
+  assert.match(prototypeSource, /Alerte uniquement pendant cette session/);
   assert.match(prototypeSource, /Langue de la réponse du lycée/);
 });

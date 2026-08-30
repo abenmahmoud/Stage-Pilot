@@ -6,6 +6,7 @@ import {
   ArrowRightLeft,
   BadgeCheck,
   BarChart3,
+  Bell,
   BookOpenCheck,
   Bot,
   BriefcaseBusiness,
@@ -90,6 +91,12 @@ import {
   SUPPORT_IDENTITY_VERIFICATION_MESSAGE,
   supportTranslationTargetLanguage,
 } from "../../../shared/support-reply-policy";
+import {
+  reconcileActiveSupportNotification,
+  type ActiveSupportNotification,
+  type ActiveSupportNotificationSnapshot,
+} from "../../../shared/support-active-notification";
+import { readJsonApiResponse } from "../../../shared/json-api-response";
 import "./lycee-connect.css";
 
 type View = "home" | "services" | "help" | "requests" | "school" | "news" | "agent" | "trust";
@@ -228,10 +235,7 @@ function supportTeamLabel(value: string | null): string {
 }
 
 async function readApiResponse<T>(responseInput: Response | Promise<Response>): Promise<T> {
-  const response = await responseInput;
-  const payload = (await response.json()) as T & { error?: string };
-  if (!response.ok) throw new Error(payload.error ?? "Le service ne répond pas");
-  return payload;
+  return readJsonApiResponse<T>(responseInput);
 }
 
 async function uploadSupportFile(publicCode: string, file: File): Promise<void> {
@@ -1660,8 +1664,45 @@ function ConnectedRequestsView({ ticketCode, onBack }: { ticketCode: string | nu
   const [reply, setReply] = useState("");
   const [replying, setReplying] = useState(false);
   const [forgettingDevice, setForgettingDevice] = useState(false);
+  const [notificationsEnabled, setNotificationsEnabled] = useState(false);
+  const [notificationPermission, setNotificationPermission] = useState<NotificationPermission | "unsupported">(
+    typeof window !== "undefined" && "Notification" in window ? Notification.permission : "unsupported"
+  );
   const [followupFiles, setFollowupFiles] = useState<File[]>([]);
   const followupFileInputRef = useRef<HTMLInputElement>(null);
+  const notificationsEnabledRef = useRef(false);
+  const selectedCodeRef = useRef<string | null>(ticketCode);
+  const notificationSnapshotsRef = useRef(new Map<string, ActiveSupportNotificationSnapshot>());
+  const detailedCodesRef = useRef(new Set<string>());
+
+  async function showActiveNotification(notification: ActiveSupportNotification) {
+    if (
+      !notificationsEnabledRef.current ||
+      !document.hidden ||
+      !("serviceWorker" in navigator) ||
+      !("Notification" in window) ||
+      Notification.permission !== "granted"
+    ) return;
+    try {
+      const registration = await navigator.serviceWorker.ready;
+      await registration.showNotification(notification.title, {
+        body: notification.body,
+        tag: notification.tag,
+        icon: "/pwa-icon-192.png",
+        badge: "/pwa-icon-192.png",
+        data: { destination: notification.destination },
+      });
+    } catch {
+      // Le suivi à l'écran et l'email restent les canaux de référence.
+    }
+  }
+
+  function reconcileNotificationSnapshot(next: ActiveSupportNotificationSnapshot, allowNotification: boolean) {
+    const previous = notificationSnapshotsRef.current.get(next.publicCode);
+    const result = reconcileActiveSupportNotification(previous, next);
+    if (result.snapshot) notificationSnapshotsRef.current.set(next.publicCode, result.snapshot);
+    if (allowNotification && result.notification) void showActiveNotification(result.notification);
+  }
 
   async function loadRequests(showLoading = false) {
     if (showLoading) setLoading(true);
@@ -1669,6 +1710,20 @@ function ConnectedRequestsView({ ticketCode, onBack }: { ticketCode: string | nu
       const payload = await readApiResponse<{ requests: SupportRequestSummary[] }>(
         fetch("/api/support/requests", { credentials: "include" })
       );
+      const receivedCodes = new Set(payload.requests.map((request) => request.publicCode));
+      for (const request of payload.requests) {
+        if (request.publicCode === selectedCodeRef.current) continue;
+        const previous = notificationSnapshotsRef.current.get(request.publicCode);
+        reconcileNotificationSnapshot({
+          publicCode: request.publicCode,
+          status: request.status,
+          updatedAt: request.updatedAt,
+          latestAgentMessageId: previous?.latestAgentMessageId ?? null,
+        }, true);
+      }
+      for (const code of notificationSnapshotsRef.current.keys()) {
+        if (!receivedCodes.has(code)) notificationSnapshotsRef.current.delete(code);
+      }
       await rememberSupportRequests(payload.requests);
       const remembered = await listRememberedSupportRequests();
       const serverCodes = new Set(payload.requests.map((request) => request.publicCode));
@@ -1704,6 +1759,18 @@ function ConnectedRequestsView({ ticketCode, onBack }: { ticketCode: string | nu
       const payload = await readApiResponse<SupportRequestDetail>(
         fetch(`/api/support/requests/${code}`, { credentials: "include" })
       );
+      if (payload.request.publicCode !== code) throw new Error("La réponse du service est incohérente.");
+      const latestAgentMessage = payload.messages
+        .filter((message) => message.direction === "outbound")
+        .sort((left, right) => Date.parse(right.createdAt) - Date.parse(left.createdAt))[0];
+      const hadDetailedBaseline = detailedCodesRef.current.has(code);
+      reconcileNotificationSnapshot({
+        publicCode: payload.request.publicCode,
+        status: payload.request.status,
+        updatedAt: payload.request.updatedAt,
+        latestAgentMessageId: latestAgentMessage?.id ?? null,
+      }, hadDetailedBaseline);
+      detailedCodesRef.current.add(code);
       setDetail(payload);
       setError(null);
     } catch (requestError) {
@@ -1720,6 +1787,7 @@ function ConnectedRequestsView({ ticketCode, onBack }: { ticketCode: string | nu
   }, []);
 
   useEffect(() => {
+    selectedCodeRef.current = selectedCode;
     if (!selectedCode) {
       setDetail(null);
       return;
@@ -1730,6 +1798,53 @@ function ConnectedRequestsView({ ticketCode, onBack }: { ticketCode: string | nu
     }, 12_000);
     return () => window.clearInterval(timer);
   }, [selectedCode]);
+
+  async function toggleActiveNotifications() {
+    if (!("Notification" in window) || !("serviceWorker" in navigator)) return;
+    if (notificationsEnabledRef.current) {
+      notificationsEnabledRef.current = false;
+      setNotificationsEnabled(false);
+      return;
+    }
+    let permission: NotificationPermission;
+    try {
+      permission = Notification.permission === "default"
+        ? await Notification.requestPermission()
+        : Notification.permission;
+    } catch {
+      setError("Les alertes ne peuvent pas être activées sur ce navigateur.");
+      return;
+    }
+    setNotificationPermission(permission);
+    if (permission !== "granted") {
+      setError("Les alertes sont bloquées dans les réglages de ce navigateur.");
+      return;
+    }
+    for (const request of requests) {
+      const previous = notificationSnapshotsRef.current.get(request.publicCode);
+      notificationSnapshotsRef.current.set(request.publicCode, {
+        publicCode: request.publicCode,
+        status: request.status,
+        updatedAt: request.updatedAt,
+        latestAgentMessageId: previous?.latestAgentMessageId ?? null,
+      });
+    }
+    if (detail) {
+      const latestAgentMessage = detail.messages
+        .filter((message) => message.direction === "outbound")
+        .sort((left, right) => Date.parse(right.createdAt) - Date.parse(left.createdAt))[0];
+      notificationSnapshotsRef.current.set(detail.request.publicCode, {
+        publicCode: detail.request.publicCode,
+        status: detail.request.status,
+        updatedAt: detail.request.updatedAt,
+        latestAgentMessageId: latestAgentMessage?.id ?? null,
+      });
+      detailedCodesRef.current.add(detail.request.publicCode);
+    }
+    notificationsEnabledRef.current = true;
+    setNotificationsEnabled(true);
+    setError(null);
+  }
 
   function selectFollowupFiles(event: React.ChangeEvent<HTMLInputElement>) {
     const selected = Array.from(event.target.files ?? []);
@@ -1830,7 +1945,10 @@ function ConnectedRequestsView({ ticketCode, onBack }: { ticketCode: string | nu
       <PageIntro eyebrow="Suivi" title="Mes demandes" description="Retrouvez les réponses sur cet appareil. Le lien reçu par email permet de reprendre depuis un autre téléphone ou ordinateur." onBack={onBack} />
       <div className="lycee-shared-device-action">
         <span><ShieldCheck aria-hidden="true" /><span><strong>Appareil partagé ?</strong><small>Fermez l’accès avant de le quitter.</small></span></span>
-        <button type="button" disabled={forgettingDevice} onClick={() => void forgetThisDevice()}><LogOut aria-hidden="true" />{forgettingDevice ? "Fermeture…" : "Oublier les demandes"}</button>
+        <div className="lycee-device-action-buttons">
+          {requests.length > 0 && notificationPermission !== "unsupported" ? <button type="button" aria-pressed={notificationsEnabled} disabled={notificationPermission === "denied"} onClick={() => void toggleActiveNotifications()} title="Alerte uniquement pendant cette session"><Bell aria-hidden="true" />{notificationPermission === "denied" ? "Alertes bloquées" : notificationsEnabled ? "Alertes actives" : "Activer les alertes"}</button> : null}
+          <button type="button" disabled={forgettingDevice} onClick={() => void forgetThisDevice()}><LogOut aria-hidden="true" />{forgettingDevice ? "Fermeture…" : "Oublier les demandes"}</button>
+        </div>
       </div>
       {error ? <div className="lycee-form-error" role="alert"><CircleAlert aria-hidden="true" />{error}</div> : null}
       {loading ? <div className="lycee-loading-state"><Clock3 aria-hidden="true" /> Chargement des demandes…</div> : null}

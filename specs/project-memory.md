@@ -2309,6 +2309,30 @@ taches et analyse de coherence avant une automatisation sensible.
   néanmoins trois alertes hautes et six modérées dans la toolchain de
   développement ; aucun `npm audit fix --force` cassant n'a été appliqué.
 
+### Jalon du 30 août 2026 - alertes PWA pour une session active
+
+- L'usager peut activer volontairement une cloche dans `Mes demandes`. Aucune
+  permission navigateur n'est demandée au chargement et l'activation n'est pas
+  persistée silencieusement d'une session à l'autre.
+- Le premier état sert uniquement de référence. Une réponse agent ou un
+  changement de statut ultérieur peut produire une notification quand la page
+  est en arrière-plan ; les doublons, états plus anciens et valeurs invalides
+  sont ignorés.
+- Le titre et le corps ne contiennent ni nom, objet, message, catégorie ou
+  numéro visible. Le clic ouvre `/prototype?view=requests`, sans identifiant de
+  dossier dans l'URL.
+- Le rendu a été contrôlé à 1440 x 900 et 320 x 800 : zéro débordement, actions
+  empilées sur mobile, aucune erreur console ou overlay. Chromium headless garde
+  toutefois la permission système refusée ; la notification native réelle reste
+  donc à éprouver sur téléphone.
+- Les réponses API non JSON n'exposent plus une erreur technique brute : elles
+  deviennent un message français générique et borné.
+- T033A est terminée ; T033 reste ouverte pour la recette réelle. Les cinq
+  domaines comptent 383 identifiants uniques : 264 lignes terminées et 119
+  ouvertes.
+- Le brief Claude est préparé mais non exécuté, faute de modèle exact et de
+  plafond propres à cette mission ; aucun jeton externe n'a été consommé.
+
 ## 8. Prochain ordre recommande
 
 1. Publier et tester le pré-triage ordinateur portable avec des données fictives.

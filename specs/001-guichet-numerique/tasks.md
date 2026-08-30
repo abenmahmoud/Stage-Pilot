@@ -131,6 +131,11 @@ voir sa réponse dans le dossier. L'agent traite tout depuis une seule file.
   en ligne sans cache afin qu'un nouveau déploiement ne reste pas masqué par
   l'ancienne interface PWA.
 - [ ] **T033** Ajouter notifications PWA pour les sessions actives.
+- [x] **T033A** Ajouter l'activation volontaire des alertes pendant une session
+  de suivi ouverte : référence initiale sans notification historique, réponse
+  ou changement d'état uniquement, rejet des retours obsolètes, contenu générique
+  sans identité et ouverture du suivi sans numéro dans l'URL. T033 reste ouverte
+  jusqu'à une recette réelle sur téléphone avec permission accordée.
 - [x] **T034** Ajouter tableau de santé, file d'échec et bouton de reprise.
   La direction avec MFA voit les succès, alertes email, fichiers en attente et
   échecs définitifs. Une reprise est atomique et auditée ; les notifications

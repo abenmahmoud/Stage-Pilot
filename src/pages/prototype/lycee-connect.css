@@ -524,9 +524,11 @@
 .lycee-shared-device-action > span > span { display: grid; gap: 2px; }
 .lycee-shared-device-action strong { font-size: 13px; }
 .lycee-shared-device-action small { color: var(--lc-muted); font-size: 12px; }
-.lycee-shared-device-action > button { min-height: 40px; display: inline-flex; align-items: center; justify-content: center; gap: 7px; padding: 0 12px; border: 1px solid #bdcad8; border-radius: 7px; background: #fff; color: var(--lc-ink); font-size: 12px; font-weight: 800; }
-.lycee-shared-device-action > button svg { width: 15px; }
-.lycee-shared-device-action > button:disabled { opacity: .55; cursor: wait; }
+.lycee-device-action-buttons { display: flex; align-items: center; justify-content: flex-end; gap: 8px; }
+.lycee-device-action-buttons button { min-height: 40px; display: inline-flex; align-items: center; justify-content: center; gap: 7px; padding: 0 12px; border: 1px solid #bdcad8; border-radius: 7px; background: #fff; color: var(--lc-ink); font-size: 12px; font-weight: 800; }
+.lycee-device-action-buttons button[aria-pressed="true"] { border-color: #87cbbb; background: #eaf8f4; color: #116b59; }
+.lycee-device-action-buttons button svg { width: 15px; }
+.lycee-device-action-buttons button:disabled { opacity: .55; cursor: not-allowed; }
 .lycee-ticket-list, .lycee-ticket-detail { border: 1px solid var(--lc-line); border-radius: 8px; background: #fff; }
 .lycee-list-toolbar { padding: 12px; border-bottom: 1px solid var(--lc-line); }
 .lycee-list-toolbar label, .lycee-agent-toolbar label { display: flex; align-items: center; gap: 8px; min-height: 40px; padding: 0 11px; border: 1px solid #ccd6e2; border-radius: 7px; background: #f8fafc; color: #8794a5; }
@@ -1006,7 +1008,8 @@
   .lycee-help-ai .lycee-chat-bubble:not(:last-of-type) { display: none; }
   .lycee-track-grid { grid-template-columns: 1fr; }
   .lycee-shared-device-action { align-items: stretch; flex-direction: column; }
-  .lycee-shared-device-action > button { width: 100%; }
+  .lycee-device-action-buttons { display: grid; grid-template-columns: 1fr; }
+  .lycee-device-action-buttons button { width: 100%; }
   .lycee-agent-workspace { grid-template-columns: 320px minmax(0,1fr); }
   .lycee-agent-stats { grid-template-columns: repeat(2,minmax(0,1fr)); }
   .lycee-specialties-grid { grid-template-columns: repeat(2,minmax(0,1fr)); }

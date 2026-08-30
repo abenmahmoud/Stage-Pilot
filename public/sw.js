@@ -1,4 +1,4 @@
-const CACHE_NAME = "blaise-cendrars-connect-v6";
+const CACHE_NAME = "blaise-cendrars-connect-v7";
 const APP_SHELL = [
   "/prototype",
   "/manifest.webmanifest",
@@ -49,5 +49,20 @@ self.addEventListener("fetch", (event) => {
         return response;
       })
       .catch(() => caches.match(event.request))
+  );
+});
+
+self.addEventListener("notificationclick", (event) => {
+  event.notification.close();
+  const destination = "/prototype?view=requests";
+  event.waitUntil(
+    self.clients.matchAll({ type: "window", includeUncontrolled: true }).then(async (clients) => {
+      const existing = clients.find((client) => new URL(client.url).origin === self.location.origin);
+      if (existing) {
+        await existing.navigate(destination);
+        return existing.focus();
+      }
+      return self.clients.openWindow(destination);
+    })
   );
 });

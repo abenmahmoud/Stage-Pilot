@@ -33,7 +33,7 @@ test("keeps every public secondary action at least 40 pixels high", () => {
   assert.match(css, /\.lycee-services-catalog article > button,[^{]+\{[^}]+min-height: 40px;[^}]+padding: 8px 0;/);
   assert.match(css, /\.lycee-school-feature button \{[^}]+min-height: 40px;[^}]+padding: 8px 0;/);
   assert.match(css, /\.lycee-school-life-grid a,[^{]+\{ min-height: 40px;/);
-  assert.match(css, /\.lycee-shared-device-action > button \{ min-height: 40px;/);
+  assert.match(css, /\.lycee-device-action-buttons button \{ min-height: 40px;/);
   assert.match(css, /\.lycee-list-toolbar input \{ min-height: 40px; \}/);
   assert.match(css, /\.lycee-page-intro > button \{ width: 40px; height: 40px; flex-basis: 40px; \}/);
   assert.match(css, /\.lycee-school-nav button \{ min-height: 40px; \}/);
