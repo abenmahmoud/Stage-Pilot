@@ -165,3 +165,9 @@ les travaux dus de l'établissement et `SKIP LOCKED` empêche la double prise. U
 verrou frais n'est jamais repris. Après cinq minutes, un travail interrompu est
 replanifié une minute plus tard avec un code fermé, ou devient `dead` au
 cinquième échec.
+
+T020D applique la politique de panne sous verrou et sous statut observé. Le
+travail quitte `running` vers `retry` ou `dead`; seule une livraison encore
+`prepared`, `queued` ou `error` devient `error`. Les états fournisseur plus
+avancés restent intacts. L'événement ne contient qu'un code fermé, le numéro
+d'essai et la prochaine échéance.

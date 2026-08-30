@@ -1715,6 +1715,17 @@ taches et analyse de coherence avant une automatisation sensible.
 - Six tests contrôlent périmètre, états, ordre, bornes, reprise et minimisation.
   T020C et T029E sont terminés sans exécuter de travail ni ouvrir de route.
 
+### Jalon du 30 août 2026 - persistance des pannes de communication
+
+- La panne est recalculée après verrou du travail et de sa livraison, puis le
+  travail passe à `retry` ou `dead` sous le statut et l'essai observés.
+- Une livraison seulement pré-envoi devient `error`. Un état envoyé, livré,
+  rejeté, spam ou désinscrit n'est jamais régressé par une erreur tardive.
+- L'audit contient uniquement code fermé, essai et échéance. La sortie indique
+  seulement si la boîte d'échec doit montrer le travail.
+- Cinq tests de structure vérifient verrou, concurrence, non-régression, audit et
+  minimisation. T020D est terminé sans exécution ni base distante.
+
 ### Jalon du 30 août 2026 - contrat de délivrabilité Brevo
 
 - Un vérificateur Bearer commun protège désormais les futurs webhooks entrants

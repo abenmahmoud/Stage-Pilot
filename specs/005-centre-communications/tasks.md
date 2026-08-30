@@ -147,6 +147,10 @@
   `FOR UPDATE SKIP LOCKED`, lot borné et verrou horodaté. Un travail `running`
   abandonné depuis au moins cinq minutes repart une minute plus tard ou devient
   `dead` au cinquième échec. T020 reste ouvert jusqu'au runner et à la boîte UI.
+- [x] T020D Persister une panne sous verrou : la politique choisit reprise ou
+  `dead`, le travail et une livraison encore pré-envoi sont modifiés ensemble,
+  puis un audit borné est ajouté. Un état déjà envoyé ne régresse jamais. T020
+  reste ouvert jusqu'au runner, à la reprise manuelle persistée et à la boîte UI.
 - [x] T021A Ajouter un aperçu éditorial local sûr avant la relecture : rendu
   Markdown borné, images distantes neutralisées, liens isolés et absence de
   destinataire, publication ou envoi.
