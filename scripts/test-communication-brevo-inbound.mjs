@@ -50,6 +50,7 @@ test("returns only bounded non-identifying receipt metadata", () => {
   assert.deepEqual(Object.keys(receipt).sort(), [
     "attachmentBytes",
     "attachmentCount",
+    "classification",
     "externalMessageHash",
     "hasExtractedMessage",
     "inReplyToHash",
@@ -63,6 +64,8 @@ test("returns only bounded non-identifying receipt metadata", () => {
   assert.equal(receipt.attachmentCount, 1);
   assert.equal(receipt.attachmentBytes, 12_345);
   assert.equal(receipt.hasExtractedMessage, true);
+  assert.equal(receipt.classification.classification, "free_reply");
+  assert.equal(receipt.classification.requiresHumanReview, true);
   const output = JSON.stringify(receipt);
   for (const privateValue of [
     "parent@example.test",
@@ -74,6 +77,20 @@ test("returns only bounded non-identifying receipt metadata", () => {
   ]) {
     assert.doesNotMatch(output, new RegExp(privateValue.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "i"));
   }
+});
+
+test("classifies bounded extracted text without returning the message", () => {
+  const [withdrawal] = parse({
+    items: [item({ ExtractedMarkdownMessage: "Retirez-moi de la liste, s’il vous plaît." })],
+  });
+  assert.equal(withdrawal.classification.classification, "withdrawal");
+  assert.equal(withdrawal.classification.proposedAction, "confirm_withdrawal");
+
+  const [empty] = parse({
+    items: [item({ ExtractedMarkdownMessage: "   " })],
+  });
+  assert.equal(empty.hasExtractedMessage, false);
+  assert.equal(empty.classification, null);
 });
 
 test("creates stable secret domain-separated HMACs and rejects duplicates in one batch", () => {

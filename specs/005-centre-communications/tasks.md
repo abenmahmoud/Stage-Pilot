@@ -251,12 +251,18 @@
   refusés. L'entrant inconnu conserve une communication nulle, le rejeu crée
   une seule ligne, les rôles clients n'ont aucun accès direct et le rollback
   laisse six compteurs à zéro. Le webhook reste fermé.
-- [ ] T024 Classer retrait, correction de contact, question et réponse libre.
+- [x] T024 Classer retrait, correction de contact, question et réponse libre.
 - [x] T024A Définir et tester le classificateur local avant son raccordement. Il
   produit seulement les quatre catégories prévues, comprend des signaux bornés
   en français, anglais, espagnol et arabe, respecte les négations et force une
   revue sécurisée en présence d'un secret. Toute action reste humaine ; T024
   demeure ouvert jusqu'à la boîte entrante et sa persistance.
+- [x] T024B Raccorder le classificateur au parseur entrant sans laisser sortir
+  le texte brut, enregistrer uniquement la catégorie et l'état de revue, puis
+  exposer une boîte privée AAL2 bornée à cent métadonnées. La recette de
+  preview prouve les quatre catégories, le refus d'une action automatique,
+  l'absence de privilèges clients et quatre résidus nuls après rollback. Aucun
+  retrait, correction ou réponse n'est exécuté et le webhook reste fermé.
 - [ ] T025 Créer un brouillon depuis un email transféré autorisé.
 - [x] T025A Définir le contrat local avant toute boîte de collecte. Seule une
   source déjà autorisée côté serveur peut produire un brouillon ; l'identifiant

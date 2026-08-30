@@ -3,6 +3,10 @@ import {
   isCommunicationWebhookSecret,
   verifyCommunicationWebhookBearerHeader,
 } from "./communication-webhook-auth.js";
+import {
+  classifyCommunicationInbound,
+  type CommunicationInboundClassificationResult,
+} from "./communication-inbound-classifier.js";
 
 export type CommunicationBrevoInboundReceipt = {
   provider: "brevo_inbound";
@@ -12,6 +16,7 @@ export type CommunicationBrevoInboundReceipt = {
   attachmentCount: number;
   attachmentBytes: number;
   hasExtractedMessage: boolean;
+  classification: CommunicationInboundClassificationResult | null;
   spamScore: number | null;
 };
 
@@ -126,12 +131,17 @@ function attachmentSummary(value: unknown): { count: number; bytes: number } {
   return { count: value.length, bytes };
 }
 
-function extractedMessagePresent(value: unknown): boolean {
-  if (value === undefined || value === null || value === "") return false;
+function classifyExtractedMessage(value: unknown): CommunicationInboundClassificationResult | null {
+  if (value === undefined || value === null || value === "") return null;
   if (typeof value !== "string" || value.length > MAX_EXTRACTED_LENGTH) {
     throw new CommunicationBrevoInboundError("extracted_message_invalid");
   }
-  return value.trim().length > 0;
+  const bodyText = value.trim();
+  if (bodyText.length < 1) return null;
+  return classifyCommunicationInbound({
+    subject: "",
+    bodyText: bodyText.slice(0, 20_000),
+  });
 }
 
 function spamScore(value: unknown): number | null {
@@ -169,6 +179,7 @@ function parseItem(value: unknown, hashingSecret: string): CommunicationBrevoInb
     digest(HASH_DOMAINS.recipient, address, hashingSecret)
   ))].sort();
   const attachments = attachmentSummary(item.Attachments);
+  const classification = classifyExtractedMessage(item.ExtractedMarkdownMessage);
 
   return {
     provider: "brevo_inbound",
@@ -179,7 +190,8 @@ function parseItem(value: unknown, hashingSecret: string): CommunicationBrevoInb
     recipientAliasHashes,
     attachmentCount: attachments.count,
     attachmentBytes: attachments.bytes,
-    hasExtractedMessage: extractedMessagePresent(item.ExtractedMarkdownMessage),
+    hasExtractedMessage: classification !== null,
+    classification,
     spamScore: spamScore(item.SpamScore),
   };
 }

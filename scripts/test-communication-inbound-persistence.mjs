@@ -26,7 +26,8 @@ test("persists one metadata row idempotently without body or coordinates", () =>
   assert.match(route, /\.insert\(communicationInbound\)/);
   assert.match(route, /externalMessageHash: receipt\.externalMessageHash/);
   assert.match(route, /\.onConflictDoNothing\(\)/);
-  assert.match(route, /status: "received"/);
+  assert.match(route, /status: receipt\.classification === null \? "received" : "review"/);
+  assert.match(route, /classification: receipt\.classification\?\.classification \?\? null/);
   assert.doesNotMatch(route, /ExtractedMarkdownMessage|RawTextBody|Subject|From|Attachments|storageRef|extractedText/);
 });
 
@@ -37,6 +38,8 @@ test("audits only bounded counters and a spam review flag for matched replies", 
   assert.match(route, /attachmentBytes: receipt\.attachmentBytes/);
   assert.match(route, /hasExtractedMessage: receipt\.hasExtractedMessage/);
   assert.match(route, /spamReviewRequired:/);
+  assert.match(route, /classificationConfidence:/);
+  assert.match(route, /requiresHumanReview: true/);
   assert.doesNotMatch(route, /spamScore:|recipientAliasHashes:/);
 });
 

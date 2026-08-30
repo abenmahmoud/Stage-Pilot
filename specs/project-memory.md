@@ -5,6 +5,25 @@
 **Depot** : `abenmahmoud/Stage-Pilot`
 **Dernier jalon de code verifie** : branche de preview Vercel
 
+## Jalon du 30 août 2026 - classement privé des réponses entrantes
+
+- Le parseur Brevo entrant classe localement retrait, correction de contact,
+  question ou réponse libre, puis détruit le texte analysé.
+- La base conserve uniquement la catégorie et un état de revue ; aucune
+  adresse, aucun sujet et aucun corps ne sont exposés dans l'API navigateur.
+- La console Communications dispose d'une file responsive `Réponses reçues`,
+  privée, AAL2, cloisonnée par établissement et limitée à cent métadonnées.
+- Une recette transactionnelle sur la branche Supabase de preview valide les
+  quatre catégories, refuse une catégorie d'action automatique, confirme zéro
+  privilège client et laisse quatre résidus à zéro après rollback.
+- T024 est terminé. Le webhook, le stockage brut, les pièces jointes et toute
+  action automatique restent fermés ; T022 demeure bloqué par l'antivirus.
+- L'audit des dépendances livrées retourne zéro vulnérabilité ; les alertes
+  transitives des outils de développement Vercel restent suivies sans appliquer
+  le correctif majeur cassant proposé par `npm audit --force`.
+- Le brief Claude a été étendu mais reste non exécuté : modèle exact et plafond
+  de mission non confirmés, zéro jeton externe consommé.
+
 ## Jalon du 30 août 2026 - médias Markdown publics verrouillés
 
 - Les deux pages publiques et l'aperçu du gestionnaire utilisent désormais un

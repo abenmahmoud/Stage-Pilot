@@ -241,3 +241,12 @@ exact resté faux. Le parseur détruit les coordonnées et le contenu avant la
 transaction. La route cherche au plus deux livraisons par HMAC sortant dans le
 même établissement, insère une ligne idempotente et audite uniquement des
 compteurs. Un entrant sans référence reste non rattaché, sans repli nominatif.
+
+T024B raccorde le classificateur local au même parseur : le texte borné est lu
+uniquement en mémoire, puis seule la catégorie rejoint `communication_inbound`.
+La boîte privée projette six métadonnées, reste AAL2, cloisonnée par
+établissement, en lecture seule et limitée à cent lignes. Les quatre catégories
+ont été prouvées dans une transaction de preview annulée ; une catégorie
+`automatic_action` est refusée par la contrainte et les rôles clients gardent
+zéro privilège. T024 est fermé sans stockage du message, sans webhook actif et
+sans action automatique.

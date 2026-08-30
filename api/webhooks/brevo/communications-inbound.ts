@@ -70,7 +70,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             communicationId: match.status === "matched" ? match.communicationId : null,
             provider: receipt.provider,
             externalMessageHash: receipt.externalMessageHash,
-            status: "received",
+            status: receipt.classification === null ? "received" : "review",
+            classification: receipt.classification?.classification ?? null,
           })
           .onConflictDoNothing()
           .returning({ id: communicationInbound.id });
@@ -98,6 +99,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             attachmentBytes: receipt.attachmentBytes,
             hasExtractedMessage: receipt.hasExtractedMessage,
             spamReviewRequired: receipt.spamScore !== null && receipt.spamScore >= 5,
+            classification: receipt.classification?.classification ?? null,
+            classificationConfidence: receipt.classification?.confidence ?? null,
+            proposedAction: receipt.classification?.proposedAction ?? null,
+            sensitiveContentDetected: receipt.classification?.sensitive ?? false,
+            requiresHumanReview: true,
           },
         });
       }

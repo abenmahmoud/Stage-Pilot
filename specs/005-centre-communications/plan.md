@@ -50,6 +50,11 @@ ses fichiers. Une communication interne ne reçoit jamais de version publique.
 6. Les webhooks mettent à jour les livraisons de manière idempotente.
 7. Les réponses rejoignent la boîte de traitement de la communication.
 
+La boîte de traitement ne reçoit d'abord que la catégorie, l'état, la date et
+la communication rattachée. Le texte brut reste absent tant que le stockage
+privé et son contrôle antivirus ne sont pas validés. Toutes les catégories sont
+des propositions : un agent habilité doit toujours lire puis décider.
+
 ## Interface simplifiée
 
 L'écran principal propose trois commandes visibles :

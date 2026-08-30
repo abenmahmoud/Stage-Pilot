@@ -10,6 +10,7 @@ import {
   ExternalLink,
   FileText,
   FilePenLine,
+  Inbox,
   LoaderCircle,
   LockKeyhole,
   Mail,
@@ -106,6 +107,15 @@ type CommunicationFailure = {
   version: number | null;
 };
 
+type CommunicationInbound = {
+  id: string;
+  communicationId: string | null;
+  status: string;
+  classification: string | null;
+  receivedAt: string;
+  title: string | null;
+};
+
 type CreatePayload = {
   communication: Pick<CommunicationRow, "id" | "status" | "visibility" | "currentVersion" | "updatedAt">;
   duplicate: boolean;
@@ -166,6 +176,13 @@ const FAILURE_CODE_LABELS: Record<string, string> = {
   content_missing: "Version officielle introuvable",
   provider_rejected: "Message refusé",
   unknown_failure: "Échec à vérifier",
+};
+
+const INBOUND_CLASSIFICATION_LABELS: Record<string, string> = {
+  withdrawal: "Demande de retrait",
+  contact_correction: "Coordonnées à corriger",
+  question: "Question",
+  free_reply: "Réponse libre",
 };
 
 const DOCX_MIME = "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
@@ -310,6 +327,7 @@ export default function CommunicationsPage() {
   const [templates, setTemplates] = useState<CommunicationTemplate[]>([]);
   const [documents, setDocuments] = useState<CommunicationDocument[]>([]);
   const [failures, setFailures] = useState<CommunicationFailure[]>([]);
+  const [inbound, setInbound] = useState<CommunicationInbound[]>([]);
   const [documentFile, setDocumentFile] = useState<File | null>(null);
   const [documentPickerKey, setDocumentPickerKey] = useState(0);
   const [draft, setDraft] = useState(emptyDraft);
@@ -344,7 +362,7 @@ export default function CommunicationsPage() {
     setLoading(true);
     setError("");
     try {
-      const [communications, templatePayload, documentPayload, failurePayload] = await Promise.all([
+      const [communications, templatePayload, documentPayload, failurePayload, inboundPayload] = await Promise.all([
         apiFetch<CommunicationsPayload>("communications/admin"),
         apiFetch<{ templates: CommunicationTemplate[] }>("communications/admin/templates"),
         COMMUNICATION_DOCUMENTS_UI_ENABLED
@@ -353,11 +371,13 @@ export default function CommunicationsPage() {
         canManageTemplates
           ? apiFetch<{ failures: CommunicationFailure[] }>("communications/admin/failures")
           : Promise.resolve({ failures: [] }),
+        apiFetch<{ inbound: CommunicationInbound[] }>("communications/admin/inbound"),
       ]);
       setRows(communications.communications);
       setTemplates(templatePayload.templates);
       setDocuments(documentPayload.documents);
       setFailures(failurePayload.failures);
+      setInbound(inboundPayload.inbound);
     } catch (reason) {
       setError(reason instanceof Error ? reason.message : "Communications indisponibles.");
     } finally {
@@ -732,6 +752,32 @@ export default function CommunicationsPage() {
 
       {error ? <p role="alert" className="border border-red-200 bg-red-50 p-3 text-sm text-red-800">{error}</p> : null}
       {notice ? <p role="status" className="border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-800">{notice}</p> : null}
+
+      <section className="border-y border-slate-200 py-5" aria-labelledby="communication-inbound-title">
+        <div className="flex items-start gap-3">
+          <Inbox className="mt-0.5 h-5 w-5 shrink-0 text-emerald-700" />
+          <div className="min-w-0">
+            <h2 id="communication-inbound-title" className="text-lg font-bold text-slate-950">Réponses reçues</h2>
+            <p className="mt-1 text-sm text-slate-500">{inbound.length === 0 ? "Aucune réponse en attente" : `${inbound.length} réponse${inbound.length > 1 ? "s" : ""} à vérifier`}</p>
+          </div>
+        </div>
+        {inbound.length > 0 ? (
+          <ul className="mt-4 divide-y divide-slate-200 border-y border-slate-200 bg-white">
+            {inbound.map((item) => (
+              <li key={item.id} className="flex min-w-0 flex-col gap-2 px-4 py-4 sm:flex-row sm:items-center sm:justify-between">
+                <div className="min-w-0">
+                  <strong className="block break-words text-sm text-slate-950">{item.title ?? "Réponse non rattachée"}</strong>
+                  <p className="mt-1 text-sm font-semibold text-emerald-800">{INBOUND_CLASSIFICATION_LABELS[item.classification ?? ""] ?? "Classement manuel requis"}</p>
+                </div>
+                <div className="shrink-0 text-left sm:text-right">
+                  <span className="inline-flex rounded-full bg-amber-50 px-2.5 py-1 text-xs font-semibold text-amber-800">À vérifier</span>
+                  <p className="mt-1 text-xs text-slate-500">{dateLabel(item.receivedAt)}</p>
+                </div>
+              </li>
+            ))}
+          </ul>
+        ) : null}
+      </section>
 
       {canManageTemplates ? (
         <section className="border-y border-slate-200 py-5" aria-labelledby="communication-failures-title">

@@ -16,6 +16,7 @@ const routeFiles = [
   "api/communications/admin/[id]/publish.ts",
   "api/communications/admin/failures/index.ts",
   "api/communications/admin/failures/[id]/retry.ts",
+  "api/communications/admin/inbound/index.ts",
   "api/communications/admin/jobs/[id]/cancel.ts",
 ];
 
