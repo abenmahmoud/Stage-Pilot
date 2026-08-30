@@ -1442,6 +1442,21 @@ taches et analyse de coherence avant une automatisation sensible.
 - La revue Claude est préparée mais non exécutée sans modèle exact et plafond de
   consommation explicitement autorisés.
 
+### Jalon du 30 août 2026 - API de brouillon manuel des communications
+
+- La première route administrative accepte uniquement une saisie directe ; les
+  fichiers et emails transférés restent fermés jusqu'à leurs pipelines dédiés.
+- L'accès exige l'authentification agent existante, le périmètre persistant de
+  l'établissement, un rôle éditeur limité, puis l'interrupteur environnement et
+  l'interrupteur base. La preview reste donc inaccessible tant qu'ils sont faux.
+- Le navigateur ne fournit aucune empreinte. Le serveur normalise les champs,
+  refuse secrets et propriétés inconnues, puis calcule séparément l'empreinte de
+  source et celle de la version.
+- Racine interne, version 1 et événement minimal sont écrits dans une transaction.
+  La contrainte source et `ON CONFLICT` rendent une création concurrente
+  idempotente sans dupliquer le brouillon.
+- Aucun écran, groupe, contact, publication ou envoi n'est activé par ce lot.
+
 ## 8. Prochain ordre recommande
 
 1. Publier et tester le pré-triage ordinateur portable avec des données fictives.

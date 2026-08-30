@@ -29,6 +29,10 @@
 
 - [ ] T009 Ajouter l'entrée `Communications` dans l'espace administratif.
 - [ ] T010 Construire le parcours `Déposer`, `Vérifier`, `Publier et informer`.
+- [x] T010A Ajouter l'API serveur du premier dépôt manuel, derrière les deux
+  interrupteurs de module. Elle accepte seulement une saisie directe bornée,
+  refuse secrets et champs inconnus, calcule les empreintes côté serveur et
+  crée racine, version et audit dans une transaction idempotente cloisonnée.
 - [ ] T011 Extraire localement le texte des PDF et DOCX autorisés.
 - [ ] T012 Étendre l'aide IA avec sortie structurée et informations à confirmer.
 - [ ] T013 Ajouter les modèles Hebdo, Urgent, Rentrée, Document, Événement et Rappel.
