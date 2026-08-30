@@ -196,6 +196,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const correlationId = randomUUID();
     const jobId = randomUUID();
     const result = await db.transaction(async (tx) => {
+      await tx.execute(sql`
+        select pg_advisory_xact_lock(hashtextextended(${request.id}::text, 0))
+      `);
       const [created] = await tx
         .insert(supportMessages)
         .values({

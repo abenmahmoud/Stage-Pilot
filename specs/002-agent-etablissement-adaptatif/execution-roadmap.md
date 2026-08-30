@@ -543,6 +543,14 @@ l'autorisation de quota définie par le propriétaire.
   toute pièce sortante. L'email signale le document mais ne transporte aucun
   binaire ; le suivi délivre une URL privée de 60 secondes. La migration n'a été
   appliquée qu'à `guichet-lycee-preview`.
+- Lot N5ZO : retrait sûr des brouillons de réponse. **Implémenté et vérifié sur
+  la preview** :
+  seul le compte ayant préparé un document terminal peut le retirer. Le stockage
+  privé est nettoyé, le retrait est audité sans nom de fichier et le verrou du
+  dossier garantit qu'un retrait et un envoi concurrents ne réussissent jamais
+  ensemble. Les pièces déjà libérées et les contrôles en cours restent protégés.
+  L'état SQL supplémentaire est appliqué uniquement à la branche Supabase de
+  preview ; RLS forcée et absence de droits clients sont reconfirmées.
 
 ## Prochaine séquence verrouillée
 

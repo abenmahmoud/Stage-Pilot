@@ -98,6 +98,11 @@ quarantaine. Une panne d'envoi externe n'affecte pas le dossier.
   réponse : dépôt privé, contrôle de signature et antivirus, publication atomique
   avec le message, lien public signé 60 secondes et blocage de toute pièce avant
   confirmation d'identité pour une demande ENT ou email académique sensible.
+- [x] **T018B** Permettre à l'agent de retirer son propre brouillon après la fin
+  du contrôle, supprimer le fichier privé et la ligne dans la même opération,
+  auditer le retrait sans nom de fichier et sérialiser ce retrait avec l'envoi.
+  Un document déjà envoyé, appartenant à un autre agent ou encore analysé reste
+  impossible à retirer.
 - [x] **T019** Ajouter les modèles de réponse et variables autorisées. Trois
   modèles prudents sont disponibles et les agents peuvent enregistrer un modèle
   limité aux variables `prenom`, `numero` et `objet`.

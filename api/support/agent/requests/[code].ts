@@ -552,6 +552,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           && attachment.messageId === null
           && attachment.releasedAt === null
           && attachment.scanStatus === "clean",
+        canRemoveDraft:
+          attachment.direction === "agent"
+          && attachment.uploadedByUser === user.id
+          && attachment.messageId === null
+          && attachment.releasedAt === null
+          && ["clean", "blocked", "scan_error", "removal_pending"].includes(attachment.scanStatus),
       })),
       callbacks: callbacks.map((callback) => ({
         id: callback.id,

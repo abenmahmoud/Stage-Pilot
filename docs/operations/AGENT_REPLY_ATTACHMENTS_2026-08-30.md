@@ -23,16 +23,22 @@
   être réutilisée.
 - Les brouillons agent ne figurent ni dans le détail public ni dans la route de
   téléchargement publique.
+- Le compte propriétaire peut retirer un brouillon après un résultat antivirus
+  terminal. L'état `removal_pending` est écrit sous le même verrou que l'envoi,
+  puis le fichier privé et la ligne sont supprimés ; une pièce déjà envoyée ou
+  encore analysée reste intouchable.
+- Le retrait produit `attachment.draft_removed` avec identifiant opaque et état
+  technique, sans nom de fichier ni contenu.
 - RLS activée et forcée ; aucun droit direct `anon` ou `authenticated`.
 
 ## Vérifications exécutées
 
 - `npm run build`
-- `npm run test:support-agent-reply-attachments` : 6/6
+- `npm run test:support-agent-reply-attachments` : 7/7
 - `npm run test:support-public-detail-payload` : 3/3
 - `npm run test:support-agent-request-body-bounds` : 3/3
 - `npm run test:preview-security-gate` : succès complet
-- Couverture : 99 routes HTTP, 68 routes privées, 78 migrations uniques.
+- Couverture : 99 routes HTTP, 68 routes privées, 79 migrations uniques.
 - Inspection Supabase preview : quatre colonnes et deux contraintes présentes ;
   RLS forcée et privilèges client absents.
 

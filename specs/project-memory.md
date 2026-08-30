@@ -3318,3 +3318,24 @@ taches et analyse de coherence avant une automatisation sensible.
   routes, dont 68 privées. Le brief Claude est préparé mais non exécuté faute de
   modèle exact et de plafond propres à cette mission ; aucun jeton externe n'a
   été consommé.
+
+### Jalon du 30 août 2026 - retrait des brouillons de réponse agent
+
+- Un agent peut retirer uniquement un document qu'il a lui-même préparé, encore
+  sans message ni libération, et dont le contrôle est terminé avec `clean`,
+  `blocked` ou `scan_error`.
+- La route vérifie établissement, service et propriétaire, applique la limite de
+  débit, inscrit `removal_pending`, supprime le fichier privé puis la ligne et
+  écrit un audit sans nom de fichier. Une panne Storage replace le brouillon en
+  erreur reprenable. Un document déjà envoyé ou encore analysé est refusé.
+- La réponse et le retrait utilisent le même verrou transactionnel de dossier :
+  une course ne peut jamais réussir des deux côtés. L'interface affiche une
+  corbeille seulement pour les brouillons déclarés retirables par le serveur.
+- La migration `20260830180000` est appliquée uniquement à
+  `guichet-lycee-preview`. La contrainte contient `removal_pending`, la RLS reste
+  forcée et les rôles clients n'ont aucun droit direct sur la table.
+- Le build, les sept tests dédiés et la barrière complète passent sur 99 routes,
+  68 routes privées et 79 migrations. Les vues à 1 265 px et 375 px restent sans
+  débordement ni erreur de console.
+- Le brief Claude est préparé mais non exécuté, faute de modèle exact et de
+  plafond propres à cette mission ; aucun jeton externe n'a été consommé.

@@ -88,7 +88,8 @@ Contraintes uniques partielles sur `provider + provider_message_id`.
 
 - `id uuid primary key`
 - `request_id uuid not null references support_requests on delete cascade`
-- `message_id uuid not null references support_messages on delete cascade`
+- `message_id uuid references support_messages on delete cascade` : vide pendant
+  un brouillon agent, obligatoire dès sa libération au demandeur
 - `concerns_type text not null`
 - `concerns_label text`
 - `document_type text not null`
@@ -102,7 +103,11 @@ Contraintes uniques partielles sur `provider + provider_message_id`.
 - `storage_path text not null unique`
 - `scan_status text not null default 'awaiting_upload'`
 - `scan_detail text`
+- `direction text not null` : `requester` ou `agent`
 - `uploaded_by_session uuid`
+- `uploaded_by_user uuid` : propriétaire d'un brouillon agent
+- `released_at timestamptz`
+- `released_by uuid`
 - `retention_until timestamptz not null`
 - `uploaded_at timestamptz`
 - `created_at timestamptz not null default now()`
@@ -110,6 +115,12 @@ Contraintes uniques partielles sur `provider + provider_message_id`.
 Le navigateur ne recoit qu'une autorisation temporaire pour un chemin unique.
 Apres l'envoi, le serveur recalcule la taille, le type et l'empreinte du fichier,
 puis le conserve en quarantaine jusqu'au controle antivirus.
+
+Un brouillon agent propre, refusé ou en erreur de contrôle peut être retiré par
+son propriétaire. Il passe d'abord à `removal_pending` sous le verrou du dossier,
+puis le fichier privé est supprimé avant la ligne. L'événement
+`attachment.draft_removed` ne contient ni nom ni contenu. Une pièce liée à un
+message ne peut plus suivre ce parcours de retrait.
 
 ### `support_events`
 

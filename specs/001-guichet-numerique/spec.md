@@ -144,6 +144,9 @@ et ne clôture pas un dossier sans validation humaine.
   ajoutée au fil puis notifiée à l'agent.
 - Les pièces jointes d'une réponse email sont placées en quarantaine avant d'être
   visibles ou téléchargeables.
+- Un agent peut retirer uniquement son propre document encore en brouillon après
+  le contrôle. Un document déjà envoyé ne peut plus être supprimé depuis le
+  dossier et une course entre retrait et envoi ne peut avoir qu'un seul gagnant.
 - Les statuts envoyé, livré, différé, rejeté et spam sont enregistrés.
 
 ### P5 - Traiter efficacement 200 demandes

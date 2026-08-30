@@ -2442,6 +2442,7 @@ type AgentRequestDetail = {
     releasedAt: string | null;
     createdAt: string;
     canAttachToReply: boolean;
+    canRemoveDraft: boolean;
   }>;
   callbacks: Array<{
     id: string;
@@ -2851,7 +2852,15 @@ function isAgentAttachment(value: unknown): value is AgentRequestDetail["attachm
     && ["requester", "agent"].includes(String(value.direction))
     && isStringOrNull(value.releasedAt)
     && typeof value.canAttachToReply === "boolean"
+    && typeof value.canRemoveDraft === "boolean"
     && isNonNegativeInteger(value.sizeBytes);
+}
+
+function isAgentAttachmentRemovalPayload(value: unknown): value is { attachment: { id: string }; removed: true } {
+  return isRecord(value)
+    && value.removed === true
+    && isRecord(value.attachment)
+    && typeof value.attachment.id === "string";
 }
 
 function isAgentCallback(value: unknown): value is AgentRequestDetail["callbacks"][number] {
@@ -3007,6 +3016,7 @@ function ConnectedAgentView({ onBack }: { onBack: () => void }) {
   const [translationValidated, setTranslationValidated] = useState(false);
   const [translating, setTranslating] = useState(false);
   const [agentUploading, setAgentUploading] = useState(false);
+  const [agentDeletingAttachmentId, setAgentDeletingAttachmentId] = useState<string | null>(null);
   const [selectedAgentAttachmentIds, setSelectedAgentAttachmentIds] = useState<string[]>([]);
   const [internalNote, setInternalNote] = useState("");
   const [callbackOutcome, setCallbackOutcome] = useState("");
@@ -3444,6 +3454,32 @@ function ConnectedAgentView({ onBack }: { onBack: () => void }) {
     }
   }
 
+  async function removeAgentAttachment(id: string, originalName: string) {
+    const code = selectedCode;
+    if (!code || !window.confirm(`Retirer « ${originalName} » de cette réponse ?`)) return;
+    setAgentDeletingAttachmentId(id);
+    try {
+      const payload = await apiFetch<unknown>(`support/agent/attachments/${id}`, { method: "DELETE" });
+      if (!isAgentAttachmentRemovalPayload(payload) || payload.attachment.id !== id) {
+        throw new Error("Confirmation de retrait invalide");
+      }
+      setSelectedAgentAttachmentIds((current) => current.filter((attachmentId) => attachmentId !== id));
+      if (selectedCodeRef.current === code) setDetail(await fetchAgentRequestDetail(code));
+      setError(null);
+    } catch (removeError) {
+      setError(removeError instanceof Error ? removeError.message : "Document non retiré");
+      if (selectedCodeRef.current === code) {
+        try {
+          setDetail(await fetchAgentRequestDetail(code));
+        } catch {
+          // Le message de retrait reste prioritaire.
+        }
+      }
+    } finally {
+      setAgentDeletingAttachmentId(null);
+    }
+  }
+
   const selected = detail?.request;
   const requiresSafeIdentityReply = Boolean(
     selected &&
@@ -3556,7 +3592,7 @@ function ConnectedAgentView({ onBack }: { onBack: () => void }) {
                 {translationTargetLanguage ? <div className="lycee-translation-command"><Languages aria-hidden="true" /><span><strong>Répondre aussi en {translationTargetLanguage}</strong><small>La version française reste la référence. Vous comparerez les deux textes avant l’envoi.</small></span><button type="button" disabled={translating || saving || selected.status === "clos" || !replySourceMessage} onClick={() => void prepareTranslation()}>{translating ? "Traduction…" : translationDraft ? "Repréparer" : "Préparer"}</button></div> : null}
                 {translationDraft ? <div className="lycee-translation-review" aria-live="polite"><div><Languages aria-hidden="true" /><strong>Version en {translationDraft.targetLanguage}</strong><button type="button" title="Abandonner la traduction" onClick={clearTranslation}><Trash2 aria-hidden="true" /><span>Garder le français</span></button></div><p dir="auto">{translationDraft.translatedText}</p><div className="lycee-translation-back"><small>Contrôle du sens en français</small><p>{translationDraft.backTranslationFr}</p></div>{translationDraft.warnings.length > 0 ? <ul>{translationDraft.warnings.map((warning) => <li key={warning}>{warning}</li>)}</ul> : null}<label><input type="checkbox" checked={translationValidated} onChange={(event) => setTranslationValidated(event.target.checked)} /><span><strong>J’ai comparé les deux versions.</strong><small>J’autorise l’envoi de cette traduction. L’agent humain reste responsable du message.</small></span></label></div> : null}
                 <input ref={agentFileInputRef} className="lycee-file-input" type="file" multiple accept={SUPPORT_FILE_TYPES.join(",")} aria-label="Documents à joindre à la réponse" onChange={(event) => void selectAgentFiles(event)} />
-                {agentDraftAttachments.length > 0 ? <div className="lycee-agent-reply-files" aria-label="Documents préparés pour la réponse">{agentDraftAttachments.map((attachment) => <label key={attachment.id} data-ready={attachment.canAttachToReply}><input type="checkbox" disabled={!attachment.canAttachToReply || saving} checked={selectedAgentAttachmentIds.includes(attachment.id)} onChange={(event) => setSelectedAgentAttachmentIds((current) => event.target.checked ? [...new Set([...current, attachment.id])] : current.filter((id) => id !== attachment.id))} /><FileText aria-hidden="true" /><span><strong>{attachment.originalName}</strong><small>{attachment.canAttachToReply ? "Prêt à joindre" : attachment.scanStatus === "blocked" ? "Fichier refusé" : attachment.scanStatus === "scan_error" ? "Contrôle indisponible" : "Contrôle antivirus en cours"}</small></span></label>)}</div> : null}
+                {agentDraftAttachments.length > 0 ? <div className="lycee-agent-reply-files" aria-label="Documents préparés pour la réponse">{agentDraftAttachments.map((attachment) => <div key={attachment.id} data-ready={attachment.canAttachToReply}><label><input type="checkbox" disabled={!attachment.canAttachToReply || saving || agentDeletingAttachmentId === attachment.id} checked={selectedAgentAttachmentIds.includes(attachment.id)} onChange={(event) => setSelectedAgentAttachmentIds((current) => event.target.checked ? [...new Set([...current, attachment.id])] : current.filter((id) => id !== attachment.id))} /><FileText aria-hidden="true" /><span><strong>{attachment.originalName}</strong><small>{attachment.canAttachToReply ? "Prêt à joindre" : attachment.scanStatus === "blocked" ? "Fichier refusé" : attachment.scanStatus === "scan_error" ? "Contrôle indisponible" : attachment.scanStatus === "removal_pending" ? "Retrait à reprendre" : "Contrôle antivirus en cours"}</small></span></label>{attachment.canRemoveDraft ? <button type="button" className="lycee-agent-file-remove" disabled={agentDeletingAttachmentId !== null || saving} title="Retirer ce brouillon" aria-label={`Retirer ${attachment.originalName}`} onClick={() => void removeAgentAttachment(attachment.id, attachment.originalName)}>{agentDeletingAttachmentId === attachment.id ? <RefreshCw className="is-spinning" aria-hidden="true" /> : <Trash2 aria-hidden="true" />}</button> : null}</div>)}</div> : null}
                 {showTemplateSave && !requiresSafeIdentityReply && access?.canManageTemplates ? <div className="lycee-template-save"><input aria-label="Nom du nouveau modèle" value={templateName} onChange={(event) => setTemplateName(event.target.value)} placeholder="Nom du modèle" maxLength={80} /><button type="button" disabled={saving || !templateName.trim() || !reply.trim()} onClick={() => void saveReplyTemplate()}>Enregistrer</button></div> : null}
                 <div>{requiresSafeIdentityReply || !access?.canManageTemplates ? null : <button className="lycee-secondary-action" type="button" disabled={selected.status === "clos"} onClick={() => setShowTemplateSave((current) => !current)}><BookOpenCheck aria-hidden="true" /> Modèle</button>}<button className="lycee-secondary-action" type="button" disabled={selected.status === "clos" || requiresSafeIdentityReply || saving || agentUploading || agentDraftAttachments.length >= MAX_SUPPORT_FILES} onClick={() => agentFileInputRef.current?.click()}><Paperclip aria-hidden="true" /> {agentUploading ? "Contrôle…" : "Joindre"}</button><button className="lycee-primary-action" type="button" disabled={saving || agentUploading || translating || translationNeedsDecision || selected.status === "clos" || (!requiresSafeIdentityReply && !reply.trim())} onClick={() => void sendAgentReply()}><Send aria-hidden="true" /> {saving ? "Enregistrement…" : translatedReplyReady && translationDraft ? `Valider et envoyer en ${translationDraft.targetLanguage}` : "Valider et envoyer"}</button></div>
               </section>
