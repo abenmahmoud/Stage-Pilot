@@ -631,6 +631,9 @@
   et numérique avec comptes individuels et périmètres séparés.
 - [x] T056A Ajouter en preview la vue superadministrateur de la charge ouverte,
   urgente et en retard par service, reliée aux files cloisonnées.
+- [x] T056B Ajouter dans le shell authentifié un accès direct `Demandes` pour le
+  superadministrateur, l'administration, les agents de service et la direction,
+  sans modifier leurs pages d'accueil ni élargir leurs périmètres d'accès.
 - [ ] T057 Ajouter supervision, alertes, sauvegarde restaurable, file d'échec,
   journal d'accès et procédure d'incident.
 - [x] T057A Signaler dans la santé des demandes les retraits de brouillons agent

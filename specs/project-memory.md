@@ -3371,3 +3371,16 @@ taches et analyse de coherence avant une automatisation sensible.
 - T034A de la spécification 001 et T020B de la spécification 002 sont terminées.
   Le brief Claude est préparé mais non exécuté faute de modèle exact et de
   plafond propres à cette mission ; aucun jeton externe n'a été consommé.
+
+### Jalon du 30 août 2026 - accès direct aux demandes pour les agents
+
+- Le shell authentifié affiche désormais une entrée unique `Demandes` pour le
+  superadministrateur, l'administration, les agents de service et la direction.
+- Cette entrée ouvre la file agent existante sans modifier les pages d'accueil,
+  les rôles, l'établissement actif ni les gardes de service côté serveur.
+- Le contrat local vérifie la présence unique de la file et des validations, la
+  page d'accueil de l'agent, la navigation nommée, Échap et la gestion du focus.
+- T056B de la spécification 002 est terminée sans migration, donnée réelle,
+  compte distant ni changement de production. Le brief Claude est préparé mais
+  non exécuté faute de modèle exact et de plafond propres à cette mission ;
+  aucun jeton externe n'a été consommé.

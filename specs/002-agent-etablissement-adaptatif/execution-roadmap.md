@@ -568,6 +568,13 @@ l'autorisation de quota définie par le propriétaire.
   sur dix minutes et 600 par compte agent sur une heure, avec clés HMAC. La
   migration étend seulement la liste des portées de la table privée ; RLS
   activée et forcée, contrainte HMAC et absence de droits clients sont vérifiées.
+- Lot N5ZR : accès direct à la file des demandes. **Implémenté sans changement
+  d'autorisation ni de page d'accueil** : le shell authentifié présente une
+  entrée `Demandes` commune au superadministrateur, à l'administration, aux
+  agents de service et à la direction. Le lien ouvre la file existante ; les
+  gardes serveur, l'établissement et le périmètre de service restent inchangés.
+  Le contrat local vérifie aussi le nom de la navigation, la fermeture par
+  Échap et la restitution du focus.
 
 ## Prochaine séquence verrouillée
 

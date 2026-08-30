@@ -23,6 +23,7 @@ import {
   Activity,
   CalendarDays,
   BadgeCheck,
+  Inbox,
   MessagesSquare,
 } from "lucide-react";
 import { COMMUNICATIONS_UI_ENABLED } from "../lib/feature-flags";
@@ -183,32 +184,28 @@ export default function AppLayout() {
         )}
 
         {isProviseur && (
+          <NavLink to="/admin/parametres" className={navCls}>
+            <Settings className="w-4 h-4" />
+            Paramètres
+          </NavLink>
+        )}
+
+        {isSupportAgent && (
           <>
             <div className="pt-4 pb-2 px-4">
               <p className="text-[10px] font-semibold uppercase tracking-wider text-white/40">
                 Espace agent
               </p>
             </div>
-            <NavLink to="/admin/parametres" className={navCls}>
-              <Settings className="w-4 h-4" />
-              Paramètres
+            <NavLink to="/prototype?view=agent" className={navCls}>
+              <Inbox className="w-4 h-4" />
+              Demandes
+            </NavLink>
+            <NavLink to="/admin/validations-agent" className={navCls}>
+              <BadgeCheck className="w-4 h-4" />
+              Validations
             </NavLink>
           </>
-        )}
-
-        {user.role === "agent" && (
-          <div className="pt-4 pb-2 px-4">
-            <p className="text-[10px] font-semibold uppercase tracking-wider text-white/40">
-              Espace agent
-            </p>
-          </div>
-        )}
-
-        {isSupportAgent && (
-          <NavLink to="/admin/validations-agent" className={navCls}>
-            <BadgeCheck className="w-4 h-4" />
-            Validations
-          </NavLink>
         )}
 
         {(isAdmin || isProviseur) && (
