@@ -3,10 +3,15 @@ import test from "node:test";
 import { readFile } from "node:fs/promises";
 import {
   MAX_RESPONSE_BYTES,
+  MAX_METADATA_ITEMS,
   REQUEST_TIMEOUT_MS,
   SOURCE_ORIGIN,
+  compareLegacyCategorySnapshots,
+  compareLegacyMediaSnapshots,
   compareLegacySnapshots,
   validateDeclaredCount,
+  validateLiveCategoryRows,
+  validateLiveMediaRows,
   validateLiveRows,
 } from "./check-legacy-wordpress-drift.mjs";
 
@@ -69,11 +74,54 @@ test("refuse une pagination qui masquerait des contenus", () => {
   assert.throws(() => validateDeclaredCount(new Headers(), [], "pages"), /pagination absente/u);
 });
 
+test("conserve explicitement l'ecart 83 medias declares et 81 accessibles", () => {
+  const inventoryMedia = [{
+    wordpressId: 7,
+    parentId: null,
+    slug: "document",
+    title: "Document",
+    mimeType: "application/pdf",
+    sourceUrl: `${SOURCE_ORIGIN}/wp-content/uploads/document.pdf`,
+    modifiedAt: "2026-08-30T08:00:00Z",
+  }];
+  const stable = compareLegacyMediaSnapshots(inventoryMedia, [{ ...inventoryMedia[0] }], 3, 3);
+  assert.equal(stable.inaccessibleInventory, 2);
+  assert.equal(stable.inaccessibleLive, 2);
+  assert.equal(stable.hasDrift, false);
+  assert.equal(compareLegacyMediaSnapshots(inventoryMedia, [{ ...inventoryMedia[0] }], 3, 4).hasDrift, true);
+});
+
+test("valide les medias et categories sans telecharger les fichiers", () => {
+  const rawMedia = {
+    id: 7,
+    parent: 0,
+    slug: "document",
+    title: { rendered: "Document" },
+    mime_type: "application/pdf",
+    source_url: `${SOURCE_ORIGIN}/wp-content/uploads/document.pdf`,
+    modified_gmt: "2026-08-30T08:00:00",
+  };
+  const media = validateLiveMediaRows([rawMedia]);
+  assert.equal(media[0].parentId, null);
+  assert.equal(validateLiveMediaRows([{ ...rawMedia, parent: undefined }])[0].parentId, null);
+  assert.throws(
+    () => validateLiveMediaRows([{ ...rawMedia, id: 8, source_url: "https://example.org/file.pdf" }]),
+    /origine non autorisee/u
+  );
+
+  const categories = validateLiveCategoryRows([{ id: 9, slug: "actualites", name: "Actualites", count: 4 }]);
+  assert.equal(categories[0].count, 4);
+  const changed = compareLegacyCategorySnapshots(categories, [{ ...categories[0], count: 5 }]);
+  assert.equal(changed.hasDrift, true);
+  assert.equal(compareLegacyCategorySnapshots(categories, categories, 2).hasDrift, true);
+});
+
 test("garde le controle strictement borne et en lecture seule", async () => {
   const source = await readFile(new URL("./check-legacy-wordpress-drift.mjs", import.meta.url), "utf8");
   assert.equal(SOURCE_ORIGIN, "https://lycee-blaise-cendrars-sevran.fr");
   assert.ok(REQUEST_TIMEOUT_MS > 0 && REQUEST_TIMEOUT_MS <= 15_000);
   assert.ok(MAX_RESPONSE_BYTES > 0 && MAX_RESPONSE_BYTES <= 1_000_000);
+  assert.ok(MAX_METADATA_ITEMS > 0 && MAX_METADATA_ITEMS <= 500);
   assert.match(source, /method: "GET"/u);
   assert.match(source, /redirect: "error"/u);
   assert.match(source, /response\.body\.getReader\(\)/u);

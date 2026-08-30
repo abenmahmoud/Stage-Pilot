@@ -47,7 +47,9 @@ relire et aucun ne peut être publié automatiquement.
 - **Couverture technique** : 28 contenus sur 28 ont un brouillon de preview.
 - **Parité de l'inventaire** : le contrôle public borné du 30 août 2026 retrouve
   28 contenus sur 28, sans ajout, retrait ou modification. La commande
-  `npm run legacy:check-drift` permet de répéter cette preuve sans rien écrire.
+  `npm run legacy:check-drift` retrouve aussi 81 médias accessibles sur 81,
+  conserve l'écart WordPress de 83 déclarés pour 81 accessibles et rapproche
+  les 9 catégories, sans télécharger de fichier ni rien écrire.
 - **Conservation des adresses** : les 27 anciennes adresses hors accueil ont une
   redirection versionnée ; l'accueil relève de la future bascule globale.
 - **Décisions éditoriales** : 15 contenus durables, 7 archives et 6 contenus à

@@ -36,12 +36,19 @@ Résultat :
 | Ajouts | 0 |
 | Retraits | 0 |
 | Modifications | 0 |
+| Médias accessibles inventoriés / actuels | 81 / 81 |
+| Médias déclarés inventoriés / actuels | 83 / 83 |
+| Écart inaccessible inventorié / actuel | 2 / 2 |
+| Catégories inventoriées / actuelles | 9 / 9 |
 
-Les cinq tests locaux prouvent aussi la détection des ajouts, retraits,
-modifications, doublons, contenus non publiés et origines étrangères.
+Les sept tests locaux prouvent aussi la détection des ajouts, retraits,
+modifications, doublons, contenus non publiés, origines étrangères, pagination
+incohérente et variation de l'écart des médias inaccessibles. Les fichiers média
+ne sont jamais téléchargés par ce contrôle.
 
 ## Limite de la preuve
 
 Cette parité porte sur l'identité publique, l'adresse, le titre et la date de
-modification des contenus. Elle ne remplace pas la comparaison visuelle et
-éditoriale, ni la validation des responsables avant une éventuelle bascule.
+modification des contenus et médias, ainsi que sur les catégories. Elle ne
+remplace pas la comparaison visuelle et éditoriale, la copie des trois médias
+refusés, ni la validation des responsables avant une éventuelle bascule.

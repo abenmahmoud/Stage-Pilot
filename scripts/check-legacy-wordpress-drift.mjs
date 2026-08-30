@@ -4,6 +4,7 @@ import { pathToFileURL } from "node:url";
 export const SOURCE_ORIGIN = "https://lycee-blaise-cendrars-sevran.fr";
 export const REQUEST_TIMEOUT_MS = 15_000;
 export const MAX_RESPONSE_BYTES = 1_000_000;
+export const MAX_METADATA_ITEMS = 500;
 const API_ROOT = `${SOURCE_ORIGIN}/wp-json/wp/v2`;
 const INVENTORY_URL = new URL("../content/legacy-site/inventory.json", import.meta.url);
 const ROUTES = [
@@ -129,10 +130,31 @@ export function validateDeclaredCount(headers, rows, label) {
   }
 }
 
-async function fetchCollection(route, wordpressType, fetchImpl = fetch) {
+export function parsePaginationHeaders(headers, label, maxItems = MAX_METADATA_ITEMS) {
+  const rawTotal = headers.get("x-wp-total");
+  const rawPages = headers.get("x-wp-totalpages");
+  if (rawTotal === null || rawPages === null) throw new Error(`${label}: pagination absente`);
+  const total = Number(rawTotal);
+  const totalPages = Number(rawPages);
+  const maxPages = Math.ceil(maxItems / 100);
+  if (
+    !Number.isSafeInteger(total) ||
+    !Number.isSafeInteger(totalPages) ||
+    total < 0 ||
+    total > maxItems ||
+    totalPages < 1 ||
+    totalPages > maxPages
+  ) {
+    throw new Error(`${label}: pagination invalide ou trop grande`);
+  }
+  return { total, totalPages };
+}
+
+async function fetchJsonPage(route, fields, page, fetchImpl) {
   const url = new URL(`${API_ROOT}/${route}`);
   url.searchParams.set("per_page", "100");
-  url.searchParams.set("_fields", "id,type,slug,link,title,modified_gmt,status");
+  url.searchParams.set("page", String(page));
+  url.searchParams.set("_fields", fields);
   assertOfficialUrl(url.href, route);
 
   const response = await fetchImpl(url, {
@@ -146,10 +168,101 @@ async function fetchCollection(route, wordpressType, fetchImpl = fetch) {
   if (!contentType.toLowerCase().includes("application/json")) {
     throw new Error(`${route}: type de reponse inattendu`);
   }
-  const rows = await readBoundedJson(response, route);
-  if (!Array.isArray(rows)) throw new Error(`${route}: collection invalide`);
-  validateDeclaredCount(response.headers, rows, route);
+  const rows = await readBoundedJson(response, `${route} page ${page}`);
+  if (!Array.isArray(rows) || rows.length > 100) throw new Error(`${route}: collection invalide`);
+  return { rows, headers: response.headers };
+}
+
+async function fetchCollection(route, wordpressType, fetchImpl = fetch) {
+  const { rows, headers } = await fetchJsonPage(
+    route,
+    "id,type,slug,link,title,modified_gmt,status",
+    1,
+    fetchImpl
+  );
+  validateDeclaredCount(headers, rows, route);
   return validateLiveRows(rows, wordpressType);
+}
+
+async function fetchMetadataCollection(route, fields, fetchImpl = fetch) {
+  const firstPage = await fetchJsonPage(route, fields, 1, fetchImpl);
+  const pagination = parsePaginationHeaders(firstPage.headers, route);
+  const pages = [firstPage.rows];
+  for (let page = 2; page <= pagination.totalPages; page += 1) {
+    const nextPage = await fetchJsonPage(route, fields, page, fetchImpl);
+    const nextPagination = parsePaginationHeaders(nextPage.headers, `${route} page ${page}`);
+    if (nextPagination.total !== pagination.total || nextPagination.totalPages !== pagination.totalPages) {
+      throw new Error(`${route}: pagination instable`);
+    }
+    pages.push(nextPage.rows);
+  }
+  const rows = pages.flat();
+  if (rows.length > pagination.total || rows.length > MAX_METADATA_ITEMS) {
+    throw new Error(`${route}: collection incoherente`);
+  }
+  return { rows, declaredTotal: pagination.total };
+}
+
+export function validateLiveMediaRows(rows) {
+  if (!Array.isArray(rows) || rows.length > MAX_METADATA_ITEMS) {
+    throw new Error("media: collection invalide ou trop grande");
+  }
+  const seenIds = new Set();
+  return rows.map((row, index) => {
+    const label = `media[${index}]`;
+    if (!Number.isSafeInteger(row?.id) || row.id <= 0 || seenIds.has(row.id)) {
+      throw new Error(`${label}: id invalide ou duplique`);
+    }
+    seenIds.add(row.id);
+    if (typeof row.slug !== "string" || !row.slug || row.slug.length > 200) {
+      throw new Error(`${label}: slug invalide`);
+    }
+    if (typeof row.mime_type !== "string" || !/^[a-z0-9.+-]+\/[a-z0-9.+-]+$/iu.test(row.mime_type)) {
+      throw new Error(`${label}: type MIME invalide`);
+    }
+    const modifiedAt = `${row.modified_gmt}Z`;
+    if (typeof row.modified_gmt !== "string" || Number.isNaN(Date.parse(modifiedAt))) {
+      throw new Error(`${label}: date invalide`);
+    }
+    const parentId = row.parent === undefined || row.parent === null || row.parent === 0
+      ? null
+      : row.parent;
+    if (parentId !== null && (!Number.isSafeInteger(parentId) || parentId <= 0)) {
+      throw new Error(`${label}: parent invalide`);
+    }
+    const title = cleanText(row.title?.rendered);
+    if (title.length > 500) throw new Error(`${label}: titre invalide`);
+    return {
+      wordpressId: row.id,
+      parentId,
+      slug: row.slug,
+      title,
+      mimeType: row.mime_type.toLowerCase(),
+      sourceUrl: assertOfficialUrl(row.source_url, label),
+      modifiedAt,
+    };
+  });
+}
+
+export function validateLiveCategoryRows(rows) {
+  if (!Array.isArray(rows) || rows.length > 100) {
+    throw new Error("categories: collection invalide ou trop grande");
+  }
+  const seenIds = new Set();
+  return rows.map((row, index) => {
+    const label = `categorie[${index}]`;
+    if (!Number.isSafeInteger(row?.id) || row.id <= 0 || seenIds.has(row.id)) {
+      throw new Error(`${label}: id invalide ou duplique`);
+    }
+    seenIds.add(row.id);
+    if (typeof row.slug !== "string" || !row.slug || row.slug.length > 200) {
+      throw new Error(`${label}: slug invalide`);
+    }
+    const name = cleanText(row.name);
+    if (!name || name.length > 200) throw new Error(`${label}: nom invalide`);
+    if (!Number.isSafeInteger(row.count) || row.count < 0) throw new Error(`${label}: compteur invalide`);
+    return { id: row.id, slug: row.slug, name, count: row.count };
+  });
 }
 
 function stableRecord(item) {
@@ -192,21 +305,123 @@ export function compareLegacySnapshots(inventoryContents, liveContents) {
   };
 }
 
+function compareNormalizedRecords(inventoryItems, liveItems, keyOf, normalize) {
+  const inventory = inventoryItems.map(normalize);
+  const live = liveItems.map(normalize);
+  const inventoryByKey = new Map(inventory.map((item) => [keyOf(item), item]));
+  const liveByKey = new Map(live.map((item) => [keyOf(item), item]));
+  if (inventoryByKey.size !== inventory.length || liveByKey.size !== live.length) {
+    throw new Error("Doublon de metadonnees detecte pendant la comparaison");
+  }
+  const added = live.filter((item) => !inventoryByKey.has(keyOf(item)));
+  const removed = inventory.filter((item) => !liveByKey.has(keyOf(item)));
+  const changed = live.flatMap((item) => {
+    const previous = inventoryByKey.get(keyOf(item));
+    if (!previous || JSON.stringify(previous) === JSON.stringify(item)) return [];
+    return [{ key: keyOf(item), inventory: previous, live: item }];
+  });
+  return { inventoryCount: inventory.length, liveCount: live.length, added, removed, changed };
+}
+
+function stableMediaRecord(item) {
+  return {
+    wordpressId: item.wordpressId,
+    parentId: item.parentId ?? null,
+    slug: item.slug,
+    title: item.title,
+    mimeType: item.mimeType,
+    sourceUrl: assertOfficialUrl(item.sourceUrl, `media ${item.wordpressId}`),
+    modifiedAt: item.modifiedAt,
+  };
+}
+
+export function compareLegacyMediaSnapshots(inventoryMedia, liveMedia, declaredInventory, declaredLive) {
+  const result = compareNormalizedRecords(inventoryMedia, liveMedia, (item) => item.wordpressId, stableMediaRecord);
+  if (
+    !Number.isSafeInteger(declaredInventory) ||
+    !Number.isSafeInteger(declaredLive) ||
+    declaredInventory < result.inventoryCount ||
+    declaredLive < result.liveCount
+  ) {
+    throw new Error("Compteurs de medias invalides");
+  }
+  const inaccessibleInventory = declaredInventory - result.inventoryCount;
+  const inaccessibleLive = declaredLive - result.liveCount;
+  const countDrift =
+    declaredInventory !== declaredLive ||
+    inaccessibleInventory !== inaccessibleLive;
+  return {
+    ...result,
+    declaredInventory,
+    declaredLive,
+    inaccessibleInventory,
+    inaccessibleLive,
+    hasDrift: countDrift || result.added.length > 0 || result.removed.length > 0 || result.changed.length > 0,
+  };
+}
+
+function stableCategoryRecord(item) {
+  return { id: item.id, slug: item.slug, name: item.name, count: item.count };
+}
+
+export function compareLegacyCategorySnapshots(
+  inventoryCategories,
+  liveCategories,
+  declaredLive = liveCategories.length
+) {
+  const result = compareNormalizedRecords(inventoryCategories, liveCategories, (item) => item.id, stableCategoryRecord);
+  if (!Number.isSafeInteger(declaredLive) || declaredLive < result.liveCount) {
+    throw new Error("Compteur de categories invalide");
+  }
+  return {
+    ...result,
+    declaredInventory: result.inventoryCount,
+    declaredLive,
+    hasDrift:
+      declaredLive !== result.inventoryCount ||
+      result.added.length > 0 ||
+      result.removed.length > 0 ||
+      result.changed.length > 0,
+  };
+}
+
 export async function checkLegacyWordPressDrift({ fetchImpl = fetch } = {}) {
   const inventory = JSON.parse(await readFile(INVENTORY_URL, "utf8"));
   if (inventory.sourceOrigin !== SOURCE_ORIGIN || !Array.isArray(inventory.contents)) {
     throw new Error("Inventaire historique invalide");
   }
-  const liveCollections = await Promise.all(
-    ROUTES.map(({ route, wordpressType }) => fetchCollection(route, wordpressType, fetchImpl))
+  if (!Array.isArray(inventory.media) || !Array.isArray(inventory.categories)) {
+    throw new Error("Metadonnees historiques invalides");
+  }
+  const [liveCollections, mediaCollection, categoryCollection] = await Promise.all([
+    Promise.all(ROUTES.map(({ route, wordpressType }) => fetchCollection(route, wordpressType, fetchImpl))),
+    fetchMetadataCollection("media", "id,slug,source_url,modified_gmt,mime_type,parent,title", fetchImpl),
+    fetchMetadataCollection("categories", "id,slug,name,count", fetchImpl),
+  ]);
+  const contents = compareLegacySnapshots(inventory.contents, liveCollections.flat());
+  const media = compareLegacyMediaSnapshots(
+    inventory.media,
+    validateLiveMediaRows(mediaCollection.rows),
+    inventory.counts?.mediaDeclared,
+    mediaCollection.declaredTotal
   );
-  return compareLegacySnapshots(inventory.contents, liveCollections.flat());
+  const categories = compareLegacyCategorySnapshots(
+    inventory.categories,
+    validateLiveCategoryRows(categoryCollection.rows),
+    categoryCollection.declaredTotal
+  );
+  return {
+    ...contents,
+    media,
+    categories,
+    hasAnyDrift: contents.hasDrift || media.hasDrift || categories.hasDrift,
+  };
 }
 
 async function main() {
   const result = await checkLegacyWordPressDrift();
   console.log(JSON.stringify(result, null, 2));
-  if (result.hasDrift) process.exitCode = 1;
+  if (result.hasAnyDrift) process.exitCode = 1;
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {

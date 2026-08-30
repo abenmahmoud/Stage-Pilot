@@ -8,7 +8,8 @@ ce périmètre et un plafond de jetons ; aucun jeton externe n'est consommé ici
 ## Objectif unique
 
 Chercher une manière de tromper, contourner ou épuiser le contrôle en lecture
-seule qui compare l'inventaire LyceeGest au WordPress public officiel.
+seule qui compare contenus, médias et catégories de l'inventaire LyceeGest au
+WordPress public officiel.
 
 ## Périmètre en lecture seule
 
@@ -23,7 +24,8 @@ seule qui compare l'inventaire LyceeGest au WordPress public officiel.
 Constats P0 à P3 avec fichier, ligne, scénario reproductible, impact, correctif
 minimal et test manquant. Vérifier SSRF, redirections, réponses chunkées,
 compression, tailles annoncées ou réelles, JSON hostile, doublons, changements
-de titre/date/adresse et risque de faux positif ou faux négatif.
+de titre/date/adresse, pagination, médias déclarés mais inaccessibles et risque
+de faux positif ou faux négatif.
 
 ## Interdictions
 

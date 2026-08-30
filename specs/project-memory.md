@@ -3277,7 +3277,9 @@ taches et analyse de coherence avant une automatisation sensible.
   pages et articles publics du WordPress officiel, avec origine codée en dur,
   redirections refusées, délai de 15 secondes et réponse limitée à 1 Mo.
 - La preuve réelle retrouve 28 contenus sur 28, sans ajout, retrait ni
-  modification de titre, date ou adresse. Aucun contenu n'est importé ou publié.
+  modification de titre, date ou adresse. Elle rapproche aussi 81 médias
+  accessibles sur 81, conserve l'écart public de 83 déclarés pour 81 accessibles
+  et vérifie 9 catégories sur 9, sans télécharger les fichiers.
 - T018B de la spécification 004 est terminée. T018 reste ouverte pour la relecture
   visuelle et éditoriale humaine et les trois médias refusés restent bloquants.
 - Le brief Claude est préparé mais non exécuté, faute de modèle exact et de

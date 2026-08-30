@@ -55,9 +55,11 @@
   éditoriale de T018 reste à exécuter par les services responsables.
 - [x] T018B Ajouter un contrôle reproductible et strictement en lecture seule de
   la dérive WordPress publique. Le 30 août 2026, il retrouve 28 contenus sur 28,
-  sans ajout, retrait ni modification ; origine, redirections, durée, taille et
-  pagination des réponses sont bornés. T018 reste ouverte pour la comparaison
-  visuelle et éditoriale humaine.
+  81 médias accessibles sur 81, l'écart stable de 83 médias déclarés pour 81
+  accessibles et 9 catégories sur 9, sans dérive. Origine, redirections, durée,
+  taille et pagination des réponses sont bornées ; aucun fichier n'est
+  téléchargé. T018 reste ouverte pour la comparaison visuelle et éditoriale
+  humaine.
 - [ ] T019 Préparer sauvegarde, retour arrière et fenêtre de bascule.
   La procédure est décrite dans
   `docs/operations/SITE_PRODUCTION_CUTOVER_RUNBOOK.md`. Les sauvegardes réelles,
