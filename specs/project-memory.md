@@ -1404,6 +1404,21 @@ taches et analyse de coherence avant une automatisation sensible.
 - La revue Claude est préparée mais non exécutée tant que le modèle exact et le
   plafond de consommation ne sont pas autorisés.
 
+### Jalon du 30 août 2026 - garde-fous du centre de communications
+
+- Le premier contrat de `005` est purement technique et fermé par défaut. Il
+  n'active aucun écran, groupe, contact, publication ou envoi.
+- Une communication entre comme brouillon interne. Les seules sources reconnues
+  sont texte direct, PDF, DOCX, image et email transféré, avec empreinte SHA-256.
+- Les audiences sont des références opaques bornées ; toute chaîne ressemblant
+  à une adresse email est refusée. Une visibilité ciblée et une notification
+  exigent un groupe explicite.
+- Seule une communication explicitement publique peut demander une publication
+  sur le site. L'expiration doit suivre la publication ou l'heure serveur.
+- `COMMUNICATIONS_ENABLED`, `COMMUNICATION_PUBLICATION_ENABLED` et
+  `COMMUNICATION_SEND_ENABLED` restent absentes et donc fausses sur la preview.
+  L'envoi et la publication ne peuvent jamais s'activer seuls.
+
 ## 8. Prochain ordre recommande
 
 1. Publier et tester le pré-triage ordinateur portable avec des données fictives.

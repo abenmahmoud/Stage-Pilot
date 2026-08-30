@@ -11,8 +11,13 @@
 
 - [ ] T005 Ajouter les tables, contraintes, index, droits et audit.
 - [ ] T006 Ajouter la file durable et les clés d'idempotence.
-- [ ] T007 Construire les validateurs de source, visibilité, audience et dates.
-- [ ] T008 Ajouter les interrupteurs globaux de publication et d'envoi.
+- [x] T007 Construire les validateurs de source, visibilité, audience et dates.
+  Le contrat refuse les champs inconnus, les adresses dans l'audience, les
+  groupes absents pour une cible, la publication web non publique et les dates
+  incohérentes. Les groupes restent des références opaques à valider.
+- [x] T008 Ajouter les interrupteurs globaux de publication et d'envoi. Les trois
+  interrupteurs serveur sont désactivés par défaut et publication/envoi restent
+  impossibles lorsque le module est coupé. Aucune variable Vercel n'est activée.
 
 ## Phase 3 - Préparation et publication
 
@@ -50,4 +55,3 @@
 - [ ] T031 Vérifier 320 px, ordinateur, clavier et lecteur d'écran.
 - [ ] T032 Déployer en preview et tester avec des contacts fictifs.
 - [ ] T033 Faire valider le pilote avant toute liste réelle ou envoi collectif.
-

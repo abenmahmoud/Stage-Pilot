@@ -32,6 +32,7 @@
     "test:support-duplicates": "node --experimental-strip-types scripts/test-support-duplicate-policy.mjs",
     "test:support-conversation": "node --experimental-strip-types scripts/test-support-conversation.mjs",
     "test:support-request-confirmation": "node --experimental-strip-types scripts/test-support-request-confirmation.mjs",
+    "test:communication-policy": "node --experimental-strip-types scripts/test-communication-policy.mjs",
     "test:support-concurrency": "node --experimental-strip-types scripts/test-support-concurrency.mjs",
     "test:support-device-memory": "node --experimental-strip-types scripts/test-support-device-memory.mjs",
     "test:support-callback-policy": "node --experimental-strip-types scripts/test-support-callback-policy.mjs",
