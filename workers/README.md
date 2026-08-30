@@ -10,6 +10,10 @@ The workers run on the lycée VPS, not in the browser or in a Vercel function.
   ClamAV, validates bounded CSV/XLSX files and writes a review report containing
   only opaque references and keyed contact fingerprints. Secret-bearing headers
   or cells stop the import before hashing or vault encryption.
+- `identity-directory-vault.mjs` chiffre les coordonnées minimales et prépare
+  localement leur rotation unitaire ou par lots bornés. Il ne sélectionne ni ne
+  met à jour la base ; cette persistance reste désactivée tant que sa recette
+  transactionnelle n'est pas validée.
 - `knowledge-document-worker.mjs` consumes `knowledge_document_scan`, runs
   ClamAV and extracts bounded text locally from safe PDF, DOCX, XLSX, PPTX, CSV
   and text files. Personal, sensitive or privacy-signalled content stays manual.

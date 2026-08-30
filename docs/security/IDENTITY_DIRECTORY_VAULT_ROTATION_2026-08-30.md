@@ -3,9 +3,17 @@
 ## Portée livrée
 
 La primitive locale rechiffre une enveloppe AES-256-GCM d'une version `vN` vers
-une version cible strictement supérieure. Elle exige l'ancienne clé, vérifie l'enveloppe et
-son contexte établissement/import/référence, puis chiffre avec un nonce neuf.
-Elle ne lit ni n'écrit la base et ne journalise aucune donnée déchiffrée.
+une version cible strictement supérieure. Elle exige l'ancienne clé, vérifie
+l'enveloppe et son contexte établissement/import/référence, puis chiffre avec
+un nonce neuf. Elle ne lit ni n'écrit la base et ne journalise aucune donnée
+déchiffrée.
+
+Elle accepte aussi un lot de 250 lignes au plus. Toutes les lignes, enveloppes,
+références et versions sont validées avant le résultat. Un lot peut réunir
+plusieurs anciennes versions vers une cible unique. Les identifiants dupliqués,
+champs inconnus, enveloppes déjà à jour et retours vers une version inférieure
+sont refusés. Le bilan contient uniquement la cible, le nombre traité et des
+compteurs par version source.
 
 ## Procédure opérationnelle future
 
@@ -14,8 +22,9 @@ Elle ne lit ni n'écrit la base et ne journalise aucune donnée déchiffrée.
 3. Définir la nouvelle version courante seulement sur le runtime de preview.
 4. Valider la rotation sur des personnes entièrement fictives et vérifier la
    restauration de la base et du secret dans un environnement isolé.
-5. Traiter des lots bornés avec verrou `SKIP LOCKED`, transaction par lot,
-   compteur agrégé et aucun texte clair dans les journaux.
+5. Sélectionner au plus 250 lignes anciennes avec verrou `SKIP LOCKED`, exécuter
+   la primitive locale, puis appliquer toutes les enveloppes dans une seule
+   transaction avec compteur agrégé et aucun texte clair dans les journaux.
 6. Contrôler qu'aucune ligne active n'utilise l'ancienne version et qu'une
    restauration peut encore déchiffrer un échantillon fictif.
 7. Retirer l'ancienne clé seulement après validation écrite et fenêtre de retour
@@ -31,7 +40,9 @@ Elle ne lit ni n'écrit la base et ne journalise aucune donnée déchiffrée.
 
 ## Preuves locales
 
-`npm run test:identity-directory-vault` vérifie chiffrement aléatoire,
+`npm run test:identity-directory-vault` exécute 37 contrôles : chiffrement aléatoire,
 authentification AAD, altération, mauvaise clé, rotation v1 vers v2, nouveau
 nonce, déchiffrement par v2, rejet par v1, version identique, clé source absente
-et interdiction d'un retour vers une version inférieure.
+et interdiction d'un retour vers une version inférieure. Il couvre aussi un lot
+mixte v1/v2 vers v3, les doublons, plafonds, champs inconnus, reprise incorrecte
+et l'absence de données en clair dans le résultat.

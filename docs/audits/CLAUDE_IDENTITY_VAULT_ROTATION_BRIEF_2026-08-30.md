@@ -7,9 +7,9 @@ doivent être autorisés pour cette mission précise.
 
 ## Mission proposée
 
-Revue cryptographique en lecture seule de la primitive de rotation. Vérifier
-uniquement l'intégrité AES-256-GCM, la liaison AAD, la gestion des versions et
-les risques de fuite ou de perte de données.
+Revue cryptographique en lecture seule des primitives de rotation unitaire et
+par lots. Vérifier uniquement l'intégrité AES-256-GCM, la liaison AAD, la
+gestion des versions, l'atomicité logique et les risques de fuite ou de perte.
 
 ## Périmètre minimal
 
@@ -28,6 +28,8 @@ réseau ne doit être transmis.
 3. Une même clé ou un même nonce peut-il être réutilisé par erreur ?
 4. Un échec peut-il produire une enveloppe partielle ou exposer le clair ?
 5. Les critères proposés pour retirer l'ancienne clé sont-ils suffisants ?
+6. Le lot refuse-t-il strictement doublons, champs inconnus et lignes déjà à jour ?
+7. Le bilan agrégé peut-il révéler une identité ou une coordonnée ?
 
 ## Arrêt
 

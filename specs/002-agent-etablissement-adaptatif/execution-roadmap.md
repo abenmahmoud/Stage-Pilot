@@ -265,11 +265,12 @@ l'autorisation de quota définie par le propriétaire.
   détectent altération, mauvais contexte et mauvaise clé. Une recette de trois
   personnes fictives, EICAR et deux versions a confirmé le déchiffrement
   contrôlé et un nettoyage à zéro. La recherche déterministe par un agent
-  habilité est maintenant disponible. La primitive locale de rotation conserve
-  l'ancien contexte AAD, exige l'ancienne clé, produit un nonce neuf et ne peut
-  pas retraiter silencieusement une enveloppe déjà à jour. Le worker de rotation
-  par lots, la rétention et la restauration restent à construire avant toute
-  donnée réelle.
+  habilité est maintenant disponible. La rotation locale accepte maintenant un
+  lot strict de 250 enveloppes au plus, plusieurs versions sources et une cible
+  unique supérieure. Elle valide tout le lot avant de retourner les enveloppes
+  rechiffrées et un bilan agrégé sans clair. La sélection SQL verrouillée, la
+  transaction d'écriture, la rétention, la restauration et le retrait de clé
+  restent à construire avant toute donnée réelle.
 - Lot N5P : recherche contrôlée du répertoire. **Canal applicatif implémenté et
   fermé par défaut** : accès direction nominatif avec MFA, motif obligatoire,
   recherche exacte uniquement, requête et résultat chiffrés, reçu lié à l'agent

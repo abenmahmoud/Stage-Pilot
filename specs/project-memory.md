@@ -2105,6 +2105,21 @@ taches et analyse de coherence avant une automatisation sensible.
 - Le brief Claude est préparé mais non exécuté, faute de modèle exact et de
   plafond de consommation propres à cette mission.
 
+### Jalon du 30 août 2026 - rotation locale du coffre par lots
+
+- La primitive du coffre accepte désormais jusqu'à 250 enveloppes anciennes,
+  éventuellement sous plusieurs versions, vers une cible unique supérieure.
+- Toutes les lignes et enveloppes sont validées strictement. Un doublon, un
+  champ inconnu, une ligne déjà à jour, une mauvaise ancienne clé ou un retour
+  de version fait échouer le lot sans résultat partiel.
+- Chaque personne reçoit un nonce neuf. Le résultat ne contient que les
+  enveloppes chiffrées et un bilan agrégé par version source, jamais le clair.
+- T010B2C3 est terminé avec 37 contrôles du coffre. T010B2C reste ouverte : la
+  sélection SQL `SKIP LOCKED`, la transaction d'écriture, la restauration et le
+  retrait réel d'une clé ne sont pas implémentés.
+- Le brief Claude est élargi mais non exécuté, faute de modèle exact et de
+  plafond de consommation propres à cette mission.
+
 ## 8. Prochain ordre recommande
 
 1. Publier et tester le pré-triage ordinateur portable avec des données fictives.

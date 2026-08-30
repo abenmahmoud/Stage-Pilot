@@ -1,6 +1,19 @@
 import { createCipheriv, createDecipheriv, randomBytes } from "node:crypto";
 
 export const IDENTITY_VAULT_SCHEMA_VERSION = 1;
+export const IDENTITY_VAULT_ROTATION_MAX_ROWS = 250;
+
+function exactKeys(value, keys, code) {
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
+    throw new Error(code);
+  }
+  const actual = Object.keys(value).sort();
+  const expected = [...keys].sort();
+  if (actual.length !== expected.length || actual.some((key, index) => key !== expected[index])) {
+    throw new Error(code);
+  }
+  return value;
+}
 
 function base64Bytes(value, { code, exactBytes, minBytes = 1, maxBytes = 8192 }) {
   if (typeof value !== "string" || !/^[A-Za-z0-9+/]+={0,2}$/.test(value)) {
@@ -169,4 +182,110 @@ export function rotateIdentityVaultEnvelope({
     personRef,
     config: targetConfig,
   });
+}
+
+function rotationRowId(value) {
+  if (
+    (typeof value === "number" && Number.isSafeInteger(value) && value > 0) ||
+    (typeof value === "string" && /^[1-9][0-9]{0,18}$/.test(value))
+  ) {
+    return value;
+  }
+  throw new Error("identity_vault_rotation_row_invalid");
+}
+
+export function rotateIdentityVaultBatch({
+  rows,
+  targetConfig,
+  env = process.env,
+  batchLimit = IDENTITY_VAULT_ROTATION_MAX_ROWS,
+}) {
+  if (
+    !Number.isInteger(batchLimit) ||
+    batchLimit < 1 ||
+    batchLimit > IDENTITY_VAULT_ROTATION_MAX_ROWS
+  ) {
+    throw new Error("identity_vault_rotation_batch_limit_invalid");
+  }
+  if (!Array.isArray(rows) || rows.length < 1 || rows.length > batchLimit) {
+    throw new Error("identity_vault_rotation_batch_size_invalid");
+  }
+
+  const targetVersion = keyVersion(targetConfig?.version);
+  const normalizedTargetConfig = {
+    version: targetVersion,
+    key: Buffer.isBuffer(targetConfig?.key)
+      ? targetConfig.key
+      : encryptionKey(targetConfig?.key),
+  };
+  if (normalizedTargetConfig.key.length !== 32) {
+    throw new Error("identity_vault_key_invalid");
+  }
+
+  const rowIds = new Set();
+  const normalizedRows = rows.map((input) => {
+    const row = exactKeys(input, [
+      "id",
+      "institutionId",
+      "importId",
+      "personRef",
+      "envelope",
+    ], "identity_vault_rotation_row_invalid");
+    const id = rotationRowId(row.id);
+    const idKey = String(id);
+    if (rowIds.has(idKey)) throw new Error("identity_vault_rotation_row_duplicate");
+    rowIds.add(idKey);
+    const envelope = exactKeys(row.envelope, [
+      "keyVersion",
+      "payloadSchema",
+      "iv",
+      "authTag",
+      "ciphertext",
+    ], "identity_vault_rotation_envelope_invalid");
+    aad({
+      institutionId: row.institutionId,
+      importId: row.importId,
+      personRef: row.personRef,
+      version: keyVersion(envelope.keyVersion),
+    });
+    if (envelope.payloadSchema !== IDENTITY_VAULT_SCHEMA_VERSION) {
+      throw new Error("identity_vault_schema_unsupported");
+    }
+    return {
+      id,
+      institutionId: row.institutionId,
+      importId: row.importId,
+      personRef: row.personRef,
+      envelope,
+    };
+  });
+
+  const rotatedRows = normalizedRows.map((row) => {
+    const envelope = rotateIdentityVaultEnvelope({
+      envelope: row.envelope,
+      institutionId: row.institutionId,
+      importId: row.importId,
+      personRef: row.personRef,
+      targetConfig: normalizedTargetConfig,
+      env,
+    });
+    return {
+      id: row.id,
+      institutionId: row.institutionId,
+      importId: row.importId,
+      personRef: row.personRef,
+      envelope,
+    };
+  });
+
+  const sourceVersions = {};
+  for (const row of normalizedRows) {
+    sourceVersions[row.envelope.keyVersion] = (sourceVersions[row.envelope.keyVersion] ?? 0) + 1;
+  }
+  return {
+    targetVersion,
+    rotatedCount: rotatedRows.length,
+    sourceVersions: Object.fromEntries(Object.entries(sourceVersions).sort(([left], [right]) => left.localeCompare(right))),
+    rows: rotatedRows,
+  };
 }

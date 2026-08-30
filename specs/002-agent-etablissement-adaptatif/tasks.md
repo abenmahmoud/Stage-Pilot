@@ -74,6 +74,11 @@
   déchiffrement avec l'AAD existant, nonce neuf, rechiffrement et refus fermé des
   clés, contextes ou enveloppes invalides. Le worker par lots, la recette de
   restauration et le retrait réel d'une ancienne clé restent dans T010B2C.
+- [x] T010B2C3 Étendre la primitive locale à un lot borné de 250 enveloppes :
+  validation stricte de toutes les lignes avant résultat, mélange de versions
+  sources, cible unique supérieure, nouveaux nonces et bilan agrégé sans clair.
+  La sélection SQL verrouillée, la transaction d'écriture, la restauration et
+  le retrait réel d'une ancienne clé restent dans T010B2C.
 - [ ] T010B2D Refuser automatiquement mots de passe, codes ENT/PRONOTE et secrets
   dans tous les imports ; cadrer séparément une éventuelle remise de codes avec
   Direction/DPO, identité forte, durée courte et validation humaine.
