@@ -72,6 +72,8 @@ quarantaine. Une panne d'envoi externe n'affecte pas le dossier.
   demandes ENT ou email académique sans cette confirmation.
 - [x] **T016C** Valider strictement la liste publique avant affichage, mémoire
   locale ou notification, puis ignorer les actualisations réseau obsolètes.
+- [x] **T016D** Valider le dossier public, ses messages et pièces avant rendu,
+  isoler ses erreurs et empêcher une ancienne sélection de remplacer la courante.
 - [x] **T017** Construire la file agent paginée avec filtres, SLA et assignation.
 - [x] **T017A** Protéger les modifications et réponses par révision, rendre la
   prise en charge atomique et actualiser l'écran après un conflit.

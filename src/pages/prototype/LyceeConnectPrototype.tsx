@@ -1670,6 +1670,8 @@ function ConnectedRequestsView({ ticketCode, onBack }: { ticketCode: string | nu
   const [query, setQuery] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [detailLoading, setDetailLoading] = useState(false);
+  const [detailError, setDetailError] = useState<string | null>(null);
   const [reply, setReply] = useState("");
   const [replying, setReplying] = useState(false);
   const [forgettingDevice, setForgettingDevice] = useState(false);
@@ -1682,6 +1684,7 @@ function ConnectedRequestsView({ ticketCode, onBack }: { ticketCode: string | nu
   const notificationsEnabledRef = useRef(false);
   const selectedCodeRef = useRef<string | null>(ticketCode);
   const requestsLoadIdRef = useRef(0);
+  const detailLoadIdRef = useRef(0);
   const notificationSnapshotsRef = useRef(new Map<string, ActiveSupportNotificationSnapshot>());
   const detailedCodesRef = useRef(new Set<string>());
 
@@ -1772,11 +1775,16 @@ function ConnectedRequestsView({ ticketCode, onBack }: { ticketCode: string | nu
   }
 
   async function loadDetail(code: string) {
+    const loadId = ++detailLoadIdRef.current;
+    setDetailLoading(true);
     try {
-      const payload = await readApiResponse<SupportRequestDetail>(
+      const payload = await readApiResponse<unknown>(
         fetch(`/api/support/requests/${code}`, { credentials: "include" })
       );
-      if (payload.request.publicCode !== code) throw new Error("La réponse du service est incohérente.");
+      if (!isPublicSupportRequestDetailPayload(payload) || payload.request.publicCode !== code) {
+        throw new Error("Le dossier reçu est invalide.");
+      }
+      if (loadId !== detailLoadIdRef.current || selectedCodeRef.current !== code) return;
       const latestAgentMessage = payload.messages
         .filter((message) => message.direction === "outbound")
         .sort((left, right) => Date.parse(right.createdAt) - Date.parse(left.createdAt))[0];
@@ -1789,9 +1797,14 @@ function ConnectedRequestsView({ ticketCode, onBack }: { ticketCode: string | nu
       }, hadDetailedBaseline);
       detailedCodesRef.current.add(code);
       setDetail(payload);
-      setError(null);
+      setDetailError(null);
     } catch (requestError) {
-      setError(requestError instanceof Error ? requestError.message : "Impossible d’actualiser la demande");
+      if (loadId !== detailLoadIdRef.current || selectedCodeRef.current !== code) return;
+      setDetailError(requestError instanceof Error ? requestError.message : "Impossible d’actualiser la demande");
+    } finally {
+      if (loadId === detailLoadIdRef.current && selectedCodeRef.current === code) {
+        setDetailLoading(false);
+      }
     }
   }
 
@@ -1805,8 +1818,11 @@ function ConnectedRequestsView({ ticketCode, onBack }: { ticketCode: string | nu
 
   useEffect(() => {
     selectedCodeRef.current = selectedCode;
+    detailLoadIdRef.current += 1;
+    setDetail(null);
+    setDetailError(null);
     if (!selectedCode) {
-      setDetail(null);
+      setDetailLoading(false);
       return;
     }
     void loadDetail(selectedCode);
@@ -1941,6 +1957,7 @@ function ConnectedRequestsView({ ticketCode, onBack }: { ticketCode: string | nu
       setRequests([]);
       setSelectedCode(null);
       setDetail(null);
+      setDetailError(null);
       onBack();
     } catch (forgetError) {
       setError(
@@ -1968,7 +1985,9 @@ function ConnectedRequestsView({ ticketCode, onBack }: { ticketCode: string | nu
         </div>
       </div>
       {error ? <div className="lycee-form-error" role="alert"><CircleAlert aria-hidden="true" />{error}</div> : null}
+      {detailError && selectedCode ? <div className="lycee-form-error" role="alert"><CircleAlert aria-hidden="true" /><span>{detailError}</span><button type="button" disabled={detailLoading} onClick={() => void loadDetail(selectedCode)}>{detailLoading ? "Nouvel essai…" : "Réessayer le dossier"}</button></div> : null}
       {loading ? <div className="lycee-loading-state"><Clock3 aria-hidden="true" /> Chargement des demandes…</div> : null}
+      {detailLoading && requests.length > 0 ? <div className="lycee-loading-state" role="status" aria-live="polite"><Clock3 aria-hidden="true" /> Chargement du dossier…</div> : null}
       {!loading && requests.length === 0 ? (
         <section className="lycee-empty-state"><TicketCheck aria-hidden="true" /><h2>Aucune demande sur cet appareil</h2><p>Si vous aviez déjà créé une demande ailleurs, ouvrez le lien sécurisé reçu par email.</p><button type="button" onClick={onBack}>Retour à l’accueil</button></section>
       ) : null}
@@ -2470,6 +2489,64 @@ function isPublicSupportRequestListPayload(value: unknown): value is { requests:
     && value.requests.length <= 200
     && value.requests.every(isPublicSupportRequestSummary)
     && new Set(value.requests.map((request) => request.publicCode)).size === value.requests.length;
+}
+
+function isPublicSupportContext(value: unknown): value is Record<string, string> {
+  if (!isRecord(value)) return false;
+  const entries = Object.entries(value);
+  return entries.length <= 30
+    && entries.every(([key, item]) => isBoundedString(key, 80) && isBoundedString(item, 700, true));
+}
+
+function isPublicSupportRequest(value: unknown): value is SupportRequestDetail["request"] {
+  if (!isPublicSupportRequestSummary(value)) return false;
+  const record = value as Record<string, unknown>;
+  return ["eleve", "parent", "professeur", "personnel", "autre"].includes(String(record.requesterType))
+    && ["self", "eleve", "professeur", "personnel", "autre"].includes(String(record.beneficiaryType))
+    && ["email", "phone", "web"].includes(String(record.preferredChannel))
+    && isPublicSupportContext(record.subjectContext)
+    && ["non_verifiee", "contact_verifie", "identite_confirmee"].includes(String(record.identityStatus))
+    && (record.identityMethod === null || isBoundedString(record.identityMethod, 80))
+    && (record.identityVerifiedAt === null || isPublicSupportDate(record.identityVerifiedAt))
+    && (record.resolvedAt === null || isPublicSupportDate(record.resolvedAt));
+}
+
+function isPublicSupportMessage(value: unknown): value is SupportRequestDetail["messages"][number] {
+  return isRecord(value)
+    && typeof value.id === "string" && /^[0-9a-f]{8}-[0-9a-f-]{27}$/i.test(value.id)
+    && ["inbound", "outbound"].includes(String(value.direction))
+    && ["email", "phone", "web"].includes(String(value.channel))
+    && (value.authorLabel === null || isBoundedString(value.authorLabel, 180))
+    && isBoundedString(value.bodyText, 5_000)
+    && isBoundedString(value.deliveryStatus, 40)
+    && isPublicSupportDate(value.createdAt);
+}
+
+function isPublicSupportAttachment(value: unknown): value is SupportRequestDetail["attachments"][number] {
+  return isRecord(value)
+    && typeof value.id === "string" && /^[0-9a-f]{8}-[0-9a-f-]{27}$/i.test(value.id)
+    && (value.messageId === null || (typeof value.messageId === "string" && /^[0-9a-f]{8}-[0-9a-f-]{27}$/i.test(value.messageId)))
+    && isBoundedString(value.documentType, 100)
+    && isBoundedString(value.originalName, 255)
+    && (value.detectedMime === null || isBoundedString(value.detectedMime, 150))
+    && isNonNegativeInteger(value.sizeBytes) && value.sizeBytes <= MAX_SUPPORT_FILE_BYTES
+    && isBoundedString(value.scanStatus, 40)
+    && isPublicSupportDate(value.createdAt);
+}
+
+function isPublicSupportRequestDetailPayload(value: unknown): value is SupportRequestDetail {
+  if (!isRecord(value)
+    || !isPublicSupportRequest(value.request)
+    || !Array.isArray(value.messages)
+    || value.messages.length > 500
+    || !value.messages.every(isPublicSupportMessage)
+    || !Array.isArray(value.attachments)
+    || value.attachments.length > MAX_SUPPORT_FILES
+    || !value.attachments.every(isPublicSupportAttachment)) return false;
+  const messageIds = value.messages.map((message) => message.id);
+  const attachmentIds = value.attachments.map((attachment) => attachment.id);
+  return new Set(messageIds).size === messageIds.length
+    && new Set(attachmentIds).size === attachmentIds.length;
 }
 
 function isAgentRequestCore(value: unknown): value is AgentRequestCore {

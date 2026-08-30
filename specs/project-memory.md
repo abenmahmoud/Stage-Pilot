@@ -5,6 +5,18 @@
 **Depot** : `abenmahmoud/Stage-Pilot`
 **Dernier jalon de code verifie** : branche de preview Vercel
 
+## Jalon du 30 août 2026 - détail public validé et sélection stable
+
+- Le suivi public valide la demande, le contexte, jusqu'à 500 messages et cinq
+  pièces bornées avant de rendre le dossier.
+- Les erreurs de détail restent séparées de la liste et proposent une reprise
+  ciblée ; un changement de sélection invalide immédiatement l'ancienne lecture.
+- La recette navigateur refuse un message malformé, réussit la reprise puis
+  maintient le bon dossier malgré une réponse concurrente retardée, à 320 et
+  1 440 px sans débordement ni erreur JavaScript.
+- Lot preview uniquement : aucune donnée réelle, production ou intégration
+  externe n'a été utilisée ou modifiée.
+
 ## Jalon du 30 août 2026 - liste publique validée avant mémoire
 
 - `Mes demandes` valide chaque numéro, libellé, catégorie, statut, priorité et
