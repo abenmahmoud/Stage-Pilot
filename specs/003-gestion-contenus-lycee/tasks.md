@@ -15,6 +15,8 @@
 - [x] T008 Construire publication, archivage, duplication et restauration.
 - [x] T009 Construire dépôt signé et confirmation des images/documents.
 - [x] T010 Construire l'API publique des contenus publiés valides.
+- [x] T010A Valider dans le navigateur chaque contenu, média signé et curseur
+  public avant rendu ou pagination, avec refus des origines externes injectées.
 - [x] T011 Construire l'aide IA de rédaction avec limites et `store: false`.
 
 ## Phase 3 - Interface

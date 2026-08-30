@@ -5,6 +5,17 @@
 **Depot** : `abenmahmoud/Stage-Pilot`
 **Dernier jalon de code verifie** : branche de preview Vercel
 
+## Jalon du 30 août 2026 - flux « À la une » validé avant rendu
+
+- Le frontend valide désormais chaque article, média, date, audience et curseur
+  avant de mettre à jour le flux public.
+- Les médias sont limités aux formats autorisés et aux URL HTTPS signées du
+  bucket privé `site-content` sur l'origine Supabase configurée.
+- La recette Chromium refuse une image externe injectée sans émettre de requête,
+  à 320 et 1 440 px sans débordement ni erreur JavaScript.
+- Lot preview uniquement : aucun contenu réel, média distant ou production n'a
+  été utilisé ou modifié.
+
 ## Jalon du 30 août 2026 - création confirmée avant tout effet navigateur
 
 - Le frontend valide désormais le numéro, le statut, les dates, l'idempotence et
