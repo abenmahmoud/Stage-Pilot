@@ -2823,3 +2823,14 @@ taches et analyse de coherence avant une automatisation sensible.
 - T037J est terminée et la vérification reste dans la barrière de sécurité.
 - Le brief Claude est préparé mais non exécuté, faute de modèle exact et de
   plafond propres à cette mission ; aucun jeton externe n'a été consommé.
+
+### Jalon du 30 août 2026 - téléchargements des workers bornés
+
+- Cinq workers vérifient désormais le volume enregistré, le plafond métier et la
+  taille du Blob avant toute copie complète en mémoire.
+- Les pièces entrantes Brevo sont lues en flux et annulées au-delà de 10 Mo,
+  même sans taille HTTP annoncée.
+- T037K est terminée avec des tests synthétiques ; aucun worker, stockage,
+  antivirus ou fichier réel n'a été exécuté.
+- Le brief Claude est préparé mais non exécuté, faute de modèle exact et de
+  plafond propres à cette mission ; aucun jeton externe n'a été consommé.

@@ -7,6 +7,7 @@ import { promisify } from "node:util";
 import { createClient } from "@supabase/supabase-js";
 import postgres from "postgres";
 import WebSocket from "ws";
+import { boundedBlobToBuffer, readBoundedResponseBytes } from "./bounded-download.mjs";
 
 const execFileAsync = promisify(execFile);
 const databaseUrl = process.env.DATABASE_URL;
@@ -35,7 +36,8 @@ function safeName(value) {
 async function downloadBrowserAttachment(job) {
   const [attachment] = await sql`
     select attachment.id, attachment.storage_bucket, attachment.storage_path,
-           attachment.original_name, attachment.detected_mime, attachment.declared_mime
+           attachment.original_name, attachment.detected_mime, attachment.declared_mime,
+           attachment.size_bytes
     from public.support_attachments as attachment
     join public.support_requests as request on request.id = attachment.request_id
     where attachment.id = ${job.attachment_id}
@@ -46,13 +48,19 @@ async function downloadBrowserAttachment(job) {
   if (!attachment) throw new Error("attachment_not_found");
   const { data, error } = await storage.from(attachment.storage_bucket).download(attachment.storage_path);
   if (error || !data) throw new Error("storage_download_failed");
+  let bytes;
+  try {
+    bytes = await boundedBlobToBuffer(data, Number(attachment.size_bytes), maxBytes);
+  } catch {
+    throw new Error("attachment_size_invalid");
+  }
   return {
     attachmentId: attachment.id,
     bucket: attachment.storage_bucket,
     path: attachment.storage_path,
     name: attachment.original_name,
     mimeType: attachment.detected_mime ?? attachment.declared_mime,
-    bytes: Buffer.from(await data.arrayBuffer()),
+    bytes,
   };
 }
 
@@ -73,8 +81,12 @@ async function downloadInboundAttachment(job) {
     { headers: { accept: "application/octet-stream", "api-key": brevoApiKey } }
   );
   if (!response.ok) throw new Error(`brevo_attachment_${response.status}`);
-  const bytes = Buffer.from(await response.arrayBuffer());
-  if (bytes.length < 1 || bytes.length > maxBytes) throw new Error("attachment_size_invalid");
+  let bytes;
+  try {
+    bytes = await readBoundedResponseBytes(response, maxBytes);
+  } catch {
+    throw new Error("attachment_size_invalid");
+  }
   const attachmentId = randomUUID();
   const name = safeName(job.file_name ?? "document");
   const path = `${job.request_id}/inbound/${job.job_id}/${name}`;

@@ -6,6 +6,7 @@ import { promisify } from "node:util";
 import { createClient } from "@supabase/supabase-js";
 import postgres from "postgres";
 import WebSocket from "ws";
+import { boundedBlobToBuffer } from "./bounded-download.mjs";
 import {
   IdentityDirectoryParseError,
   parseIdentityDirectoryBytes,
@@ -82,8 +83,10 @@ async function loadImport(job) {
     .from(directoryImport.storage_bucket)
     .download(directoryImport.storage_path);
   if (error || !data) throw new Error("identity_storage_download_failed");
-  const bytes = Buffer.from(await data.arrayBuffer());
-  if (bytes.length !== Number(directoryImport.size_bytes)) {
+  let bytes;
+  try {
+    bytes = await boundedBlobToBuffer(data, Number(directoryImport.size_bytes), 50 * 1024 * 1024);
+  } catch {
     throw new IdentityDirectoryParseError("size_mismatch", "Taille différente du dépôt annoncé");
   }
   return { directoryImport, bytes, duplicate: false };

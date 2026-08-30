@@ -228,6 +228,9 @@ voir sa réponse dans le dossier. L'agent traite tout depuis une seule file.
 - [x] **T037J** Borner à 2 Mo les réponses JSON du fournisseur IA pour
   l'assistant, la traduction et les deux aides à la rédaction, puis annuler les
   flux qui dépassent ce plafond sans taille annoncée.
+- [x] **T037K** Vérifier la taille déclarée et réelle des fichiers avant leur
+  copie en mémoire dans les cinq workers, et lire les pièces jointes Brevo en
+  flux interrompu à 10 Mo.
 - [x] **T037F** Exclure les contacts desactives des reponses, reserver les
   journaux globaux a un administrateur MFA et exiger `aal2` pour confirmer une
   identite scolaire depuis une source officielle.

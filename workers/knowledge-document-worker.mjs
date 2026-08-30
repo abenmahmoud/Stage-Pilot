@@ -6,6 +6,7 @@ import { promisify } from "node:util";
 import { createClient } from "@supabase/supabase-js";
 import postgres from "postgres";
 import WebSocket from "ws";
+import { boundedBlobToBuffer } from "./bounded-download.mjs";
 import {
   KnowledgeDocumentExtractionError,
   extractKnowledgeDocument,
@@ -77,14 +78,14 @@ async function downloadDocument(document) {
     .from(document.storage_bucket)
     .download(document.storage_path);
   if (error || !data) throw new Error("knowledge_storage_download_failed");
-  const bytes = Buffer.from(await data.arrayBuffer());
-  if (bytes.length !== Number(document.size_bytes)) {
+  try {
+    return await boundedBlobToBuffer(data, Number(document.size_bytes), 50 * 1024 * 1024);
+  } catch {
     throw new KnowledgeDocumentExtractionError(
       "size_mismatch",
       "Taille différente du dépôt annoncé"
     );
   }
-  return bytes;
 }
 
 function analysisLabel(result) {

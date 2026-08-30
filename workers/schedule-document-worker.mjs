@@ -6,6 +6,7 @@ import { promisify } from "node:util";
 import { createClient } from "@supabase/supabase-js";
 import postgres from "postgres";
 import WebSocket from "ws";
+import { boundedBlobToBuffer } from "./bounded-download.mjs";
 import {
   inspectSchedulePdf,
   ScheduleDocumentInspectionError,
@@ -75,11 +76,11 @@ async function loadSource(job) {
 async function downloadSource(source) {
   const { data, error } = await storage.from(source.storage_bucket).download(source.storage_path);
   if (error || !data) throw new Error("schedule_storage_download_failed");
-  const bytes = Buffer.from(await data.arrayBuffer());
-  if (bytes.length !== Number(source.size_bytes)) {
+  try {
+    return await boundedBlobToBuffer(data, Number(source.size_bytes), 50 * 1024 * 1024);
+  } catch {
     throw new ScheduleDocumentInspectionError("size_mismatch", "Taille différente du dépôt annoncé");
   }
-  return bytes;
 }
 
 async function persistReview(source, result, msgId) {
