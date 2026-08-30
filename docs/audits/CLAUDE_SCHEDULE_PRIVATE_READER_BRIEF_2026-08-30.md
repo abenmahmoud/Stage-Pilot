@@ -7,8 +7,9 @@ confirmer ce périmètre et fixer un plafond de consommation.
 
 ## Objectif unique
 
-Chercher une fuite d'emploi du temps, un croisement d'établissement ou une
-réutilisation de source périmée dans le socle T042D2A, sans modifier les fichiers.
+Chercher une fuite d'emploi du temps, un croisement d'établissement, une
+réutilisation de source périmée ou un déclenchement conversationnel trop large
+dans les lots T042D2A à T042D2C, sans modifier les fichiers.
 
 ## Périmètre en lecture seule
 
@@ -18,9 +19,13 @@ réutilisation de source périmée dans le socle T042D2A, sans modifier les fich
 - `db/schema.ts`
 - `api/_shared/schedule-reader.ts`
 - `api/_shared/schedule-identity-reader.ts`
+- `api/_shared/support-agent.ts`
+- `api/support/assistant.ts`
+- `shared/schedule-assistant.ts`
 - `shared/schedule-policy.ts`
 - `scripts/test-private-schedule-reader.mjs`
 - `scripts/test-schedule-identity-reader.mjs`
+- `scripts/test-schedule-assistant.mjs`
 - `scripts/test-schedule-policy.mjs`
 - `docs/operations/SCHEDULE_PRIVATE_READER_PREVIEW_2026-08-30.md`
 
@@ -29,7 +34,8 @@ réutilisation de source périmée dans le socle T042D2A, sans modifier les fich
 Constats P0 à P3 avec fichier et ligne, scénario, correction minimale et test
 manquant. Vérifier les clés composites, l'immuabilité, RLS et privilèges, les
 limites de références, les versions concurrentes classes/personnel, la fraîcheur,
-le cas vide et l'absence de référence d'un tiers dans la réponse.
+le cas vide, l'absence de référence d'un tiers dans la réponse et l'impossibilité
+pour le texte utilisateur de choisir une personne cible ou d'élargir le périmètre.
 
 ## Interdictions
 

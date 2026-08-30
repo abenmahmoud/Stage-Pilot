@@ -460,6 +460,15 @@ l'autorisation de quota définie par le propriétaire.
   sa propre référence. Aucun rôle déclaré dans la conversation ou métadonnée
   modifiable ne peut élargir ce périmètre. Le raccordement à la conversation et
   la recette avec comptes fictifs restent ouverts dans T042D2.
+- Lot N5ZK : lecture du prochain cours par l'assistant. **Implémenté et non
+  alimenté en données réelles** : une demande explicite sur son propre prochain
+  cours appelle le résolveur d'identité puis le lecteur privé, sans passer par le
+  modèle. La réponse contient matière, horaire, salle, état utile, source et
+  fraîcheur, jamais la référence d'un personnel. L'absence d'identité, la source
+  indisponible ou périmée, le conflit et la panne échouent de manière fermée et
+  proposent un dossier suivi. Une phrase visant un tiers ne déclenche pas
+  l'outil. La sélection d'un enfant lié et la recette authentifiée restent
+  ouvertes dans T042D2.
 - Lot N6 : tests de non-régression, build, contrôle mobile et rapport d'écarts.
   **Partiellement validé en preview** : 200 transactions concurrentes sans perte
   ni reste après nettoyage, 135 contrôles de sécurité, build réussi, PWA active,

@@ -1374,9 +1374,14 @@ taches et analyse de coherence avant une automatisation sensible.
 - Une personne consulte sa propre classe et ses groupes. Un personnel ne reçoit
   que sa propre référence opaque. Une cible différente exige une relation
   persistée `guardian_of`, active, datée et issue d'un annuaire encore actif.
-- Le résolveur appelle ensuite le lecteur privé, mais aucun endpoint public ni
-  outil de conversation ne l'expose encore. Une recette avec comptes et identités
-  entièrement fictifs reste requise avant de fermer T042D2.
+- Le résolveur appelle ensuite le lecteur privé. L'assistant l'utilise désormais
+  uniquement pour une formulation explicitement personnelle comme « mon prochain
+  cours » ; aucune cible tierce n'est transmise depuis la conversation.
+- Une réponse positive contient seulement matière, horaire, salle, état utile,
+  source et fraîcheur. Identité absente, source périmée, conflit ou panne
+  produisent un refus sûr sans appel au modèle et proposent un dossier suivi.
+- La recette authentifiée avec comptes et identités entièrement fictifs ainsi que
+  la sélection serveur d'un enfant lié restent requises avant de fermer T042D2.
 
 ## 8. Prochain ordre recommande
 

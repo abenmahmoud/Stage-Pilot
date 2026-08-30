@@ -417,6 +417,12 @@
   groupes, propre référence personnel, ou enfant relié par `guardian_of` actif.
   Les métadonnées du navigateur ne donnent aucun droit. L'appel depuis la
   conversation de l'agent reste dans T042D2.
+- [x] T042D2C Appeler le lecteur privé depuis l'assistant uniquement pour une
+  demande explicite sur son propre prochain cours ou sa salle. Le résultat est
+  déterministe, sourcé et sans référence personnel ; identité absente, source
+  périmée, conflit ou panne provoquent un refus sûr et proposent un dossier. La
+  sélection d'un enfant autorisé et la recette avec comptes fictifs restent dans
+  T042D2.
 - [ ] T043 Ajouter le connecteur ou export PRONOTE officiel après autorisation écrite.
 - [ ] T043A Ajouter un flux officiel de changements de cours avec état de santé,
   heure de dernière synchronisation et blocage des réponses périmées.

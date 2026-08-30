@@ -19,6 +19,11 @@ import {
   type AgentRuntimeOutcome,
   type AgentTokenUsage,
 } from "../../shared/agent-runtime-metrics.js";
+import type { ScheduleReadResult } from "../../shared/schedule-policy.js";
+import {
+  requestsOwnNextCourse,
+  scheduleAssistantAnswer,
+} from "../../shared/schedule-assistant.js";
 
 export type SupportAgentMessage = {
   role: "assistant" | "requester";
@@ -380,12 +385,14 @@ export async function analyzeSupportConversation(input: {
     turnCount: number;
   }) => Promise<void>;
   runtimeMetricsRecorder?: (metric: AgentRuntimeMetric) => Promise<void>;
+  scheduleReader?: (input: { requestedAt: Date }) => Promise<ScheduleReadResult>;
 }): Promise<SupportAgentResult> {
   const startedAt = Date.now();
   const model = process.env.OPENAI_SUPPORT_MODEL || "gpt-5.6-luna";
   const policy = evaluateConversationPolicy(input.messages);
   const fallback = localFallback(input.messages, input.attachments, policy);
   let metricRecorded = false;
+  let runtimeSourceCount = 0;
   const emptyUsage: AgentTokenUsage = {
     inputTokens: null,
     outputTokens: null,
@@ -413,7 +420,10 @@ export async function analyzeSupportConversation(input: {
         latencyMs: Date.now() - startedAt,
         ...usage,
         ...cost,
-        sourceCount: Math.min(publicKnowledgeContext.sources.length, 20),
+        sourceCount: Math.min(
+          Math.max(publicKnowledgeContext.sources.length, runtimeSourceCount),
+          20
+        ),
         turnCount: policy.turnCount,
       });
     } catch {
@@ -430,6 +440,31 @@ export async function analyzeSupportConversation(input: {
   if (policy.deterministicReply) {
     await recordRuntime("deterministic", false, false);
     return deterministicResult(policy, fallback);
+  }
+  if (input.scheduleReader && requestsOwnNextCourse(input.messages)) {
+    let scheduleResult: ScheduleReadResult;
+    try {
+      scheduleResult = await input.scheduleReader({ requestedAt: new Date() });
+    } catch {
+      scheduleResult = { ok: false, reason: "source_unavailable" };
+    }
+    runtimeSourceCount = scheduleResult.ok ? 1 : 0;
+    const answer = scheduleAssistantAnswer(scheduleResult);
+    await recordRuntime("deterministic", false, false);
+    return {
+      ...fallback,
+      ...answer,
+      category: "affectation_classe",
+      confidence: "high",
+      missingInformation: [],
+      suggestedDocuments: [],
+      usedAi: false,
+      scope: "school_support",
+      action: answer.readyToCreate ? "offer_case" : "continue",
+      internalSummaryFr: scheduleResult.ok
+        ? "Le prochain cours autorisé a été lu depuis une source d'emploi du temps validée."
+        : "La consultation de l'emploi du temps n'a pas pu fournir de résultat autorisé et actuel.",
+    };
   }
   const laptopIntake = evaluateLaptopIntake(input.messages, input.attachments.length);
   if (laptopIntake) {
