@@ -1,0 +1,187 @@
+import assert from "node:assert/strict";
+import test from "node:test";
+import {
+  createCommunicationWebmailDeliveryToken,
+  verifyCommunicationWebmailDeliveryToken,
+} from "../shared/communication-webmail-delivery.ts";
+import { createCommunicationWebmailDeliveryReceiptToken } from "../shared/communication-webmail-receipt.ts";
+import {
+  CommunicationWebmailTransportError,
+  runCommunicationWebmailDelivery,
+  runCommunicationWebmailDeliveryBatch,
+} from "../shared/communication-webmail-client.ts";
+
+const now = new Date("2026-08-30T15:00:00.000Z");
+const institutionId = "11dc4154-9fe3-4624-93b7-34e7feb944b0";
+const deliverySecret = "webmail-command-test-secret-with-32-characters";
+const receiptSecret = "webmail-receipt-test-secret-with-32-characters";
+const providerHashingSecret = "provider-hashing-test-secret-with-32-characters";
+
+function item(index = 1) {
+  const suffix = String(index).padStart(12, "0");
+  const commandToken = createCommunicationWebmailDeliveryToken({
+    institutionId,
+    secret: deliverySecret,
+    now,
+    command: {
+      v: 1,
+      institutionId,
+      deliveryId: `90890f16-f354-484d-88e9-${suffix}`,
+      communicationId: "2423e6c2-bf87-43df-8149-c6ef6f168622",
+      versionId: "b8f4c471-105c-456b-ab22-2e46dfb90b3c",
+      version: 2,
+      contactRef: `contact:${String(index).padStart(8, "0")}`,
+      resolutionHash: "a".repeat(64),
+      idempotencyKeyHash: index.toString(16).padStart(64, "0"),
+      visibility: "internal",
+      canonicalPath: "/informations/rentree-professeurs",
+      linkMode: "authenticated",
+      subject: "Informations de rentrée",
+      preheader: "Les informations utiles sont disponibles.",
+      bodyText: "Bonjour,\n\nConsultez la version à jour sur le portail du lycée.",
+      replyRef: `reply:communication-${String(index).padStart(4, "0")}`,
+      issuedAt: now.toISOString(),
+      expiresAt: new Date(now.getTime() + 5 * 60 * 1000).toISOString(),
+    },
+  });
+  const command = verifyCommunicationWebmailDeliveryToken({ token: commandToken, institutionId, secret: deliverySecret, now });
+  assert.ok(command);
+  return {
+    institutionId,
+    commandToken,
+    deliverySecret,
+    receiptSecret,
+    state: {
+      delivery: {
+        institutionId,
+        deliveryId: command.deliveryId,
+        status: "queued",
+        resolutionHash: command.resolutionHash,
+        commandHash: command.commandHash,
+        idempotencyKeyHash: command.idempotencyKeyHash,
+        providerMessageRef: null,
+        webmailReceiptHash: null,
+        sentAt: null,
+      },
+      job: { deliveryId: command.deliveryId, jobType: "send_delivery", status: "running" },
+    },
+  };
+}
+
+function acceptingTransport(outcome = "accepted") {
+  return async ({ commandToken }) => {
+    const command = verifyCommunicationWebmailDeliveryToken({ token: commandToken, institutionId, secret: deliverySecret, now });
+    assert.ok(command);
+    return {
+      receiptToken: createCommunicationWebmailDeliveryReceiptToken({
+        command,
+        outcome,
+        providerMessageId: `<message-${command.deliveryId}@example.invalid>`,
+        receiptSecret,
+        providerHashingSecret,
+        acceptedAt: now,
+        now,
+      }),
+    };
+  };
+}
+
+test("verifies the receipt before returning a completion decision", async () => {
+  const result = await runCommunicationWebmailDelivery({
+    item: item(),
+    transport: acceptingTransport(),
+    now,
+  });
+  assert.equal(result.ok, true);
+  assert.equal(result.decision.nextDeliveryStatus, "sent");
+});
+
+test("fails closed for an invalid command, response or receipt", async () => {
+  const valid = item();
+  const invalidCommand = await runCommunicationWebmailDelivery({
+    item: { ...valid, commandToken: `${valid.commandToken}x` },
+    transport: acceptingTransport(),
+    now,
+  });
+  assert.deepEqual(invalidCommand, { ok: false, failureCode: "scope_invalid" });
+  const unknownResponse = await runCommunicationWebmailDelivery({
+    item: valid,
+    transport: async () => ({ receiptToken: "invalid", providerText: "do not persist" }),
+    now,
+  });
+  assert.deepEqual(unknownResponse, { ok: false, failureCode: "scope_invalid" });
+  const invalidReceipt = await runCommunicationWebmailDelivery({
+    item: valid,
+    transport: async () => ({ receiptToken: "invalid" }),
+    now,
+  });
+  assert.deepEqual(invalidReceipt, { ok: false, failureCode: "scope_invalid" });
+});
+
+test("maps bounded HTTP failures without retaining provider prose", async () => {
+  const expected = new Map([
+    [401, "authorization_failed"],
+    [404, "configuration_missing"],
+    [429, "provider_rate_limited"],
+    [503, "provider_unavailable"],
+    [422, "provider_rejected"],
+  ]);
+  for (const [status, failureCode] of expected) {
+    const result = await runCommunicationWebmailDelivery({
+      item: item(),
+      transport: async () => { throw new CommunicationWebmailTransportError(status); },
+      now,
+    });
+    assert.deepEqual(result, { ok: false, failureCode });
+    assert.equal(JSON.stringify(result).includes("Webmail transport failed"), false);
+  }
+});
+
+test("aborts and classifies a transport timeout", async () => {
+  let aborted = false;
+  const result = await runCommunicationWebmailDelivery({
+    item: item(),
+    transport: ({ signal }) => new Promise((resolve) => {
+      signal.addEventListener("abort", () => {
+        aborted = true;
+        resolve({ receiptToken: "late" });
+      });
+    }),
+    timeoutMs: 100,
+    now,
+  });
+  assert.equal(aborted, true);
+  assert.deepEqual(result, { ok: false, failureCode: "provider_timeout" });
+});
+
+test("processes 200 deliveries with bounded concurrency and stable ordering", async () => {
+  let active = 0;
+  let peak = 0;
+  const baseTransport = acceptingTransport();
+  const transport = async (input) => {
+    active += 1;
+    peak = Math.max(peak, active);
+    await new Promise((resolve) => setTimeout(resolve, 1));
+    try {
+      return await baseTransport(input);
+    } finally {
+      active -= 1;
+    }
+  };
+  const results = await runCommunicationWebmailDeliveryBatch({
+    items: Array.from({ length: 200 }, (_, index) => item(index + 1)),
+    transport,
+    concurrency: 10,
+    now,
+  });
+  assert.equal(results.length, 200);
+  assert.equal(results.every((result) => result.ok), true);
+  assert.equal(peak <= 10, true);
+  assert.equal(new Set(results.map((result) => result.decision.providerMessageRef)).size, 200);
+});
+
+test("rejects unsafe batch and worker bounds", async () => {
+  await assert.rejects(() => runCommunicationWebmailDeliveryBatch({ items: [], transport: acceptingTransport(), now }), /batch_size_invalid/);
+  await assert.rejects(() => runCommunicationWebmailDeliveryBatch({ items: [item()], transport: acceptingTransport(), concurrency: 21, now }), /concurrency_invalid/);
+  await assert.rejects(() => runCommunicationWebmailDelivery({ item: item(), transport: acceptingTransport(), timeoutMs: 31_000, now }), /timeout_invalid/);
+});

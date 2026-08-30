@@ -106,6 +106,10 @@
   transition atomique attendue : seule une commande exacte sous travail
   `running` peut devenir `sent`; un reçu connu préserve tout état plus avancé.
   T018 reste ouvert jusqu'au worker distant et à la recette fictive.
+- [x] T018D Ajouter le client local du futur worker : vérification commande et
+  reçu, délai borné, concurrence maximale de vingt et erreurs fournisseur
+  converties en codes fermés. Aucun endpoint ni appel distant n'est activé.
+  T018 reste ouvert jusqu'au raccordement transactionnel.
 - [ ] T019 Enregistrer livré, différé, rejeté, spam et désinscrit.
 - [x] T019A Définir le contrat Brevo de délivrabilité avant toute route. Un
   Bearer fort est comparé en temps constant ; seuls les événements documentés
@@ -206,6 +210,9 @@
   le même reçu peut terminer le travail sans remplacer un état livré ni créer
   une seconde identité fournisseur. T029 reste ouvert jusqu'à la recette sur la
   file de preview.
+- [x] T029C Simuler 200 appels individuels avec une concurrence de dix, ordre de
+  résultat stable, reçus uniques et délai d'abandon. T029 reste ouvert jusqu'à
+  la recette avec la file et l'adaptateur Webmail de preview.
 - [x] T030 Vérifier PDF, image, DOCX, fichier invalide et données personnelles.
   Les PDF/DOCX fictifs sûrs sont extraits localement ; image, faux PDF et type
   incohérent sont refusés. Une adresse ou un code scolaire supprime le texte

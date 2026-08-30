@@ -147,3 +147,9 @@ résolution, commande et reçu, toutes bornées et uniques par établissement. L
 politique de complétion refuse un travail non `running`, une commande substituée
 ou un identifiant fournisseur différent. Un reçu idempotent peut réparer une
 coupure après envoi, mais ne fait jamais régresser un état déjà livré.
+
+T018D borne aussi l'exécution : le client vérifie localement l'ordre avant
+l'appel, puis le reçu avant toute décision. Les lots comptent au plus 500 lignes
+et vingt appels simultanés ; le profil retenu pour 200 destinataires en utilise
+dix. Délais et statuts distants deviennent des codes fermés, sans corps d'erreur
+fournisseur dans le résultat ou l'audit.

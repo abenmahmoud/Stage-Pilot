@@ -1677,6 +1677,18 @@ taches et analyse de coherence avant une automatisation sensible.
   et schéma. T018C et T029B sont terminés ; la migration n'est pas appliquée et
   le worker distant reste à réaliser avec des données fictives.
 
+### Jalon du 30 août 2026 - client borné du worker Webmail
+
+- Le futur worker dispose d'un client injecté sans endpoint réel : il vérifie
+  l'ordre signé, borne le délai, appelle un transport, vérifie le reçu puis
+  produit seulement une décision de complétion.
+- Les erreurs HTTP et réseau deviennent des codes fermés ; aucun texte
+  fournisseur ne remonte. Une réponse inattendue ou un reçu substitué échoue en
+  `scope_invalid`.
+- Un lot accepte 500 lignes au maximum et vingt appels simultanés. Six tests
+  simulent 200 envois avec une concurrence de dix, un délai, les statuts HTTP et
+  les entrées invalides. T018D et T029C sont terminés sans appel distant.
+
 ### Jalon du 30 août 2026 - contrat de délivrabilité Brevo
 
 - Un vérificateur Bearer commun protège désormais les futurs webhooks entrants
