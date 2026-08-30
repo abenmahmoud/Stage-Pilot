@@ -2939,3 +2939,16 @@ taches et analyse de coherence avant une automatisation sensible.
   appel IA, compte distant ou modification Supabase.
 - Le brief Claude est préparé mais non exécuté, faute de modèle exact et de
   plafond propres à cette mission ; aucun jeton externe n'a été consommé.
+
+### Jalon du 30 août 2026 - mutations de gestion éditoriale bornées
+
+- Les contenus et modèles de 30 000 caractères maximum ont un plafond HTTP de
+  256 Ko ; les actions sont limitées à 8 Ko.
+- Les réservations de média et commandes de reprise sont limitées à 4 Ko ; la
+  confirmation sans payload désactive le parseur de corps Vercel.
+- Les médias de 10 Mo maximum continuent de transiter directement vers le
+  stockage privé signé ; les rôles éditeur et publication restent séparés.
+- T037U est terminée par analyse statique et tests locaux, sans publication,
+  média réel, compte distant ou modification Supabase.
+- Le brief Claude est préparé mais non exécuté, faute de modèle exact et de
+  plafond propres à cette mission ; aucun jeton externe n'a été consommé.

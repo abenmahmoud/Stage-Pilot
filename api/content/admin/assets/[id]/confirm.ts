@@ -62,3 +62,5 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return { asset: readyAsset };
   });
 }
+
+export const config = { api: { bodyParser: false } };

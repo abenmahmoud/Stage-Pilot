@@ -275,3 +275,5 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return { phase: input.phase, offset: input.offset, nextOffset, total: rows.length, done: nextOffset >= rows.length, results };
   });
 }
+
+export const config = { api: { bodyParser: { sizeLimit: "4kb" } } };

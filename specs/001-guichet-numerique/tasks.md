@@ -249,6 +249,8 @@ voir sa réponse dans le dossier. L'agent traite tout depuis une seule file.
   les actions sans payload et conserver le dépôt direct des PDF privés.
 - [x] **T037T** Borner les mutations du registre de connaissances, désactiver le
   parseur de confirmation et conserver le dépôt direct des documents privés.
+- [x] **T037U** Borner les mutations de gestion éditoriale, désactiver le parseur
+  de confirmation et conserver le dépôt direct des médias privés.
 - [x] **T037F** Exclure les contacts desactives des reponses, reserver les
   journaux globaux a un administrateur MFA et exiger `aal2` pour confirmer une
   identite scolaire depuis une source officielle.
