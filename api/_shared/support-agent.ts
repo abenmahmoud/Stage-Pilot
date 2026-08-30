@@ -6,6 +6,7 @@ import {
   type AssistantScope,
   type ConversationPolicy,
 } from "../../shared/assistant-policy.js";
+import { readAiProviderJsonResponse } from "../../shared/ai-provider-response.js";
 import { evaluateLaptopIntake } from "../../shared/laptop-intake.js";
 import type { KnowledgeActor } from "../../shared/skill-registry-policy.js";
 import {
@@ -558,14 +559,14 @@ export async function analyzeSupportConversation(input: {
       await recordRuntime("provider_error", true, false);
       return fallback;
     }
-    const payload = (await response.json()) as {
+    const payload = await readAiProviderJsonResponse<{
       output?: Array<{ type?: string; content?: Array<{ type?: string; text?: string }> }>;
       usage?: {
         input_tokens?: number;
         output_tokens?: number;
         total_tokens?: number;
       };
-    };
+    }>(response);
     const tokenUsage = parseOpenAiTokenUsage(payload);
     const outputText = payload.output
       ?.flatMap((item) => item.content ?? [])

@@ -2812,3 +2812,14 @@ taches et analyse de coherence avant une automatisation sensible.
   synthétiques.
 - Le brief Claude est préparé mais non exécuté, faute de modèle exact et de
   plafond propres à cette mission ; aucun jeton externe n'a été consommé.
+
+### Jalon du 30 août 2026 - réponses du fournisseur IA bornées
+
+- Les quatre parcours IA partagent un lecteur JSON de 2 Mo : assistant,
+  traduction, contenus publics et communications internes.
+- Les tailles annoncées excessives sont refusées avant lecture et les flux
+  chunkés excessifs sont annulés ; aucun appel fournisseur n'est exécuté par le
+  test.
+- T037J est terminée et la vérification reste dans la barrière de sécurité.
+- Le brief Claude est préparé mais non exécuté, faute de modèle exact et de
+  plafond propres à cette mission ; aucun jeton externe n'a été consommé.

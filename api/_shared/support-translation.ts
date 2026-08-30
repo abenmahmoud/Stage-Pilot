@@ -1,4 +1,5 @@
 import { createHash, createHmac, timingSafeEqual } from "node:crypto";
+import { readAiProviderJsonResponse } from "../../shared/ai-provider-response.js";
 import {
   neutralizeSupportPromptMarkers,
   pseudonymizeSupportText,
@@ -241,7 +242,7 @@ export async function prepareSupportTranslation(input: {
     if (!response.ok) {
       throw new SupportTranslationFailure("unavailable", "Le service de traduction ne répond pas");
     }
-    const text = outputText(await response.json());
+    const text = outputText(await readAiProviderJsonResponse<unknown>(response));
     if (!text) {
       throw new SupportTranslationFailure("invalid_output", "La traduction reçue est incomplète");
     }

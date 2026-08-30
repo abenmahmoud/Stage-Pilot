@@ -1,4 +1,5 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
+import { readAiProviderJsonResponse } from "../../../shared/ai-provider-response.js";
 import {
   parseCommunicationAssistInput,
   parseCommunicationAssistOutput,
@@ -115,7 +116,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         }),
       });
       if (!response.ok) throw new HttpError(502, "L’aide à la rédaction ne répond pas pour le moment");
-      const text = outputText(await response.json());
+      const text = outputText(await readAiProviderJsonResponse<unknown>(response));
       if (!text) throw new HttpError(502, "La proposition reçue est incomplète");
       let parsed: unknown;
       try {
