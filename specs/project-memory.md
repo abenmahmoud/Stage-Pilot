@@ -5,6 +5,17 @@
 **Depot** : `abenmahmoud/Stage-Pilot`
 **Dernier jalon de code verifie** : branche de preview Vercel
 
+## Jalon du 30 août 2026 - page éditoriale dédiée liée à son adresse
+
+- La route `/site/:slug` utilise désormais le même contrat strict que « À la
+  une » et « Vie du lycée » avant de rendre un article ou un document.
+- Une réponse contenant plusieurs articles, un curseur inattendu, un autre slug
+  ou un média externe est refusée sans charger l'origine injectée.
+- La recette Chromium confirme ce refus à 320, 390 et 1 440 px, sans débordement
+  ni erreur JavaScript.
+- Lot preview uniquement : aucun contenu réel, média distant ou production n'a
+  été utilisé ou modifié.
+
 ## Jalon du 30 août 2026 - accusés publics validés avant succès local
 
 - Fichier, message de suivi et fermeture de session exigent désormais une

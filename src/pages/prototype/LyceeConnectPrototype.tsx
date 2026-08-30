@@ -98,6 +98,10 @@ import {
   type ActiveSupportNotificationSnapshot,
 } from "../../../shared/support-active-notification";
 import { readJsonApiResponse } from "../../../shared/json-api-response";
+import {
+  readPublicContentPayload,
+  type PublicContent,
+} from "./public-content-client";
 import "./lycee-connect.css";
 
 type View = "home" | "services" | "help" | "requests" | "school" | "news" | "agent" | "trust";
@@ -738,32 +742,6 @@ function PageIntro({
     </header>
   );
 }
-
-type PublicContent = {
-  id: string;
-  contentType: "article" | "alerte" | "page" | "document";
-  slug: string;
-  title: string;
-  summary: string;
-  bodyMarkdown: string;
-  category: string;
-  audience: string;
-  featured: boolean;
-  publishedAt: string | null;
-  publishAt: string | null;
-  assets: Array<{
-    id: string;
-    assetKind: "image" | "document";
-    mimeType: string;
-    title: string;
-    altText: string | null;
-    originalName: string;
-    role: "couverture" | "illustration" | "document";
-    label: string;
-    position: number;
-    signedUrl: string | null;
-  }>;
-};
 
 function NewsView({ onBack }: { onBack: () => void }) {
   const [items, setItems] = useState<PublicContent[]>([]);
@@ -2523,98 +2501,6 @@ function isSupportMessageMutationPayload(value: unknown): value is {
 
 function isSupportSessionClearPayload(value: unknown): value is { cleared: true } {
   return isRecord(value) && value.cleared === true;
-}
-
-function isAllowedPublicContentSignedUrl(value: unknown): value is string | null {
-  if (value === null) return true;
-  if (!isBoundedString(value, 4_096)) return false;
-  const env = import.meta.env as Record<string, string | undefined>;
-  const configured = env.VITE_SUPABASE_URL ?? env.NEXT_PUBLIC_SUPABASE_URL;
-  if (!configured) return false;
-  try {
-    const url = new URL(value);
-    const supabaseUrl = new URL(configured);
-    return url.protocol === "https:"
-      && url.origin === supabaseUrl.origin
-      && !url.username
-      && !url.password
-      && !url.hash
-      && url.pathname.startsWith("/storage/v1/object/sign/site-content/")
-      && url.searchParams.has("token");
-  } catch {
-    return false;
-  }
-}
-
-function isPublicContentAsset(value: unknown): value is PublicContent["assets"][number] {
-  if (!isRecord(value)) return false;
-  const assetKind = String(value.assetKind);
-  const mimeType = String(value.mimeType);
-  const kindMatchesMime = assetKind === "image"
-    ? ["image/jpeg", "image/png", "image/webp"].includes(mimeType)
-    : assetKind === "document"
-      && [
-        "application/pdf",
-        "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-      ].includes(mimeType);
-  return typeof value.id === "string"
-    && /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value.id)
-    && kindMatchesMime
-    && isBoundedString(value.title, 180)
-    && (assetKind === "image" ? isBoundedString(value.altText, 300) : value.altText === null || isBoundedString(value.altText, 300))
-    && isBoundedString(value.originalName, 255)
-    && ["couverture", "illustration", "document"].includes(String(value.role))
-    && isBoundedString(value.label, 180)
-    && isNonNegativeInteger(value.position)
-    && value.position <= 1_000
-    && isAllowedPublicContentSignedUrl(value.signedUrl);
-}
-
-function isPublicContent(value: unknown): value is PublicContent {
-  if (!isRecord(value)) return false;
-  return typeof value.id === "string"
-    && /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value.id)
-    && ["article", "alerte", "page", "document"].includes(String(value.contentType))
-    && isBoundedString(value.slug, 140)
-    && /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(value.slug)
-    && isBoundedString(value.title, 180)
-    && isBoundedString(value.summary, 600, true)
-    && isBoundedString(value.bodyMarkdown, 30_000, true)
-    && isBoundedString(value.category, 100)
-    && value.audience === "tous"
-    && typeof value.featured === "boolean"
-    && isPublicSupportDate(value.publishedAt)
-    && Date.parse(value.publishedAt) <= Date.now() + (5 * 60_000)
-    && (value.publishAt === null || isPublicSupportDate(value.publishAt))
-    && Array.isArray(value.assets)
-    && value.assets.length <= 20
-    && value.assets.every(isPublicContentAsset)
-    && new Set(value.assets.map((asset) => asset.id)).size === value.assets.length;
-}
-
-function isPublicContentPayload(value: unknown): value is { items: PublicContent[]; nextCursor: string | null } {
-  if (!isRecord(value)
-    || !Array.isArray(value.items)
-    || value.items.length > 100
-    || !value.items.every(isPublicContent)
-    || !(value.nextCursor === null
-      || (isBoundedString(value.nextCursor, 512) && /^[A-Za-z0-9_-]+$/.test(value.nextCursor)))) return false;
-  const itemIds = value.items.map((item) => item.id);
-  const slugs = value.items.map((item) => item.slug);
-  return new Set(itemIds).size === itemIds.length
-    && new Set(slugs).size === slugs.length;
-}
-
-async function readPublicContentPayload(response: Response): Promise<{
-  items: PublicContent[];
-  nextCursor: string | null;
-}> {
-  const payload = await readApiResponse<unknown>(response);
-  if (!isPublicContentPayload(payload)) {
-    throw new Error("La réponse des informations du lycée est invalide.");
-  }
-  return payload;
 }
 
 function isPublicSupportRequestSummary(value: unknown): value is SupportRequestSummary {

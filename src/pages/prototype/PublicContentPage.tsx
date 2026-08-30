@@ -3,32 +3,15 @@ import { ArrowLeft, ExternalLink, FileText, LoaderCircle } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import { Link, useParams } from "react-router-dom";
 import remarkGfm from "remark-gfm";
+import {
+  readPublicContentPagePayload,
+  type PublicContent,
+} from "./public-content-client";
 import "./lycee-connect.css";
-
-type PublicAsset = {
-  id: string;
-  assetKind: "image" | "document";
-  title: string;
-  altText: string | null;
-  originalName: string;
-  label: string;
-  signedUrl: string | null;
-};
-
-type PublicItem = {
-  id: string;
-  slug: string;
-  title: string;
-  summary: string;
-  bodyMarkdown: string;
-  category: string;
-  publishedAt: string | null;
-  assets: PublicAsset[];
-};
 
 export default function PublicContentPage() {
   const { slug = "" } = useParams();
-  const [item, setItem] = useState<PublicItem | null>(null);
+  const [item, setItem] = useState<PublicContent | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -37,9 +20,7 @@ export default function PublicContentPage() {
     setLoading(true); setError("");
     fetch(`/api/content/public?slug=${encodeURIComponent(slug)}`, { signal: controller.signal })
       .then(async (response) => {
-        const payload = await response.json() as { items?: PublicItem[]; error?: string };
-        if (!response.ok) throw new Error(payload.error || "Cette page ne peut pas être chargée");
-        setItem(payload.items?.[0] ?? null);
+        setItem(await readPublicContentPagePayload(response, slug));
       })
       .catch((reason) => {
         if (reason instanceof DOMException && reason.name === "AbortError") return;
