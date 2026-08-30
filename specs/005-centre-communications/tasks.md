@@ -93,6 +93,10 @@
   idempotentes ; une simulation de 200 contacts ne contient aucune coordonnée.
   T017 reste ouvert jusqu'à la route Webmail et l'insertion transactionnelle.
 - [ ] T018 Envoyer individuellement via Brevo avec lien canonique.
+- [x] T018A Définir l'ordre signé LyceeGest vers le Webmail : un seul contact
+  opaque, texte validé, chemin canonique sans jeton et idempotence de livraison.
+  Le Webmail reste seul à résoudre l'adresse et à appeler Brevo. T018 reste
+  ouvert jusqu'à l'endpoint séparé, au reçu signé et à la recette fictive.
 - [ ] T019 Enregistrer livré, différé, rejeté, spam et désinscrit.
 - [x] T019A Définir le contrat Brevo de délivrabilité avant toute route. Un
   Bearer fort est comparé en temps constant ; seuls les événements documentés
@@ -119,8 +123,9 @@
 - [x] T020B Définir la reprise humaine d'un travail mort. Seuls superadmin et
   proviseur sous MFA peuvent confirmer une cause corrigée ; l'échec d'origine
   reste intact et un successeur idempotent repart à zéro. Les erreurs de source
-  ainsi que les livraisons absentes ou terminales ne sont jamais relancées. T020 reste ouvert
-  jusqu'à la transaction atomique, à la route et à l'interface de preview.
+  ainsi que les livraisons absentes ou terminales ne sont jamais relancées.
+  T020 reste ouvert jusqu'à la transaction atomique, à la route et à
+  l'interface de preview.
 - [x] T021A Ajouter un aperçu éditorial local sûr avant la relecture : rendu
   Markdown borné, images distantes neutralisées, liens isolés et absence de
   destinataire, publication ou envoi.
@@ -172,6 +177,9 @@
   destinataire ou envoi, contrôle les sorties documentaires et l'interface, et
   exige des projections SQL explicites. T027 reste ouvert jusqu'au test de
   livraisons fictives lorsque T017 à T020 existeront.
+- [x] T027B Simuler 200 ordres individuels signés sans adresse, nom, tableau de
+  contacts, origine externe ou jeton dans le lien. T027 reste ouvert jusqu'à la
+  preuve entre les deux applications sur la preview.
 - [ ] T028 Tester rôles, MFA, contenus internes et API publique.
 - [x] T028A Exiger `aal2` sur toutes les routes privées du centre et vérifier
   les rôles bornés, le cloisonnement établissement, la fermeture du module et

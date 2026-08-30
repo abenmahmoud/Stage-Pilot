@@ -129,3 +129,9 @@ opaques nécessaires aux lignes `communication_deliveries`. La page signée est
 liée à la version, à l'empreinte de registre et aux groupes approuvés. Une clé
 HMAC stable par contact absorbe les doublons entre rejeux et pages sans révéler
 de coordonnée.
+
+T018A maintient la séparation des dépôts : LyceeGest ne contacte pas Brevo pour
+ce centre et ne reçoit pas l'adresse. Il signe un ordre individuel contenant le
+texte officiel et un chemin canonique sans origine ; le Webmail résout et
+revérifie le contact, construit l'URL depuis sa configuration et envoie. Le reçu
+signé et l'appel fictif entre applications restent à implémenter.

@@ -1636,6 +1636,19 @@ taches et analyse de coherence avant une automatisation sensible.
 - Le brief Claude est préparé mais non exécuté, faute de modèle exact et de
   plafond de consommation propres à cette mission.
 
+### Jalon du 30 août 2026 - ordre individuel vers le Webmail
+
+- LyceeGest prépare un ordre HMAC de cinq minutes contenant un seul contact
+  opaque, le texte validé et un chemin canonique sans origine ni jeton.
+- Le Webmail séparé reste responsable de revérifier le contact, résoudre
+  l'adresse et appeler Brevo. LyceeGest ne reçoit ni adresse ni identifiant
+  fournisseur brut.
+- Sept tests simulent 200 ordres uniques et refusent lots, coordonnées, liens
+  externes, mauvais modes d'accès, contenus excessifs, rejeu hors délai et
+  croisement d'établissement. T018A et T027B sont terminés.
+- Le brief Claude est préparé mais non exécuté, faute de modèle exact et de
+  plafond de consommation propres à cette mission.
+
 ### Jalon du 30 août 2026 - contrat de délivrabilité Brevo
 
 - Un vérificateur Bearer commun protège désormais les futurs webhooks entrants
