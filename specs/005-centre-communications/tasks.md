@@ -262,11 +262,15 @@
 - [x] T027C Simuler 200 reçus de livraison signés, chacun lié à sa commande et
   sans adresse, identifiant Brevo brut ni contenu utilisateur. T027 reste ouvert
   jusqu'à la recette réseau et transactionnelle sur la preview.
-- [ ] T028 Tester rôles, MFA, contenus internes et API publique.
+- [x] T028 Tester rôles, MFA, contenus internes et API publique.
 - [x] T028A Exiger `aal2` sur toutes les routes privées du centre et vérifier
   les rôles bornés, le cloisonnement établissement, la fermeture du module et
-  l'absence d'API publique, d'audience, de publication ou d'envoi. T028 reste
-  ouvert jusqu'à l'existence et au test de l'API publique validée.
+  l'absence, à ce jalon, d'API publique, d'audience, de publication ou d'envoi.
+- [x] T028B Rejouer la frontière après ajout de la publication : les douze
+  routes d'action restent sous `/admin`, rôle, établissement et `aal2` ; l'API
+  publique ne lit que `site_content`, exige version publiée, audience `tous`,
+  fenêtre active et exclusion des archives. Une communication `internal` ne
+  peut pas être publiée et aucun champ d'approbation ou d'établissement ne sort.
 - [ ] T029 Tester doublons, panne Brevo, reprise et 200 destinataires.
 - [x] T029A Simuler localement 200 références opaques : 200 lignes et 200 clés
   uniques, stables au rejeu. Les doublons, contacts inactifs, coordonnées,

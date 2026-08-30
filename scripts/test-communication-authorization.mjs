@@ -58,7 +58,7 @@ test("keeps every persisted route scoped to the authenticated institution", asyn
   }
 });
 
-test("keeps publication private and exposes no audience or direct sending route", async () => {
+test("keeps every communication action private and exposes no direct sending route", async () => {
   assert.ok(routeFiles.every((path) => path.includes("/admin/")));
   const routes = (await Promise.all(routeFiles.map(source))).join("\n");
   assert.doesNotMatch(routes, /communication-send|audienceRef|recipientIds|recipientEmail/);
@@ -67,4 +67,21 @@ test("keeps publication private and exposes no audience or direct sending route"
   assert.match(gate, /settings\?\.publicationEnabled/);
   assert.match(gate, /readCommunicationFeatureFlags\(\)\.sendingEnabled/);
   assert.match(gate, /settings\?\.sendingEnabled/);
+});
+
+test("keeps internal communications outside the validated public content API", async () => {
+  const publicRoute = await source("api/content/public.ts");
+  const publishRoute = await source("api/communications/admin/[id]/publish.ts");
+
+  assert.doesNotMatch(
+    publicRoute,
+    /communications|communicationVersions|communicationDocuments|communicationJobs/
+  );
+  assert.match(publicRoute, /isNotNull\(siteContentItems\.publishedVersion\)/);
+  assert.match(publicRoute, /ne\(siteContentItems\.status, "archive"\)/);
+  assert.match(publicRoute, /eq\(siteContentItems\.audience, "tous"\)/);
+  assert.match(publicRoute, /isSiteContentPublicAt\(content, now\)/);
+  assert.match(publishRoute, /root\.visibility !== "public"/);
+  assert.match(publishRoute, /requireCommunicationPublisher\(req\)/);
+  assert.doesNotMatch(publicRoute, /approvedBy|createdBy|reviewedBy|institutionId/);
 });

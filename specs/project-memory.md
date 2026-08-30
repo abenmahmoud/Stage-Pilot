@@ -2138,8 +2138,8 @@ taches et analyse de coherence avant une automatisation sensible.
 
 ### Jalon du 30 août 2026 - analyse de cohérence Spec Kit
 
-- Les cinq domaines comptent 376 identifiants uniques : 256 lignes terminées et
-  120 ouvertes. Ces nombres restent un inventaire, jamais un pourcentage global.
+- Les cinq domaines comptent 377 identifiants uniques : 258 lignes terminées et
+  119 ouvertes. Ces nombres restent un inventaire, jamais un pourcentage global.
 - Les parents encore ouverts correspondent bien à des preuves absentes :
   opérations distantes, décisions métier/DPO, comptes nominatifs, données
   validées, restauration ou pilote.
@@ -2209,6 +2209,21 @@ taches et analyse de coherence avant une automatisation sensible.
 - T015 reste ouverte uniquement pour la durée de visibilité et le traitement
   public des archives. Le brief Claude est préparé mais non exécuté, faute de
   modèle exact et de plafond de consommation propres à cette mission.
+
+### Jalon du 30 août 2026 - frontières communications/publique rejouées
+
+- Les douze routes d'action du centre restent exclusivement sous
+  `api/communications/admin`, avec le garde partagé qui impose compte agent,
+  établissement, rôle borné et `aal2`.
+- La lecture publique n'importe aucune table de communications. Elle ne lit que
+  la version publiée des contenus du site, d'audience `tous`, non archivée et
+  dans sa fenêtre de validité.
+- La route de publication refuse toute communication dont la visibilité n'est
+  pas `public`. Les champs d'approbation, de compte et d'établissement ne font
+  pas partie de la réponse publique.
+- T028 est fermée par une suite consolidée. Le brief Claude est préparé mais non
+  exécuté, faute de modèle exact et de plafond de consommation propres à cette
+  mission.
 
 ## 8. Prochain ordre recommande
 
