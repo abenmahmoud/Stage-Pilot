@@ -2845,3 +2845,13 @@ taches et analyse de coherence avant une automatisation sensible.
   consommation fournisseur.
 - Le brief Claude est préparé mais non exécuté, faute de modèle exact et de
   plafond propres à cette mission ; aucun jeton externe n'a été consommé.
+
+### Jalon du 30 août 2026 - confirmation de pièce jointe bornée
+
+- La route de confirmation vérifie désormais la taille réelle du Blob et son
+  égalité avec la réservation avant toute copie en mémoire.
+- Les fichiers vides, surdimensionnés, incohérents ou illisibles passent en
+  `blocked` ; seuls les fichiers conformes rejoignent la quarantaine antivirus.
+- T037M est terminée avec des Blobs synthétiques, sans stockage ni donnée réelle.
+- Le brief Claude est préparé mais non exécuté, faute de modèle exact et de
+  plafond propres à cette mission ; aucun jeton externe n'a été consommé.

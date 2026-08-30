@@ -7,6 +7,7 @@ import { HttpError, supabaseAdmin } from "../../../_shared/auth.js";
 import { handleApi, methodNotAllowed } from "../../../_shared/response.js";
 import { requireSupportAccess } from "../../../_shared/support.js";
 import { enforceAttachmentConfirmationRateLimit } from "../../../_shared/support-rate-limits.js";
+import { readBoundedBlobBytes } from "../../../../shared/bounded-blob.js";
 
 const MAX_FILE_BYTES = 10 * 1024 * 1024;
 
@@ -70,11 +71,22 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       .download(attachment.storagePath);
     if (downloadError || !file) throw new HttpError(409, "Le fichier n'a pas été reçu");
 
-    const bytes = Buffer.from(await file.arrayBuffer());
-    const detectedMime = detectMime(bytes, attachment.declaredMime);
-    const accepted = bytes.length > 0 && bytes.length <= MAX_FILE_BYTES && detectedMime !== null;
+    const uploadedSize = Number(file.size);
+    let bytes: Buffer | null = null;
+    try {
+      bytes = Buffer.from(
+        await readBoundedBlobBytes(file, Number(attachment.sizeBytes), MAX_FILE_BYTES)
+      );
+    } catch {
+      bytes = null;
+    }
+    const detectedMime = bytes ? detectMime(bytes, attachment.declaredMime) : null;
+    const accepted = bytes !== null && detectedMime !== null;
     const scanStatus = accepted ? "quarantine" : "blocked";
     const scanDetail = accepted ? "awaiting_antivirus" : "invalid_file_signature";
+    const recordedSize = Number.isSafeInteger(uploadedSize) && uploadedSize >= 0
+      ? uploadedSize
+      : Number(attachment.sizeBytes);
     const correlationId = randomUUID();
     const jobId = randomUUID();
 
@@ -83,8 +95,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         .update(supportAttachments)
         .set({
           detectedMime,
-          sizeBytes: bytes.length,
-          sha256: createHash("sha256").update(bytes).digest("hex"),
+          sizeBytes: recordedSize,
+          sha256: bytes ? createHash("sha256").update(bytes).digest("hex") : null,
           scanStatus,
           scanDetail,
           uploadedAt: new Date(),
