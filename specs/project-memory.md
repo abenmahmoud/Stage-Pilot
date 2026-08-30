@@ -1689,6 +1689,21 @@ taches et analyse de coherence avant une automatisation sensible.
 - Le brief Claude est préparé mais non exécuté, faute de modèle exact et de
   plafond de consommation propres à cette mission.
 
+### Jalon du 30 août 2026 - classement local des réponses
+
+- Un classificateur déterministe prépare les quatre catégories déjà autorisées
+  par la base : retrait, correction de contact, question et réponse libre. Il ne
+  retourne jamais le sujet, le corps ou une coordonnée.
+- Les négations explicites empêchent un faux retrait. Des signaux bornés en
+  français, anglais, espagnol et arabe sont couverts sans IA externe.
+- La présence d'un mot de passe, code ou secret force une revue manuelle
+  sécurisée. Toute sortie conserve `requiresHumanReview: true` ; aucune action
+  sur un contact n'est exécutée.
+- Six tests passent. Le raccordement à un webhook authentifié, à la boîte
+  entrante et à l'action agent reste volontairement ouvert dans T022 à T024.
+- Le brief Claude est préparé mais non exécuté, faute de modèle exact et de
+  plafond de consommation propres à cette mission.
+
 ## 8. Prochain ordre recommande
 
 1. Publier et tester le pré-triage ordinateur portable avec des données fictives.

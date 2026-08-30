@@ -104,6 +104,11 @@
 - [ ] T022 Construire le webhook entrant authentifié et idempotent.
 - [ ] T023 Rattacher chaque réponse à la bonne communication.
 - [ ] T024 Classer retrait, correction de contact, question et réponse libre.
+- [x] T024A Définir et tester le classificateur local avant son raccordement. Il
+  produit seulement les quatre catégories prévues, comprend des signaux bornés
+  en français, anglais, espagnol et arabe, respecte les négations et force une
+  revue sécurisée en présence d'un secret. Toute action reste humaine ; T024
+  demeure ouvert jusqu'à la boîte entrante et sa persistance.
 - [ ] T025 Créer un brouillon depuis un email transféré autorisé.
 - [ ] T026 Configurer le domaine et le filtre Gmail uniquement après autorisation.
 

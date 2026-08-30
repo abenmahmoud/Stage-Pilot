@@ -56,6 +56,8 @@ Les recettes fictives passent et la base ne contient aucun résidu de test. Le
 dépôt signé est raccordé à l'interface derrière deux interrupteurs dédiés qui
 restent fermés. Le contrat signé du registre Webmail accepte seulement des
 groupes opaques et l'éditeur dispose d'aperçus séparés pour la page et l'email,
-toujours sans destinataire ni action d'envoi. Le prochain lot documentaire est
+toujours sans destinataire ni action d'envoi. Le classement local des réponses
+est également défini sans webhook : retrait, correction, question et réponse
+libre restent des propositions à confirmer. Le prochain lot documentaire est
 une preuve antivirus de bout en bout sur fichiers fictifs ; les groupes réels,
 la publication et toute diffusion restent bloqués par T001 à T004.
