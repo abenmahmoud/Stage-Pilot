@@ -354,6 +354,8 @@
   action agent par le même validateur de détail à l'exécution.
 - [x] T027B16 Valider les modèles reçus et créés, puis limiter l'ouverture des
   pièces aux URL HTTPS signées du stockage configuré avec expiration bornée.
+- [x] T027B17 Séparer les erreurs de détail, ignorer les réponses concurrentes et
+  permettre de relancer le dossier sans confondre connexion, MFA ou file globale.
 - [ ] T027B2 Ajouter les relances internes et l'escalade après validation des
   délais propres à chaque service et des responsables à notifier.
 - [ ] T027C Créer les adhésions de service puis appliquer le périmètre dans les

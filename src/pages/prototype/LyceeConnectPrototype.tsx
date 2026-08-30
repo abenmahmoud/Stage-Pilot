@@ -2679,11 +2679,13 @@ function ConnectedAgentView({ onBack }: { onBack: () => void }) {
   const [showTemplateSave, setShowTemplateSave] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [queueLoadError, setQueueLoadError] = useState<string | null>(null);
+  const [detailLoadError, setDetailLoadError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [queueLoading, setQueueLoading] = useState(false);
   const [detailLoading, setDetailLoading] = useState(false);
   const [sessionReady, setSessionReady] = useState(false);
   const queueLoadIdRef = useRef(0);
+  const detailLoadIdRef = useRef(0);
   const selectedCodeRef = useRef<string | null>(null);
 
   async function loadQueue() {
@@ -2742,6 +2744,33 @@ function ConnectedAgentView({ onBack }: { onBack: () => void }) {
     setPage(1);
   }
 
+  async function loadDetail(code: string) {
+    const loadId = ++detailLoadIdRef.current;
+    setDetail(null);
+    setDetailLoading(true);
+    setDetailLoadError(null);
+    setError(null);
+    setReply("");
+    setTranslationDraft(null);
+    setTranslationValidated(false);
+    setInternalNote("");
+    setCallbackOutcome("");
+    setClosureReason("");
+    try {
+      const payload = await fetchAgentRequestDetail(code);
+      if (loadId !== detailLoadIdRef.current || selectedCodeRef.current !== code) return;
+      setDetail(payload);
+      setDetailLoadError(null);
+    } catch (loadError) {
+      if (loadId !== detailLoadIdRef.current || selectedCodeRef.current !== code) return;
+      setDetailLoadError(loadError instanceof Error ? loadError.message : "Impossible de charger le dossier");
+    } finally {
+      if (loadId === detailLoadIdRef.current && selectedCodeRef.current === code) {
+        setDetailLoading(false);
+      }
+    }
+  }
+
   useEffect(() => {
     let active = true;
     void supabase.auth.refreshSession().finally(() => {
@@ -2758,31 +2787,13 @@ function ConnectedAgentView({ onBack }: { onBack: () => void }) {
   useEffect(() => {
     selectedCodeRef.current = selectedCode;
     if (!selectedCode) {
+      detailLoadIdRef.current += 1;
+      setDetail(null);
       setDetailLoading(false);
+      setDetailLoadError(null);
       return;
     }
-    const code = selectedCode;
-    setDetail(null);
-    setDetailLoading(true);
-    setReply("");
-    setTranslationDraft(null);
-    setTranslationValidated(false);
-    setInternalNote("");
-    setCallbackOutcome("");
-    setClosureReason("");
-    fetchAgentRequestDetail(code)
-      .then((payload) => {
-        if (selectedCodeRef.current !== code) return;
-        setDetail(payload);
-        setError(null);
-      })
-      .catch((loadError: Error) => {
-        if (selectedCodeRef.current !== code) return;
-        setError(loadError.message);
-      })
-      .finally(() => {
-        if (selectedCodeRef.current === code) setDetailLoading(false);
-      });
+    void loadDetail(selectedCode);
   }, [selectedCode]);
 
   function changeReply(value: string) {
@@ -3063,7 +3074,7 @@ function ConnectedAgentView({ onBack }: { onBack: () => void }) {
   const lastFinishedCallback = [...(detail?.callbacks ?? [])]
     .reverse()
     .find((callback) => ["done", "cancelled"].includes(callback.status)) ?? null;
-  const agentError = queueLoadError ?? error;
+  const agentError = queueLoadError ?? detailLoadError ?? error;
   const needsAgentSecurity = Boolean(
     agentError && /double vérification|vérification renforcée/i.test(agentError)
   );
@@ -3072,7 +3083,7 @@ function ConnectedAgentView({ onBack }: { onBack: () => void }) {
   return (
     <div className="lycee-page lycee-agent-page">
       <PageIntro eyebrow="Espace agent" title="Demandes du lycée" description="Classez, répondez et gardez chaque échange dans le même dossier." onBack={onBack} />
-      {agentError ? <div className="lycee-form-error" role="alert"><CircleAlert aria-hidden="true" /><span>{agentError}</span>{needsAgentSecurity ? <a href="/security?returnTo=%2Fprototype%3Fview%3Dagent">Sécuriser le compte</a> : needsAgentLogin ? <a href="/login?returnTo=%2Fprototype%3Fview%3Dagent&mode=staff">Se connecter</a> : queueLoadError ? <button type="button" disabled={queueLoading} onClick={() => void loadQueue()}>{queueLoading ? "Nouvel essai…" : "Réessayer"}</button> : null}</div> : null}
+      {agentError ? <div className="lycee-form-error" role="alert"><CircleAlert aria-hidden="true" /><span>{agentError}</span>{needsAgentSecurity ? <a href="/security?returnTo=%2Fprototype%3Fview%3Dagent">Sécuriser le compte</a> : needsAgentLogin ? <a href="/login?returnTo=%2Fprototype%3Fview%3Dagent&mode=staff">Se connecter</a> : queueLoadError ? <button type="button" disabled={queueLoading} onClick={() => void loadQueue()}>{queueLoading ? "Nouvel essai…" : "Réessayer"}</button> : detailLoadError && selectedCode ? <button type="button" disabled={detailLoading} onClick={() => void loadDetail(selectedCode)}>{detailLoading ? "Nouvel essai…" : "Réessayer le dossier"}</button> : null}</div> : null}
       {access ? <section className="lycee-agent-scope"><ShieldCheck aria-hidden="true" /><span><small>Votre périmètre</small><strong>{access.label}</strong><p>{access.canViewAll ? "Toutes les demandes et tous les transferts." : availableTeams.map((team) => team.label).join(" · ")}</p></span><b>{access.canViewAll ? "Vue complète" : "Vue limitée"}</b></section> : null}
       <div className="lycee-agent-stats">
         <div><span><Inbox aria-hidden="true" /></span><strong>{stats.qualify}</strong><small>À classer</small></div>
