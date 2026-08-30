@@ -2516,6 +2516,19 @@ taches et analyse de coherence avant une automatisation sensible.
 - Le brief Claude est préparé mais non exécuté, faute de modèle exact et de
   plafond propres à cette mission ; aucun jeton externe n'a été consommé.
 
+### Jalon du 30 août 2026 - chargements explicites de la console
+
+- La file conserve ses lignes pendant une actualisation et annonce son état avec
+  `aria-busy` et un statut discret, sans faux écran vide.
+- Lors d'un changement de sélection, l'ancien détail disparaît immédiatement et
+  le chargement du nouveau dossier est annoncé jusqu'à la dernière réponse.
+- La recette Playwright à 320 et 1440 px confirme zéro ancien détail, zéro erreur
+  navigateur et aucun débordement horizontal pendant les réponses retardées.
+- T027B10 est terminée. Les cinq domaines comptent 396 identifiants uniques : 280
+  lignes terminées et 116 ouvertes.
+- Le brief Claude est préparé mais non exécuté, faute de modèle exact et de
+  plafond propres à cette mission ; aucun jeton externe n'a été consommé.
+
 ## 8. Prochain ordre recommande
 
 1. Publier et tester le pré-triage ordinateur portable avec des données fictives.

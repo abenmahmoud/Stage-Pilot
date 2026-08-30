@@ -338,6 +338,9 @@
 - [x] T027B9 Refuser les valeurs inconnues des indicateurs d'urgence, rappel,
   doublon et échéance ainsi que les paramètres répétés, avant toute requête de
   file.
+- [x] T027B10 Annoncer les chargements de file et de dossier, conserver la liste
+  stable pendant son actualisation et ne jamais présenter l'ancien détail comme
+  celui de la nouvelle sélection.
 - [ ] T027B2 Ajouter les relances internes et l'escalade après validation des
   délais propres à chaque service et des responsables à notifier.
 - [ ] T027C Créer les adhésions de service puis appliquer le périmètre dans les
