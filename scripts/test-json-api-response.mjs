@@ -33,3 +33,42 @@ test("masque le HTML, les réponses primitives et les erreurs démesurées", asy
     /^Error: Le service ne répond pas pour le moment\.$/u
   );
 });
+
+test("refuse une taille annoncée supérieure au plafond avant lecture", async () => {
+  await assert.rejects(
+    () => readJsonApiResponse(new Response(JSON.stringify({ ok: true }), {
+      headers: {
+        "content-type": "application/json",
+        "content-length": "65",
+      },
+    }), { maxBytes: 64 }),
+    /réponse du service est invalide/u
+  );
+});
+
+test("interrompt un flux sans taille annoncée dès le dépassement", async () => {
+  let cancelled = false;
+  const body = new ReadableStream({
+    start(controller) {
+      controller.enqueue(new TextEncoder().encode('{"part":"' + "a".repeat(40)));
+      controller.enqueue(new TextEncoder().encode("b".repeat(40) + '"}'));
+    },
+    cancel() {
+      cancelled = true;
+    },
+  });
+  await assert.rejects(
+    () => readJsonApiResponse(new Response(body, {
+      headers: { "content-type": "application/json" },
+    }), { maxBytes: 64 }),
+    /réponse du service est invalide/u
+  );
+  assert.equal(cancelled, true);
+});
+
+test("accepte un plafond explicite valide", async () => {
+  const payload = await readJsonApiResponse(new Response(JSON.stringify({ ok: true }), {
+    headers: { "content-type": "application/json" },
+  }), { maxBytes: 128 });
+  assert.deepEqual(payload, { ok: true });
+});

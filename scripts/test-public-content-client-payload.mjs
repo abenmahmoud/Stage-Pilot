@@ -32,6 +32,7 @@ test("bounds every public item, asset and cursor", () => {
   assert.match(client, /value\.audience === "tous"/);
   assert.match(client, /isBoundedString\(value\.nextCursor, 512\)/);
   assert.match(client, /new Set\(slugs\)\.size === slugs\.length/);
+  assert.match(client, /maxBytes: 16 \* 1024 \* 1024/);
 });
 
 test("accepts signed media only from the configured private content bucket", () => {

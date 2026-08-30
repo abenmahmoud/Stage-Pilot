@@ -5,6 +5,17 @@
 **Depot** : `abenmahmoud/Stage-Pilot`
 **Dernier jalon de code verifie** : branche de preview Vercel
 
+## Jalon du 30 août 2026 - réponses JSON bornées avant analyse
+
+- Le navigateur lit désormais les réponses API par morceaux avec un plafond de
+  4 Mio par défaut et interrompt immédiatement tout flux qui le dépasse.
+- Le flux éditorial dispose d'un plafond explicite de 16 Mio, cohérent avec son
+  contrat maximal de 100 contenus, sans élargir les autres routes.
+- Les erreurs et paquets surdimensionnés restent masqués derrière les messages
+  publics existants ; la recette « Mes demandes » passe à 320 et 1 440 px.
+- Le contrôle est intégré à la barrière permanente. Aucun appel réel, donnée ou
+  environnement de production n'a été utilisé ou modifié.
+
 ## Jalon du 30 août 2026 - page éditoriale dédiée liée à son adresse
 
 - La route `/site/:slug` utilise désormais le même contrat strict que « À la

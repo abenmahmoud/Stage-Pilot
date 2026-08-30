@@ -132,7 +132,7 @@ function isPublicContentPayload(value: unknown): value is PublicContentPayload {
 }
 
 export async function readPublicContentPayload(response: Response): Promise<PublicContentPayload> {
-  const payload = await readJsonApiResponse<unknown>(response);
+  const payload = await readJsonApiResponse<unknown>(response, { maxBytes: 16 * 1024 * 1024 });
   if (!isPublicContentPayload(payload)) {
     throw new Error("La réponse des informations du lycée est invalide.");
   }
