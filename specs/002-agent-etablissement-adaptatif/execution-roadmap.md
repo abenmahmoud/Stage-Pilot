@@ -394,6 +394,23 @@ l'autorisation de quota définie par le propriétaire.
   exposer dossier, motif, agent ou demandeur. T030 est fermé.
   Le lot N5ZD remplace ensuite le verrou mono-établissement de cet agrégat par
   un filtre effectif sur l'établissement de chaque demande.
+
+### Lot N5ZF - validation humaine du classement assistant
+
+- Code terminé derrière `SUPPORT_ASSISTANT_ROUTING_REVIEW_ENABLED`, désactivé
+  par défaut : reçu HMAC de quinze minutes, sans conversation ni identité,
+  attaché au dossier seulement si établissement, catégorie et service concordent.
+- La proposition persistée est privée, cloisonnée par établissement et ne peut
+  évoluer qu'une fois de `pending` vers `confirmed` ou `corrected`. La
+  confirmation explicite exige MFA ; un transfert autorisé produit une
+  correction humaine atomique et un événement d'audit sans contenu personnel.
+- L'écran agent montre la décision et l'écran direction agrège seulement les
+  volumes, taux de traitement et corrections. Le reçu n'est jamais enregistré
+  dans la mémoire locale du navigateur.
+- Activation preview encore bloquée : le connecteur Supabase de cette session
+  ne voit pas `xijocumlwivhbmffrnlj` et les fichiers d'environnement locaux
+  masquent les secrets. La migration et sa recette `ROLLBACK` sont prêtes ;
+  aucune base distante n'a été modifiée.
 - Lot N5ZD : cloisonnement des demandes par établissement. **Appliqué uniquement
   à la preview et testé par transaction annulée** : `institution_id` est
   obligatoire, référencé et immuable sur chaque demande. La création publique,

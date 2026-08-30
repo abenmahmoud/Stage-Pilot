@@ -1215,6 +1215,41 @@ export const supportRequests = pgTable(
   ]
 );
 
+export const supportAssistantRoutingReviews = pgTable(
+  "support_assistant_routing_reviews",
+  {
+    id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+    institutionId: uuid("institution_id")
+      .notNull()
+      .references(() => institutions.id, { onDelete: "restrict" }),
+    requestId: uuid("request_id")
+      .notNull()
+      .references(() => supportRequests.id, { onDelete: "cascade" }),
+    receiptHash: text("receipt_hash").notNull(),
+    usedAi: boolean("used_ai").notNull(),
+    model: text("model"),
+    initialCategory: text("initial_category").notNull(),
+    initialService: text("initial_service").notNull(),
+    status: text("status").notNull().default("pending"),
+    reviewedBy: uuid("reviewed_by"),
+    reviewedAt: timestamp("reviewed_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    uniqueIndex("support_assistant_routing_reviews_request_key").on(table.requestId),
+    uniqueIndex("support_assistant_routing_reviews_receipt_key").on(
+      table.institutionId,
+      table.receiptHash
+    ),
+    index("support_assistant_routing_reviews_status_idx").on(
+      table.institutionId,
+      table.status,
+      table.createdAt
+    ),
+    index("support_assistant_routing_reviews_reviewer_idx").on(table.reviewedBy),
+  ]
+);
+
 export const supportContacts = pgTable("support_contacts", {
   id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
   requestId: uuid("request_id")

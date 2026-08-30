@@ -183,6 +183,10 @@ test("keeps the runtime table server-only, append-only and free of user content"
   assert.match(api, /fromValue[\s\S]+assignedTeam/);
   assert.match(api, /toValue[\s\S]+assignedTeam/);
   assert.match(api, /routingCorrections/);
+  assert.match(api, /supportAssistantRoutingReviews/);
+  assert.match(api, /routingReviewConfirmed/);
+  assert.match(api, /routingReviewCorrected/);
+  assert.match(api, /eq\(supportAssistantRoutingReviews\.institutionId, context\.institutionId\)/);
   assert.match(api, /actorType[\s\S]+agent/);
   assert.doesNotMatch(api, /select\([\s\S]*message|supportMessages|supportContacts/i);
   assert.doesNotMatch(recorder, /message|conversation|email|phone|attachment|session/i);
@@ -193,8 +197,9 @@ test("shows only aggregate measures in the protected operations view", async () 
   assert.match(page, /support\/agent\/metrics\?days=/);
   assert.match(page, /Statistiques techniques sans conversation, identité ni coordonnées/);
   assert.match(page, /7, 30/);
-  assert.match(page, /Réorientations humaines/);
-  assert.match(page, /déplace un dossier d’un service déjà assigné vers un autre/);
+  assert.match(page, /Confirmés par un agent/);
+  assert.match(page, /Corrigés par un agent/);
+  assert.match(page, /Ces indicateurs ne lisent ni message, ni identité, ni coordonnées/);
   assert.match(page, /Réponses IA retenues par les règles/);
   assert.match(page, /Cela ne signifie pas qu’un agent humain l’a validée/);
   assert.doesNotMatch(page, /Réponses IA validées|IA validée/);

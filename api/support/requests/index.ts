@@ -6,6 +6,11 @@ import { initialSupportStatus } from "../../../shared/support-routing.js";
 import { supportDuplicateWindowStart } from "../../../shared/support-duplicate-policy.js";
 import { createSupportRequestPersistenceConfirmation } from "../../../shared/support-request-confirmation.js";
 import {
+  supportAssistantRoutingReviewEnabled,
+  verifySupportAssistantRoutingReceipt,
+} from "../../../shared/support-assistant-routing-receipt.js";
+import {
+  supportAssistantRoutingReviews,
   supportContacts,
   supportCallbackTasks,
   supportDeviceSessions,
@@ -84,6 +89,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       }
       await enforceSupportRequestCreationLimits({ parsed: input, deviceKey });
       const institution = await requireConfiguredInstitution();
+      const verifiedRoutingReceipt = supportAssistantRoutingReviewEnabled()
+        ? verifySupportAssistantRoutingReceipt({
+            receipt: input.assistantRoutingReceipt,
+            institutionId: institution.id,
+            category: input.category,
+            service: input.routing.service,
+            secret: process.env.SUPPORT_HASH_SECRET,
+          })
+        : null;
       const idempotencyHash = sha256(idempotencyKey(req));
       const correlationId = randomUUID();
       const requesterJobId = randomUUID();
@@ -243,6 +257,22 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           .find((message) => message.direction === "inbound");
         if (!sourceMessage) throw new Error("Support request transcript has no requester message");
 
+        const [attachedRoutingReview] = verifiedRoutingReceipt
+          ? await tx
+              .insert(supportAssistantRoutingReviews)
+              .values({
+                institutionId: institution.id,
+                requestId: created.id,
+                receiptHash: verifiedRoutingReceipt.receiptHash,
+                usedAi: verifiedRoutingReceipt.usedAi,
+                model: verifiedRoutingReceipt.model,
+                initialCategory: input.category,
+                initialService: input.routing.service,
+              })
+              .onConflictDoNothing()
+              .returning({ id: supportAssistantRoutingReviews.id })
+          : [];
+
         await tx.insert(supportEvents).values({
           requestId: created.id,
           eventType: "request.created",
@@ -254,6 +284,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             messageCount: messageRows.length,
             conversationCaptured: input.conversation.length > 0,
             callbackRequested: input.callbackRequested,
+            assistantRoutingAttached: Boolean(attachedRoutingReview),
           },
           correlationId,
         });

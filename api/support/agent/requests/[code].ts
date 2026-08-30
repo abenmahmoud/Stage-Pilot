@@ -4,6 +4,7 @@ import { and, asc, desc, eq, inArray, isNull, sql } from "drizzle-orm";
 import { db } from "../../../../db/index.js";
 import {
   supportAttachments,
+  supportAssistantRoutingReviews,
   supportCallbackTasks,
   supportContacts,
   supportEvents,
@@ -27,6 +28,7 @@ import {
   deriveSupportDuplicateReview,
   SUPPORT_DUPLICATE_EVENT_TYPES,
 } from "../../../../shared/support-duplicate-policy.js";
+import { supportAssistantRoutingReviewEnabled } from "../../../../shared/support-assistant-routing-receipt.js";
 
 const STATUSES = new Set([
   "nouveau",
@@ -68,6 +70,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   return handleApi(res, async () => {
     const { user, access, institutionId } = await requireSupportAgent(req);
+    const routingReviewEnabled = supportAssistantRoutingReviewEnabled();
     const code = publicCode(req);
     const [request] = await db
       .select()
@@ -116,10 +119,19 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         : body.duplicateDecision === "confirmed" || body.duplicateDecision === "dismissed"
           ? body.duplicateDecision
           : "invalid";
+      const routingDecision = body.routingDecision === undefined
+        ? null
+        : body.routingDecision === "confirmed"
+          ? body.routingDecision
+          : "invalid";
       if (!STATUSES.has(nextStatus)) throw new HttpError(400, "Statut invalide");
       if (!PRIORITIES.has(nextPriority)) throw new HttpError(400, "Priorité invalide");
       if (!IDENTITY_STATUSES.has(nextIdentityStatus)) throw new HttpError(400, "Niveau de vérification invalide");
       if (duplicateDecision === "invalid") throw new HttpError(400, "Décision de doublon invalide");
+      if (routingDecision === "invalid") throw new HttpError(400, "Décision de classement invalide");
+      if (routingDecision === "confirmed" && !routingReviewEnabled) {
+        throw new HttpError(503, "La validation du classement n’est pas encore activée");
+      }
       if (
         body.assignedTeam !== undefined &&
         body.assignedTeam !== null &&
@@ -132,6 +144,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       }
       if (body.assignedTeam !== undefined) {
         assertSupportTransferAccess(access, request.assignedTeam, nextAssignedTeam);
+      }
+      if (routingDecision === "confirmed") {
+        await requireAal2(req);
       }
 
       const currentClosureReason = typeof currentContext.closureReason === "string"
@@ -231,6 +246,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         assertSupportRequestAccess(access, candidate.assignedTeam);
       }
       const teamChanged = nextAssignedTeam !== request.assignedTeam;
+      if (routingDecision === "confirmed" && teamChanged) {
+        throw new HttpError(400, "Confirmez le classement sans changer de service, ou transférez la demande pour enregistrer une correction");
+      }
       const nextAssignedTo = body.assignToMe === true
         ? user.id
         : teamChanged
@@ -253,6 +271,25 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             revisionCondition
           );
       const [updated] = await db.transaction(async (tx) => {
+        const [pendingRoutingReview] = routingReviewEnabled
+          ? await tx
+              .select({
+                id: supportAssistantRoutingReviews.id,
+                initialCategory: supportAssistantRoutingReviews.initialCategory,
+                initialService: supportAssistantRoutingReviews.initialService,
+                usedAi: supportAssistantRoutingReviews.usedAi,
+              })
+              .from(supportAssistantRoutingReviews)
+              .where(and(
+                eq(supportAssistantRoutingReviews.institutionId, institutionId),
+                eq(supportAssistantRoutingReviews.requestId, request.id),
+                eq(supportAssistantRoutingReviews.status, "pending")
+              ))
+              .limit(1)
+          : [];
+        if (routingDecision === "confirmed" && !pendingRoutingReview) {
+          throw new HttpError(409, "Ce classement a déjà été traité ou n’est plus disponible");
+        }
         const [saved] = await tx
           .update(supportRequests)
           .set({
@@ -335,12 +372,50 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             correlationId: randomUUID(),
           });
         }
+        if (pendingRoutingReview && (routingDecision === "confirmed" || teamChanged)) {
+          const reviewStatus = teamChanged ? "corrected" : "confirmed";
+          const [reviewed] = await tx
+            .update(supportAssistantRoutingReviews)
+            .set({
+              status: reviewStatus,
+              reviewedBy: user.id,
+              reviewedAt: now,
+            })
+            .where(and(
+              eq(supportAssistantRoutingReviews.id, pendingRoutingReview.id),
+              eq(supportAssistantRoutingReviews.institutionId, institutionId),
+              eq(supportAssistantRoutingReviews.status, "pending")
+            ))
+            .returning({ id: supportAssistantRoutingReviews.id });
+          if (!reviewed) {
+            throw new HttpError(409, "Ce classement vient d’être traité par un autre agent");
+          }
+          await tx.insert(supportEvents).values({
+            requestId: request.id,
+            eventType: reviewStatus === "confirmed"
+              ? "request.routing_confirmed"
+              : "request.routing_corrected",
+            actorType: "agent",
+            actorId: user.id,
+            fromValue: {
+              category: pendingRoutingReview.initialCategory,
+              assignedTeam: pendingRoutingReview.initialService,
+              usedAi: pendingRoutingReview.usedAi,
+            },
+            toValue: {
+              category: saved.category,
+              assignedTeam: saved.assignedTeam,
+              decision: reviewStatus,
+            },
+            correlationId: randomUUID(),
+          });
+        }
         return [saved];
       });
       return { request: updated };
     }
 
-    const [contacts, messages, attachments, callbacks, duplicateEvents] = await Promise.all([
+    const [contacts, messages, attachments, callbacks, duplicateEvents, routingReviews] = await Promise.all([
       db
         .select({
           id: supportContacts.id,
@@ -396,6 +471,23 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         ))
         .orderBy(desc(supportEvents.createdAt))
         .limit(10),
+      routingReviewEnabled
+        ? db
+            .select({
+              status: supportAssistantRoutingReviews.status,
+              usedAi: supportAssistantRoutingReviews.usedAi,
+              initialCategory: supportAssistantRoutingReviews.initialCategory,
+              initialService: supportAssistantRoutingReviews.initialService,
+              createdAt: supportAssistantRoutingReviews.createdAt,
+              reviewedAt: supportAssistantRoutingReviews.reviewedAt,
+            })
+            .from(supportAssistantRoutingReviews)
+            .where(and(
+              eq(supportAssistantRoutingReviews.institutionId, institutionId),
+              eq(supportAssistantRoutingReviews.requestId, request.id)
+            ))
+            .limit(1)
+        : Promise.resolve([]),
     ]);
 
     const duplicateReview = deriveSupportDuplicateReview(duplicateEvents);
@@ -456,6 +548,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         decidedAt: duplicateReview.decidedAt,
         candidatePublicCode: canViewDuplicateCandidate ? duplicateCandidate?.publicCode ?? null : null,
       } : null,
+      routingReview: routingReviews[0] ?? null,
       access,
     };
   });

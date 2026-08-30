@@ -343,6 +343,16 @@
 - [x] T030C Distinguer dans l'écran direction une sortie IA retenue par les
   contrôles techniques d'une validation humaine, qui n'est jamais déduite de
   `model_success` ni annoncée sans événement humain explicite.
+- [ ] T030D Activer en preview la validation humaine traçable du classement
+  assistant après application contrôlée de la migration et activation de
+  l'interrupteur serveur.
+- [x] T030D1 Implémenter le reçu HMAC éphémère sans contenu personnel, la table
+  privée et cloisonnée, la confirmation sous MFA, la correction par transfert,
+  les agrégats anonymes et l'interface responsive. Le code reste inactif par
+  défaut tant que la base preview n'a pas été migrée.
+- [ ] T030D2 Appliquer `20260830090000` uniquement à la base preview, exécuter
+  la recette fictive avec `ROLLBACK`, contrôler les auditeurs puis activer
+  `SUPPORT_ASSISTANT_ROUTING_REVIEW_ENABLED=true` uniquement sur la preview.
 
 ## Phase 4 - Compétences du pilote
 

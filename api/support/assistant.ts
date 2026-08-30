@@ -13,6 +13,11 @@ import {
 import { resolveKnowledgeActorFromRequest } from "../_shared/knowledge-actor.js";
 import { recordAgentRuntimeMetric } from "../_shared/agent-runtime-metrics.js";
 import { readNextCourseForVerifiedIdentity } from "../_shared/schedule-identity-reader.js";
+import { routeSupportRequest } from "../../shared/support-routing.js";
+import {
+  createSupportAssistantRoutingReceipt,
+  supportAssistantRoutingReviewEnabled,
+} from "../../shared/support-assistant-routing-receipt.js";
 
 function cleanMessages(value: unknown): SupportAgentMessage[] {
   if (!Array.isArray(value) || value.length === 0 || value.length > 21) {
@@ -64,8 +69,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
     const deviceKey = await enforceAssistantRateLimits(req, input.sessionId);
     const knowledgeActor = await resolveKnowledgeActorFromRequest(req);
-    return analyzeSupportConversation({
-      messages: cleanMessages(input.messages),
+    const messages = cleanMessages(input.messages);
+    const result = await analyzeSupportConversation({
+      messages,
       attachments: cleanAttachments(input.attachments),
       safetyIdentifier: deviceKey,
       knowledgeActor,
@@ -87,5 +93,29 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         }
       },
     });
+    const route = routeSupportRequest({
+      category: result.category,
+      description: messages
+        .filter((message) => message.role === "requester")
+        .map((message) => message.content)
+        .join("\n"),
+    });
+    const signedRouting = knowledgeActor && supportAssistantRoutingReviewEnabled()
+      ? createSupportAssistantRoutingReceipt({
+          institutionId: knowledgeActor.institutionId,
+          category: result.category,
+          service: route.service,
+          usedAi: result.usedAi,
+          model: result.usedAi
+            ? process.env.OPENAI_SUPPORT_MODEL || "gpt-5.6-luna"
+            : null,
+          secret: process.env.SUPPORT_HASH_SECRET,
+        })
+      : null;
+    return {
+      ...result,
+      routingReceipt: signedRouting?.receipt ?? null,
+      routingReceiptExpiresAt: signedRouting?.expiresAt ?? null,
+    };
   });
 }

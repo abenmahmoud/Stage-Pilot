@@ -70,6 +70,12 @@ type AgentMetricsPayload = {
     serviceChanges: number;
     routingCorrections: number;
     routingCorrectionRate: number;
+    routingReviewTotal: number;
+    routingReviewPending: number;
+    routingReviewConfirmed: number;
+    routingReviewCorrected: number;
+    routingReviewCompletionRate: number;
+    routingReviewCorrectionRate: number;
   };
   outcomes: Array<{ outcome: string; count: number }>;
   daily: Array<{ date: string; total: number; aiSuccesses: number; averageLatencyMs: number }>;
@@ -275,11 +281,11 @@ export default function SupportOperationsPage() {
               </div>
 
               <div className="grid gap-px overflow-hidden border border-slate-200 bg-slate-200 sm:grid-cols-3" aria-label="Qualité du routage humain">
-                <div className="bg-white px-4 py-3"><span className="text-xs font-semibold uppercase text-slate-500">Changements de service</span><strong className="mt-1 block text-xl text-slate-950">{agentMetrics.summary.serviceChanges}</strong></div>
-                <div className="bg-white px-4 py-3"><span className="text-xs font-semibold uppercase text-slate-500">Réorientations humaines</span><strong className="mt-1 block text-xl text-slate-950">{agentMetrics.summary.routingCorrections}</strong></div>
-                <div className="bg-white px-4 py-3"><span className="text-xs font-semibold uppercase text-slate-500">Part des réorientations</span><strong className="mt-1 block text-xl text-slate-950">{agentMetrics.summary.routingCorrectionRate.toLocaleString("fr-FR", { maximumFractionDigits: 1 })} %</strong></div>
+                <div className="bg-white px-4 py-3"><span className="text-xs font-semibold uppercase text-slate-500">Classements proposés</span><strong className="mt-1 block text-xl text-slate-950">{agentMetrics.summary.routingReviewTotal}</strong></div>
+                <div className="bg-white px-4 py-3"><span className="text-xs font-semibold uppercase text-slate-500">Confirmés par un agent</span><strong className="mt-1 block text-xl text-slate-950">{agentMetrics.summary.routingReviewConfirmed}</strong></div>
+                <div className="bg-white px-4 py-3"><span className="text-xs font-semibold uppercase text-slate-500">Corrigés par un agent</span><strong className="mt-1 block text-xl text-slate-950">{agentMetrics.summary.routingReviewCorrected}</strong></div>
               </div>
-              <p className="text-xs text-slate-500">Une réorientation est comptée uniquement lorsqu’un agent déplace un dossier d’un service déjà assigné vers un autre. Aucun motif ni contenu du dossier n’est lu par cet indicateur.</p>
+              <p className="text-xs text-slate-500">{agentMetrics.summary.routingReviewPending} classement{agentMetrics.summary.routingReviewPending > 1 ? "s" : ""} à confirmer · {agentMetrics.summary.routingReviewCompletionRate.toLocaleString("fr-FR", { maximumFractionDigits: 1 })} % traités · {agentMetrics.summary.routingReviewCorrectionRate.toLocaleString("fr-FR", { maximumFractionDigits: 1 })} % corrigés parmi les décisions. Ces indicateurs ne lisent ni message, ni identité, ni coordonnées.</p>
               <p className="border-l-2 border-amber-500 pl-3 text-xs leading-5 text-slate-600">Une réponse IA retenue a franchi les contrôles techniques. Cela ne signifie pas qu’un agent humain l’a validée.</p>
 
               <div className="grid gap-5 lg:grid-cols-[minmax(0,1.3fr)_minmax(280px,0.7fr)]">

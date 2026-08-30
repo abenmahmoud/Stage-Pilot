@@ -902,6 +902,11 @@ type AssistantInsight = {
   sourceReferences: AssistantSourceReference[];
 };
 
+type AssistantApiResult = AssistantInsight & {
+  routingReceipt?: string | null;
+  routingReceiptExpiresAt?: string | null;
+};
+
 function inferSupportCategory(text: string): SupportCategory {
   if (/\b(inscription|réinscription|reinscription|inscrire)\b/i.test(text)) return "inscription";
   if (/\b(ent|educonnect|connexion|connecter|identifiant|code)\b/i.test(text)) return "ent";
@@ -995,6 +1000,7 @@ function HelpDeskView({
   ]);
   const [chatInput, setChatInput] = useState("");
   const [insight, setInsight] = useState<AssistantInsight | null>(null);
+  const [assistantRoutingReceipt, setAssistantRoutingReceipt] = useState<string | null>(null);
   const [assistantBusy, setAssistantBusy] = useState(false);
   const [showDetails, setShowDetails] = useState(initialClassicForm);
   const [classicForm, setClassicForm] = useState(initialClassicForm);
@@ -1111,10 +1117,11 @@ function HelpDeskView({
   async function askAssistant(nextMessages: AssistantChatMessage[]) {
     setAssistantBusy(true);
     setSubmitError(null);
-    let result = localAssistantFallback(nextMessages, files);
+    let result: AssistantInsight = localAssistantFallback(nextMessages, files);
+    let routingReceipt: string | null = null;
     if (AI_ASSISTANT_ENABLED) {
       try {
-        result = await apiFetch<AssistantInsight>("support/assistant", {
+        const apiResult = await apiFetch<AssistantApiResult>("support/assistant", {
           method: "POST",
           headers: { "X-Support-Device": assistantSessionId },
           body: JSON.stringify({
@@ -1123,10 +1130,14 @@ function HelpDeskView({
             attachments: files.map((file) => ({ name: file.name, type: file.type, size: file.size })),
           }),
         });
+        const { routingReceipt: signedReceipt, routingReceiptExpiresAt: _expiresAt, ...assistantResult } = apiResult;
+        result = assistantResult;
+        routingReceipt = typeof signedReceipt === "string" ? signedReceipt : null;
       } catch {
         result = localAssistantFallback(nextMessages, files);
       }
     }
+    setAssistantRoutingReceipt(routingReceipt);
     setInsight(result);
     setCategory(result.category);
     if (result.requesterType !== "inconnu" && !profile) setProfile(result.requesterType);
@@ -1164,6 +1175,7 @@ function HelpDeskView({
     setChatMessages([welcomeMessage]);
     setChatInput("");
     setInsight(null);
+    setAssistantRoutingReceipt(null);
     setShowDetails(false);
     setClassicForm(false);
     setProfile("");
@@ -1262,6 +1274,7 @@ function HelpDeskView({
             communicationSupport: form.get("communicationSupport") === "on",
             detectedLanguage: !classicForm && insight?.usedAi ? insight.detectedLanguage : null,
             internalSummaryFr: !classicForm && insight?.usedAi ? insight.internalSummaryFr : null,
+            assistantRoutingReceipt: !classicForm ? assistantRoutingReceipt : null,
             website: form.get("website"),
           }),
         });
@@ -2166,6 +2179,14 @@ type AgentRequestDetail = {
     decidedAt: string | null;
     candidatePublicCode: string | null;
   } | null;
+  routingReview: {
+    status: "pending" | "confirmed" | "corrected";
+    usedAi: boolean;
+    initialCategory: string;
+    initialService: string;
+    createdAt: string;
+    reviewedAt: string | null;
+  } | null;
 };
 
 type AgentQueueStats = { total: number; new: number; qualify: number; urgent: number; active: number; waitingRequester: number; unassigned: number; overdue: number; callbacks: number; duplicates: number };
@@ -2217,7 +2238,8 @@ function isAgentRequestDetail(value: unknown): value is AgentRequestDetail {
     && Array.isArray(value.messages)
     && Array.isArray(value.attachments)
     && Array.isArray(value.callbacks)
-    && (value.duplicateReview === null || isRecord(value.duplicateReview));
+    && (value.duplicateReview === null || isRecord(value.duplicateReview))
+    && (value.routingReview === null || isRecord(value.routingReview));
 }
 
 function isAgentTranslationPayload(value: unknown): value is {
@@ -2383,7 +2405,7 @@ function ConnectedAgentView({ onBack }: { onBack: () => void }) {
       .catch(() => setTemplates(DEFAULT_SUPPORT_REPLY_TEMPLATES));
   }, []);
 
-  async function updateRequest(changes: { status?: string; priority?: string; identityStatus?: IdentityStatus; identityMethod?: string; assignToMe?: boolean; assignedTeam?: string | null; closureReason?: string; duplicateDecision?: "confirmed" | "dismissed" }) {
+  async function updateRequest(changes: { status?: string; priority?: string; identityStatus?: IdentityStatus; identityMethod?: string; assignToMe?: boolean; assignedTeam?: string | null; closureReason?: string; duplicateDecision?: "confirmed" | "dismissed"; routingDecision?: "confirmed" }) {
     if (!selectedCode || !detail?.request.updatedAt) return;
     setSaving(true);
     try {
@@ -2657,7 +2679,8 @@ function ConnectedAgentView({ onBack }: { onBack: () => void }) {
                   </div>
                 </section>
               ) : null}
-              <section className="lycee-agent-routing"><ArrowRightLeft aria-hidden="true" /><span><strong>Service responsable</strong><small>{access?.canRoute ? "Le transfert conserve tous les messages et documents." : "Le superadministrateur réalise les transferts entre services."}</small></span><select aria-label="Service responsable" value={selected.assignedTeam ?? ""} disabled={saving || selected.status === "clos" || !access?.canRoute} onChange={(event) => void updateRequest({ assignedTeam: event.target.value || null, status: ["nouveau", "a_qualifier"].includes(selected.status) ? "assigne" : selected.status })}><option value="">À orienter</option>{supportTeams.map((team) => <option value={team.value} key={team.value}>{team.label}</option>)}</select></section>
+              {detail.routingReview ? <section className="lycee-agent-routing-review" data-status={detail.routingReview.status}><WandSparkles aria-hidden="true" /><span><strong>{detail.routingReview.status === "pending" ? "Classement à confirmer" : detail.routingReview.status === "confirmed" ? "Classement confirmé" : "Classement corrigé"}</strong><small>{supportCategoryLabel(detail.routingReview.initialCategory)} · {supportTeamLabel(detail.routingReview.initialService)} · {detail.routingReview.usedAi ? "proposition IA" : "règles locales"}</small></span>{detail.routingReview.status === "pending" ? <button type="button" disabled={saving || selected.assignedTeam !== detail.routingReview.initialService} onClick={() => void updateRequest({ routingDecision: "confirmed" })}>{selected.assignedTeam === detail.routingReview.initialService ? "Confirmer" : "Transfert à enregistrer"}</button> : <small>Décision humaine enregistrée{detail.routingReview.reviewedAt ? ` le ${supportDate(detail.routingReview.reviewedAt)}` : ""}.</small>}</section> : null}
+              <section className="lycee-agent-routing"><ArrowRightLeft aria-hidden="true" /><span><strong>Service responsable</strong><small>{access?.canRoute ? "Le transfert conserve tous les messages et documents. Un changement corrige le classement proposé." : "Le superadministrateur réalise les transferts entre services."}</small></span><select aria-label="Service responsable" value={selected.assignedTeam ?? ""} disabled={saving || selected.status === "clos" || !access?.canRoute} onChange={(event) => void updateRequest({ assignedTeam: event.target.value || null, status: ["nouveau", "a_qualifier"].includes(selected.status) ? "assigne" : selected.status })}><option value="">À orienter</option>{supportTeams.map((team) => <option value={team.value} key={team.value}>{team.label}</option>)}</select></section>
               <section className="lycee-agent-identity" data-sensitive={["ent", "email_academique"].includes(selected.category)}><BadgeCheck aria-hidden="true" /><span><strong>{identityStatusLabels[selected.identityStatus]}</strong><small>{["ent", "email_academique"].includes(selected.category) ? "Demande sensible : ne transmettre aucun identifiant avant rapprochement avec une liste officielle." : "Adaptez le contrôle au niveau de sensibilité de la réponse."}</small></span><select aria-label="Niveau de vérification de l’identité" value={selected.identityStatus} disabled={saving} onChange={(event) => { const identityStatus = event.target.value as IdentityStatus; const identityMethod = identityStatus === "identite_confirmee" ? "official_roster" : identityStatus === "contact_verifie" ? (detail.contacts.some((contact) => contact.channel === "email" && contact.isVerified) ? "email_magic_link" : "phone_callback") : undefined; void updateRequest({ identityStatus, identityMethod }); }}><option value="non_verifiee">Coordonnées déclarées</option><option value="contact_verifie">Contact vérifié</option><option value="identite_confirmee">Identité confirmée dans la liste</option></select></section>
               {detail.duplicateReview ? <section className="lycee-agent-duplicate" data-status={detail.duplicateReview.status}><Copy aria-hidden="true" /><span><strong>{detail.duplicateReview.status === "pending" ? "Possible doublon à vérifier" : detail.duplicateReview.status === "confirmed" ? "Doublon confirmé" : "Dossiers distincts"}</strong><small>Même contact et même catégorie sur sept jours. Aucun dossier n’est fusionné automatiquement.</small></span><div>{detail.duplicateReview.candidatePublicCode ? <button type="button" onClick={() => setSelectedCode(detail.duplicateReview?.candidatePublicCode ?? null)}>Voir {detail.duplicateReview.candidatePublicCode}</button> : null}{detail.duplicateReview.status === "pending" && detail.duplicateReview.candidatePublicCode ? <><button type="button" disabled={saving} onClick={() => void updateRequest({ duplicateDecision: "dismissed" })}>Dossiers distincts</button><button type="button" disabled={saving} onClick={() => void updateRequest({ duplicateDecision: "confirmed" })}>Confirmer</button></> : detail.duplicateReview.status === "pending" ? <small>Validation réservée à un agent autorisé à consulter les deux dossiers.</small> : <small>Décision humaine enregistrée dans l’audit.</small>}</div></section> : null}
               <div className="lycee-agent-thread">{detail.messages.map((message) => <div data-direction={message.direction} data-author={message.authorLabel === "Assistant du lycée" ? "assistant" : undefined} key={message.id}><span><strong>{message.direction === "internal" ? "Note interne" : message.authorLabel ?? "Utilisateur"}</strong><small>{supportDate(message.createdAt)}{message.direction === "internal" ? " · invisible pour l’utilisateur" : message.authorLabel === "Assistant du lycée" ? " · réponse automatique" : ` · ${supportDeliveryLabel(message.deliveryStatus)}`}</small></span><p>{message.bodyText}</p></div>)}</div>

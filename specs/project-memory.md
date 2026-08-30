@@ -1632,6 +1632,29 @@ taches et analyse de coherence avant une automatisation sensible.
 - Le brief Claude de ce lot est préparé mais non exécuté, faute de modèle exact
   et de plafond de consommation propres à cette mission.
 
+### Jalon du 30 août 2026 - validation humaine du classement assistant
+
+- Le lot N5ZF signe chaque proposition de classement avec un reçu HMAC de
+  quinze minutes lié à l'établissement, la catégorie et le service. Le reçu ne
+  contient ni conversation, identité, coordonnées ou document et n'est jamais
+  sauvegardé dans le brouillon local.
+- Une proposition vérifiée peut être attachée une seule fois au nouveau dossier.
+  L'agent la confirme explicitement sous MFA ou la corrige en transférant le
+  dossier. La décision est terminale, atomique et auditée sans motif ni contenu.
+- La direction obtient des agrégats distincts : propositions, décisions en
+  attente, confirmations, corrections, taux de traitement et taux de correction.
+  Une sortie IA technique n'est toujours pas présentée comme validation humaine.
+- Les tests ciblés, d'autorisation, de cloisonnement, de concurrence, de routage,
+  adversariaux, TypeScript et le build passent. `npm audit --omit=dev` signale
+  zéro vulnérabilité.
+- La migration `20260830090000` et une recette fictive avec `ROLLBACK` sont
+  prêtes, mais n'ont pas été exécutées : le connecteur Supabase actif ne voit pas
+  la preview connue et les variables locales sont masquées. L'interrupteur
+  `SUPPORT_ASSISTANT_ROUTING_REVIEW_ENABLED` reste donc désactivé par défaut ;
+  le déploiement applicatif ne dépend pas de la nouvelle table.
+- Le brief Claude est préparé mais non exécuté, faute de modèle exact et de
+  plafond de consommation propres à cette mission.
+
 ## 8. Prochain ordre recommande
 
 1. Publier et tester le pré-triage ordinateur portable avec des données fictives.

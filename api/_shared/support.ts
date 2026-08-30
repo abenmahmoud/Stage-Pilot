@@ -75,6 +75,7 @@ export type SupportRequestInput = {
   callbackRequested: boolean;
   email: string | null;
   phone: string | null;
+  assistantRoutingReceipt: string | null;
   routing: SupportRoute;
   conversation: SupportConversationTurn[];
 };
@@ -130,6 +131,19 @@ function normalizePhone(value: unknown): string | null {
 function contextValue(value: unknown, field: string): string | undefined {
   const clean = optionalText(value, field, 120);
   return clean ?? undefined;
+}
+
+function optionalAssistantRoutingReceipt(value: unknown): string | null {
+  if (value === undefined || value === null || value === "") return null;
+  if (
+    typeof value !== "string" ||
+    value.length < 80 ||
+    value.length > 2048 ||
+    !/^[A-Za-z0-9._-]+$/.test(value)
+  ) {
+    return null;
+  }
+  return value;
 }
 
 export function parseSupportRequest(body: unknown): SupportRequestInput {
@@ -237,6 +251,7 @@ export function parseSupportRequest(body: unknown): SupportRequestInput {
     callbackRequested,
     email,
     phone,
+    assistantRoutingReceipt: optionalAssistantRoutingReceipt(input.assistantRoutingReceipt),
     routing,
     conversation,
   };

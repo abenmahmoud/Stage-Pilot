@@ -3,12 +3,14 @@ import { and, asc, eq, gte, sql } from "drizzle-orm";
 import { db } from "../../../db/index.js";
 import {
   agentRuntimeMetrics,
+  supportAssistantRoutingReviews,
   supportEvents,
   supportRequests,
 } from "../../../db/schema.js";
 import { HttpError } from "../../_shared/auth.js";
 import { requireAgentApprovalReviewer } from "../../_shared/agent-approvals.js";
 import { handleApi, methodNotAllowed } from "../../_shared/response.js";
+import { supportAssistantRoutingReviewEnabled } from "../../../shared/support-assistant-routing-receipt.js";
 
 function requestedDays(req: VercelRequest): 7 | 30 {
   const value = Array.isArray(req.query.days) ? req.query.days[0] : req.query.days;
@@ -86,6 +88,27 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         gte(supportEvents.createdAt, since)
       ));
 
+    const [routingReviews] = supportAssistantRoutingReviewEnabled()
+      ? await db
+          .select({
+            total: sql<number>`count(*)`.mapWith(Number),
+            pending: sql<number>`count(*) filter (
+              where ${supportAssistantRoutingReviews.status} = 'pending'
+            )`.mapWith(Number),
+            confirmed: sql<number>`count(*) filter (
+              where ${supportAssistantRoutingReviews.status} = 'confirmed'
+            )`.mapWith(Number),
+            corrected: sql<number>`count(*) filter (
+              where ${supportAssistantRoutingReviews.status} = 'corrected'
+            )`.mapWith(Number),
+          })
+          .from(supportAssistantRoutingReviews)
+          .where(and(
+            eq(supportAssistantRoutingReviews.institutionId, context.institutionId),
+            gte(supportAssistantRoutingReviews.createdAt, since)
+          ))
+      : [];
+
     const daily = await db
       .select({
         date: sql<string>`to_char(date_trunc('day', ${agentRuntimeMetrics.createdAt} at time zone 'Europe/Paris'), 'YYYY-MM-DD')`,
@@ -123,6 +146,24 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           (routing?.serviceChanges ?? 0) > 0
             ? Math.round(
                 ((routing?.routingCorrections ?? 0) / (routing?.serviceChanges ?? 1)) * 1000
+              ) / 10
+            : 0,
+        routingReviewTotal: routingReviews?.total ?? 0,
+        routingReviewPending: routingReviews?.pending ?? 0,
+        routingReviewConfirmed: routingReviews?.confirmed ?? 0,
+        routingReviewCorrected: routingReviews?.corrected ?? 0,
+        routingReviewCompletionRate:
+          (routingReviews?.total ?? 0) > 0
+            ? Math.round(
+                (((routingReviews?.confirmed ?? 0) + (routingReviews?.corrected ?? 0)) /
+                  (routingReviews?.total ?? 1)) * 1000
+              ) / 10
+            : 0,
+        routingReviewCorrectionRate:
+          ((routingReviews?.confirmed ?? 0) + (routingReviews?.corrected ?? 0)) > 0
+            ? Math.round(
+                ((routingReviews?.corrected ?? 0) /
+                  ((routingReviews?.confirmed ?? 0) + (routingReviews?.corrected ?? 0))) * 1000
               ) / 10
             : 0,
       },

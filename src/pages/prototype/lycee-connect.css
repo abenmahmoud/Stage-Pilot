@@ -843,6 +843,17 @@
 .lycee-agent-routing strong { font-size: 11px; }
 .lycee-agent-routing small { color: var(--lc-muted); font-size: 9px; line-height: 1.35; }
 .lycee-agent-routing select { min-height: 36px; padding: 0 8px; border: 1px solid #cbd5e1; border-radius: 7px; background: #fff; color: var(--lc-ink); font-size: 10px; font-weight: 750; }
+.lycee-agent-routing-review { display: grid; grid-template-columns: 28px minmax(0,1fr) minmax(120px,auto); align-items: center; gap: 9px; margin-top: 12px; padding: 12px; border: 1px solid #efcf8d; border-radius: 8px; background: #fff9ea; }
+.lycee-agent-routing-review > svg { width: 19px; color: #9a5c00; }
+.lycee-agent-routing-review > span { min-width: 0; display: flex; flex-direction: column; gap: 3px; }
+.lycee-agent-routing-review strong { font-size: 11px; }
+.lycee-agent-routing-review small { color: var(--lc-muted); font-size: 9px; line-height: 1.35; }
+.lycee-agent-routing-review > button { min-height: 34px; padding: 0 11px; border: 1px solid #8f5b08; border-radius: 7px; background: #8f5b08; color: #fff; font-size: 9px; font-weight: 850; }
+.lycee-agent-routing-review > button:disabled { border-color: #cbd5e1; background: #e7ebf0; color: #6d7885; }
+.lycee-agent-routing-review[data-status="confirmed"] { border-color: #bde3d8; background: #edf9f5; }
+.lycee-agent-routing-review[data-status="confirmed"] > svg { color: var(--lc-green); }
+.lycee-agent-routing-review[data-status="corrected"] { border-color: #cbd5e1; background: #f3f5f7; }
+.lycee-agent-routing-review[data-status="corrected"] > svg { color: #506174; }
 .lycee-agent-identity { display: grid; grid-template-columns: 28px minmax(0,1fr) minmax(180px,auto); align-items: center; gap: 9px; margin-top: 12px; padding: 12px; border: 1px solid #d7e0eb; border-radius: 8px; background: #f8fafc; }
 .lycee-agent-identity > svg { width: 20px; color: var(--lc-blue); }
 .lycee-agent-identity > span { display: flex; flex-direction: column; gap: 3px; }
@@ -1035,6 +1046,8 @@
   .lycee-agent-duplicate button { flex: 1 1 130px; }
   .lycee-agent-routing { grid-template-columns: 26px minmax(0,1fr); }
   .lycee-agent-routing select { grid-column: 1 / -1; width: 100%; }
+  .lycee-agent-routing-review { grid-template-columns: 26px minmax(0,1fr); }
+  .lycee-agent-routing-review > button, .lycee-agent-routing-review > small { grid-column: 1 / -1; width: 100%; }
   .lycee-mail-bridge { align-items: flex-start; flex-direction: column; }
   .lycee-school-feature { grid-template-columns: 1fr; }
   .lycee-school-feature img { height: 190px; }
