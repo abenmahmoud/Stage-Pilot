@@ -30,6 +30,8 @@ test("proves command immutability and receipt idempotence", () => {
   assert.match(recipe, /command_mutation_blocked/);
   assert.match(recipe, /Communication delivery identity is immutable/);
   assert.match(recipe, /external_event_hash/);
+  assert.match(recipe, /'delivery\.sent', 'provider'/);
+  assert.doesNotMatch(recipe, /actor_type[\s\S]{0,120}'webmail'|'delivery\.sent', 'webmail'/);
 });
 
 test("uses only opaque fictitious contacts and provider hashes", () => {

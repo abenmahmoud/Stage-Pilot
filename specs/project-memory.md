@@ -1889,6 +1889,21 @@ taches et analyse de coherence avant une automatisation sensible.
 - Le brief Claude est préparé mais non exécuté, faute de modèle exact et de
   plafond propres à cette mission ; zéro jeton externe consommé.
 
+### Jalon du 30 août 2026 - 200 livraisons fictives prouvées
+
+- Les migrations `20260830110000` et `20260830120000` sont appliquées
+  uniquement sur la branche Supabase de preview.
+- La recette T029 a été actualisée pour respecter le cycle brouillon, relecture,
+  approbation et le type d'acteur gouverné `provider`.
+- Elle prouve 160 succès, 20 reprises temporaires, 10 échecs définitifs et 10
+  attentes, ainsi que doublons, rejeu et immutabilité, sans appel réseau.
+- Le rollback laisse cinq compteurs à zéro. L'advisor Supabase ne remonte
+  aucun `WARN` ou `ERROR` de sécurité.
+- T029 et T029G sont terminés. T018 reste ouvert pour l'adaptateur Webmail
+  réellement séparé ; aucune diffusion n'est activée.
+- Le brief Claude est préparé mais non exécuté, faute de modèle exact et de
+  plafond propres à cette mission ; zéro jeton externe consommé.
+
 ### Jalon du 30 août 2026 - résolution opaque de 200 destinataires
 
 - Une page signée relie les références de contact à l'établissement, la

@@ -4,9 +4,12 @@
 
 Une recette transactionnelle prépare désormais 200 livraisons fictives et les
 répartit entre succès, reprise, échec définitif et attente. Elle teste aussi le
-rejeu d'un reçu, l'unicité d'une commande et son immutabilité. Sa structure est
-validée localement, mais son exécution distante reste bloquée tant que la
-migration de poignée de main n'est pas appliquée explicitement sur la preview.
+rejeu d'un reçu, l'unicité d'une commande et son immutabilité. Les migrations
+`20260830110000` et `20260830120000` sont maintenant appliquées uniquement sur
+la preview et la recette transactionnelle y passe avec cinq compteurs à zéro
+après rollback. Deux écarts devenus obsolètes dans la recette ont été corrigés :
+elle suit le cycle brouillon, relecture, approbation et utilise l'acteur
+gouverné `provider`, sans publier de contenu.
 
 ## Runner local du 30 août 2026
 

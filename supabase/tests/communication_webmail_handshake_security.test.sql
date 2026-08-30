@@ -25,40 +25,45 @@ insert into public.communication_settings (
   '00000000-0000-4000-8000-000000007501'
 );
 
-insert into public.site_content_items (
-  id, content_type, slug, title, body_markdown, status, created_by
-) values (
-  '00000000-0000-4000-8000-000000007560',
-  'article', 'communication-runner-fictive', 'Information fictive',
-  'Contenu strictement fictif.', 'publie',
-  '00000000-0000-4000-8000-000000007501'
-);
-
 insert into public.communications (
-  id, institution_id, source_type, source_fingerprint, source_label, status,
-  visibility, category, public_slug, site_content_id, current_version,
-  approved_by, approved_at, published_at, created_by
+  id, institution_id, source_type, source_fingerprint, source_label, created_by
 ) values (
   '00000000-0000-4000-8000-000000007510',
   '00000000-0000-4000-8000-000000007502',
-  'direct_text', repeat('7', 64), 'Recette fictive du runner', 'published',
-  'public', 'information', 'information-runner-fictive',
-  '00000000-0000-4000-8000-000000007560', 1,
-  '00000000-0000-4000-8000-000000007501', transaction_timestamp(),
-  transaction_timestamp(), '00000000-0000-4000-8000-000000007501'
+  'direct_text', repeat('7', 64), 'Recette fictive du runner',
+  '00000000-0000-4000-8000-000000007501'
 );
 
 insert into public.communication_versions (
-  id, institution_id, communication_id, version, status, title, summary,
-  body_markdown, content_hash, created_by, approved_by, approved_at
+  id, institution_id, communication_id, version, title, summary,
+  body_markdown, content_hash, created_by
 ) values (
   '00000000-0000-4000-8000-000000007520',
   '00000000-0000-4000-8000-000000007502',
-  '00000000-0000-4000-8000-000000007510', 1, 'approved',
+  '00000000-0000-4000-8000-000000007510', 1,
   'Information fictive', 'Résumé fictif', 'Contenu strictement fictif.',
-  repeat('8', 64), '00000000-0000-4000-8000-000000007501',
-  '00000000-0000-4000-8000-000000007501', transaction_timestamp()
+  repeat('8', 64), '00000000-0000-4000-8000-000000007501'
 );
+
+update public.communication_versions
+set status = 'review'
+where id = '00000000-0000-4000-8000-000000007520';
+
+update public.communications
+set status = 'review'
+where id = '00000000-0000-4000-8000-000000007510';
+
+update public.communication_versions
+set status = 'approved',
+    approved_by = '00000000-0000-4000-8000-000000007501',
+    approved_at = transaction_timestamp()
+where id = '00000000-0000-4000-8000-000000007520';
+
+update public.communications
+set status = 'approved',
+    approved_by = '00000000-0000-4000-8000-000000007501',
+    approved_at = transaction_timestamp()
+where id = '00000000-0000-4000-8000-000000007510';
 
 insert into public.communication_deliveries (
   id, institution_id, communication_id, version_id, version, contact_ref,
@@ -167,7 +172,7 @@ insert into public.communication_events (
 )
 select
   delivery.institution_id, delivery.communication_id, 'delivery', delivery.id,
-  'delivery.sent', 'webmail', delivery.webmail_receipt_hash,
+  'delivery.sent', 'provider', delivery.webmail_receipt_hash,
   jsonb_build_object('provider', 'brevo_transactional', 'outcome', 'accepted')
 from public.communication_deliveries as delivery
 where delivery.institution_id = '00000000-0000-4000-8000-000000007502'
@@ -205,7 +210,7 @@ begin
       actor_type, external_event_hash, summary
     )
     select institution_id, communication_id, 'delivery', id, 'delivery.sent',
-      'webmail', webmail_receipt_hash, '{}'::jsonb
+      'provider', webmail_receipt_hash, '{}'::jsonb
     from public.communication_deliveries
     where institution_id = '00000000-0000-4000-8000-000000007502'
       and status = 'sent'

@@ -18,10 +18,19 @@ en attente.
 
 ## Exécution
 
-Le test local vérifie la structure et les garde-fous de la recette. La recette
-SQL distante n'est pas exécutée dans ce lot : la migration de poignée de main
-doit d'abord être appliquée uniquement à la branche Supabase de preview, puis
-l'identité de cette branche doit être revérifiée. La production est exclue.
+Les migrations exactes `20260830110000_secure_communication_reply_matching` et
+`20260830120000_add_communication_webmail_handshake` sont appliquées uniquement
+sur la branche Supabase de preview `xijocumlwivhbmffrnlj`.
+
+La recette distante passe avec 160 succès, 20 reprises, 10 échecs définitifs
+et 10 attentes. Elle suit désormais le cycle éditorial brouillon, relecture,
+approbation et emploie le type d'acteur autorisé `provider`. Son `ROLLBACK`
+laisse utilisateur, établissement, livraison, travail et événement à zéro.
+
+L'advisor de sécurité retourne 60 informations et aucun `WARN` ou `ERROR`. Les
+informations RLS sur les tables de communication sont intentionnelles : elles
+restent réservées au serveur et ne disposent pas de politiques clientes.
+https://supabase.com/docs/guides/database/database-linter?lint=0008_rls_enabled_no_policy
 
 Cette preuve ne remplace pas l'adaptateur Webmail séparé, l'antivirus entrant ni
 la validation du pilote avant tout envoi réel.

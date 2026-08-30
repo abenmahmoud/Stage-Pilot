@@ -285,7 +285,7 @@
   publique ne lit que `site_content`, exige version publiée, audience `tous`,
   fenêtre active et exclusion des archives. Une communication `internal` ne
   peut pas être publiée et aucun champ d'approbation ou d'établissement ne sort.
-- [ ] T029 Tester doublons, panne Brevo, reprise et 200 destinataires.
+- [x] T029 Tester doublons, panne Brevo, reprise et 200 destinataires.
 - [x] T029A Simuler localement 200 références opaques : 200 lignes et 200 clés
   uniques, stables au rejeu. Les doublons, contacts inactifs, coordonnées,
   instantanés substitués et pages incohérentes sont refusés. T029 reste ouvert
@@ -307,6 +307,12 @@
   reprises, 10 échecs définitifs et 10 attentes, avec rejeu, immutabilité et
   `ROLLBACK` contrôlé. T029 reste ouvert jusqu'à son exécution sur la branche de
   preview après application contrôlée de la migration de poignée de main.
+- [x] T029G Exécuter la recette sur la branche Supabase de preview après les
+  migrations exactes `20260830110000` et `20260830120000`. Le scénario actuel
+  respecte le cycle brouillon, relecture, approbation et le type d'acteur
+  gouverné `provider`. Les quatre répartitions, doublons, immutabilité et
+  idempotence passent ; le rollback laisse cinq compteurs à zéro. Aucun appel
+  Webmail ou Brevo n'est réalisé.
 - [x] T030 Vérifier PDF, image, DOCX, fichier invalide et données personnelles.
   Les PDF/DOCX fictifs sûrs sont extraits localement ; image, faux PDF et type
   incohérent sont refusés. Une adresse ou un code scolaire supprime le texte
