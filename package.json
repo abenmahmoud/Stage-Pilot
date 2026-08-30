@@ -141,6 +141,7 @@
     "test:support-queue-races": "node scripts/test-support-queue-races.mjs",
     "test:support-queue-query-validation": "node scripts/test-support-queue-query-validation.mjs",
     "test:support-queue-loading": "node scripts/test-support-queue-loading-state.mjs",
+    "test:support-queue-recovery": "node scripts/test-support-queue-recovery.mjs",
     "test:support-single-tracking": "node scripts/test-support-single-tracking-system.mjs",
     "test:official-service-links": "node scripts/test-official-service-links.mjs",
     "test:security-headers": "node scripts/test-preview-security-headers.mjs",

@@ -2478,6 +2478,7 @@ function ConnectedAgentView({ onBack }: { onBack: () => void }) {
   const [templateName, setTemplateName] = useState("");
   const [showTemplateSave, setShowTemplateSave] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [queueLoadError, setQueueLoadError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [queueLoading, setQueueLoading] = useState(false);
   const [detailLoading, setDetailLoading] = useState(false);
@@ -2525,10 +2526,10 @@ function ConnectedAgentView({ onBack }: { onBack: () => void }) {
       selectedCodeRef.current = nextCode;
       setSelectedCode(nextCode);
       if (!nextCode) setDetail(null);
-      setError(null);
+      setQueueLoadError(null);
     } catch (loadError) {
       if (loadId !== queueLoadIdRef.current) return;
-      setError(loadError instanceof Error ? loadError.message : "Impossible de charger les demandes");
+      setQueueLoadError(loadError instanceof Error ? loadError.message : "Impossible de charger les demandes");
     } finally {
       if (loadId === queueLoadIdRef.current) setQueueLoading(false);
     }
@@ -2856,15 +2857,16 @@ function ConnectedAgentView({ onBack }: { onBack: () => void }) {
   const lastFinishedCallback = [...(detail?.callbacks ?? [])]
     .reverse()
     .find((callback) => ["done", "cancelled"].includes(callback.status)) ?? null;
+  const agentError = queueLoadError ?? error;
   const needsAgentSecurity = Boolean(
-    error && /double vérification|vérification renforcée/i.test(error)
+    agentError && /double vérification|vérification renforcée/i.test(agentError)
   );
-  const needsAgentLogin = Boolean(error && /authentifi|connexion requise/i.test(error));
+  const needsAgentLogin = Boolean(agentError && /authentifi|connexion requise/i.test(agentError));
 
   return (
     <div className="lycee-page lycee-agent-page">
       <PageIntro eyebrow="Espace agent" title="Demandes du lycée" description="Classez, répondez et gardez chaque échange dans le même dossier." onBack={onBack} />
-      {error ? <div className="lycee-form-error" role="alert"><CircleAlert aria-hidden="true" />{error}{needsAgentSecurity ? <a href="/security?returnTo=%2Fprototype%3Fview%3Dagent">Sécuriser le compte</a> : needsAgentLogin ? <a href="/login?returnTo=%2Fprototype%3Fview%3Dagent&mode=staff">Se connecter</a> : null}</div> : null}
+      {agentError ? <div className="lycee-form-error" role="alert"><CircleAlert aria-hidden="true" /><span>{agentError}</span>{needsAgentSecurity ? <a href="/security?returnTo=%2Fprototype%3Fview%3Dagent">Sécuriser le compte</a> : needsAgentLogin ? <a href="/login?returnTo=%2Fprototype%3Fview%3Dagent&mode=staff">Se connecter</a> : queueLoadError ? <button type="button" disabled={queueLoading} onClick={() => void loadQueue()}>{queueLoading ? "Nouvel essai…" : "Réessayer"}</button> : null}</div> : null}
       {access ? <section className="lycee-agent-scope"><ShieldCheck aria-hidden="true" /><span><small>Votre périmètre</small><strong>{access.label}</strong><p>{access.canViewAll ? "Toutes les demandes et tous les transferts." : availableTeams.map((team) => team.label).join(" · ")}</p></span><b>{access.canViewAll ? "Vue complète" : "Vue limitée"}</b></section> : null}
       <div className="lycee-agent-stats">
         <div><span><Inbox aria-hidden="true" /></span><strong>{stats.qualify}</strong><small>À classer</small></div>

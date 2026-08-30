@@ -2529,6 +2529,19 @@ taches et analyse de coherence avant une automatisation sensible.
 - Le brief Claude est préparé mais non exécuté, faute de modèle exact et de
   plafond propres à cette mission ; aucun jeton externe n'a été consommé.
 
+### Jalon du 30 août 2026 - reprise manuelle de la file agent
+
+- Une panne de chargement de file conserve son propre message et une action
+  `Réessayer`, sans effacer ni confondre les erreurs de dossier ou de réponse.
+- Une erreur de connexion ou de double vérification ne propose pas de relance
+  trompeuse : elle garde le parcours d'authentification adapté.
+- La recette Playwright `503` puis succès passe à 320 et 1440 px avec deux
+  tentatives, bouton bloqué pendant l'attente et alerte retirée après reprise.
+- T027B11 est terminée. Les cinq domaines comptent 397 identifiants uniques :
+  281 lignes terminées et 116 ouvertes.
+- Le brief Claude est préparé mais non exécuté, faute de modèle exact et de
+  plafond propres à cette mission ; aucun jeton externe n'a été consommé.
+
 ## 8. Prochain ordre recommande
 
 1. Publier et tester le pré-triage ordinateur portable avec des données fictives.
