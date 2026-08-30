@@ -2451,6 +2451,17 @@ taches et analyse de coherence avant une automatisation sensible.
 - Le brief Claude est préparé mais non exécuté, faute de modèle exact et de
   plafond propres à cette mission ; aucun jeton externe n'a été consommé.
 
+### Jalon du 30 août 2026 - couverture RLS du guichet préparée
+
+- Une migration locale impose la RLS et retire les droits directs sur les seize
+  tables privées `support_*` actuellement connues.
+- Un test découvre ces tables dans tout l'historique SQL et échoue si une future
+  table n'est pas couverte par la migration de durcissement.
+- T011A est terminée localement. T011 reste ouverte jusqu'à l'application et à
+  la recette RLS/concurrence sur la base de preview autorisée.
+- Le brief Claude est préparé mais non exécuté, faute de modèle exact et de
+  plafond propres à cette mission ; aucun jeton externe n'a été consommé.
+
 ### Jalon du 30 août 2026 - recette navigateur de l'assistant public
 
 - Chrome réel a vérifié l'accueil local à 1 262 px et 390 px sans erreur ni

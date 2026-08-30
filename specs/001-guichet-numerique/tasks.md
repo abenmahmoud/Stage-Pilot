@@ -42,6 +42,10 @@ restante, soit une configuration externe ou une validation par la direction.
   réservation pour empêcher de dépasser cinq fichiers par concurrence.
 - [x] **T010** Ajouter le journal append-only et les identifiants de corrélation.
 - [ ] **T011** Ajouter tests unitaires, RLS et intégration de création concurrente.
+- [x] **T011A** Préparer une migration qui force la RLS et retire les droits
+  directs sur les seize tables privées `support_*`, puis ajouter un test qui
+  détecte toute future table oubliée. T011 reste ouverte jusqu'à l'application
+  et à la recette RLS/concurrence sur la base de preview.
 - [x] **T012** Vérifier 200 créations, zéro perte et zéro doublon.
   Le script est désormais isolé par exécution, utilise une file temporaire,
   exige une cible preview explicite et nettoie ses données même après un échec.
