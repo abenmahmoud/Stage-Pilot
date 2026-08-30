@@ -97,6 +97,11 @@
   fenêtre temporelle est bornée à trente jours avec cinq minutes de tolérance
   future. T019 reste ouvert jusqu'à la route, la persistance idempotente et la
   recette de rejeu sur la preview.
+- [x] T019B Ajouter la route et la persistance idempotente, fermées par défaut.
+  Le rattachement est cloisonné par l'établissement configuré, chaque événement
+  possède un HMAC unique et un verrou empêche les courses. Un état livré ne
+  régresse pas ; spam et désinscription restent prioritaires. T019 reste ouvert
+  jusqu'à la migration et la recette de rejeu fictive sur la preview.
 - [ ] T020 Construire la boîte d'échec, la reprise et l'annulation des travaux.
 - [x] T020A Définir le contrat de panne et d'annulation avant le worker. Les
   erreurs sont des codes fermés sans texte fournisseur ; les pannes temporaires

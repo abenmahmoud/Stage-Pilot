@@ -1949,6 +1949,7 @@ export const communicationEvents = pgTable(
     eventType: text("event_type").notNull(),
     actorUserId: uuid("actor_user_id"),
     actorType: text("actor_type").notNull(),
+    externalEventHash: text("external_event_hash"),
     summary: jsonb("summary").notNull().default({}),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   },
@@ -1956,6 +1957,9 @@ export const communicationEvents = pgTable(
     index("communication_events_communication_scope_fk_idx").on(table.communicationId, table.institutionId),
     index("communication_events_scope_created_idx").on(table.institutionId, table.communicationId, table.createdAt),
     index("communication_events_resource_created_idx").on(table.resourceType, table.resourceId, table.createdAt),
+    uniqueIndex("communication_events_scope_external_event_uidx")
+      .on(table.institutionId, table.externalEventHash)
+      .where(sql`${table.externalEventHash} is not null`),
   ]
 );
 

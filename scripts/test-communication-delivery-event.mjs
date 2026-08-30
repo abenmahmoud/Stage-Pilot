@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import {
+  communicationDeliveryWebhookEnabled,
   parseCommunicationBrevoDeliveryEvent,
   verifyCommunicationDeliveryBearerHeader,
 } from "../shared/communication-delivery-event.ts";
@@ -82,4 +83,10 @@ test("requires one exact strong Bearer token", () => {
   assert.equal(verifyCommunicationDeliveryBearerHeader(`Bearer ${secret}x`, secret), false);
   assert.equal(verifyCommunicationDeliveryBearerHeader([`Bearer ${secret}`], secret), false);
   assert.equal(verifyCommunicationDeliveryBearerHeader(`Bearer ${secret}`, "weak"), false);
+});
+
+test("keeps the delivery webhook closed unless its exact flag is enabled", () => {
+  assert.equal(communicationDeliveryWebhookEnabled({}), false);
+  assert.equal(communicationDeliveryWebhookEnabled({ COMMUNICATION_DELIVERY_WEBHOOK_ENABLED: "TRUE" }), false);
+  assert.equal(communicationDeliveryWebhookEnabled({ COMMUNICATION_DELIVERY_WEBHOOK_ENABLED: "true" }), true);
 });

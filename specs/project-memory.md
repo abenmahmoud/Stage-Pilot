@@ -1611,6 +1611,19 @@ taches et analyse de coherence avant une automatisation sensible.
 - Le brief Claude est préparé mais non exécuté, faute de modèle exact et de
   plafond de consommation propres à cette mission.
 
+### Jalon du 30 août 2026 - persistance fermée de la délivrabilité
+
+- Une route Brevo désactivée par défaut authentifie, pseudonymise et rattache
+  chaque événement à l'établissement configuré, sous verrou de livraison.
+- Une empreinte HMAC unique absorbe les rejeux. Les états livrés ne régressent
+  pas ; spam et désinscription gardent la priorité et aucun identifiant ne sort
+  dans la réponse.
+- Sept tests dédiés couvrent transitions, terminaux, schéma, fermeture,
+  cloisonnement et minimisation. T019B est terminé ; la migration et la recette
+  fictive de preview restent dans T019.
+- Le brief Claude est préparé mais non exécuté, faute de modèle exact et de
+  plafond de consommation propres à cette mission.
+
 ### Jalon du 30 août 2026 - contrat de délivrabilité Brevo
 
 - Un vérificateur Bearer commun protège désormais les futurs webhooks entrants

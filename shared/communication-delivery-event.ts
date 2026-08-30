@@ -20,6 +20,11 @@ export type CommunicationDeliveryEvent = {
   occurredAt: string;
 };
 
+type CommunicationDeliveryEnvironment = Partial<Record<
+  "COMMUNICATION_DELIVERY_WEBHOOK_ENABLED",
+  string
+>>;
+
 const EVENT_STATUS: Record<string, CommunicationDeliveryStatus> = {
   delivered: "delivered",
   deferred: "deferred",
@@ -84,6 +89,12 @@ export function verifyCommunicationDeliveryBearerHeader(
   expectedSecret: string | undefined
 ): boolean {
   return verifyCommunicationWebhookBearerHeader(authorization, expectedSecret);
+}
+
+export function communicationDeliveryWebhookEnabled(
+  env: CommunicationDeliveryEnvironment = process.env
+): boolean {
+  return env.COMMUNICATION_DELIVERY_WEBHOOK_ENABLED === "true";
 }
 
 export function parseCommunicationBrevoDeliveryEvent(

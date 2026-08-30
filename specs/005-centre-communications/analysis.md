@@ -115,3 +115,10 @@ du travail mort ; une même demande ne peut donc pas créer deux successeurs. Le
 erreurs exigeant une nouvelle version ou un contact corrigé et les livraisons
 terminales sont refusées. La transaction atomique et l'interface restent à
 implémenter.
+
+T019B relie le contrat de délivrabilité à une persistance encore fermée. La
+route vérifie un Bearer fort, choisit l'établissement côté serveur, verrouille
+la livraison et insère l'empreinte d'événement avant toute transition. La
+contrainte unique absorbe les rejeux ; les événements hors ordre restent
+audités sans faire régresser un état livré. La migration n'est pas appliquée et
+l'interrupteur demeure absent des environnements distants.
