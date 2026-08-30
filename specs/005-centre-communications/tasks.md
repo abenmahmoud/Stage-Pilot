@@ -80,7 +80,12 @@
 
 ## Phase 4 - Diffusion sécurisée
 
-- [ ] T016 Définir le contrat serveur limité avec le registre du Webmail.
+- [x] T016 Définir le contrat serveur limité avec le registre du Webmail. Le
+  contrat HMAC sépare requête et réponse, expire les requêtes en cinq minutes et
+  limite les instantanés à une heure. Il ne transporte que des groupes opaques,
+  leur libellé, type, état et comptage agrégé ; coordonnées, listes de membres,
+  champs inconnus, rejeu hors délai et croisement d'établissement sont refusés.
+  Aucune route distante, donnée réelle ou diffusion n'est activée.
 - [ ] T017 Préparer les destinataires par référence de contact, côté serveur.
 - [ ] T018 Envoyer individuellement via Brevo avec lien canonique.
 - [ ] T019 Enregistrer livré, différé, rejeté, spam et désinscrit.

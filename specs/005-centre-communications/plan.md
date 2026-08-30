@@ -14,6 +14,12 @@ Le module complète l'espace de contenus existant sans créer un nouveau site :
   les emails transférés sur un sous-domaine distinct.
 - **Le site public** lit uniquement la version publiée via l'API existante.
 
+Le contrat du registre est signé et cloisonné par établissement. Une requête
+de cinq minutes obtient un instantané valable au maximum une heure contenant
+seulement des références de groupe, des libellés, des états et des comptages
+agrégés. LyceeGest ne reçoit ni membres, ni emails, ni téléphones. La résolution
+nominative reste dans le Webmail et un instantané n'autorise jamais un envoi.
+
 ## Modèle de données additif
 
 - `communications` : contenu lié, source, visibilité, état, calendrier et

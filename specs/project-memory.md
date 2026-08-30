@@ -1655,6 +1655,23 @@ taches et analyse de coherence avant une automatisation sensible.
 - Le brief Claude est préparé mais non exécuté, faute de modèle exact et de
   plafond de consommation propres à cette mission.
 
+### Jalon du 30 août 2026 - contrat limité du registre Webmail
+
+- Le contrat serveur T016 est défini sans appeler le Webmail : requête HMAC de
+  cinq minutes et instantané signé valable au maximum une heure, tous deux liés
+  à un établissement unique.
+- L'instantané contient au plus 200 références de groupe opaques avec libellé,
+  type, état et comptage agrégé. Les coordonnées, listes de membres, champs
+  inconnus, doublons, compteurs excessifs, signatures altérées et réponses
+  expirées sont refusés.
+- LyceeGest ne devient pas le registre nominatif. La résolution des contacts
+  actifs restera côté Webmail dans T017 et aucun instantané ne vaut autorisation
+  de publier ou d'envoyer.
+- Six tests adversariaux passent sans réseau ni donnée réelle. Aucun secret,
+  environnement, service distant ou déploiement n'a été modifié à ce stade.
+- Le brief Claude est préparé mais non exécuté, faute de modèle exact et de
+  plafond de consommation propres à cette mission.
+
 ## 8. Prochain ordre recommande
 
 1. Publier et tester le pré-triage ordinateur portable avec des données fictives.
