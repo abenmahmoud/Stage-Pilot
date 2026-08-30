@@ -79,6 +79,11 @@
   sources, cible unique supérieure, nouveaux nonces et bilan agrégé sans clair.
   La sélection SQL verrouillée, la transaction d'écriture, la restauration et
   le retrait réel d'une ancienne clé restent dans T010B2C.
+- [x] T010B2C4 Préparer sans l'installer le worker transactionnel : interrupteur
+  fermé par défaut, établissement et import obligatoires, sélection bornée
+  `SKIP LOCKED`, contrôle optimiste de chaque ancienne enveloppe, audit agrégé et
+  index additif. La migration et le worker n'ont pas été exécutés ; recette de
+  restauration et retrait de clé restent dans T010B2C.
 - [ ] T010B2D Refuser automatiquement mots de passe, codes ENT/PRONOTE et secrets
   dans tous les imports ; cadrer séparément une éventuelle remise de codes avec
   Direction/DPO, identité forte, durée courte et validation humaine.

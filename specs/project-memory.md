@@ -2120,6 +2120,22 @@ taches et analyse de coherence avant une automatisation sensible.
 - Le brief Claude est élargi mais non exécuté, faute de modèle exact et de
   plafond de consommation propres à cette mission.
 
+### Jalon du 30 août 2026 - worker de rotation préparé et fermé
+
+- Un worker à exécution unique prépare la rotation transactionnelle d'un seul
+  import et d'un seul établissement. Il refuse de démarrer sans interrupteur,
+  deux UUID explicites, clé cible versionnée et limite de 1 à 250.
+- Les lignes sont verrouillées par `SKIP LOCKED`. Chaque écriture compare encore
+  version, nonce, tag et ciphertext sources ; l'audit agrégé appartient à la
+  même transaction, donc un échec annule le lot entier.
+- La migration ajoute seulement l'index de rotation et l'action d'audit. Elle
+  n'accorde aucun droit client et n'a pas été appliquée.
+- T010B2C4 est terminé avec 24 contrôles statiques. T010B2C reste ouverte jusqu'à
+  la recette fictive isolée, la restauration prouvée et le retrait contrôlé de
+  l'ancienne clé.
+- Le brief Claude est élargi mais non exécuté, faute de modèle exact et de
+  plafond de consommation propres à cette mission.
+
 ## 8. Prochain ordre recommande
 
 1. Publier et tester le pré-triage ordinateur portable avec des données fictives.

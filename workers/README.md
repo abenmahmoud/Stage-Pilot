@@ -11,9 +11,10 @@ The workers run on the lycée VPS, not in the browser or in a Vercel function.
   only opaque references and keyed contact fingerprints. Secret-bearing headers
   or cells stop the import before hashing or vault encryption.
 - `identity-directory-vault.mjs` chiffre les coordonnées minimales et prépare
-  localement leur rotation unitaire ou par lots bornés. Il ne sélectionne ni ne
-  met à jour la base ; cette persistance reste désactivée tant que sa recette
-  transactionnelle n'est pas validée.
+  localement leur rotation unitaire ou par lots bornés.
+- `identity-directory-vault-rotation-worker.mjs` prépare la persistance
+  transactionnelle d'un seul import. Il n'est ni installé ni planifié et reste
+  fermé sans `IDENTITY_VAULT_ROTATION_ENABLED=true` et deux UUID cibles.
 - `knowledge-document-worker.mjs` consumes `knowledge_document_scan`, runs
   ClamAV and extracts bounded text locally from safe PDF, DOCX, XLSX, PPTX, CSV
   and text files. Personal, sensitive or privacy-signalled content stays manual.

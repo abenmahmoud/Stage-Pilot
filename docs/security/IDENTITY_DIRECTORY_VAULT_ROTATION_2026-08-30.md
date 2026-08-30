@@ -15,6 +15,13 @@ champs inconnus, enveloppes déjà à jour et retours vers une version inférieu
 sont refusés. Le bilan contient uniquement la cible, le nombre traité et des
 compteurs par version source.
 
+Le worker transactionnel est préparé mais fermé tant que
+`IDENTITY_VAULT_ROTATION_ENABLED` n'est pas explicitement à `true`. Il exige un
+UUID d'établissement, un UUID d'import et une limite bornée. Il verrouille les
+lignes anciennes avec `SKIP LOCKED`, compare encore l'ancienne version, le
+nonce, le tag et le ciphertext au moment de l'écriture, puis inscrit un unique
+audit agrégé dans la même transaction. Un échec annule tout le lot.
+
 ## Procédure opérationnelle future
 
 1. Générer une clé de 32 octets dans le coffre du worker, sans l'afficher.
@@ -37,6 +44,9 @@ compteurs par version source.
 - ne jamais faire transiter le clair par un journal, une API ou le modèle IA ;
 - ne jamais exécuter la rotation sur des données réelles depuis une preview ;
 - ne jamais considérer la primitive locale comme un worker opérationnel.
+- ne jamais activer le worker sans sauvegarde restaurée, cible isolée et fenêtre
+  de retour arrière validée ;
+- ne jamais installer un minuteur automatique avant la recette fictive manuelle.
 
 ## Preuves locales
 
@@ -46,3 +56,7 @@ nonce, déchiffrement par v2, rejet par v1, version identique, clé source absen
 et interdiction d'un retour vers une version inférieure. Il couvre aussi un lot
 mixte v1/v2 vers v3, les doublons, plafonds, champs inconnus, reprise incorrecte
 et l'absence de données en clair dans le résultat.
+
+`npm run test:identity-vault-rotation-worker` exécute 24 contrôles statiques sur
+l'interrupteur, le ciblage, la limite, le verrou SQL, les comparaisons
+optimistes, l'audit, l'index et l'absence de journal nominatif.

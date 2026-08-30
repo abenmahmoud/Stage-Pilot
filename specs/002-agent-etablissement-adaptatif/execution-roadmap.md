@@ -269,8 +269,11 @@ l'autorisation de quota définie par le propriétaire.
   lot strict de 250 enveloppes au plus, plusieurs versions sources et une cible
   unique supérieure. Elle valide tout le lot avant de retourner les enveloppes
   rechiffrées et un bilan agrégé sans clair. La sélection SQL verrouillée, la
-  transaction d'écriture, la rétention, la restauration et le retrait de clé
-  restent à construire avant toute donnée réelle.
+  transaction d'écriture et l'audit agrégé sont maintenant préparés dans un
+  worker fermé par défaut, ciblé sur un seul établissement et un seul import.
+  Il n'est ni installé ni exécuté et sa migration additive n'est pas appliquée.
+  La recette fictive isolée, la rétention, la restauration et le retrait de clé
+  restent à réaliser avant toute donnée réelle.
 - Lot N5P : recherche contrôlée du répertoire. **Canal applicatif implémenté et
   fermé par défaut** : accès direction nominatif avec MFA, motif obligatoire,
   recherche exacte uniquement, requête et résultat chiffrés, reçu lié à l'agent

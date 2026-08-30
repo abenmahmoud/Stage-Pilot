@@ -14,7 +14,10 @@ gestion des versions, l'atomicité logique et les risques de fuite ou de perte.
 ## Périmètre minimal
 
 - `workers/identity-directory-vault.mjs`
+- `workers/identity-directory-vault-rotation-worker.mjs`
 - `scripts/test-identity-directory-vault.mjs`
+- `scripts/test-identity-vault-rotation-worker.mjs`
+- `supabase/migrations/20260830140000_prepare_identity_vault_rotation.sql`
 - `docs/security/IDENTITY_DIRECTORY_VAULT_ROTATION_2026-08-30.md`
 - diff Git du lot
 
@@ -30,6 +33,8 @@ réseau ne doit être transmis.
 5. Les critères proposés pour retirer l'ancienne clé sont-ils suffisants ?
 6. Le lot refuse-t-il strictement doublons, champs inconnus et lignes déjà à jour ?
 7. Le bilan agrégé peut-il révéler une identité ou une coordonnée ?
+8. Une concurrence ou un échec intermédiaire peut-il valider un lot partiel ?
+9. L'interrupteur et le double ciblage empêchent-ils une rotation globale accidentelle ?
 
 ## Arrêt
 
