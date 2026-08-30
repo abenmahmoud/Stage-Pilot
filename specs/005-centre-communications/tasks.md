@@ -102,6 +102,13 @@
 ## Phase 5 - Entrants et réponses
 
 - [ ] T022 Construire le webhook entrant authentifié et idempotent.
+- [x] T022A Définir le contrat Brevo entrant avant d'ouvrir une route. Le jeton
+  Bearer est vérifié en temps constant, l'interrupteur est fermé par défaut et
+  le lot est limité à vingt messages. Le contrat produit uniquement des
+  HMAC cloisonnés de `Message-ID`, référence de réponse et alias, avec
+  des compteurs bornés de pièces jointes. Sujet, corps, expéditeur, adresse,
+  nom de fichier et jeton de téléchargement ne sortent jamais du parseur. T022
+  reste ouvert jusqu'à la route, la persistance privée et la recette de rejeu.
 - [ ] T023 Rattacher chaque réponse à la bonne communication.
 - [ ] T024 Classer retrait, correction de contact, question et réponse libre.
 - [x] T024A Définir et tester le classificateur local avant son raccordement. Il

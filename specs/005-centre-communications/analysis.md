@@ -66,3 +66,10 @@ La surface privée actuelle possède en plus un test de confidentialité dynamiq
 Chaque route SQL projette ses colonnes explicitement et aucune route navigateur
 n'importe encore audience ou livraison. Cette preuve ne remplace pas le test
 d'absence d'adresse entre destinataires après implémentation de T017 à T020.
+
+Le contrat préparatoire du webhook Brevo est maintenant séparé de l'ancien flux
+entrant du guichet d'aide. Il vérifie un jeton Bearer fort, reste fermé sans
+interrupteur exact, borne les lots et réduit chaque événement à des HMAC
+et compteurs non identifiants. Il ne crée aucune route et ne stocke encore aucun
+message : l'authentification HTTP réelle, la persistance privée et la preuve de
+rejeu restent nécessaires pour fermer T022.

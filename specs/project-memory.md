@@ -1720,6 +1720,23 @@ taches et analyse de coherence avant une automatisation sensible.
 - Le brief Claude est préparé mais non exécuté, faute de modèle exact et de
   plafond de consommation propres à cette mission.
 
+### Jalon du 30 août 2026 - contrat entrant Brevo fermé
+
+- Le futur webhook du centre de communication possède maintenant un contrat
+  autonome, distinct de l'ancien webhook du guichet d'aide. Il ne crée encore
+  aucune route et reste fermé sans `COMMUNICATION_INBOUND_ENABLED=true`.
+- L'authentification attend un unique jeton Bearer fort comparé en temps
+  constant. Les lots, références et pièces jointes sont bornés avant toute
+  persistance.
+- La sortie contient uniquement des HMAC secrets séparés par domaine, des
+  compteurs de pièces, un indicateur de message extrait et un score borné. Elle
+  exclut sujet, corps, expéditeur, coordonnées, noms et jetons privés.
+- T022A est terminé avec six tests locaux. T022 reste ouvert jusqu'à la route,
+  au stockage privé atomique et à la preuve de rejeu concurrent. Aucun DNS,
+  secret, webhook ou environnement distant n'a été modifié.
+- Le brief Claude est préparé mais non exécuté, faute de modèle exact et de
+  plafond de consommation propres à cette mission.
+
 ## 8. Prochain ordre recommande
 
 1. Publier et tester le pré-triage ordinateur portable avec des données fictives.
