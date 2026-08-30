@@ -2083,11 +2083,18 @@ taches et analyse de coherence avant une automatisation sensible.
 - Les tests ciblés, d'autorisation, de cloisonnement, de concurrence, de routage,
   adversariaux, TypeScript et le build passent. `npm audit --omit=dev` signale
   zéro vulnérabilité.
-- La migration `20260830090500` et une recette fictive avec `ROLLBACK` sont
-  prêtes, mais n'ont pas été exécutées : le connecteur Supabase actif ne voit pas
-  la preview connue et les variables locales sont masquées. L'interrupteur
-  `SUPPORT_ASSISTANT_ROUTING_REVIEW_ENABLED` reste donc désactivé par défaut ;
-  le déploiement applicatif ne dépend pas de la nouvelle table.
+- La migration `20260830090500` est appliquée uniquement à la branche Supabase
+  `xijocumlwivhbmffrnlj`. La première recette a révélé un scénario de portée
+  masqué par une unicité plus précoce ; le cas a été corrigé avec une seconde
+  demande fictive, rejoué avec `ROLLBACK` puis contrôlé à zéro résidu dans les
+  quatre tables concernées.
+- L'auditeur sécurité ne signale aucun `WARN` ou `ERROR` sur la nouvelle table.
+  L'absence de politique RLS est volontaire avec RLS forcée et privilèges client
+  retirés ; l'avis d'index composite est écarté car `request_id` est déjà unique.
+- `SUPPORT_ASSISTANT_ROUTING_REVIEW_ENABLED=true` est configuré seulement pour
+  la preview Vercel de `codex/lycee-connect-prototype`. T030D2 est terminé ; le
+  lot parent attend encore une confirmation et une correction applicatives sur
+  deux dossiers entièrement fictifs.
 - Le brief Claude est préparé mais non exécuté, faute de modèle exact et de
   plafond de consommation propres à cette mission.
 

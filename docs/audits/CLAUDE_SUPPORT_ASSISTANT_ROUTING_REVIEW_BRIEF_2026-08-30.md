@@ -3,7 +3,8 @@
 ## Statut
 
 Préparé le 30 août 2026. Audit non exécuté : le modèle Claude exact et le plafond
-de consommation de cette mission n'ont pas été confirmés.
+de consommation de cette mission n'ont pas été confirmés. Zéro jeton externe a
+été consommé.
 
 ## Périmètre strict
 
@@ -25,8 +26,10 @@ de consommation de cette mission n'ont pas été confirmés.
 Auditer en lecture seule les risques de rejeu, altération, croisement
 d'établissement, course concurrente, double décision, contournement MFA, fuite de
 contenu personnel, persistance du reçu dans le navigateur et métrique trompeuse.
-Vérifier aussi que l'interrupteur désactivé empêche toute requête vers la table
-absente. Ne modifier aucun fichier, secret, environnement, base ou déploiement.
+Vérifier aussi que l'interrupteur actif uniquement sur la preview ne modifie pas
+le comportement sans reçu valide et que le scénario SQL corrigé atteint bien la
+clé composite inter-établissement. Ne modifier aucun fichier, secret,
+environnement, base ou déploiement.
 
 ## Sortie attendue
 

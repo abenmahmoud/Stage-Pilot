@@ -418,7 +418,7 @@
   privée et cloisonnée, la confirmation sous MFA, la correction par transfert,
   les agrégats anonymes et l'interface responsive. Le code reste inactif par
   défaut tant que la base preview n'a pas été migrée.
-- [ ] T030D2 Appliquer `20260830090500` uniquement à la base preview, exécuter
+- [x] T030D2 Appliquer `20260830090500` uniquement à la base preview, exécuter
   la recette fictive avec `ROLLBACK`, contrôler les auditeurs puis activer
   `SUPPORT_ASSISTANT_ROUTING_REVIEW_ENABLED=true` uniquement sur la preview.
 

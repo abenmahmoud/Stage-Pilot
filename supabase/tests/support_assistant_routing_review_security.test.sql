@@ -89,7 +89,7 @@ begin
       initial_category, initial_service
     ) values (
       '00000000-0000-4000-8000-000000006003',
-      '00000000-0000-4000-8000-000000006010', repeat('c', 64), false, null,
+      '00000000-0000-4000-8000-000000006011', repeat('c', 64), false, null,
       'ent', 'referent_numerique'
     );
   exception when foreign_key_violation then

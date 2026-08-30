@@ -32,22 +32,24 @@ la table sous périmètre établissement.
   scénarios adversariaux.
 - TypeScript et build réussis ; audit npm de production à zéro vulnérabilité.
 
-## Blocage distant et reprise
+## Activation preview
 
-Le connecteur Supabase actif ne trouve pas `xijocumlwivhbmffrnlj` et les fichiers
-locaux contiennent des valeurs `[SENSITIVE]` non exploitables. Aucune migration
-n'a donc été appliquée. Le code est protégé par l'interrupteur désactivé et peut
-être déployé sans lire la table absente.
+- Le connecteur a confirmé la branche `guichet-lycee-preview`, référence
+  `xijocumlwivhbmffrnlj`, distincte du projet principal.
+- La migration est présente sous sa version Git `20260830090500`. Le projet
+  principal n'a jamais été ciblé ni interrogé pendant cette activation.
+- La recette transactionnelle a été corrigée pour tester la clé composite avec
+  une seconde demande fictive. Elle bloque les cinq attaques attendues, termine
+  par `ROLLBACK` et laisse zéro utilisateur, établissement, demande ou revue de
+  test.
+- L'auditeur sécurité ne remonte que l'information attendue « RLS sans
+  politique » : RLS est forcée et `anon`/`authenticated` n'ont aucun privilège.
+  L'avis de clé étrangère sans index composite est couvert par l'unicité de
+  `request_id`; ajouter un index redondant n'est pas justifié sur cette table.
+- `SUPPORT_ASSISTANT_ROUTING_REVIEW_ENABLED=true` est configuré comme variable
+  Vercel de preview limitée à `codex/lycee-connect-prototype`.
 
-Pour reprendre avec une URL de base preview prouvée :
-
-1. Exécuter le script verrouillé avec `--check`.
-2. Exécuter `--rollback-test`.
-3. Exécuter `--apply`.
-4. Exécuter `--recipe` et vérifier zéro résidu.
-5. Contrôler les auditeurs sécurité et performance Supabase.
-6. Activer l'interrupteur uniquement sur la preview, redéployer puis tester deux
-   dossiers fictifs : une confirmation et une correction.
-
-Ne jamais utiliser ce script avec la référence principale et ne jamais activer
-l'interrupteur avant la recette réussie.
+Le prochain contrôle est applicatif : créer deux dossiers fictifs après le
+redéploiement, confirmer le premier, corriger le service du second sous MFA,
+vérifier les agrégats puis nettoyer toutes les données de recette. Ne jamais
+utiliser ce protocole sur le projet Supabase principal.

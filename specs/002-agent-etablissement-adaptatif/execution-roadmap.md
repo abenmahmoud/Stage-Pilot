@@ -415,10 +415,11 @@ l'autorisation de quota définie par le propriétaire.
 - L'écran agent montre la décision et l'écran direction agrège seulement les
   volumes, taux de traitement et corrections. Le reçu n'est jamais enregistré
   dans la mémoire locale du navigateur.
-- Activation preview encore bloquée : le connecteur Supabase de cette session
-  ne voit pas `xijocumlwivhbmffrnlj` et les fichiers d'environnement locaux
-  masquent les secrets. La migration et sa recette `ROLLBACK` sont prêtes ;
-  aucune base distante n'a été modifiée.
+- Activation effectuée uniquement sur la preview `xijocumlwivhbmffrnlj` : la
+  migration `20260830090500` est enregistrée, la recette fictive corrigée passe
+  avec `ROLLBACK` et laisse zéro résidu. L'interrupteur Vercel est limité à la
+  branche `codex/lycee-connect-prototype`. La recette applicative avec deux
+  dossiers fictifs reste nécessaire avant de fermer le lot parent T030D.
 - Lot N5ZD : cloisonnement des demandes par établissement. **Appliqué uniquement
   à la preview et testé par transaction annulée** : `institution_id` est
   obligatoire, référencé et immuable sur chaque demande. La création publique,

@@ -9,9 +9,10 @@ const files = await Promise.all([
   readFile(new URL("../api/support/agent/requests/[code].ts", import.meta.url), "utf8"),
   readFile(new URL("../api/support/agent/metrics.ts", import.meta.url), "utf8"),
   readFile(new URL("../src/pages/prototype/LyceeConnectPrototype.tsx", import.meta.url), "utf8"),
+  readFile(new URL("../supabase/tests/support_assistant_routing_review_security.test.sql", import.meta.url), "utf8"),
 ]);
 
-const [migration, assistantRoute, requestRoute, agentRoute, metricsRoute, page] = files;
+const [migration, assistantRoute, requestRoute, agentRoute, metricsRoute, page, securityRecipe] = files;
 
 test("keeps routing reviews private, scoped and terminal after a human decision", () => {
   assert.match(migration, /foreign key \(request_id, institution_id\)[\s\S]+support_requests\(id, institution_id\)/i);
@@ -25,6 +26,10 @@ test("keeps routing reviews private, scoped and terminal after a human decision"
   assert.match(migration, /grant select, insert, update on table public\.support_assistant_routing_reviews[\s\S]+service_role/i);
   assert.doesNotMatch(migration, /grant[^;]*delete/i);
   assert.doesNotMatch(migration, /body_text|description|email|phone|telephone|first_name|last_name/i);
+  assert.match(
+    securityRecipe,
+    /'00000000-0000-4000-8000-000000006003',[\s\S]{0,120}'00000000-0000-4000-8000-000000006011'/
+  );
 });
 
 test("attaches only a verified short-lived assistant receipt without blocking request creation", () => {
