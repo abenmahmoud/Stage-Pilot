@@ -1310,6 +1310,22 @@ taches et analyse de coherence avant une automatisation sensible.
 - Le dossier d'audit Claude est préparé mais non exécuté sans modèle et plafond
   de consommation explicitement autorisés.
 
+### Jalon du 30 août 2026 - garde-fous du test de charge
+
+- `load-test-support.mjs` est compatible avec l'établissement obligatoire : la
+  création, le payload PGMQ, les comptages et le nettoyage sont tous cloisonnés.
+- Trois paramètres sont obligatoires avant connexion : confirmation
+  `preview-only`, référence exacte du projet et slug d'établissement actif ou en
+  pilote. Une file unique par exécution et un préfixe aléatoire bornent toujours
+  le nettoyage aux données synthétiques du passage.
+- Le test de garde-fous et la syntaxe passent. La tentative réelle des 200
+  créations a été stoppée avant connexion, car le `DATABASE_URL` local est un
+  placeholder et ne contient pas la référence de preview attendue. Aucun secret
+  n'a été affiché et aucun contrôle n'a été contourné.
+- La preuve historique des 200 créations reste documentée, mais T012A exige un
+  nouveau passage après T015B1 dès qu'une connexion Postgres preview utilisable
+  est fournie de façon sûre.
+
 ## 8. Prochain ordre recommande
 
 1. Publier et tester le pré-triage ordinateur portable avec des données fictives.

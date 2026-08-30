@@ -428,6 +428,13 @@ l'autorisation de quota définie par le propriétaire.
   produit exactement un reçu et un message ; une panne simulée après réservation
   n'a laissé aucun reçu. `ROLLBACK` a ramené les deux compteurs à zéro. La coupure
   et reprise du service Brevo réel reste volontairement ouverte dans T026B.
+- Lot N5ZG : remise à niveau du test de charge. **Script et garde-fous testés,
+  exécution distante encore ouverte** : les 200 créations synthétiques portent
+  désormais l'établissement, tout comme leur file temporaire, leurs compteurs et
+  leur nettoyage. Le script exige toujours `preview-only`, la référence projet
+  attendue et maintenant le slug de l'établissement. Le lancement a été refusé
+  parce que le fichier local ne contient pas une URL Postgres de preview
+  utilisable. Le contrôle n'a pas été contourné et T012A reste ouverte.
 - Lot N6 : tests de non-régression, build, contrôle mobile et rapport d'écarts.
   **Partiellement validé en preview** : 200 transactions concurrentes sans perte
   ni reste après nettoyage, 135 contrôles de sécurité, build réussi, PWA active,

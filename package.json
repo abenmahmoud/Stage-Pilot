@@ -84,6 +84,7 @@
     "test:agent-queue-serverless": "node scripts/test-agent-queue-serverless.mjs",
     "legacy:export": "node scripts/export-legacy-wordpress.mjs",
     "test:load:support": "node scripts/load-test-support.mjs",
+    "test:load:support-safety": "node scripts/test-load-support-safety.mjs",
     "db:generate": "drizzle-kit generate",
     "db:push": "drizzle-kit push"
   },

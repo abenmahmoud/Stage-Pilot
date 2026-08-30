@@ -37,6 +37,10 @@ restante, soit une configuration externe ou une validation par la direction.
 - [x] **T012** Vérifier 200 créations, zéro perte et zéro doublon.
   Le script est désormais isolé par exécution, utilise une file temporaire,
   exige une cible preview explicite et nettoie ses données même après un échec.
+- [ ] **T012A** Rejouer les 200 créations après l'ajout obligatoire de
+  `institution_id`. Le script est remis à niveau et ses verrous locaux passent,
+  mais le fichier d'environnement disponible ne contient pas une URL Postgres
+  de preview utilisable ; aucun contrôle de cible n'a été contourné.
 
 ### Sortie Jour 1
 

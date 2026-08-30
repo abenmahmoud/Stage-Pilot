@@ -14,6 +14,10 @@ if (!expectedProjectRef || !/^[a-z0-9]{20}$/.test(expectedProjectRef)) {
 if (!connectionString.includes(expectedProjectRef)) {
   throw new Error("The database URL does not match LOAD_TEST_EXPECTED_PROJECT_REF");
 }
+const institutionSlug = process.env.LOAD_TEST_INSTITUTION_SLUG;
+if (!institutionSlug || !/^[a-z0-9-]{3,80}$/.test(institutionSlug)) {
+  throw new Error("LOAD_TEST_INSTITUTION_SLUG is required");
+}
 
 const count = Number.parseInt(process.env.LOAD_TEST_COUNT ?? "200", 10);
 const concurrency = Number.parseInt(process.env.LOAD_TEST_CONCURRENCY ?? "20", 10);
@@ -36,17 +40,18 @@ const sql = postgres(connectionString, {
 
 let nextIndex = 0;
 let queueCreated = false;
+let institutionId;
 const startedAt = performance.now();
 
 async function createSyntheticRequest(index) {
   await sql.begin(async (transaction) => {
     const [request] = await transaction`
       insert into public.support_requests (
-        idempotency_key_hash, requester_type, requester_first_name,
+        institution_id, idempotency_key_hash, requester_type, requester_first_name,
         requester_last_name, beneficiary_type, category, subject,
         description, preferred_channel, subject_context
       ) values (
-        ${`${prefix}key-${index}`}, 'parent', 'Test', ${`Usager-${index}`},
+        ${institutionId}, ${`${prefix}key-${index}`}, 'parent', 'Test', ${`Usager-${index}`},
         'eleve', 'ent', 'Acces ENT', 'Demande fictive de test de charge', 'email',
         ${transaction.json({ loadTestRun: runId })}
       ) returning id
@@ -79,7 +84,11 @@ async function createSyntheticRequest(index) {
     await transaction`
       select pgmq.send(
         ${queueName},
-        jsonb_build_object('run_id', ${runId}::text, 'request_id', ${request.id}::uuid)
+        jsonb_build_object(
+          'run_id', ${runId}::text,
+          'institution_id', ${institutionId}::uuid,
+          'request_id', ${request.id}::uuid
+        )
       )
     `;
   });
@@ -94,6 +103,15 @@ async function worker() {
 }
 
 try {
+  const [institution] = await sql`
+    select id
+    from public.institutions
+    where slug = ${institutionSlug} and status in ('pilot', 'active')
+    limit 1
+  `;
+  if (!institution) throw new Error("The load-test institution is unavailable");
+  institutionId = institution.id;
+
   await sql`select pgmq.create(${queueName})`;
   queueCreated = true;
   await Promise.all(
@@ -103,13 +121,16 @@ try {
   const [result] = await sql`
     select
       (select count(*)::int from public.support_requests
-        where idempotency_key_hash like ${`${prefix}%`}) as requests,
+        where institution_id = ${institutionId}
+          and idempotency_key_hash like ${`${prefix}%`}) as requests,
       (select count(*)::int from public.support_messages m
         join public.support_requests r on r.id = m.request_id
-        where r.idempotency_key_hash like ${`${prefix}%`}) as messages,
+        where r.institution_id = ${institutionId}
+          and r.idempotency_key_hash like ${`${prefix}%`}) as messages,
       (select count(*)::int from public.support_session_requests sr
         join public.support_requests r on r.id = sr.request_id
-        where r.idempotency_key_hash like ${`${prefix}%`}) as sessions,
+        where r.institution_id = ${institutionId}
+          and r.idempotency_key_hash like ${`${prefix}%`}) as sessions,
       (select queue_length::int from pgmq.metrics(${queueName})) as jobs
   `;
   const durationMs = Math.round(performance.now() - startedAt);
@@ -130,10 +151,13 @@ try {
     ...result,
   }));
 } finally {
-  await sql`
-    delete from public.support_requests
-    where idempotency_key_hash like ${`${prefix}%`}
-  `;
+  if (institutionId) {
+    await sql`
+      delete from public.support_requests
+      where institution_id = ${institutionId}
+        and idempotency_key_hash like ${`${prefix}%`}
+    `;
+  }
   await sql`
     delete from public.support_device_sessions
     where session_hash like ${`${prefix}%`}
