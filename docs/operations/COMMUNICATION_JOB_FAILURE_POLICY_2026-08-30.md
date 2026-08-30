@@ -32,6 +32,10 @@ texte d'erreur fournisseur.
 Cinq tests couvrent les délais, la boîte d'échec, les champs refusés,
 l'annulation compensatoire, les travaux en cours et les emails non rappelables.
 
+Un email `sent`, `delivered`, `deferred`, `rejected`, `spam` ou `unsubscribed`
+est déjà entré dans le cycle du fournisseur : l'annulation peut arrêter un
+travail de reprise, mais ne prétend jamais rappeler cet email.
+
 T020 reste ouvert jusqu'au worker transactionnel, au verrouillage, à la reprise
 manuelle et à l'interface de boîte d'échec. Aucun travail, email, donnée réelle,
 base ou environnement de production n'a été modifié.

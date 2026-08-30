@@ -31,6 +31,7 @@ export type CommunicationDeliveryLifecycleStatus =
   | "delivered"
   | "deferred"
   | "rejected"
+  | "spam"
   | "unsubscribed"
   | "error"
   | "cancelled";
@@ -72,6 +73,7 @@ const DELIVERY_STATUS_SET = new Set<CommunicationDeliveryLifecycleStatus>([
   "delivered",
   "deferred",
   "rejected",
+  "spam",
   "unsubscribed",
   "error",
   "cancelled",
@@ -178,16 +180,20 @@ export function planCommunicationJobCancellation(value: unknown): CommunicationJ
     return {
       canCancelJob: false,
       nextStatus: status,
-      deliveryAction: deliveryStatus === "sent" || deliveryStatus === "delivered"
+      deliveryAction: deliveryStatus && [
+        "sent", "delivered", "deferred", "rejected", "spam", "unsubscribed",
+      ].includes(deliveryStatus)
         ? "cannot_recall"
         : "none",
       reason: "job_already_terminal",
     };
   }
 
-  const deliveryAction = deliveryStatus === "sent" || deliveryStatus === "delivered"
+  const deliveryAction = deliveryStatus && [
+    "sent", "delivered", "deferred", "rejected", "spam", "unsubscribed",
+  ].includes(deliveryStatus)
     ? "cannot_recall"
-    : deliveryStatus && ["prepared", "queued", "deferred", "error"].includes(deliveryStatus)
+    : deliveryStatus && ["prepared", "queued", "error"].includes(deliveryStatus)
       ? "enqueue_cancel_delivery"
       : "none";
   return {

@@ -78,6 +78,13 @@ test("cancels pending work and distinguishes delivery compensation from recall",
     status: "retry",
     deliveryStatus: "delivered",
   }).deliveryAction, "cannot_recall");
+  for (const deliveryStatus of ["sent", "deferred", "rejected", "spam", "unsubscribed"]) {
+    assert.equal(planCommunicationJobCancellation({
+      jobType: "retry_delivery",
+      status: "retry",
+      deliveryStatus,
+    }).deliveryAction, "cannot_recall");
+  }
 });
 
 test("never mutates running or terminal work through the cancellation command", () => {

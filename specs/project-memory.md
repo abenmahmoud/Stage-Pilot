@@ -29,6 +29,13 @@
 - Seuls références opaques, empreintes et comptages sont conservés ; aucune
   route Webmail ni liste réelle n'est activée.
 
+## Jalon du 30 août 2026 - états non rappelables corrigés
+
+- `deferred`, `rejected`, `spam` et `unsubscribed` ne sont plus assimilés à une
+  livraison annulable avant envoi.
+- Une annulation peut arrêter une reprise, mais ne prétend jamais rappeler un
+  message déjà accepté par le fournisseur.
+
 ## Jalon du 29 août 2026 - scénarios humains de la charte
 
 - Une urgence affiche le 15/112, le 3114 lorsque pertinent et un recours à un

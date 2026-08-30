@@ -22,6 +22,12 @@ transactionnelle. La version courante validée est verrouillée et chaque rejeu
 est relu après conflit, ce qui ferme le risque d'accepter silencieusement une
 ancienne résolution ou une clé idempotente substituée.
 
+## Correction d'annulation du 30 août 2026
+
+Les états `deferred`, `rejected`, `spam` et `unsubscribed` sont désormais
+explicitement non rappelables, comme `sent` et `delivered`. Seuls les états
+réellement antérieurs à l'envoi peuvent déclencher une annulation de livraison.
+
 ## Résultat
 
 La proposition est cohérente avec les fonctionnalités `001`, `002`, `003` et
