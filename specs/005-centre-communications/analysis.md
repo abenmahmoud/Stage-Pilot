@@ -153,8 +153,12 @@ T019B relie le contrat de délivrabilité à une persistance encore fermée. La
 route vérifie un Bearer fort, choisit l'établissement côté serveur, verrouille
 la livraison et insère l'empreinte d'événement avant toute transition. La
 contrainte unique absorbe les rejeux ; les événements hors ordre restent
-audités sans faire régresser un état livré. La migration n'est pas appliquée et
-l'interrupteur demeure absent des environnements distants.
+audités sans faire régresser un état livré. T019C applique la migration additive
+uniquement sur la preview et prouve, dans une transaction fictive annulée, le
+rejeu, l'isolation entre deux établissements, les contraintes d'état et
+l'absence de privilèges clients. Le rollback laisse zéro résidu. Le webhook et
+ses secrets restent absents des environnements : aucune réception fournisseur
+n'est activée par cette preuve.
 
 T017A précise une ambiguïté du plan : le navigateur et l'API de sélection ne
 reçoivent aucun membre, mais le worker validé doit obtenir les références

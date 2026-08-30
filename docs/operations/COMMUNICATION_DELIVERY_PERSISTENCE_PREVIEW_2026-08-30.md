@@ -22,12 +22,34 @@ l'abus et le consentement. `unsubscribed` et `cancelled` sont terminaux. Chaque
 événement reconnu reste audité, même lorsqu'il est trop ancien pour modifier
 l'état courant.
 
+## Preuve sur la preview
+
+La migration additive `20260830090000_add_communication_delivery_event_dedupe`
+est appliquée uniquement sur le projet Supabase de preview
+`xijocumlwivhbmffrnlj`. La recette
+`supabase/tests/communication_delivery_event_security.test.sql` a confirmé :
+
+- un même événement n'est conservé qu'une fois dans un établissement ;
+- la même empreinte reste distincte dans un second établissement ;
+- le HMAC invalide et l'état fournisseur inconnu sont refusés ;
+- `spam` est un état gouverné accepté ;
+- `anon` et `authenticated` ne disposent d'aucun accès direct d'écriture ;
+- le rollback laisse zéro utilisateur, établissement, communication, livraison
+  ou événement fictif.
+
+L'advisor Supabase ne remonte aucun `WARN` ou `ERROR` de sécurité. Il signale
+seulement, au niveau `INFO`, que `communication_deliveries` et
+`communication_events` ont RLS activé sans politique. C'est intentionnel : ces
+tables restent privées côté serveur et la recette confirme l'absence de droits
+clients. Référence de l'advisor :
+https://supabase.com/docs/guides/database/database-linter?lint=0008_rls_enabled_no_policy
+
 ## Activation encore interdite
 
-La migration ajoute l'empreinte unique et l'état `spam`, mais elle n'a pas été
-appliquée à distance. Les variables
+Les variables
 `COMMUNICATION_DELIVERY_WEBHOOK_ENABLED`,
 `COMMUNICATION_DELIVERY_WEBHOOK_TOKEN` et
 `COMMUNICATION_PROVIDER_MESSAGE_HMAC_SECRET` ne sont définies dans aucun
-environnement par ce lot. T019 reste ouvert jusqu'à une migration prouvée et
-une recette de rejeu entièrement fictive sur la preview.
+environnement par ce lot. Le webhook, Brevo et tout envoi externe restent donc
+désactivés. T019 est fermé par la preuve de persistance ; l'activation fournisseur
+relèvera d'une décision et d'une recette séparées.

@@ -40,12 +40,23 @@ test("keeps exact repeats idempotent and rejects unknown states", () => {
 
 test("adds a private scoped event fingerprint and the governed spam state", async () => {
   const migration = await readFile(new URL("../supabase/migrations/20260830090000_add_communication_delivery_event_dedupe.sql", import.meta.url), "utf8");
+  const recipe = await readFile(new URL("../supabase/tests/communication_delivery_event_security.test.sql", import.meta.url), "utf8");
   const schema = await readFile(new URL("../db/schema.ts", import.meta.url), "utf8");
   assert.match(migration, /external_event_hash ~ '\^\[a-f0-9\]\{64\}\$'/);
   assert.match(migration, /unique index communication_events_scope_external_event_uidx[\s\S]*institution_id, external_event_hash/);
   assert.match(migration, /'rejected', 'spam', 'unsubscribed'/);
   assert.match(schema, /externalEventHash: text\("external_event_hash"\)/);
   assert.match(schema, /communication_events_scope_external_event_uidx/);
+  assert.match(recipe, /begin;[\s\S]*rollback;/);
+  assert.match(recipe, /on conflict do nothing/);
+  assert.match(recipe, /where institution_id = '00000000-0000-4000-8000-000000008002'[\s\S]*external_event_hash = repeat\('c', 64\)/);
+  assert.match(recipe, /where institution_id = '00000000-0000-4000-8000-000000008003'[\s\S]*external_event_hash = repeat\('c', 64\)/);
+  assert.match(recipe, /where external_event_hash = repeat\('c', 64\)\) <> 2/);
+  assert.match(recipe, /\('anon', 'public\.communication_events'\)/);
+  assert.match(recipe, /\('authenticated', 'public\.communication_deliveries'\)/);
+  assert.match(recipe, /unnest\(array\['SELECT', 'INSERT', 'UPDATE', 'DELETE'\]\)/);
+  assert.match(recipe, /has_table_privilege\(role_name, table_name, privilege_name\)/);
+  assert.match(recipe, /auth_residue[\s\S]*institution_residue[\s\S]*communication_residue[\s\S]*delivery_residue[\s\S]*event_residue/);
 });
 
 test("keeps the webhook closed, scoped, authenticated and idempotent", async () => {

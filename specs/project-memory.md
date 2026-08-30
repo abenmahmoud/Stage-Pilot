@@ -1855,6 +1855,22 @@ taches et analyse de coherence avant une automatisation sensible.
 - Le brief Claude est préparé mais non exécuté, faute de modèle exact et de
   plafond de consommation propres à cette mission.
 
+### Jalon du 30 août 2026 - délivrabilité prouvée sur la preview
+
+- La migration additive `20260830090000` est appliquée uniquement sur la base
+  Supabase de preview ; production, Brevo, Webmail et DNS restent inchangés.
+- Une transaction fictive a prouvé la déduplication d'un rejeu dans un
+  établissement, l'isolation d'un second établissement, les états gouvernés et
+  l'absence de droits directs pour `anon` et `authenticated`.
+- Le rollback a laissé zéro résidu. L'advisor Supabase ne remonte aucun
+  `WARN` ou `ERROR` de sécurité ; ses deux informations RLS correspondent aux
+  tables serveur volontairement sans politique cliente.
+- T019 et T019C sont terminés. Le webhook demeure fermé faute de variables
+  d'activation ; aucun email ni appel fournisseur n'a été effectué.
+- Le brief Claude est préparé mais non exécuté, faute de modèle exact et de
+  plafond de consommation propres à cette mission ; aucun jeton externe n'a
+  été consommé.
+
 ### Jalon du 30 août 2026 - résolution opaque de 200 destinataires
 
 - Une page signée relie les références de contact à l'établissement, la

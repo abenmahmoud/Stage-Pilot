@@ -141,20 +141,27 @@
   avant transport, concurrence bornée, reçu vérifié puis persistance du succès
   ou de la panne. Le runner reste sans Cron, endpoint ou transport par défaut ;
   T018 reste ouvert jusqu'à l'adaptateur Webmail séparé.
-- [ ] T019 Enregistrer livré, différé, rejeté, spam et désinscrit.
+- [x] T019 Enregistrer livré, différé, rejeté, spam et désinscrit.
 - [x] T019A Définir le contrat Brevo de délivrabilité avant toute route. Un
   Bearer fort est comparé en temps constant ; seuls les événements documentés
   utiles deviennent `delivered`, `deferred`, `rejected`, `spam` ou
   `unsubscribed`. L'identifiant sortant et la clé de rejeu sont des HMAC
   cloisonnés ; email, objet, motif, IP et tags du fournisseur sont ignorés. La
   fenêtre temporelle est bornée à trente jours avec cinq minutes de tolérance
-  future. T019 reste ouvert jusqu'à la route, la persistance idempotente et la
-  recette de rejeu sur la preview.
+  future. La route, la persistance idempotente et la recette de rejeu sont
+  fermées par T019B et T019C.
 - [x] T019B Ajouter la route et la persistance idempotente, fermées par défaut.
   Le rattachement est cloisonné par l'établissement configuré, chaque événement
   possède un HMAC unique et un verrou empêche les courses. Un état livré ne
-  régresse pas ; spam et désinscription restent prioritaires. T019 reste ouvert
-  jusqu'à la migration et la recette de rejeu fictive sur la preview.
+  régresse pas ; spam et désinscription restent prioritaires. La migration et la
+  recette de rejeu fictive sur la preview sont prouvées par T019C.
+- [x] T019C Prouver la persistance sur la preview sans ouvrir le webhook. La
+  migration `20260830090000` ajoute le HMAC d'événement unique par établissement
+  et l'état `spam`. Une recette transactionnelle fictive confirme le rejeu,
+  l'isolation entre deux établissements, les contraintes d'état et l'absence de
+  droits directs pour `anon` et `authenticated`, puis laisse zéro résidu après
+  rollback. Les variables d'activation restent absentes et aucun appel Brevo
+  n'est réalisé.
 - [ ] T020 Construire la boîte d'échec, la reprise et l'annulation des travaux.
 - [x] T020A Définir le contrat de panne et d'annulation avant le worker. Les
   erreurs sont des codes fermés sans texte fournisseur ; les pannes temporaires
