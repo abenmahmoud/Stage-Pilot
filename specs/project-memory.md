@@ -2926,3 +2926,16 @@ taches et analyse de coherence avant une automatisation sensible.
   réel, compte distant ou modification Supabase.
 - Le brief Claude est préparé mais non exécuté, faute de modèle exact et de
   plafond propres à cette mission ; aucun jeton externe n'a été consommé.
+
+### Jalon du 30 août 2026 - mutations du registre de connaissances bornées
+
+- Les créations et versions de compétences sont limitées à 64 Ko, les preuves
+  d'évaluation à 32 Ko et les métadonnées documentaires à 16 Ko.
+- Les actions et revues sont limitées à 4 Ko ; la confirmation d'un dépôt ne lit
+  aucun payload et désactive le parseur de corps Vercel.
+- Les documents de 50 Mo maximum continuent de transiter directement vers le
+  stockage privé signé ; le rôle de gestionnaire reste exigé partout.
+- T037T est terminée par analyse statique et tests locaux, sans document réel,
+  appel IA, compte distant ou modification Supabase.
+- Le brief Claude est préparé mais non exécuté, faute de modèle exact et de
+  plafond propres à cette mission ; aucun jeton externe n'a été consommé.

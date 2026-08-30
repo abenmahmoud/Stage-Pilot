@@ -247,6 +247,8 @@ voir sa réponse dans le dossier. L'agent traite tout depuis une seule file.
   métier et conserver le dépôt direct des documents dans le stockage privé.
 - [x] **T037S** Borner les commandes d'emploi du temps, désactiver le parseur sur
   les actions sans payload et conserver le dépôt direct des PDF privés.
+- [x] **T037T** Borner les mutations du registre de connaissances, désactiver le
+  parseur de confirmation et conserver le dépôt direct des documents privés.
 - [x] **T037F** Exclure les contacts desactives des reponses, reserver les
   journaux globaux a un administrateur MFA et exiger `aal2` pour confirmer une
   identite scolaire depuis une source officielle.
