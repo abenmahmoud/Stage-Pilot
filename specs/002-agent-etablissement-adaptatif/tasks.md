@@ -344,6 +344,8 @@
 - [x] T027B11 Isoler les erreurs de file des autres erreurs agent et proposer un
   nouvel essai direct après une panne ordinaire, sans masquer ni contourner les
   exigences de connexion ou de double vérification.
+- [x] T027B12 Borner et valider strictement page, taille et recherche côté
+  serveur, puis refléter la longueur maximale dans le champ de recherche.
 - [ ] T027B2 Ajouter les relances internes et l'escalade après validation des
   délais propres à chaque service et des responsables à notifier.
 - [ ] T027C Créer les adhésions de service puis appliquer le périmètre dans les

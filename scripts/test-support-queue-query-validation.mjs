@@ -3,6 +3,7 @@ import test from "node:test";
 import { readFileSync } from "node:fs";
 
 const route = readFileSync(new URL("../api/support/agent/requests/index.ts", import.meta.url), "utf8");
+const page = readFileSync(new URL("../src/pages/prototype/LyceeConnectPrototype.tsx", import.meta.url), "utf8");
 
 test("rejects an unknown status instead of widening the queue", () => {
   const rejection = route.indexOf("if (status && !VALID_STATUSES.has(status))");
@@ -47,4 +48,17 @@ test("rejects unknown operational flag values", () => {
 test("rejects repeated query parameters instead of choosing one", () => {
   assert.match(route, /if \(value\.length !== 1\) throw new HttpError\(400, "Paramètre répété"\)/);
   assert.doesNotMatch(route, /Array\.isArray\(value\) \? value\[0\]/);
+});
+
+test("bounds pagination and rejects malformed numbers", () => {
+  assert.match(route, /function boundedIntegerQuery\(/);
+  assert.match(route, /if \(!\/\^\\d\+\$\/\.test\(value\)\) throw new HttpError\(400, errorMessage\)/);
+  assert.match(route, /boundedIntegerQuery\(queryValue\(req\.query\.page\), 1, 1, 10_000, "Page invalide"\)/);
+  assert.match(route, /boundedIntegerQuery\(queryValue\(req\.query\.pageSize\), 30, 10, 50, "Taille de page invalide"\)/);
+});
+
+test("rejects an oversized search and mirrors the limit in the interface", () => {
+  assert.match(route, /if \(searchValue\.length > 80\) throw new HttpError\(400, "Recherche trop longue"\)/);
+  assert.doesNotMatch(route, /\.trim\(\)\.slice\(0, 80\)/);
+  assert.match(page, /aria-label="Rechercher une demande" maxLength=\{80\}/);
 });

@@ -2555,6 +2555,19 @@ taches et analyse de coherence avant une automatisation sensible.
 - Le brief Claude est préparé mais non exécuté, faute de modèle exact et de
   plafond propres à cette mission ; aucun jeton externe n'a été consommé.
 
+### Jalon du 30 août 2026 - pagination de file bornée
+
+- La page accepte uniquement un entier de 1 à 10 000 et la taille un entier de
+  10 à 50 ; les valeurs mal formées ou hors limites reçoivent une réponse `400`.
+- La recherche est limitée explicitement à 80 caractères dans l'interface et
+  refusée côté serveur au-delà, sans troncature silencieuse.
+- La recette Playwright confirme à 320 et 1440 px qu'une saisie de 100 caractères
+  produit un champ et une requête de 80 caractères, sans erreur ni débordement.
+- T027B12 est terminée. Les cinq domaines comptent 399 identifiants uniques :
+  283 lignes terminées et 116 ouvertes.
+- Le brief Claude est préparé mais non exécuté, faute de modèle exact et de
+  plafond propres à cette mission ; aucun jeton externe n'a été consommé.
+
 ## 8. Prochain ordre recommande
 
 1. Publier et tester le pré-triage ordinateur portable avec des données fictives.

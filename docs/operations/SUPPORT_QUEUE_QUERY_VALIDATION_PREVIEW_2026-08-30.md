@@ -10,6 +10,8 @@
   `duplicate=pending` et `overdue=true`, ou une valeur vide.
 - Une même clé de requête répétée est refusée au lieu de choisir arbitrairement
   sa première valeur.
+- La page est un entier de 1 à 10 000, la taille un entier de 10 à 50 et la
+  recherche contient au maximum 80 caractères.
 
 Cette validation est exécutée après l'authentification agent et avant la
 construction des filtres SQL. Elle n'élargit aucun droit et ne modifie aucune
@@ -21,3 +23,6 @@ donnée.
   y compris pour les indicateurs et les paramètres répétés.
 - Les tests existants confirment que `me` et `none` gardent leur comportement.
 - Le test est inclus dans la barrière de sécurité permanente de la preview.
+- Le champ de recherche applique la même limite de 80 caractères que l'API.
+- La recette Playwright saisit 100 caractères à 320 et 1440 px : le champ et la
+  requête restent à 80, sans erreur ni débordement horizontal.

@@ -55,14 +55,32 @@ function queryValue(value: string | string[] | undefined): string {
   return value ?? "";
 }
 
+function boundedIntegerQuery(
+  value: string,
+  fallback: number,
+  minimum: number,
+  maximum: number,
+  errorMessage: string
+): number {
+  if (!value) return fallback;
+  if (!/^\d+$/.test(value)) throw new HttpError(400, errorMessage);
+  const parsed = Number(value);
+  if (!Number.isSafeInteger(parsed) || parsed < minimum || parsed > maximum) {
+    throw new HttpError(400, errorMessage);
+  }
+  return parsed;
+}
+
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== "GET") return methodNotAllowed(res, ["GET"]);
 
   return handleApi(res, async () => {
     const { user, access, institutionId } = await requireSupportAgent(req);
-    const page = Math.max(1, Number.parseInt(queryValue(req.query.page), 10) || 1);
-    const pageSize = Math.min(50, Math.max(10, Number.parseInt(queryValue(req.query.pageSize), 10) || 30));
-    const search = queryValue(req.query.q).trim().slice(0, 80);
+    const page = boundedIntegerQuery(queryValue(req.query.page), 1, 1, 10_000, "Page invalide");
+    const pageSize = boundedIntegerQuery(queryValue(req.query.pageSize), 30, 10, 50, "Taille de page invalide");
+    const searchValue = queryValue(req.query.q).trim();
+    if (searchValue.length > 80) throw new HttpError(400, "Recherche trop longue");
+    const search = searchValue;
     const status = queryValue(req.query.status);
     const urgent = queryValue(req.query.urgent);
     const assigned = queryValue(req.query.assigned);

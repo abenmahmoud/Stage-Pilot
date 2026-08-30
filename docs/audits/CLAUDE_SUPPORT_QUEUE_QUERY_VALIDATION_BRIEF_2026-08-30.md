@@ -4,8 +4,9 @@
 
 Auditer uniquement la validation des paramètres `status`, `assigned`, `urgent`,
 `callback`, `duplicate` et `overdue` de la file agent, ainsi que le refus des
-clés répétées. Vérifier qu'une valeur inconnue échoue avant toute requête SQL et
-qu'aucun filtre valide existant n'est cassé.
+clés répétées et les bornes de page, taille et recherche. Vérifier qu'une valeur
+inconnue ou hors limites échoue avant toute requête SQL et qu'aucun filtre valide
+existant n'est cassé.
 
 ## Fichiers à examiner
 
