@@ -581,6 +581,14 @@ l'autorisation de quota définie par le propriétaire.
   opaque. La console refuse les preuves absentes, discordantes, anciennes,
   futures ou mal formées avant tout message de réussite. La commande reste
   réservée à la direction sous MFA et son ancien corps HTTP demeure désactivé.
+- Lot N5ZT : preuve transactionnelle de modification d'une demande.
+  **Implémentée sans migration ni action distante** : la route de modification
+  retourne le temps de l'événement `request.updated`, le numéro public, la
+  révision précédente, la révision persistée et une corrélation opaque. Le client
+  valide la liaison et la fraîcheur, relit le dossier, puis exige que la révision
+  relue corresponde exactement à la preuve avant de mettre l'écran à jour. Une
+  preuve absente, rejouée ou discordante devient une erreur explicite. T028 reste
+  ouverte pour le premier adaptateur complet du registre d'actions agent.
 
 ## Prochaine séquence verrouillée
 

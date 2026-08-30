@@ -3400,3 +3400,20 @@ taches et analyse de coherence avant une automatisation sensible.
   métier complet du registre d'actions. Le brief Claude est préparé mais non
   exécuté faute de modèle exact et de plafond propres à cette mission ; aucun
   jeton externe n'a été consommé.
+
+### Jalon du 31 août 2026 - modification de dossier confirmée par la transaction
+
+- Toute modification manuelle d'une demande agent produit désormais un reçu à
+  partir de l'événement `request.updated` écrit dans la même transaction que le
+  dossier.
+- Le reçu lie le numéro public, la révision connue avant écriture, la nouvelle
+  révision, l'heure PostgreSQL et une corrélation opaque. Une fenêtre de cinq
+  minutes borne sa fraîcheur et interdit une révision antérieure.
+- L'interface valide d'abord le reçu, relit ensuite le dossier et refuse de le
+  rafraîchir si sa révision ne correspond pas exactement à celle annoncée. Une
+  ancienne preuve du même dossier ne peut donc pas confirmer une nouvelle action.
+- T028C de la spécification 002 est terminée sans migration, compte distant,
+  donnée réelle ni production. T028 reste ouverte pour le premier adaptateur
+  métier complet du registre d'actions. Le brief Claude est préparé mais non
+  exécuté dans l'attente du modèle et du plafond explicitement confirmés ; aucun
+  jeton externe n'a été consommé pour ce lot.

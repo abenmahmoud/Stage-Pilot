@@ -29,6 +29,7 @@ import {
   SUPPORT_DUPLICATE_EVENT_TYPES,
 } from "../../../../shared/support-duplicate-policy.js";
 import { supportAssistantRoutingReviewEnabled } from "../../../../shared/support-assistant-routing-receipt.js";
+import { createSupportRequestMutationConfirmation } from "../../../../shared/support-request-mutation-confirmation.js";
 
 const STATUSES = new Set([
   "nouveau",
@@ -270,7 +271,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             eq(supportRequests.id, request.id),
             revisionCondition
           );
-      const [updated] = await db.transaction(async (tx) => {
+      const mutationResult = await db.transaction(async (tx) => {
         const [pendingRoutingReview] = routingReviewEnabled
           ? await tx
               .select({
@@ -332,7 +333,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         if (!saved) {
           throw new HttpError(409, "Ce dossier a été modifié ou pris en charge par un autre agent. Il vient d’être actualisé.");
         }
-        await tx.insert(supportEvents).values({
+        const mutationCorrelationId = randomUUID();
+        const [mutationEvent] = await tx.insert(supportEvents).values({
           requestId: request.id,
           eventType: "request.updated",
           actorType: "agent",
@@ -353,8 +355,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             assignedTeam: saved.assignedTeam,
             closureReason: nextStatus === "clos" ? closureReason : null,
           },
-          correlationId: randomUUID(),
-        });
+          correlationId: mutationCorrelationId,
+        }).returning({ createdAt: supportEvents.createdAt });
+        if (!mutationEvent) {
+          throw new HttpError(409, "La modification n'a pas été confirmée par le journal du dossier");
+        }
         if (duplicateDecision && duplicateReview) {
           await tx.insert(supportEvents).values({
             requestId: request.id,
@@ -410,9 +415,21 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             correlationId: randomUUID(),
           });
         }
-        return [saved];
+        return {
+          request: saved,
+          confirmedAt: mutationEvent.createdAt,
+          correlationId: mutationCorrelationId,
+        };
       });
-      return { request: updated };
+      return {
+        confirmation: createSupportRequestMutationConfirmation({
+          publicCode: code,
+          previousRevision: expectedRevision,
+          revision: mutationResult.request.updatedAt,
+          confirmedAt: mutationResult.confirmedAt,
+          correlationId: mutationResult.correlationId,
+        }),
+      };
     }
 
     const [contacts, messages, attachments, callbacks, duplicateEvents, routingReviews] = await Promise.all([

@@ -412,6 +412,13 @@
   console vérifie l'opération, les identifiants, la référence et la fraîcheur
   avant d'afficher la réussite. T028 reste ouverte pour le premier adaptateur
   métier complet inscrit dans le registre des actions agent.
+- [x] T028C Exiger pour chaque modification manuelle d'une demande une preuve
+  datée issue de l'événement `request.updated` écrit dans la même transaction.
+  La preuve lie le numéro public, la révision précédente, la nouvelle révision et
+  une corrélation opaque ; l'interface refuse les preuves absentes, rejouées,
+  discordantes, anciennes ou futures, puis relit exactement la révision annoncée
+  avant de rafraîchir le dossier. T028 reste ouverte pour le premier adaptateur
+  métier complet inscrit dans le registre des actions agent.
 - [x] T029 Ajouter formulaire classique et création de demande sans dépendance à l'IA.
 - [x] T030 Ajouter mesure du coût, de la latence, des transferts et des corrections.
 - [x] T030A Mesurer chaque passage de l'assistant public sans contenu personnel :

@@ -77,6 +77,7 @@ import {
   summarizeSupportDescription,
 } from "../../../shared/support-conversation";
 import { verifySupportRequestPersistenceConfirmation } from "../../../shared/support-request-confirmation";
+import { verifySupportRequestMutationConfirmation } from "../../../shared/support-request-mutation-confirmation";
 import {
   DEFAULT_SUPPORT_REPLY_TEMPLATES,
   renderSupportReplyTemplate,
@@ -3199,11 +3200,25 @@ function ConnectedAgentView({ onBack }: { onBack: () => void }) {
     if (!selectedCode || !detail?.request.updatedAt) return;
     setSaving(true);
     try {
-      await apiFetch(`support/agent/requests/${selectedCode}`, {
+      const payload = await apiFetch<unknown>(`support/agent/requests/${selectedCode}`, {
         method: "PATCH",
         body: JSON.stringify({ ...changes, expectedUpdatedAt: detail.request.updatedAt }),
       });
-      setDetail(await fetchAgentRequestDetail(selectedCode));
+      const confirmation = verifySupportRequestMutationConfirmation({
+        expectedPublicCode: selectedCode,
+        expectedPreviousRevision: detail.request.updatedAt,
+        confirmation: payload && typeof payload === "object" && !Array.isArray(payload)
+          ? (payload as Record<string, unknown>).confirmation
+          : null,
+      });
+      if (!confirmation) {
+        throw new Error("La modification n'a pas été confirmée par le serveur. Actualisez le dossier.");
+      }
+      const refreshedDetail = await fetchAgentRequestDetail(selectedCode);
+      if (refreshedDetail.request.updatedAt !== confirmation.revision) {
+        throw new Error("Ce dossier a été modifié après la confirmation. Il vient d’être actualisé.");
+      }
+      setDetail(refreshedDetail);
       await loadQueue();
     } catch (saveError) {
       const message = saveError instanceof Error ? saveError.message : "Modification impossible";
