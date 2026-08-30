@@ -29,6 +29,16 @@ test("gives compact public text actions a stable touch target", () => {
   assert.match(page, />Ouvrir LyceeGest <ChevronRight/);
 });
 
+test("keeps every public secondary action at least 40 pixels high", () => {
+  assert.match(css, /\.lycee-services-catalog article > button,[^{]+\{[^}]+min-height: 40px;[^}]+padding: 8px 0;/);
+  assert.match(css, /\.lycee-school-feature button \{[^}]+min-height: 40px;[^}]+padding: 8px 0;/);
+  assert.match(css, /\.lycee-school-life-grid a,[^{]+\{ min-height: 40px;/);
+  assert.match(css, /\.lycee-shared-device-action > button \{ min-height: 40px;/);
+  assert.match(css, /\.lycee-list-toolbar input \{ min-height: 40px; \}/);
+  assert.match(css, /\.lycee-page-intro > button \{ width: 40px; height: 40px; flex-basis: 40px; \}/);
+  assert.match(css, /\.lycee-school-nav button \{ min-height: 40px; \}/);
+});
+
 test("keeps the assistant and its safe alternative visible as semantic controls", () => {
   assert.match(page, /id="lycee-assistant-title"/);
   assert.match(page, /aria-label="Écrivez votre question ou votre problème"/);

@@ -471,6 +471,12 @@
   trois actions textuelles trop basses. L'assistant et l'alternative formulaire
   restent visibles dès le premier écran mobile. T048 reste ouvert pour les
   écrans agents authentifiés, le clavier complet et le lecteur d'écran.
+- [x] T048C Étendre la recette aux vues publiques Services, Aide, Suivi, Lycée,
+  Actualités et Confidentialité à 320 et 1 440 px. Aucun débordement horizontal
+  ni erreur navigateur ; les boutons de retour, actions de catalogue, onglets,
+  liens pratiques et recherche du suivi atteignent désormais 40 px minimum.
+  T048 reste ouvert pour les écrans agents authentifiés, le clavier complet et
+  le lecteur d'écran.
 - [ ] T049 Exécuter une revue de sécurité et de protection des données.
 - [ ] T050 Ouvrir un pilote limité avec agents nommés et canal de retour.
 - [ ] T051 Mesurer deux semaines : classement, délai, transferts, corrections, coût et incidents.

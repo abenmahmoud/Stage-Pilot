@@ -1767,6 +1767,21 @@ taches et analyse de coherence avant une automatisation sensible.
 - Le brief Claude est préparé mais non exécuté, faute de modèle exact et de
   plafond de consommation propres à cette mission.
 
+### Jalon du 30 août 2026 - cibles tactiles des vues publiques
+
+- La recette responsive couvre maintenant l'accueil et les six vues publiques
+  Services, Aide, Suivi, Lycée, Actualités et Confidentialité à 320 x 800 et
+  1 440 x 900.
+- Les retours, actions du catalogue, onglets du lycée, liens pratiques, fermeture
+  du suivi partagé, recherche des demandes et actions de document mesurent au
+  moins 40 px. Aucun débordement horizontal ni journal navigateur en erreur ne
+  subsiste dans la recette locale.
+- Quatre tests statiques et la compilation complète passent. T048C est terminé ;
+  T048 reste ouvert pour les écrans agents authentifiés, la navigation clavier
+  complète et le lecteur d'écran.
+- Le brief Claude a été élargi à ces vues mais demeure non exécuté, faute de
+  modèle exact et de plafond de consommation propres à cette mission.
+
 ## 8. Prochain ordre recommande
 
 1. Publier et tester le pré-triage ordinateur portable avec des données fictives.

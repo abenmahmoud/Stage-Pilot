@@ -63,7 +63,7 @@
 .lycee-workspace { min-width: 0; flex: 1; padding-bottom: 38px; }
 .lycee-topbar { position: sticky; top: 0; z-index: 15; height: 68px; display: flex; align-items: center; justify-content: flex-end; padding: 0 32px; background: rgba(255,255,255,.95); border-bottom: 1px solid var(--lc-line); backdrop-filter: blur(16px); }
 .lycee-top-actions { display: flex; align-items: center; gap: 10px; }
-.lycee-top-tool { min-height: 38px; display: inline-flex; align-items: center; gap: 7px; padding: 0 11px; border: 1px solid var(--lc-line); border-radius: 7px; background: #fff; color: #34506f; text-decoration: none; font-size: 11px; font-weight: 800; }
+.lycee-top-tool { min-height: 40px; display: inline-flex; align-items: center; gap: 7px; padding: 0 11px; border: 1px solid var(--lc-line); border-radius: 7px; background: #fff; color: #34506f; text-decoration: none; font-size: 11px; font-weight: 800; }
 .lycee-top-tool:hover { border-color: #aebed0; color: var(--lc-blue); }
 .lycee-top-tool svg { width: 16px; }
 .lycee-icon-button, .lycee-profile-button { border: 1px solid var(--lc-line); background: #fff; color: var(--lc-ink); }
@@ -375,7 +375,7 @@
 .lycee-category-grid button.is-suggested { grid-template-columns: 23px minmax(0,1fr) auto; border-color: var(--lc-green); background: #edf9f5; }
 .lycee-category-grid button.is-suggested > svg:first-child { color: var(--lc-green); }
 .lycee-category-grid button.is-suggested small { padding: 4px 6px; border-radius: 6px; background: #d5f0e8; color: #176c5b; font-size: 8px; }
-.lycee-chat-change { min-height: 36px; display: inline-flex; align-items: center; gap: 5px; margin-top: 10px; padding: 0; border: 0; background: transparent; color: var(--lc-blue); font-size: 10px; font-weight: 800; }
+.lycee-chat-change { min-height: 40px; display: inline-flex; align-items: center; gap: 5px; margin-top: 10px; padding: 0; border: 0; background: transparent; color: var(--lc-blue); font-size: 10px; font-weight: 800; }
 .lycee-chat-change svg { width: 14px; }
 .lycee-chat-details { display: grid; gap: 13px; }
 .lycee-chat-selection { display: flex; align-items: center; gap: 5px; margin-bottom: 2px; color: #8a98a9; }
@@ -469,7 +469,7 @@
 .lycee-contact-requirement strong { font-size: 11px; }
 .lycee-contact-requirement span { color: #526b89; font-size: 10px; line-height: 1.4; }
 .lycee-classic-files { grid-column: 1 / -1; display: grid; grid-template-columns: auto minmax(0,1fr); align-items: center; gap: 7px 10px; padding: 11px; border: 1px dashed #b8c4d2; border-radius: 7px; background: #fff; }
-.lycee-classic-files > button:first-child { min-height: 38px; display: inline-flex; align-items: center; justify-content: center; gap: 7px; padding: 0 11px; border: 1px solid #b8c4d2; border-radius: 7px; background: #f8fafc; color: #40556e; font-size: 10px; font-weight: 800; }
+.lycee-classic-files > button:first-child { min-height: 40px; display: inline-flex; align-items: center; justify-content: center; gap: 7px; padding: 0 11px; border: 1px solid #b8c4d2; border-radius: 7px; background: #f8fafc; color: #40556e; font-size: 10px; font-weight: 800; }
 .lycee-classic-files > button:first-child:disabled { cursor: not-allowed; opacity: .45; }
 .lycee-classic-files > button:first-child svg { width: 15px; }
 .lycee-classic-files > small { color: var(--lc-muted); font-size: 9px; line-height: 1.4; }
@@ -524,7 +524,7 @@
 .lycee-shared-device-action > span > span { display: grid; gap: 2px; }
 .lycee-shared-device-action strong { font-size: 13px; }
 .lycee-shared-device-action small { color: var(--lc-muted); font-size: 12px; }
-.lycee-shared-device-action > button { min-height: 38px; display: inline-flex; align-items: center; justify-content: center; gap: 7px; padding: 0 12px; border: 1px solid #bdcad8; border-radius: 7px; background: #fff; color: var(--lc-ink); font-size: 12px; font-weight: 800; }
+.lycee-shared-device-action > button { min-height: 40px; display: inline-flex; align-items: center; justify-content: center; gap: 7px; padding: 0 12px; border: 1px solid #bdcad8; border-radius: 7px; background: #fff; color: var(--lc-ink); font-size: 12px; font-weight: 800; }
 .lycee-shared-device-action > button svg { width: 15px; }
 .lycee-shared-device-action > button:disabled { opacity: .55; cursor: wait; }
 .lycee-ticket-list, .lycee-ticket-detail { border: 1px solid var(--lc-line); border-radius: 8px; background: #fff; }
@@ -532,6 +532,7 @@
 .lycee-list-toolbar label, .lycee-agent-toolbar label { display: flex; align-items: center; gap: 8px; min-height: 40px; padding: 0 11px; border: 1px solid #ccd6e2; border-radius: 7px; background: #f8fafc; color: #8794a5; }
 .lycee-list-toolbar svg, .lycee-agent-toolbar label svg { width: 16px; }
 .lycee-list-toolbar input, .lycee-agent-toolbar input { min-width: 0; flex: 1; border: 0; outline: 0; background: transparent; color: var(--lc-ink); font-size: 12px; }
+.lycee-list-toolbar input { min-height: 40px; }
 .lycee-ticket-list > button { width: 100%; display: grid; grid-template-columns: 42px minmax(0,1fr) auto; align-items: center; gap: 10px; padding: 14px; border: 0; border-left: 3px solid transparent; background: #fff; color: var(--lc-ink); text-align: left; }
 .lycee-ticket-list > button.is-selected { border-left-color: var(--lc-blue); background: #f1f5ff; }
 .lycee-ticket-icon { width: 40px; height: 40px; display: grid; place-items: center; border-radius: 8px; background: #e8efff; color: var(--lc-blue); }
@@ -581,7 +582,7 @@
 .lycee-empty-state > svg { width: 30px; color: var(--lc-blue); }
 .lycee-empty-state h2 { margin: 4px 0 0; color: var(--lc-ink); font-size: 17px; }
 .lycee-empty-state p { margin: 0; }
-.lycee-empty-state button { min-height: 38px; margin-top: 8px; padding: 0 12px; border: 0; border-radius: 7px; background: var(--lc-blue); color: #fff; font-size: 11px; font-weight: 800; }
+.lycee-empty-state button { min-height: 40px; margin-top: 8px; padding: 0 12px; border: 0; border-radius: 7px; background: var(--lc-blue); color: #fff; font-size: 11px; font-weight: 800; }
 .lycee-conversation { display: flex; flex-direction: column; gap: 10px; padding: 10px 0 15px; }
 .lycee-conversation > div { max-width: min(84%, 620px); padding: 11px 13px; border-radius: 7px; }
 .lycee-conversation > div.is-requester { align-self: flex-end; background: #eaf1ff; }
@@ -613,7 +614,7 @@
 .lycee-services-catalog article > div h2 { margin: 2px 0 0; font-size: 17px; }
 .lycee-services-catalog article > div p { margin: 7px 0; color: var(--lc-muted); font-size: 12px; line-height: 1.45; }
 .lycee-services-catalog article > div small { color: var(--lc-green); font-size: 10px; font-weight: 800; }
-.lycee-services-catalog article > button, .lycee-services-catalog article > a { grid-column: 2; width: fit-content; display: inline-flex; align-items: center; gap: 4px; padding: 0; border: 0; background: transparent; color: var(--lc-blue); text-decoration: none; font-size: 11px; font-weight: 800; }
+.lycee-services-catalog article > button, .lycee-services-catalog article > a { grid-column: 2; width: fit-content; min-height: 40px; display: inline-flex; align-items: center; gap: 4px; padding: 8px 0; border: 0; background: transparent; color: var(--lc-blue); text-decoration: none; font-size: 11px; font-weight: 800; }
 .lycee-services-catalog article > button svg, .lycee-services-catalog article > a svg { width: 15px; }
 .lycee-mail-bridge { display: flex; align-items: center; justify-content: space-between; gap: 18px; margin-top: 14px; padding: 22px; border-radius: 8px; background: #18314f; color: #fff; }
 .lycee-mail-bridge > div { display: flex; align-items: center; gap: 14px; }
@@ -628,7 +629,7 @@
 .lycee-school-feature > div { display: flex; flex-direction: column; justify-content: center; padding: 30px; }
 .lycee-school-feature h2 { margin: 7px 0 0; font-size: 25px; }
 .lycee-school-feature p { margin: 10px 0 17px; color: rgba(255,255,255,.7); font-size: 12px; line-height: 1.5; }
-.lycee-school-feature button { width: fit-content; display: inline-flex; align-items: center; gap: 5px; padding: 0; border: 0; background: transparent; color: #fff; font-size: 11px; font-weight: 800; }
+.lycee-school-feature button { width: fit-content; min-height: 40px; display: inline-flex; align-items: center; gap: 5px; padding: 8px 0; border: 0; background: transparent; color: #fff; font-size: 11px; font-weight: 800; }
 .lycee-school-feature button svg { width: 16px; }
 .lycee-school-stats { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); margin: 14px 0; border: 1px solid var(--lc-line); border-radius: 8px; background: #fff; }
 .lycee-school-stats > div { min-width: 0; display: flex; flex-direction: column; align-items: center; padding: 20px 12px; text-align: center; }
@@ -688,7 +689,7 @@
 .lycee-school-life-grid h3 { margin: 0; font-size: 13px; }
 .lycee-school-life-grid p { margin: 5px 0; color: var(--lc-muted); font-size: 10px; line-height: 1.45; }
 .lycee-school-life-grid small { color: #6e7f91; font-size: 9px; line-height: 1.4; }
-.lycee-school-life-grid a, .lycee-school-life-grid button { min-height: 38px; display: inline-flex; align-items: center; gap: 5px; padding: 0 10px; border: 1px solid #b9c9db; border-radius: 7px; background: #fff; color: var(--lc-blue); text-decoration: none; font-size: 9px; font-weight: 850; white-space: nowrap; }
+.lycee-school-life-grid a, .lycee-school-life-grid button { min-height: 40px; display: inline-flex; align-items: center; gap: 5px; padding: 0 10px; border: 1px solid #b9c9db; border-radius: 7px; background: #fff; color: var(--lc-blue); text-decoration: none; font-size: 9px; font-weight: 850; white-space: nowrap; }
 .lycee-school-life-grid a svg, .lycee-school-life-grid button svg { width: 13px; }
 
 .lycee-news-page { max-width: 1180px; }
@@ -958,7 +959,7 @@
 .lycee-article-brand span { min-width: 0; display: flex; flex-direction: column; }
 .lycee-article-brand strong { font-size: 14px; }
 .lycee-article-brand small { margin-top: 2px; color: var(--lc-muted); font-size: 10px; }
-.lycee-article-back { min-height: 38px; display: inline-flex; align-items: center; gap: 7px; padding: 0 12px; border: 1px solid var(--lc-line); border-radius: 7px; color: #34506f; text-decoration: none; font-size: 11px; font-weight: 800; }
+.lycee-article-back { min-height: 40px; display: inline-flex; align-items: center; gap: 7px; padding: 0 12px; border: 1px solid var(--lc-line); border-radius: 7px; color: #34506f; text-decoration: none; font-size: 11px; font-weight: 800; }
 .lycee-article-back svg { width: 15px; }
 .lycee-article-main { width: min(900px, calc(100% - 48px)); margin: 0 auto; padding: 64px 0 88px; }
 .lycee-article-content > h1 { max-width: 780px; margin: 12px 0 0; color: var(--lc-ink); font-family: "Space Grotesk", system-ui, sans-serif; font-size: 42px; line-height: 1.08; }
@@ -1010,7 +1011,7 @@
   .lycee-article-documents > div { grid-template-columns: 1fr; }
   .lycee-page { width: calc(100% - 24px); padding: 24px 0 32px; }
   .lycee-page-intro { gap: 10px; margin-bottom: 20px; }
-  .lycee-page-intro > button { width: 38px; height: 38px; flex-basis: 38px; }
+  .lycee-page-intro > button { width: 40px; height: 40px; flex-basis: 40px; }
   .lycee-page-intro h1 { font-size: 24px; }
   .lycee-page-intro p { font-size: 12px; }
   .lycee-guided-chat-head { grid-template-columns: 38px minmax(0,1fr); padding: 11px 13px; }
@@ -1128,7 +1129,7 @@
   .lycee-catalog-icon { width: 44px; height: 44px; }
   .lycee-school-stats strong { font-size: 21px; }
   .lycee-school-nav { top: 68px; grid-template-columns: repeat(2,minmax(0,1fr)); }
-  .lycee-school-nav button { min-height: 36px; }
+  .lycee-school-nav button { min-height: 40px; }
   .lycee-specialties-grid { grid-template-columns: 1fr; }
   .lycee-specialties-grid h3, .lycee-specialties-grid p { min-height: 0; }
   .lycee-programs, .lycee-school-life, .lycee-practical, .lycee-published-pages { padding: 16px; }

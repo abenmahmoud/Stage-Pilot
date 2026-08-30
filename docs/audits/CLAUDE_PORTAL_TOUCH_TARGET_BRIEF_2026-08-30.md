@@ -14,11 +14,13 @@ de consommation propres à cette mission n'ont pas été confirmés.
 
 ## Mission proposée
 
-Auditer en lecture seule les trois cibles tactiles corrigées et leurs règles à
-320 px. Chercher régression de mise en page, cible encore trop petite,
-recouvrement, débordement horizontal, ordre de tabulation incohérent ou preuve
-automatique trop faible. Ne pas étendre l'audit aux écrans agents ni prétendre
-qu'un lecteur d'écran a été testé.
+Auditer en lecture seule les cibles tactiles corrigées sur l'accueil et les vues
+publiques Services, Aide, Suivi, Lycée, Actualités et Confidentialité à 320 px.
+Chercher régression de mise en page, cible encore trop petite, recouvrement,
+débordement horizontal, ordre de tabulation incohérent ou preuve automatique
+trop faible. Vérifier en particulier les retours, actions de catalogue, onglets,
+liens pratiques et recherche du suivi. Ne pas étendre l'audit aux écrans agents
+ni prétendre qu'un lecteur d'écran a été testé.
 
 Ne modifier aucun fichier, navigateur, secret, environnement ou déploiement.
 

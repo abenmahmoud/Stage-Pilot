@@ -31,6 +31,28 @@ Le test `scripts/test-prototype-responsive-contract.mjs` protège les règles
 mobiles critiques, ces cibles tactiles et la présence sémantique de l'assistant
 et du formulaire.
 
+## Extension aux vues publiques
+
+La recette a ensuite couvert les vues `Services`, `Aide`, `Suivi`, `Lycée`,
+`Actualités` et `Confidentialité` à 320 x 800 et 1 440 x 900 px. Le premier
+passage a trouvé des cibles de 24 à 38 px dans les actions secondaires. Les
+éléments suivants ont été portés à 40 px minimum :
+
+- retour à l'accueil ;
+- actions du catalogue des services ;
+- action du bandeau de présentation du lycée ;
+- onglets des rubriques du lycée ;
+- liens pratiques de la vie du lycée ;
+- fermeture d'une session de suivi sur appareil partagé ;
+- recherche dans les demandes ;
+- retour des articles publics et ajout de documents dans le formulaire.
+
+Après correction, les six vues ne présentent plus ni débordement horizontal ni
+cible visible sous 40 px à 320 px. L'accueil et les six vues restent sans
+débordement à 1 440 px. La console du navigateur ne remonte ni erreur ni
+avertissement pendant cette recette locale. Le contrôle de la preview Vercel
+est effectué après le déploiement Git du lot.
+
 ## Limite honnête
 
 Cette recette ne remplace pas le test des écrans agents authentifiés, du lecteur
