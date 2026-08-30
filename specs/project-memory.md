@@ -2490,6 +2490,16 @@ taches et analyse de coherence avant une automatisation sensible.
 - Le brief Claude est préparé mais non exécuté, faute de modèle exact et de
   plafond propres à cette mission ; aucun jeton externe n'a été consommé.
 
+### Jalon du 30 août 2026 - couverture d'accès des routes privées
+
+- Les 65 routes des sept espaces privés appellent une garde `require...` avec
+  la requête avant leur traitement.
+- Une future route privée sans authentification ou habilitation explicite fera
+  échouer la barrière de sécurité de la preview.
+- T037AB est terminée localement, sans compte ni appel distant.
+- Le brief Claude est préparé mais non exécuté, faute de modèle exact et de
+  plafond propres à cette mission ; aucun jeton externe n'a été consommé.
+
 ### Jalon du 30 août 2026 - couverture des commandes sans payload
 
 - Le test transversal couvre maintenant les handlers de mutation qui ne lisent

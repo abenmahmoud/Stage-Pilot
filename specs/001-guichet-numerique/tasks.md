@@ -269,6 +269,9 @@ voir sa réponse dans le dossier. L'agent traite tout depuis une seule file.
 - [x] **T037AA** Étendre la barrière transversale aux méthodes HTTP : chaque
   route inspecte la méthode et utilise la réponse `405` partagée. Les 94 routes
   Vercel présentes sont couvertes automatiquement.
+- [x] **T037AB** Inventorier les routes des sept espaces privés et exiger une
+  garde d'authentification/habilitation dans chacune. Les 65 routes présentes
+  sont couvertes automatiquement.
 - [x] **T037F** Exclure les contacts desactives des reponses, reserver les
   journaux globaux a un administrateur MFA et exiger `aal2` pour confirmer une
   identite scolaire depuis une source officielle.
