@@ -15,7 +15,6 @@ import {
   ChevronRight,
   ArrowLeft,
   Info,
-  UserPlus,
 } from "lucide-react";
 
 type ImportType = "eleves" | "professeurs";
@@ -42,10 +41,6 @@ interface ImportResult {
   imported: number;
   doublons: number;
   erreurs: number;
-}
-
-interface GenerateProfAccountsResult {
-  created: number;
 }
 
 const FIELD_ALIASES: Record<string, string[]> = {
@@ -148,21 +143,17 @@ export default function ImportPage() {
   const [mapping, setMapping] = useState<Record<string, string>>({});
   const [mappedData, setMappedData] = useState<MappedRow[]>([]);
   const [importing, setImporting] = useState(false);
-  const [generatingAccounts, setGeneratingAccounts] = useState(false);
   const [fileInfo, setFileInfo] = useState<{
     encoding: string;
     delimiter: string;
     fixedClasseCount: number;
   } | null>(null);
   const [result, setResult] = useState<ImportResult | null>(null);
-  const [accountResult, setAccountResult] =
-    useState<GenerateProfAccountsResult | null>(null);
   const [error, setError] = useState("");
 
   const handleFile = useCallback(async (file: File) => {
     setError("");
     setResult(null);
-    setAccountResult(null);
 
     if (file.size < 1 || file.size > LEGACY_IMPORT_MAX_FILE_BYTES) {
       setError("Le fichier doit faire moins de 10 Mo.");
@@ -309,7 +300,6 @@ export default function ImportPage() {
   async function handleImport() {
     setImporting(true);
     setError("");
-    setAccountResult(null);
     try {
       const validRows = mappedData.filter((r) => r.status !== "erreur");
       const res = await apiFetch<ImportResult>(`import/${importType}`, {
@@ -322,28 +312,6 @@ export default function ImportPage() {
       setError(e instanceof Error ? e.message : "Erreur lors de l'import");
     }
     setImporting(false);
-  }
-
-  async function handleGenerateProfAccounts() {
-    setGeneratingAccounts(true);
-    setError("");
-    try {
-      const res = await apiFetch<GenerateProfAccountsResult>(
-        "admin/generate-prof-accounts",
-        {
-          method: "POST",
-          body: JSON.stringify({}),
-        }
-      );
-      setAccountResult(res);
-    } catch (e) {
-      setError(
-        e instanceof Error
-          ? e.message
-          : "Erreur lors de la génération des comptes professeurs"
-      );
-    }
-    setGeneratingAccounts(false);
   }
 
   const targetFields =
@@ -620,35 +588,10 @@ export default function ImportPage() {
               </span>
             </div>
 
-            {importType === "professeurs" && result.imported > 0 && (
-              <div className="mx-auto max-w-md rounded-xl border border-blue-200 bg-blue-50 p-4 text-sm text-blue-800">
-                <p className="mb-3">
-                  Les codes professeurs sont générés. Tu peux maintenant créer ou
-                  relier les comptes Supabase Auth correspondants.
-                </p>
-                <button
-                  onClick={handleGenerateProfAccounts}
-                  disabled={generatingAccounts}
-                  className="inline-flex items-center gap-2 rounded-xl bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-blue-700 transition-all disabled:opacity-50"
-                >
-                  <UserPlus className="w-4 h-4" />
-                  {generatingAccounts
-                    ? "Génération en cours…"
-                    : "Générer comptes profs"}
-                </button>
-                {accountResult && (
-                  <p className="mt-3 font-medium text-blue-900">
-                    {accountResult.created} compte(s) créé(s) ou relié(s).
-                  </p>
-                )}
-              </div>
-            )}
-
             <button
               onClick={() => {
                 setStep(0);
                 setResult(null);
-                setAccountResult(null);
                 setRawData([]);
                 setMappedData([]);
                 setFileInfo(null);

@@ -189,3 +189,5 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return { document: publicDocument(confirmed), duplicate: false };
   });
 }
+
+export const config = { api: { bodyParser: false } };

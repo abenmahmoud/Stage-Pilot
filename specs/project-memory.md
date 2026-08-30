@@ -2451,6 +2451,19 @@ taches et analyse de coherence avant une automatisation sensible.
 - Le brief Claude est préparé mais non exécuté, faute de modèle exact et de
   plafond propres à cette mission ; aucun jeton externe n'a été consommé.
 
+### Jalon du 30 août 2026 - retrait des comptes professeurs dérivés de codes
+
+- La commande historique qui écrivait directement dans `auth.users` est
+  neutralisée et son bouton a été retiré de l'import des professeurs.
+- La route exige encore un rôle habilité et `aal2`, puis répond `410` sans
+  écriture ; aucun compte existant n'est supprimé ou modifié.
+- Le cachet final du Grand Oral exige désormais explicitement `aal2`.
+- Les trois dernières commandes sans payload désactivent le parseur Vercel.
+- T037X est terminée par analyse statique et tests locaux, sans compte distant,
+  donnée réelle ou modification Supabase.
+- Le brief Claude est préparé mais non exécuté, faute de modèle exact et de
+  plafond propres à cette mission ; aucun jeton externe n'a été consommé.
+
 ### Jalon du 30 août 2026 - couverture globale des corps HTTP
 
 - Un test transversal inventorie récursivement toutes les routes TypeScript qui

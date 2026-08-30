@@ -3,13 +3,14 @@ import { eq } from "drizzle-orm";
 import { db } from "../../../db/index.js";
 import { fichesGrandOral } from "../../../db/schema.js";
 import { handleApi, methodNotAllowed } from "../../_shared/response.js";
-import { requireRole, HttpError } from "../../_shared/auth.js";
+import { requireAal2, requireRole, HttpError } from "../../_shared/auth.js";
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== "POST") return methodNotAllowed(res, ["POST"]);
 
   await handleApi(res, async () => {
     await requireRole(req, ["superadmin", "proviseur"]);
+    await requireAal2(req);
 
     const ficheId = (req.query.id as string) || "";
     if (!ficheId || !/^[0-9a-fA-F-]{36}$/.test(ficheId)) {
@@ -49,3 +50,5 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return updated;
   });
 }
+
+export const config = { api: { bodyParser: false } };
