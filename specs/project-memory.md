@@ -5,6 +5,15 @@
 **Depot** : `abenmahmoud/Stage-Pilot`
 **Dernier jalon de code verifie** : branche de preview Vercel
 
+## Jalon du 30 août 2026 - extraction locale des présentations PPTX
+
+- Les diapositives et notes PPTX sont extraites localement après antivirus et
+  précontrôle ZIP, sans service externe ni OCR.
+- Le parseur limite à 300 diapositives, 5 Mo par XML et 40 Mo au total, refuse
+  chiffrement, structure invalide, doublons, entités et XML ambigus.
+- Les mêmes contrôles de coordonnées, secrets et instructions malveillantes
+  suppriment le texte proposé et imposent une relecture humaine.
+
 ## Jalon du 30 août 2026 - secrets refusés dans les annuaires
 
 - Les annuaires CSV/XLSX refusent les en-têtes et cellules contenant mot de

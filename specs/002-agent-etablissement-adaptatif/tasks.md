@@ -88,8 +88,9 @@
   et des tableaux CSV/XLSX : une valeur de mot de passe, OTP, code ENT/PRONOTE,
   jeton API ou clé privée impose une lecture humaine et supprime le texte proposé.
   Une procédure qui mentionne seulement la réinitialisation d'un accès reste
-  exploitable après validation MFA. Les images et présentations sans extraction
-  fiable restent en lecture humaine, sans OCR automatique.
+  exploitable après validation MFA. Les images sans extraction fiable restent en
+  lecture humaine, sans OCR automatique ; les PPTX suivent désormais le parseur
+  local borné décrit dans T019B1.
 - [x] T010B2D3 Refuser avant empreinte ou chiffrement tout annuaire CSV/XLSX dont
   un en-tête désigne un secret ou dont une cellule contient une valeur de mot de
   passe, OTP, code ENT/PRONOTE, jeton API ou clé privée. Le worker conserve
@@ -210,12 +211,13 @@
   transfert TUS reprenable, explication métier, classification, service
   propriétaire, suivi d'état et séparation stricte du registre publié. Aucun
   document réel n'a été importé et aucun dépôt ne peut activer l'agent.
-- [ ] T019B Extraire les PDF, DOCX, XLSX, PPTX, TXT et CSV par segments bornés,
+- [x] T019B Extraire les PDF, DOCX, XLSX, PPTX, TXT et CSV par segments bornés,
   calculer l'empreinte réelle côté worker et placer les fichiers en quarantaine
   jusqu'au contrôle antivirus.
 - [x] T019B1 Extraire localement et de manière bornée PDF, DOCX, XLSX, TXT et CSV,
-  précontrôler les archives, calculer SHA-256 et bloquer les signaux privés ;
-  laisser PPTX et images en revue humaine jusqu'à une extraction locale validée.
+  précontrôler les archives, calculer SHA-256 et bloquer les signaux privés.
+  Les PPTX extraient localement diapositives et notes avec parseur XML fermé,
+  limites d'entrées et refus des entités ; les images restent en revue humaine.
 - [x] T019C Produire une proposition structurée résistante aux injections,
   afficher les conflits et questions, puis exiger une validation humaine avant
   la création d'une source ou d'une compétence. Un éventuel modèle externe ne

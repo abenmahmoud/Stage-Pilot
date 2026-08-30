@@ -1,4 +1,5 @@
 import { createHash } from "node:crypto";
+import { DOMParser } from "@xmldom/xmldom";
 import mammoth from "mammoth";
 import * as XLSX from "xlsx";
 import yauzl from "yauzl";
@@ -14,6 +15,10 @@ const KNOWLEDGE_ZIP_MAX_ENTRIES = 2_000;
 const KNOWLEDGE_ZIP_MAX_UNCOMPRESSED_BYTES = 200 * 1024 * 1024;
 const KNOWLEDGE_SHEET_MAX_ROWS = 25_000;
 const KNOWLEDGE_SHEET_MAX_COLUMNS = 100;
+const KNOWLEDGE_PRESENTATION_MAX_SLIDES = 300;
+const KNOWLEDGE_PRESENTATION_MAX_XML_BYTES = 5 * 1024 * 1024;
+const KNOWLEDGE_PRESENTATION_MAX_TOTAL_XML_BYTES = 40 * 1024 * 1024;
+const DRAWINGML_NAMESPACE = "http://schemas.openxmlformats.org/drawingml/2006/main";
 
 export class KnowledgeDocumentExtractionError extends Error {
   constructor(code, message) {
@@ -77,6 +82,10 @@ function preflightZip(bytes) {
       };
       archive.on("error", () => fail("invalid_archive", "Archive bureautique invalide"));
       archive.on("entry", (entry) => {
+        if ((entry.generalPurposeBitFlag & 1) !== 0) {
+          fail("encrypted_archive", "Les archives bureautiques chiffrées sont interdites");
+          return;
+        }
         entries += 1;
         uncompressedBytes += Number(entry.uncompressedSize ?? 0);
         if (entries > KNOWLEDGE_ZIP_MAX_ENTRIES) {
@@ -175,6 +184,213 @@ async function extractWorkbook(bytes) {
   return { value: sheets.join("\n\n"), method: "sheetjs", sheets: workbook.SheetNames.length, archive };
 }
 
+function readPresentationXmlEntries(bytes) {
+  return new Promise((resolve, reject) => {
+    yauzl.fromBuffer(
+      bytes,
+      {
+        lazyEntries: true,
+        decodeStrings: true,
+        validateEntrySizes: true,
+      },
+      (error, archive) => {
+        if (error || !archive) {
+          reject(
+            new KnowledgeDocumentExtractionError(
+              "invalid_archive",
+              "Présentation illisible"
+            )
+          );
+          return;
+        }
+
+        const entries = [];
+        const requiredEntries = new Set();
+        const seenTextEntries = new Set();
+        let slideCount = 0;
+        let noteCount = 0;
+        let totalXmlBytes = 0;
+        let settled = false;
+        const fail = (code, message) => {
+          if (settled) return;
+          settled = true;
+          archive.close();
+          reject(new KnowledgeDocumentExtractionError(code, message));
+        };
+
+        archive.on("error", () => fail("invalid_archive", "Présentation invalide"));
+        archive.on("entry", (entry) => {
+          if (settled) return;
+          if (["[Content_Types].xml", "ppt/presentation.xml"].includes(entry.fileName)) {
+            requiredEntries.add(entry.fileName);
+          }
+
+          const match = entry.fileName.match(
+            /^ppt\/(slides\/slide|notesSlides\/notesSlide)(\d+)\.xml$/u
+          );
+          if (!match) {
+            archive.readEntry();
+            return;
+          }
+          if (seenTextEntries.has(entry.fileName)) {
+            fail(
+              "duplicate_presentation_entry",
+              "La présentation contient une entrée dupliquée"
+            );
+            return;
+          }
+          seenTextEntries.add(entry.fileName);
+
+          const kind = match[1].startsWith("slides/") ? "slide" : "note";
+          const number = Number(match[2]);
+          if (!Number.isInteger(number) || number < 1) {
+            fail("invalid_presentation_entry", "Entrée de présentation invalide");
+            return;
+          }
+          if (kind === "slide") slideCount += 1;
+          else noteCount += 1;
+          if (
+            slideCount > KNOWLEDGE_PRESENTATION_MAX_SLIDES ||
+            noteCount > KNOWLEDGE_PRESENTATION_MAX_SLIDES
+          ) {
+            fail(
+              "presentation_too_many_slides",
+              "La présentation contient trop de diapositives"
+            );
+            return;
+          }
+
+          const expectedBytes = Number(entry.uncompressedSize ?? 0);
+          totalXmlBytes += expectedBytes;
+          if (expectedBytes > KNOWLEDGE_PRESENTATION_MAX_XML_BYTES) {
+            fail(
+              "presentation_entry_too_large",
+              "Une diapositive dépasse la limite autorisée"
+            );
+            return;
+          }
+          if (totalXmlBytes > KNOWLEDGE_PRESENTATION_MAX_TOTAL_XML_BYTES) {
+            fail(
+              "presentation_xml_too_large",
+              "Le texte interne de la présentation dépasse la limite autorisée"
+            );
+            return;
+          }
+
+          archive.openReadStream(entry, (streamError, stream) => {
+            if (streamError || !stream) {
+              fail("invalid_presentation_entry", "Diapositive illisible");
+              return;
+            }
+            const chunks = [];
+            let readBytes = 0;
+            stream.on("error", () =>
+              fail("invalid_presentation_entry", "Diapositive invalide")
+            );
+            stream.on("data", (chunk) => {
+              readBytes += chunk.length;
+              if (readBytes > KNOWLEDGE_PRESENTATION_MAX_XML_BYTES) {
+                fail(
+                  "presentation_entry_too_large",
+                  "Une diapositive dépasse la limite autorisée"
+                );
+                stream.destroy();
+                return;
+              }
+              chunks.push(chunk);
+            });
+            stream.on("end", () => {
+              if (settled) return;
+              entries.push({ kind, number, bytes: Buffer.concat(chunks) });
+              archive.readEntry();
+            });
+          });
+        });
+        archive.on("end", () => {
+          if (settled) return;
+          if (
+            !requiredEntries.has("[Content_Types].xml") ||
+            !requiredEntries.has("ppt/presentation.xml") ||
+            slideCount < 1
+          ) {
+            fail("invalid_presentation_structure", "Structure PPTX invalide");
+            return;
+          }
+          settled = true;
+          entries.sort(
+            (left, right) =>
+              left.number - right.number ||
+              (left.kind === right.kind ? 0 : left.kind === "slide" ? -1 : 1)
+          );
+          resolve({ entries, slideCount, noteCount });
+        });
+        archive.readEntry();
+      }
+    );
+  });
+}
+
+function presentationXmlText(bytes) {
+  let xml;
+  try {
+    xml = new TextDecoder("utf-8", { fatal: true }).decode(bytes);
+  } catch {
+    throw new KnowledgeDocumentExtractionError(
+      "invalid_presentation_xml",
+      "Texte de diapositive invalide"
+    );
+  }
+  if (/<!DOCTYPE|<!ENTITY/iu.test(xml)) {
+    throw new KnowledgeDocumentExtractionError(
+      "presentation_xml_entities_forbidden",
+      "Les entités XML sont interdites"
+    );
+  }
+
+  const errors = [];
+  const document = new DOMParser({
+    errorHandler: {
+      warning: (message) => errors.push(message),
+      error: (message) => errors.push(message),
+      fatalError: (message) => errors.push(message),
+    },
+  }).parseFromString(xml, "application/xml");
+  if (errors.length > 0 || !document?.documentElement) {
+    throw new KnowledgeDocumentExtractionError(
+      "invalid_presentation_xml",
+      "XML de diapositive invalide"
+    );
+  }
+
+  const textNodes = document.getElementsByTagNameNS(DRAWINGML_NAMESPACE, "t");
+  const values = [];
+  for (let index = 0; index < textNodes.length; index += 1) {
+    const value = normalizedText(textNodes.item(index)?.textContent ?? "");
+    if (value) values.push(value);
+  }
+  return values.join("\n");
+}
+
+async function extractPresentation(bytes) {
+  const archive = await preflightZip(bytes);
+  const presentation = await readPresentationXmlEntries(bytes);
+  const sections = presentation.entries
+    .map((entry) => {
+      const value = presentationXmlText(entry.bytes);
+      if (!value) return "";
+      const label = entry.kind === "slide" ? "Diapositive" : "Notes";
+      return `# ${label} ${entry.number}\n${value}`;
+    })
+    .filter(Boolean);
+  return {
+    value: sections.join("\n\n"),
+    method: "pptx-xmldom",
+    slides: presentation.slideCount,
+    notes: presentation.noteCount,
+    archive,
+  };
+}
+
 function extractTextFile(bytes) {
   let value;
   try {
@@ -223,7 +439,7 @@ export async function extractKnowledgeDocument({ bytes, mimeType, classification
     extracted = await extractWorkbook(bytes);
   } else if (["text/plain", "text/csv"].includes(mimeType)) extracted = extractTextFile(bytes);
   else if (mimeType === "application/vnd.openxmlformats-officedocument.presentationml.presentation") {
-    return manualResult(bytes, "presentation_manual_review");
+    extracted = await extractPresentation(bytes);
   } else if (["image/jpeg", "image/png"].includes(mimeType)) {
     return manualResult(bytes, "image_manual_review");
   } else {
@@ -274,6 +490,8 @@ export async function extractKnowledgeDocument({ bytes, mimeType, classification
       truncated: bounded.truncated,
       pages: extracted.pages ?? null,
       sheets: extracted.sheets ?? null,
+      slides: extracted.slides ?? null,
+      notes: extracted.notes ?? null,
       warnings: extracted.warnings ?? 0,
     },
     proposedKnowledge: {

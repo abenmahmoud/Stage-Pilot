@@ -11,8 +11,8 @@ The workers run on the lycée VPS, not in the browser or in a Vercel function.
   only opaque references and keyed contact fingerprints. Secret-bearing headers
   or cells stop the import before hashing or vault encryption.
 - `knowledge-document-worker.mjs` consumes `knowledge_document_scan`, runs
-  ClamAV and extracts bounded text locally from safe PDF, DOCX, XLSX, CSV and
-  text files. Personal, sensitive or privacy-signalled content stays manual.
+  ClamAV and extracts bounded text locally from safe PDF, DOCX, XLSX, PPTX, CSV
+  and text files. Personal, sensitive or privacy-signalled content stays manual.
 - `communication-document-extractor.mjs` réutilise ce moteur avec une liste
   strictement limitée aux PDF et DOCX, un plafond de 100 000 caractères et un
   arrêt en relecture manuelle dès qu'une coordonnée, un secret ou une consigne
