@@ -1738,6 +1738,19 @@ taches et analyse de coherence avant une automatisation sensible.
 - Cinq tests de structure contrôlent autorisation, idempotence, immutabilité,
   audit et sortie. T020E est terminé sans route ni base distante.
 
+### Jalon du 30 août 2026 - API privée de boîte d'échec
+
+- Une liste privée retourne au maximum cent échecs d'envoi avec titre, version,
+  code fermé, essais et date. Elle n'importe pas le modèle de livraison et ne
+  projette aucun contact, HMAC ou identifiant fournisseur.
+- Seuls superadmin et proviseur déjà sous MFA peuvent l'ouvrir. La reprise exige
+  en plus les interrupteurs global et établissement d'envoi, un secret serveur
+  fort et la confirmation exacte de la cause corrigée.
+- La route appelle la transaction idempotente et ne renvoie aucun identifiant de
+  travail ou livraison.
+- Cinq tests dédiés et la matrice d'autorisation étendue couvrent les neuf routes
+  privées. T020F est terminé ; l'interface et la recette DB restent ouvertes.
+
 ### Jalon du 30 août 2026 - contrat de délivrabilité Brevo
 
 - Un vérificateur Bearer commun protège désormais les futurs webhooks entrants

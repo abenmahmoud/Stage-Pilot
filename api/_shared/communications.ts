@@ -30,9 +30,29 @@ export async function requireCommunicationEditor(req: VercelRequest) {
 }
 
 export async function requireCommunicationTemplateManager(req: VercelRequest) {
+  return requireCommunicationManager(req);
+}
+
+export async function requireCommunicationManager(req: VercelRequest) {
   const context = await requireCommunicationEditor(req);
   if (!COMMUNICATION_TEMPLATE_MANAGER_ROLES.has(context.user.role)) {
-    throw new HttpError(403, "Seule la direction peut modifier les modèles.");
+    throw new HttpError(403, "Seule la direction peut gérer les communications.");
+  }
+  return context;
+}
+
+export async function requireCommunicationSender(req: VercelRequest) {
+  const context = await requireCommunicationManager(req);
+  if (!readCommunicationFeatureFlags().sendingEnabled) {
+    throw new HttpError(503, "L’envoi des communications n’est pas activé.");
+  }
+  const [settings] = await db
+    .select({ sendingEnabled: communicationSettings.sendingEnabled })
+    .from(communicationSettings)
+    .where(eq(communicationSettings.institutionId, context.institutionId))
+    .limit(1);
+  if (!settings?.sendingEnabled) {
+    throw new HttpError(503, "L’envoi des communications n’est pas activé.");
   }
   return context;
 }

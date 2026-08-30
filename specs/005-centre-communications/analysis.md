@@ -176,3 +176,10 @@ T020E conserve aussi la preuve humaine : la politique est appliquée après verr
 du travail mort et de sa livraison. L'original n'est jamais modifié. Une HMAC
 issue de l'établissement et de l'identifiant du travail rend le successeur
 unique ; un double clic n'ajoute ni second travail ni second événement.
+
+T020F expose uniquement une surface direction privée. La liste projette titre,
+version, code fermé, essais et date pour cent échecs au plus ; elle n'importe
+même pas le modèle de livraison dans la route navigateur. La reprise
+est impossible si le module ou l'envoi est coupé, si le secret manque ou si la
+confirmation n'est pas exactement vraie. La transaction réapplique ensuite la
+politique et le MFA déjà imposé par la porte commune.

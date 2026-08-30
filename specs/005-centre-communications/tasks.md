@@ -155,6 +155,10 @@
   successeur `pending` et idempotent est créé uniquement après rôle direction,
   MFA et confirmation. Un rejeu retrouve la même clé sans second travail ni
   second audit. T020 reste ouvert jusqu'à la route privée et à la boîte UI.
+- [x] T020F Ajouter la boîte d'échec API et la route de reprise privées : cent
+  lignes bornées sans modèle de livraison côté navigateur, direction sous MFA,
+  deux interrupteurs d'envoi, secret serveur et confirmation exacte. T020 reste
+  ouvert jusqu'à l'interface et à la recette DB de preview.
 - [x] T021A Ajouter un aperçu éditorial local sûr avant la relecture : rendu
   Markdown borné, images distantes neutralisées, liens isolés et absence de
   destinataire, publication ou envoi.
