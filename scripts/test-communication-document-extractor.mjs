@@ -128,8 +128,19 @@ test("stops automatic use when privacy or credential values are detected", async
 });
 
 test("rejects every unsupported format before extraction", async () => {
+  for (const mimeType of ["text/plain", "image/jpeg", "image/png"]) {
+    await assert.rejects(
+      () => extractCommunicationDocument({ bytes: Buffer.from("x"), mimeType }),
+      /Seuls les fichiers PDF et DOCX/
+    );
+  }
+});
+
+test("rejects a corrupt file even when its declared MIME type is allowed", async () => {
   await assert.rejects(
-    () => extractCommunicationDocument({ bytes: Buffer.from("x"), mimeType: "text/plain" }),
-    /Seuls les fichiers PDF et DOCX/
+    () => extractCommunicationDocument({
+      bytes: Buffer.from("not-a-pdf"),
+      mimeType: "application/pdf",
+    })
   );
 });

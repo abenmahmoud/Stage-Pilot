@@ -33,8 +33,8 @@
 
 - Neuf tests d'entrée, interrupteurs, chemins, API, schéma, file et worker
   réussissent.
-- Cinq tests réels d'extraction sur PDF/DOCX fictifs réussissent.
-- La régression agrégée du centre compte 64 tests réussis.
+- Six tests réels d'extraction, de refus de format et de corruption réussissent.
+- La régression agrégée du centre compte 65 tests réussis.
 - Build TypeScript/Vite réussi.
 - Audits npm application et workers : zéro vulnérabilité de production.
 - Recette SQL transactionnelle : création dans un faux état, acteur falsifié,
@@ -56,3 +56,16 @@ Le consommateur est codé mais non déployé. L'interface est raccordée mais so
 interrupteur dédié reste fermé. Le lot global T011 reste ouvert tant qu'une
 recette antivirus fictive de bout en bout n'a pas été validée sur un moteur
 explicitement autorisé.
+
+## Matrice de formats vérifiée
+
+- PDF fictif sain : extraction locale PDF.js réussie.
+- DOCX fictif sain : extraction locale Mammoth réussie.
+- JPEG, PNG et texte brut : refus avant extraction.
+- Faux PDF corrompu et type/extension incohérents : refus.
+- PDF avec adresse email et code scolaire : revue humaine obligatoire, texte
+  extrait supprimé.
+
+Cette matrice ferme T030 mais ne prouve pas l'antivirus distant : T011D reste
+ouvert jusqu'à une recette ClamAV fictive de bout en bout explicitement
+autorisée.

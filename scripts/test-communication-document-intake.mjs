@@ -43,6 +43,7 @@ test("rejects path traversal, MIME mismatch, excess size and unknown fields", ()
   for (const input of [
     { originalName: "../secret.pdf", mimeType: "application/pdf", sizeBytes: 10 },
     { originalName: "secret.pdf", mimeType: "text/plain", sizeBytes: 10 },
+    { originalName: "photo.jpg", mimeType: "image/jpeg", sizeBytes: 10 },
     { originalName: "secret.exe", mimeType: "application/pdf", sizeBytes: 10 },
     { originalName: "secret.pdf", mimeType: "application/pdf", sizeBytes: COMMUNICATION_DOCUMENT_MAX_BYTES + 1 },
     { originalName: "secret.pdf", mimeType: "application/pdf", sizeBytes: 10, institutionId: "forbidden" },

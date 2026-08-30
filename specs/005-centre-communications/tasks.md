@@ -107,7 +107,10 @@
   l'absence d'API publique, d'audience, de publication ou d'envoi. T028 reste
   ouvert jusqu'à l'existence et au test de l'API publique validée.
 - [ ] T029 Tester doublons, panne Brevo, reprise et 200 destinataires.
-- [ ] T030 Vérifier PDF, image, DOCX, fichier invalide et données personnelles.
+- [x] T030 Vérifier PDF, image, DOCX, fichier invalide et données personnelles.
+  Les PDF/DOCX fictifs sûrs sont extraits localement ; image, faux PDF et type
+  incohérent sont refusés. Une adresse ou un code scolaire supprime le texte
+  extrait et impose la revue humaine. La preuve antivirus reste dans T011D.
 - [ ] T031 Vérifier 320 px, ordinateur, clavier et lecteur d'écran.
 - [ ] T032 Déployer en preview et tester avec des contacts fictifs.
 - [ ] T033 Faire valider le pilote avant toute liste réelle ou envoi collectif.

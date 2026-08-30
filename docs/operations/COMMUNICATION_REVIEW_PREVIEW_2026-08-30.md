@@ -21,7 +21,7 @@
 
 ## Preuves
 
-- 64 tests de régression du centre de communication réussis.
+- 65 tests de régression du centre de communication réussis.
 - Builds TypeScript/Vite réussis avec le module fermé puis activé.
 - Audits npm application et workers : zéro vulnérabilité de production.
 - Recette SQL fictive : onze contournements de création, séquence, version
