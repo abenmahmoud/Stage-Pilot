@@ -696,7 +696,7 @@ export default function CommunicationsPage() {
   }
 
   return (
-    <div className="mx-auto max-w-6xl space-y-6">
+    <div className="mx-auto max-w-6xl space-y-6" aria-busy={loading}>
       <header className="flex flex-col justify-between gap-4 border-b border-slate-200 pb-5 sm:flex-row sm:items-end">
         <div>
           <p className="text-sm font-semibold text-emerald-700">Administration</p>
@@ -716,7 +716,7 @@ export default function CommunicationsPage() {
       </header>
 
       <ol className="grid gap-px overflow-hidden rounded-md border border-slate-200 bg-slate-200 sm:grid-cols-3" aria-label="Étapes de préparation">
-        <li className="flex min-h-16 items-center gap-3 bg-emerald-700 px-4 py-3 text-white">
+        <li className="flex min-h-16 items-center gap-3 bg-emerald-700 px-4 py-3 text-white" aria-current="step">
           <span className="flex h-7 w-7 items-center justify-center rounded-full bg-white text-sm font-bold text-emerald-800">1</span>
           <span><strong className="block text-sm">Déposer</strong><small className="text-white/75">Saisie privée</small></span>
         </li>
@@ -793,18 +793,18 @@ export default function CommunicationsPage() {
           )}
         </div>
         {COMMUNICATION_DOCUMENTS_UI_ENABLED && documents.length > 0 ? (
-          <div className="mt-5 divide-y divide-slate-200 border-y border-slate-200 bg-white">
+          <ul className="mt-5 divide-y divide-slate-200 border-y border-slate-200 bg-white">
             {documents.map((document) => (
-              <div key={document.id} className="flex min-w-0 flex-col gap-2 px-3 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-4">
+              <li key={document.id} className="flex min-w-0 flex-col gap-2 px-3 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-4">
                 <div className="min-w-0">
                   <p className="truncate text-sm font-semibold text-slate-950">{document.originalName}</p>
                   <p className="mt-1 text-xs text-slate-500">{fileSizeLabel(document.sizeBytes)} · {dateLabel(document.createdAt)}</p>
                   {document.analysisError ? <p className="mt-1 break-words text-xs text-red-700">{document.analysisError}</p> : null}
                 </div>
                 <span className="shrink-0 text-xs font-semibold text-slate-600">{DOCUMENT_STATUS_LABELS[document.status] ?? document.status}</span>
-              </div>
+              </li>
             ))}
-          </div>
+          </ul>
         ) : null}
       </section>
 
@@ -813,9 +813,9 @@ export default function CommunicationsPage() {
           <div className="mb-3 flex items-center justify-between gap-3">
             <div>
               <h2 id="communications-list-title" className="font-bold text-slate-950">Communications</h2>
-              <p className="text-xs text-slate-500">{filteredRows.length} sur {rows.length}</p>
+              <p id="communications-list-count" role="status" aria-live="polite" className="text-xs text-slate-500">{filteredRows.length} sur {rows.length}</p>
             </div>
-            <button type="button" onClick={startNew} className="inline-flex items-center gap-2 rounded-md bg-slate-950 px-3 py-2 text-sm font-semibold text-white">
+            <button type="button" onClick={startNew} className="inline-flex min-h-10 items-center gap-2 rounded-md bg-slate-950 px-3 py-2 text-sm font-semibold text-white">
               <Plus className="h-4 w-4" /> Nouveau
             </button>
           </div>
@@ -824,7 +824,7 @@ export default function CommunicationsPage() {
             <label className="relative block">
               <span className="sr-only">Rechercher une communication</span>
               <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-              <input type="search" value={searchQuery} onChange={(event) => setSearchQuery(event.target.value)} placeholder="Rechercher" className="min-h-10 w-full rounded-md border border-slate-300 bg-white py-2 pl-9 pr-3 text-sm text-slate-950 outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100" />
+              <input type="search" value={searchQuery} onChange={(event) => setSearchQuery(event.target.value)} placeholder="Rechercher" aria-describedby="communications-list-count" className="min-h-10 w-full rounded-md border border-slate-300 bg-white py-2 pl-9 pr-3 text-sm text-slate-950 outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100" />
             </label>
             <label>
               <span className="sr-only">Filtrer par état</span>
@@ -840,8 +840,8 @@ export default function CommunicationsPage() {
             </label>
           </div>
 
-          <div className="divide-y divide-slate-200 border-y border-slate-200 bg-white">
-            {loading ? <div className="flex min-h-36 items-center justify-center"><LoaderCircle className="h-7 w-7 animate-spin text-emerald-700" /></div> : null}
+          <div className="divide-y divide-slate-200 border-y border-slate-200 bg-white" aria-busy={loading}>
+            {loading ? <div role="status" aria-live="polite" className="flex min-h-36 items-center justify-center"><LoaderCircle className="h-7 w-7 animate-spin text-emerald-700" aria-hidden="true" /><span className="sr-only">Chargement des communications</span></div> : null}
             {!loading && rows.length === 0 ? <p className="px-4 py-10 text-center text-sm text-slate-500">Aucune communication</p> : null}
             {!loading && rows.length > 0 && filteredRows.length === 0 ? <p className="px-4 py-10 text-center text-sm text-slate-500">Aucun résultat</p> : null}
             {filteredRows.map((row) => (
@@ -849,6 +849,7 @@ export default function CommunicationsPage() {
                 key={row.id}
                 type="button"
                 onClick={() => { setSelectedId(row.id); setEditingId(null); setReviewNotes([]); }}
+                aria-pressed={selectedId === row.id}
                 className={`flex w-full items-start gap-3 px-4 py-3 text-left transition-colors ${selectedId === row.id ? "bg-emerald-50" : "hover:bg-slate-50"}`}
               >
                 <MessageSquareText className="mt-0.5 h-4 w-4 shrink-0 text-emerald-700" />
@@ -929,9 +930,9 @@ export default function CommunicationsPage() {
                     {canManageTemplates ? (
                       <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                         <div><strong className="text-sm text-slate-950">Après validation</strong><p className="text-xs text-slate-500">Choisissez le périmètre avant d’envoyer à la vérification.</p></div>
-                        <div className="grid grid-cols-2 rounded-md border border-slate-300 bg-white p-0.5" aria-label="Visibilité après validation">
-                          <button type="button" onClick={() => setReviewVisibility("internal")} aria-pressed={reviewVisibility === "internal"} className={`min-h-9 px-3 text-xs font-semibold ${reviewVisibility === "internal" ? "rounded bg-slate-950 text-white" : "text-slate-600"}`}>Interne</button>
-                          <button type="button" onClick={() => setReviewVisibility("public")} aria-pressed={reviewVisibility === "public"} className={`min-h-9 px-3 text-xs font-semibold ${reviewVisibility === "public" ? "rounded bg-slate-950 text-white" : "text-slate-600"}`}>Site public</button>
+                        <div role="group" className="grid grid-cols-2 rounded-md border border-slate-300 bg-white p-0.5" aria-label="Visibilité après validation">
+                          <button type="button" onClick={() => setReviewVisibility("internal")} aria-pressed={reviewVisibility === "internal"} className={`min-h-10 px-3 text-xs font-semibold ${reviewVisibility === "internal" ? "rounded bg-slate-950 text-white" : "text-slate-600"}`}>Interne</button>
+                          <button type="button" onClick={() => setReviewVisibility("public")} aria-pressed={reviewVisibility === "public"} className={`min-h-10 px-3 text-xs font-semibold ${reviewVisibility === "public" ? "rounded bg-slate-950 text-white" : "text-slate-600"}`}>Site public</button>
                         </div>
                       </div>
                     ) : null}
@@ -970,10 +971,10 @@ export default function CommunicationsPage() {
             <div className="mt-5 flex items-center gap-2 text-sm text-slate-500"><Clock3 className="h-4 w-4" /> Mis à jour {dateLabel(selected.updatedAt)}</div>
           </section>
         ) : (
-          <form onSubmit={submit} className="min-w-0 space-y-5 border-t-4 border-emerald-700 bg-white p-4 shadow-sm sm:p-6">
+          <form onSubmit={submit} aria-labelledby="communication-composer-title" className="min-w-0 space-y-5 border-t-4 border-emerald-700 bg-white p-4 shadow-sm sm:p-6">
             <div className="flex items-start gap-3">
               <FilePenLine className="mt-0.5 h-5 w-5 shrink-0 text-emerald-700" />
-              <div><h2 className="font-bold text-slate-950">{editingId ? "Modifier le brouillon" : "Nouvelle communication"}</h2><p className="mt-1 text-sm text-slate-500">{editingId ? "Une nouvelle version sera conservée" : "Enregistrée comme brouillon interne"}</p></div>
+              <div><h2 id="communication-composer-title" className="font-bold text-slate-950">{editingId ? "Modifier le brouillon" : "Nouvelle communication"}</h2><p className="mt-1 text-sm text-slate-500">{editingId ? "Une nouvelle version sera conservée" : "Enregistrée comme brouillon interne"}</p></div>
             </div>
 
             <div className="grid items-end gap-3 sm:grid-cols-[minmax(0,1fr)_auto]">
@@ -1012,10 +1013,10 @@ export default function CommunicationsPage() {
             <div>
               <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                 <label htmlFor="communication-message" className="text-sm font-semibold text-slate-800">Message</label>
-                <div className="grid grid-cols-3 rounded-md border border-slate-300 bg-white p-0.5" aria-label="Mode du message">
-                  <button type="button" onClick={() => setComposerMode("write")} aria-pressed={composerMode === "write"} className={`inline-flex min-h-9 items-center justify-center gap-2 px-3 text-xs font-semibold ${composerMode === "write" ? "rounded bg-slate-950 text-white" : "text-slate-600"}`}><Pencil className="h-3.5 w-3.5" /> Écrire</button>
-                  <button type="button" onClick={() => setComposerMode("page")} aria-pressed={composerMode === "page"} className={`inline-flex min-h-9 items-center justify-center gap-2 px-3 text-xs font-semibold ${composerMode === "page" ? "rounded bg-slate-950 text-white" : "text-slate-600"}`}><Eye className="h-3.5 w-3.5" /> Page</button>
-                  <button type="button" onClick={() => setComposerMode("email")} aria-pressed={composerMode === "email"} className={`inline-flex min-h-9 items-center justify-center gap-2 px-3 text-xs font-semibold ${composerMode === "email" ? "rounded bg-slate-950 text-white" : "text-slate-600"}`}><Mail className="h-3.5 w-3.5" /> Email</button>
+                <div role="group" className="grid grid-cols-3 rounded-md border border-slate-300 bg-white p-0.5" aria-label="Mode du message">
+                  <button type="button" onClick={() => setComposerMode("write")} aria-pressed={composerMode === "write"} className={`inline-flex min-h-10 items-center justify-center gap-2 px-3 text-xs font-semibold ${composerMode === "write" ? "rounded bg-slate-950 text-white" : "text-slate-600"}`}><Pencil className="h-3.5 w-3.5" /> Écrire</button>
+                  <button type="button" onClick={() => setComposerMode("page")} aria-pressed={composerMode === "page"} className={`inline-flex min-h-10 items-center justify-center gap-2 px-3 text-xs font-semibold ${composerMode === "page" ? "rounded bg-slate-950 text-white" : "text-slate-600"}`}><Eye className="h-3.5 w-3.5" /> Page</button>
+                  <button type="button" onClick={() => setComposerMode("email")} aria-pressed={composerMode === "email"} className={`inline-flex min-h-10 items-center justify-center gap-2 px-3 text-xs font-semibold ${composerMode === "email" ? "rounded bg-slate-950 text-white" : "text-slate-600"}`}><Mail className="h-3.5 w-3.5" /> Email</button>
                 </div>
               </div>
               {composerMode === "write" ? (
@@ -1032,9 +1033,9 @@ export default function CommunicationsPage() {
                   <p className="mt-1 text-xs text-slate-500">La proposition ne remplace jamais votre vérification.</p>
                 </div>
                 <div className="flex flex-col gap-2 sm:flex-row">
-                  <div className="grid grid-cols-3 rounded-md border border-slate-300 bg-white p-0.5" aria-label="Type d’aide">
+                  <div role="group" className="grid grid-cols-3 rounded-md border border-slate-300 bg-white p-0.5" aria-label="Type d’aide">
                     {([['structure', 'Structurer'], ['correct', 'Corriger'], ['simplify', 'Simplifier']] as const).map(([value, label]) => (
-                      <button key={value} type="button" onClick={() => setAssistAction(value)} aria-pressed={assistAction === value} className={`min-h-9 px-2 text-xs font-semibold ${assistAction === value ? "rounded bg-slate-950 text-white" : "text-slate-600"}`}>{label}</button>
+                      <button key={value} type="button" onClick={() => setAssistAction(value)} aria-pressed={assistAction === value} className={`min-h-10 px-2 text-xs font-semibold ${assistAction === value ? "rounded bg-slate-950 text-white" : "text-slate-600"}`}>{label}</button>
                     ))}
                   </div>
                   <button type="button" onClick={() => void assistDraft()} disabled={assisting || draft.title.trim().length < 2 || draft.bodyMarkdown.trim().length === 0} className="inline-flex min-h-10 items-center justify-center gap-2 rounded-md bg-emerald-700 px-3 py-2 text-sm font-semibold text-white disabled:opacity-50">
@@ -1106,7 +1107,7 @@ export default function CommunicationsPage() {
             </div>
             <div className="flex flex-wrap gap-2">
               {templates.map((template) => (
-                <button key={template.templateKey} type="button" onClick={() => setEditingTemplate({ ...template })} className={`rounded-md border px-3 py-2 text-sm font-semibold ${editingTemplate?.templateKey === template.templateKey ? "border-emerald-700 bg-emerald-50 text-emerald-800" : "border-slate-200 bg-white text-slate-700"}`}>
+                <button key={template.templateKey} type="button" onClick={() => setEditingTemplate({ ...template })} aria-pressed={editingTemplate?.templateKey === template.templateKey} className={`min-h-10 rounded-md border px-3 py-2 text-sm font-semibold ${editingTemplate?.templateKey === template.templateKey ? "border-emerald-700 bg-emerald-50 text-emerald-800" : "border-slate-200 bg-white text-slate-700"}`}>
                   {template.label}
                 </button>
               ))}
@@ -1114,9 +1115,9 @@ export default function CommunicationsPage() {
           </div>
 
           {editingTemplate ? (
-            <form onSubmit={saveTemplate} className="grid gap-4 border-l-4 border-emerald-700 bg-white p-4 shadow-sm sm:p-5">
+            <form onSubmit={saveTemplate} aria-labelledby="communication-template-editor-title" className="grid gap-4 border-l-4 border-emerald-700 bg-white p-4 shadow-sm sm:p-5">
               <div className="flex items-center justify-between gap-3">
-                <div><strong className="text-slate-950">{editingTemplate.label}</strong><p className="text-xs text-slate-500">{editingTemplate.customized ? `Version ${editingTemplate.version}` : "Modèle d’origine"}</p></div>
+                <div><strong id="communication-template-editor-title" className="text-slate-950">{editingTemplate.label}</strong><p className="text-xs text-slate-500">{editingTemplate.customized ? `Version ${editingTemplate.version}` : "Modèle d’origine"}</p></div>
                 <label className="inline-flex items-center gap-2 text-sm font-semibold text-slate-700"><input type="checkbox" checked={editingTemplate.active} onChange={(event) => setEditingTemplate((current) => current ? { ...current, active: event.target.checked } : current)} className="h-4 w-4 accent-emerald-700" /> Actif</label>
               </div>
               <div className="grid gap-4 sm:grid-cols-2">

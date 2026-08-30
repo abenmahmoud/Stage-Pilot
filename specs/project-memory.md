@@ -2068,6 +2068,18 @@ taches et analyse de coherence avant une automatisation sensible.
 - Le brief Claude de ce lot est préparé mais non exécuté, faute de modèle exact
   et de plafond de consommation propres à cette mission.
 
+### Jalon du 30 août 2026 - accessibilité du centre de communications
+
+- L'interface privée nomme désormais ses étapes, ses groupes de choix, ses
+  formulaires, son chargement, le compteur filtré et la communication active.
+  Les documents forment une liste sémantique et les commandes compactes
+  atteignent 40 px, sans ouvrir la publication ni l'envoi.
+- Le contrat statique T031A est testé. T031 reste ouverte jusqu'à une recette
+  sur navigateur authentifié à 320 px et sur ordinateur, au clavier complet et
+  avec un lecteur d'écran réel.
+- Le brief Claude en lecture seule est préparé mais non exécuté, faute de modèle
+  exact et de plafond de consommation propres à cette mission.
+
 ### Jalon du 30 août 2026 - validation humaine du classement assistant
 
 - Le lot N5ZF signe chaque proposition de classement avec un reçu HMAC de

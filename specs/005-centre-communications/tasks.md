@@ -298,5 +298,10 @@
   incohérent sont refusés. Une adresse ou un code scolaire supprime le texte
   extrait et impose la revue humaine. La preuve antivirus reste dans T011D.
 - [ ] T031 Vérifier 320 px, ordinateur, clavier et lecteur d'écran.
+- [x] T031A Renforcer le contrat accessible de l'interface avant la recette
+  humaine : étapes, chargement, résultats, sélection, groupes de modes et
+  formulaires sont nommés ; les documents utilisent une liste sémantique et les
+  commandes compactes atteignent 40 px. T031 reste ouverte pour le navigateur
+  authentifié, le clavier complet et le lecteur d'écran réel.
 - [ ] T032 Déployer en preview et tester avec des contacts fictifs.
 - [ ] T033 Faire valider le pilote avant toute liste réelle ou envoi collectif.

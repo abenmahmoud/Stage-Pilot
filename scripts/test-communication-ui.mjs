@@ -94,3 +94,19 @@ test("renders a safe local preview without opening delivery", () => {
   assert.match(page, /Image non affichée/);
   assert.doesNotMatch(page, /communication-send|COMMUNICATION_SEND_ENABLED|audienceRef/);
 });
+
+test("keeps communication controls understandable on touch and assistive technology", () => {
+  assert.match(page, /aria-busy=\{loading\}/);
+  assert.match(page, /aria-current="step"/);
+  assert.match(page, /id="communications-list-count" role="status" aria-live="polite"/);
+  assert.match(page, /aria-describedby="communications-list-count"/);
+  assert.match(page, /Chargement des communications/);
+  assert.match(page, /aria-pressed=\{selectedId === row\.id\}/);
+  assert.match(page, /role="group"[\s\S]+aria-label="Visibilité après validation"/);
+  assert.match(page, /role="group"[\s\S]+aria-label="Mode du message"/);
+  assert.match(page, /role="group"[\s\S]+aria-label="Type d’aide"/);
+  assert.match(page, /aria-labelledby="communication-composer-title"/);
+  assert.match(page, /aria-labelledby="communication-template-editor-title"/);
+  assert.match(page, /<ul className="mt-5 divide-y[\s\S]+documents\.map[\s\S]+<li key=\{document\.id\}/);
+  assert.match(page, /min-h-10[\s\S]+Écrire/);
+});
