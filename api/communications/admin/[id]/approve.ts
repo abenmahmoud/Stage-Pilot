@@ -6,12 +6,8 @@ import {
   communications,
   communicationVersions,
 } from "../../../../db/schema.js";
-import { parseCommunicationReviewRequest } from "../../../../shared/communication-publication.js";
 import { HttpError } from "../../../_shared/auth.js";
-import {
-  canManageCommunicationPublication,
-  requireCommunicationEditor,
-} from "../../../_shared/communications.js";
+import { requireCommunicationManager } from "../../../_shared/communications.js";
 import { handleApi, methodNotAllowed } from "../../../_shared/response.js";
 
 function routeId(req: VercelRequest): string {
@@ -20,22 +16,21 @@ function routeId(req: VercelRequest): string {
   return value;
 }
 
+function requireConfirmation(value: unknown): void {
+  if (!value || typeof value !== "object" || Array.isArray(value)
+    || Object.keys(value).some((key) => key !== "confirmation")
+    || (value as Record<string, unknown>).confirmation !== "VALIDER") {
+    throw new HttpError(400, "Confirmez la validation de la communication.");
+  }
+}
+
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== "POST") return methodNotAllowed(res, ["POST"]);
   return handleApi(res, async () => {
-    const context = await requireCommunicationEditor(req);
-    let reviewRequest;
-    try {
-      reviewRequest = parseCommunicationReviewRequest(req.body);
-    } catch {
-      throw new HttpError(400, "Confirmez la demande de vérification.");
-    }
-    if (reviewRequest.visibility === "public"
-      && !canManageCommunicationPublication(context.user.role)) {
-      throw new HttpError(403, "Seule la direction peut préparer une publication publique.");
-    }
+    const context = await requireCommunicationManager(req);
+    requireConfirmation(req.body);
     const id = routeId(req);
-    const result = await db.transaction(async (tx) => {
+    return db.transaction(async (tx) => {
       await tx.execute(sql`
         select id from public.communications
         where id = ${id}::uuid and institution_id = ${context.institutionId}::uuid
@@ -47,6 +42,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           status: communications.status,
           visibility: communications.visibility,
           currentVersion: communications.currentVersion,
+          approvedAt: communications.approvedAt,
           updatedAt: communications.updatedAt,
         })
         .from(communications)
@@ -56,20 +52,17 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         ))
         .limit(1);
       if (!root) throw new HttpError(404, "Communication introuvable");
-      if (root.status === "review") {
-        if (root.visibility !== reviewRequest.visibility) {
-          throw new HttpError(409, "La visibilité a déjà été soumise à la direction.");
-        }
+      if (root.status === "approved" || root.status === "published") {
         return { communication: root, duplicate: true };
       }
-      if (root.status !== "draft") {
-        throw new HttpError(409, "Cette communication ne peut pas être envoyée en vérification.");
+      if (root.status !== "review") {
+        throw new HttpError(409, "Cette communication n’attend pas une validation.");
       }
       const [current] = await tx
         .select({
           id: communicationVersions.id,
-          version: communicationVersions.version,
           status: communicationVersions.status,
+          version: communicationVersions.version,
           openQuestions: communicationVersions.openQuestions,
         })
         .from(communicationVersions)
@@ -79,34 +72,43 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           eq(communicationVersions.version, root.currentVersion)
         ))
         .limit(1);
-      if (!current) throw new Error("La version courante est introuvable");
-      const questions = Array.isArray(current.openQuestions) ? current.openQuestions : [];
-      if (questions.length > 0) {
-        throw new HttpError(409, "Répondez aux informations à confirmer avant de demander la vérification.");
+      if (!current || current.status !== "review") {
+        throw new HttpError(409, "La version soumise n’est plus disponible.");
       }
+      if (Array.isArray(current.openQuestions) && current.openQuestions.length > 0) {
+        throw new HttpError(409, "Des informations restent à confirmer.");
+      }
+      const approvedAt = new Date();
       const [version] = await tx
         .update(communicationVersions)
-        .set({ status: "review" })
+        .set({
+          status: "approved",
+          approvedBy: context.user.id,
+          approvedAt,
+        })
         .where(and(
           eq(communicationVersions.id, current.id),
           eq(communicationVersions.institutionId, context.institutionId),
-          eq(communicationVersions.status, "draft")
+          eq(communicationVersions.status, "review")
         ))
         .returning({
           id: communicationVersions.id,
           version: communicationVersions.version,
           status: communicationVersions.status,
-          createdAt: communicationVersions.createdAt,
-          updatedAt: communicationVersions.updatedAt,
+          approvedAt: communicationVersions.approvedAt,
         });
       if (!version) throw new HttpError(409, "Cette version a déjà changé.");
-      const [updated] = await tx
+      const [communication] = await tx
         .update(communications)
-        .set({ status: "review", visibility: reviewRequest.visibility })
+        .set({
+          status: "approved",
+          approvedBy: context.user.id,
+          approvedAt,
+        })
         .where(and(
           eq(communications.id, id),
           eq(communications.institutionId, context.institutionId),
-          eq(communications.status, "draft"),
+          eq(communications.status, "review"),
           eq(communications.currentVersion, root.currentVersion)
         ))
         .returning({
@@ -114,21 +116,21 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           status: communications.status,
           visibility: communications.visibility,
           currentVersion: communications.currentVersion,
+          approvedAt: communications.approvedAt,
           updatedAt: communications.updatedAt,
         });
-      if (!updated) throw new HttpError(409, "Cette communication a déjà changé.");
+      if (!communication) throw new HttpError(409, "Cette communication a déjà changé.");
       await tx.insert(communicationEvents).values({
         institutionId: context.institutionId,
         communicationId: id,
         resourceType: "version",
         resourceId: current.id,
-        eventType: "communication.review_requested",
+        eventType: "communication.approved",
         actorUserId: context.user.id,
         actorType: "user",
-        summary: { version: root.currentVersion, visibility: reviewRequest.visibility },
+        summary: { version: root.currentVersion, visibility: root.visibility },
       });
-      return { communication: updated, version, duplicate: false };
+      return { communication, version, duplicate: false };
     });
-    return result;
   });
 }

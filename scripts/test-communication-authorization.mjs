@@ -12,6 +12,8 @@ const routeFiles = [
   "api/communications/admin/documents/[id]/confirm.ts",
   "api/communications/admin/[id]/index.ts",
   "api/communications/admin/[id]/review.ts",
+  "api/communications/admin/[id]/approve.ts",
+  "api/communications/admin/[id]/publish.ts",
   "api/communications/admin/failures/index.ts",
   "api/communications/admin/failures/[id]/retry.ts",
   "api/communications/admin/jobs/[id]/cancel.ts",
@@ -42,7 +44,7 @@ test("protects every communication route with the shared private gate", async ()
     const route = await source(path);
     assert.match(
       route,
-      /await requireCommunication(?:Editor|TemplateManager|Manager|Sender|Direction)\(req\)/,
+      /await requireCommunication(?:Editor|TemplateManager|Manager|Sender|Direction|Publisher)\(req\)/,
       `${path} must use the shared communication gate`
     );
   }
@@ -56,11 +58,13 @@ test("keeps every persisted route scoped to the authenticated institution", asyn
   }
 });
 
-test("exposes no public, audience, publication or direct sending route", async () => {
+test("keeps publication private and exposes no audience or direct sending route", async () => {
   assert.ok(routeFiles.every((path) => path.includes("/admin/")));
   const routes = (await Promise.all(routeFiles.map(source))).join("\n");
   assert.doesNotMatch(routes, /communication-send|audienceRef|recipientIds|recipientEmail/);
   const gate = await source("api/_shared/communications.ts");
+  assert.match(gate, /readCommunicationFeatureFlags\(\)\.publicationEnabled/);
+  assert.match(gate, /settings\?\.publicationEnabled/);
   assert.match(gate, /readCommunicationFeatureFlags\(\)\.sendingEnabled/);
   assert.match(gate, /settings\?\.sendingEnabled/);
 });

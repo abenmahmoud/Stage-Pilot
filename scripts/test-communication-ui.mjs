@@ -29,14 +29,15 @@ test("protects the route with the existing content manager roles", () => {
   assert.match(app, /allowedRoles=\{CONTENT_MANAGER_ROLES\}/);
 });
 
-test("opens deposit and human review while keeping publication locked", () => {
+test("opens deposit and human review while keeping publication separately gated", () => {
   assert.match(page, /1<\/span>[\s\S]*Déposer/);
   assert.match(page, /2<\/span>[\s\S]*Vérifier[\s\S]*Relecture humaine/);
-  assert.match(page, /3<\/span>[\s\S]*Publier et informer[\s\S]*Verrouillé/);
+  assert.match(page, /3<\/span>[\s\S]*Publier et informer[\s\S]*COMMUNICATION_PUBLICATION_UI_ENABLED/);
   assert.match(page, /sourceType: "direct_text"/);
   assert.match(page, /communications\/admin\/\$\{selectedDetail\.id\}\/review/);
   assert.match(page, /confirmation: "VERIFIER"/);
-  assert.doesNotMatch(page, /communication-send|communication-publish|audienceRef/);
+  assert.match(page, /communications\/admin\/\$\{selectedDetail\.id\}\/publish/);
+  assert.doesNotMatch(page, /communication-send|audienceRef/);
 });
 
 test("provides bounded responsive fields without recipient inputs", () => {
@@ -48,13 +49,13 @@ test("provides bounded responsive fields without recipient inputs", () => {
   assert.doesNotMatch(page, /type="email"|recipientIds|contactRef|audienceRef/iu);
 });
 
-test("uses governed templates without opening publication or sending", () => {
+test("uses governed templates without opening direct sending", () => {
   assert.match(page, /communications\/admin\/templates/);
   assert.match(page, /applyTemplate/);
   assert.match(page, /user\?\.role === "superadmin" \|\| user\?\.role === "proviseur"/);
   assert.match(page, /method: "PATCH"/);
   assert.match(page, /templateKey: editingTemplate\.templateKey/);
-  assert.doesNotMatch(page, /COMMUNICATION_PUBLICATION_ENABLED|COMMUNICATION_SEND_ENABLED/);
+  assert.doesNotMatch(page, /COMMUNICATION_SEND_ENABLED/);
 });
 
 test("shows bounded AI facts and keeps every uncertainty under human control", () => {

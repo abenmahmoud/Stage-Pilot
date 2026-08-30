@@ -2138,7 +2138,7 @@ taches et analyse de coherence avant une automatisation sensible.
 
 ### Jalon du 30 août 2026 - analyse de cohérence Spec Kit
 
-- Les cinq domaines comptent 372 identifiants uniques : 252 lignes terminées et
+- Les cinq domaines comptent 374 identifiants uniques : 254 lignes terminées et
   120 ouvertes. Ces nombres restent un inventaire, jamais un pourcentage global.
 - Les parents encore ouverts correspondent bien à des preuves absentes :
   opérations distantes, décisions métier/DPO, comptes nominatifs, données
@@ -2160,6 +2160,22 @@ taches et analyse de coherence avant une automatisation sensible.
 - Un contrôle global refuse désormais les versions dupliquées, noms mal formés,
   migrations référencées mais absentes et paires `VERSION`/`NAME` incohérentes.
 - T003A est terminé sans appliquer de migration ni accéder à une base distante.
+- Le brief Claude est préparé mais non exécuté, faute de modèle exact et de
+  plafond de consommation propres à cette mission.
+
+### Jalon du 30 août 2026 - publication atomique des communications préparée
+
+- La relecture, la validation direction et la publication publique sont trois
+  confirmations séparées. La validation et la publication exigent direction,
+  MFA, établissement courant et verrou de concurrence.
+- La publication exige les interrupteurs environnement et base, une visibilité
+  publique et la version courante approuvée. Elle crée dans une transaction la
+  page `À la une`, sa version, le rattachement et les audits.
+- Questions ouvertes, secrets, emails, téléphones et contenu dépassant les
+  limites éditoriales bloquent la publication. Aucune adresse, audience ou
+  livraison n'entre dans l'interface ou la réponse publique.
+- Les interrupteurs de publication restent fermés. Le code est déployable en
+  preview, mais T014 reste ouvert jusqu'à la recette fictive isolée.
 - Le brief Claude est préparé mais non exécuté, faute de modèle exact et de
   plafond de consommation propres à cette mission.
 

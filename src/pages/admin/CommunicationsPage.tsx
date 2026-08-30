@@ -7,6 +7,7 @@ import {
   ChevronRight,
   Clock3,
   Eye,
+  ExternalLink,
   FileText,
   FilePenLine,
   LoaderCircle,
@@ -20,6 +21,7 @@ import {
   Save,
   Search,
   Send,
+  ShieldCheck,
   Sparkles,
   Upload,
   X,
@@ -27,6 +29,7 @@ import {
 import { apiFetch } from "../../lib/api";
 import {
   COMMUNICATION_DOCUMENTS_UI_ENABLED,
+  COMMUNICATION_PUBLICATION_UI_ENABLED,
   COMMUNICATIONS_UI_ENABLED,
 } from "../../lib/feature-flags";
 import { useAuth } from "../../lib/auth-context";
@@ -42,7 +45,9 @@ type CommunicationRow = {
   visibility: string;
   category: string;
   templateKey: string | null;
+  publicSlug: string | null;
   currentVersion: number;
+  publishedAt: string | null;
   updatedAt: string;
   title: string;
   summary: string;
@@ -322,7 +327,10 @@ export default function CommunicationsPage() {
   const [assisting, setAssisting] = useState(false);
   const [assistAction, setAssistAction] = useState<"structure" | "correct" | "simplify">("structure");
   const [reviewNotes, setReviewNotes] = useState<string[]>([]);
+  const [reviewVisibility, setReviewVisibility] = useState<"internal" | "public">("internal");
   const [requestingReview, setRequestingReview] = useState(false);
+  const [approving, setApproving] = useState(false);
+  const [publishing, setPublishing] = useState(false);
   const [uploadingDocument, setUploadingDocument] = useState(false);
   const [savingTemplate, setSavingTemplate] = useState(false);
   const [confirmingRetryId, setConfirmingRetryId] = useState<string | null>(null);
@@ -377,6 +385,7 @@ export default function CommunicationsPage() {
         if (active) {
           setSelectedDetail(payload.communication);
           setSelectedVersions(payload.versions);
+          setReviewVisibility(payload.communication.visibility === "public" ? "public" : "internal");
         }
       })
       .catch((reason) => {
@@ -429,6 +438,7 @@ export default function CommunicationsPage() {
     setSelectedDetail(null);
     setSelectedVersions([]);
     setReviewNotes([]);
+    setReviewVisibility("internal");
     setNotice("");
   }
 
@@ -513,15 +523,59 @@ export default function CommunicationsPage() {
     try {
       await apiFetch(`communications/admin/${selectedDetail.id}/review`, {
         method: "POST",
-        body: JSON.stringify({ confirmation: "VERIFIER" }),
+        body: JSON.stringify({ confirmation: "VERIFIER", visibility: reviewVisibility }),
       });
       setNotice("La communication est transmise pour vérification humaine.");
       await load();
-      setSelectedDetail((current) => current ? { ...current, status: "review" } : current);
+      setSelectedDetail((current) => current ? { ...current, status: "review", visibility: reviewVisibility } : current);
     } catch (reason) {
       setError(reason instanceof Error ? reason.message : "Demande de vérification impossible.");
     } finally {
       setRequestingReview(false);
+    }
+  }
+
+  async function approveCommunication() {
+    if (!selectedDetail || !canManageTemplates) return;
+    setApproving(true);
+    setError("");
+    setNotice("");
+    try {
+      await apiFetch(`communications/admin/${selectedDetail.id}/approve`, {
+        method: "POST",
+        body: JSON.stringify({ confirmation: "VALIDER" }),
+      });
+      setNotice(selectedDetail.visibility === "public"
+        ? "La version est validée. La publication reste une action distincte."
+        : "La communication interne est validée.");
+      await load();
+      setSelectedDetail((current) => current ? { ...current, status: "approved" } : current);
+    } catch (reason) {
+      setError(reason instanceof Error ? reason.message : "Validation impossible.");
+    } finally {
+      setApproving(false);
+    }
+  }
+
+  async function publishCommunication() {
+    if (!selectedDetail || !canManageTemplates || !COMMUNICATION_PUBLICATION_UI_ENABLED) return;
+    setPublishing(true);
+    setError("");
+    setNotice("");
+    try {
+      const payload = await apiFetch<{
+        communication: Pick<CommunicationRow, "status" | "visibility" | "publicSlug" | "publishedAt">;
+      }>(`communications/admin/${selectedDetail.id}/publish`, {
+        method: "POST",
+        body: JSON.stringify({ confirmation: "PUBLIER" }),
+      });
+      setNotice("La communication est publiée dans « À la une ».");
+      await load();
+      setSelectedDetail((current) => current ? { ...current, ...payload.communication } : current);
+    } catch (reason) {
+      setError(reason instanceof Error ? reason.message : "Publication impossible.");
+    } finally {
+      setPublishing(false);
     }
   }
 
@@ -672,7 +726,7 @@ export default function CommunicationsPage() {
         </li>
         <li className="flex min-h-16 items-center gap-3 bg-white px-4 py-3 text-slate-400">
           <span className="flex h-7 w-7 items-center justify-center rounded-full border border-slate-300 text-sm font-bold">3</span>
-          <span><strong className="block text-sm">Publier et informer</strong><small>Verrouillé</small></span>
+          <span><strong className="block text-sm">Publier et informer</strong><small>{COMMUNICATION_PUBLICATION_UI_ENABLED ? "Après validation" : "Activation requise"}</small></span>
         </li>
       </ol>
 
@@ -819,13 +873,16 @@ export default function CommunicationsPage() {
                 <p className="text-xs font-semibold uppercase text-emerald-700">{STATUS_LABELS[selected.status] ?? selected.status}</p>
                 <h2 id="selected-communication-title" className="mt-1 break-words text-xl font-bold text-slate-950">{selected.title}</h2>
               </div>
-              <span className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-600"><LockKeyhole className="h-3.5 w-3.5" /> Privé</span>
+              <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-semibold ${selected.visibility === "public" ? "bg-emerald-50 text-emerald-800" : "bg-slate-100 text-slate-600"}`}>
+                {selected.visibility === "public" ? <ExternalLink className="h-3.5 w-3.5" /> : <LockKeyhole className="h-3.5 w-3.5" />}
+                {selected.visibility === "public" ? "Site public" : "Interne"}
+              </span>
             </div>
             {selected.summary ? <p className="mt-4 whitespace-pre-line text-sm leading-6 text-slate-700">{selected.summary}</p> : null}
             <dl className="mt-6 grid gap-3 border-y border-slate-200 py-4 text-sm sm:grid-cols-2 xl:grid-cols-4">
               <div><dt className="text-slate-500">Catégorie</dt><dd className="mt-1 font-semibold text-slate-950">{CATEGORY_OPTIONS.find((item) => item.value === selected.category)?.label ?? selected.category}</dd></div>
               <div><dt className="text-slate-500">Modèle</dt><dd className="mt-1 font-semibold text-slate-950">{templates.find((item) => item.templateKey === selected.templateKey)?.label ?? "Sans modèle"}</dd></div>
-              <div><dt className="text-slate-500">Visibilité</dt><dd className="mt-1 font-semibold text-slate-950">Interne</dd></div>
+              <div><dt className="text-slate-500">Visibilité</dt><dd className="mt-1 font-semibold text-slate-950">{selected.visibility === "public" ? "Site public" : "Interne"}</dd></div>
               <div><dt className="text-slate-500">Version</dt><dd className="mt-1 font-semibold text-slate-950">{selected.currentVersion}</dd></div>
             </dl>
             {detailLoading ? <div className="flex min-h-28 items-center justify-center"><LoaderCircle className="h-6 w-6 animate-spin text-emerald-700" /></div> : null}
@@ -868,11 +925,44 @@ export default function CommunicationsPage() {
                   </div>
                 ) : null}
                 {selectedDetail.status === "draft" ? (
-                  <div className="flex flex-col gap-3 border-t border-slate-200 pt-5 sm:flex-row sm:justify-end">
-                    <button type="button" onClick={startEdit} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-md border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700"><Pencil className="h-4 w-4" /> Modifier</button>
-                    <button type="button" onClick={() => void requestReview()} disabled={requestingReview || selectedDetail.openQuestions.length > 0} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-md bg-emerald-700 px-4 py-2 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-50">
-                      {requestingReview ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />} Demander la vérification
+                  <div className="space-y-4 border-t border-slate-200 pt-5">
+                    {canManageTemplates ? (
+                      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                        <div><strong className="text-sm text-slate-950">Après validation</strong><p className="text-xs text-slate-500">Choisissez le périmètre avant d’envoyer à la vérification.</p></div>
+                        <div className="grid grid-cols-2 rounded-md border border-slate-300 bg-white p-0.5" aria-label="Visibilité après validation">
+                          <button type="button" onClick={() => setReviewVisibility("internal")} aria-pressed={reviewVisibility === "internal"} className={`min-h-9 px-3 text-xs font-semibold ${reviewVisibility === "internal" ? "rounded bg-slate-950 text-white" : "text-slate-600"}`}>Interne</button>
+                          <button type="button" onClick={() => setReviewVisibility("public")} aria-pressed={reviewVisibility === "public"} className={`min-h-9 px-3 text-xs font-semibold ${reviewVisibility === "public" ? "rounded bg-slate-950 text-white" : "text-slate-600"}`}>Site public</button>
+                        </div>
+                      </div>
+                    ) : null}
+                    <div className="flex flex-col gap-3 sm:flex-row sm:justify-end">
+                      <button type="button" onClick={startEdit} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-md border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700"><Pencil className="h-4 w-4" /> Modifier</button>
+                      <button type="button" onClick={() => void requestReview()} disabled={requestingReview || selectedDetail.openQuestions.length > 0} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-md bg-emerald-700 px-4 py-2 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-50">
+                        {requestingReview ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />} Demander la vérification
+                      </button>
+                    </div>
+                  </div>
+                ) : null}
+                {selectedDetail.status === "review" && canManageTemplates ? (
+                  <div className="flex flex-col gap-3 border-t border-slate-200 pt-5 sm:flex-row sm:items-center sm:justify-between">
+                    <p className="text-sm text-slate-600">Relisez le message et ses informations avant de valider cette version.</p>
+                    <button type="button" onClick={() => void approveCommunication()} disabled={approving} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-md bg-emerald-700 px-4 py-2 text-sm font-semibold text-white disabled:opacity-50">
+                      {approving ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <ShieldCheck className="h-4 w-4" />} Valider la version
                     </button>
+                  </div>
+                ) : null}
+                {selectedDetail.status === "approved" && selectedDetail.visibility === "public" && canManageTemplates ? (
+                  <div className="flex flex-col gap-3 border-t border-slate-200 pt-5 sm:flex-row sm:items-center sm:justify-between">
+                    <p className="text-sm text-slate-600">La publication créera une page datée dans « À la une ».</p>
+                    <button type="button" onClick={() => void publishCommunication()} disabled={publishing || !COMMUNICATION_PUBLICATION_UI_ENABLED} title={COMMUNICATION_PUBLICATION_UI_ENABLED ? "Publier sur le site" : "Publication fermée dans cet environnement"} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-md bg-emerald-700 px-4 py-2 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-50">
+                      {publishing ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />} {COMMUNICATION_PUBLICATION_UI_ENABLED ? "Publier sur le site" : "Publication non activée"}
+                    </button>
+                  </div>
+                ) : null}
+                {selectedDetail.status === "published" && selectedDetail.publicSlug ? (
+                  <div className="flex flex-col gap-3 border-t border-slate-200 pt-5 sm:flex-row sm:items-center sm:justify-between">
+                    <p className="text-sm text-slate-600">Publié {selectedDetail.publishedAt ? dateLabel(selectedDetail.publishedAt) : "dans À la une"}</p>
+                    <a href={`/site/${selectedDetail.publicSlug}`} target="_blank" rel="noreferrer" className="inline-flex min-h-11 items-center justify-center gap-2 rounded-md border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700"><ExternalLink className="h-4 w-4" /> Voir la page</a>
                   </div>
                 ) : null}
               </div>
@@ -1047,7 +1137,7 @@ export default function CommunicationsPage() {
 
       <section className="grid gap-px overflow-hidden rounded-md border border-slate-200 bg-slate-200 sm:grid-cols-2" aria-label="Actions verrouillées">
         <div className="flex items-center gap-3 bg-white px-4 py-3 text-slate-500"><Check className="h-4 w-4" /><span className="text-sm"><strong className="block text-slate-700">Vérification humaine</strong>Disponible lorsque les points ouverts sont résolus</span></div>
-        <div className="flex items-center gap-3 bg-white px-4 py-3 text-slate-500"><Send className="h-4 w-4" /><span className="text-sm"><strong className="block text-slate-700">Publication et envoi</strong>Aucune action disponible</span></div>
+        <div className="flex items-center gap-3 bg-white px-4 py-3 text-slate-500"><Send className="h-4 w-4" /><span className="text-sm"><strong className="block text-slate-700">Publication et envoi</strong>Publication séparée après validation ; envoi toujours fermé</span></div>
       </section>
     </div>
   );

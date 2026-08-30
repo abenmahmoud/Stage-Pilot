@@ -46,6 +46,10 @@
 - [x] T010D Rendre la liste privée exploitable sous volume : recherche locale
   sur les métadonnées, filtre par état, compteur de résultats et historique
   borné des versions. Aucun corps de message n'entre dans la recherche.
+- [x] T010E Ajouter la validation direction distincte de la relecture. Seuls
+  superadmin et proviseur sous MFA peuvent valider la version courante après
+  résolution des questions ; la transaction verrouille le dossier, aligne les
+  deux états et journalise uniquement version et visibilité.
 - [ ] T011 Extraire localement le texte des PDF et DOCX autorisés.
 - [x] T011A Ajouter l'extracteur local borné PDF/DOCX. Il réutilise le moteur
   PDF.js/Mammoth et les précontrôles d'archives existants, ne contacte aucune IA
@@ -76,6 +80,12 @@
   sans publication, audience ou envoi. Le choix préremplit le brouillon dans
   l'interface fermée et conserve la référence du modèle.
 - [ ] T014 Publier la version validée dans le flux daté du site.
+- [x] T014A Préparer la publication atomique dans `À la une`. Une confirmation
+  direction séparée, les interrupteurs environnement et base, le statut public
+  et la version approuvée sont tous requis. La transaction crée la page et sa
+  version, rattache la communication et journalise l'action ; questions,
+  secrets, coordonnées et contenus trop longs sont refusés. L'interrupteur
+  reste fermé et T014 reste ouvert jusqu'à une recette fictive en preview.
 - [ ] T015 Ajouter recherche, filtres, épinglage, expiration et archives publics.
 
 ## Phase 4 - Diffusion sécurisée

@@ -41,11 +41,14 @@ test("creates exactly one new draft version under a row lock", async () => {
 
 test("requests human review only after every open question is resolved", async () => {
   const route = await readFile(reviewPath, "utf8");
-  assert.match(route, /confirmation !== "VERIFIER"/);
+  assert.match(route, /parseCommunicationReviewRequest\(req\.body\)/);
+  assert.match(route, /reviewRequest\.visibility === "public"/);
+  assert.match(route, /canManageCommunicationPublication\(context\.user\.role\)/);
   assert.match(route, /for update/);
   assert.match(route, /questions\.length > 0/);
   assert.match(route, /status: "review"/);
   assert.match(route, /eventType: "communication\.review_requested"/);
+  assert.match(route, /visibility: reviewRequest\.visibility/);
   assert.match(route, /eq\(communications\.institutionId, context\.institutionId\)/);
   assert.doesNotMatch(route, /approvedBy|approvedAt|published|delivery|audience/i);
 });

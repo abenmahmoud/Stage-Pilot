@@ -9,6 +9,10 @@ import { requireSupportAgent } from "./support-agent-access.js";
 const COMMUNICATION_EDITOR_ROLES = new Set(["superadmin", "administration", "proviseur"]);
 const COMMUNICATION_TEMPLATE_MANAGER_ROLES = new Set(["superadmin", "proviseur"]);
 
+export function canManageCommunicationPublication(role: string): boolean {
+  return COMMUNICATION_TEMPLATE_MANAGER_ROLES.has(role);
+}
+
 export async function requireCommunicationEditor(req: VercelRequest) {
   const context = await requireSupportAgent(req);
   await requireAal2(req);
@@ -62,6 +66,22 @@ export async function requireCommunicationSender(req: VercelRequest) {
     .limit(1);
   if (!settings?.sendingEnabled) {
     throw new HttpError(503, "L’envoi des communications n’est pas activé.");
+  }
+  return context;
+}
+
+export async function requireCommunicationPublisher(req: VercelRequest) {
+  const context = await requireCommunicationManager(req);
+  if (!readCommunicationFeatureFlags().publicationEnabled) {
+    throw new HttpError(503, "La publication des communications n’est pas activée.");
+  }
+  const [settings] = await db
+    .select({ publicationEnabled: communicationSettings.publicationEnabled })
+    .from(communicationSettings)
+    .where(eq(communicationSettings.institutionId, context.institutionId))
+    .limit(1);
+  if (!settings?.publicationEnabled) {
+    throw new HttpError(503, "La publication des communications n’est pas activée.");
   }
   return context;
 }
