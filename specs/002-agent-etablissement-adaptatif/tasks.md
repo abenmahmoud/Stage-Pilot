@@ -401,8 +401,14 @@
   messages, pièces, routage et consoles agents relisent les mêmes entités
   `support_*`. L'assistant prépare uniquement une analyse et un reçu de routage
   éphémère : il ne possède ni dossier ni stockage parallèle.
-- [ ] T040 Relier LycéeGest pour les stages par lien contextuel, sans duplication.
+- [x] T040 Relier LycéeGest pour les stages par lien contextuel, sans duplication.
+  Le portail ouvre l'application existante, ses modules Stages et Grand Oral ;
+  il ne recopie aucun dossier métier dans le guichet d'aide.
 - [ ] T041 Ajouter les liens officiels Scolarité Services et PRONOTE.
+- [x] T041A Ajouter Scolarité Services depuis la page officielle du ministère et
+  présenter PRONOTE via l'ENT officiel du lycée. Aucun domaine PRONOTE supposé
+  n'est publié ; T041 reste ouverte jusqu'à confirmation d'une éventuelle
+  adresse directe propre à l'établissement.
 - [ ] T042 Piloter les données locales avec imports limités, datés et révocables.
 - [ ] T042A Importer la liste validée des professeurs et leurs emplois du temps,
   puis tester le rapprochement sans exposer l'annuaire au public.

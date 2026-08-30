@@ -105,6 +105,8 @@ type RequesterProfile = "eleve" | "parent" | "professeur" | "personnel" | "autre
 const SUPPORT_API_ENABLED = import.meta.env.VITE_SUPPORT_API_ENABLED === "true";
 const AI_ASSISTANT_ENABLED = import.meta.env.VITE_AI_ASSISTANT_ENABLED !== "false";
 const LYCEEGEST_URL = "/login";
+const ENT_URL = "https://ent.iledefrance.fr/auth/login";
+const SCOLARITE_SERVICES_URL = "https://www.education.gouv.fr/scolarite-services-un-acces-unique-pour-toutes-les-demarches-scolaires-326158";
 const WEBMAIL_URL = "https://mail.lycee-blaise-cendrars-sevran.fr/";
 const WEBMAIL_ADMIN_URL = `${WEBMAIL_URL}admin`;
 const MAX_SUPPORT_FILES = 5;
@@ -651,7 +653,7 @@ export default function LyceeConnectPrototype() {
               <a href={LYCEEGEST_URL}>Ouvrir LyceeGest <ChevronRight aria-hidden="true" /></a>
             </article>
             <article className="lycee-status-panel">
-              <a href="https://ent.iledefrance.fr/auth/login" target="_blank" rel="noreferrer" title="Ouvrir ENT Monlycée.net dans un nouvel onglet">
+              <a href={ENT_URL} target="_blank" rel="noreferrer" title="Ouvrir ENT Monlycée.net dans un nouvel onglet">
                 <span className="lycee-status-icon"><Wifi aria-hidden="true" /></span>
                 <span><strong>ENT Monlycée.net</strong><small>Connexion et services</small></span>
                 <em>Ouvrir <ExternalLink aria-hidden="true" /></em>
@@ -2071,7 +2073,9 @@ function ServicesView({ onHelp, onBack }: { onHelp: () => void; onBack: () => vo
     { title: "Assistance du lycée", description: "Une conversation libre pour toute question de rentrée, de scolarité ou d’accès", icon: LifeBuoy, color: "coral", progress: "Conversation suivie", action: "Demander de l’aide", help: true },
     { title: "Webmail du lycée", description: "Messagerie, contacts et diffusion lorsque Créteil est perturbé", icon: Mail, color: "green", progress: "Communication disponible", action: "Ouvrir le Webmail", href: WEBMAIL_URL, external: true },
     { title: "Inscriptions et dossiers", description: "Réinscription, pièces manquantes, classe et documents de scolarité", icon: FolderCheck, color: "gold", progress: "Priorité rentrée", action: "Préparer une demande", help: true },
-    { title: "Accès ENT et EduConnect", description: "Connexion directe ou demande d’aide pour retrouver son accès", icon: KeyRound, color: "blue", progress: "Service de rentrée", action: "Accéder à l’ENT", href: "https://ent.iledefrance.fr/auth/login", external: true },
+    { title: "Accès ENT et EduConnect", description: "Connexion directe ou demande d’aide pour retrouver son accès", icon: KeyRound, color: "blue", progress: "Service de rentrée", action: "Accéder à l’ENT", href: ENT_URL, external: true },
+    { title: "PRONOTE via l’ENT", description: "Notes, emploi du temps et vie scolaire selon les services activés par le lycée", icon: GraduationCap, color: "green", progress: "Accès officiel du lycée", action: "Ouvrir l’ENT", href: ENT_URL, external: true },
+    { title: "Scolarité Services", description: "Bourses, inscriptions et démarches proposées aux familles", icon: FileText, color: "coral", progress: "Service national", action: "Comprendre et accéder", href: SCOLARITE_SERVICES_URL, external: true },
     { title: "LyceeGest", description: "Stages, Grand Oral et outils de gestion du lycée", icon: BarChart3, color: "blue", progress: "Application complète", action: "Ouvrir LyceeGest", href: LYCEEGEST_URL },
     { title: "Stages de seconde", description: "Convention, entreprise, livret et suivi du stage", icon: BriefcaseBusiness, color: "gold", progress: "Module LyceeGest", action: "Ouvrir Stages", href: "/stages" },
     { title: "Grand Oral", description: "Questions, validations des professeurs et fiche officielle", icon: Mic2, color: "green", progress: "Module LyceeGest", action: "Ouvrir Grand Oral", href: "/grand-oral" },
@@ -2113,7 +2117,7 @@ function SchoolView({ onBack, onHelp }: { onBack: () => void; onHelp: (prompt?: 
   const publishedPage = (slug: string) => publishedPages.find((item) => item.slug === slug);
   const pageHref = (slug: string, fallback: string) => publishedPage(slug) ? `/site/${slug}` : fallback;
   const links = [
-    { label: "Monlycée.net", href: "https://ent.iledefrance.fr/auth/login", icon: GraduationCap },
+    { label: "Monlycée.net", href: ENT_URL, icon: GraduationCap },
     { label: "EduConnect", href: "https://educonnect.education.gouv.fr/", icon: KeyRound },
     { label: "Parcoursup", href: "https://parcoursup.gouv.fr", icon: FileText },
     { label: "E-sidoc", href: "https://0932048w.esidoc.fr/", icon: Newspaper },

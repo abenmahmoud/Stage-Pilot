@@ -2364,6 +2364,20 @@ taches et analyse de coherence avant une automatisation sensible.
 - Le brief Claude est préparé mais non exécuté, faute de modèle exact et de
   plafond propres à cette mission ; aucun jeton externe n'a été consommé.
 
+### Jalon du 30 août 2026 - accès officiels sans adresse inventée
+
+- `Mes services` conserve LyceeGest comme application existante pour les stages
+  et le Grand Oral, avec des liens contextuels vers ses deux modules.
+- Scolarité Services renvoie vers la page officielle du ministère qui explique
+  les démarches et l'accès par EduConnect ou FranceConnect.
+- PRONOTE est présenté via Monlycée.net, accès déjà officiel du lycée. Aucune
+  adresse directe PRONOTE n'est déduite ou publiée sans confirmation locale.
+- T040 et T041A sont terminées ; T041 reste ouverte pour l'adresse directe
+  éventuelle. Les cinq domaines comptent 385 identifiants uniques : 268 lignes
+  terminées et 117 ouvertes.
+- Le brief Claude est préparé mais non exécuté, faute de modèle exact et de
+  plafond propres à cette mission ; aucun jeton externe n'a été consommé.
+
 ## 8. Prochain ordre recommande
 
 1. Publier et tester le pré-triage ordinateur portable avec des données fictives.
