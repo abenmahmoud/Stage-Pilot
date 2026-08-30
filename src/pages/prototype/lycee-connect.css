@@ -395,7 +395,7 @@
 .lycee-live-analysis > svg { width: 18px; }
 .lycee-live-analysis > span { min-width: 0; display: flex; flex-direction: column; }
 .lycee-live-analysis strong { font-size: 10px; }
-.lycee-live-analysis small { margin-top: 2px; color: #5b7f78; font-size: 8px; }
+.lycee-live-analysis small { margin-top: 2px; color: #355c54; font-size: 10px; line-height: 1.35; }
 .lycee-live-analysis em { padding: 5px 7px; border-radius: 6px; background: #d9f0e9; font-size: 8px; font-style: normal; font-weight: 800; }
 .lycee-chat-composer { display: grid; grid-template-columns: minmax(0,1fr) 42px 42px; align-items: end; gap: 7px; padding: 8px; border: 1px solid #bcc9d8; border-radius: 8px; background: #fff; }
 .lycee-chat-composer:focus-within { border-color: var(--lc-blue); box-shadow: 0 0 0 3px rgba(21,94,239,.1); }

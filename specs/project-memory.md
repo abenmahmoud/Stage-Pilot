@@ -2451,6 +2451,19 @@ taches et analyse de coherence avant une automatisation sensible.
 - Le brief Claude est préparé mais non exécuté, faute de modèle exact et de
   plafond propres à cette mission ; aucun jeton externe n'a été consommé.
 
+### Jalon du 30 août 2026 - recette navigateur de l'assistant public
+
+- Chrome réel a vérifié l'accueil local à 1 262 px et 390 px sans erreur ni
+  débordement horizontal ; les sept images se chargent après défilement.
+- Un scénario fictif de panne d'ordinateur atteint l'état `Demande prête` en
+  deux réponses puis ouvre le formulaire final, sans envoi ni écriture distante.
+- L'unique violation axe A/AA concernait le contraste de `Demande comprise` ;
+  la couleur a été assombrie et la taille portée de 8 à 10 px.
+- T048G est terminée localement, sans compte, donnée réelle ou création de
+  demande distante.
+- Le brief Claude est préparé mais non exécuté, faute de modèle exact et de
+  plafond propres à cette mission ; aucun jeton externe n'a été consommé.
+
 ### Jalon du 30 août 2026 - couverture des commandes sans payload
 
 - Le test transversal couvre maintenant les handlers de mutation qui ne lisent

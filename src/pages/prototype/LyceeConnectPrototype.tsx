@@ -556,8 +556,8 @@ export default function LyceeConnectPrototype() {
             <span>Lycée polyvalent · Sevran</span>
             <h1>Blaise Cendrars</h1>
             <p>Un lycée pour construire son parcours, de la voie générale aux formations technologiques et professionnelles.</p>
-            <div className="lycee-hero-tracks" aria-label="Parcours proposés">
-              <span>Général</span><span>Technologique</span><span>Professionnel</span><span>CAP</span>
+            <div className="lycee-hero-tracks" role="list" aria-label="Parcours proposés">
+              <span role="listitem">Général</span><span role="listitem">Technologique</span><span role="listitem">Professionnel</span><span role="listitem">CAP</span>
             </div>
             <button className="lycee-hero-help" type="button" onClick={focusHomeAssistant}>
               <MessageCircleMore aria-hidden="true" />
