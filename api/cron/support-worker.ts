@@ -292,4 +292,4 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   });
 }
 
-export const config = { maxDuration: 60 };
+export const config = { maxDuration: 60, api: { bodyParser: false } };

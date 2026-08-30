@@ -260,6 +260,8 @@ voir sa réponse dans le dossier. L'agent traite tout depuis une seule file.
   partir de codes, retirer son bouton et durcir les commandes sans payload.
 - [x] **T037Y** Exiger `aal2` pour consulter ou exporter les anciens codes
   d'accès et pour les imports historiques qui en génèrent encore.
+- [x] **T037Z** Étendre la barrière transversale aux commandes sans payload et
+  désactiver le parseur des tâches cron concernées.
 - [x] **T037F** Exclure les contacts desactives des reponses, reserver les
   journaux globaux a un administrateur MFA et exiger `aal2` pour confirmer une
   identite scolaire depuis une source officielle.

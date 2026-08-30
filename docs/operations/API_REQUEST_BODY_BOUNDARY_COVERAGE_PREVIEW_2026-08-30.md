@@ -18,6 +18,11 @@ fichiers TypeScript de `api/`. Pour chaque route qui lit `req.body`, il exige :
 Le contrôle fait partie de `test:preview-security-gate`. Toute régression bloque
 donc le lot avant commit et déploiement de l'aperçu.
 
+Le même scénario inventorie aussi les handlers qui acceptent une mutation
+`POST`, `PUT`, `PATCH` ou `DELETE` sans lire `req.body`. Il exige alors
+`bodyParser: false`. Les tâches cron du support et de l'expiration des
+connaissances suivent cette règle tout en conservant `maxDuration: 60`.
+
 ## Limites
 
 Ce contrôle statique ne remplace ni la validation des champs, ni les plafonds de

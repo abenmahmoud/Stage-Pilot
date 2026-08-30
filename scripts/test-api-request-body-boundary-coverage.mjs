@@ -42,3 +42,27 @@ test("chaque route qui lit req.body conserve une limite HTTP explicite", () => {
 
   assert.deepEqual(violations, []);
 });
+
+test("chaque commande sans payload désactive le parseur HTTP", () => {
+  const mutationWithoutBody = listTypeScriptFiles(apiRoot)
+    .map((absolutePath) => ({
+      absolutePath,
+      source: readFileSync(absolutePath, "utf8"),
+    }))
+    .filter(({ source }) => /export\s+default\s+async\s+function\s+handler/.test(source))
+    .filter(({ source }) => /req\.method[\s\S]{0,180}["'](?:POST|PUT|PATCH|DELETE)["']/.test(source))
+    .filter(({ source }) => !/\breq\.body\b/.test(source));
+
+  assert.ok(
+    mutationWithoutBody.length > 0,
+    "aucune commande sans payload détectée : inventaire probablement cassé"
+  );
+
+  const violations = mutationWithoutBody
+    .filter(({ source }) => !/bodyParser\s*:\s*false/.test(source))
+    .map(({ absolutePath }) =>
+      `${relative(projectRoot, absolutePath).replaceAll("\\", "/")}: bodyParser: false absent`
+    );
+
+  assert.deepEqual(violations, []);
+});

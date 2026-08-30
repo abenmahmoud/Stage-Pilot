@@ -2451,6 +2451,17 @@ taches et analyse de coherence avant une automatisation sensible.
 - Le brief Claude est préparé mais non exécuté, faute de modèle exact et de
   plafond propres à cette mission ; aucun jeton externe n'a été consommé.
 
+### Jalon du 30 août 2026 - couverture des commandes sans payload
+
+- Le test transversal couvre maintenant les handlers de mutation qui ne lisent
+  aucun corps et exige `bodyParser: false`.
+- Les tâches cron du support et de l'expiration des connaissances désactivent le
+  parseur tout en conservant leur durée maximale de 60 secondes.
+- T037Z est terminée par tests locaux, sans appel de cron, compte distant,
+  donnée réelle ou modification Supabase.
+- Le brief Claude est préparé mais non exécuté, faute de modèle exact et de
+  plafond propres à cette mission ; aucun jeton externe n'a été consommé.
+
 ### Jalon du 30 août 2026 - MFA sur les anciens codes d'accès
 
 - Les listes administratives élèves et professeurs qui exposent les anciens
