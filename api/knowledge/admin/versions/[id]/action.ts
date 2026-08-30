@@ -22,6 +22,26 @@ import { handleApi, methodNotAllowed } from "../../../../_shared/response.js";
 
 type VersionAction = "submit_review" | "publish" | "retire" | "rollback";
 
+const PUBLICATION_ERROR_LABELS: Record<string, string> = {
+  candidate_not_in_review: "la version n’est pas en validation",
+  invalid_skill_key: "l’identifiant de compétence est invalide",
+  invalid_version: "le numéro de version est invalide",
+  owner_required: "le responsable est manquant",
+  review_date_invalid: "la date de révision est dépassée ou invalide",
+  independent_approval_required: "une validation indépendante est obligatoire",
+  source_required: "au moins une source est obligatoire",
+  source_missing: "une source liée est introuvable",
+  source_unavailable: "une source est retirée ou périmée",
+  source_not_current: "une source n’est pas actuellement valide",
+  source_scope_mismatch: "une source appartient à un autre établissement",
+  source_metadata_incomplete: "les informations d’une source sont incomplètes",
+  allowed_tool_invalid: "un outil autorisé est invalide",
+  test_coverage_incomplete: "il faut 5 tests normaux, 3 ambigus et 3 interdits",
+  test_evidence_missing: "un test ne possède pas de preuve complète",
+  test_run_invalid: "un test n’a pas été exécuté après le gel de la version",
+  test_failed: "un test a échoué ou reste à vérifier",
+};
+
 function routeId(req: VercelRequest): string {
   const value = Array.isArray(req.query.id) ? req.query.id[0] : req.query.id;
   if (!value) throw new HttpError(400, "Version manquante.");
@@ -87,20 +107,28 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       if (current.version.status !== "draft") {
         throw new HttpError(409, "Seul un brouillon peut être envoyé en validation.");
       }
-      const [version] = await db
-        .update(agentSkillVersions)
-        .set({ status: "review" })
-        .where(eq(agentSkillVersions.id, id))
-        .returning();
-      await db.insert(agentSkillAudit).values({
-        institutionId: context.institutionId,
-        resourceType: "version",
-        resourceId: id,
-        action: "submit_review",
-        actorId: context.user.id,
-        summary: { version: current.version.version },
+      return db.transaction(async (tx) => {
+        const [version] = await tx
+          .update(agentSkillVersions)
+          .set({ status: "review" })
+          .where(eq(agentSkillVersions.id, id))
+          .returning();
+        await tx.delete(agentEvaluations).where(
+          and(
+            eq(agentEvaluations.institutionId, context.institutionId),
+            eq(agentEvaluations.skillVersionId, id)
+          )
+        );
+        await tx.insert(agentSkillAudit).values({
+          institutionId: context.institutionId,
+          resourceType: "version",
+          resourceId: id,
+          action: "submit_review",
+          actorId: context.user.id,
+          summary: { version: current.version.version, evaluationProtocol: "evidence_required" },
+        });
+        return { version };
       });
-      return { version };
     }
 
     const links = await db
@@ -150,6 +178,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         testCaseKey: evaluation.testCaseKey,
         kind: evaluation.kind,
         result: evaluation.result,
+        evidence: evaluation.evidence,
+        runAt: evaluation.runAt.toISOString(),
       })) as SkillEvaluation[],
       publishedAt: current.version.publishedAt?.toISOString() ?? null,
       reviewDueAt: current.version.reviewDueAt.toISOString(),
@@ -174,11 +204,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         candidate,
         sources: policySources,
         now: new Date().toISOString(),
+        evaluationNotBefore: current.version.updatedAt.toISOString(),
       });
       if (!validation.ok) {
         throw new HttpError(
           409,
-          `Publication bloquée : ${validation.errors.join(", ")}`
+          `Publication bloquée : ${validation.errors
+            .map((error) => PUBLICATION_ERROR_LABELS[error] ?? error)
+            .join(" ; ")}.`
         );
       }
       const now = new Date();

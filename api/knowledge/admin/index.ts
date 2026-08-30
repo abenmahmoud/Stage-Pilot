@@ -178,15 +178,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
               }))
             );
           }
-          if (input.evaluations.length > 0) {
-            await tx.insert(agentEvaluations).values(
-              input.evaluations.map((evaluation) => ({
-                institutionId: context.institutionId,
-                skillVersionId: version.id,
-                ...evaluation,
-              }))
-            );
-          }
           await tx.insert(agentSkillAudit).values({
             institutionId: context.institutionId,
             resourceType: "skill",
@@ -275,15 +266,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
                 institutionId: context.institutionId,
                 skillVersionId: version.id,
                 sourceId,
-              }))
-            );
-          }
-          if (input.evaluations.length > 0) {
-            await tx.insert(agentEvaluations).values(
-              input.evaluations.map((evaluation) => ({
-                institutionId: context.institutionId,
-                skillVersionId: version.id,
-                ...evaluation,
               }))
             );
           }

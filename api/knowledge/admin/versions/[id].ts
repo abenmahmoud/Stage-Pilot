@@ -100,15 +100,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           }))
         );
       }
-      if (input.evaluations.length > 0) {
-        await tx.insert(agentEvaluations).values(
-          input.evaluations.map((evaluation) => ({
-            institutionId: context.institutionId,
-            skillVersionId: id,
-            ...evaluation,
-          }))
-        );
-      }
       await tx.insert(agentSkillAudit).values({
         institutionId: context.institutionId,
         resourceType: "version",

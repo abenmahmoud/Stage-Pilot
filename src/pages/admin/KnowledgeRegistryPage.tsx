@@ -5,6 +5,7 @@ import {
   BadgeCheck,
   Ban,
   BookOpenCheck,
+  ClipboardCheck,
   Database,
   FileCheck2,
   FileText,
@@ -113,6 +114,14 @@ type Evaluation = {
   testCaseKey: string;
   kind: "positive" | "ambiguous" | "forbidden";
   result: "pass" | "fail" | "needs_review";
+  evidence: {
+    runner?: "manual" | "deterministic";
+    fixture?: "fictitious";
+    scenario?: string;
+    expected?: string;
+    observed?: string;
+  };
+  runAt: string;
 };
 type Audit = {
   id: string;
@@ -217,6 +226,8 @@ export default function KnowledgeRegistryPage() {
   const [sourceOpen, setSourceOpen] = useState(false);
   const [skillOpen, setSkillOpen] = useState(false);
   const [versionSkillId, setVersionSkillId] = useState<string | null>(null);
+  const [evaluationVersionId, setEvaluationVersionId] = useState<string | null>(null);
+  const [evaluationDraft, setEvaluationDraft] = useState(() => evaluationDefaults());
   const [documentOpen, setDocumentOpen] = useState(false);
   const [documentFile, setDocumentFile] = useState<File | null>(null);
   const [documentNotes, setDocumentNotes] = useState<Record<string, string>>({});
@@ -251,9 +262,6 @@ export default function KnowledgeRegistryPage() {
     allowedTools: "support.create_request",
     sourceIds: [] as string[],
     reviewDueAt: localInput(new Date(Date.now() + 180 * 24 * 60 * 60 * 1000)),
-    positive: "needs_review",
-    ambiguous: "needs_review",
-    forbidden: "needs_review",
   }));
 
   const publishedSources = registry.sources.filter((source) => source.status === "published");
@@ -367,11 +375,6 @@ export default function KnowledgeRegistryPage() {
           ...skillDraft,
           allowedTools: skillDraft.allowedTools.split(",").map((value) => value.trim()).filter(Boolean),
           reviewDueAt: new Date(skillDraft.reviewDueAt).toISOString(),
-          evaluations: (["positive", "ambiguous", "forbidden"] as const).map((kind) => ({
-            testCaseKey: `${skillDraft.skillKey}-${kind}`,
-            kind,
-            result: skillDraft[kind],
-          })),
           },
         }),
       });
@@ -408,12 +411,45 @@ export default function KnowledgeRegistryPage() {
       allowedTools: (version.definition.allowedTools ?? []).join(", "),
       sourceIds: links.map((link) => link.sourceId),
       reviewDueAt: localInput(new Date(Date.now() + 180 * 24 * 60 * 60 * 1000)),
-      positive: "needs_review",
-      ambiguous: "needs_review",
-      forbidden: "needs_review",
     });
     setSkillOpen(true);
     window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  function startEvaluation(skill: AgentSkill, version: SkillVersion) {
+    setEvaluationVersionId(version.id);
+    setEvaluationDraft(evaluationDefaults(`${skill.skillKey}-positive-01`));
+    setError("");
+    setNotice("");
+  }
+
+  async function recordEvaluation(event: React.FormEvent) {
+    event.preventDefault();
+    if (!evaluationVersionId) return;
+    setBusy(true); setError(""); setNotice("");
+    try {
+      await apiFetch(`knowledge/admin/versions/${evaluationVersionId}/evaluations`, {
+        method: "POST",
+        body: JSON.stringify({
+          testCaseKey: evaluationDraft.testCaseKey,
+          kind: evaluationDraft.kind,
+          result: evaluationDraft.result,
+          confirmation: evaluationDraft.confirmed ? "TEST_EXECUTE" : "",
+          evidence: {
+            runner: evaluationDraft.runner,
+            fixture: "fictitious",
+            scenario: evaluationDraft.scenario,
+            expected: evaluationDraft.expected,
+            observed: evaluationDraft.observed,
+          },
+        }),
+      });
+      setNotice("Test horodaté et ajouté au procès-verbal de cette version.");
+      setEvaluationDraft(evaluationDefaults());
+      await load();
+    } catch (reason) {
+      setError(reason instanceof Error ? reason.message : "Enregistrement du test impossible.");
+    } finally { setBusy(false); }
   }
 
   async function versionAction(id: string, action: string) {
@@ -552,11 +588,12 @@ export default function KnowledgeRegistryPage() {
       {!loading && tab === "skills" ? <section className="space-y-4">
         <div className="flex justify-between gap-3"><div><h2 className="text-lg font-bold">Compétences de l’agent</h2><p className="text-sm text-slate-500">Une version publiée peut être retirée immédiatement.</p></div><button type="button" onClick={startNewSkill} className="inline-flex items-center gap-2 rounded-md bg-emerald-700 px-4 py-2 text-sm font-semibold text-white"><Plus className="h-4 w-4" /> Nouvelle</button></div>
         {skillOpen ? <SkillForm draft={skillDraft} setDraft={setSkillDraft} sources={publishedSources} busy={busy} onSubmit={createSkill} isVersion={Boolean(versionSkillId)} /> : null}
+        {evaluationVersionId ? <EvaluationForm draft={evaluationDraft} setDraft={setEvaluationDraft} tests={registry.evaluations.filter((evaluation) => evaluation.skillVersionId === evaluationVersionId)} busy={busy} onSubmit={recordEvaluation} onClose={() => setEvaluationVersionId(null)} /> : null}
         <div className="overflow-x-auto border-y border-slate-200 bg-white"><table className="w-full min-w-[760px] text-left text-sm"><thead className="bg-slate-50 text-xs uppercase text-slate-500"><tr><th className="px-4 py-3">Compétence</th><th className="px-4 py-3">Version</th><th className="px-4 py-3">Sources</th><th className="px-4 py-3">Tests</th><th className="px-4 py-3">Révision</th><th className="px-4 py-3 text-right">Action</th></tr></thead><tbody className="divide-y">{registry.skills.flatMap((skill) => (versionBySkill.get(skill.id) ?? []).map((version, index) => {
           const links = registry.links.filter((link) => link.skillVersionId === version.id);
           const tests = registry.evaluations.filter((evaluation) => evaluation.skillVersionId === version.id);
           const passed = tests.filter((test) => test.result === "pass").length;
-          return <tr key={version.id}><td className="px-4 py-4"><strong className="block text-slate-900">{skill.name}</strong><span className="text-xs text-slate-500">{skill.domain} · {skill.skillKey}</span></td><td className="px-4 py-4"><Status value={version.status} /><span className="ml-2 text-xs">{version.version}</span>{skill.activeVersionId === version.id ? <span className="ml-2 text-xs font-semibold text-emerald-700">Active</span> : null}</td><td className="px-4 py-4">{links.length}</td><td className="px-4 py-4"><span className={passed === 3 ? "text-emerald-700" : "text-amber-700"}>{passed}/{tests.length || 3}</span></td><td className="px-4 py-4 text-xs">{dateLabel(version.reviewDueAt)}</td><td className="px-4 py-4"><div className="flex justify-end gap-2">{index === 0 ? <IconAction title="Créer une nouvelle version" disabled={busy} onClick={() => startNewVersion(skill, version)}><Plus /></IconAction> : null}{version.status === "draft" ? <IconAction title="Envoyer en validation" disabled={busy} onClick={() => void versionAction(version.id, "submit_review")}><Send /></IconAction> : null}{version.status === "review" ? <IconAction title="Publier" disabled={busy} onClick={() => void versionAction(version.id, "publish")}><BadgeCheck /></IconAction> : null}{version.status === "published" && skill.activeVersionId !== version.id ? <IconAction title="Réactiver cette version" disabled={busy} onClick={() => void versionAction(version.id, "rollback")}><ArrowLeftCircle /></IconAction> : null}{version.status === "published" ? <IconAction title="Retirer" disabled={busy} onClick={() => void versionAction(version.id, "retire")}><Ban /></IconAction> : null}</div></td></tr>;
+          return <tr key={version.id}><td className="px-4 py-4"><strong className="block text-slate-900">{skill.name}</strong><span className="text-xs text-slate-500">{skill.domain} · {skill.skillKey}</span></td><td className="px-4 py-4"><Status value={version.status} /><span className="ml-2 text-xs">{version.version}</span>{skill.activeVersionId === version.id ? <span className="ml-2 text-xs font-semibold text-emerald-700">Active</span> : null}</td><td className="px-4 py-4">{links.length}</td><td className="px-4 py-4"><span className={passed >= 11 && passed === tests.length ? "text-emerald-700" : "text-amber-700"}>{passed}/{tests.length || 11}</span><span className="block text-xs text-slate-500">minimum 11</span></td><td className="px-4 py-4 text-xs">{dateLabel(version.reviewDueAt)}</td><td className="px-4 py-4"><div className="flex justify-end gap-2">{index === 0 ? <IconAction title="Créer une nouvelle version" disabled={busy} onClick={() => startNewVersion(skill, version)}><Plus /></IconAction> : null}{version.status === "draft" ? <IconAction title="Envoyer en validation" disabled={busy} onClick={() => void versionAction(version.id, "submit_review")}><Send /></IconAction> : null}{version.status === "review" ? <IconAction title="Enregistrer un test exécuté" disabled={busy} onClick={() => startEvaluation(skill, version)}><ClipboardCheck /></IconAction> : null}{version.status === "review" ? <IconAction title="Publier" disabled={busy} onClick={() => void versionAction(version.id, "publish")}><BadgeCheck /></IconAction> : null}{version.status === "published" && skill.activeVersionId !== version.id ? <IconAction title="Réactiver cette version" disabled={busy} onClick={() => void versionAction(version.id, "rollback")}><ArrowLeftCircle /></IconAction> : null}{version.status === "published" ? <IconAction title="Retirer" disabled={busy} onClick={() => void versionAction(version.id, "retire")}><Ban /></IconAction> : null}</div></td></tr>;
         }))}</tbody></table>{registry.skills.length === 0 ? <Empty text="Aucune compétence n’est encore enregistrée." /> : null}</div>
       </section> : null}
 
@@ -682,9 +719,27 @@ function SourceForm({ draft, setDraft, busy, onSubmit }: { draft: ReturnType<typ
 function sourceDefaults() { return { title: "", sourceType: "official_url", uri: "", classification: "public", serviceCodes: [] as string[], validFrom: "", expiresAt: "", checksum: "" }; }
 
 function SkillForm({ draft, setDraft, sources, busy, onSubmit, isVersion }: { draft: typeof EMPTY_SKILL_SHAPE; setDraft: React.Dispatch<React.SetStateAction<typeof EMPTY_SKILL_SHAPE>>; sources: KnowledgeSource[]; busy: boolean; onSubmit: (event: React.FormEvent) => void; isVersion: boolean }) {
-  return <form onSubmit={onSubmit} className="grid gap-4 border-y border-slate-200 bg-slate-50 p-4 sm:grid-cols-2"><Field label="Nom"><input className="field bg-white" disabled={isVersion} required value={draft.name} onChange={(event) => setDraft((value) => ({ ...value, name: event.target.value }))} /></Field><Field label="Identifiant stable"><input className="field bg-white" disabled={isVersion} required placeholder="ex. ordinateur-portable" value={draft.skillKey} onChange={(event) => setDraft((value) => ({ ...value, skillKey: event.target.value.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") }))} /></Field><Field label="Domaine"><input className="field bg-white" disabled={isVersion} required value={draft.domain} onChange={(event) => setDraft((value) => ({ ...value, domain: event.target.value }))} /></Field><Field label="Version"><input className="field bg-white" required value={draft.version} onChange={(event) => setDraft((value) => ({ ...value, version: event.target.value }))} /></Field><Field label="Niveau de confidentialité"><select className="field bg-white" value={draft.dataClassification} onChange={(event) => setDraft((value) => ({ ...value, dataClassification: event.target.value }))}><option value="public">Public</option><option value="internal">Interne</option><option value="personal">Données personnelles</option><option value="sensitive">Sensible</option></select></Field><Field label="Révision avant le"><input type="datetime-local" className="field bg-white" required value={draft.reviewDueAt} onChange={(event) => setDraft((value) => ({ ...value, reviewDueAt: event.target.value }))} /></Field><Field label="Instructions validées" wide><textarea className="field bg-white" rows={8} required minLength={20} value={draft.instructions} onChange={(event) => setDraft((value) => ({ ...value, instructions: event.target.value }))} /></Field><Field label="Sources" wide><div className="grid gap-2 sm:grid-cols-2">{sources.map((source) => <label key={source.id} className="flex gap-2 border bg-white p-2 text-sm"><input type="checkbox" checked={draft.sourceIds.includes(source.id)} onChange={(event) => setDraft((value) => ({ ...value, sourceIds: event.target.checked ? [...value.sourceIds, source.id] : value.sourceIds.filter((id) => id !== source.id) }))} /><span>{source.title}</span></label>)}{sources.length === 0 ? <p className="text-sm text-amber-700">Validez d’abord une source.</p> : null}</div></Field><Field label="Actions techniques autorisées" wide><input className="field bg-white" value={draft.allowedTools} onChange={(event) => setDraft((value) => ({ ...value, allowedTools: event.target.value }))} /></Field>{(["positive", "ambiguous", "forbidden"] as const).map((kind) => <Field key={kind} label={kind === "positive" ? "Test normal" : kind === "ambiguous" ? "Test ambigu" : "Test interdit"}><select className="field bg-white" value={draft[kind]} onChange={(event) => setDraft((value) => ({ ...value, [kind]: event.target.value }))}><option value="needs_review">À vérifier</option><option value="pass">Réussi</option><option value="fail">Échec</option></select></Field>)}<div className="sm:col-span-2"><button type="submit" disabled={busy || sources.length === 0} className="inline-flex items-center gap-2 rounded-md bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-50"><BookOpenCheck className="h-4 w-4" /> {isVersion ? "Créer la nouvelle version" : "Créer le brouillon"}</button></div></form>;
+  return <form onSubmit={onSubmit} className="grid gap-4 border-y border-slate-200 bg-slate-50 p-4 sm:grid-cols-2"><Field label="Nom"><input className="field bg-white" disabled={isVersion} required value={draft.name} onChange={(event) => setDraft((value) => ({ ...value, name: event.target.value }))} /></Field><Field label="Identifiant stable"><input className="field bg-white" disabled={isVersion} required placeholder="ex. ordinateur-portable" value={draft.skillKey} onChange={(event) => setDraft((value) => ({ ...value, skillKey: event.target.value.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") }))} /></Field><Field label="Domaine"><input className="field bg-white" disabled={isVersion} required value={draft.domain} onChange={(event) => setDraft((value) => ({ ...value, domain: event.target.value }))} /></Field><Field label="Version"><input className="field bg-white" required value={draft.version} onChange={(event) => setDraft((value) => ({ ...value, version: event.target.value }))} /></Field><Field label="Niveau de confidentialité"><select className="field bg-white" value={draft.dataClassification} onChange={(event) => setDraft((value) => ({ ...value, dataClassification: event.target.value }))}><option value="public">Public</option><option value="internal">Interne</option><option value="personal">Données personnelles</option><option value="sensitive">Sensible</option></select></Field><Field label="Révision avant le"><input type="datetime-local" className="field bg-white" required value={draft.reviewDueAt} onChange={(event) => setDraft((value) => ({ ...value, reviewDueAt: event.target.value }))} /></Field><Field label="Instructions validées" wide><textarea className="field bg-white" rows={8} required minLength={20} value={draft.instructions} onChange={(event) => setDraft((value) => ({ ...value, instructions: event.target.value }))} /></Field><Field label="Sources" wide><div className="grid gap-2 sm:grid-cols-2">{sources.map((source) => <label key={source.id} className="flex gap-2 border bg-white p-2 text-sm"><input type="checkbox" checked={draft.sourceIds.includes(source.id)} onChange={(event) => setDraft((value) => ({ ...value, sourceIds: event.target.checked ? [...value.sourceIds, source.id] : value.sourceIds.filter((id) => id !== source.id) }))} /><span>{source.title}</span></label>)}{sources.length === 0 ? <p className="text-sm text-amber-700">Validez d’abord une source.</p> : null}</div></Field><Field label="Actions techniques autorisées" wide><input className="field bg-white" value={draft.allowedTools} onChange={(event) => setDraft((value) => ({ ...value, allowedTools: event.target.value }))} /></Field><p className="border-l-4 border-emerald-600 bg-emerald-50 p-3 text-sm text-emerald-950 sm:col-span-2">Les tests ne sont plus déclarés ici. Envoyez d’abord la version en validation, puis enregistrez les 11 scénarios réellement exécutés.</p><div className="sm:col-span-2"><button type="submit" disabled={busy || sources.length === 0} className="inline-flex items-center gap-2 rounded-md bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-50"><BookOpenCheck className="h-4 w-4" /> {isVersion ? "Créer la nouvelle version" : "Créer le brouillon"}</button></div></form>;
 }
 
-const EMPTY_SKILL_SHAPE = { skillKey: "", name: "", domain: "", version: "1.0.0", dataClassification: "internal", instructions: "", allowedTools: "", sourceIds: [] as string[], reviewDueAt: "", positive: "needs_review", ambiguous: "needs_review", forbidden: "needs_review" };
+function EvaluationForm({ draft, setDraft, tests, busy, onSubmit, onClose }: { draft: ReturnType<typeof evaluationDefaults>; setDraft: React.Dispatch<React.SetStateAction<ReturnType<typeof evaluationDefaults>>>; tests: Evaluation[]; busy: boolean; onSubmit: (event: React.FormEvent) => void; onClose: () => void }) {
+  function reuse(test: Evaluation) {
+    setDraft({
+      testCaseKey: test.testCaseKey,
+      kind: test.kind,
+      result: test.result,
+      runner: test.evidence.runner ?? "manual",
+      scenario: test.evidence.scenario ?? "",
+      expected: test.evidence.expected ?? "",
+      observed: test.evidence.observed ?? "",
+      confirmed: false,
+    });
+  }
+  return <form onSubmit={onSubmit} className="grid gap-4 border-y border-emerald-200 bg-emerald-50/60 p-4 sm:grid-cols-2"><div className="sm:col-span-2"><h3 className="font-bold text-slate-950">Procès-verbal d’un test exécuté</h3><p className="text-sm text-slate-600">Utilisez uniquement des données fictives. Il faut 5 tests normaux, 3 ambigus et 3 interdits.</p></div>{tests.length > 0 ? <div className="divide-y border-y border-emerald-200 bg-white sm:col-span-2"><p className="px-3 py-2 text-xs font-bold uppercase text-slate-500">Tests déjà enregistrés</p>{tests.map((test) => <div key={test.testCaseKey} className="flex flex-wrap items-center gap-2 px-3 py-2 text-sm"><strong className="min-w-0 flex-1 break-words text-slate-900">{test.testCaseKey}</strong><span className="text-xs text-slate-500">{test.kind === "positive" ? "Normal" : test.kind === "ambiguous" ? "Ambigu" : "Interdit"} · {dateLabel(test.runAt)}</span><span className={test.result === "pass" ? "text-xs font-semibold text-emerald-700" : "text-xs font-semibold text-amber-700"}>{test.result === "pass" ? "Réussi" : test.result === "fail" ? "Échec" : "À revoir"}</span><button type="button" disabled={busy} onClick={() => reuse(test)} className="inline-flex h-10 items-center gap-1.5 rounded-md border bg-white px-3 text-xs font-semibold text-slate-700 disabled:opacity-50"><RefreshCw className="h-3.5 w-3.5" /> Rejouer</button></div>)}</div> : null}<Field label="Identifiant du scénario"><input className="field bg-white" required minLength={2} maxLength={100} value={draft.testCaseKey} onChange={(event) => setDraft((value) => ({ ...value, testCaseKey: event.target.value.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") }))} /></Field><Field label="Type de scénario"><select className="field bg-white" value={draft.kind} onChange={(event) => setDraft((value) => ({ ...value, kind: event.target.value as typeof value.kind }))}><option value="positive">Normal</option><option value="ambiguous">Ambigu</option><option value="forbidden">Interdit</option></select></Field><Field label="Mode d’exécution"><select className="field bg-white" value={draft.runner} onChange={(event) => setDraft((value) => ({ ...value, runner: event.target.value as typeof value.runner }))}><option value="manual">Vérification humaine</option><option value="deterministic">Test automatisé déterministe</option></select></Field><Field label="Résultat"><select className="field bg-white" value={draft.result} onChange={(event) => setDraft((value) => ({ ...value, result: event.target.value as typeof value.result }))}><option value="needs_review">À revoir</option><option value="pass">Réussi</option><option value="fail">Échec</option></select></Field><Field label="Scénario réellement essayé" wide><textarea className="field bg-white" required minLength={10} maxLength={1500} rows={3} value={draft.scenario} onChange={(event) => setDraft((value) => ({ ...value, scenario: event.target.value }))} /></Field><Field label="Comportement attendu"><textarea className="field bg-white" required minLength={10} maxLength={1500} rows={3} value={draft.expected} onChange={(event) => setDraft((value) => ({ ...value, expected: event.target.value }))} /></Field><Field label="Comportement observé"><textarea className="field bg-white" required minLength={10} maxLength={2500} rows={3} value={draft.observed} onChange={(event) => setDraft((value) => ({ ...value, observed: event.target.value }))} /></Field><label className="flex items-start gap-2 border-l-4 border-amber-500 bg-amber-50 p-3 text-sm text-amber-950 sm:col-span-2"><input className="mt-1" type="checkbox" checked={draft.confirmed} onChange={(event) => setDraft((value) => ({ ...value, confirmed: event.target.checked }))} /><span>Je confirme avoir exécuté ce scénario sur la version en validation, avec des données fictives et sans mot de passe ni code secret.</span></label><div className="flex flex-wrap gap-2 sm:col-span-2"><button type="submit" disabled={busy || !draft.confirmed} className="inline-flex items-center gap-2 rounded-md bg-emerald-700 px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-50"><ClipboardCheck className="h-4 w-4" /> Enregistrer ce test</button><button type="button" disabled={busy} onClick={onClose} className="rounded-md border bg-white px-4 py-2.5 text-sm font-semibold text-slate-700">Fermer</button></div></form>;
+}
+
+function evaluationDefaults(testCaseKey = "") { return { testCaseKey, kind: "positive" as "positive" | "ambiguous" | "forbidden", result: "needs_review" as "pass" | "fail" | "needs_review", runner: "manual" as "manual" | "deterministic", scenario: "", expected: "", observed: "", confirmed: false }; }
+
+const EMPTY_SKILL_SHAPE = { skillKey: "", name: "", domain: "", version: "1.0.0", dataClassification: "internal", instructions: "", allowedTools: "", sourceIds: [] as string[], reviewDueAt: "" };
 
 function Field({ label, wide, children }: { label: string; wide?: boolean; children: React.ReactNode }) { return <label className={wide ? "sm:col-span-2" : ""}><span className="mb-1.5 block text-sm font-medium text-slate-700">{label}</span>{children}</label>; }

@@ -2225,6 +2225,22 @@ taches et analyse de coherence avant une automatisation sensible.
   exécuté, faute de modèle exact et de plafond de consommation propres à cette
   mission.
 
+### Jalon du 30 août 2026 - preuves d’évaluation des compétences
+
+- Un brouillon ne peut plus déclarer ses propres tests « réussis ». Les anciens
+  résultats déclaratifs sont supprimés lorsque la version est figée pour revue.
+- Chaque exécution est enregistrée séparément par un compte direction avec MFA,
+  heure serveur, données fictives, scénario, attendu, observé et mode
+  d’exécution. Les mots de passe, codes et clés secrètes sont refusés.
+- La publication exige désormais cinq cas positifs, trois ambigus et trois
+  interdits, tous réussis et exécutés après le gel de la version.
+- L’espace superadministrateur permet de constituer ce procès-verbal sans
+  modifier le code. T046 reste ouverte tant que les versions publiées n’ont pas
+  effectivement passé leur jeu de tests.
+- Les cinq domaines comptent maintenant 378 identifiants uniques : 259 lignes
+  terminées et 119 ouvertes. Le brief Claude est préparé mais non exécuté, faute
+  de modèle exact et de plafond propres à cette mission.
+
 ## 8. Prochain ordre recommande
 
 1. Publier et tester le pré-triage ordinateur portable avec des données fictives.

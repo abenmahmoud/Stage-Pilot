@@ -1,8 +1,6 @@
 import { SUPPORT_SERVICES, type SupportService } from "./support-agent-access.js";
-import type {
-  KnowledgeClassification,
-  SkillEvaluation,
-} from "./skill-registry-policy.js";
+import type { KnowledgeClassification, SkillEvaluation } from "./skill-registry-policy.js";
+import { detectForbiddenSupportSecret } from "./support-secret-policy.js";
 
 export const KNOWLEDGE_SOURCE_TYPES = [
   "official_url",
@@ -35,8 +33,9 @@ export type AgentSkillDraftInput = {
   allowedTools: string[];
   sourceIds: string[];
   reviewDueAt: Date;
-  evaluations: SkillEvaluation[];
 };
+
+export type AgentSkillEvaluationInput = Omit<SkillEvaluation, "runAt">;
 
 const CLASSIFICATIONS: KnowledgeClassification[] = [
   "public",
@@ -105,24 +104,6 @@ function uuidList(value: unknown): string[] {
   return values;
 }
 
-function evaluations(value: unknown): SkillEvaluation[] {
-  if (!Array.isArray(value) || value.length > 50) {
-    throw new Error("Les tests sont invalides");
-  }
-  return value.map((entry) => {
-    const item = record(entry);
-    const testCaseKey = text(item.testCaseKey, "Identifiant du test", 2, 100);
-    if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(testCaseKey)) {
-      throw new Error("L’identifiant d’un test est invalide");
-    }
-    return {
-      testCaseKey,
-      kind: enumValue(item.kind, ["positive", "ambiguous", "forbidden"] as const, "Type de test"),
-      result: enumValue(item.result, ["pass", "fail", "needs_review"] as const, "Résultat du test"),
-    };
-  });
-}
-
 export function parseKnowledgeSourceInput(value: unknown): KnowledgeSourceInput {
   const input = record(value);
   const classification = enumValue(input.classification, CLASSIFICATIONS, "Classification");
@@ -151,6 +132,9 @@ export function parseKnowledgeSourceInput(value: unknown): KnowledgeSourceInput 
 
 export function parseAgentSkillDraftInput(value: unknown): AgentSkillDraftInput {
   const input = record(value);
+  if (Array.isArray(input.evaluations) && input.evaluations.length > 0) {
+    throw new Error("Les tests doivent être exécutés après l’envoi de la version en validation");
+  }
   const skillKey = text(input.skillKey, "Identifiant de compétence", 2, 100);
   if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(skillKey)) {
     throw new Error("L’identifiant de compétence est invalide");
@@ -173,6 +157,37 @@ export function parseAgentSkillDraftInput(value: unknown): AgentSkillDraftInput 
     allowedTools,
     sourceIds: uuidList(input.sourceIds ?? []),
     reviewDueAt,
-    evaluations: evaluations(input.evaluations ?? []),
+  };
+}
+
+export function parseAgentSkillEvaluationInput(value: unknown): AgentSkillEvaluationInput {
+  const input = record(value);
+  if (input.confirmation !== "TEST_EXECUTE") {
+    throw new Error("Confirmez que le test a réellement été exécuté");
+  }
+  const testCaseKey = text(input.testCaseKey, "Identifiant du test", 2, 100);
+  if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(testCaseKey)) {
+    throw new Error("L’identifiant du test est invalide");
+  }
+  const evidenceInput = record(input.evidence);
+  const evidence = {
+    runner: enumValue(
+      evidenceInput.runner,
+      ["manual", "deterministic"] as const,
+      "Mode d’exécution"
+    ),
+    fixture: enumValue(evidenceInput.fixture, ["fictitious"] as const, "Jeu de données"),
+    scenario: text(evidenceInput.scenario, "Scénario exécuté", 10, 1_500),
+    expected: text(evidenceInput.expected, "Résultat attendu", 10, 1_500),
+    observed: text(evidenceInput.observed, "Résultat observé", 10, 2_500),
+  };
+  if (detectForbiddenSupportSecret(Object.values(evidence).join("\n"))) {
+    throw new Error("La preuve de test contient un mot de passe, un code ou une clé secrète");
+  }
+  return {
+    testCaseKey,
+    kind: enumValue(input.kind, ["positive", "ambiguous", "forbidden"] as const, "Type de test"),
+    result: enumValue(input.result, ["pass", "fail", "needs_review"] as const, "Résultat du test"),
+    evidence,
   };
 }

@@ -33,6 +33,14 @@ export type SkillEvaluation = {
   testCaseKey: string;
   kind: "positive" | "ambiguous" | "forbidden";
   result: "pass" | "fail" | "needs_review";
+  evidence: {
+    runner: "manual" | "deterministic";
+    fixture: "fictitious";
+    scenario: string;
+    expected: string;
+    observed: string;
+  };
+  runAt: string;
 };
 
 export type SkillVersion = {
@@ -67,6 +75,8 @@ export type SkillPublicationError =
   | "source_metadata_incomplete"
   | "allowed_tool_invalid"
   | "test_coverage_incomplete"
+  | "test_evidence_missing"
+  | "test_run_invalid"
   | "test_failed";
 
 function timestamp(value: string): number {
@@ -101,6 +111,7 @@ export function validateSkillForPublication(input: {
   candidate: SkillVersion;
   sources: KnowledgeSource[];
   now: string;
+  evaluationNotBefore: string;
 }): { ok: boolean; errors: SkillPublicationError[] } {
   const errors = new Set<SkillPublicationError>();
   const now = timestamp(input.now);
@@ -156,10 +167,46 @@ export function validateSkillForPublication(input: {
     errors.add("allowed_tool_invalid");
   }
 
-  const coveredKinds = new Set(candidate.evaluations.map((evaluation) => evaluation.kind));
-  const requiredKinds: SkillEvaluation["kind"][] = ["positive", "ambiguous", "forbidden"];
-  if (!requiredKinds.every((kind) => coveredKinds.has(kind))) {
+  const requiredCounts: Record<SkillEvaluation["kind"], number> = {
+    positive: 5,
+    ambiguous: 3,
+    forbidden: 3,
+  };
+  if (
+    Object.entries(requiredCounts).some(
+      ([kind, minimum]) =>
+        candidate.evaluations.filter((evaluation) => evaluation.kind === kind).length < minimum
+    )
+  ) {
     errors.add("test_coverage_incomplete");
+  }
+  if (
+    candidate.evaluations.some((evaluation) => {
+      const evidence = evaluation.evidence;
+      return !(
+        evidence &&
+        ["manual", "deterministic"].includes(evidence.runner) &&
+        evidence.fixture === "fictitious" &&
+        typeof evidence.scenario === "string" &&
+        typeof evidence.expected === "string" &&
+        typeof evidence.observed === "string" &&
+        evidence.scenario.trim().length >= 10 &&
+        evidence.expected.trim().length >= 10 &&
+        evidence.observed.trim().length >= 10
+      );
+    })
+  ) {
+    errors.add("test_evidence_missing");
+  }
+  const evaluationNotBefore = timestamp(input.evaluationNotBefore);
+  if (
+    !Number.isFinite(evaluationNotBefore) ||
+    candidate.evaluations.some((evaluation) => {
+      const runAt = timestamp(evaluation.runAt);
+      return !Number.isFinite(runAt) || runAt < evaluationNotBefore || runAt > now;
+    })
+  ) {
+    errors.add("test_run_invalid");
   }
   if (candidate.evaluations.some((evaluation) => evaluation.result !== "pass")) {
     errors.add("test_failed");

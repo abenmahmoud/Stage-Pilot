@@ -3,6 +3,7 @@ import { readFile } from "node:fs/promises";
 import test from "node:test";
 import {
   parseAgentSkillDraftInput,
+  parseAgentSkillEvaluationInput,
   parseKnowledgeSourceInput,
 } from "../shared/knowledge-registry-input.ts";
 
@@ -14,6 +15,10 @@ const helperPath = new URL("../api/_shared/knowledge-registry.ts", import.meta.u
 const parserPath = new URL("../shared/knowledge-registry-input.ts", import.meta.url);
 const actionPath = new URL(
   "../api/knowledge/admin/versions/[id]/action.ts",
+  import.meta.url
+);
+const evaluationRoutePath = new URL(
+  "../api/knowledge/admin/versions/[id]/evaluations.ts",
   import.meta.url
 );
 
@@ -54,15 +59,22 @@ test("enforces institution consistency and immutable version references", async 
 });
 
 test("requires persisted direction access and live AAL2 for publication", async () => {
-  const [helper, action] = await Promise.all([
+  const [helper, action, evaluationRoute] = await Promise.all([
     readFile(helperPath, "utf8"),
     readFile(actionPath, "utf8"),
+    readFile(evaluationRoutePath, "utf8"),
   ]);
   assert.match(helper, /requireSupportAgent\(req\)/);
   assert.match(helper, /access\.canViewAll/);
   assert.match(helper, /if \(options\.publish\) await requireAal2\(req\)/);
   assert.match(action, /validateSkillForPublication/);
   assert.match(action, /selectActiveSkillVersion/);
+  assert.match(action, /evaluationProtocol: "evidence_required"/);
+  assert.match(action, /delete\(agentEvaluations\)/);
+  assert.match(evaluationRoute, /requireKnowledgeManager\(req, \{ publish: true \}\)/);
+  assert.match(evaluationRoute, /version\.status !== "review"/);
+  assert.match(evaluationRoute, /runAt = new Date\(\)/);
+  assert.match(evaluationRoute, /evaluation_recorded/);
 });
 
 test("accepts a bounded source and a complete skill draft", () => {
@@ -88,14 +100,66 @@ test("accepts a bounded source and a complete skill draft", () => {
     allowedTools: ["support.create_request"],
     sourceIds: ["123e4567-e89b-42d3-a456-426614174000"],
     reviewDueAt: "2099-08-01T00:00:00.000Z",
-    evaluations: [
-      { testCaseKey: "fictive-positive", kind: "positive", result: "pass" },
-      { testCaseKey: "fictive-ambiguous", kind: "ambiguous", result: "pass" },
-      { testCaseKey: "fictive-forbidden", kind: "forbidden", result: "pass" },
-    ],
   });
   assert.equal(skill.version, "1.0.0");
-  assert.equal(skill.evaluations.length, 3);
+  assert.equal("evaluations" in skill, false);
+
+  const evaluation = parseAgentSkillEvaluationInput({
+    testCaseKey: "fictive-positive-01",
+    kind: "positive",
+    result: "pass",
+    confirmation: "TEST_EXECUTE",
+    evidence: {
+      runner: "manual",
+      fixture: "fictitious",
+      scenario: "Question fictive posée à la compétence en validation.",
+      expected: "Réponse bornée conforme à la procédure fictive.",
+      observed: "La réponse observée reste conforme à la procédure fictive.",
+    },
+  });
+  assert.equal(evaluation.evidence.fixture, "fictitious");
+});
+
+test("rejects declared draft results, unconfirmed runs and secrets in evidence", () => {
+  const draft = {
+    skillKey: "skill-fictive",
+    name: "Skill fictif",
+    domain: "Tests",
+    version: "1.0.0",
+    dataClassification: "internal",
+    instructions: "Instructions fictives suffisamment longues pour le contrôle.",
+    allowedTools: ["support.create_request"],
+    sourceIds: [],
+    reviewDueAt: "2099-08-01T00:00:00.000Z",
+  };
+  assert.throws(
+    () => parseAgentSkillDraftInput({ ...draft, evaluations: [{ result: "pass" }] }),
+    /après l’envoi/
+  );
+  const evaluation = {
+    testCaseKey: "fictive-interdit-01",
+    kind: "forbidden",
+    result: "pass",
+    confirmation: "TEST_EXECUTE",
+    evidence: {
+      runner: "manual",
+      fixture: "fictitious",
+      scenario: "Tentative fictive de demander une donnée interdite.",
+      expected: "Refus sans exposition d’une donnée personnelle.",
+      observed: "Refus observé sans exposition d’une donnée personnelle.",
+    },
+  };
+  assert.throws(
+    () => parseAgentSkillEvaluationInput({ ...evaluation, confirmation: "" }),
+    /réellement été exécuté/
+  );
+  assert.throws(
+    () => parseAgentSkillEvaluationInput({
+      ...evaluation,
+      evidence: { ...evaluation.evidence, observed: "mot de passe: SuperSecret93" },
+    }),
+    /clé secrète/
+  );
 });
 
 test("rejects misleading public scope, fake checksums and unsafe tools", () => {

@@ -30,12 +30,17 @@ retrait ou un retour arrière exige en plus une session MFA `aal2` actuelle.
 1. La direction enregistre une source en brouillon puis la valide.
 2. Une compétence ou une nouvelle version référence uniquement des sources du
    même établissement.
-3. Les trois familles de tests doivent réussir et la date de révision doit être
-   future.
-4. La version passe en validation, puis devient active seulement après contrôle.
-5. Une source révoquée désactive immédiatement les compétences actives qui en
+3. La version passe en validation et devient immuable ; toute ancienne
+   déclaration de résultat est supprimée à cet instant.
+4. Un compte direction en session MFA enregistre ensuite les exécutions réelles
+   sur données fictives : scénario, attendu, observé, mode et heure serveur.
+5. Cinq cas positifs, trois ambigus et trois interdits doivent tous réussir après
+   le gel de la version ; une preuve vide, ancienne, future ou contenant un
+   secret bloque la publication.
+6. La version devient active seulement après ce contrôle.
+7. Une source révoquée désactive immédiatement les compétences actives qui en
    dépendent.
-6. Une ancienne version publiée et encore valable peut être réactivée.
+8. Une ancienne version publiée et encore valable peut être réactivée.
 
 ## Alimentation documentaire administrateur
 
@@ -73,6 +78,9 @@ sans faire transiter le fichier par une fonction Vercel.
 - parseurs stricts pour les versions, sources, dates, empreintes et outils ;
 - tests unitaires de publication, expiration, cloisonnement et retour arrière ;
 - compilation de production réussie.
+- les tests ne peuvent plus être saisis comme « réussis » dans un brouillon ;
+  ils sont enregistrés séparément sur une version en validation, avec MFA,
+  horodatage serveur, données fictives, preuve bornée et audit minimal ;
 - premier jalon d'alimentation documentaire appliqué à la base de preview :
   table `knowledge_documents` vide, RLS forcé, aucun droit direct `anon` ou
   `authenticated`, bucket `knowledge-ingest` privé limité à 50 Mo ;

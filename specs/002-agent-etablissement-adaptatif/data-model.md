@@ -337,9 +337,9 @@ un cours est calculée à partir du créneau autorisé et d'un changement offici
 | `skill_version_id` | uuid | Version testée |
 | `test_case_key` | text | Identifiant stable |
 | `result` | enum | `pass`, `fail`, `needs_review` |
-| `scores` | jsonb | Exactitude, source, sécurité, utilité |
-| `evidence` | jsonb | Sortie masquée et raisons |
-| `run_at` | timestamptz | Date du test |
+| `scores` | jsonb | Nombre borné d’assertions, sans contenu utilisateur |
+| `evidence` | jsonb | Mode, jeu fictif, scénario, attendu et observé bornés, sans secret |
+| `run_at` | timestamptz | Heure serveur de l’exécution, postérieure au gel de la version |
 
 ### `agent_runtime_metrics`
 

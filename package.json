@@ -97,6 +97,7 @@
     "test:schedule-promotion-input": "node --experimental-strip-types scripts/test-schedule-promotion-input.mjs",
     "test:schedule-import-ui": "node scripts/test-schedule-import-ui.mjs",
     "test:skill-registry": "node --import ./scripts/ts-test-resolver.mjs --experimental-strip-types scripts/test-skill-registry-policy.mjs",
+    "test:skill-evaluations": "node --import ./scripts/ts-test-resolver.mjs --experimental-strip-types scripts/test-knowledge-registry-security.mjs",
     "test:skill-scenarios": "node scripts/test-skill-scenario-coverage.mjs",
     "test:spec-integrity": "node scripts/test-spec-task-integrity.mjs",
     "test:migration-integrity": "node scripts/test-migration-version-integrity.mjs",

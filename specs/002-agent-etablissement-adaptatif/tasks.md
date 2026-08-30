@@ -477,6 +477,11 @@
 ## Phase 6 - Validation et mise en service
 
 - [ ] T046 Exécuter le jeu de tests de toutes les versions publiées.
+- [x] T046A Remplacer les résultats déclaratifs des brouillons par un
+  procès-verbal de test horodaté : version figée en validation, session direction
+  MFA, données fictives, scénario/attendu/observé bornés, refus des secrets,
+  cinq cas positifs, trois ambigus et trois interdits avant publication. T046
+  reste ouverte jusqu’à l’exécution effective de chaque version publiée.
 - [ ] T047 Tester 200 créations simultanées, reprise worker et idempotence des notifications.
 - [x] T047A Exécuter sur la preview le test nettoyable de 200 transactions de
   création avec concurrence 20 : 200 dossiers, messages, sessions et travaux,
