@@ -40,6 +40,10 @@
   formulaire borné, état de doublon et rendu 320 px. `Vérifier`, publier,
   audience et envoi restent visibles comme étapes verrouillées.
 - [ ] T011 Extraire localement le texte des PDF et DOCX autorisés.
+- [x] T011A Ajouter l'extracteur local borné PDF/DOCX. Il réutilise le moteur
+  PDF.js/Mammoth et les précontrôles d'archives existants, ne contacte aucune IA
+  et bascule en relecture manuelle pour coordonnées, secrets ou instructions.
+  Le dépôt privé, l'antivirus et la file dédiée restent à relier avant T011.
 - [ ] T012 Étendre l'aide IA avec sortie structurée et informations à confirmer.
 - [x] T013 Ajouter les modèles Hebdo, Urgent, Rentrée, Document, Événement et
   Rappel. Le catalogue sûr fonctionne sans donnée persistée ; seuls superadmin

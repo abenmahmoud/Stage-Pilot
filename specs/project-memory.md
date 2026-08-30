@@ -1486,6 +1486,17 @@ taches et analyse de coherence avant une automatisation sensible.
   refusé cinq contournements puis laissé quatre compteurs de résidus à zéro ;
   les auditeurs Supabase ne remontent aucun `WARN` ou `ERROR` sur ces tables.
 
+### Jalon du 30 août 2026 - extraction locale des sources de communication
+
+- L'adaptateur de communication accepte uniquement PDF et DOCX et réutilise le
+  moteur local éprouvé PDF.js/Mammoth avec précontrôle des archives bureautiques.
+- Le texte rendu est limité à 100 000 caractères. Toute coordonnée, tout secret
+  ou toute instruction suspecte supprime le texte extrait du résultat et impose
+  une relecture humaine.
+- Aucun contenu n'est transmis à une IA externe. La réservation de fichier,
+  l'antivirus, la file et la persistance restent volontairement ouverts dans
+  T011 avant de rendre le dépôt documentaire utilisable.
+
 ## 8. Prochain ordre recommande
 
 1. Publier et tester le pré-triage ordinateur portable avec des données fictives.
