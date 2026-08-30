@@ -400,13 +400,26 @@ l'autorisation de quota définie par le propriétaire.
   les sessions, les liens email, les files et mutations agents, les pièces, les
   métriques et les reprises techniques filtrent l'établissement côté serveur.
   Les clés d'idempotence sont propres à l'établissement ou au dossier. Les
-  tâches email portent désormais l'établissement ; worker, webhook et santé
-  refusent de fonctionner si plusieurs établissements actifs utilisent encore
-  leurs tables techniques historiques non cloisonnées. Les 11 dossiers déjà
+  tâches email portent désormais l'établissement ; le worker refuse encore de
+  fonctionner si plusieurs établissements actifs partagent la même file PGMQ.
+  Les 11 dossiers déjà
   présents dans la preview ont été rattachés au seul établissement actif, sans
   lecture ni modification de leur contenu. La recette a refusé déplacement et
   collisions locales, accepté les mêmes empreintes dans deux périmètres fictifs,
   puis `ROLLBACK` avec zéro résidu.
+- Lot N5ZE : cloisonnement des journaux techniques. **Appliqué uniquement à la
+  preview et testé par transaction annulée** : exécutions, échecs, événements
+  Brevo et reçus webhook portent un établissement obligatoire et immuable. Les
+  jobs possèdent une liaison composite vers un dossier du même établissement ;
+  les événements de livraison sont contrôlés contre leur message. Le worker
+  antivirus exige le périmètre dans la file et contrôle dossier, message et
+  pièce avant téléchargement. Les clés
+  d'idempotence incluent l'établissement et l'écran de santé filtre directement
+  les reçus. RLS est forcée, sans accès direct `anon` ou `authenticated`. La
+  recette a accepté un même reçu fictif dans deux établissements, refusé son
+  rejeu local, les croisements dossier/job et message/livraison, puis `ROLLBACK`
+  avec zéro résidu. La file email PGMQ partagée demeure le dernier verrou
+  technique mono-établissement.
 - Lot N6 : tests de non-régression, build, contrôle mobile et rapport d'écarts.
   **Partiellement validé en preview** : 200 transactions concurrentes sans perte
   ni reste après nettoyage, 135 contrôles de sécurité, build réussi, PWA active,

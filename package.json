@@ -19,6 +19,7 @@
     "test:agent-approval-inbox": "node --import ./scripts/ts-test-resolver.mjs --experimental-strip-types scripts/test-agent-approval-inbox.mjs",
     "test:agent-runtime-metrics": "node --import ./scripts/ts-test-resolver.mjs --experimental-strip-types scripts/test-agent-runtime-metrics.mjs",
     "test:support-institution-scope": "node scripts/test-support-institution-scope.mjs",
+    "test:support-technical-institution-scope": "node scripts/test-support-technical-institution-scope.mjs",
     "test:support-multilingual": "node --import ./scripts/ts-test-resolver.mjs --experimental-transform-types scripts/test-support-multilingual.mjs",
     "test:support-translation": "node --import ./scripts/ts-test-resolver.mjs --experimental-strip-types scripts/test-support-translation.mjs",
     "test:support-pseudonymizer": "node --experimental-strip-types scripts/test-support-pseudonymizer.mjs",

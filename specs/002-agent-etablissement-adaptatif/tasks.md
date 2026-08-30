@@ -161,8 +161,13 @@
 - [x] T015B1 Rendre l'établissement obligatoire et immuable sur chaque demande,
   cloisonner création, suivi, files, détail, réponses, notes, traductions, pièces,
   métriques et reprise manuelle, puis transmettre et contrôler ce périmètre dans
-  les tâches email. Les tables techniques sans `institution_id` restent bloquées
-  dès que plusieurs établissements actifs existent.
+  les tâches email.
+- [x] T015B2 Rendre l'établissement obligatoire et immuable sur les exécutions
+  de jobs, échecs, événements de livraison et reçus webhook ; lier les jobs au
+  dossier du même établissement, cloisonner idempotence et santé, puis conserver
+  le verrou mono-établissement seulement sur la file email PGMQ encore partagée.
+  Le worker antivirus contrôle l'établissement du dossier, du message et de la
+  pièce avant tout téléchargement ou journal technique.
 - [x] T016 Implémenter les listes blanches d'outils et schémas d'entrée par compétence.
   Le contrat serveur exige une compétence publiée, la clé exacte de l'outil et
   un schéma fermé qui refuse les champs inconnus, types, valeurs et références

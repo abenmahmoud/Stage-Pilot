@@ -184,7 +184,11 @@ async function processRow(
   const [alreadyDone] = await db
     .select({ id: supportJobRuns.id })
     .from(supportJobRuns)
-    .where(and(eq(supportJobRuns.jobId, job.job_id), eq(supportJobRuns.status, "success")))
+    .where(and(
+      eq(supportJobRuns.institutionId, institutionId),
+      eq(supportJobRuns.jobId, job.job_id),
+      eq(supportJobRuns.status, "success")
+    ))
     .limit(1);
   if (alreadyDone) {
     await db.execute(sql`select pgmq.delete('support_jobs', ${row.msg_id}::bigint)`);
@@ -198,6 +202,7 @@ async function processRow(
       await tx
         .insert(supportJobRuns)
         .values({
+          institutionId,
           jobId: job.job_id,
           jobType: job.job_type,
           requestId: job.request_id,
@@ -215,6 +220,7 @@ async function processRow(
     await db
       .insert(supportJobRuns)
       .values({
+        institutionId,
         jobId: job.job_id,
         jobType: job.job_type,
         requestId: job.request_id,
@@ -230,6 +236,7 @@ async function processRow(
         await tx
           .insert(supportFailedJobs)
           .values({
+            institutionId,
             jobId: job.job_id,
             requestId: job.request_id,
             jobType: job.job_type,

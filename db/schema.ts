@@ -1285,11 +1285,14 @@ export const supportEvents = pgTable("support_events", {
 
 export const supportJobRuns = pgTable("support_job_runs", {
   id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  institutionId: uuid("institution_id")
+    .notNull()
+    .references(() => institutions.id, { onDelete: "restrict" }),
   jobId: uuid("job_id").notNull(),
   jobType: text("job_type").notNull(),
   requestId: uuid("request_id").references(() => supportRequests.id, {
     onDelete: "cascade",
-  }),
+  }).notNull(),
   attempt: integer("attempt").notNull(),
   status: text("status").notNull(),
   providerReference: text("provider_reference"),
@@ -1300,10 +1303,13 @@ export const supportJobRuns = pgTable("support_job_runs", {
 
 export const supportFailedJobs = pgTable("support_failed_jobs", {
   id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
-  jobId: uuid("job_id").notNull().unique(),
+  institutionId: uuid("institution_id")
+    .notNull()
+    .references(() => institutions.id, { onDelete: "restrict" }),
+  jobId: uuid("job_id").notNull(),
   requestId: uuid("request_id").references(() => supportRequests.id, {
     onDelete: "cascade",
-  }),
+  }).notNull(),
   jobType: text("job_type").notNull(),
   payloadRedacted: jsonb("payload_redacted").notNull(),
   attempts: integer("attempts").notNull(),
@@ -1316,6 +1322,9 @@ export const supportFailedJobs = pgTable("support_failed_jobs", {
 
 export const supportDeliveryEvents = pgTable("support_delivery_events", {
   id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  institutionId: uuid("institution_id")
+    .notNull()
+    .references(() => institutions.id, { onDelete: "restrict" }),
   messageId: uuid("message_id")
     .notNull()
     .references(() => supportMessages.id, { onDelete: "cascade" }),
@@ -1329,6 +1338,9 @@ export const supportDeliveryEvents = pgTable("support_delivery_events", {
 
 export const supportWebhookReceipts = pgTable("support_webhook_receipts", {
   id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  institutionId: uuid("institution_id")
+    .notNull()
+    .references(() => institutions.id, { onDelete: "restrict" }),
   provider: text("provider").notNull(),
   externalId: text("external_id").notNull(),
   payloadHash: text("payload_hash").notNull(),

@@ -107,6 +107,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             jsonb_build_object(
               'job_id', ${jobId}::uuid,
               'job_type', 'scan_attachment',
+              'institution_id', ${access.institutionId}::uuid,
               'request_id', ${access.requestId}::uuid,
               'attachment_id', ${attachment.id}::uuid,
               'idempotency_key', ${`scan-attachment:${attachment.id}`}::text,

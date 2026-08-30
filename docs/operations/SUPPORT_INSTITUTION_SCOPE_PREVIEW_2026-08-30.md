@@ -3,7 +3,9 @@
 ## Périmètre
 
 - Base : branche Supabase `guichet-lycee-preview` uniquement.
-- Migration : `20260830020355_scope_support_requests_by_institution.sql`.
+- Migrations : `20260830020355_scope_support_requests_by_institution.sql`,
+  `20260830041544_scope_support_technical_tables_by_institution.sql` et
+  `20260830041931_index_support_technical_scope_foreign_keys.sql`.
 - Données réelles, production, DNS, VPS, Webmail, ENT et PRONOTE : non modifiés.
 
 ## Contrat
@@ -13,8 +15,12 @@
 - Un agent utilise l'établissement de son adhésion active, en plus de son service.
 - Les agrégats et pièces passent par la demande cloisonnée.
 - Une tâche email porte l'établissement ; le worker vérifie la correspondance.
-- Les tables techniques historiques sans établissement restent utilisables
-  uniquement lorsqu'un seul établissement est actif ou en pilote.
+- Exécutions, échecs, livraisons et reçus webhook portent aussi l'établissement.
+- Le worker antivirus contrôle le dossier, le message et la pièce dans ce
+  périmètre avant tout téléchargement ; sa file de preview ne contenait aucune
+  ancienne tâche sans établissement.
+- La file email PGMQ reste partagée : son worker échoue fermé si plusieurs
+  établissements deviennent actifs ou pilotes.
 
 ## Idempotence
 
@@ -44,10 +50,25 @@ zéro donnée synthétique. RLS est activée et forcée ; `anon` et `authenticat
 n'ont aucun droit de lecture. Les avis Supabase propres à ce lot sont seulement
 informatifs : table privée sans politique client et index neuf encore inutilisé.
 
+Une seconde transaction fictive a ensuite :
+
+1. accepté le même reçu webhook dans deux établissements ;
+2. refusé sa répétition dans le même établissement ;
+3. refusé de lier un job au dossier d'un autre établissement ;
+4. refusé de changer l'établissement d'une exécution ;
+5. refusé de lier une livraison au message d'un autre établissement ;
+6. exécuté `ROLLBACK` avec zéro résidu.
+
+Les 28 exécutions historiques sont rattachées à leur dossier. Les quatre tables
+techniques ne contiennent aucune ligne sans établissement. RLS est activée et
+forcée ; `anon` et `authenticated` ne possèdent aucun droit direct. Les clés
+étrangères composites possèdent leurs index couvrants.
+
 ## Limites ouvertes
 
-- Ajouter l'établissement directement aux journaux de jobs, reçus webhook et
-  autres tables techniques avant d'autoriser plusieurs établissements actifs.
+- Séparer la file email PGMQ par établissement, ou utiliser un mécanisme de réclamation
+  qui ne peut jamais réserver la tâche d'un autre établissement, avant d'en
+  activer plusieurs sur la même base.
 - Ajouter les politiques RLS fondées sur les adhésions lorsque les API ne seront
   plus les seules à accéder aux demandes.
 - Réaliser la recette avec comptes agents nominatifs et MFA avant un pilote réel.

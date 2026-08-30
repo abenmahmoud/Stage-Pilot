@@ -11,14 +11,12 @@ import {
 } from "../../../../db/schema.js";
 import { requireSupportOperationsManager } from "../../../_shared/support-operations.js";
 import { handleApi, methodNotAllowed } from "../../../_shared/response.js";
-import { assertLegacySingleInstitutionMode } from "../../../_shared/institution-context.js";
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== "GET") return methodNotAllowed(res, ["GET"]);
 
   return handleApi(res, async () => {
     const context = await requireSupportOperationsManager(req);
-    await assertLegacySingleInstitutionMode(context.institutionId);
     const since = new Date(Date.now() - 24 * 60 * 60 * 1000);
     const waitingSince = new Date(Date.now() - 15 * 60 * 1000);
 
@@ -39,7 +37,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       .select({ count: sql<number>`count(*)`.mapWith(Number) })
       .from(supportWebhookReceipts)
       .where(
-        sql`${supportWebhookReceipts.createdAt} >= ${since} and ${supportWebhookReceipts.status} in ('error', 'rejected')`
+        and(
+          eq(supportWebhookReceipts.institutionId, context.institutionId),
+          sql`${supportWebhookReceipts.createdAt} >= ${since} and ${supportWebhookReceipts.status} in ('error', 'rejected')`
+        )
       );
 
     const [deliveryStats] = await db

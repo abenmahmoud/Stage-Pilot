@@ -14,6 +14,7 @@ const senderName = process.env.SUPPORT_FROM_NAME ?? "Lycee Blaise Cendrars";
 const agentEmail = process.env.SUPPORT_AGENT_EMAIL;
 const publicUrl = (process.env.SUPPORT_PUBLIC_URL ?? "").replace(/\/$/, "");
 const agentUrl = (process.env.SUPPORT_AGENT_URL ?? publicUrl).replace(/\/$/, "");
+const institutionSlug = process.env.SUPPORT_INSTITUTION_SLUG ?? "blaise-cendrars-sevran";
 
 function escapeHtml(value) {
   return value
@@ -68,12 +69,29 @@ async function sendEmail({ to, subject, textContent, htmlContent, idempotencyKey
   throw new Error(payload.code || `brevo_http_${response.status}`);
 }
 
-async function loadContext(requestId, contactId) {
+async function requireConfiguredInstitution() {
+  const [institution] = await sql`
+    select id
+    from public.institutions
+    where slug = ${institutionSlug} and status in ('pilot', 'active')
+    limit 1
+  `;
+  if (!institution) throw new Error("support_institution_unavailable");
+  const [{ count }] = await sql`
+    select count(*)::integer as count
+    from public.institutions
+    where status in ('pilot', 'active')
+  `;
+  if (count !== 1) throw new Error("shared_support_queue_requires_one_active_institution");
+  return institution.id;
+}
+
+async function loadContext(institutionId, requestId, contactId) {
   const [request] = await sql`
     select id, public_code, requester_type, requester_first_name,
            requester_last_name, category, subject
     from public.support_requests
-    where id = ${requestId}
+    where id = ${requestId} and institution_id = ${institutionId}
     limit 1
   `;
   if (!request) throw new Error("request_not_found");
@@ -89,8 +107,9 @@ async function loadContext(requestId, contactId) {
   return { request, email: contact?.value ?? null };
 }
 
-async function deliver(job) {
-  const context = await loadContext(job.request_id, job.contact_id);
+async function deliver(job, institutionId) {
+  if (job.institution_id !== institutionId) throw new Error("institution_mismatch");
+  const context = await loadContext(institutionId, job.request_id, job.contact_id);
   const request = context.request;
   const requesterName = `${request.requester_first_name} ${request.requester_last_name}`;
   if (isTestAddress(context.email)) return "skipped:test_address";
@@ -127,7 +146,7 @@ async function deliver(job) {
     const [message] = await sql`
       select body_text, delivery_status
       from public.support_messages
-      where id = ${job.message_id}
+      where id = ${job.message_id} and request_id = ${job.request_id}
       limit 1
     `;
     if (!message) throw new Error("reply_message_not_found");
@@ -145,7 +164,7 @@ async function deliver(job) {
     await sql`
       update public.support_messages
       set provider = 'brevo', provider_message_id = ${messageId}, delivery_status = 'sent'
-      where id = ${job.message_id}
+      where id = ${job.message_id} and request_id = ${job.request_id}
     `;
     return messageId;
   }
@@ -153,12 +172,17 @@ async function deliver(job) {
   throw new Error("unsupported_job_type");
 }
 
-async function processRow(row) {
+async function processRow(row, institutionId) {
   const job = typeof row.message === "string" ? JSON.parse(row.message) : row.message;
-  if (!job?.job_id || !job?.job_type || !job?.request_id) throw new Error("invalid_queue_payload");
+  if (!job?.job_id || !job?.job_type || !job?.institution_id || !job?.request_id) {
+    throw new Error("invalid_queue_payload");
+  }
+  if (job.institution_id !== institutionId) throw new Error("institution_mismatch");
   const [done] = await sql`
     select id from public.support_job_runs
-    where job_id = ${job.job_id} and status = 'success'
+    where institution_id = ${institutionId}
+      and job_id = ${job.job_id}
+      and status = 'success'
     limit 1
   `;
   if (done) {
@@ -168,15 +192,16 @@ async function processRow(row) {
 
   const startedAt = Date.now();
   try {
-    const providerReference = await deliver(job);
+    const providerReference = await deliver(job, institutionId);
     await sql.begin(async (transaction) => {
       await transaction`
         insert into public.support_job_runs (
-          job_id, job_type, request_id, attempt, status, provider_reference, duration_ms
+          institution_id, job_id, job_type, request_id, attempt, status,
+          provider_reference, duration_ms
         ) values (
-          ${job.job_id}, ${job.job_type}, ${job.request_id}, ${row.read_ct},
+          ${institutionId}, ${job.job_id}, ${job.job_type}, ${job.request_id}, ${row.read_ct},
           'success', ${providerReference}, ${Date.now() - startedAt}
-        ) on conflict (job_id, attempt) do nothing
+        ) on conflict (institution_id, job_id, attempt) do nothing
       `;
       await transaction`select pgmq.delete('support_jobs', ${row.msg_id}::bigint)`;
     });
@@ -185,23 +210,24 @@ async function processRow(row) {
     const errorCode = error instanceof Error ? error.message.slice(0, 120) : "unknown_error";
     await sql`
       insert into public.support_job_runs (
-        job_id, job_type, request_id, attempt, status, error_code, duration_ms
+        institution_id, job_id, job_type, request_id, attempt, status,
+        error_code, duration_ms
       ) values (
-        ${job.job_id}, ${job.job_type}, ${job.request_id}, ${row.read_ct},
+        ${institutionId}, ${job.job_id}, ${job.job_type}, ${job.request_id}, ${row.read_ct},
         'failure', ${errorCode}, ${Date.now() - startedAt}
-      ) on conflict (job_id, attempt) do nothing
+      ) on conflict (institution_id, job_id, attempt) do nothing
     `;
     if (row.read_ct >= 5) {
       await sql.begin(async (transaction) => {
         await transaction`
           insert into public.support_failed_jobs (
-            job_id, request_id, job_type, payload_redacted, attempts,
+            institution_id, job_id, request_id, job_type, payload_redacted, attempts,
             last_error_code, last_error_summary
           ) values (
-            ${job.job_id}, ${job.request_id}, ${job.job_type},
+            ${institutionId}, ${job.job_id}, ${job.request_id}, ${job.job_type},
             ${transaction.json({ messageId: job.message_id ?? null })}, ${row.read_ct},
             ${errorCode}, 'Echec apres plusieurs tentatives'
-          ) on conflict (job_id) do nothing
+          ) on conflict (institution_id, job_id) do nothing
         `;
         await transaction`select pgmq.archive('support_jobs', ${row.msg_id}::bigint)`;
       });
@@ -212,12 +238,13 @@ async function processRow(row) {
 }
 
 async function main() {
+  const institutionId = await requireConfiguredInstitution();
   const rows = await sql`
     select msg_id, read_ct, message
     from pgmq.read('support_jobs', 120, 25)
   `;
   const outcomes = [];
-  for (const row of rows) outcomes.push(await processRow(row));
+  for (const row of rows) outcomes.push(await processRow(row, institutionId));
   console.log(JSON.stringify({ claimed: rows.length, outcomes }));
   await sql.end();
 }

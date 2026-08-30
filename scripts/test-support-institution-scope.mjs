@@ -90,7 +90,7 @@ test("carries and verifies institution ownership through async email work", () =
   assert.match(supportWorker, /eq\(supportRequests\.institutionId, institutionId\)/);
 });
 
-test("fails closed while legacy technical tables remain single-institution", () => {
-  assert.match(inboundWebhook, /assertLegacySingleInstitutionMode\(institution\.id\)/);
+test("fails closed while the shared legacy job queue remains single-institution", () => {
+  assert.doesNotMatch(inboundWebhook, /assertLegacySingleInstitutionMode/);
   assert.match(supportWorker, /assertLegacySingleInstitutionMode\(institution\.id\)/);
 });

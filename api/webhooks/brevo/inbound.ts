@@ -12,10 +12,7 @@ import {
 import { HttpError, secretMatches } from "../../_shared/auth.js";
 import { handleApi, methodNotAllowed } from "../../_shared/response.js";
 import { assertNoForbiddenSupportSecret, sha256 } from "../../_shared/support.js";
-import {
-  assertLegacySingleInstitutionMode,
-  requireConfiguredInstitution,
-} from "../../_shared/institution-context.js";
+import { requireConfiguredInstitution } from "../../_shared/institution-context.js";
 
 type Mailbox = { Address?: string; Name?: string };
 type InboundAttachment = {
@@ -64,7 +61,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   return handleApi(res, async () => {
     authorizeWebhook(req);
     const institution = await requireConfiguredInstitution();
-    await assertLegacySingleInstitutionMode(institution.id);
     const items = (req.body as { items?: InboundItem[] } | undefined)?.items;
     if (!Array.isArray(items) || items.length === 0 || items.length > 50) {
       throw new HttpError(400, "Webhook invalide");
@@ -95,6 +91,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         await db
           .insert(supportWebhookReceipts)
           .values({
+            institutionId: institution.id,
             provider: "brevo-inbound",
             externalId,
             payloadHash,
@@ -122,6 +119,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         await db
           .insert(supportWebhookReceipts)
           .values({
+            institutionId: institution.id,
             provider: "brevo-inbound",
             externalId,
             payloadHash,
@@ -144,6 +142,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         await db
           .insert(supportWebhookReceipts)
           .values({
+            institutionId: institution.id,
             provider: "brevo-inbound",
             externalId,
             payloadHash,
@@ -161,11 +160,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       const outcome = await db.transaction(async (tx) => {
         const claimed = await tx.execute(sql<{ id: string }>`
           insert into public.support_webhook_receipts (
-            provider, external_id, payload_hash, status
+            institution_id, provider, external_id, payload_hash, status
           ) values (
-            'brevo-inbound', ${externalId}, ${payloadHash}, 'processing'
+            ${institution.id}::uuid, 'brevo-inbound', ${externalId}, ${payloadHash}, 'processing'
           )
-          on conflict (provider, external_id, payload_hash) do update
+          on conflict (institution_id, provider, external_id, payload_hash) do update
           set status = 'processing', error_code = null, processed_at = null
           where public.support_webhook_receipts.status in ('received', 'error')
           returning id
@@ -229,6 +228,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
               jsonb_build_object(
                 'job_id', ${randomUUID()}::uuid,
                 'job_type', 'import_brevo_attachment',
+                'institution_id', ${institution.id}::uuid,
                 'request_id', ${request.id}::uuid,
                 'message_id', ${message.id}::uuid,
                 'download_token', ${attachment.DownloadToken}::text,

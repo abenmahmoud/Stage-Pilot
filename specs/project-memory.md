@@ -1235,10 +1235,10 @@ taches et analyse de coherence avant une automatisation sensible.
   de routage uniquement le passage d'un service non vide à un autre service non
   vide. Les agrégats ne lisent ni motif, contenu, identité ou identifiant de
   dossier. T030 est désormais fermé.
-- Comme `support_requests` ne possède pas encore son `institution_id` de T015B,
-  le calcul des réorientations vérifie qu'un seul établissement est actif ou en
-  pilote et échoue fermé sinon. La recette fictive a obtenu deux changements,
-  une réorientation puis zéro dossier et événement après `ROLLBACK`.
+- Avant T015B1, le calcul des réorientations vérifiait qu'un seul établissement
+  était actif ou en pilote. Il filtre désormais l'établissement porté par
+  chaque demande. La recette fictive a obtenu deux changements, une
+  réorientation puis zéro dossier et événement après `ROLLBACK`.
 - L'audit externe Claude de ce lot n'a pas été exécuté sans fiche
   d'autorisation courante précisant modèle, périmètre et limite. Le dossier
   d'audit est prêt ; les vérifications Codex, Supabase et tests automatisés ont
@@ -1256,9 +1256,10 @@ taches et analyse de coherence avant une automatisation sensible.
   des messages par dossier. Une empreinte identique dans deux périmètres fictifs
   est acceptée ; sa répétition dans le même périmètre est refusée.
 - Les tâches email transportent l'établissement et le worker vérifie la
-  correspondance avec le dossier. Webhook, worker et santé échouent fermés dès
-  que plusieurs établissements actifs partagent encore les anciennes tables
-  techniques sans `institution_id`.
+  correspondance avec le dossier. À ce jalon, webhook, worker et santé
+  échouaient encore fermés dès que plusieurs établissements actifs partageaient
+  les tables techniques sans `institution_id`; T015B2 a ensuite levé ce verrou
+  pour les webhooks et la santé, mais pas encore pour la file email partagée.
 - La migration `20260830020355` est appliquée seulement à
   `guichet-lycee-preview`. RLS est forcée, `anon` et `authenticated` ne lisent
   pas les dossiers. Une recette a refusé le déplacement d'un dossier vers un
@@ -1266,6 +1267,30 @@ taches et analyse de coherence avant une automatisation sensible.
   `ROLLBACK` avec zéro résidu synthétique et zéro dossier sans établissement.
 - Les tests ciblés et le build passent. L'audit Claude reste non exécuté sans
   modèle et plafond de consommation explicitement autorisés pour cette mission.
+
+### Jalon du 30 août 2026 - journaux techniques cloisonnés
+
+- `support_job_runs`, `support_failed_jobs`, `support_delivery_events` et
+  `support_webhook_receipts` portent désormais un `institution_id` obligatoire,
+  référencé et immuable sur la branche de preview uniquement.
+- Les jobs et échecs ne peuvent référencer qu'une demande du même établissement.
+  Les événements de livraison sont contrôlés contre le message et sa demande.
+  Les idempotences techniques sont propres à l'établissement.
+- Le worker écrit ce périmètre dans ses journaux et échecs. Les webhooks entrant
+  et de livraison résolvent l'établissement configuré ; la santé filtre les
+  reçus sans verrou global. Le worker antivirus refuse une tâche sans
+  établissement et contrôle le dossier, le message et la pièce avant de lire le
+  stockage ou Brevo. Seule la file email PGMQ partagée conserve le verrou
+  mono-établissement pour éviter qu'un worker ne réclame la tâche d'un autre.
+- Les 28 exécutions présentes ont été rattachées par leur dossier ; aucun échec,
+  événement ou reçu n'était présent. Toutes les tables ont zéro ligne sans
+  établissement, RLS forcée et aucun droit direct `anon` ou `authenticated`.
+  La file antivirus de preview ne contenait aucune ancienne tâche à convertir.
+- Une transaction fictive a refusé rejeu local, changement d'établissement et
+  liens croisés, puis `ROLLBACK` avec zéro résidu. Les conseillers ne signalent
+  aucun défaut de sécurité bloquant ni clé étrangère sans index couvrant.
+- Le dossier d'audit Claude est préparé mais non exécuté sans modèle et plafond
+  de consommation explicitement autorisés.
 
 ## 8. Prochain ordre recommande
 

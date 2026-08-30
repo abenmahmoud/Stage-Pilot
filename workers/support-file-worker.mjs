@@ -34,9 +34,13 @@ function safeName(value) {
 
 async function downloadBrowserAttachment(job) {
   const [attachment] = await sql`
-    select id, storage_bucket, storage_path, original_name, detected_mime, declared_mime
-    from public.support_attachments
-    where id = ${job.attachment_id} and request_id = ${job.request_id}
+    select attachment.id, attachment.storage_bucket, attachment.storage_path,
+           attachment.original_name, attachment.detected_mime, attachment.declared_mime
+    from public.support_attachments as attachment
+    join public.support_requests as request on request.id = attachment.request_id
+    where attachment.id = ${job.attachment_id}
+      and attachment.request_id = ${job.request_id}
+      and request.institution_id = ${job.institution_id}
     limit 1
   `;
   if (!attachment) throw new Error("attachment_not_found");
@@ -54,6 +58,16 @@ async function downloadBrowserAttachment(job) {
 
 async function downloadInboundAttachment(job) {
   if (!brevoApiKey || !job.download_token) throw new Error("brevo_attachment_config_missing");
+  const [request] = await sql`
+    select request.id
+    from public.support_requests as request
+    join public.support_messages as message on message.request_id = request.id
+    where request.id = ${job.request_id}
+      and request.institution_id = ${job.institution_id}
+      and message.id = ${job.message_id}
+    limit 1
+  `;
+  if (!request) throw new Error("attachment_request_not_found");
   const response = await fetch(
     `https://api.brevo.com/v3/inbound/attachments/${encodeURIComponent(job.download_token)}`,
     { headers: { accept: "application/octet-stream", "api-key": brevoApiKey } }
@@ -125,7 +139,7 @@ async function scanJob(job) {
     await sql`
       update public.support_attachments
       set scan_status = 'blocked', scan_detail = 'antivirus_detected_threat'
-      where id = ${file.attachmentId}
+      where id = ${file.attachmentId} and request_id = ${job.request_id}
     `;
     return "blocked";
   }
@@ -139,22 +153,27 @@ async function scanJob(job) {
   await sql`
     update public.support_attachments
     set storage_bucket = 'support-clean', scan_status = 'clean', scan_detail = 'clamav_clean'
-    where id = ${file.attachmentId}
+    where id = ${file.attachmentId} and request_id = ${job.request_id}
   `;
   return "clean";
 }
 
 async function processMessage(row) {
   const job = typeof row.message === "string" ? JSON.parse(row.message) : row.message;
-  if (!job?.job_id || !job?.job_type || !job?.request_id) throw new Error("invalid_scan_job");
+  if (!job?.job_id || !job?.job_type || !job?.institution_id || !job?.request_id) {
+    throw new Error("invalid_scan_job");
+  }
   try {
     const result = await scanJob(job);
     await sql.begin(async (transaction) => {
       await transaction`
         insert into public.support_job_runs (
-          job_id, job_type, request_id, attempt, status, provider_reference
-        ) values (${job.job_id}, ${job.job_type}, ${job.request_id}, ${row.read_ct}, 'success', ${result})
-        on conflict (job_id, attempt) do nothing
+          institution_id, job_id, job_type, request_id, attempt, status, provider_reference
+        ) values (
+          ${job.institution_id}, ${job.job_id}, ${job.job_type}, ${job.request_id},
+          ${row.read_ct}, 'success', ${result}
+        )
+        on conflict (institution_id, job_id, attempt) do nothing
       `;
       await transaction`select pgmq.delete('support_file_scan', ${row.msg_id}::bigint)`;
     });
@@ -163,26 +182,30 @@ async function processMessage(row) {
     const code = error instanceof Error ? error.message.slice(0, 120) : "unknown_error";
     await sql`
       insert into public.support_job_runs (
-        job_id, job_type, request_id, attempt, status, error_code
-      ) values (${job.job_id}, ${job.job_type}, ${job.request_id}, ${row.read_ct}, 'failure', ${code})
-      on conflict (job_id, attempt) do nothing
+        institution_id, job_id, job_type, request_id, attempt, status, error_code
+      ) values (
+        ${job.institution_id}, ${job.job_id}, ${job.job_type}, ${job.request_id},
+        ${row.read_ct}, 'failure', ${code}
+      )
+      on conflict (institution_id, job_id, attempt) do nothing
     `;
     if (row.read_ct >= 5) {
       await sql.begin(async (transaction) => {
         await transaction`
           insert into public.support_failed_jobs (
-            job_id, request_id, job_type, payload_redacted, attempts,
+            institution_id, job_id, request_id, job_type, payload_redacted, attempts,
             last_error_code, last_error_summary
           ) values (
-            ${job.job_id}, ${job.request_id}, ${job.job_type},
+            ${job.institution_id}, ${job.job_id}, ${job.request_id}, ${job.job_type},
             ${transaction.json({ attachmentId: job.attachment_id ?? null })},
             ${row.read_ct}, ${code}, 'Échec du contrôle de fichier'
-          ) on conflict (job_id) do nothing
+          ) on conflict (institution_id, job_id) do nothing
         `;
         await transaction`
           update public.support_attachments
           set scan_status = 'scan_error', scan_detail = ${code}
           where id = ${job.attachment_id ?? "00000000-0000-0000-0000-000000000000"}
+            and request_id = ${job.request_id}
         `;
         await transaction`select pgmq.archive('support_file_scan', ${row.msg_id}::bigint)`;
       });

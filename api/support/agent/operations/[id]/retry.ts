@@ -44,6 +44,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       .innerJoin(supportRequests, eq(supportRequests.id, supportFailedJobs.requestId))
       .where(and(
         eq(supportFailedJobs.id, id),
+        eq(supportFailedJobs.institutionId, context.institutionId),
         eq(supportRequests.institutionId, context.institutionId),
         isNull(supportFailedJobs.retriedAt)
       ))
@@ -62,7 +63,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       const [claimed] = await tx
         .update(supportFailedJobs)
         .set({ retriedBy: context.user.id, retriedAt: new Date() })
-        .where(and(eq(supportFailedJobs.id, id), isNull(supportFailedJobs.retriedAt)))
+        .where(and(
+          eq(supportFailedJobs.id, id),
+          eq(supportFailedJobs.institutionId, context.institutionId),
+          isNull(supportFailedJobs.retriedAt)
+        ))
         .returning({ id: supportFailedJobs.id });
       if (!claimed) throw new HttpError(409, "Cette opération vient déjà d’être relancée");
 

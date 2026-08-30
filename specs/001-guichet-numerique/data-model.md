@@ -88,7 +88,7 @@ Contraintes uniques partielles sur `provider + provider_message_id`.
 
 - `id uuid primary key`
 - `request_id uuid not null references support_requests on delete cascade`
-- `message_id uuid references support_messages on delete cascade`
+- `message_id uuid not null references support_messages on delete cascade`
 - `concerns_type text not null`
 - `concerns_label text`
 - `document_type text not null`
@@ -181,9 +181,10 @@ réponse. Le payload ne contient aucun secret et minimise les données.
 Journal compact d'exécution et d'observabilité.
 
 - `id uuid primary key`
+- `institution_id uuid not null references institutions on delete restrict`
 - `job_id uuid not null`
 - `job_type text not null`
-- `request_id uuid`
+- `request_id uuid not null`
 - `attempt integer not null`
 - `status text not null`
 - `provider_reference text`
@@ -196,8 +197,9 @@ Journal compact d'exécution et d'observabilité.
 File d'échec administrable après épuisement des relances.
 
 - `id uuid primary key`
-- `job_id uuid unique not null`
-- `request_id uuid`
+- `institution_id uuid not null references institutions on delete restrict`
+- `job_id uuid not null`
+- `request_id uuid not null`
 - `job_type text not null`
 - `payload_redacted jsonb not null`
 - `attempts integer not null`
@@ -210,6 +212,7 @@ File d'échec administrable après épuisement des relances.
 ### `support_delivery_events`
 
 - `id uuid primary key`
+- `institution_id uuid not null references institutions on delete restrict`
 - `message_id uuid references support_messages on delete cascade`
 - `provider text not null`
 - `provider_event_id text not null`
@@ -218,13 +221,14 @@ File d'échec administrable après épuisement des relances.
 - `payload_redacted jsonb`
 - `created_at timestamptz not null default now()`
 
-Unique `(provider, provider_event_id, event_type)`.
+Unique `(institution_id, provider, provider_event_id, event_type)`.
 
 ### `support_webhook_receipts`
 
 Reçoit d'abord les webhooks pour garantir idempotence et audit.
 
 - `id uuid primary key`
+- `institution_id uuid not null references institutions on delete restrict`
 - `provider text not null`
 - `external_id text not null`
 - `payload_hash text not null`
@@ -233,7 +237,13 @@ Reçoit d'abord les webhooks pour garantir idempotence et audit.
 - `error_code text`
 - `created_at timestamptz not null default now()`
 
-Unique `(provider, external_id, payload_hash)`.
+Unique `(institution_id, provider, external_id, payload_hash)`.
+
+Pour les quatre tables techniques, l'établissement est immuable. Les jobs et
+échecs possèdent en plus une clé étrangère composite
+`(request_id, institution_id)` afin d'interdire tout rattachement à un dossier
+d'un autre établissement. Un événement de livraison est contrôlé contre le
+message et sa demande avant insertion.
 
 ### `support_callback_tasks`
 
