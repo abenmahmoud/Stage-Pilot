@@ -47,7 +47,12 @@ Les validateurs, interrupteurs, tables privées, versions, audiences opaques,
 livraisons, file idempotente, entrants et audit sont installés sur la preview et
 désactivés. L'API de brouillon, les modèles gouvernés, le dépôt documentaire
 privé et la file d'analyse PDF/DOCX sont également présents derrière les deux
-interrupteurs fermés. Les recettes fictives passent et la base ne contient
-aucun résidu de test. Le prochain lot technique est le raccordement du dépôt à
-l'interface fermée et une preuve antivirus de bout en bout ; les groupes réels,
-la publication et toute diffusion restent bloqués par T001 à T004.
+interrupteurs fermés. La saisie directe peut maintenant être corrigée par
+versions puis transmise en relecture humaine. L'aide IA rend une proposition
+structurée sans persistance fournisseur ; elle n'invente pas les informations
+manquantes et les laisse comme questions bloquantes. Les gardes SQL imposent la
+cohérence entre la racine et sa version courante et figent le contenu en revue.
+Les recettes fictives passent et la base ne contient aucun résidu de test. Le
+prochain lot technique est le raccordement du dépôt à l'interface fermée et une
+preuve antivirus de bout en bout ; les groupes réels, la publication et toute
+diffusion restent bloqués par T001 à T004.

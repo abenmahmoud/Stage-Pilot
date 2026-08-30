@@ -1521,6 +1521,30 @@ taches et analyse de coherence avant une automatisation sensible.
 - La revue Claude est préparée mais non exécutée : une mission courante doit
   encore préciser le modèle, le périmètre et la limite de consommation.
 
+### Jalon du 30 août 2026 - assistance structurée et relecture humaine
+
+- L'aide à la rédaction propose seulement de structurer, corriger ou simplifier
+  un brouillon direct. Le texte est borné, expurgé, traité avec `store: false`
+  et la sortie suit un schéma strict : message, faits, questions et notes.
+- Les secrets, champs inconnus et signaux d'injection sont refusés avant appel.
+  La proposition ne persiste rien et ne contient ni audience, ni validation, ni
+  publication, ni envoi. Un agent humain garde la main sur chaque changement.
+- Une correction enregistrée crée une nouvelle version privée au lieu d'écraser
+  la précédente. Une communication avec une question ouverte ne peut pas entrer
+  en relecture ; le passage exige la confirmation explicite `VERIFIER`.
+- Les déclencheurs SQL de preview imposent une séquence de versions continue,
+  interdisent les versions détachées et leur suppression, vérifient la cohérence
+  différée entre racine et version courante, et figent le contenu dès la
+  relecture. Onze tentatives fictives de contournement ont été refusées, puis le
+  `ROLLBACK` a laissé quatre compteurs à zéro.
+- Cinquante-quatre tests du centre, les builds avec module fermé et activé et
+  les deux audits npm passent. Les auditeurs Supabase ne signalent aucun
+  `WARN` ou `ERROR` lié aux communications après retrait d'un index dupliqué.
+- T010C et T012 sont terminées. T010 reste ouvert jusqu'à la publication
+  validée ; T011 reste ouvert jusqu'à la preuve antivirus de bout en bout.
+- Le brief Claude de ce lot est préparé mais non exécuté, faute de modèle exact
+  et de plafond de consommation propres à cette mission.
+
 ## 8. Prochain ordre recommande
 
 1. Publier et tester le pré-triage ordinateur portable avec des données fictives.

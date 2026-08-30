@@ -18,11 +18,13 @@ test("protects the route with the existing content manager roles", () => {
   assert.match(app, /allowedRoles=\{CONTENT_MANAGER_ROLES\}/);
 });
 
-test("shows only the deposit step as operational", () => {
+test("opens deposit and human review while keeping publication locked", () => {
   assert.match(page, /1<\/span>[\s\S]*Déposer/);
-  assert.match(page, /2<\/span>[\s\S]*Vérifier[\s\S]*Verrouillé/);
+  assert.match(page, /2<\/span>[\s\S]*Vérifier[\s\S]*Relecture humaine/);
   assert.match(page, /3<\/span>[\s\S]*Publier et informer[\s\S]*Verrouillé/);
   assert.match(page, /sourceType: "direct_text"/);
+  assert.match(page, /communications\/admin\/\$\{selectedDetail\.id\}\/review/);
+  assert.match(page, /confirmation: "VERIFIER"/);
   assert.doesNotMatch(page, /communication-send|communication-publish|audienceRef/);
 });
 
@@ -42,4 +44,13 @@ test("uses governed templates without opening publication or sending", () => {
   assert.match(page, /method: "PATCH"/);
   assert.match(page, /templateKey: editingTemplate\.templateKey/);
   assert.doesNotMatch(page, /COMMUNICATION_PUBLICATION_ENABLED|COMMUNICATION_SEND_ENABLED/);
+});
+
+test("shows bounded AI facts and keeps every uncertainty under human control", () => {
+  assert.match(page, /communications\/admin\/assist/);
+  assert.match(page, /Structurer/);
+  assert.match(page, /Informations à confirmer/);
+  assert.match(page, /removeFact/);
+  assert.match(page, /Marquer comme vérifié/);
+  assert.match(page, /selectedDetail\.openQuestions\.length > 0/);
 });

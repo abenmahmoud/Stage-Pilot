@@ -39,6 +39,10 @@
 - [x] T010B Construire l'étape `Déposer` pour le texte direct : liste privée,
   formulaire borné, état de doublon et rendu 320 px. `Vérifier`, publier,
   audience et envoi restent visibles comme étapes verrouillées.
+- [x] T010C Ajouter la modification versionnée et la demande de relecture
+  humaine. Chaque correction crée une version privée, les questions ouvertes
+  bloquent la relecture et la base refuse les états incohérents ou les mutations
+  du contenu en revue. Publication, audience et envoi restent verrouillés.
 - [ ] T011 Extraire localement le texte des PDF et DOCX autorisés.
 - [x] T011A Ajouter l'extracteur local borné PDF/DOCX. Il réutilise le moteur
   PDF.js/Mammoth et les précontrôles d'archives existants, ne contacte aucune IA
@@ -55,7 +59,10 @@
 - [ ] T011D Relier le dépôt à l'interface fermée puis exécuter une recette de
   bout en bout avec fichiers fictifs sur un moteur ClamAV autorisé. T011 ne sera
   fermé qu'après cette preuve ; aucune activation distante n'est implicite.
-- [ ] T012 Étendre l'aide IA avec sortie structurée et informations à confirmer.
+- [x] T012 Étendre l'aide IA avec sortie structurée et informations à confirmer.
+  L'aide propose uniquement structure, correction ou simplification, avec faits
+  bornés et questions ouvertes. Elle fonctionne sans persistance fournisseur,
+  refuse secrets et consignes d'injection, et ne peut ni valider ni publier.
 - [x] T013 Ajouter les modèles Hebdo, Urgent, Rentrée, Document, Événement et
   Rappel. Le catalogue sûr fonctionne sans donnée persistée ; seuls superadmin
   et proviseur peuvent enregistrer une personnalisation versionnée et auditée,

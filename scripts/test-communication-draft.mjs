@@ -14,6 +14,8 @@ const valid = {
   bodyMarkdown: "Contenu strictement fictif.",
   category: "information",
   templateKey: null,
+  structuredFacts: { dates: [], times: [], places: [], documents: [], actions: [] },
+  openQuestions: [],
 };
 
 test("parses a bounded direct draft and normalizes line endings", () => {
@@ -44,6 +46,8 @@ test("rejects secrets, unknown fields and unsupported source types", () => {
   assert.throws(() => parseCommunicationDraftInput({ ...valid, recipients: ["x@example.test"] }), /unknown_field/);
   assert.throws(() => parseCommunicationDraftInput({ ...valid, sourceType: "forwarded_email" }), /source_type_invalid/);
   assert.throws(() => parseCommunicationDraftInput({ ...valid, templateKey: "inconnu" }), /template_key_invalid/);
+  assert.throws(() => parseCommunicationDraftInput({ ...valid, structuredFacts: { dates: [], secret: [] } }), /structured_facts_invalid/);
+  assert.throws(() => parseCommunicationDraftInput({ ...valid, openQuestions: Array(13).fill("Question") }), /open_questions_invalid/);
 });
 
 test("keeps the API private, scoped, transactional and idempotent", () => {

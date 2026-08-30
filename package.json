@@ -39,6 +39,8 @@
     "test:communication-templates": "node --import ./scripts/ts-test-resolver.mjs --experimental-strip-types scripts/test-communication-templates.mjs",
     "test:communication-document-extractor": "node scripts/test-communication-document-extractor.mjs",
     "test:communication-document-intake": "node --experimental-strip-types scripts/test-communication-document-intake.mjs",
+    "test:communication-assist": "node --import ./scripts/ts-test-resolver.mjs --experimental-strip-types scripts/test-communication-assist.mjs",
+    "test:communication-review": "node scripts/test-communication-review.mjs",
     "test:support-concurrency": "node --experimental-strip-types scripts/test-support-concurrency.mjs",
     "test:support-device-memory": "node --experimental-strip-types scripts/test-support-device-memory.mjs",
     "test:support-callback-policy": "node --experimental-strip-types scripts/test-support-callback-policy.mjs",

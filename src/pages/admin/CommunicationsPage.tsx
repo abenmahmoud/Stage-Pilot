@@ -12,6 +12,8 @@ import {
   RefreshCw,
   Save,
   Send,
+  Sparkles,
+  X,
 } from "lucide-react";
 import { apiFetch } from "../../lib/api";
 import { COMMUNICATIONS_UI_ENABLED } from "../../lib/feature-flags";
@@ -27,7 +29,26 @@ type CommunicationRow = {
   updatedAt: string;
   title: string;
   summary: string;
+  structuredFacts: StructuredFacts;
+  openQuestions: string[];
 };
+
+type StructuredFacts = {
+  dates: string[];
+  times: string[];
+  places: string[];
+  documents: string[];
+  actions: string[];
+};
+
+type CommunicationDetail = CommunicationRow & {
+  bodyMarkdown: string;
+};
+
+type AssistSuggestion = Pick<
+  CommunicationDetail,
+  "title" | "summary" | "bodyMarkdown" | "structuredFacts" | "openQuestions"
+> & { reviewNotes: string[] };
 
 type CommunicationsPayload = { communications: CommunicationRow[] };
 
@@ -81,8 +102,18 @@ function emptyDraft() {
     bodyMarkdown: "",
     category: "information",
     templateKey: null as string | null,
+    structuredFacts: { dates: [], times: [], places: [], documents: [], actions: [] } as StructuredFacts,
+    openQuestions: [] as string[],
   };
 }
+
+const FACT_LABELS: Array<{ key: keyof StructuredFacts; label: string }> = [
+  { key: "dates", label: "Dates" },
+  { key: "times", label: "Horaires" },
+  { key: "places", label: "Lieux" },
+  { key: "documents", label: "Documents" },
+  { key: "actions", label: "Actions" },
+];
 
 export default function CommunicationsPage() {
   const { user } = useAuth();
@@ -91,8 +122,15 @@ export default function CommunicationsPage() {
   const [draft, setDraft] = useState(emptyDraft);
   const [editingTemplate, setEditingTemplate] = useState<CommunicationTemplate | null>(null);
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [selectedDetail, setSelectedDetail] = useState<CommunicationDetail | null>(null);
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [loading, setLoading] = useState(COMMUNICATIONS_UI_ENABLED);
+  const [detailLoading, setDetailLoading] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [assisting, setAssisting] = useState(false);
+  const [assistAction, setAssistAction] = useState<"structure" | "correct" | "simplify">("structure");
+  const [reviewNotes, setReviewNotes] = useState<string[]>([]);
+  const [requestingReview, setRequestingReview] = useState(false);
   const [savingTemplate, setSavingTemplate] = useState(false);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
@@ -119,11 +157,58 @@ export default function CommunicationsPage() {
     void load();
   }, [load]);
 
+  useEffect(() => {
+    if (!selectedId || !COMMUNICATIONS_UI_ENABLED) {
+      setSelectedDetail(null);
+      return;
+    }
+    let active = true;
+    setDetailLoading(true);
+    setError("");
+    void apiFetch<{ communication: CommunicationDetail }>(`communications/admin/${selectedId}`)
+      .then((payload) => {
+        if (active) setSelectedDetail(payload.communication);
+      })
+      .catch((reason) => {
+        if (active) setError(reason instanceof Error ? reason.message : "Lecture impossible.");
+      })
+      .finally(() => {
+        if (active) setDetailLoading(false);
+      });
+    return () => { active = false; };
+  }, [selectedId]);
+
   const selected = useMemo(
     () => rows.find((row) => row.id === selectedId) ?? null,
     [rows, selectedId]
   );
   const canManageTemplates = user?.role === "superadmin" || user?.role === "proviseur";
+
+  function startNew() {
+    setDraft(emptyDraft());
+    setEditingId(null);
+    setSelectedId(null);
+    setSelectedDetail(null);
+    setReviewNotes([]);
+    setNotice("");
+  }
+
+  function startEdit() {
+    if (!selectedDetail || selectedDetail.status !== "draft") return;
+    setDraft({
+      title: selectedDetail.title,
+      summary: selectedDetail.summary,
+      bodyMarkdown: selectedDetail.bodyMarkdown,
+      category: selectedDetail.category,
+      templateKey: selectedDetail.templateKey,
+      structuredFacts: selectedDetail.structuredFacts,
+      openQuestions: selectedDetail.openQuestions,
+    });
+    setEditingId(selectedDetail.id);
+    setSelectedId(null);
+    setReviewNotes([]);
+    setNotice("");
+  }
 
   function applyTemplate(templateKey: string) {
     if (!templateKey) {
@@ -138,7 +223,66 @@ export default function CommunicationsPage() {
       title: template.titleHint,
       summary: template.summaryHint,
       bodyMarkdown: template.bodyMarkdown,
+      structuredFacts: { dates: [], times: [], places: [], documents: [], actions: [] },
+      openQuestions: [],
     });
+  }
+
+  async function assistDraft() {
+    setAssisting(true);
+    setError("");
+    setNotice("");
+    try {
+      const payload = await apiFetch<{ suggestion: AssistSuggestion }>("communications/admin/assist", {
+        method: "POST",
+        body: JSON.stringify({
+          action: assistAction,
+          title: draft.title,
+          summary: draft.summary,
+          bodyMarkdown: draft.bodyMarkdown,
+          category: draft.category,
+          templateKey: draft.templateKey,
+        }),
+      });
+      const { reviewNotes: notes, ...suggestedDraft } = payload.suggestion;
+      setDraft((current) => ({ ...current, ...suggestedDraft }));
+      setReviewNotes(notes);
+      setNotice("La proposition est prête. Vérifiez chaque information avant de l’enregistrer.");
+    } catch (reason) {
+      setError(reason instanceof Error ? reason.message : "Aide à la rédaction indisponible.");
+    } finally {
+      setAssisting(false);
+    }
+  }
+
+  function removeFact(group: keyof StructuredFacts, index: number) {
+    setDraft((current) => ({
+      ...current,
+      structuredFacts: {
+        ...current.structuredFacts,
+        [group]: current.structuredFacts[group].filter((_, itemIndex) => itemIndex !== index),
+      },
+    }));
+  }
+
+  async function requestReview() {
+    if (!selectedDetail) return;
+    setRequestingReview(true);
+    setError("");
+    setNotice("");
+    try {
+      await apiFetch(`communications/admin/${selectedDetail.id}/review`, {
+        method: "POST",
+        body: JSON.stringify({ confirmation: "VERIFIER" }),
+      });
+      setNotice("La communication est transmise pour vérification humaine.");
+      await load();
+      setSelectedDetail((current) => current ? { ...current, status: "review" } : current);
+    } catch (reason) {
+      setError(reason instanceof Error ? reason.message : "Demande de vérification impossible.");
+    } finally {
+      setRequestingReview(false);
+    }
   }
 
   async function saveTemplate(event: FormEvent<HTMLFormElement>) {
@@ -176,16 +320,20 @@ export default function CommunicationsPage() {
     setError("");
     setNotice("");
     try {
-      const payload = await apiFetch<CreatePayload>("communications/admin", {
-        method: "POST",
+      const payload = await apiFetch<CreatePayload>(
+        editingId ? `communications/admin/${editingId}` : "communications/admin",
+        {
+        method: editingId ? "PATCH" : "POST",
         body: JSON.stringify({ sourceType: "direct_text", ...draft }),
       });
       setNotice(
         payload.duplicate
-          ? "Ce brouillon existait déjà. Aucun doublon n’a été créé."
-          : "Le brouillon privé est enregistré."
+          ? "Cette version existait déjà. Aucun doublon n’a été créé."
+          : editingId ? "Une nouvelle version privée est enregistrée." : "Le brouillon privé est enregistré."
       );
       setDraft(emptyDraft());
+      setEditingId(null);
+      setReviewNotes([]);
       setSelectedId(payload.communication.id);
       await load();
     } catch (reason) {
@@ -240,9 +388,9 @@ export default function CommunicationsPage() {
           <span className="flex h-7 w-7 items-center justify-center rounded-full bg-white text-sm font-bold text-emerald-800">1</span>
           <span><strong className="block text-sm">Déposer</strong><small className="text-white/75">Saisie privée</small></span>
         </li>
-        <li className="flex min-h-16 items-center gap-3 bg-white px-4 py-3 text-slate-400">
-          <span className="flex h-7 w-7 items-center justify-center rounded-full border border-slate-300 text-sm font-bold">2</span>
-          <span><strong className="block text-sm">Vérifier</strong><small>Verrouillé</small></span>
+        <li className="flex min-h-16 items-center gap-3 bg-white px-4 py-3 text-slate-700">
+          <span className="flex h-7 w-7 items-center justify-center rounded-full border border-emerald-700 text-sm font-bold text-emerald-800">2</span>
+          <span><strong className="block text-sm">Vérifier</strong><small className="text-slate-500">Relecture humaine</small></span>
         </li>
         <li className="flex min-h-16 items-center gap-3 bg-white px-4 py-3 text-slate-400">
           <span className="flex h-7 w-7 items-center justify-center rounded-full border border-slate-300 text-sm font-bold">3</span>
@@ -260,7 +408,7 @@ export default function CommunicationsPage() {
               <h2 id="communications-list-title" className="font-bold text-slate-950">Brouillons</h2>
               <p className="text-xs text-slate-500">{rows.length} élément{rows.length > 1 ? "s" : ""}</p>
             </div>
-            <button type="button" onClick={() => { setDraft(emptyDraft()); setSelectedId(null); setNotice(""); }} className="inline-flex items-center gap-2 rounded-md bg-slate-950 px-3 py-2 text-sm font-semibold text-white">
+            <button type="button" onClick={startNew} className="inline-flex items-center gap-2 rounded-md bg-slate-950 px-3 py-2 text-sm font-semibold text-white">
               <Plus className="h-4 w-4" /> Nouveau
             </button>
           </div>
@@ -272,7 +420,7 @@ export default function CommunicationsPage() {
               <button
                 key={row.id}
                 type="button"
-                onClick={() => setSelectedId(row.id)}
+                onClick={() => { setSelectedId(row.id); setEditingId(null); setReviewNotes([]); }}
                 className={`flex w-full items-start gap-3 px-4 py-3 text-left transition-colors ${selectedId === row.id ? "bg-emerald-50" : "hover:bg-slate-50"}`}
               >
                 <MessageSquareText className="mt-0.5 h-4 w-4 shrink-0 text-emerald-700" />
@@ -306,13 +454,49 @@ export default function CommunicationsPage() {
               <div><dt className="text-slate-500">Visibilité</dt><dd className="mt-1 font-semibold text-slate-950">Interne</dd></div>
               <div><dt className="text-slate-500">Version</dt><dd className="mt-1 font-semibold text-slate-950">{selected.currentVersion}</dd></div>
             </dl>
+            {detailLoading ? <div className="flex min-h-28 items-center justify-center"><LoaderCircle className="h-6 w-6 animate-spin text-emerald-700" /></div> : null}
+            {selectedDetail && !detailLoading ? (
+              <div className="mt-5 space-y-5">
+                <div>
+                  <h3 className="text-sm font-bold text-slate-950">Message</h3>
+                  <div className="mt-2 max-h-80 overflow-y-auto whitespace-pre-wrap border-y border-slate-200 py-4 text-sm leading-6 text-slate-700">{selectedDetail.bodyMarkdown}</div>
+                </div>
+                {FACT_LABELS.some(({ key }) => selectedDetail.structuredFacts[key].length > 0) ? (
+                  <div>
+                    <h3 className="text-sm font-bold text-slate-950">Éléments repérés</h3>
+                    <div className="mt-2 grid gap-3 sm:grid-cols-2">
+                      {FACT_LABELS.filter(({ key }) => selectedDetail.structuredFacts[key].length > 0).map(({ key, label }) => (
+                        <div key={key} className="border-l-2 border-emerald-600 pl-3">
+                          <p className="text-xs font-semibold uppercase text-slate-500">{label}</p>
+                          <ul className="mt-1 space-y-1 text-sm text-slate-700">{selectedDetail.structuredFacts[key].map((fact) => <li key={fact}>{fact}</li>)}</ul>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ) : null}
+                {selectedDetail.openQuestions.length > 0 ? (
+                  <div className="border-l-4 border-amber-400 bg-amber-50 p-4">
+                    <h3 className="text-sm font-bold text-amber-950">Informations à confirmer</h3>
+                    <ul className="mt-2 space-y-1 text-sm text-amber-900">{selectedDetail.openQuestions.map((question) => <li key={question}>{question}</li>)}</ul>
+                  </div>
+                ) : null}
+                {selectedDetail.status === "draft" ? (
+                  <div className="flex flex-col gap-3 border-t border-slate-200 pt-5 sm:flex-row sm:justify-end">
+                    <button type="button" onClick={startEdit} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-md border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700"><Pencil className="h-4 w-4" /> Modifier</button>
+                    <button type="button" onClick={() => void requestReview()} disabled={requestingReview || selectedDetail.openQuestions.length > 0} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-md bg-emerald-700 px-4 py-2 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-50">
+                      {requestingReview ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />} Demander la vérification
+                    </button>
+                  </div>
+                ) : null}
+              </div>
+            ) : null}
             <div className="mt-5 flex items-center gap-2 text-sm text-slate-500"><Clock3 className="h-4 w-4" /> Mis à jour {dateLabel(selected.updatedAt)}</div>
           </section>
         ) : (
           <form onSubmit={submit} className="min-w-0 space-y-5 border-t-4 border-emerald-700 bg-white p-4 shadow-sm sm:p-6">
             <div className="flex items-start gap-3">
               <FilePenLine className="mt-0.5 h-5 w-5 shrink-0 text-emerald-700" />
-              <div><h2 className="font-bold text-slate-950">Nouvelle communication</h2><p className="mt-1 text-sm text-slate-500">Enregistrée comme brouillon interne</p></div>
+              <div><h2 className="font-bold text-slate-950">{editingId ? "Modifier le brouillon" : "Nouvelle communication"}</h2><p className="mt-1 text-sm text-slate-500">{editingId ? "Une nouvelle version sera conservée" : "Enregistrée comme brouillon interne"}</p></div>
             </div>
 
             <div className="grid items-end gap-3 sm:grid-cols-[minmax(0,1fr)_auto]">
@@ -353,12 +537,73 @@ export default function CommunicationsPage() {
               <textarea required maxLength={100000} rows={12} value={draft.bodyMarkdown} onChange={(event) => setDraft((current) => ({ ...current, bodyMarkdown: event.target.value }))} className="mt-1.5 w-full resize-y rounded-md border border-slate-300 px-3 py-2.5 font-normal leading-6 text-slate-950 outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100" />
             </label>
 
+            <section className="border-y border-slate-200 py-4" aria-labelledby="communication-assist-title">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+                <div>
+                  <h3 id="communication-assist-title" className="flex items-center gap-2 text-sm font-bold text-slate-950"><Sparkles className="h-4 w-4 text-emerald-700" /> Aide à la rédaction</h3>
+                  <p className="mt-1 text-xs text-slate-500">La proposition ne remplace jamais votre vérification.</p>
+                </div>
+                <div className="flex flex-col gap-2 sm:flex-row">
+                  <div className="grid grid-cols-3 rounded-md border border-slate-300 bg-white p-0.5" aria-label="Type d’aide">
+                    {([['structure', 'Structurer'], ['correct', 'Corriger'], ['simplify', 'Simplifier']] as const).map(([value, label]) => (
+                      <button key={value} type="button" onClick={() => setAssistAction(value)} aria-pressed={assistAction === value} className={`min-h-9 px-2 text-xs font-semibold ${assistAction === value ? "rounded bg-slate-950 text-white" : "text-slate-600"}`}>{label}</button>
+                    ))}
+                  </div>
+                  <button type="button" onClick={() => void assistDraft()} disabled={assisting || draft.title.trim().length < 2 || draft.bodyMarkdown.trim().length === 0} className="inline-flex min-h-10 items-center justify-center gap-2 rounded-md bg-emerald-700 px-3 py-2 text-sm font-semibold text-white disabled:opacity-50">
+                    {assisting ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />} Préparer
+                  </button>
+                </div>
+              </div>
+              {reviewNotes.length > 0 ? (
+                <ul className="mt-3 space-y-1 border-l-2 border-emerald-600 pl-3 text-xs text-slate-600">{reviewNotes.map((note) => <li key={note}>{note}</li>)}</ul>
+              ) : null}
+            </section>
+
+            {FACT_LABELS.some(({ key }) => draft.structuredFacts[key].length > 0) ? (
+              <section aria-labelledby="draft-facts-title">
+                <h3 id="draft-facts-title" className="text-sm font-bold text-slate-950">Éléments repérés à vérifier</h3>
+                <div className="mt-3 grid gap-3 sm:grid-cols-2">
+                  {FACT_LABELS.filter(({ key }) => draft.structuredFacts[key].length > 0).map(({ key, label }) => (
+                    <div key={key} className="min-w-0 border-l-2 border-emerald-600 pl-3">
+                      <p className="text-xs font-semibold uppercase text-slate-500">{label}</p>
+                      <ul className="mt-1 space-y-1.5">
+                        {draft.structuredFacts[key].map((fact, index) => (
+                          <li key={`${fact}-${index}`} className="flex items-start justify-between gap-2 text-sm text-slate-700">
+                            <span className="min-w-0 break-words">{fact}</span>
+                            <button type="button" onClick={() => removeFact(key, index)} title="Retirer" aria-label={`Retirer ${fact}`} className="inline-flex h-7 w-7 shrink-0 items-center justify-center text-slate-500 hover:text-red-700"><X className="h-4 w-4" /></button>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  ))}
+                </div>
+              </section>
+            ) : null}
+
+            {draft.openQuestions.length > 0 ? (
+              <section className="border-l-4 border-amber-400 bg-amber-50 p-4" aria-labelledby="draft-questions-title">
+                <h3 id="draft-questions-title" className="text-sm font-bold text-amber-950">Informations à confirmer</h3>
+                <p className="mt-1 text-xs text-amber-800">Corrigez le message, puis retirez chaque question lorsque vous avez vérifié l’information.</p>
+                <ul className="mt-3 space-y-2">
+                  {draft.openQuestions.map((question, index) => (
+                    <li key={`${question}-${index}`} className="flex items-start justify-between gap-2 text-sm text-amber-950">
+                      <span className="min-w-0 break-words">{question}</span>
+                      <button type="button" onClick={() => setDraft((current) => ({ ...current, openQuestions: current.openQuestions.filter((_, itemIndex) => itemIndex !== index) }))} title="Marquer comme vérifié" aria-label={`Marquer comme vérifié : ${question}`} className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-amber-300 bg-white text-amber-900"><Check className="h-4 w-4" /></button>
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            ) : null}
+
             <div className="flex flex-col-reverse gap-3 border-t border-slate-200 pt-5 sm:flex-row sm:items-center sm:justify-between">
               <span className="inline-flex items-center gap-2 text-xs text-slate-500"><LockKeyhole className="h-4 w-4" /> Privé jusqu’à validation</span>
-              <button type="submit" disabled={saving} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-md bg-emerald-700 px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-50">
-                {saving ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
-                Enregistrer
-              </button>
+              <div className="flex flex-col-reverse gap-2 sm:flex-row">
+                {editingId ? <button type="button" onClick={startNew} className="min-h-11 rounded-md border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700">Annuler</button> : null}
+                <button type="submit" disabled={saving} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-md bg-emerald-700 px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-50">
+                  {saving ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+                  {editingId ? "Enregistrer une version" : "Enregistrer"}
+                </button>
+              </div>
             </div>
           </form>
         )}
@@ -403,7 +648,7 @@ export default function CommunicationsPage() {
       ) : null}
 
       <section className="grid gap-px overflow-hidden rounded-md border border-slate-200 bg-slate-200 sm:grid-cols-2" aria-label="Actions verrouillées">
-        <div className="flex items-center gap-3 bg-white px-4 py-3 text-slate-500"><Check className="h-4 w-4" /><span className="text-sm"><strong className="block text-slate-700">Validation humaine</strong>Aucune validation disponible</span></div>
+        <div className="flex items-center gap-3 bg-white px-4 py-3 text-slate-500"><Check className="h-4 w-4" /><span className="text-sm"><strong className="block text-slate-700">Vérification humaine</strong>Disponible lorsque les points ouverts sont résolus</span></div>
         <div className="flex items-center gap-3 bg-white px-4 py-3 text-slate-500"><Send className="h-4 w-4" /><span className="text-sm"><strong className="block text-slate-700">Publication et envoi</strong>Aucune action disponible</span></div>
       </section>
     </div>

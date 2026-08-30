@@ -39,6 +39,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           updatedAt: communications.updatedAt,
           title: communicationVersions.title,
           summary: communicationVersions.summary,
+          structuredFacts: communicationVersions.structuredFacts,
+          openQuestions: communicationVersions.openQuestions,
         })
         .from(communications)
         .innerJoin(
@@ -123,8 +125,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             title: input.title,
             summary: input.summary,
             bodyMarkdown: input.bodyMarkdown,
-            structuredFacts: {},
-            openQuestions: [],
+            structuredFacts: input.structuredFacts,
+            openQuestions: input.openQuestions,
             contentHash,
             createdBy: context.user.id,
           })
