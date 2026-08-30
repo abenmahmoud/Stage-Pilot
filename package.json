@@ -131,6 +131,7 @@
     "test:legacy-import": "node --experimental-strip-types scripts/test-legacy-import.mjs",
     "test:legacy-links": "node scripts/test-legacy-content-links.mjs",
     "test:legacy-routes": "node scripts/test-legacy-routes.mjs",
+    "test:legacy-coverage": "node scripts/test-legacy-coverage-baseline.mjs",
     "test:support-templates": "node --experimental-strip-types scripts/test-support-reply-templates.mjs",
     "test:site-content": "node --experimental-strip-types scripts/test-site-content.mjs",
     "test:public-content-feed": "node --import ./scripts/ts-test-resolver.mjs --experimental-strip-types scripts/test-public-content-feed.mjs",

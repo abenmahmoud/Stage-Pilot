@@ -2290,6 +2290,25 @@ taches et analyse de coherence avant une automatisation sensible.
 - Le brief Claude est préparé mais non exécuté, faute de modèle exact et de
   plafond propres à cette mission ; aucun jeton externe n’a été consommé.
 
+### Jalon du 30 août 2026 - matrice de couverture de l'ancien site
+
+- Les 28 contenus WordPress inventoriés figurent maintenant dans une matrice
+  versionnée avec leur brouillon, leur destination, leur classement et la
+  décision humaine encore attendue.
+- Les 27 anciennes adresses hors accueil restent reliées à `/site/<slug>` ;
+  l'accueil est explicitement traité comme une future bascule globale et sa
+  source demeure consultable dans le brouillon `accueil-historique`.
+- Le PDF du voyage à Londres de 49,8 Mo reste isolé comme média bloquant. Les
+  deux DOCX refusés ne sont rattachés à aucun des 28 contenus.
+- T018A est terminée, mais T018 reste ouverte jusqu'à la comparaison visuelle et
+  éditoriale par les responsables. Les cinq domaines comptent 382 identifiants
+  uniques : 263 lignes terminées et 119 ouvertes.
+- Le brief Claude est préparé mais non exécuté, faute de modèle exact et de
+  plafond propres à cette mission ; aucun jeton externe n'a été consommé.
+- L'audit npm des dépendances de production est à zéro. L'audit complet signale
+  néanmoins trois alertes hautes et six modérées dans la toolchain de
+  développement ; aucun `npm audit fix --force` cassant n'a été appliqué.
+
 ## 8. Prochain ordre recommande
 
 1. Publier et tester le pré-triage ordinateur portable avec des données fictives.

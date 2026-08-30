@@ -49,6 +49,10 @@
 ## Bascule
 
 - [ ] T018 Comparer l'ancien site et la preview rubrique par rubrique.
+- [x] T018A Versionner une matrice initiale des 28 contenus qui rapproche chaque
+  ancienne adresse de son brouillon et de sa destination, conserve les décisions
+  humaines ouvertes et isole le média bloquant. La comparaison visuelle et
+  éditoriale de T018 reste à exécuter par les services responsables.
 - [ ] T019 Préparer sauvegarde, retour arrière et fenêtre de bascule.
   La procédure est décrite dans
   `docs/operations/SITE_PRODUCTION_CUTOVER_RUNBOOK.md`. Les sauvegardes réelles,
