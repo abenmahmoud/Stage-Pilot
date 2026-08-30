@@ -235,6 +235,8 @@ voir sa réponse dans le dossier. L'agent traite tout depuis une seule file.
   email, tout en conservant le traitement idempotent des doublons HTTP 400.
 - [x] **T037M** Vérifier la taille réelle d'une pièce jointe publique avant sa
   copie en mémoire et refuser tout écart avec la réservation de dépôt.
+- [x] **T037N** Borner l'ancien import administratif à 10 Mo et 5 000 lignes,
+  nettoyer ses champs côté serveur et limiter ses deux requêtes à 5 Mo.
 - [x] **T037F** Exclure les contacts desactives des reponses, reserver les
   journaux globaux a un administrateur MFA et exiger `aal2` pour confirmer une
   identite scolaire depuis une source officielle.

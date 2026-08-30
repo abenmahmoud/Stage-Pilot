@@ -2855,3 +2855,13 @@ taches et analyse de coherence avant une automatisation sensible.
 - T037M est terminée avec des Blobs synthétiques, sans stockage ni donnée réelle.
 - Le brief Claude est préparé mais non exécuté, faute de modèle exact et de
   plafond propres à cette mission ; aucun jeton externe n'a été consommé.
+
+### Jalon du 30 août 2026 - ancien import administratif borné
+
+- L'ancien écran CSV/Excel refuse désormais plus de 10 Mo ou 5 000 lignes avant
+  de poursuivre ; le seuil couvre l'effectif annoncé de 4 200 personnes.
+- Les routes élèves et enseignants reconstruisent des lignes bornées depuis une
+  liste blanche et limitent leur corps HTTP à 5 Mo.
+- T037N est terminée avec des données synthétiques, sans export ni base réelle.
+- Le brief Claude est préparé mais non exécuté, faute de modèle exact et de
+  plafond propres à cette mission ; aucun jeton externe n'a été consommé.

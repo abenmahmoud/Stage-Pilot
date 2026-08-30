@@ -2,7 +2,8 @@ import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { db } from "../../db/index.js";
 import { professeurs, importLogs } from "../../db/schema.js";
 import { handleApi, methodNotAllowed } from "../_shared/response.js";
-import { requireRole } from "../_shared/auth.js";
+import { HttpError, requireRole } from "../_shared/auth.js";
+import { parseLegacyTeacherImport } from "../../shared/legacy-import-input.js";
 
 type ProfRow = {
   nom: string;
@@ -46,8 +47,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   await handleApi(res, async () => {
     const user = await requireRole(req, ["superadmin", "administration"]);
 
-    const body = (req.body ?? {}) as { rows?: ProfRow[] };
-    const rows = body.rows ?? [];
+    let rows: ProfRow[];
+    try {
+      rows = parseLegacyTeacherImport(req.body);
+    } catch (error) {
+      throw new HttpError(
+        400,
+        error instanceof Error ? error.message : "Les lignes à importer sont invalides"
+      );
+    }
 
     if (!Array.isArray(rows) || rows.length === 0) {
       return { imported: 0, doublons: 0, erreurs: 0, detailErreurs: [] };
@@ -150,3 +158,5 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     };
   });
 }
+
+export const config = { api: { bodyParser: { sizeLimit: "5mb" } } };

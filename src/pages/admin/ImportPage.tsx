@@ -2,6 +2,10 @@ import { useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import Papa from "papaparse";
 import { apiFetch } from "../../lib/api";
+import {
+  LEGACY_IMPORT_MAX_FILE_BYTES,
+  LEGACY_IMPORT_MAX_ROWS,
+} from "../../../shared/legacy-import-input";
 import { Card, CardContent, CardHeader } from "../../components/ui/Card";
 import {
   Upload,
@@ -160,6 +164,11 @@ export default function ImportPage() {
     setResult(null);
     setAccountResult(null);
 
+    if (file.size < 1 || file.size > LEGACY_IMPORT_MAX_FILE_BYTES) {
+      setError("Le fichier doit faire moins de 10 Mo.");
+      return;
+    }
+
     const ext = file.name.toLowerCase().split(".").pop();
 
     if (ext === "xlsx" || ext === "xls") {
@@ -183,6 +192,10 @@ export default function ImportPage() {
 
         if (data.length === 0) {
           setError("Le fichier est vide.");
+          return;
+        }
+        if (data.length > LEGACY_IMPORT_MAX_ROWS) {
+          setError(`Le fichier dépasse la limite de ${LEGACY_IMPORT_MAX_ROWS} lignes.`);
           return;
         }
 
@@ -220,6 +233,10 @@ export default function ImportPage() {
         const data = results.data;
         if (data.length === 0) {
           setError("Le fichier est vide.");
+          return;
+        }
+        if (data.length > LEGACY_IMPORT_MAX_ROWS) {
+          setError(`Le fichier dépasse la limite de ${LEGACY_IMPORT_MAX_ROWS} lignes.`);
           return;
         }
         const headers = Object.keys(data[0]).filter((h) => h && h.length > 0);

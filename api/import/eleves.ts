@@ -3,7 +3,8 @@ import { eq, sql, inArray } from "drizzle-orm";
 import { db } from "../../db/index.js";
 import { eleves, classes, stages, importLogs } from "../../db/schema.js";
 import { handleApi, methodNotAllowed } from "../_shared/response.js";
-import { requireRole } from "../_shared/auth.js";
+import { HttpError, requireRole } from "../_shared/auth.js";
+import { parseLegacyStudentImport } from "../../shared/legacy-import-input.js";
 
 type EleveRow = {
   nom: string;
@@ -75,8 +76,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   await handleApi(res, async () => {
     const user = await requireRole(req, ["superadmin", "administration"]);
 
-    const body = (req.body ?? {}) as { rows?: EleveRow[] };
-    const rows = body.rows ?? [];
+    let rows: EleveRow[];
+    try {
+      rows = parseLegacyStudentImport(req.body);
+    } catch (error) {
+      throw new HttpError(
+        400,
+        error instanceof Error ? error.message : "Les lignes à importer sont invalides"
+      );
+    }
 
     if (!Array.isArray(rows) || rows.length === 0) {
       return { imported: 0, doublons: 0, erreurs: 0 };
@@ -244,3 +252,5 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     };
   });
 }
+
+export const config = { api: { bodyParser: { sizeLimit: "5mb" } } };
