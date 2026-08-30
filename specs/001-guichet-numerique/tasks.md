@@ -239,6 +239,8 @@ voir sa réponse dans le dossier. L'agent traite tout depuis une seule file.
   nettoyer ses champs côté serveur et limiter ses deux requêtes à 5 Mo.
 - [x] **T037O** Fixer un plafond HTTP explicite avant validation sur l'assistant
   public et les deux aides IA de rédaction, sans modifier leurs limites métier.
+- [x] **T037P** Borner les corps des mutations de la console agent et désactiver
+  le parseur sur la reprise technique qui n'accepte aucun payload.
 - [x] **T037F** Exclure les contacts desactives des reponses, reserver les
   journaux globaux a un administrateur MFA et exiger `aal2` pour confirmer une
   identite scolaire depuis une source officielle.

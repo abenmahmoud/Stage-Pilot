@@ -138,3 +138,5 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return { queued: true, jobId: newJobId };
   });
 }
+
+export const config = { api: { bodyParser: false } };

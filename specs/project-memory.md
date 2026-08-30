@@ -2881,3 +2881,11 @@ taches et analyse de coherence avant une automatisation sensible.
 - T037O est terminée par analyse statique et tests locaux, sans appel OpenAI.
 - Le brief Claude est préparé mais non exécuté, faute de modèle exact et de
   plafond propres à cette mission ; aucun jeton externe n'a été consommé.
+
+### Jalon du 30 août 2026 - mutations agent bornées
+
+- Les décisions, modèles et mises à jour agent ont des plafonds HTTP de 4 ou
+  8 Ko ; la reprise technique sans payload désactive le parseur de corps.
+- T037P est terminée par tests locaux, sans compte, donnée ou base distante.
+- Le brief Claude est préparé mais non exécuté, faute de modèle exact et de
+  plafond propres à cette mission ; aucun jeton externe n'a été consommé.
