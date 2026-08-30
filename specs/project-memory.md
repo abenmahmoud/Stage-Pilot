@@ -1663,6 +1663,20 @@ taches et analyse de coherence avant une automatisation sensible.
 - Le brief Claude est préparé mais non exécuté, faute de modèle exact et de
   plafond de consommation propres à cette mission.
 
+### Jalon du 30 août 2026 - reprise transactionnelle Webmail
+
+- Les livraisons disposent désormais de trois champs HMAC : résolution,
+  commande et reçu Webmail. Ils sont uniques par établissement et immuables dès
+  leur première affectation.
+- La base exigera une commande avant `queued`, puis un reçu, une empreinte
+  fournisseur et une date avant `sent` ou tout état ultérieur.
+- La politique locale refuse les substitutions et travaux non actifs. Elle sait
+  terminer un doublon après coupure réseau sans régresser `delivered` ni créer
+  une deuxième référence fournisseur.
+- Huit tests couvrent transition, reprise, états avancés, incohérences, migration
+  et schéma. T018C et T029B sont terminés ; la migration n'est pas appliquée et
+  le worker distant reste à réaliser avec des données fictives.
+
 ### Jalon du 30 août 2026 - contrat de délivrabilité Brevo
 
 - Un vérificateur Bearer commun protège désormais les futurs webhooks entrants

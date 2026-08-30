@@ -1850,9 +1850,12 @@ export const communicationDeliveries = pgTable(
     version: integer("version").notNull(),
     contactRef: text("contact_ref").notNull(),
     channel: text("channel").notNull().default("email"),
-    status: text("status").notNull().default("prepared"),
-    idempotencyKeyHash: text("idempotency_key_hash").notNull(),
-    providerMessageRef: text("provider_message_ref"),
+      status: text("status").notNull().default("prepared"),
+      idempotencyKeyHash: text("idempotency_key_hash").notNull(),
+      resolutionHash: text("resolution_hash"),
+      commandHash: text("command_hash"),
+      providerMessageRef: text("provider_message_ref"),
+      webmailReceiptHash: text("webmail_receipt_hash"),
     attemptCount: integer("attempt_count").notNull().default(0),
     lastErrorCode: text("last_error_code"),
     queuedAt: timestamp("queued_at", { withTimezone: true }),
@@ -1867,9 +1870,15 @@ export const communicationDeliveries = pgTable(
     index("communication_deliveries_version_scope_fk_idx").on(table.versionId, table.institutionId, table.communicationId, table.version),
     index("communication_deliveries_scope_status_idx").on(table.institutionId, table.communicationId, table.status, table.updatedAt),
     index("communication_deliveries_version_idx").on(table.versionId, table.institutionId),
-    uniqueIndex("communication_deliveries_institution_provider_message_uidx")
-      .on(table.institutionId, table.providerMessageRef)
-      .where(sql`${table.providerMessageRef} is not null`),
+      uniqueIndex("communication_deliveries_institution_provider_message_uidx")
+        .on(table.institutionId, table.providerMessageRef)
+        .where(sql`${table.providerMessageRef} is not null`),
+      uniqueIndex("communication_deliveries_scope_command_uidx")
+        .on(table.institutionId, table.commandHash)
+        .where(sql`${table.commandHash} is not null`),
+      uniqueIndex("communication_deliveries_scope_webmail_receipt_uidx")
+        .on(table.institutionId, table.webmailReceiptHash)
+        .where(sql`${table.webmailReceiptHash} is not null`),
   ]
 );
 

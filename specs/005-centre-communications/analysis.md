@@ -141,3 +141,9 @@ de la commande, à la livraison et à sa clé d'idempotence. Il transforme le
 `message-id` Brevo en HMAC avant toute réponse. Une répétition renvoie la même
 empreinte avec l'issue `duplicate`; elle ne peut donc pas être confondue avec
 une nouvelle livraison. La route distante et sa transaction restent ouvertes.
+
+T018C ajoute les preuves persistantes nécessaires à une reprise : empreintes de
+résolution, commande et reçu, toutes bornées et uniques par établissement. La
+politique de complétion refuse un travail non `running`, une commande substituée
+ou un identifiant fournisseur différent. Un reçu idempotent peut réparer une
+coupure après envoi, mais ne fait jamais régresser un état déjà livré.

@@ -102,6 +102,10 @@
   de message fournisseur, ainsi que des dates bornées. Le brut Brevo et les
   coordonnées ne reviennent jamais. T018 reste ouvert jusqu'à l'endpoint séparé
   et à la recette fictive entre applications.
+- [x] T018C Persister les trois empreintes de poignée de main et définir la
+  transition atomique attendue : seule une commande exacte sous travail
+  `running` peut devenir `sent`; un reçu connu préserve tout état plus avancé.
+  T018 reste ouvert jusqu'au worker distant et à la recette fictive.
 - [ ] T019 Enregistrer livré, différé, rejeté, spam et désinscrit.
 - [x] T019A Définir le contrat Brevo de délivrabilité avant toute route. Un
   Bearer fort est comparé en temps constant ; seuls les événements documentés
@@ -198,6 +202,10 @@
   uniques, stables au rejeu. Les doublons, contacts inactifs, coordonnées,
   instantanés substitués et pages incohérentes sont refusés. T029 reste ouvert
   jusqu'à la panne et la reprise sur une file de preview.
+- [x] T029B Définir la reprise après coupure entre l'appel Brevo et sa réponse :
+  le même reçu peut terminer le travail sans remplacer un état livré ni créer
+  une seconde identité fournisseur. T029 reste ouvert jusqu'à la recette sur la
+  file de preview.
 - [x] T030 Vérifier PDF, image, DOCX, fichier invalide et données personnelles.
   Les PDF/DOCX fictifs sûrs sont extraits localement ; image, faux PDF et type
   incohérent sont refusés. Une adresse ou un code scolaire supprime le texte
