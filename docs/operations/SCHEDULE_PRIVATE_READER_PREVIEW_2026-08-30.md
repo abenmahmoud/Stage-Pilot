@@ -56,3 +56,16 @@ vérifié l'absence de droit de lecture client.
 Le `ROLLBACK` final laisse zéro établissement, source et créneau de recette. RLS
 reste activée et forcée ; le rôle serveur conserve seul la lecture. L'indexeur
 Supabase ne signale plus de clé étrangère sans index couvrant.
+
+Une seconde transaction a créé trois utilisateurs Auth fictifs, deux élèves, un
+responsable, un lien `guardian_of`, deux classes, un groupe et deux créneaux. Les
+références de l'annuaire étaient en minuscules afin de vérifier leur normalisation
+vers le format canonique de l'emploi du temps. L'élève A a obtenu exactement le
+cours de son groupe, aucun créneau de la classe B, et le responsable était lié à
+l'élève A mais pas à l'élève B. Le `ROLLBACK` final a confirmé zéro résidu Auth,
+établissement, identité et emploi du temps.
+
+Le fichier `supabase/tests/schedule_identity_read_security.test.sql` conserve les
+contrôles structurels RLS, privilèges, clé composite, fraîcheur et unicité. Le
+sélecteur multi-enfants reste hors de ce lot tant que le lycée n'a pas validé le
+libellé minimal visible par un responsable.

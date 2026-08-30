@@ -27,6 +27,7 @@ dans les lots T042D2A à T042D2C, sans modifier les fichiers.
 - `scripts/test-schedule-identity-reader.mjs`
 - `scripts/test-schedule-assistant.mjs`
 - `scripts/test-schedule-policy.mjs`
+- `supabase/tests/schedule_identity_read_security.test.sql`
 - `docs/operations/SCHEDULE_PRIVATE_READER_PREVIEW_2026-08-30.md`
 
 ## Livrable attendu

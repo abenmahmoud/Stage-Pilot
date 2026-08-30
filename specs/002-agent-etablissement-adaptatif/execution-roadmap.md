@@ -467,8 +467,11 @@ l'autorisation de quota définie par le propriétaire.
   fraîcheur, jamais la référence d'un personnel. L'absence d'identité, la source
   indisponible ou périmée, le conflit et la panne échouent de manière fermée et
   proposent un dossier suivi. Une phrase visant un tiers ne déclenche pas
-  l'outil. La sélection d'un enfant lié et la recette authentifiée restent
-  ouvertes dans T042D2.
+  l'outil. Une recette transactionnelle a relié trois utilisateurs Auth fictifs
+  à deux élèves et un responsable, vérifié qu'un élève voit exactement son cours
+  de groupe, refuse l'autre classe et que le responsable est lié au seul bon
+  enfant, puis `ROLLBACK` avec zéro résidu. T042D2 est fermé ; le sélecteur
+  multi-enfants reste isolé dans T042D2D et attend le libellé minimal autorisé.
 - Lot N6 : tests de non-régression, build, contrôle mobile et rapport d'écarts.
   **Partiellement validé en preview** : 200 transactions concurrentes sans perte
   ni reste après nettoyage, 135 contrôles de sécurité, build réussi, PWA active,

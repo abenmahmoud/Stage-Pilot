@@ -405,8 +405,10 @@
 - [x] T042D1A Reconnaître dans la conversation les demandes de prochain cours et
   de salle, les classer correctement et expliquer le contrôle d'identité avant
   toute consultation de la version réelle datée.
-- [ ] T042D2 Brancher cette politique sur les tables privées et les politiques RLS
-  après migration, sans importer les PDF réels avant autorisation.
+- [x] T042D2 Brancher cette politique sur les tables privées et les politiques RLS
+  après migration, sans importer les PDF réels avant autorisation. La recette
+  transactionnelle de preview avec utilisateurs Auth, identités, lien parent,
+  classes, groupe et créneaux fictifs a réussi puis laissé zéro résidu.
 - [x] T042D2A Créer en preview les créneaux structurés privés, leur période de
   validité et fraîcheur, les rendre immuables après activation et ajouter le
   lecteur serveur borné par établissement et références opaques autorisées. La
@@ -421,8 +423,12 @@
   demande explicite sur son propre prochain cours ou sa salle. Le résultat est
   déterministe, sourcé et sans référence personnel ; identité absente, source
   périmée, conflit ou panne provoquent un refus sûr et proposent un dossier. La
-  sélection d'un enfant autorisé et la recette avec comptes fictifs restent dans
-  T042D2.
+  recette avec comptes fictifs est validée ; la sélection d'un enfant autorisé
+  reste séparée dans T042D2D.
+- [ ] T042D2D Construire un sélecteur serveur des enfants liés qui ne transmet
+  jamais une référence scolaire brute depuis le navigateur, puis tester deux
+  enfants, relation expirée et relation d'un autre établissement. Cette étape
+  dépend du libellé minimal que le lycée autorisera à afficher au responsable.
 - [ ] T043 Ajouter le connecteur ou export PRONOTE officiel après autorisation écrite.
 - [ ] T043A Ajouter un flux officiel de changements de cours avec état de santé,
   heure de dernière synchronisation et blocage des réponses périmées.

@@ -1380,8 +1380,15 @@ taches et analyse de coherence avant une automatisation sensible.
 - Une réponse positive contient seulement matière, horaire, salle, état utile,
   source et fraîcheur. Identité absente, source périmée, conflit ou panne
   produisent un refus sûr sans appel au modèle et proposent un dossier suivi.
-- La recette authentifiée avec comptes et identités entièrement fictifs ainsi que
-  la sélection serveur d'un enfant lié restent requises avant de fermer T042D2.
+- La recette transactionnelle de preview a créé trois utilisateurs Auth fictifs,
+  deux identités élève, une identité responsable, un lien `guardian_of`, deux
+  classes, un groupe et deux cours. Elle a prouvé que l'élève A voit exactement
+  son cours de groupe, ne voit pas la classe B et que le responsable n'est lié
+  qu'à l'élève A. Le `ROLLBACK` a laissé zéro utilisateur, établissement, identité,
+  source et créneau de recette. T042D2 est fermé.
+- La sélection multi-enfants reste ouverte dans T042D2D : le navigateur ne devra
+  jamais choisir ni recevoir une référence scolaire brute. Le libellé minimal
+  visible doit être validé par le lycée avant cette interface.
 
 ## 8. Prochain ordre recommande
 
