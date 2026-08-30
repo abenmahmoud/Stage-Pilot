@@ -434,12 +434,16 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       db
         .select({
           id: supportAttachments.id,
+          messageId: supportAttachments.messageId,
+          direction: supportAttachments.direction,
           originalName: supportAttachments.originalName,
           documentType: supportAttachments.documentType,
           concernsLabel: supportAttachments.concernsLabel,
           detectedMime: supportAttachments.detectedMime,
           sizeBytes: supportAttachments.sizeBytes,
           scanStatus: supportAttachments.scanStatus,
+          uploadedByUser: supportAttachments.uploadedByUser,
+          releasedAt: supportAttachments.releasedAt,
           createdAt: supportAttachments.createdAt,
         })
         .from(supportAttachments)
@@ -530,7 +534,25 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       },
       contacts,
       messages,
-      attachments,
+      attachments: attachments.map((attachment) => ({
+        id: attachment.id,
+        messageId: attachment.messageId,
+        direction: attachment.direction,
+        originalName: attachment.originalName,
+        documentType: attachment.documentType,
+        concernsLabel: attachment.concernsLabel,
+        detectedMime: attachment.detectedMime,
+        sizeBytes: attachment.sizeBytes,
+        scanStatus: attachment.scanStatus,
+        releasedAt: attachment.releasedAt,
+        createdAt: attachment.createdAt,
+        canAttachToReply:
+          attachment.direction === "agent"
+          && attachment.uploadedByUser === user.id
+          && attachment.messageId === null
+          && attachment.releasedAt === null
+          && attachment.scanStatus === "clean",
+      })),
       callbacks: callbacks.map((callback) => ({
         id: callback.id,
         phoneContactId: callback.phoneContactId,

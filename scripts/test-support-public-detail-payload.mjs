@@ -16,7 +16,7 @@ test("validates public request details before rendering", () => {
 test("bounds all public detail collections and visible fields", () => {
   assert.match(page, /value\.messages\.length > 500/);
   assert.match(page, /value\.messages\.every\(isPublicSupportMessage\)/);
-  assert.match(page, /value\.attachments\.length > MAX_SUPPORT_FILES/);
+  assert.match(page, /value\.attachments\.length > MAX_SUPPORT_ATTACHMENTS_PER_REQUEST/);
   assert.match(page, /value\.attachments\.every\(isPublicSupportAttachment\)/);
   assert.match(page, /value\.sizeBytes <= MAX_SUPPORT_FILE_BYTES/);
   assert.match(page, /isPublicSupportContext\(record\.subjectContext\)/);

@@ -534,6 +534,15 @@ l'autorisation de quota définie par le propriétaire.
   restent des brouillons réversibles. L'éditeur T055 est fermé sur les preuves
   de la spécification 003. T053 et T054 demeurent ouvertes pour propriétaires,
   dates de vérification, relecture et publication humaines.
+- Lot N5ZN : documents dans les réponses agent. **Implémenté et vérifié sur la
+  preview** : un agent autorisé dépose au plus cinq documents dans la quarantaine
+  privée existante. Signature, taille et type sont contrôlés avant ClamAV. Un
+  document propre devient visible uniquement dans la même transaction que le
+  message validé ; un brouillon agent n'apparaît jamais dans le suivi public.
+  Les demandes ENT et email académique sans identité scolaire confirmée refusent
+  toute pièce sortante. L'email signale le document mais ne transporte aucun
+  binaire ; le suivi délivre une URL privée de 60 secondes. La migration n'a été
+  appliquée qu'à `guichet-lycee-preview`.
 
 ## Prochaine séquence verrouillée
 

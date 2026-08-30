@@ -1363,10 +1363,14 @@ export const supportAttachments = pgTable("support_attachments", {
   storagePath: text("storage_path").notNull().unique(),
   scanStatus: text("scan_status").notNull().default("quarantine"),
   scanDetail: text("scan_detail"),
+  direction: text("direction").notNull().default("requester"),
   uploadedBySession: uuid("uploaded_by_session").references(
     () => supportDeviceSessions.id,
     { onDelete: "set null" }
   ),
+  uploadedByUser: uuid("uploaded_by_user"),
+  releasedAt: timestamp("released_at", { withTimezone: true }),
+  releasedBy: uuid("released_by"),
   retentionUntil: timestamp("retention_until", { withTimezone: true }).notNull(),
   uploadedAt: timestamp("uploaded_at", { withTimezone: true }),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),

@@ -2,6 +2,7 @@ import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { and, eq, sql } from "drizzle-orm";
 import { db } from "../../db/index.js";
 import {
+  supportAttachments,
   supportContacts,
   supportFailedJobs,
   supportJobRuns,
@@ -146,12 +147,27 @@ async function deliver(job: SupportEmailQueueJob, institutionId: string): Promis
     if (message.deliveryStatus === "sent" || message.deliveryStatus === "delivered") {
       return "skipped:already_sent";
     }
+    const [attachmentSummary] = await db
+      .select({ count: sql<number>`count(*)::int` })
+      .from(supportAttachments)
+      .where(and(
+        eq(supportAttachments.messageId, job.message_id),
+        eq(supportAttachments.direction, "agent"),
+        eq(supportAttachments.scanStatus, "clean")
+      ));
+    const attachmentCount = Number(attachmentSummary?.count ?? 0);
+    const attachmentText = attachmentCount > 0
+      ? `\n\n${attachmentCount} document${attachmentCount > 1 ? "s sont" : " est"} disponible${attachmentCount > 1 ? "s" : ""} dans votre suivi sécurisé.`
+      : "";
+    const attachmentHtml = attachmentCount > 0
+      ? `<p><strong>${attachmentCount} document${attachmentCount > 1 ? "s sont" : " est"} disponible${attachmentCount > 1 ? "s" : ""} dans votre suivi sécurisé.</strong></p>`
+      : "";
     const link = trackingUrl(job.access_token);
     const result = await sendTransactionalEmail({
       to: { email: context.email, name: requesterName },
       subject: `${context.request.publicCode} - Réponse du lycée`,
-      textContent: `Bonjour ${requesterName},\n\n${message.bodyText}\n\nRépondre et suivre : ${link}`,
-      htmlContent: `<p>Bonjour ${escapeHtml(requesterName)},</p><p>${paragraphs(message.bodyText)}</p><p><a href="${escapeHtml(link)}">Répondre et suivre la demande</a></p>`,
+      textContent: `Bonjour ${requesterName},\n\n${message.bodyText}${attachmentText}\n\nRépondre et suivre : ${link}`,
+      htmlContent: `<p>Bonjour ${escapeHtml(requesterName)},</p><p>${paragraphs(message.bodyText)}</p>${attachmentHtml}<p><a href="${escapeHtml(link)}">Répondre et suivre la demande</a></p>`,
       idempotencyKey: job.job_id,
       replyTo: { email: requesterReplyAddress(context.request.publicCode), name: senderName },
       tags: ["lyceegest-support", "reponse-agent"],

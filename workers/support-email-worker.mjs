@@ -153,12 +153,27 @@ async function deliver(job, institutionId) {
     `;
     if (!message) throw new Error("reply_message_not_found");
     if (["sent", "delivered"].includes(message.delivery_status)) return "skipped:already_sent";
+    const [attachmentSummary] = await sql`
+      select count(*)::int as count
+      from public.support_attachments
+      where message_id = ${job.message_id}
+        and request_id = ${job.request_id}
+        and direction = 'agent'
+        and scan_status = 'clean'
+    `;
+    const attachmentCount = Number(attachmentSummary?.count ?? 0);
+    const attachmentText = attachmentCount > 0
+      ? `\n\n${attachmentCount} document${attachmentCount > 1 ? "s sont" : " est"} disponible${attachmentCount > 1 ? "s" : ""} dans votre suivi sécurisé.`
+      : "";
+    const attachmentHtml = attachmentCount > 0
+      ? `<p><strong>${attachmentCount} document${attachmentCount > 1 ? "s sont" : " est"} disponible${attachmentCount > 1 ? "s" : ""} dans votre suivi sécurisé.</strong></p>`
+      : "";
     const link = trackingUrl(job.access_token);
     const messageId = await sendEmail({
       to: { email: context.email, name: requesterName },
       subject: `${request.public_code} - Reponse du lycee`,
-      textContent: `Bonjour ${requesterName},\n\n${message.body_text}\n\nRepondre et suivre : ${link}`,
-      htmlContent: `<p>Bonjour ${escapeHtml(requesterName)},</p><p>${paragraphs(message.body_text)}</p><p><a href="${escapeHtml(link)}">Repondre et suivre la demande</a></p>`,
+      textContent: `Bonjour ${requesterName},\n\n${message.body_text}${attachmentText}\n\nRepondre et suivre : ${link}`,
+      htmlContent: `<p>Bonjour ${escapeHtml(requesterName)},</p><p>${paragraphs(message.body_text)}</p>${attachmentHtml}<p><a href="${escapeHtml(link)}">Repondre et suivre la demande</a></p>`,
       idempotencyKey: job.job_id,
       replyTo: { email: requesterReplyAddress(request.public_code), name: senderName },
       tags: ["lyceegest-support", "reponse-agent"],

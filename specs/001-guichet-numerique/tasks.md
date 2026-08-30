@@ -94,6 +94,10 @@ quarantaine. Une panne d'envoi externe n'affecte pas le dossier.
 - [x] **T018** Ajouter réponses, notes internes, transfert et clôture motivée.
   Les notes internes restent hors du fil public, le transfert conserve le dossier
   complet et une clôture exige un motif audité.
+- [x] **T018A** Permettre à un agent de joindre jusqu'à cinq documents à une
+  réponse : dépôt privé, contrôle de signature et antivirus, publication atomique
+  avec le message, lien public signé 60 secondes et blocage de toute pièce avant
+  confirmation d'identité pour une demande ENT ou email académique sensible.
 - [x] **T019** Ajouter les modèles de réponse et variables autorisées. Trois
   modèles prudents sont disponibles et les agents peuvent enregistrer un modèle
   limité aux variables `prenom`, `numero` et `objet`.

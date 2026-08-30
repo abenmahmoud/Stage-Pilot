@@ -116,6 +116,7 @@ const SCOLARITE_SERVICES_URL = "https://www.education.gouv.fr/scolarite-services
 const WEBMAIL_URL = "https://mail.lycee-blaise-cendrars-sevran.fr/";
 const WEBMAIL_ADMIN_URL = `${WEBMAIL_URL}admin`;
 const MAX_SUPPORT_FILES = 5;
+const MAX_SUPPORT_ATTACHMENTS_PER_REQUEST = 10;
 const MAX_SUPPORT_FILE_BYTES = 10 * 1024 * 1024;
 const SUPPORT_FILE_TYPES = [
   "application/pdf",
@@ -1609,6 +1610,7 @@ type SupportRequestDetail = {
   attachments: Array<{
     id: string;
     messageId: string | null;
+    direction: "requester" | "agent";
     documentType: string;
     originalName: string;
     detectedMime: string | null;
@@ -1897,7 +1899,10 @@ function ConnectedRequestsView({ ticketCode, onBack }: { ticketCode: string | nu
       event.target.value = "";
       return;
     }
-    const availableSlots = Math.max(0, MAX_SUPPORT_FILES - (detail?.attachments.length ?? 0));
+    const requesterAttachmentCount = detail?.attachments.filter(
+      (attachment) => attachment.direction === "requester"
+    ).length ?? 0;
+    const availableSlots = Math.max(0, MAX_SUPPORT_FILES - requesterAttachmentCount);
     const next = [...followupFiles, ...selected].slice(0, availableSlots);
     setFollowupFiles(next);
     if (followupFiles.length + selected.length > availableSlots) {
@@ -1946,6 +1951,30 @@ function ConnectedRequestsView({ ticketCode, onBack }: { ticketCode: string | nu
       setError(replyError instanceof Error ? replyError.message : "Le message n'a pas été envoyé");
     } finally {
       setReplying(false);
+    }
+  }
+
+  async function openPublicAttachment(id: string) {
+    if (!selectedCode) return;
+    const popup = window.open("about:blank", "_blank");
+    try {
+      const payload = await readApiResponse<unknown>(
+        fetch(`/api/support/attachments/${id}?code=${encodeURIComponent(selectedCode)}`, {
+          credentials: "include",
+        })
+      );
+      if (!isAllowedSupportAttachmentPayload(payload)) {
+        throw new Error("Lien temporaire de fichier invalide");
+      }
+      if (popup) {
+        popup.opener = null;
+        popup.location.href = payload.url;
+      } else {
+        window.open(payload.url, "_blank", "noopener,noreferrer");
+      }
+    } catch (openError) {
+      popup?.close();
+      setError(openError instanceof Error ? openError.message : "Fichier indisponible");
     }
   }
 
@@ -2041,7 +2070,7 @@ function ConnectedRequestsView({ ticketCode, onBack }: { ticketCode: string | nu
               {detail.attachments.length > 0 ? (
                 <div className="lycee-tracked-files">
                   {detail.attachments.map((attachment) => (
-                    <div key={attachment.id}><FileText aria-hidden="true" /><span><strong>{attachment.originalName}</strong><small>{attachment.scanStatus === "clean" ? "Vérifié" : attachment.scanStatus === "blocked" ? "Refusé" : "Contrôle en cours"}</small></span></div>
+                    <div key={attachment.id}><FileText aria-hidden="true" /><span><strong>{attachment.originalName}</strong><small>{attachment.direction === "agent" ? "Document du lycée · " : "Votre document · "}{attachment.scanStatus === "clean" ? "vérifié" : attachment.scanStatus === "blocked" ? "refusé" : "contrôle en cours"}</small></span>{attachment.scanStatus === "clean" ? <button type="button" onClick={() => void openPublicAttachment(attachment.id)} aria-label={`Ouvrir ${attachment.originalName}`}><ExternalLink aria-hidden="true" /></button> : null}</div>
                   ))}
                 </div>
               ) : null}
@@ -2049,7 +2078,7 @@ function ConnectedRequestsView({ ticketCode, onBack }: { ticketCode: string | nu
                 <label><span>Ajouter un message</span><textarea id="lycee-followup-message" name="followupMessage" rows={3} value={reply} onChange={(event) => setReply(event.target.value)} placeholder="Précisez votre demande ou répondez à l’agent." maxLength={5000} /></label>
                 <input id="lycee-followup-files" name="followupFiles" aria-label="Documents à ajouter au suivi" ref={followupFileInputRef} className="lycee-file-input" type="file" multiple accept={SUPPORT_FILE_TYPES.join(",")} onChange={selectFollowupFiles} />
                 {followupFiles.length > 0 ? <div className="lycee-selected-files lycee-followup-files">{followupFiles.map((file, index) => <div key={`${file.name}-${file.lastModified}`}><FileText aria-hidden="true" /><span><strong>{file.name}</strong><small>{(file.size / 1024 / 1024).toFixed(1)} Mo</small></span><button type="button" onClick={() => setFollowupFiles((current) => current.filter((_, fileIndex) => fileIndex !== index))}>Retirer</button></div>)}</div> : null}
-                <div className="lycee-followup-actions"><button className="lycee-secondary-action" type="button" disabled={(detail.attachments.length + followupFiles.length) >= MAX_SUPPORT_FILES} onClick={() => followupFileInputRef.current?.click()}><Paperclip aria-hidden="true" /> Joindre</button><button className="lycee-primary-action" type="submit" disabled={replying || !reply.trim()}>{replying ? "Envoi…" : "Envoyer"}<Send aria-hidden="true" /></button></div>
+                <div className="lycee-followup-actions"><button className="lycee-secondary-action" type="button" disabled={(detail.attachments.filter((attachment) => attachment.direction === "requester").length + followupFiles.length) >= MAX_SUPPORT_FILES} onClick={() => followupFileInputRef.current?.click()}><Paperclip aria-hidden="true" /> Joindre</button><button className="lycee-primary-action" type="submit" disabled={replying || !reply.trim()}>{replying ? "Envoi…" : "Envoyer"}<Send aria-hidden="true" /></button></div>
               </form>
             </article>
           ) : null}
@@ -2403,7 +2432,17 @@ type AgentRequestDetail = {
   request: AgentRequest;
   contacts: Array<{ id: string; channel: string; value: string; isPrimary: boolean; isVerified: boolean }>;
   messages: Array<{ id: string; direction: string; authorLabel: string | null; bodyText: string; deliveryStatus: string; createdAt: string }>;
-  attachments: Array<{ id: string; originalName: string; scanStatus: string; sizeBytes: number; createdAt: string }>;
+  attachments: Array<{
+    id: string;
+    messageId: string | null;
+    direction: "requester" | "agent";
+    originalName: string;
+    scanStatus: string;
+    sizeBytes: number;
+    releasedAt: string | null;
+    createdAt: string;
+    canAttachToReply: boolean;
+  }>;
   callbacks: Array<{
     id: string;
     phoneContactId: string;
@@ -2596,6 +2635,7 @@ function isPublicSupportAttachment(value: unknown): value is SupportRequestDetai
   return isRecord(value)
     && typeof value.id === "string" && /^[0-9a-f]{8}-[0-9a-f-]{27}$/i.test(value.id)
     && (value.messageId === null || (typeof value.messageId === "string" && /^[0-9a-f]{8}-[0-9a-f-]{27}$/i.test(value.messageId)))
+    && ["requester", "agent"].includes(String(value.direction))
     && isBoundedString(value.documentType, 100)
     && isBoundedString(value.originalName, 255)
     && (value.detectedMime === null || isBoundedString(value.detectedMime, 150))
@@ -2611,7 +2651,7 @@ function isPublicSupportRequestDetailPayload(value: unknown): value is SupportRe
     || value.messages.length > 500
     || !value.messages.every(isPublicSupportMessage)
     || !Array.isArray(value.attachments)
-    || value.attachments.length > MAX_SUPPORT_FILES
+    || value.attachments.length > MAX_SUPPORT_ATTACHMENTS_PER_REQUEST
     || !value.attachments.every(isPublicSupportAttachment)) return false;
   const messageIds = value.messages.map((message) => message.id);
   const attachmentIds = value.attachments.map((attachment) => attachment.id);
@@ -2636,6 +2676,37 @@ function isSupportUploadReservationPayload(value: unknown): value is {
     || !/^[A-Za-z0-9][A-Za-z0-9._-]{0,89}$/.test(segments[2])) return false;
   return isBoundedString(token, 4_096)
     && /^[A-Za-z0-9._~-]+$/.test(token);
+}
+
+async function uploadAgentSupportFile(publicCode: string, file: File): Promise<string> {
+  const reservation = await apiFetch<unknown>(`support/agent/requests/${publicCode}/attachments`, {
+    method: "POST",
+    body: JSON.stringify({
+      fileName: file.name,
+      mimeType: file.type,
+      sizeBytes: file.size,
+    }),
+  });
+  if (!isSupportUploadReservationPayload(reservation)) {
+    throw new Error("La réservation du fichier reçue est invalide.");
+  }
+
+  const { error: uploadError } = await supabase.storage
+    .from(reservation.upload.bucket)
+    .uploadToSignedUrl(reservation.upload.path, reservation.upload.token, file, {
+      contentType: file.type,
+      upsert: false,
+    });
+  if (uploadError) throw new Error(`Échec de l'envoi de ${file.name}`);
+
+  const confirmation = await apiFetch<unknown>(
+    `support/agent/attachments/${reservation.attachment.id}/confirm`,
+    { method: "POST", body: "{}" }
+  );
+  if (!isSupportAttachmentConfirmationPayload(confirmation, reservation.attachment.id)) {
+    throw new Error("La confirmation du fichier reçue est invalide.");
+  }
+  return reservation.attachment.id;
 }
 
 function isAssistantStringList(value: unknown): value is string[] {
@@ -2776,6 +2847,10 @@ function isAgentMessage(value: unknown): value is AgentRequestDetail["messages"]
 function isAgentAttachment(value: unknown): value is AgentRequestDetail["attachments"][number] {
   return isRecord(value)
     && ["id", "originalName", "scanStatus", "createdAt"].every((field) => typeof value[field] === "string")
+    && isStringOrNull(value.messageId)
+    && ["requester", "agent"].includes(String(value.direction))
+    && isStringOrNull(value.releasedAt)
+    && typeof value.canAttachToReply === "boolean"
     && isNonNegativeInteger(value.sizeBytes);
 }
 
@@ -2931,6 +3006,8 @@ function ConnectedAgentView({ onBack }: { onBack: () => void }) {
   const [translationDraft, setTranslationDraft] = useState<AgentTranslationDraft | null>(null);
   const [translationValidated, setTranslationValidated] = useState(false);
   const [translating, setTranslating] = useState(false);
+  const [agentUploading, setAgentUploading] = useState(false);
+  const [selectedAgentAttachmentIds, setSelectedAgentAttachmentIds] = useState<string[]>([]);
   const [internalNote, setInternalNote] = useState("");
   const [callbackOutcome, setCallbackOutcome] = useState("");
   const [closureReason, setClosureReason] = useState("");
@@ -2947,6 +3024,7 @@ function ConnectedAgentView({ onBack }: { onBack: () => void }) {
   const queueLoadIdRef = useRef(0);
   const detailLoadIdRef = useRef(0);
   const selectedCodeRef = useRef<string | null>(null);
+  const agentFileInputRef = useRef<HTMLInputElement>(null);
 
   async function loadQueue() {
     const loadId = ++queueLoadIdRef.current;
@@ -3013,6 +3091,7 @@ function ConnectedAgentView({ onBack }: { onBack: () => void }) {
     setReply("");
     setTranslationDraft(null);
     setTranslationValidated(false);
+    setSelectedAgentAttachmentIds([]);
     setInternalNote("");
     setCallbackOutcome("");
     setClosureReason("");
@@ -3164,9 +3243,11 @@ function ConnectedAgentView({ onBack }: { onBack: () => void }) {
               validated: true,
             },
           } : {}),
+          attachmentIds: selectedAgentAttachmentIds,
         }),
       });
       setReply("");
+      setSelectedAgentAttachmentIds([]);
       clearTranslation();
       setDetail(await fetchAgentRequestDetail(selectedCode));
       await loadQueue();
@@ -3183,6 +3264,69 @@ function ConnectedAgentView({ onBack }: { onBack: () => void }) {
       setError(message);
     } finally {
       setSaving(false);
+    }
+  }
+
+  async function selectAgentFiles(event: React.ChangeEvent<HTMLInputElement>) {
+    const code = selectedCode;
+    const request = detail?.request;
+    const files = Array.from(event.target.files ?? []);
+    event.target.value = "";
+    if (!code || !request || files.length === 0) return;
+    const invalid = files.find(
+      (file) => !SUPPORT_FILE_TYPES.includes(file.type) || file.size > MAX_SUPPORT_FILE_BYTES
+    );
+    if (invalid) {
+      setError("Formats acceptés : PDF, image, texte, Word ou Excel, jusqu’à 10 Mo.");
+      return;
+    }
+    const pendingCount = detail.attachments.filter(
+      (attachment) => attachment.direction === "agent" && attachment.messageId === null
+    ).length;
+    const acceptedFiles = files.slice(0, Math.max(0, MAX_SUPPORT_FILES - pendingCount));
+    if (acceptedFiles.length !== files.length || acceptedFiles.length === 0) {
+      setError("Une réponse peut préparer au maximum 5 documents.");
+      if (acceptedFiles.length === 0) return;
+    }
+
+    setAgentUploading(true);
+    try {
+      const uploadedIds: string[] = [];
+      for (const file of acceptedFiles) {
+        uploadedIds.push(await uploadAgentSupportFile(code, file));
+      }
+      let latest = await fetchAgentRequestDetail(code);
+      for (let attempt = 0; attempt < 8; attempt += 1) {
+        if (selectedCodeRef.current !== code) return;
+        const uploaded = latest.attachments.filter((attachment) => uploadedIds.includes(attachment.id));
+        if (uploaded.length === uploadedIds.length && uploaded.every((attachment) => (
+          ["clean", "blocked", "scan_error"].includes(attachment.scanStatus)
+        ))) break;
+        await new Promise((resolve) => window.setTimeout(resolve, 1_500));
+        latest = await fetchAgentRequestDetail(code);
+      }
+      if (selectedCodeRef.current !== code) return;
+      setDetail(latest);
+      const cleanIds = latest.attachments
+        .filter((attachment) => uploadedIds.includes(attachment.id) && attachment.canAttachToReply)
+        .map((attachment) => attachment.id);
+      setSelectedAgentAttachmentIds((current) => [...new Set([...current, ...cleanIds])]);
+      if (cleanIds.length !== uploadedIds.length) {
+        setError("Un document est encore en contrôle ou a été refusé. Actualisez avant l’envoi.");
+      } else {
+        setError(null);
+      }
+    } catch (uploadError) {
+      setError(uploadError instanceof Error ? uploadError.message : "Le document n’a pas été préparé");
+      if (selectedCodeRef.current === code) {
+        try {
+          setDetail(await fetchAgentRequestDetail(code));
+        } catch {
+          // Le message d'échec du dépôt reste prioritaire.
+        }
+      }
+    } finally {
+      setAgentUploading(false);
     }
   }
 
@@ -3334,6 +3478,9 @@ function ConnectedAgentView({ onBack }: { onBack: () => void }) {
   const lastFinishedCallback = [...(detail?.callbacks ?? [])]
     .reverse()
     .find((callback) => ["done", "cancelled"].includes(callback.status)) ?? null;
+  const agentDraftAttachments = detail?.attachments.filter(
+    (attachment) => attachment.direction === "agent" && attachment.messageId === null
+  ) ?? [];
   const agentError = queueLoadError ?? detailLoadError ?? error;
   const needsAgentSecurity = Boolean(
     agentError && /double vérification|vérification renforcée/i.test(agentError)
@@ -3397,7 +3544,7 @@ function ConnectedAgentView({ onBack }: { onBack: () => void }) {
               <section className="lycee-agent-identity" data-sensitive={["ent", "email_academique"].includes(selected.category)}><BadgeCheck aria-hidden="true" /><span><strong>{identityStatusLabels[selected.identityStatus]}</strong><small>{["ent", "email_academique"].includes(selected.category) ? "Demande sensible : ne transmettre aucun identifiant avant rapprochement avec une liste officielle." : "Adaptez le contrôle au niveau de sensibilité de la réponse."}</small></span><select aria-label="Niveau de vérification de l’identité" value={selected.identityStatus} disabled={saving} onChange={(event) => { const identityStatus = event.target.value as IdentityStatus; const identityMethod = identityStatus === "identite_confirmee" ? "official_roster" : identityStatus === "contact_verifie" ? (detail.contacts.some((contact) => contact.channel === "email" && contact.isVerified) ? "email_magic_link" : "phone_callback") : undefined; void updateRequest({ identityStatus, identityMethod }); }}><option value="non_verifiee">Coordonnées déclarées</option><option value="contact_verifie">Contact vérifié</option><option value="identite_confirmee">Identité confirmée dans la liste</option></select></section>
               {detail.duplicateReview ? <section className="lycee-agent-duplicate" data-status={detail.duplicateReview.status}><Copy aria-hidden="true" /><span><strong>{detail.duplicateReview.status === "pending" ? "Possible doublon à vérifier" : detail.duplicateReview.status === "confirmed" ? "Doublon confirmé" : "Dossiers distincts"}</strong><small>Même contact et même catégorie sur sept jours. Aucun dossier n’est fusionné automatiquement.</small></span><div>{detail.duplicateReview.candidatePublicCode ? <button type="button" onClick={() => setSelectedCode(detail.duplicateReview?.candidatePublicCode ?? null)}>Voir {detail.duplicateReview.candidatePublicCode}</button> : null}{detail.duplicateReview.status === "pending" && detail.duplicateReview.candidatePublicCode ? <><button type="button" disabled={saving} onClick={() => void updateRequest({ duplicateDecision: "dismissed" })}>Dossiers distincts</button><button type="button" disabled={saving} onClick={() => void updateRequest({ duplicateDecision: "confirmed" })}>Confirmer</button></> : detail.duplicateReview.status === "pending" ? <small>Validation réservée à un agent autorisé à consulter les deux dossiers.</small> : <small>Décision humaine enregistrée dans l’audit.</small>}</div></section> : null}
               <div className="lycee-agent-thread">{detail.messages.map((message) => <div data-direction={message.direction} data-author={message.authorLabel === "Assistant du lycée" ? "assistant" : undefined} key={message.id}><span><strong>{message.direction === "internal" ? "Note interne" : message.authorLabel ?? "Utilisateur"}</strong><small>{supportDate(message.createdAt)}{message.direction === "internal" ? " · invisible pour l’utilisateur" : message.authorLabel === "Assistant du lycée" ? " · réponse automatique" : ` · ${supportDeliveryLabel(message.deliveryStatus)}`}</small></span><p>{message.bodyText}</p></div>)}</div>
-              {detail.attachments.length > 0 ? <div className="lycee-tracked-files">{detail.attachments.map((attachment) => <div key={attachment.id}><FileText aria-hidden="true" /><span><strong>{attachment.originalName}</strong><small>{attachment.scanStatus === "clean" ? "Vérifié" : "Contrôle en cours"}</small></span>{attachment.scanStatus === "clean" ? <button type="button" onClick={() => void openAgentAttachment(attachment.id)} aria-label={`Ouvrir ${attachment.originalName}`}><ExternalLink aria-hidden="true" /></button> : null}</div>)}</div> : null}
+              {detail.attachments.length > 0 ? <div className="lycee-tracked-files">{detail.attachments.map((attachment) => <div key={attachment.id}><FileText aria-hidden="true" /><span><strong>{attachment.originalName}</strong><small>{attachment.direction === "agent" ? attachment.releasedAt ? "Envoyé au demandeur · " : "Préparé par un agent · " : "Reçu du demandeur · "}{attachment.scanStatus === "clean" ? "vérifié" : attachment.scanStatus === "blocked" ? "refusé" : attachment.scanStatus === "scan_error" ? "contrôle indisponible" : "contrôle en cours"}</small></span>{attachment.scanStatus === "clean" ? <button type="button" onClick={() => void openAgentAttachment(attachment.id)} aria-label={`Ouvrir ${attachment.originalName}`}><ExternalLink aria-hidden="true" /></button> : null}</div>)}</div> : null}
               <section className="lycee-agent-ai"><div><WandSparkles aria-hidden="true" /><span><span className="lycee-eyebrow">Aide au traitement</span><h3>{supportCategoryLabel(selected.category)} · priorité {priorityLabels[selected.priority] ?? "Normale"}</h3></span></div><dl><div><dt>Personne</dt><dd>{selected.beneficiaryType === "self" ? "Demandeur" : `${selected.beneficiaryFirstName ?? ""} ${selected.beneficiaryLastName ?? ""}`}</dd></div><div><dt>Canal disponible</dt><dd>{detail.contacts.map((contact) => channelLabels[contact.channel] ?? contact.channel).join(" + ")}</dd></div><div><dt>Langue détectée</dt><dd>{selected.subjectContext.detectedLanguage ?? "Non déterminée"}</dd></div><div><dt>Langue de réponse</dt><dd>{languagePreferenceLabels[selected.subjectContext.languagePreference] ?? "Non précisée"}</dd></div><div><dt>Aide à la compréhension</dt><dd>{selected.subjectContext.communicationSupport ?? "Réponse écrite"}</dd></div><div><dt>Pièces</dt><dd>{detail.attachments.length} {detail.attachments.length > 1 ? "documents" : "document"}</dd></div></dl>{selected.subjectContext.internalSummaryFr ? <div className="lycee-agent-french-summary"><Languages aria-hidden="true" /><span><small>Résumé automatique en français</small><p>{selected.subjectContext.internalSummaryFr}</p><em>À vérifier avec le message original avant toute décision.</em></span></div> : null}</section>
               <section className="lycee-agent-actions"><div><span><StickyNote aria-hidden="true" /><strong>Note interne</strong><small>Visible uniquement par les agents.</small></span><textarea aria-label="Note interne" rows={3} value={internalNote} onChange={(event) => setInternalNote(event.target.value)} placeholder="Diagnostic, appel effectué ou prochaine action…" maxLength={5000} /><button type="button" disabled={saving || !internalNote.trim()} onClick={() => void saveInternalNote()}>Ajouter la note</button></div><div data-closed={selected.status === "clos"}><span><CheckCircle2 aria-hidden="true" /><strong>{selected.status === "clos" ? "Dossier clôturé" : "Clôturer proprement"}</strong><small>{selected.status === "clos" ? selected.subjectContext.closureReason ?? "Motif enregistré dans l’historique." : requiresSafeIdentityReply ? "Confirmez d’abord l’identité scolaire pour cette demande sensible." : "Un motif est obligatoire et reste dans l’audit."}</small></span>{selected.status === "clos" ? <button type="button" disabled={saving} onClick={() => void updateRequest({ status: "en_cours" })}>Rouvrir le dossier</button> : <><textarea aria-label="Motif de clôture" rows={3} value={closureReason} onChange={(event) => setClosureReason(event.target.value)} placeholder="Solution apportée ou raison de la clôture…" maxLength={500} /><button type="button" disabled={saving || !closureReason.trim() || requiresSafeIdentityReply} onClick={() => void updateRequest({ status: "clos", closureReason })}>Clôturer le dossier</button></>}</div></section>
               <section className="lycee-reply-box">
@@ -3408,8 +3555,10 @@ function ConnectedAgentView({ onBack }: { onBack: () => void }) {
                 <textarea aria-label="Réponse à envoyer" rows={5} value={requiresSafeIdentityReply ? SUPPORT_IDENTITY_VERIFICATION_MESSAGE : reply} readOnly={requiresSafeIdentityReply || selected.status === "clos"} onChange={(event) => changeReply(event.target.value)} placeholder="Écrivez une réponse claire. Aucun mot de passe ne doit être demandé." />
                 {translationTargetLanguage ? <div className="lycee-translation-command"><Languages aria-hidden="true" /><span><strong>Répondre aussi en {translationTargetLanguage}</strong><small>La version française reste la référence. Vous comparerez les deux textes avant l’envoi.</small></span><button type="button" disabled={translating || saving || selected.status === "clos" || !replySourceMessage} onClick={() => void prepareTranslation()}>{translating ? "Traduction…" : translationDraft ? "Repréparer" : "Préparer"}</button></div> : null}
                 {translationDraft ? <div className="lycee-translation-review" aria-live="polite"><div><Languages aria-hidden="true" /><strong>Version en {translationDraft.targetLanguage}</strong><button type="button" title="Abandonner la traduction" onClick={clearTranslation}><Trash2 aria-hidden="true" /><span>Garder le français</span></button></div><p dir="auto">{translationDraft.translatedText}</p><div className="lycee-translation-back"><small>Contrôle du sens en français</small><p>{translationDraft.backTranslationFr}</p></div>{translationDraft.warnings.length > 0 ? <ul>{translationDraft.warnings.map((warning) => <li key={warning}>{warning}</li>)}</ul> : null}<label><input type="checkbox" checked={translationValidated} onChange={(event) => setTranslationValidated(event.target.checked)} /><span><strong>J’ai comparé les deux versions.</strong><small>J’autorise l’envoi de cette traduction. L’agent humain reste responsable du message.</small></span></label></div> : null}
+                <input ref={agentFileInputRef} className="lycee-file-input" type="file" multiple accept={SUPPORT_FILE_TYPES.join(",")} aria-label="Documents à joindre à la réponse" onChange={(event) => void selectAgentFiles(event)} />
+                {agentDraftAttachments.length > 0 ? <div className="lycee-agent-reply-files" aria-label="Documents préparés pour la réponse">{agentDraftAttachments.map((attachment) => <label key={attachment.id} data-ready={attachment.canAttachToReply}><input type="checkbox" disabled={!attachment.canAttachToReply || saving} checked={selectedAgentAttachmentIds.includes(attachment.id)} onChange={(event) => setSelectedAgentAttachmentIds((current) => event.target.checked ? [...new Set([...current, attachment.id])] : current.filter((id) => id !== attachment.id))} /><FileText aria-hidden="true" /><span><strong>{attachment.originalName}</strong><small>{attachment.canAttachToReply ? "Prêt à joindre" : attachment.scanStatus === "blocked" ? "Fichier refusé" : attachment.scanStatus === "scan_error" ? "Contrôle indisponible" : "Contrôle antivirus en cours"}</small></span></label>)}</div> : null}
                 {showTemplateSave && !requiresSafeIdentityReply && access?.canManageTemplates ? <div className="lycee-template-save"><input aria-label="Nom du nouveau modèle" value={templateName} onChange={(event) => setTemplateName(event.target.value)} placeholder="Nom du modèle" maxLength={80} /><button type="button" disabled={saving || !templateName.trim() || !reply.trim()} onClick={() => void saveReplyTemplate()}>Enregistrer</button></div> : null}
-                <div>{requiresSafeIdentityReply || !access?.canManageTemplates ? null : <button className="lycee-secondary-action" type="button" disabled={selected.status === "clos"} onClick={() => setShowTemplateSave((current) => !current)}><BookOpenCheck aria-hidden="true" /> Modèle</button>}<button className="lycee-secondary-action" type="button" disabled><Paperclip aria-hidden="true" /> Joindre</button><button className="lycee-primary-action" type="button" disabled={saving || translating || translationNeedsDecision || selected.status === "clos" || (!requiresSafeIdentityReply && !reply.trim())} onClick={() => void sendAgentReply()}><Send aria-hidden="true" /> {saving ? "Enregistrement…" : translatedReplyReady && translationDraft ? `Valider et envoyer en ${translationDraft.targetLanguage}` : "Valider et envoyer"}</button></div>
+                <div>{requiresSafeIdentityReply || !access?.canManageTemplates ? null : <button className="lycee-secondary-action" type="button" disabled={selected.status === "clos"} onClick={() => setShowTemplateSave((current) => !current)}><BookOpenCheck aria-hidden="true" /> Modèle</button>}<button className="lycee-secondary-action" type="button" disabled={selected.status === "clos" || requiresSafeIdentityReply || saving || agentUploading || agentDraftAttachments.length >= MAX_SUPPORT_FILES} onClick={() => agentFileInputRef.current?.click()}><Paperclip aria-hidden="true" /> {agentUploading ? "Contrôle…" : "Joindre"}</button><button className="lycee-primary-action" type="button" disabled={saving || agentUploading || translating || translationNeedsDecision || selected.status === "clos" || (!requiresSafeIdentityReply && !reply.trim())} onClick={() => void sendAgentReply()}><Send aria-hidden="true" /> {saving ? "Enregistrement…" : translatedReplyReady && translationDraft ? `Valider et envoyer en ${translationDraft.targetLanguage}` : "Valider et envoyer"}</button></div>
               </section>
             </>
           ) : <div className="lycee-loading-state"><Clock3 aria-hidden="true" /> Sélectionnez une demande</div>}

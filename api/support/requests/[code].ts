@@ -1,5 +1,5 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { and, asc, eq, isNull, ne } from "drizzle-orm";
+import { and, asc, eq, isNotNull, isNull, ne, or } from "drizzle-orm";
 import { db } from "../../../db/index.js";
 import {
   supportAttachments,
@@ -64,6 +64,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       db.select({
         id: supportAttachments.id,
         messageId: supportAttachments.messageId,
+        direction: supportAttachments.direction,
         documentType: supportAttachments.documentType,
         originalName: supportAttachments.originalName,
         detectedMime: supportAttachments.detectedMime,
@@ -72,7 +73,17 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         createdAt: supportAttachments.createdAt,
       })
       .from(supportAttachments)
-      .where(eq(supportAttachments.requestId, access.requestId)),
+      .where(and(
+        eq(supportAttachments.requestId, access.requestId),
+        or(
+          eq(supportAttachments.direction, "requester"),
+          and(
+            eq(supportAttachments.direction, "agent"),
+            isNotNull(supportAttachments.messageId),
+            isNotNull(supportAttachments.releasedAt)
+          )
+        )
+      )),
       db.select({ id: supportContacts.id })
         .from(supportContacts)
         .where(

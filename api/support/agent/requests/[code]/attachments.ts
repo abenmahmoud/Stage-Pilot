@@ -1,18 +1,20 @@
 import { randomUUID } from "node:crypto";
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { and, eq, sql } from "drizzle-orm";
-import { db } from "../../../../db/index.js";
-import { supportAttachments } from "../../../../db/schema.js";
-import { HttpError, supabaseAdmin } from "../../../_shared/auth.js";
-import { handleApi, methodNotAllowed } from "../../../_shared/response.js";
+import { and, eq, isNull, sql } from "drizzle-orm";
+import { db } from "../../../../../db/index.js";
+import { supportAttachments, supportRequests } from "../../../../../db/schema.js";
+import { HttpError, supabaseAdmin } from "../../../../_shared/auth.js";
+import { handleApi, methodNotAllowed } from "../../../../_shared/response.js";
+import { assertNoForbiddenSupportSecret } from "../../../../_shared/support.js";
 import {
-  assertNoForbiddenSupportSecret,
-  requireSupportAccess,
-} from "../../../_shared/support.js";
-import { enforceAttachmentReservationRateLimit } from "../../../_shared/support-rate-limits.js";
+  assertSupportRequestAccess,
+  requireSupportAgent,
+} from "../../../../_shared/support-agent-access.js";
+import { enforceAgentWriteRateLimit } from "../../../../_shared/support-rate-limits.js";
 
 const MAX_FILE_BYTES = 10 * 1024 * 1024;
-const MAX_FILES_PER_REQUEST = 5;
+const MAX_AGENT_PENDING_FILES = 5;
+const MAX_TOTAL_FILES = 10;
 const QUARANTINE_BUCKET = "support-quarantine";
 const ALLOWED_MIME_TYPES = new Set([
   "application/pdf",
@@ -47,13 +49,29 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== "POST") return methodNotAllowed(res, ["POST"]);
 
   return handleApi(res, async () => {
+    const { user, access, institutionId } = await requireSupportAgent(req);
+    await enforceAgentWriteRateLimit(user.id);
     const code = Array.isArray(req.query.code) ? req.query.code[0] : req.query.code;
     if (!code || !/^BC-\d{4}-\d{6}$/.test(code)) {
       throw new HttpError(400, "Numéro de demande invalide");
     }
 
-    const access = await requireSupportAccess(req, code);
-    await enforceAttachmentReservationRateLimit(access.sessionId);
+    const [request] = await db
+      .select({
+        id: supportRequests.id,
+        status: supportRequests.status,
+        assignedTeam: supportRequests.assignedTeam,
+      })
+      .from(supportRequests)
+      .where(and(
+        eq(supportRequests.institutionId, institutionId),
+        eq(supportRequests.publicCode, code)
+      ))
+      .limit(1);
+    if (!request) throw new HttpError(404, "Demande introuvable");
+    assertSupportRequestAccess(access, request.assignedTeam);
+    if (request.status === "clos") throw new HttpError(409, "Ce dossier est fermé");
+
     const body = (req.body ?? {}) as Record<string, unknown>;
     const originalName = requiredText(body.fileName, "Nom du fichier", 180);
     assertNoForbiddenSupportSecret(originalName);
@@ -67,7 +85,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
 
     const attachmentId = randomUUID();
-    const storagePath = `${access.requestId}/${attachmentId}/${safeFileName(originalName)}`;
+    const storagePath = `${request.id}/${attachmentId}/${safeFileName(originalName)}`;
     const { data: signed, error: signingError } = await supabaseAdmin.storage
       .from(QUARANTINE_BUCKET)
       .createSignedUploadUrl(storagePath);
@@ -75,49 +93,41 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       throw new HttpError(503, "Le dépôt de fichiers est momentanément indisponible");
     }
 
-    const concernsType = requiredText(body.concernsType ?? "demande", "Personne concernée", 50);
-    const concernsLabel =
-      typeof body.concernsLabel === "string" && body.concernsLabel.trim()
-        ? body.concernsLabel.trim().slice(0, 180)
-        : null;
-    const documentType = requiredText(body.documentType ?? "justificatif", "Type de document", 80);
-    const note =
-      typeof body.note === "string" && body.note.trim()
-        ? body.note.trim().slice(0, 500)
-        : null;
-    for (const value of [concernsType, concernsLabel, documentType, note]) {
-      if (value) assertNoForbiddenSupportSecret(value);
-    }
-
     await db.transaction(async (tx) => {
       await tx.execute(sql`
-        select pg_advisory_xact_lock(hashtextextended(${access.requestId}::text, 0))
+        select pg_advisory_xact_lock(hashtextextended(${request.id}::text, 0))
       `);
       const existing = await tx
-        .select({ id: supportAttachments.id })
+        .select({
+          direction: supportAttachments.direction,
+          releasedAt: supportAttachments.releasedAt,
+        })
         .from(supportAttachments)
-        .where(and(
-          eq(supportAttachments.requestId, access.requestId),
-          eq(supportAttachments.direction, "requester")
-        ))
-        .limit(MAX_FILES_PER_REQUEST);
-      if (existing.length >= MAX_FILES_PER_REQUEST) {
-        throw new HttpError(400, "Une demande peut contenir au maximum 5 fichiers");
+        .where(eq(supportAttachments.requestId, request.id))
+        .limit(MAX_TOTAL_FILES);
+      if (existing.length >= MAX_TOTAL_FILES) {
+        throw new HttpError(400, "Ce dossier contient déjà le nombre maximal de documents");
+      }
+      const pendingAgentFiles = existing.filter((attachment) => (
+        attachment.direction === "agent" && attachment.releasedAt === null
+      ));
+      if (pendingAgentFiles.length >= MAX_AGENT_PENDING_FILES) {
+        throw new HttpError(400, "Retirez ou envoyez les documents déjà préparés");
       }
 
       await tx.insert(supportAttachments).values({
         id: attachmentId,
-        requestId: access.requestId,
-        concernsType,
-        concernsLabel,
-        documentType,
-        note,
+        requestId: request.id,
+        concernsType: "demande",
+        documentType: "document_reponse",
         originalName,
         declaredMime,
         sizeBytes,
         storageBucket: QUARANTINE_BUCKET,
         storagePath,
-        uploadedBySession: access.sessionId,
+        scanStatus: "awaiting_upload",
+        direction: "agent",
+        uploadedByUser: user.id,
         retentionUntil: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000),
       });
     });

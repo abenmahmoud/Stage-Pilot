@@ -3297,3 +3297,24 @@ taches et analyse de coherence avant une automatisation sensible.
   dates de revue et validations des services restent à renseigner.
 - Le brief Claude est préparé mais non exécuté, faute de modèle exact et de
   plafond propres à cette mission ; aucun jeton externe n'a été consommé.
+
+### Jalon du 30 août 2026 - documents dans les réponses agent
+
+- L'agent peut préparer cinq documents au maximum dans le bucket privé
+  `support-quarantine`. Le dépôt signé reste borné à 10 Mo et aux formats déjà
+  admis ; le compte, l'établissement et le service sont contrôlés avant écriture.
+- La confirmation compare la taille réservée, vérifie la signature binaire et
+  réutilise la file ClamAV. Le document ne devient public que s'il est propre et
+  si sa liaison au message, sa date de libération et l'agent validateur sont
+  écrits dans la même transaction.
+- Un brouillon agent n'est jamais renvoyé par l'API publique. Un document publié
+  s'ouvre par une URL privée de 60 secondes ; l'email indique sa présence sans
+  joindre le binaire. Les demandes ENT et email académique non confirmées
+  interdisent toute pièce sortante.
+- La migration `20260830170000_add_agent_reply_attachments.sql` est appliquée
+  uniquement sur `guichet-lycee-preview`. Les contraintes sont présentes, la
+  RLS reste forcée et `anon`/`authenticated` n'ont aucun droit direct.
+- Le build, six tests dédiés et toute la barrière de sécurité passent sur 99
+  routes, dont 68 privées. Le brief Claude est préparé mais non exécuté faute de
+  modèle exact et de plafond propres à cette mission ; aucun jeton externe n'a
+  été consommé.

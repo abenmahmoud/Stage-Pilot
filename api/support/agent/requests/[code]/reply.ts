@@ -3,6 +3,7 @@ import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { and, eq, inArray, isNull, sql } from "drizzle-orm";
 import { db } from "../../../../../db/index.js";
 import {
+  supportAttachments,
   supportCallbackTasks,
   supportContacts,
   supportEvents,
@@ -52,6 +53,19 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     let messageText = normalizeSupportReplyText(body.message);
     if (!messageText) throw new HttpError(400, "Message invalide");
     assertNoForbiddenSupportSecret(messageText);
+    const rawAttachmentIds = body.attachmentIds ?? [];
+    if (!Array.isArray(rawAttachmentIds) || rawAttachmentIds.length > 5) {
+      throw new HttpError(400, "La liste des pièces jointes est invalide");
+    }
+    const attachmentIds = rawAttachmentIds.map((value) => {
+      if (typeof value !== "string" || !/^[0-9a-f]{8}-[0-9a-f-]{27}$/i.test(value)) {
+        throw new HttpError(400, "Une pièce jointe est invalide");
+      }
+      return value;
+    });
+    if (new Set(attachmentIds).size !== attachmentIds.length) {
+      throw new HttpError(400, "Une pièce jointe est présente plusieurs fois");
+    }
     const idempotencyHash = sha256(idempotencyKey(req));
     const rawAccessToken = opaqueToken();
 
@@ -151,6 +165,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       ["ent", "email_academique"].includes(request.category) &&
       identityContext.identityStatus !== "identite_confirmee"
     ) {
+      if (attachmentIds.length > 0) {
+        throw new HttpError(409, "Aucun document ne peut être transmis avant la confirmation d’identité");
+      }
       if (body.safeTemplate !== "identity_verification") {
         throw new HttpError(409, "Avant la confirmation d’identité, utilisez uniquement le message sécurisé de vérification");
       }
@@ -215,6 +232,29 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           throw new HttpError(409, "Cette clé d’envoi a déjà été utilisée pour un autre dossier");
         }
         return { ...existing, duplicate: true, channel: email ? "email" : "phone" };
+      }
+
+      if (attachmentIds.length > 0) {
+        const releasedAttachments = await tx
+          .update(supportAttachments)
+          .set({
+            messageId: created.id,
+            releasedAt: new Date(),
+            releasedBy: user.id,
+          })
+          .where(and(
+            eq(supportAttachments.requestId, request.id),
+            inArray(supportAttachments.id, attachmentIds),
+            eq(supportAttachments.direction, "agent"),
+            eq(supportAttachments.uploadedByUser, user.id),
+            eq(supportAttachments.scanStatus, "clean"),
+            isNull(supportAttachments.messageId),
+            isNull(supportAttachments.releasedAt)
+          ))
+          .returning({ id: supportAttachments.id });
+        if (releasedAttachments.length !== attachmentIds.length) {
+          throw new HttpError(409, "Un document n’est pas vérifié, n’appartient pas à ce dossier ou a déjà été envoyé");
+        }
       }
 
       if (email) {
@@ -293,10 +333,16 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           translated: Boolean(translatedReply),
           targetLanguage: translatedReply?.targetLanguage ?? null,
           translationHumanValidated: Boolean(translatedReply),
+          attachmentCount: attachmentIds.length,
         },
         correlationId,
       });
-      return { ...created, duplicate: false, channel: email ? "email" : "phone" };
+      return {
+        ...created,
+        duplicate: false,
+        channel: email ? "email" : "phone",
+        attachmentCount: attachmentIds.length,
+      };
     });
 
     res.status(result.duplicate ? 200 : 201);
