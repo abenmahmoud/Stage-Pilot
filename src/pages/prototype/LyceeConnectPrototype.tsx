@@ -268,7 +268,7 @@ async function uploadSupportFile(publicCode: string, file: File): Promise<void> 
     });
   if (uploadError) throw new Error(`Échec de l'envoi de ${file.name}`);
 
-  await readApiResponse(
+  const confirmation = await readApiResponse<unknown>(
     await fetch(`/api/support/attachments/${reservation.attachment.id}/confirm`, {
       method: "POST",
       credentials: "include",
@@ -276,6 +276,9 @@ async function uploadSupportFile(publicCode: string, file: File): Promise<void> 
       body: JSON.stringify({ publicCode }),
     })
   );
+  if (!isSupportAttachmentConfirmationPayload(confirmation, reservation.attachment.id)) {
+    throw new Error("La confirmation du fichier reçue est invalide.");
+  }
 }
 
 const navigation = [
@@ -1901,7 +1904,7 @@ function ConnectedRequestsView({ ticketCode, onBack }: { ticketCode: string | nu
     setError(null);
     try {
       let uploadWarning: string | null = null;
-      await readApiResponse(
+      const confirmation = await readApiResponse<unknown>(
         await fetch(`/api/support/requests/${selectedCode}/messages`, {
           method: "POST",
           credentials: "include",
@@ -1912,6 +1915,9 @@ function ConnectedRequestsView({ ticketCode, onBack }: { ticketCode: string | nu
           body: JSON.stringify({ message: reply }),
         })
       );
+      if (!isSupportMessageMutationPayload(confirmation)) {
+        throw new Error("La confirmation du message reçue est invalide.");
+      }
       setReply("");
       if (followupFiles.length > 0) {
         const uploads = await Promise.allSettled(
@@ -1937,12 +1943,15 @@ function ConnectedRequestsView({ ticketCode, onBack }: { ticketCode: string | nu
     setForgettingDevice(true);
     setError(null);
     try {
-      await readApiResponse(
+      const confirmation = await readApiResponse<unknown>(
         await fetch("/api/support/session", {
           method: "DELETE",
           credentials: "include",
         })
       );
+      if (!isSupportSessionClearPayload(confirmation)) {
+        throw new Error("La confirmation de fermeture reçue est invalide.");
+      }
       await Promise.all([
         clearSupportDeviceDraft(),
         clearRememberedSupportRequests(),
@@ -2490,6 +2499,30 @@ function isSupportRequestCreationPayload(value: unknown): value is {
   return createdTime <= confirmedTime
     && createdTime <= Date.now() + (5 * 60_000)
     && confirmedTime <= Date.now() + (5 * 60_000);
+}
+
+function isSupportAttachmentConfirmationPayload(value: unknown, expectedId: string): boolean {
+  return isRecord(value)
+    && isRecord(value.attachment)
+    && value.attachment.id === expectedId
+    && ["quarantine", "clean"].includes(String(value.attachment.scanStatus))
+    && typeof value.duplicate === "boolean";
+}
+
+function isSupportMessageMutationPayload(value: unknown): value is {
+  message: { id: string; createdAt: string };
+  duplicate: boolean;
+} {
+  if (!isRecord(value) || !isRecord(value.message)) return false;
+  return typeof value.message.id === "string"
+    && /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value.message.id)
+    && isPublicSupportDate(value.message.createdAt)
+    && Date.parse(value.message.createdAt) <= Date.now() + (5 * 60_000)
+    && typeof value.duplicate === "boolean";
+}
+
+function isSupportSessionClearPayload(value: unknown): value is { cleared: true } {
+  return isRecord(value) && value.cleared === true;
 }
 
 function isAllowedPublicContentSignedUrl(value: unknown): value is string | null {

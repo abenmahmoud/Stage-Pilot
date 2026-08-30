@@ -5,6 +5,17 @@
 **Depot** : `abenmahmoud/Stage-Pilot`
 **Dernier jalon de code verifie** : branche de preview Vercel
 
+## Jalon du 30 août 2026 - accusés publics validés avant succès local
+
+- Fichier, message de suivi et fermeture de session exigent désormais une
+  confirmation serveur complète avant de modifier l'état local.
+- Un faux accusé conserve le texte saisi et les demandes mémorisées tout en
+  affichant une erreur claire.
+- La recette Chromium couvre message et fermeture à 320 et 1 440 px sans
+  débordement ni erreur JavaScript.
+- Lot preview uniquement : aucun message réel, fichier, session distante ou
+  production n'a été utilisé ou modifié.
+
 ## Jalon du 30 août 2026 - pages du lycée sur le contrat public unique
 
 - « Vie du lycée » utilise désormais le même validateur que « À la une » avant

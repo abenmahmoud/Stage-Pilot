@@ -80,6 +80,8 @@ quarantaine. Une panne d'envoi externe n'affecte pas le dossier.
   isoler ses erreurs et empêcher une ancienne sélection de remplacer la courante.
 - [x] **T016E** Refuser toute réservation de pièce dont le bucket, le chemin,
   l'identifiant ou le jeton signé ne respecte pas le contrat de quarantaine.
+- [x] **T016F** Valider les confirmations serveur de fichier, message et fermeture
+  de session avant tout succès visible ou effacement de mémoire locale.
 - [x] **T017** Construire la file agent paginée avec filtres, SLA et assignation.
 - [x] **T017A** Protéger les modifications et réponses par révision, rendre la
   prise en charge atomique et actualiser l'écran après un conflit.
