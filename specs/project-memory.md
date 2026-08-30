@@ -1704,6 +1704,22 @@ taches et analyse de coherence avant une automatisation sensible.
 - Le brief Claude est préparé mais non exécuté, faute de modèle exact et de
   plafond de consommation propres à cette mission.
 
+### Jalon du 30 août 2026 - confidentialité des sorties Communications
+
+- Un test récursif couvre les sept routes actuelles et refuse toute nouvelle
+  surface publique, audience, destinataire ou envoi sans mise à jour explicite
+  de la preuve de sécurité.
+- Les sorties navigateur restent sans adresse, téléphone, référence de contact
+  ou liste de membres. Les listes et confirmations documentaires ne retournent
+  ni chemin de stockage, texte extrait ou empreinte.
+- Le test a identifié trois sélections internes trop larges. Version, relecture
+  et confirmation documentaire projettent maintenant chaque colonne nécessaire
+  et chaque valeur retournée.
+- T027A est terminé. T027 reste honnêtement ouvert jusqu'aux livraisons fictives
+  de T017 à T020 ; aucun destinataire ou service distant n'a été utilisé.
+- Le brief Claude est préparé mais non exécuté, faute de modèle exact et de
+  plafond de consommation propres à cette mission.
+
 ## 8. Prochain ordre recommande
 
 1. Publier et tester le pré-triage ordinateur portable avec des données fictives.

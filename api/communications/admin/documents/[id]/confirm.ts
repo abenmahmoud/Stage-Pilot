@@ -17,7 +17,23 @@ function routeId(req: VercelRequest): string {
   return value;
 }
 
-function publicDocument(document: typeof communicationSourceDocuments.$inferSelect) {
+type CommunicationDocumentRecord = {
+  id: string;
+  communicationId: string | null;
+  originalName: string;
+  mimeType: string;
+  sizeBytes: number;
+  storageBucket: string;
+  storagePath: string;
+  status: string;
+  analysisError: string | null;
+  uploadedAt: Date | null;
+  analyzedAt: Date | null;
+  createdAt: Date;
+  updatedAt: Date;
+};
+
+function publicDocument(document: CommunicationDocumentRecord) {
   return {
     id: document.id,
     communicationId: document.communicationId,
@@ -42,7 +58,21 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
     const id = routeId(req);
     const [document] = await db
-      .select()
+      .select({
+        id: communicationSourceDocuments.id,
+        communicationId: communicationSourceDocuments.communicationId,
+        originalName: communicationSourceDocuments.originalName,
+        mimeType: communicationSourceDocuments.mimeType,
+        sizeBytes: communicationSourceDocuments.sizeBytes,
+        storageBucket: communicationSourceDocuments.storageBucket,
+        storagePath: communicationSourceDocuments.storagePath,
+        status: communicationSourceDocuments.status,
+        analysisError: communicationSourceDocuments.analysisError,
+        uploadedAt: communicationSourceDocuments.uploadedAt,
+        analyzedAt: communicationSourceDocuments.analyzedAt,
+        createdAt: communicationSourceDocuments.createdAt,
+        updatedAt: communicationSourceDocuments.updatedAt,
+      })
       .from(communicationSourceDocuments)
       .where(and(
         eq(communicationSourceDocuments.id, id),
@@ -116,7 +146,21 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           eq(communicationSourceDocuments.institutionId, context.institutionId),
           inArray(communicationSourceDocuments.status, ["reserved", "uploaded"])
         ))
-        .returning();
+        .returning({
+          id: communicationSourceDocuments.id,
+          communicationId: communicationSourceDocuments.communicationId,
+          originalName: communicationSourceDocuments.originalName,
+          mimeType: communicationSourceDocuments.mimeType,
+          sizeBytes: communicationSourceDocuments.sizeBytes,
+          storageBucket: communicationSourceDocuments.storageBucket,
+          storagePath: communicationSourceDocuments.storagePath,
+          status: communicationSourceDocuments.status,
+          analysisError: communicationSourceDocuments.analysisError,
+          uploadedAt: communicationSourceDocuments.uploadedAt,
+          analyzedAt: communicationSourceDocuments.analyzedAt,
+          createdAt: communicationSourceDocuments.createdAt,
+          updatedAt: communicationSourceDocuments.updatedAt,
+        });
       if (!updated[0]) return [];
       await tx.insert(communicationSourceEvents).values({
         institutionId: context.institutionId,

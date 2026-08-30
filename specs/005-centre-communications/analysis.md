@@ -61,3 +61,8 @@ est également défini sans webhook : retrait, correction, question et réponse
 libre restent des propositions à confirmer. Le prochain lot documentaire est
 une preuve antivirus de bout en bout sur fichiers fictifs ; les groupes réels,
 la publication et toute diffusion restent bloqués par T001 à T004.
+
+La surface privée actuelle possède en plus un test de confidentialité dynamique.
+Chaque route SQL projette ses colonnes explicitement et aucune route navigateur
+n'importe encore audience ou livraison. Cette preuve ne remplace pas le test
+d'absence d'adresse entre destinataires après implémentation de T017 à T020.

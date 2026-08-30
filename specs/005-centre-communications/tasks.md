@@ -115,6 +115,11 @@
 ## Phase 6 - Validation
 
 - [ ] T027 Tester qu'aucune adresse d'un autre destinataire n'est exposée.
+- [x] T027A Verrouiller la surface actuelle avant l'envoi. Un test découvre les
+  sept routes privées, interdit toute nouvelle route publique, audience,
+  destinataire ou envoi, contrôle les sorties documentaires et l'interface, et
+  exige des projections SQL explicites. T027 reste ouvert jusqu'au test de
+  livraisons fictives lorsque T017 à T020 existeront.
 - [ ] T028 Tester rôles, MFA, contenus internes et API publique.
 - [x] T028A Exiger `aal2` sur toutes les routes privées du centre et vérifier
   les rôles bornés, le cloisonnement établissement, la fermeture du module et

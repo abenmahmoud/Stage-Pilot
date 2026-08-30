@@ -33,7 +33,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         for update
       `);
       const [root] = await tx
-        .select()
+        .select({
+          id: communications.id,
+          status: communications.status,
+          visibility: communications.visibility,
+          currentVersion: communications.currentVersion,
+          updatedAt: communications.updatedAt,
+        })
         .from(communications)
         .where(and(
           eq(communications.id, id),
@@ -46,7 +52,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         throw new HttpError(409, "Cette communication ne peut pas être envoyée en vérification.");
       }
       const [current] = await tx
-        .select()
+        .select({
+          id: communicationVersions.id,
+          version: communicationVersions.version,
+          status: communicationVersions.status,
+          openQuestions: communicationVersions.openQuestions,
+        })
         .from(communicationVersions)
         .where(and(
           eq(communicationVersions.communicationId, id),
@@ -67,7 +78,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           eq(communicationVersions.institutionId, context.institutionId),
           eq(communicationVersions.status, "draft")
         ))
-        .returning();
+        .returning({
+          id: communicationVersions.id,
+          version: communicationVersions.version,
+          status: communicationVersions.status,
+          createdAt: communicationVersions.createdAt,
+          updatedAt: communicationVersions.updatedAt,
+        });
       if (!version) throw new HttpError(409, "Cette version a déjà changé.");
       const [updated] = await tx
         .update(communications)
@@ -78,7 +95,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           eq(communications.status, "draft"),
           eq(communications.currentVersion, root.currentVersion)
         ))
-        .returning();
+        .returning({
+          id: communications.id,
+          status: communications.status,
+          visibility: communications.visibility,
+          currentVersion: communications.currentVersion,
+          updatedAt: communications.updatedAt,
+        });
       if (!updated) throw new HttpError(409, "Cette communication a déjà changé.");
       await tx.insert(communicationEvents).values({
         institutionId: context.institutionId,

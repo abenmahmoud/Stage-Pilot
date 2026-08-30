@@ -15,14 +15,15 @@ const retentionMigrationPath = new URL(
 
 test("returns only the scoped current content and bounded version metadata", async () => {
   const route = await readFile(detailPath, "utf8");
+  const getBranch = route.slice(0, route.indexOf('if (req.method === "PATCH")'));
   assert.match(route, /requireCommunicationEditor\(req\)/);
   assert.match(route, /eq\(communications\.institutionId, context\.institutionId\)/);
   assert.match(route, /eq\(communicationVersions\.institutionId, context\.institutionId\)/);
   assert.match(route, /bodyMarkdown: communicationVersions\.bodyMarkdown/);
   assert.match(route, /structuredFacts: communicationVersions\.structuredFacts/);
   assert.match(route, /openQuestions: communicationVersions\.openQuestions/);
-  assert.doesNotMatch(route, /sourceFingerprint: communications\.sourceFingerprint/);
-  assert.doesNotMatch(route, /contentHash: communicationVersions\.contentHash/);
+  assert.doesNotMatch(getBranch, /sourceFingerprint: communications\.sourceFingerprint/);
+  assert.doesNotMatch(getBranch, /contentHash: communicationVersions\.contentHash/);
 });
 
 test("creates exactly one new draft version under a row lock", async () => {

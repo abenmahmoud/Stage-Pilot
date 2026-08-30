@@ -97,7 +97,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           for update
         `);
         const [root] = await tx
-          .select()
+          .select({
+            id: communications.id,
+            status: communications.status,
+            visibility: communications.visibility,
+            sourceType: communications.sourceType,
+            currentVersion: communications.currentVersion,
+            updatedAt: communications.updatedAt,
+          })
           .from(communications)
           .where(and(
             eq(communications.id, id),
@@ -112,7 +119,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           throw new HttpError(409, "Cette communication doit revenir en brouillon avant modification.");
         }
         const [current] = await tx
-          .select()
+          .select({
+            id: communicationVersions.id,
+            version: communicationVersions.version,
+            status: communicationVersions.status,
+            contentHash: communicationVersions.contentHash,
+          })
           .from(communicationVersions)
           .where(and(
             eq(communicationVersions.communicationId, id),
@@ -122,7 +134,17 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           .limit(1);
         if (!current) throw new Error("La version courante est introuvable");
         if (current.contentHash === contentHash) {
-          return { communication: root, version: current, duplicate: true };
+          return {
+            communication: {
+              id: root.id,
+              status: root.status,
+              visibility: root.visibility,
+              currentVersion: root.currentVersion,
+              updatedAt: root.updatedAt,
+            },
+            version: { id: current.id, version: current.version, status: current.status },
+            duplicate: true,
+          };
         }
         const nextVersion = root.currentVersion + 1;
         if (nextVersion > 10_000) throw new HttpError(409, "Le nombre maximal de versions est atteint.");
@@ -141,7 +163,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             contentHash,
             createdBy: context.user.id,
           })
-          .returning();
+          .returning({
+            id: communicationVersions.id,
+            version: communicationVersions.version,
+            status: communicationVersions.status,
+            createdAt: communicationVersions.createdAt,
+            updatedAt: communicationVersions.updatedAt,
+          });
         const [updated] = await tx
           .update(communications)
           .set({
@@ -155,7 +183,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             eq(communications.status, "draft"),
             eq(communications.currentVersion, root.currentVersion)
           ))
-          .returning();
+          .returning({
+            id: communications.id,
+            status: communications.status,
+            visibility: communications.visibility,
+            currentVersion: communications.currentVersion,
+            updatedAt: communications.updatedAt,
+          });
         if (!updated) throw new HttpError(409, "La communication a été modifiée par un autre agent.");
         await tx.insert(communicationEvents).values({
           institutionId: context.institutionId,
