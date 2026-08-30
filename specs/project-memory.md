@@ -1292,6 +1292,24 @@ taches et analyse de coherence avant une automatisation sensible.
 - Le dossier d'audit Claude est préparé mais non exécuté sans modèle et plafond
   de consommation explicitement autorisés.
 
+### Jalon du 30 août 2026 - résilience locale Brevo
+
+- Le test `test:support-resilience` simule le succès Brevo, sa réponse de doublon
+  et une indisponibilité 503, sans réseau et uniquement avec des adresses
+  réservées. La clé d'idempotence est contrôlée dans la requête simulée.
+- Le même test verrouille l'ordre atomique : reçu, message, événement, tâche de
+  notification, puis seulement statut `processed`. Un échec avant cinq lectures
+  reste reprenable ; la cinquième archive le job dans la file d'échec.
+- Une transaction sur la preview a rejoué dix fois le même webhook fictif et a
+  obtenu exactement un reçu et un message. Une panne simulée après réservation
+  n'a laissé aucun reçu orphelin. Le `ROLLBACK` final laisse zéro reçu et zéro
+  message de recette.
+- T026 reste ouverte uniquement pour T026B : couper puis rétablir le vrai service
+  Brevo après configuration autorisée du domaine entrant. Aucun email réel,
+  secret, domaine, production ou VPS n'a été touché dans ce jalon.
+- Le dossier d'audit Claude est préparé mais non exécuté sans modèle et plafond
+  de consommation explicitement autorisés.
+
 ## 8. Prochain ordre recommande
 
 1. Publier et tester le pré-triage ordinateur portable avec des données fictives.

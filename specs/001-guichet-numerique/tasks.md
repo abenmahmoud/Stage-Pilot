@@ -85,6 +85,12 @@ quarantaine. Une panne d'envoi externe n'affecte pas le dossier.
 - [ ] **T026** Tester les rejouements de webhooks et les pannes Brevo. La réception
   est maintenant atomique afin qu'une panne n'enregistre pas un reçu définitif
   avant le message et sa notification.
+- [x] **T026A** Simuler localement succès, doublon et indisponibilité Brevo,
+  contrôler l'ordre transactionnel du webhook, puis rejouer dix fois la même
+  réception fictive sur la preview avec `ROLLBACK` et zéro résidu.
+- [ ] **T026B** Après configuration du domaine entrant, couper puis rétablir Brevo
+  dans un créneau de recette et vérifier la reprise réelle du webhook, des pièces
+  et des notifications sans envoyer vers une adresse non autorisée.
 
 ### Sortie Jour 2
 

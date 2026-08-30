@@ -25,6 +25,7 @@
     "test:support-pseudonymizer": "node --experimental-strip-types scripts/test-support-pseudonymizer.mjs",
     "test:support-secret-policy": "node --experimental-strip-types scripts/test-support-secret-policy.mjs",
     "test:support-email-safety": "node --import ./scripts/ts-test-resolver.mjs --experimental-strip-types scripts/test-support-email-safety.mjs",
+    "test:support-resilience": "node --import ./scripts/ts-test-resolver.mjs --experimental-transform-types scripts/test-support-resilience.mjs",
     "test:access-policy": "node --experimental-strip-types scripts/test-access-policy.mjs",
     "test:laptop-intake": "node --experimental-strip-types scripts/test-laptop-intake.mjs",
     "test:support-routing": "node --experimental-strip-types scripts/test-support-routing.mjs",

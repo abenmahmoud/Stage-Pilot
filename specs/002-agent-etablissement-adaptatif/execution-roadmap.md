@@ -420,6 +420,14 @@ l'autorisation de quota définie par le propriétaire.
   rejeu local, les croisements dossier/job et message/livraison, puis `ROLLBACK`
   avec zéro résidu. La file email PGMQ partagée demeure le dernier verrou
   technique mono-établissement.
+- Lot N5ZF : résilience locale Brevo et webhook. **Testé sans appel externe et
+  avec transaction de preview annulée** : le client email conserve la clé
+  d'idempotence, traite un doublon Brevo comme une réussite idempotente et
+  transforme une indisponibilité en erreur reprenable. Le webhook ne marque le
+  reçu traité qu'après le message et sa notification. Dix rejeux fictifs ont
+  produit exactement un reçu et un message ; une panne simulée après réservation
+  n'a laissé aucun reçu. `ROLLBACK` a ramené les deux compteurs à zéro. La coupure
+  et reprise du service Brevo réel reste volontairement ouverte dans T026B.
 - Lot N6 : tests de non-régression, build, contrôle mobile et rapport d'écarts.
   **Partiellement validé en preview** : 200 transactions concurrentes sans perte
   ni reste après nettoyage, 135 contrôles de sécurité, build réussi, PWA active,
