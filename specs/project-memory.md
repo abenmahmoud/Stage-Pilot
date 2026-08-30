@@ -2459,6 +2459,11 @@ taches et analyse de coherence avant une automatisation sensible.
   deux réponses puis ouvre le formulaire final, sans envoi ni écriture distante.
 - L'unique violation axe A/AA concernait le contraste de `Demande comprise` ;
   la couleur a été assombrie et la taille portée de 8 à 10 px.
+- La recette étendue aux cinq autres vues publiques a corrigé les textes
+  secondaires trop clairs et donné le rôle `log` aux conversations nommées.
+- Après correction, axe ne relève aucune violation WCAG A/AA sur les vues
+  publiques. Les contrôles à 320 px ne relèvent aucun débordement horizontal ;
+  les textes sur images ou dégradés restent à confirmer manuellement.
 - T048G est terminée localement, sans compte, donnée réelle ou création de
   demande distante.
 - Le brief Claude est préparé mais non exécuté, faute de modèle exact et de

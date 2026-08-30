@@ -22,3 +22,15 @@ L'audit axe WCAG A/AA a trouvé un contraste insuffisant sur le sous-état
 10 px. La liste des parcours du héros expose aussi les rôles `list/listitem` au
 lieu d'un libellé ARIA posé sur un `div` sans rôle. La recette est rejouée après
 correction.
+
+La recette a ensuite couvert Services, Suivi, Lycée, Actualités et
+Confidentialité. Actualités était déjà conforme. Les autres vues ont fait
+corriger les sourcils sur fond bleu, les dates de conversation et les notes de
+formation trop claires ou trop petites. Les deux fils de messages ont reçu un
+rôle `log` valide.
+
+Après correction, axe ne relève plus aucune violation WCAG A/AA sur les vues
+publiques. Les seuls contrôles à revoir manuellement concernent des textes posés
+sur des images ou des dégradés, dont axe ne peut pas calculer le fond. Accueil,
+Services, Suivi, Lycée et Confidentialité restent sans débordement horizontal à
+320 px.

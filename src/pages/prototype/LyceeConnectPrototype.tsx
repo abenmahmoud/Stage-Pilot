@@ -1996,7 +1996,7 @@ function ConnectedRequestsView({ ticketCode, onBack }: { ticketCode: string | nu
                 <BadgeCheck aria-hidden="true" />
                 <span><strong>{identityStatusLabels[detail.request.identityStatus]}</strong><small>{detail.request.identityStatus === "identite_confirmee" ? "Le lycée a rapproché la personne d’une source officielle." : detail.request.identityStatus === "contact_verifie" ? detail.request.identityMethod === "phone_callback" ? "Un agent a vérifié le numéro de téléphone par rappel, sans confirmer encore l’identité scolaire." : "Le lien sécurisé confirme l’accès à l’adresse email, sans confirmer encore l’identité scolaire." : "La demande est enregistrée. Aucune donnée sensible ne sera transmise avant vérification."}</small></span>
               </section>
-              <div className="lycee-conversation" aria-label="Conversation">
+              <div className="lycee-conversation" role="log" aria-label="Conversation">
                 {detail.messages.map((message) => (
                   <div className={message.authorLabel === "Assistant du lycée" ? "is-assistant" : message.direction === "outbound" ? "is-agent" : "is-requester"} key={message.id}>
                     <span><strong>{message.authorLabel ?? (message.direction === "outbound" ? "Lycée" : "Vous")}</strong><small>{supportDate(message.createdAt)}{message.authorLabel === "Assistant du lycée" ? " · réponse automatique" : ""}</small></span>
@@ -2064,7 +2064,7 @@ function DemoRequestsView({ ticketCode, onBack }: { ticketCode: string | null; o
             <em>En cours de traitement</em>
           </div>
           <div className="lycee-ticket-meta"><span><Users aria-hidden="true" /> Parent d’élève</span><span><Mail aria-hidden="true" /> Réponse par email</span></div>
-          <div className="lycee-conversation" aria-label="Conversation de démonstration">
+          <div className="lycee-conversation" role="log" aria-label="Conversation de démonstration">
             {demoMessages.map((message) => (
               <div className={message.direction} key={message.id}>
                 <span><strong>{message.author}</strong><small>{message.date}</small></span>
