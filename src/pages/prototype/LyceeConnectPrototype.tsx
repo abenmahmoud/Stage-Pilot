@@ -401,13 +401,16 @@ export default function LyceeConnectPrototype() {
     const url = new URL(window.location.href);
     const token = url.searchParams.get("support_token");
     if (!token) return;
-    readApiResponse<{ request: { publicCode: string } }>(
+    readApiResponse<unknown>(
       fetch(`/api/support/access/${encodeURIComponent(token)}`, {
         method: "POST",
         credentials: "include",
       })
     )
       .then((payload) => {
+        if (!isSupportMagicAccessPayload(payload)) {
+          throw new Error("La confirmation d'accès reçue est invalide.");
+        }
         setTicketCreated(payload.request.publicCode);
         setView("requests");
         url.searchParams.delete("support_token");
@@ -2467,6 +2470,13 @@ function isBoundedString(value: unknown, maxLength: number, allowEmpty = false):
 
 function isPublicSupportDate(value: unknown): value is string {
   return isBoundedString(value, 40) && Number.isFinite(Date.parse(value));
+}
+
+function isSupportMagicAccessPayload(value: unknown): value is { request: { publicCode: string } } {
+  return isRecord(value)
+    && isRecord(value.request)
+    && typeof value.request.publicCode === "string"
+    && /^BC-\d{4}-\d{6}$/.test(value.request.publicCode);
 }
 
 function isPublicSupportRequestSummary(value: unknown): value is SupportRequestSummary {

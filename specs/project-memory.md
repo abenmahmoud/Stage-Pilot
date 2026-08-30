@@ -5,6 +5,16 @@
 **Depot** : `abenmahmoud/Stage-Pilot`
 **Dernier jalon de code verifie** : branche de preview Vercel
 
+## Jalon du 30 août 2026 - échange du lien magique validé côté navigateur
+
+- Le frontend n'ouvre plus un suivi à partir d'une confirmation réseau non
+  validée ; seul le format public `BC-AAAA-NNNNNN` est accepté.
+- Le jeton à usage unique est retiré de l'URL après succès comme après échec.
+- La recette Chromium refuse un numéro injecté à 320 et 1 440 px sans
+  débordement ni erreur JavaScript.
+- Lot preview uniquement : aucun jeton réel, donnée privée ou production n'a
+  été utilisé ou modifié.
+
 ## Jalon du 30 août 2026 - réponse de l'assistant validée dans le navigateur
 
 - Le frontend traite désormais toute réponse de l'assistant comme inconnue et

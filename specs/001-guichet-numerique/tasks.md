@@ -33,6 +33,8 @@ restante, soit une configuration externe ou une validation par la direction.
   transaction et idempotence.
 - [x] **T007** Créer l'échange jeton magique vers session HttpOnly, limiter les
   tentatives par réseau et faire vérifier uniquement l'adresse destinataire.
+- [x] **T007A** Valider le numéro public renvoyé par l'échange du lien magique
+  avant d'ouvrir le suivi, puis retirer le jeton de l'URL en succès comme en échec.
 - [x] **T008** Créer `GET /api/support/requests/:code` limité à la session.
 - [x] **T009** Créer le dépôt direct signé vers la quarantaine et sérialiser la
   réservation pour empêcher de dépasser cinq fichiers par concurrence.
