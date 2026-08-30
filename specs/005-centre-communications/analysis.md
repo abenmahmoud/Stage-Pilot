@@ -31,7 +31,11 @@ réellement antérieurs à l'envoi peuvent déclencher une annulation de livrais
 L'annulation direction est maintenant persistée sous deux verrous et confirmée
 explicitement. Une migration additive maintient seulement les transitions
 `pending/retry -> cancelled` et pré-envoi vers `cancelled` quand les
-interrupteurs sont coupés ; elle reste à appliquer sur la preview.
+interrupteurs sont coupés. L'audit de son application sur la preview a trouvé
+qu'elle remplaçait aussi les contrôles d'approbation hérités. La migration
+`20260830160000` les rétablit explicitement, et la migration historique a été
+corrigée pour les nouveaux environnements. Une recette transactionnelle prouve
+désormais les deux propriétés ensemble.
 
 ## Résultat
 

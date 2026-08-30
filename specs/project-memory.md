@@ -1871,6 +1871,24 @@ taches et analyse de coherence avant une automatisation sensible.
   plafond de consommation propres à cette mission ; aucun jeton externe n'a
   été consommé.
 
+### Jalon du 30 août 2026 - récupération des communications prouvée
+
+- L'application de la migration d'annulation sur la preview a révélé qu'elle
+  remplaçait les fonctions de garde sans conserver les contrôles d'approbation.
+  Aucun transport n'était actif et aucune donnée réelle n'était présente.
+- La migration historique est corrigée et la migration additive
+  `20260830160000` rétablit les gardes sur la preview.
+- Une transaction fictive prouve brouillon refusé, panne `dead/error`, reprise
+  unique, annulation d'urgence pré-envoi, refus de `running/sent`, tables
+  privées et six compteurs à zéro après rollback.
+- Les advisors Supabase ne remontent aucun `WARN` ou `ERROR` de sécurité sur
+  la preview. Les informations RLS et index inutilisés sont cohérentes avec des
+  tables serveur encore vides.
+- T020 et T020J sont terminés. Production, Brevo, Webmail, DNS, worker et
+  variables d'activation restent inchangés.
+- Le brief Claude est préparé mais non exécuté, faute de modèle exact et de
+  plafond propres à cette mission ; zéro jeton externe consommé.
+
 ### Jalon du 30 août 2026 - résolution opaque de 200 destinataires
 
 - Une page signée relie les références de contact à l'établissement, la

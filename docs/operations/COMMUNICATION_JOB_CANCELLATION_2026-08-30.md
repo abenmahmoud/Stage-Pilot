@@ -16,5 +16,20 @@ neutraliser une file avant sa remise en service.
   stoppé, mais la livraison reste inchangée et non rappelable.
 
 La migration additive n'autorise sous interrupteur coupé que les deux
-transitions d'annulation pré-envoi. Elle n'est pas appliquée à distance dans ce
-lot.
+transitions d'annulation pré-envoi. Elle est appliquée uniquement sur la preview
+sous la version exacte `20260830130000`.
+
+## Correction des gardes d'approbation
+
+L'audit avant recette a détecté que la première version remplaçait les fonctions
+de garde sans reprendre le contrôle `approved/published`. Aucun envoi n'était
+possible sur la preview, mais un brouillon aurait pu atteindre une table de
+travail si les interrupteurs avaient été ouverts.
+
+- la migration historique est corrigée pour les nouveaux environnements ;
+- `20260830160000_restore_communication_approval_guards` répare les
+  environnements ayant déjà appliqué la première version ;
+- la recette refuse explicitement une livraison issue d'un brouillon ;
+- l'annulation d'urgence reste la seule exception aux interrupteurs coupés.
+
+Production, Brevo, Webmail, DNS et variables d'activation restent inchangés.

@@ -112,8 +112,8 @@ revoke all on function public.communication_guard_delivery_flags() from public, 
 revoke all on function public.communication_guard_job_flags() from public, anon, authenticated;
 
 comment on function public.communication_guard_delivery_flags() is
-  'Fail-closed communication switch guard; only a pre-send transition to cancelled remains available during an outage.';
+  'Fail-closed communication guard preserving approval checks while allowing only pre-send emergency cancellation.';
 comment on function public.communication_guard_job_flags() is
-  'Fail-closed communication switch guard; only pending or retry work may transition to cancelled during an outage.';
+  'Fail-closed communication guard preserving approval checks while allowing only pending or retry emergency cancellation.';
 
 commit;

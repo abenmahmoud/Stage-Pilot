@@ -162,7 +162,7 @@
   droits directs pour `anon` et `authenticated`, puis laisse zéro résidu après
   rollback. Les variables d'activation restent absentes et aucun appel Brevo
   n'est réalisé.
-- [ ] T020 Construire la boîte d'échec, la reprise et l'annulation des travaux.
+- [x] T020 Construire la boîte d'échec, la reprise et l'annulation des travaux.
 - [x] T020A Définir le contrat de panne et d'annulation avant le worker. Les
   erreurs sont des codes fermés sans texte fournisseur ; les pannes temporaires
   repartent après 1, 5, 15, 60 puis 360 minutes, tandis qu'une erreur permanente
@@ -204,6 +204,13 @@
   disponible quand l'envoi est coupé, ne touche directement qu'aux états
   pré-envoi et ne prétend jamais rappeler un message accepté. T020 reste ouvert
   jusqu'à l'application de la migration et à la recette DB de preview.
+- [x] T020J Prouver la récupération sur la preview et corriger une régression
+  détectée avant production. Les migrations exactes `20260830130000` et
+  `20260830160000` autorisent l'annulation d'urgence pré-envoi tout en conservant
+  les contrôles d'approbation. Une transaction fictive confirme brouillon
+  refusé, panne `dead/error`, reprise idempotente, annulation `pending/prepared`,
+  refus de `running/sent`, absence de droits clients et zéro résidu après
+  rollback. Aucun worker ni transport n'est activé.
 - [x] T021A Ajouter un aperçu éditorial local sûr avant la relecture : rendu
   Markdown borné, images distantes neutralisées, liens isolés et absence de
   destinataire, publication ou envoi.
