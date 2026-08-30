@@ -17,6 +17,8 @@
 - [x] T010 Construire l'API publique des contenus publiés valides.
 - [x] T010A Valider dans le navigateur chaque contenu, média signé et curseur
   public avant rendu ou pagination, avec refus des origines externes injectées.
+- [x] T010B Réutiliser ce même validateur pour les pages publiées affichées dans
+  « Vie du lycée », sans second contrat navigateur permissif.
 - [x] T011 Construire l'aide IA de rédaction avec limites et `store: false`.
 
 ## Phase 3 - Interface

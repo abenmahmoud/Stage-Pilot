@@ -2134,7 +2134,7 @@ function SchoolView({ onBack, onHelp }: { onBack: () => void; onHelp: (prompt?: 
   useEffect(() => {
     const controller = new AbortController();
     fetch("/api/content/public", { signal: controller.signal })
-      .then((response) => readApiResponse<{ items: PublicContent[] }>(response))
+      .then(readPublicContentPayload)
       .then((payload) => setPublishedPages(payload.items.filter((item) => item.contentType === "page")))
       .catch((reason) => {
         if (!(reason instanceof DOMException && reason.name === "AbortError")) setPublishedPages([]);

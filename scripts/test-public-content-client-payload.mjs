@@ -5,12 +5,21 @@ import { readFileSync } from "node:fs";
 const page = readFileSync(new URL("../src/pages/prototype/LyceeConnectPrototype.tsx", import.meta.url), "utf8");
 
 test("routes the initial and paginated public feed through one validator", () => {
-  assert.match(page, /fetch\("\/api\/content\/public"\)\s*\.then\(readPublicContentPayload\)/);
+  assert.equal(page.match(/\.then\(readPublicContentPayload\)/g)?.length, 2);
   assert.match(page, /const payload = await readPublicContentPayload\(response\)/);
   const read = page.indexOf("async function readPublicContentPayload");
   const unknown = page.indexOf("readApiResponse<unknown>", read);
   const validation = page.indexOf("if (!isPublicContentPayload(payload))", unknown);
   assert.ok(read < unknown && unknown < validation);
+});
+
+test("validates both news and school-page consumers", () => {
+  const school = page.indexOf("function SchoolView");
+  const fetch = page.indexOf('fetch("/api/content/public", { signal: controller.signal })', school);
+  const validation = page.indexOf(".then(readPublicContentPayload)", fetch);
+  const update = page.indexOf("setPublishedPages", validation);
+  assert.notEqual(school, -1);
+  assert.ok(school < fetch && fetch < validation && validation < update);
 });
 
 test("bounds every public item, asset and cursor", () => {

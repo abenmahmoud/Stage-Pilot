@@ -5,6 +5,17 @@
 **Depot** : `abenmahmoud/Stage-Pilot`
 **Dernier jalon de code verifie** : branche de preview Vercel
 
+## Jalon du 30 août 2026 - pages du lycée sur le contrat public unique
+
+- « Vie du lycée » utilise désormais le même validateur que « À la une » avant
+  de rendre les pages publiées.
+- Une page avec média externe injecté est ignorée sans requête sortante ; la
+  présentation statique sûre reste disponible.
+- La recette Chromium confirme ce repli à 320 et 1 440 px sans débordement ni
+  erreur JavaScript.
+- Lot preview uniquement : aucun contenu réel, média distant ou production n'a
+  été utilisé ou modifié.
+
 ## Jalon du 30 août 2026 - flux « À la une » validé avant rendu
 
 - Le frontend valide désormais chaque article, média, date, audience et curseur
