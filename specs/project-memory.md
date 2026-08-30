@@ -2483,6 +2483,17 @@ taches et analyse de coherence avant une automatisation sensible.
 - Le brief Claude est préparé mais non exécuté, faute de modèle exact et de
   plafond propres à cette mission ; aucun jeton externe n'a été consommé.
 
+### Jalon du 30 août 2026 - réponses réseau obsolètes
+
+- La console numérote chaque chargement de file et ignore toute réponse ou erreur
+  remplacée par une requête plus récente.
+- Le dossier sélectionné est mis à jour immédiatement et chaque chargement de
+  détail vérifie encore cette référence avant de modifier l'écran.
+- T027B7 est terminée. Les cinq domaines comptent 393 identifiants uniques : 277
+  lignes terminées et 116 ouvertes.
+- Le brief Claude est préparé mais non exécuté, faute de modèle exact et de
+  plafond propres à cette mission ; aucun jeton externe n'a été consommé.
+
 ## 8. Prochain ordre recommande
 
 1. Publier et tester le pré-triage ordinateur portable avec des données fictives.

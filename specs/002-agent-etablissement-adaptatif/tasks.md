@@ -330,6 +330,8 @@
   des alertes de priorité, d'attribution, de délai, de rappel et de doublon.
 - [x] T027B6 Ajouter une remise à zéro unique de la recherche, de la file, du
   service et de la pagination, désactivée lorsque la vue complète est active.
+- [x] T027B7 Empêcher les réponses réseau obsolètes de remplacer une file ou un
+  détail plus récent lorsque l'agent change rapidement de filtre ou de dossier.
 - [ ] T027B2 Ajouter les relances internes et l'escalade après validation des
   délais propres à chaque service et des responsables à notifier.
 - [ ] T027C Créer les adhésions de service puis appliquer le périmètre dans les

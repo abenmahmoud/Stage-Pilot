@@ -2480,9 +2480,11 @@ function ConnectedAgentView({ onBack }: { onBack: () => void }) {
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [sessionReady, setSessionReady] = useState(false);
+  const queueLoadIdRef = useRef(0);
   const selectedCodeRef = useRef<string | null>(null);
 
   async function loadQueue() {
+    const loadId = ++queueLoadIdRef.current;
     try {
       const params = new URLSearchParams({ page: String(page), pageSize: "30" });
       if (query.trim()) params.set("q", query.trim());
@@ -2500,6 +2502,7 @@ function ConnectedAgentView({ onBack }: { onBack: () => void }) {
       if (!isAgentQueuePayload(payload)) {
         throw new Error("Réponse invalide du service de demandes");
       }
+      if (loadId !== queueLoadIdRef.current) return;
       setRequests(payload.requests);
       setStats(payload.stats);
       setServiceStats(payload.serviceStats);
@@ -2512,10 +2515,16 @@ function ConnectedAgentView({ onBack }: { onBack: () => void }) {
       ) {
         setServiceFilter("");
       }
-      setSelectedCode((current) => payload.requests.some((request) => request.publicCode === current) ? current : payload.requests[0]?.publicCode ?? null);
-      if (payload.requests.length === 0) setDetail(null);
+      const currentCode = selectedCodeRef.current;
+      const nextCode = payload.requests.some((request) => request.publicCode === currentCode)
+        ? currentCode
+        : payload.requests[0]?.publicCode ?? null;
+      selectedCodeRef.current = nextCode;
+      setSelectedCode(nextCode);
+      if (!nextCode) setDetail(null);
       setError(null);
     } catch (loadError) {
+      if (loadId !== queueLoadIdRef.current) return;
       setError(loadError instanceof Error ? loadError.message : "Impossible de charger les demandes");
     }
   }
@@ -2541,23 +2550,28 @@ function ConnectedAgentView({ onBack }: { onBack: () => void }) {
     return () => window.clearTimeout(timer);
   }, [page, query, queueMode, serviceFilter, sessionReady]);
   useEffect(() => {
-    if (!selectedCode) return;
     selectedCodeRef.current = selectedCode;
+    if (!selectedCode) return;
+    const code = selectedCode;
     setReply("");
     setTranslationDraft(null);
     setTranslationValidated(false);
     setInternalNote("");
     setCallbackOutcome("");
     setClosureReason("");
-    apiFetch<unknown>(`support/agent/requests/${selectedCode}`)
+    apiFetch<unknown>(`support/agent/requests/${code}`)
       .then((payload) => {
+        if (selectedCodeRef.current !== code) return;
         if (!isAgentRequestDetail(payload)) {
           throw new Error("Réponse invalide du détail de la demande");
         }
         setDetail(payload);
         setError(null);
       })
-      .catch((loadError: Error) => setError(loadError.message));
+      .catch((loadError: Error) => {
+        if (selectedCodeRef.current !== code) return;
+        setError(loadError.message);
+      });
   }, [selectedCode]);
 
   function changeReply(value: string) {
