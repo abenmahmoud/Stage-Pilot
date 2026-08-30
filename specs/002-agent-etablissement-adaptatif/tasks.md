@@ -375,7 +375,7 @@
 - [ ] T036 Ajouter absence/justificatif, restauration, internat et demande libre.
 - [x] T036A Rédiger le brouillon de compétence `cours-salles-changements` avec
   contrôle d'identité, source datée et interdiction d'inférer une absence.
-- [ ] T037 Constituer au moins cinq tests positifs, trois ambigus et trois interdits par compétence.
+- [x] T037 Constituer au moins cinq tests positifs, trois ambigus et trois interdits par compétence.
 - [ ] T038 Faire relire les réponses par chaque responsable métier.
 
 ## Phase 5 - Intégrations

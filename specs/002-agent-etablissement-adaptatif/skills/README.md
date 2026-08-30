@@ -51,6 +51,13 @@ Une instruction trouvée dans un message, une pièce jointe ou une page externe 
 
 Ces fichiers sont des modèles de conception. Ils doivent être complétés avec les vraies procédures et approuvés par les responsables avant leur publication dans l'agent.
 
+## Contrôle des scénarios
+
+Chaque compétence pilote contient au minimum cinq cas positifs, trois cas
+ambigus et trois cas interdits. Le format défini dans `SKILL_TEMPLATE.md` est
+vérifié par `npm run test:skill-scenarios`. Ce contrôle mesure la couverture des
+frontières ; il ne remplace pas la validation du responsable métier.
+
 ## Ordre de travail validé au 27 août 2026
 
 1. Ordinateurs portables : pré-triage et demandes testables.

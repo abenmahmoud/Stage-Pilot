@@ -5,6 +5,16 @@
 **Depot** : `abenmahmoud/Stage-Pilot`
 **Dernier jalon de code verifie** : branche de preview Vercel
 
+## Jalon du 30 août 2026 - matrices de scénarios des compétences
+
+- Les cinq compétences pilotes possèdent chacune cinq cas positifs, trois cas
+  ambigus et trois cas interdits avec un comportement observable attendu.
+- Le contrôle `test:skill-scenarios` découvre tous les brouillons de compétence
+  et bloque automatiquement une catégorie incomplète, un identifiant dupliqué
+  ou un résultat attendu absent.
+- Ces scénarios vérifient les limites existantes ; ils ne publient aucune
+  procédure locale encore en attente de validation métier.
+
 ## Jalon du 30 août 2026 - rotation locale du coffre d'identités
 
 - Une enveloppe AES-256-GCM peut être rechiffrée de vN vers une nouvelle version
