@@ -2423,6 +2423,19 @@ taches et analyse de coherence avant une automatisation sensible.
 - Le brief Claude est préparé mais non exécuté, faute de modèle exact et de
   plafond propres à cette mission ; aucun jeton externe n'a été consommé.
 
+### Jalon du 30 août 2026 - vérification interne
+
+- La console agent possède une file `À vérifier` pour le statut serveur
+  `attente_interne`, distincte de l'attente d'une réponse usager.
+- Le compteur est calculé dans la même requête cloisonnée par établissement,
+  périmètre de service et filtre de service que les autres indicateurs.
+- La vue ne crée aucune relance, notification ou échéance. Les règles de délai et
+  d'escalade restent bloquées jusqu'à validation des responsables métier.
+- T027B3 est terminée ; T027B reste ouverte. Les cinq domaines comptent 388
+  identifiants uniques : 272 lignes terminées et 116 ouvertes.
+- Le brief Claude est préparé mais non exécuté, faute de modèle exact et de
+  plafond propres à cette mission ; aucun jeton externe n'a été consommé.
+
 ## 8. Prochain ordre recommande
 
 1. Publier et tester le pré-triage ordinateur portable avec des données fictives.
