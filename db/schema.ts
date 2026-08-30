@@ -1083,52 +1083,69 @@ export const siteContentAudit = pgTable("site_content_audit", {
  * Guichet numérique — demandes et conversation de support.
  * Les routes publiques passent exclusivement par les API serveur.
  */
-export const supportRequests = pgTable("support_requests", {
-  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
-  publicCode: text("public_code")
-    .notNull()
-    .unique()
-    .default(
-      sql`'BC-' || extract(year from current_date)::integer::text || '-' || lpad(nextval('public.support_request_number_seq')::text, 6, '0')`
+export const supportRequests = pgTable(
+  "support_requests",
+  {
+    id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+    institutionId: uuid("institution_id")
+      .notNull()
+      .references(() => institutions.id, { onDelete: "restrict" }),
+    publicCode: text("public_code")
+      .notNull()
+      .unique()
+      .default(
+        sql`'BC-' || extract(year from current_date)::integer::text || '-' || lpad(nextval('public.support_request_number_seq')::text, 6, '0')`
+      ),
+    idempotencyKeyHash: text("idempotency_key_hash").notNull(),
+    requesterType: text("requester_type").notNull(),
+    requesterFirstName: text("requester_first_name").notNull(),
+    requesterLastName: text("requester_last_name").notNull(),
+    beneficiaryType: text("beneficiary_type").notNull(),
+    beneficiaryFirstName: text("beneficiary_first_name"),
+    beneficiaryLastName: text("beneficiary_last_name"),
+    studentId: uuid("student_id").references(() => eleves.id, {
+      onDelete: "set null",
+    }),
+    classId: uuid("class_id").references(() => classes.id, {
+      onDelete: "set null",
+    }),
+    professeurId: uuid("professeur_id").references(() => professeurs.id, {
+      onDelete: "set null",
+    }),
+    subjectContext: jsonb("subject_context").notNull().default({}),
+    category: text("category").notNull(),
+    subcategory: text("subcategory"),
+    subject: text("subject").notNull(),
+    description: text("description").notNull(),
+    status: text("status").notNull().default("nouveau"),
+    priority: text("priority").notNull().default("p3"),
+    priorityReason: text("priority_reason"),
+    preferredChannel: text("preferred_channel").notNull(),
+    fallbackAllowed: boolean("fallback_allowed").notNull().default(false),
+    sourceIpHash: text("source_ip_hash"),
+    assignedTo: uuid("assigned_to"),
+    assignedTeam: text("assigned_team"),
+    slaDueAt: timestamp("sla_due_at", { withTimezone: true }),
+    resolvedAt: timestamp("resolved_at", { withTimezone: true }),
+    closedAt: timestamp("closed_at", { withTimezone: true }),
+    retentionUntil: timestamp("retention_until", { withTimezone: true })
+      .notNull()
+      .default(sql`now() + interval '1 year'`),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    uniqueIndex("support_requests_institution_idempotency_uidx").on(
+      table.institutionId,
+      table.idempotencyKeyHash
     ),
-  idempotencyKeyHash: text("idempotency_key_hash").notNull().unique(),
-  requesterType: text("requester_type").notNull(),
-  requesterFirstName: text("requester_first_name").notNull(),
-  requesterLastName: text("requester_last_name").notNull(),
-  beneficiaryType: text("beneficiary_type").notNull(),
-  beneficiaryFirstName: text("beneficiary_first_name"),
-  beneficiaryLastName: text("beneficiary_last_name"),
-  studentId: uuid("student_id").references(() => eleves.id, {
-    onDelete: "set null",
-  }),
-  classId: uuid("class_id").references(() => classes.id, {
-    onDelete: "set null",
-  }),
-  professeurId: uuid("professeur_id").references(() => professeurs.id, {
-    onDelete: "set null",
-  }),
-  subjectContext: jsonb("subject_context").notNull().default({}),
-  category: text("category").notNull(),
-  subcategory: text("subcategory"),
-  subject: text("subject").notNull(),
-  description: text("description").notNull(),
-  status: text("status").notNull().default("nouveau"),
-  priority: text("priority").notNull().default("p3"),
-  priorityReason: text("priority_reason"),
-  preferredChannel: text("preferred_channel").notNull(),
-  fallbackAllowed: boolean("fallback_allowed").notNull().default(false),
-  sourceIpHash: text("source_ip_hash"),
-  assignedTo: uuid("assigned_to"),
-  assignedTeam: text("assigned_team"),
-  slaDueAt: timestamp("sla_due_at", { withTimezone: true }),
-  resolvedAt: timestamp("resolved_at", { withTimezone: true }),
-  closedAt: timestamp("closed_at", { withTimezone: true }),
-  retentionUntil: timestamp("retention_until", { withTimezone: true })
-    .notNull()
-    .default(sql`now() + interval '1 year'`),
-  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
-  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
-});
+    index("support_requests_institution_queue_idx").on(
+      table.institutionId,
+      table.status,
+      table.createdAt
+    ),
+  ]
+);
 
 export const supportContacts = pgTable("support_contacts", {
   id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
@@ -1149,26 +1166,35 @@ export const supportContacts = pgTable("support_contacts", {
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
-export const supportMessages = pgTable("support_messages", {
-  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
-  requestId: uuid("request_id")
-    .notNull()
-    .references(() => supportRequests.id, { onDelete: "cascade" }),
-  direction: text("direction").notNull(),
-  channel: text("channel").notNull(),
-  authorUserId: uuid("author_user_id"),
-  authorLabel: text("author_label"),
-  bodyText: text("body_text").notNull(),
-  bodyHtmlSanitized: text("body_html_sanitized"),
-  clientIdempotencyKeyHash: text("client_idempotency_key_hash").unique(),
-  provider: text("provider"),
-  providerMessageId: text("provider_message_id"),
-  inReplyTo: text("in_reply_to"),
-  deliveryStatus: text("delivery_status").notNull().default("stored"),
-  validatedBy: uuid("validated_by"),
-  validatedAt: timestamp("validated_at", { withTimezone: true }),
-  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
-});
+export const supportMessages = pgTable(
+  "support_messages",
+  {
+    id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+    requestId: uuid("request_id")
+      .notNull()
+      .references(() => supportRequests.id, { onDelete: "cascade" }),
+    direction: text("direction").notNull(),
+    channel: text("channel").notNull(),
+    authorUserId: uuid("author_user_id"),
+    authorLabel: text("author_label"),
+    bodyText: text("body_text").notNull(),
+    bodyHtmlSanitized: text("body_html_sanitized"),
+    clientIdempotencyKeyHash: text("client_idempotency_key_hash"),
+    provider: text("provider"),
+    providerMessageId: text("provider_message_id"),
+    inReplyTo: text("in_reply_to"),
+    deliveryStatus: text("delivery_status").notNull().default("stored"),
+    validatedBy: uuid("validated_by"),
+    validatedAt: timestamp("validated_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    uniqueIndex("support_messages_request_idempotency_uidx").on(
+      table.requestId,
+      table.clientIdempotencyKeyHash
+    ),
+  ]
+);
 
 export const supportDeviceSessions = pgTable("support_device_sessions", {
   id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),

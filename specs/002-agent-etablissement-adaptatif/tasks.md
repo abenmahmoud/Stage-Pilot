@@ -29,7 +29,7 @@
 - [x] T009A Brancher en preview les brouillons, évaluations, validations,
   publications, retraits, révocations, journal et création d'une nouvelle
   version sur des tables privées réservées au serveur.
-- [ ] T010 Ajouter `institution_id` et le niveau de vérification d'identité aux demandes `001` si nécessaire.
+- [x] T010 Ajouter `institution_id` et le niveau de vérification d'identité aux demandes `001` si nécessaire.
 - [x] T010A Exposer dès le pilote les états coordonnées déclarées, contact vérifié
   et identité confirmée, avec un verrou sur les réponses contenant des codes.
 - [ ] T010B Créer les comptes usagers, l'OTP de contact et le rapprochement séparé
@@ -158,6 +158,11 @@
   scolaire, révocation, MFA et aucun passe-droit administrateur hors périmètre.
 - [ ] T015B Brancher cette matrice avant l'IA et chaque outil sur les futures
   tables d'identités, relations et adhésions, puis la renforcer par les RLS.
+- [x] T015B1 Rendre l'établissement obligatoire et immuable sur chaque demande,
+  cloisonner création, suivi, files, détail, réponses, notes, traductions, pièces,
+  métriques et reprise manuelle, puis transmettre et contrôler ce périmètre dans
+  les tâches email. Les tables techniques sans `institution_id` restent bloquées
+  dès que plusieurs établissements actifs existent.
 - [x] T016 Implémenter les listes blanches d'outils et schémas d'entrée par compétence.
   Le contrat serveur exige une compétence publiée, la clé exacte de l'outil et
   un schéma fermé qui refuse les champs inconnus, types, valeurs et références

@@ -43,7 +43,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== "POST") return methodNotAllowed(res, ["POST"]);
 
   return handleApi(res, async () => {
-    const { user, access } = await requireSupportAgent(req);
+    const { user, access, institutionId } = await requireSupportAgent(req);
     const code = Array.isArray(req.query.code) ? req.query.code[0] : req.query.code;
     if (!code || !/^BC-\d{4}-\d{6}$/.test(code)) {
       throw new HttpError(400, "Numéro de demande invalide");
@@ -65,7 +65,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         updatedAt: supportRequests.updatedAt,
       })
       .from(supportRequests)
-      .where(eq(supportRequests.publicCode, code))
+      .where(and(
+        eq(supportRequests.institutionId, institutionId),
+        eq(supportRequests.publicCode, code)
+      ))
       .limit(1);
     if (!request) throw new HttpError(404, "Demande introuvable");
     assertSupportRequestAccess(access, request.assignedTeam);
@@ -77,7 +80,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         channel: supportMessages.channel,
       })
       .from(supportMessages)
-      .where(eq(supportMessages.clientIdempotencyKeyHash, idempotencyHash))
+      .where(and(
+        eq(supportMessages.requestId, request.id),
+        eq(supportMessages.clientIdempotencyKeyHash, idempotencyHash)
+      ))
       .limit(1);
     if (existingReply) {
       if (existingReply.requestId !== request.id) {
@@ -187,7 +193,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           validatedBy: user.id,
           validatedAt: new Date(),
         })
-        .onConflictDoNothing({ target: supportMessages.clientIdempotencyKeyHash })
+        .onConflictDoNothing({
+          target: [supportMessages.requestId, supportMessages.clientIdempotencyKeyHash],
+        })
         .returning({ id: supportMessages.id, createdAt: supportMessages.createdAt });
       if (!created) {
         const [existing] = await tx
@@ -197,7 +205,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             createdAt: supportMessages.createdAt,
           })
           .from(supportMessages)
-          .where(eq(supportMessages.clientIdempotencyKeyHash, idempotencyHash))
+          .where(and(
+            eq(supportMessages.requestId, request.id),
+            eq(supportMessages.clientIdempotencyKeyHash, idempotencyHash)
+          ))
           .limit(1);
         if (!existing) throw new Error("Idempotent agent reply could not be recovered");
         if (existing.requestId !== request.id) {
@@ -220,6 +231,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             jsonb_build_object(
               'job_id', ${jobId}::uuid,
               'job_type', 'send_requester_reply',
+              'institution_id', ${institutionId}::uuid,
               'request_id', ${request.id}::uuid,
               'message_id', ${created.id}::uuid,
               'contact_id', ${email.id}::uuid,
@@ -260,6 +272,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         .set({ status: "attente_demandeur", assignedTo: user.id })
         .where(
           and(
+            eq(supportRequests.institutionId, institutionId),
             eq(supportRequests.id, request.id),
             sql`date_trunc('milliseconds', ${supportRequests.updatedAt}) = ${formatSupportRevision(expectedRevision)}::timestamptz`,
             teamCondition

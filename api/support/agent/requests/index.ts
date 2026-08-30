@@ -55,7 +55,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== "GET") return methodNotAllowed(res, ["GET"]);
 
   return handleApi(res, async () => {
-    const { user, access } = await requireSupportAgent(req);
+    const { user, access, institutionId } = await requireSupportAgent(req);
     const page = Math.max(1, Number.parseInt(queryValue(req.query.page), 10) || 1);
     const pageSize = Math.min(50, Math.max(10, Number.parseInt(queryValue(req.query.pageSize), 10) || 30));
     const search = queryValue(req.query.q).trim().slice(0, 80);
@@ -65,7 +65,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const callbackOnly = queryValue(req.query.callback) === "pending";
     const duplicateOnly = queryValue(req.query.duplicate) === "pending";
     const service = queryValue(req.query.service);
-    const filters: SQL[] = [];
+    const filters: SQL[] = [eq(supportRequests.institutionId, institutionId)];
     const accessFilter = access.canViewAll
       ? undefined
       : inArray(supportRequests.assignedTeam, access.serviceCodes);
@@ -141,7 +141,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       .from(supportRequests)
       .where(where);
 
-    const statsWhere = [accessFilter, serviceFilter].filter((value): value is SQL => Boolean(value));
+    const statsWhere = [
+      eq(supportRequests.institutionId, institutionId),
+      accessFilter,
+      serviceFilter,
+    ].filter((value): value is SQL => Boolean(value));
     const statsQuery = db.select({
       total: sql<number>`count(*)::int`,
       new: sql<number>`count(*) filter (where ${supportRequests.status} in ('nouveau', 'a_qualifier'))::int`,
@@ -164,7 +168,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         unassigned: sql<number>`count(*) filter (where ${supportRequests.assignedTo} is null and ${supportRequests.status} not in ('resolu', 'clos', 'indesirable'))::int`,
       })
       .from(supportRequests)
-      .where(accessFilter)
+      .where(and(eq(supportRequests.institutionId, institutionId), accessFilter))
       .groupBy(supportRequests.assignedTeam);
 
     // The serverless database client intentionally owns one connection. Running

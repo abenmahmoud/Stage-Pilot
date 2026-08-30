@@ -65,7 +65,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   return handleApi(res, async () => {
-    const { user, access } = await requireSupportAgent(req);
+    const { user, access, institutionId } = await requireSupportAgent(req);
     const code = publicCode(req);
     const [request] = await db
       .select({
@@ -74,7 +74,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         assignedTeam: supportRequests.assignedTeam,
       })
       .from(supportRequests)
-      .where(eq(supportRequests.publicCode, code))
+      .where(and(
+        eq(supportRequests.institutionId, institutionId),
+        eq(supportRequests.publicCode, code)
+      ))
       .limit(1);
     if (!request) throw new HttpError(404, "Demande introuvable");
     assertSupportRequestAccess(access, request.assignedTeam);

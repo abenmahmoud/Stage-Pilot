@@ -32,6 +32,7 @@ import {
   recordInvalidSupportRequest,
   supportDeviceRateKey,
 } from "../../_shared/support-rate-limits.js";
+import { requireConfiguredInstitution } from "../../_shared/institution-context.js";
 
 type DeviceSession = { id: string; rawToken: string | null };
 
@@ -81,6 +82,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         throw error;
       }
       await enforceSupportRequestCreationLimits({ parsed: input, deviceKey });
+      const institution = await requireConfiguredInstitution();
       const idempotencyHash = sha256(idempotencyKey(req));
       const correlationId = randomUUID();
       const requesterJobId = randomUUID();
@@ -97,7 +99,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             createdAt: supportRequests.createdAt,
           })
           .from(supportRequests)
-          .where(eq(supportRequests.idempotencyKeyHash, idempotencyHash))
+          .where(and(
+            eq(supportRequests.institutionId, institution.id),
+            eq(supportRequests.idempotencyKeyHash, idempotencyHash)
+          ))
           .limit(1);
 
         if (existing) {
@@ -119,6 +124,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
               .from(supportRequests)
               .innerJoin(supportContacts, eq(supportContacts.requestId, supportRequests.id))
               .where(and(
+                eq(supportRequests.institutionId, institution.id),
                 eq(supportRequests.category, input.category),
                 gt(supportRequests.createdAt, supportDuplicateWindowStart()),
                 ne(supportRequests.status, "indesirable"),
@@ -131,6 +137,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         const [created] = await tx
           .insert(supportRequests)
           .values({
+            institutionId: institution.id,
             idempotencyKeyHash: idempotencyHash,
             requesterType: input.requesterType,
             requesterFirstName: input.requesterFirstName,
@@ -150,7 +157,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             assignedTeam: input.routing.service,
             slaDueAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
           })
-          .onConflictDoNothing({ target: supportRequests.idempotencyKeyHash })
+          .onConflictDoNothing({
+            target: [supportRequests.institutionId, supportRequests.idempotencyKeyHash],
+          })
           .returning({
             id: supportRequests.id,
             publicCode: supportRequests.publicCode,
@@ -167,7 +176,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
               createdAt: supportRequests.createdAt,
             })
             .from(supportRequests)
-            .where(eq(supportRequests.idempotencyKeyHash, idempotencyHash))
+            .where(and(
+              eq(supportRequests.institutionId, institution.id),
+              eq(supportRequests.idempotencyKeyHash, idempotencyHash)
+            ))
             .limit(1);
           if (!racedRequest) throw new Error("Idempotent request could not be recovered");
           await tx
@@ -293,6 +305,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
               jsonb_build_object(
                 'job_id', ${requesterJobId}::uuid,
                 'job_type', 'notify_requester_request_created',
+                'institution_id', ${institution.id}::uuid,
                 'request_id', ${created.id}::uuid,
                 'message_id', ${sourceMessage.id}::uuid,
                 'contact_id', ${emailContact.id}::uuid,
@@ -310,6 +323,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             jsonb_build_object(
               'job_id', ${agentJobId}::uuid,
               'job_type', 'notify_agent_request_created',
+              'institution_id', ${institution.id}::uuid,
               'request_id', ${created.id}::uuid,
               'message_id', ${sourceMessage.id}::uuid,
               'idempotency_key', ${`agent-request-created:${created.id}`}::text,
@@ -338,6 +352,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return handleApi(res, async () => {
       const token = readSupportSessionToken(req);
       if (!token) return { requests: [] };
+      const institution = await requireConfiguredInstitution();
 
       const requests = await db
         .select({
@@ -359,7 +374,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           and(
             eq(supportDeviceSessions.sessionHash, sha256(token)),
             gt(supportDeviceSessions.expiresAt, new Date()),
-            isNull(supportDeviceSessions.revokedAt)
+            isNull(supportDeviceSessions.revokedAt),
+            eq(supportRequests.institutionId, institution.id)
           )
         )
         .orderBy(desc(supportRequests.createdAt));

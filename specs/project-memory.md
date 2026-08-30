@@ -1,6 +1,6 @@
 # Memoire durable - Portail numerique du Lycee Blaise Cendrars
 
-**Derniere mise a jour** : 29 aout 2026
+**Derniere mise a jour** : 30 aout 2026
 **Branche de travail** : `codex/lycee-connect-prototype`
 **Depot** : `abenmahmoud/Stage-Pilot`
 **Dernier jalon de code verifie** : candidate publiée sur la production Vercel
@@ -1243,6 +1243,29 @@ taches et analyse de coherence avant une automatisation sensible.
   d'autorisation courante précisant modèle, périmètre et limite. Le dossier
   d'audit est prêt ; les vérifications Codex, Supabase et tests automatisés ont
   été exécutées sans prétendre remplacer cette revue indépendante.
+
+### Jalon du 30 août 2026 - demandes cloisonnées par établissement
+
+- Chaque `support_request` possède désormais un `institution_id` obligatoire,
+  référencé et immuable. Les onze dossiers déjà présents dans la branche de
+  preview ont été rattachés au seul établissement actif sans lire leur contenu.
+- Création, détection de doublon, sessions, liens de suivi, file agent, détail,
+  réponse, note, traduction, rappel, pièce jointe, métriques et reprise d'échec
+  filtrent l'établissement du contexte serveur.
+- Les clés d'idempotence des demandes sont uniques par établissement et celles
+  des messages par dossier. Une empreinte identique dans deux périmètres fictifs
+  est acceptée ; sa répétition dans le même périmètre est refusée.
+- Les tâches email transportent l'établissement et le worker vérifie la
+  correspondance avec le dossier. Webhook, worker et santé échouent fermés dès
+  que plusieurs établissements actifs partagent encore les anciennes tables
+  techniques sans `institution_id`.
+- La migration `20260830020355` est appliquée seulement à
+  `guichet-lycee-preview`. RLS est forcée, `anon` et `authenticated` ne lisent
+  pas les dossiers. Une recette a refusé le déplacement d'un dossier vers un
+  autre établissement, vérifié les idempotences composites puis exécuté
+  `ROLLBACK` avec zéro résidu synthétique et zéro dossier sans établissement.
+- Les tests ciblés et le build passent. L'audit Claude reste non exécuté sans
+  modèle et plafond de consommation explicitement autorisés pour cette mission.
 
 ## 8. Prochain ordre recommande
 

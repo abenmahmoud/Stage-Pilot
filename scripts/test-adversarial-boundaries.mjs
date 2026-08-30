@@ -129,8 +129,9 @@ test("every per-request agent route checks the persisted service perimeter", () 
 test("the queue applies its access filter to rows, totals and service statistics", () => {
   assert.match(agentQueue, /inArray\(supportRequests\.assignedTeam, access\.serviceCodes\)/);
   assert.match(agentQueue, /if \(accessFilter\) filters\.push\(accessFilter\)/);
-  assert.match(agentQueue, /statsWhere = \[accessFilter, serviceFilter\]/);
-  assert.match(agentQueue, /serviceStatsQuery[\s\S]*\.where\(accessFilter\)/);
+  assert.match(agentQueue, /filters: SQL\[\] = \[eq\(supportRequests\.institutionId, institutionId\)\]/);
+  assert.match(agentQueue, /statsWhere = \[[\s\S]*supportRequests\.institutionId[\s\S]*accessFilter[\s\S]*serviceFilter/);
+  assert.match(agentQueue, /serviceStatsQuery[\s\S]*\.where\(and\(eq\(supportRequests\.institutionId, institutionId\), accessFilter\)\)/);
 });
 
 test("authorization trusts app metadata and never user-editable metadata", () => {

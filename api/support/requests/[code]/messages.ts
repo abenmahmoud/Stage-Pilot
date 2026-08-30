@@ -50,14 +50,19 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           bodyText: text,
           clientIdempotencyKeyHash: messageIdempotencyHash,
         })
-        .onConflictDoNothing({ target: supportMessages.clientIdempotencyKeyHash })
+        .onConflictDoNothing({
+          target: [supportMessages.requestId, supportMessages.clientIdempotencyKeyHash],
+        })
         .returning({ id: supportMessages.id, createdAt: supportMessages.createdAt });
 
       if (!created) {
         const [existing] = await tx
           .select({ id: supportMessages.id, createdAt: supportMessages.createdAt })
           .from(supportMessages)
-          .where(eq(supportMessages.clientIdempotencyKeyHash, messageIdempotencyHash))
+          .where(and(
+            eq(supportMessages.requestId, access.requestId),
+            eq(supportMessages.clientIdempotencyKeyHash, messageIdempotencyHash)
+          ))
           .limit(1);
         if (!existing) throw new Error("Idempotent message could not be recovered");
         return { ...existing, duplicate: true };
@@ -68,6 +73,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         .set({ status: "en_cours" })
         .where(
           and(
+            eq(supportRequests.institutionId, access.institutionId),
             eq(supportRequests.id, access.requestId),
             eq(supportRequests.status, "attente_demandeur")
           )
@@ -89,6 +95,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           jsonb_build_object(
             'job_id', ${jobId}::uuid,
             'job_type', 'notify_agent_message_received',
+            'institution_id', ${access.institutionId}::uuid,
             'request_id', ${access.requestId}::uuid,
             'message_id', ${created.id}::uuid,
             'idempotency_key', ${`message-received:${created.id}`}::text,

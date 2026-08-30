@@ -177,8 +177,8 @@ test("keeps the runtime table server-only, append-only and free of user content"
   assert.match(api, /decisionRole !== "direction"/);
   assert.match(api, /decisionRole !== "superadmin"/);
   assert.match(api, /context\.institutionId/);
-  assert.match(api, /supportScope\?\.count/);
-  assert.match(api, /cloisonnement des demandes par établissement/);
+  assert.match(api, /innerJoin\(supportRequests, eq\(supportRequests\.id, supportEvents\.requestId\)\)/);
+  assert.match(api, /eq\(supportRequests\.institutionId, context\.institutionId\)/);
   assert.match(api, /supportEvents\.eventType/);
   assert.match(api, /fromValue[\s\S]+assignedTeam/);
   assert.match(api, /toValue[\s\S]+assignedTeam/);

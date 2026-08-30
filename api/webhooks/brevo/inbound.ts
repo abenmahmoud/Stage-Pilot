@@ -12,6 +12,10 @@ import {
 import { HttpError, secretMatches } from "../../_shared/auth.js";
 import { handleApi, methodNotAllowed } from "../../_shared/response.js";
 import { assertNoForbiddenSupportSecret, sha256 } from "../../_shared/support.js";
+import {
+  assertLegacySingleInstitutionMode,
+  requireConfiguredInstitution,
+} from "../../_shared/institution-context.js";
 
 type Mailbox = { Address?: string; Name?: string };
 type InboundAttachment = {
@@ -59,6 +63,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   return handleApi(res, async () => {
     authorizeWebhook(req);
+    const institution = await requireConfiguredInstitution();
+    await assertLegacySingleInstitutionMode(institution.id);
     const items = (req.body as { items?: InboundItem[] } | undefined)?.items;
     if (!Array.isArray(items) || items.length === 0 || items.length > 50) {
       throw new HttpError(400, "Webhook invalide");
@@ -80,7 +86,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       const [request] = await db
         .select({ id: supportRequests.id, status: supportRequests.status })
         .from(supportRequests)
-        .where(eq(supportRequests.publicCode, code))
+        .where(and(
+          eq(supportRequests.institutionId, institution.id),
+          eq(supportRequests.publicCode, code)
+        ))
         .limit(1);
       if (!request) {
         await db
@@ -186,7 +195,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         await tx
           .update(supportRequests)
           .set({ status: request.status === "attente_demandeur" ? "en_cours" : request.status })
-          .where(eq(supportRequests.id, request.id));
+          .where(and(
+            eq(supportRequests.institutionId, institution.id),
+            eq(supportRequests.id, request.id)
+          ));
         await tx.insert(supportEvents).values({
           requestId: request.id,
           eventType: "message.received",
@@ -201,6 +213,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             jsonb_build_object(
               'job_id', ${notificationJobId}::uuid,
               'job_type', 'notify_agent_message_received',
+              'institution_id', ${institution.id}::uuid,
               'request_id', ${request.id}::uuid,
               'message_id', ${message.id}::uuid,
               'attempt', 0

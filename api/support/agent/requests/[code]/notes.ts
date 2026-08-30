@@ -25,7 +25,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== "POST") return methodNotAllowed(res, ["POST"]);
 
   return handleApi(res, async () => {
-    const { user, access } = await requireSupportAgent(req);
+    const { user, access, institutionId } = await requireSupportAgent(req);
     const code = Array.isArray(req.query.code) ? req.query.code[0] : req.query.code;
     if (!code || !/^BC-\d{4}-\d{6}$/.test(code)) {
       throw new HttpError(400, "Numéro de demande invalide");
@@ -41,7 +41,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const [request] = await db
       .select({ id: supportRequests.id, assignedTeam: supportRequests.assignedTeam })
       .from(supportRequests)
-      .where(eq(supportRequests.publicCode, code))
+      .where(and(
+        eq(supportRequests.institutionId, institutionId),
+        eq(supportRequests.publicCode, code)
+      ))
       .limit(1);
     if (!request) throw new HttpError(404, "Demande introuvable");
     assertSupportRequestAccess(access, request.assignedTeam);
@@ -63,7 +66,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           validatedBy: user.id,
           validatedAt: new Date(),
         })
-        .onConflictDoNothing({ target: supportMessages.clientIdempotencyKeyHash })
+        .onConflictDoNothing({
+          target: [supportMessages.requestId, supportMessages.clientIdempotencyKeyHash],
+        })
         .returning({ id: supportMessages.id, createdAt: supportMessages.createdAt });
       if (!created) {
         const [existing] = await tx

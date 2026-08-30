@@ -7,6 +7,7 @@ import {
   supportEvents,
   supportFailedJobs,
   supportMagicTokens,
+  supportRequests,
 } from "../../../../../db/schema.js";
 import {
   isSupportRetryableJobType,
@@ -32,9 +33,20 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const context = await requireSupportOperationsManager(req);
     const id = routeId(req);
     const [failure] = await db
-      .select()
+      .select({
+        id: supportFailedJobs.id,
+        jobId: supportFailedJobs.jobId,
+        requestId: supportFailedJobs.requestId,
+        jobType: supportFailedJobs.jobType,
+        payloadRedacted: supportFailedJobs.payloadRedacted,
+      })
       .from(supportFailedJobs)
-      .where(and(eq(supportFailedJobs.id, id), isNull(supportFailedJobs.retriedAt)))
+      .innerJoin(supportRequests, eq(supportRequests.id, supportFailedJobs.requestId))
+      .where(and(
+        eq(supportFailedJobs.id, id),
+        eq(supportRequests.institutionId, context.institutionId),
+        isNull(supportFailedJobs.retriedAt)
+      ))
       .limit(1);
     if (!failure) throw new HttpError(404, "Cet échec n’est plus en attente");
     const requestId = failure.requestId;
@@ -96,6 +108,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       const queuePayload = {
         job_id: newJobId,
         job_type: jobType,
+        institution_id: context.institutionId,
         request_id: requestId,
         message_id: messageId,
         contact_id: contactId,

@@ -23,6 +23,7 @@ import {
   FORBIDDEN_SUPPORT_SECRET_MESSAGE,
 } from "../../shared/support-secret-policy.js";
 import type { SupportRateLimitScope } from "../../shared/support-rate-limit-policy.js";
+import { requireConfiguredInstitution } from "./institution-context.js";
 
 export const SUPPORT_COOKIE = "bc_support_session";
 export const SUPPORT_SESSION_DAYS = 30;
@@ -367,9 +368,10 @@ export function clearSupportSessionCookie(res: VercelResponse): void {
 export async function requireSupportAccess(
   req: VercelRequest,
   publicCode: string
-): Promise<{ requestId: string; sessionId: string }> {
+): Promise<{ requestId: string; sessionId: string; institutionId: string }> {
   const token = readSupportSessionToken(req);
   if (!token) throw new HttpError(401, "Ouvrez le lien sécurisé reçu pour accéder au dossier");
+  const institution = await requireConfiguredInstitution();
 
   const [access] = await db
     .select({ requestId: supportRequests.id, sessionId: supportDeviceSessions.id })
@@ -384,6 +386,7 @@ export async function requireSupportAccess(
         eq(supportDeviceSessions.sessionHash, sha256(token)),
         gt(supportDeviceSessions.expiresAt, new Date()),
         isNull(supportDeviceSessions.revokedAt),
+        eq(supportRequests.institutionId, institution.id),
         eq(supportRequests.publicCode, publicCode)
       )
     )
@@ -396,7 +399,7 @@ export async function requireSupportAccess(
     .set({ lastUsedAt: new Date() })
     .where(eq(supportDeviceSessions.id, access.sessionId));
 
-  return access;
+  return { ...access, institutionId: institution.id };
 }
 
 export function idempotencyKey(req: VercelRequest): string {

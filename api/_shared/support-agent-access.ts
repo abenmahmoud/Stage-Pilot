@@ -11,13 +11,13 @@ import {
   resolveSupportAgentAccess,
   type SupportAgentAccess,
 } from "../../shared/support-agent-access.js";
+import { requireConfiguredInstitution } from "./institution-context.js";
 
 const SUPPORT_AGENT_ROLES = ["superadmin", "administration", "agent", "proviseur"] as const;
-const DEFAULT_INSTITUTION_SLUG = "blaise-cendrars-sevran";
-
 export type SupportAgentContext = {
   user: AuthUser;
   access: SupportAgentAccess;
+  institutionId: string;
 };
 
 export async function requireSupportAgent(
@@ -27,13 +27,12 @@ export async function requireSupportAgent(
   const membershipSource = (process.env.SUPPORT_MEMBERSHIP_SOURCE ?? "metadata")
     .trim()
     .toLowerCase();
+  const institution = await requireConfiguredInstitution();
 
   let access: SupportAgentAccess | null;
   if (membershipSource === "metadata") {
     access = resolveSupportAgentAccess(user.role, user.appMetadata);
   } else if (membershipSource === "database") {
-    const institutionSlug =
-      process.env.SUPPORT_INSTITUTION_SLUG?.trim() || DEFAULT_INSTITUTION_SLUG;
     try {
       const [membership] = await db
         .select({
@@ -48,7 +47,7 @@ export async function requireSupportAgent(
           and(
             eq(institutionMemberships.userId, user.id),
             eq(institutionMemberships.status, "active"),
-            eq(institutions.slug, institutionSlug),
+            eq(institutions.id, institution.id),
             inArray(institutions.status, ["pilot", "active"])
           )
         )
@@ -67,7 +66,7 @@ export async function requireSupportAgent(
   if (!access) {
     throw new HttpError(403, "Aucun service actif n'est associé à ce compte agent");
   }
-  return { user, access };
+  return { user, access, institutionId: institution.id };
 }
 
 export function assertSupportRequestAccess(

@@ -37,7 +37,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         resolvedAt: supportRequests.resolvedAt,
       })
       .from(supportRequests)
-      .where(eq(supportRequests.id, access.requestId))
+      .where(and(
+        eq(supportRequests.institutionId, access.institutionId),
+        eq(supportRequests.id, access.requestId)
+      ))
       .limit(1);
 
     const [messages, attachments, verifiedContacts] = await Promise.all([

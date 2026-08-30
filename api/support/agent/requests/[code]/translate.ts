@@ -1,5 +1,5 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { db } from "../../../../../db/index.js";
 import { supportRequests } from "../../../../../db/schema.js";
 import {
@@ -27,7 +27,7 @@ import {
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== "POST") return methodNotAllowed(res, ["POST"]);
   return handleApi(res, async () => {
-    const { user, access } = await requireSupportAgent(req);
+    const { user, access, institutionId } = await requireSupportAgent(req);
     const code = Array.isArray(req.query.code) ? req.query.code[0] : req.query.code;
     if (!code || !/^BC-\d{4}-\d{6}$/.test(code)) {
       throw new HttpError(400, "Numéro de demande invalide");
@@ -49,7 +49,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         assignedTeam: supportRequests.assignedTeam,
       })
       .from(supportRequests)
-      .where(eq(supportRequests.publicCode, code))
+      .where(and(
+        eq(supportRequests.institutionId, institutionId),
+        eq(supportRequests.publicCode, code)
+      ))
       .limit(1);
     if (!request) throw new HttpError(404, "Demande introuvable");
     assertSupportRequestAccess(access, request.assignedTeam);

@@ -20,6 +20,7 @@ import {
   sha256,
 } from "../../_shared/support.js";
 import { enforceMagicTokenNetworkGuard } from "../../_shared/support-rate-limits.js";
+import { requireConfiguredInstitution } from "../../_shared/institution-context.js";
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== "POST") return methodNotAllowed(res, ["POST"]);
@@ -30,6 +31,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       throw new HttpError(400, "Lien de suivi invalide");
     }
     await enforceMagicTokenNetworkGuard(req);
+    const institution = await requireConfiguredInstitution();
 
     const existingSessionToken = readSupportSessionToken(req);
     const newSessionToken = opaqueToken();
@@ -48,7 +50,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             eq(supportMagicTokens.tokenHash, sha256(rawMagicToken)),
             eq(supportMagicTokens.purpose, "support_access"),
             gt(supportMagicTokens.expiresAt, new Date()),
-            isNull(supportMagicTokens.usedAt)
+            isNull(supportMagicTokens.usedAt),
+            eq(supportRequests.institutionId, institution.id)
           )
         )
         .limit(1);
@@ -98,7 +101,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           const previousGrants = await tx
             .select({ requestId: supportSessionRequests.requestId })
             .from(supportSessionRequests)
-            .where(eq(supportSessionRequests.sessionId, previousSession.id));
+            .innerJoin(
+              supportRequests,
+              eq(supportRequests.id, supportSessionRequests.requestId)
+            )
+            .where(and(
+              eq(supportSessionRequests.sessionId, previousSession.id),
+              eq(supportRequests.institutionId, institution.id)
+            ));
           if (previousGrants.length > 0) {
             await tx
               .insert(supportSessionRequests)

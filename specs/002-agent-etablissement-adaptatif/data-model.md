@@ -367,13 +367,20 @@ La conservation finale reste soumise à la validation direction/DPO.
 
 ## Entités `001` réutilisées
 
-- `support_requests` : dossier, identité déclarée, catégorie, service, priorité et statut.
-- `support_messages` : échanges usager-agent avec auteur et canal.
+- `support_requests` : dossier, établissement obligatoire et immuable, identité
+  déclarée, catégorie, service, priorité et statut. L'idempotence est unique par
+  établissement et les files sont indexées par établissement, statut et date.
+- `support_messages` : échanges usager-agent avec auteur et canal. L'idempotence
+  d'un message est unique dans son dossier, jamais globalement.
 - `support_attachments` : métadonnées et référence de stockage privé.
 - `support_events` : historique immuable des transitions.
 - `support_notifications` : envoi durable, nouvelles tentatives et preuve.
 
-Une migration peut ajouter `institution_id`, `source_channel`, `identity_assurance_level` et `retention_policy` à ces entités si ces champs n'existent pas encore.
+La migration `20260830020355` ajoute `institution_id` à `support_requests`,
+refuse sa modification, force RLS et retire tout accès client direct. Les tables
+techniques de notification qui ne portent pas encore ce champ restent en mode
+mono-établissement fermé. `source_channel`, `identity_assurance_level` et
+`retention_policy` restent à ajouter seulement si leur usage le justifie.
 
 ## Contraintes de sécurité
 

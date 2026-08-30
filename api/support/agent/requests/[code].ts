@@ -67,12 +67,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   return handleApi(res, async () => {
-    const { user, access } = await requireSupportAgent(req);
+    const { user, access, institutionId } = await requireSupportAgent(req);
     const code = publicCode(req);
     const [request] = await db
       .select()
       .from(supportRequests)
-      .where(eq(supportRequests.publicCode, code))
+      .where(and(
+        eq(supportRequests.institutionId, institutionId),
+        eq(supportRequests.publicCode, code)
+      ))
       .limit(1);
     if (!request) throw new HttpError(404, "Demande introuvable");
     assertSupportRequestAccess(access, request.assignedTeam);
@@ -219,7 +222,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         const [candidate] = await db
           .select({ assignedTeam: supportRequests.assignedTeam })
           .from(supportRequests)
-          .where(eq(supportRequests.id, duplicateReview.candidateRequestId))
+          .where(and(
+            eq(supportRequests.institutionId, institutionId),
+            eq(supportRequests.id, duplicateReview.candidateRequestId)
+          ))
           .limit(1);
         if (!candidate) throw new HttpError(409, "Le dossier rapproché n’existe plus");
         assertSupportRequestAccess(access, candidate.assignedTeam);
@@ -236,11 +242,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       const revisionCondition = sql`date_trunc('milliseconds', ${supportRequests.updatedAt}) = ${formatSupportRevision(expectedRevision)}::timestamptz`;
       const updateCondition = body.assignToMe === true && request.assignedTo === null
         ? and(
+            eq(supportRequests.institutionId, institutionId),
             eq(supportRequests.id, request.id),
             revisionCondition,
             isNull(supportRequests.assignedTo)
           )
         : and(
+            eq(supportRequests.institutionId, institutionId),
             eq(supportRequests.id, request.id),
             revisionCondition
           );
@@ -399,7 +407,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             assignedTeam: supportRequests.assignedTeam,
           })
           .from(supportRequests)
-          .where(eq(supportRequests.id, duplicateReview.candidateRequestId))
+          .where(and(
+            eq(supportRequests.institutionId, institutionId),
+            eq(supportRequests.id, duplicateReview.candidateRequestId)
+          ))
           .limit(1)
       : [];
     const canViewDuplicateCandidate = Boolean(

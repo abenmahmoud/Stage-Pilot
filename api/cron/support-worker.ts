@@ -13,10 +13,15 @@ import { HttpError, secretMatches } from "../_shared/auth.js";
 import { handleApi, methodNotAllowed } from "../_shared/response.js";
 import { resolveSupportNotificationTarget } from "../../shared/support-notification-routing.js";
 import { isReservedTestEmail } from "../../shared/support-test-address.js";
+import {
+  assertLegacySingleInstitutionMode,
+  requireConfiguredInstitution,
+} from "../_shared/institution-context.js";
 
 type QueueJob = {
   job_id: string;
   job_type: string;
+  institution_id?: string;
   request_id: string;
   message_id?: string;
   contact_id?: string;
@@ -43,7 +48,11 @@ type EmailContext = {
   email: string | null;
 };
 
-async function loadEmailContext(requestId: string, contactId?: string): Promise<EmailContext> {
+async function loadEmailContext(
+  institutionId: string,
+  requestId: string,
+  contactId?: string
+): Promise<EmailContext> {
   const [request] = await db
     .select({
       id: supportRequests.id,
@@ -56,7 +65,10 @@ async function loadEmailContext(requestId: string, contactId?: string): Promise<
       assignedTeam: supportRequests.assignedTeam,
     })
     .from(supportRequests)
-    .where(eq(supportRequests.id, requestId))
+    .where(and(
+      eq(supportRequests.institutionId, institutionId),
+      eq(supportRequests.id, requestId)
+    ))
     .limit(1);
   if (!request) throw new Error("request_not_found");
   const [emailContact] = await db
@@ -89,8 +101,11 @@ function requesterReplyAddress(publicCode: string): string {
   return fallback;
 }
 
-async function deliver(job: QueueJob): Promise<string> {
-  const context = await loadEmailContext(job.request_id, job.contact_id);
+async function deliver(job: QueueJob, institutionId: string): Promise<string> {
+  if (job.institution_id && job.institution_id !== institutionId) {
+    throw new Error("institution_mismatch");
+  }
+  const context = await loadEmailContext(institutionId, job.request_id, job.contact_id);
   if (isReservedTestEmail(context.email)) return "skipped:test_address";
   const requesterName = `${context.request.requesterFirstName} ${context.request.requesterLastName}`;
   const senderEmail = process.env.SUPPORT_FROM_EMAIL;
@@ -159,7 +174,10 @@ async function deliver(job: QueueJob): Promise<string> {
   throw new Error("unsupported_job_type");
 }
 
-async function processRow(row: QueueRow): Promise<"processed" | "retried" | "failed"> {
+async function processRow(
+  row: QueueRow,
+  institutionId: string
+): Promise<"processed" | "retried" | "failed"> {
   const job = typeof row.message === "string" ? (JSON.parse(row.message) as QueueJob) : row.message;
   if (!job?.job_id || !job.job_type || !job.request_id) throw new Error("invalid_queue_payload");
 
@@ -175,7 +193,7 @@ async function processRow(row: QueueRow): Promise<"processed" | "retried" | "fai
 
   const startedAt = Date.now();
   try {
-    const providerReference = await deliver(job);
+    const providerReference = await deliver(job, institutionId);
     await db.transaction(async (tx) => {
       await tx
         .insert(supportJobRuns)
@@ -244,6 +262,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (!secretMatches(secret, provided)) {
       throw new HttpError(401, "Accès refusé");
     }
+    const institution = await requireConfiguredInstitution();
+    await assertLegacySingleInstitutionMode(institution.id);
     const result = await db.execute(sql<QueueRow>`
       select msg_id, read_ct, message
       from pgmq.read('support_jobs', 120, 25)
@@ -255,7 +275,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       Array.from({ length: Math.min(5, rows.length) }, async () => {
         while (cursor < rows.length) {
           const row = rows[cursor++];
-          outcomes.push(await processRow(row));
+          outcomes.push(await processRow(row, institution.id));
         }
       })
     );

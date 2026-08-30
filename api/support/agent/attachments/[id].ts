@@ -1,5 +1,5 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { db } from "../../../../db/index.js";
 import { supportAttachments, supportRequests } from "../../../../db/schema.js";
 import { HttpError, supabaseAdmin } from "../../../_shared/auth.js";
@@ -14,7 +14,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== "GET") return methodNotAllowed(res, ["GET"]);
 
   return handleApi(res, async () => {
-    const { access } = await requireSupportAgent(req);
+    const { access, institutionId } = await requireSupportAgent(req);
     const id = Array.isArray(req.query.id) ? req.query.id[0] : req.query.id;
     if (!id || !/^[0-9a-f-]{36}$/i.test(id)) throw new HttpError(400, "Pièce jointe invalide");
     const [attachment] = await db
@@ -27,7 +27,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       })
       .from(supportAttachments)
       .innerJoin(supportRequests, eq(supportRequests.id, supportAttachments.requestId))
-      .where(eq(supportAttachments.id, id))
+      .where(and(
+        eq(supportRequests.institutionId, institutionId),
+        eq(supportAttachments.id, id)
+      ))
       .limit(1);
     if (!attachment) throw new HttpError(404, "Pièce jointe introuvable");
     assertSupportRequestAccess(access, attachment.assignedTeam);

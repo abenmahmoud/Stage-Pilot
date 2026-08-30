@@ -1,7 +1,11 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { and, asc, eq, gte, inArray, sql } from "drizzle-orm";
+import { and, asc, eq, gte, sql } from "drizzle-orm";
 import { db } from "../../../db/index.js";
-import { agentRuntimeMetrics, institutions, supportEvents } from "../../../db/schema.js";
+import {
+  agentRuntimeMetrics,
+  supportEvents,
+  supportRequests,
+} from "../../../db/schema.js";
 import { HttpError } from "../../_shared/auth.js";
 import { requireAgentApprovalReviewer } from "../../_shared/agent-approvals.js";
 import { handleApi, methodNotAllowed } from "../../_shared/response.js";
@@ -26,16 +30,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
     const days = requestedDays(req);
     const since = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
-    const [supportScope] = await db
-      .select({ count: sql<number>`count(*)`.mapWith(Number) })
-      .from(institutions)
-      .where(inArray(institutions.status, ["pilot", "active"]));
-    if ((supportScope?.count ?? 0) !== 1) {
-      throw new HttpError(
-        503,
-        "Les mesures de routage attendent le cloisonnement des demandes par établissement."
-      );
-    }
     const scope = and(
       eq(agentRuntimeMetrics.institutionId, context.institutionId),
       gte(agentRuntimeMetrics.createdAt, since)
@@ -86,7 +80,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         )`.mapWith(Number),
       })
       .from(supportEvents)
-      .where(gte(supportEvents.createdAt, since));
+      .innerJoin(supportRequests, eq(supportRequests.id, supportEvents.requestId))
+      .where(and(
+        eq(supportRequests.institutionId, context.institutionId),
+        gte(supportEvents.createdAt, since)
+      ));
 
     const daily = await db
       .select({

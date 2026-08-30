@@ -392,8 +392,21 @@ l'autorisation de quota définie par le propriétaire.
   valeurs de `assignedTeam`; une correction exige deux services non vides et
   différents. L'écran affiche le volume et le taux sur la période choisie sans
   exposer dossier, motif, agent ou demandeur. T030 est fermé.
-  Tant que `support_requests` n'a pas son cloisonnement établissement de T015B,
-  l'agrégat refuse de répondre dès que plusieurs établissements actifs existent.
+  Le lot N5ZD remplace ensuite le verrou mono-établissement de cet agrégat par
+  un filtre effectif sur l'établissement de chaque demande.
+- Lot N5ZD : cloisonnement des demandes par établissement. **Appliqué uniquement
+  à la preview et testé par transaction annulée** : `institution_id` est
+  obligatoire, référencé et immuable sur chaque demande. La création publique,
+  les sessions, les liens email, les files et mutations agents, les pièces, les
+  métriques et les reprises techniques filtrent l'établissement côté serveur.
+  Les clés d'idempotence sont propres à l'établissement ou au dossier. Les
+  tâches email portent désormais l'établissement ; worker, webhook et santé
+  refusent de fonctionner si plusieurs établissements actifs utilisent encore
+  leurs tables techniques historiques non cloisonnées. Les 11 dossiers déjà
+  présents dans la preview ont été rattachés au seul établissement actif, sans
+  lecture ni modification de leur contenu. La recette a refusé déplacement et
+  collisions locales, accepté les mêmes empreintes dans deux périmètres fictifs,
+  puis `ROLLBACK` avec zéro résidu.
 - Lot N6 : tests de non-régression, build, contrôle mobile et rapport d'écarts.
   **Partiellement validé en preview** : 200 transactions concurrentes sans perte
   ni reste après nettoyage, 135 contrôles de sécurité, build réussi, PWA active,

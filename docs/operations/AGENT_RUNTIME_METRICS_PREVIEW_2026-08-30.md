@@ -37,8 +37,8 @@ jamais un montant de facturation.
 - API limitée à l'établissement de l'adhésion active, sous MFA.
 - Réponse API agrégée, sans ligne individuelle.
 - Transferts calculés depuis l'audit existant, sans nouveau journal nominatif.
-- Refus fermé si plusieurs établissements actifs partagent la base avant l'ajout
-  d'un `institution_id` obligatoire aux demandes historiques.
+- Réorientations filtrées par l'`institution_id` obligatoire de la demande ;
+  aucun dossier d'un autre établissement ne participe aux agrégats.
 
 ## Résultat de la recette
 
