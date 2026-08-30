@@ -2,6 +2,7 @@ import { FormEvent, useCallback, useEffect, useMemo, useState } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import {
+  AlertTriangle,
   Check,
   ChevronRight,
   Clock3,
@@ -15,6 +16,7 @@ import {
   Pencil,
   Plus,
   RefreshCw,
+  RotateCcw,
   Save,
   Search,
   Send,
@@ -89,6 +91,16 @@ type CommunicationDocument = {
   updatedAt: string;
 };
 
+type CommunicationFailure = {
+  id: string;
+  jobType: string;
+  attemptCount: number;
+  failureCode: string | null;
+  failedAt: string;
+  title: string;
+  version: number | null;
+};
+
 type CreatePayload = {
   communication: Pick<CommunicationRow, "id" | "status" | "visibility" | "currentVersion" | "updatedAt">;
   duplicate: boolean;
@@ -135,6 +147,20 @@ const DOCUMENT_STATUS_LABELS: Record<string, string> = {
   used: "Utilisé",
   rejected: "Refusé",
   failed: "Échec d’analyse",
+};
+
+const FAILURE_CODE_LABELS: Record<string, string> = {
+  provider_timeout: "Délai de réponse dépassé",
+  provider_unavailable: "Service temporairement indisponible",
+  provider_rate_limited: "Trop de demandes simultanées",
+  network_error: "Connexion interrompue",
+  worker_interrupted: "Traitement interrompu",
+  configuration_missing: "Configuration manquante",
+  authorization_failed: "Autorisation refusée",
+  scope_invalid: "Périmètre de sécurité invalide",
+  content_missing: "Version officielle introuvable",
+  provider_rejected: "Message refusé",
+  unknown_failure: "Échec à vérifier",
 };
 
 const DOCX_MIME = "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
@@ -278,6 +304,7 @@ export default function CommunicationsPage() {
   const [rows, setRows] = useState<CommunicationRow[]>([]);
   const [templates, setTemplates] = useState<CommunicationTemplate[]>([]);
   const [documents, setDocuments] = useState<CommunicationDocument[]>([]);
+  const [failures, setFailures] = useState<CommunicationFailure[]>([]);
   const [documentFile, setDocumentFile] = useState<File | null>(null);
   const [documentPickerKey, setDocumentPickerKey] = useState(0);
   const [draft, setDraft] = useState(emptyDraft);
@@ -298,30 +325,37 @@ export default function CommunicationsPage() {
   const [requestingReview, setRequestingReview] = useState(false);
   const [uploadingDocument, setUploadingDocument] = useState(false);
   const [savingTemplate, setSavingTemplate] = useState(false);
+  const [confirmingRetryId, setConfirmingRetryId] = useState<string | null>(null);
+  const [retryingFailureId, setRetryingFailureId] = useState<string | null>(null);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
+  const canManageTemplates = user?.role === "superadmin" || user?.role === "proviseur";
 
   const load = useCallback(async () => {
     if (!COMMUNICATIONS_UI_ENABLED) return;
     setLoading(true);
     setError("");
     try {
-      const [communications, templatePayload, documentPayload] = await Promise.all([
+      const [communications, templatePayload, documentPayload, failurePayload] = await Promise.all([
         apiFetch<CommunicationsPayload>("communications/admin"),
         apiFetch<{ templates: CommunicationTemplate[] }>("communications/admin/templates"),
         COMMUNICATION_DOCUMENTS_UI_ENABLED
           ? apiFetch<{ documents: CommunicationDocument[] }>("communications/admin/documents")
           : Promise.resolve({ documents: [] }),
+        canManageTemplates
+          ? apiFetch<{ failures: CommunicationFailure[] }>("communications/admin/failures")
+          : Promise.resolve({ failures: [] }),
       ]);
       setRows(communications.communications);
       setTemplates(templatePayload.templates);
       setDocuments(documentPayload.documents);
+      setFailures(failurePayload.failures);
     } catch (reason) {
       setError(reason instanceof Error ? reason.message : "Communications indisponibles.");
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [canManageTemplates]);
 
   useEffect(() => {
     void load();
@@ -367,7 +401,25 @@ export default function CommunicationsPage() {
         .some((value) => value.toLocaleLowerCase("fr-FR").includes(query));
     });
   }, [rows, searchQuery, statusFilter]);
-  const canManageTemplates = user?.role === "superadmin" || user?.role === "proviseur";
+
+  async function retryFailure(id: string) {
+    setRetryingFailureId(id);
+    setError("");
+    setNotice("");
+    try {
+      await apiFetch(`communications/admin/failures/${id}/retry`, {
+        method: "POST",
+        body: JSON.stringify({ operatorConfirmedReady: true }),
+      });
+      setConfirmingRetryId(null);
+      setNotice("La reprise est planifiée. L’échec d’origine reste conservé.");
+      await load();
+    } catch (reason) {
+      setError(reason instanceof Error ? reason.message : "Reprise impossible.");
+    } finally {
+      setRetryingFailureId(null);
+    }
+  }
 
   function startNew() {
     setDraft(emptyDraft());
@@ -626,6 +678,43 @@ export default function CommunicationsPage() {
 
       {error ? <p role="alert" className="border border-red-200 bg-red-50 p-3 text-sm text-red-800">{error}</p> : null}
       {notice ? <p role="status" className="border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-800">{notice}</p> : null}
+
+      {canManageTemplates ? (
+        <section className="border-y border-slate-200 py-5" aria-labelledby="communication-failures-title">
+          <div className="flex items-start gap-3">
+            <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-amber-600" />
+            <div className="min-w-0">
+              <h2 id="communication-failures-title" className="text-lg font-bold text-slate-950">Envois à reprendre</h2>
+              <p className="mt-1 text-sm text-slate-500">{failures.length === 0 ? "Aucun échec en attente" : `${failures.length} échec${failures.length > 1 ? "s" : ""} à vérifier`}</p>
+            </div>
+          </div>
+          {failures.length > 0 ? (
+            <ul className="mt-4 divide-y divide-slate-200 border-y border-slate-200 bg-white">
+              {failures.map((failure) => (
+                <li key={failure.id} className="flex flex-col gap-3 px-4 py-4 lg:flex-row lg:items-center lg:justify-between">
+                  <div className="min-w-0">
+                    <strong className="block break-words text-sm text-slate-950">{failure.title}</strong>
+                    <p className="mt-1 text-sm text-amber-800">{FAILURE_CODE_LABELS[failure.failureCode ?? ""] ?? "Échec à vérifier"}</p>
+                    <p className="mt-1 text-xs text-slate-500">Version {failure.version ?? "—"} · {failure.attemptCount} essai{failure.attemptCount > 1 ? "s" : ""} · {dateLabel(failure.failedAt)}</p>
+                  </div>
+                  {confirmingRetryId === failure.id ? (
+                    <div className="flex w-full flex-col gap-2 sm:flex-row lg:w-auto">
+                      <button type="button" onClick={() => setConfirmingRetryId(null)} disabled={retryingFailureId === failure.id} className="min-h-11 rounded-md border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 disabled:opacity-50">Annuler</button>
+                      <button type="button" onClick={() => void retryFailure(failure.id)} disabled={retryingFailureId === failure.id} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-md bg-amber-600 px-4 py-2 text-sm font-semibold text-white disabled:opacity-50">
+                        {retryingFailureId === failure.id ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <RotateCcw className="h-4 w-4" />} Confirmer la reprise
+                      </button>
+                    </div>
+                  ) : (
+                    <button type="button" onClick={() => setConfirmingRetryId(failure.id)} className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-md border border-amber-300 bg-amber-50 px-4 py-2 text-sm font-semibold text-amber-900 sm:w-auto">
+                      <RotateCcw className="h-4 w-4" /> Cause corrigée
+                    </button>
+                  )}
+                </li>
+              ))}
+            </ul>
+          ) : null}
+        </section>
+      ) : null}
 
       <section className="border-y border-slate-200 py-5" aria-labelledby="communication-documents-title">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">

@@ -11,6 +11,7 @@ de consommation propres à cette mission n'ont pas été confirmés.
 - `api/communications/admin/failures/index.ts`
 - `api/communications/admin/failures/[id]/retry.ts`
 - tests d'autorisation et de routes associés
+- section de boîte d'échec dans `src/pages/admin/CommunicationsPage.tsx`
 
 ## Mission proposée
 
@@ -18,6 +19,8 @@ Auditer en lecture seule rôles, MFA, interrupteurs, projections SQL, validation
 du corps, secret, statut HTTP et appel transactionnel. Chercher une reprise par
 un rôle administration, une fuite d'identifiant ou un contournement lorsque
 l'envoi est coupé.
+Vérifier aussi le parcours en deux temps, le petit écran et l'absence de champs
+techniques dans le navigateur.
 
 Ne modifier ni appeler aucune route, travail, fichier, secret, base, email ou
 déploiement.

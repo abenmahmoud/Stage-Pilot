@@ -183,3 +183,8 @@ même pas le modèle de livraison dans la route navigateur. La reprise
 est impossible si le module ou l'envoi est coupé, si le secret manque ou si la
 confirmation n'est pas exactement vraie. La transaction réapplique ensuite la
 politique et le MFA déjà imposé par la porte commune.
+
+T020G garde l'action compréhensible : la direction voit seulement le titre, la
+version, une cause française, le nombre d'essais et la date. Un premier bouton
+déclare la cause corrigée ; un second confirme réellement la reprise. La liste
+s'empile sur téléphone et aucun champ de livraison ne traverse l'API.

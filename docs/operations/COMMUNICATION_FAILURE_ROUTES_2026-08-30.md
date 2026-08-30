@@ -23,3 +23,10 @@ Un double clic renvoie un résultat idempotent sans deuxième travail.
 
 Les interrupteurs et le secret ne sont pas activés. Aucune reprise n'est donc
 possible sur la preview distante avant décision et recette contrôlée.
+
+## Interface
+
+La direction dispose d'une liste responsive avec motif français, essais et date.
+La reprise demande deux clics distincts : `Cause corrigée`, puis
+`Confirmer la reprise`. Aucun identifiant technique ou état de livraison n'est
+affiché.

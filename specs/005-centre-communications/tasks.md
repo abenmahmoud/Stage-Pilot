@@ -159,6 +159,10 @@
   lignes bornées sans modèle de livraison côté navigateur, direction sous MFA,
   deux interrupteurs d'envoi, secret serveur et confirmation exacte. T020 reste
   ouvert jusqu'à l'interface et à la recette DB de preview.
+- [x] T020G Ajouter l'interface direction responsive : échecs lisibles, cause
+  fermée, essais, date et reprise confirmée en deux temps. Aucun identifiant ni
+  état de livraison n'entre dans le navigateur. T020 reste ouvert jusqu'à la
+  recette DB et au runner.
 - [x] T021A Ajouter un aperçu éditorial local sûr avant la relecture : rendu
   Markdown borné, images distantes neutralisées, liens isolés et absence de
   destinataire, publication ou envoi.

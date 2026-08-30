@@ -1751,6 +1751,18 @@ taches et analyse de coherence avant une automatisation sensible.
 - Cinq tests dédiés et la matrice d'autorisation étendue couvrent les neuf routes
   privées. T020F est terminé ; l'interface et la recette DB restent ouvertes.
 
+### Jalon du 30 août 2026 - interface de boîte d'échec
+
+- La direction voit une section `Envois à reprendre` avec titre, version, motif
+  français, essais et date. Les autres rôles ne chargent pas cette API.
+- La reprise demande deux actions distinctes : `Cause corrigée`, puis
+  `Confirmer la reprise`. Les boutons font au moins 44 px et la ligne s'empile
+  sur petit écran.
+- L'échec d'origine reste visible jusqu'au prochain chargement et la confirmation
+  rappelle qu'il est conservé.
+- Le test de route couvre aussi l'interface et vérifie l'absence de champs de
+  livraison ou destinataire. T020G est terminé ; la recette DB reste ouverte.
+
 ### Jalon du 30 août 2026 - contrat de délivrabilité Brevo
 
 - Un vérificateur Bearer commun protège désormais les futurs webhooks entrants

@@ -5,6 +5,7 @@ import test from "node:test";
 const list = readFileSync(new URL("../api/communications/admin/failures/index.ts", import.meta.url), "utf8");
 const retry = readFileSync(new URL("../api/communications/admin/failures/[id]/retry.ts", import.meta.url), "utf8");
 const gate = readFileSync(new URL("../api/_shared/communications.ts", import.meta.url), "utf8");
+const page = readFileSync(new URL("../src/pages/admin/CommunicationsPage.tsx", import.meta.url), "utf8");
 
 test("limits the failure inbox to direction under the shared MFA gate", () => {
   assert.match(list, /await requireCommunicationManager\(req\)/);
@@ -43,4 +44,15 @@ test("persists through the transaction helper and returns no identifiers", () =>
   assert.match(retry, /authenticatorLevel: "aal2"/);
   const response = retry.slice(retry.lastIndexOf("return result"));
   assert.doesNotMatch(response, /jobId|deliveryId|institutionId|secret|contact|provider/);
+});
+
+test("shows a responsive two-step failure inbox only to direction", () => {
+  assert.match(page, /canManageTemplates \? \(/);
+  assert.match(page, /Envois à reprendre/);
+  assert.match(page, /confirmingRetryId === failure\.id/);
+  assert.match(page, /operatorConfirmedReady: true/);
+  assert.match(page, /Confirmer la reprise/);
+  assert.match(page, /min-h-11/);
+  assert.match(page, /flex-col gap-3[\s\S]*lg:flex-row/);
+  assert.doesNotMatch(page, /deliveryStatus|providerMessageRef|idempotencyKeyHash|contactRef/);
 });
