@@ -1419,6 +1419,29 @@ taches et analyse de coherence avant une automatisation sensible.
   `COMMUNICATION_SEND_ENABLED` restent absentes et donc fausses sur la preview.
   L'envoi et la publication ne peuvent jamais s'activer seuls.
 
+### Jalon du 30 août 2026 - fondation privée des communications
+
+- Huit tables additives sont appliquées uniquement sur la branche Supabase de
+  preview : réglages, communications, versions, audiences, livraisons, travaux,
+  entrants et événements.
+- RLS est forcée et `anon`/`authenticated` n'ont aucun droit direct. L'auditeur
+  ne remonte aucun avertissement de sécurité du module au-dessus de `INFO` et
+  aucune clé étrangère `communication*` non indexée.
+- Les adresses ne sont jamais stockées : seuls des groupes et contacts opaques
+  bornés sont admis. Les enfants sont liés à la communication et à sa version
+  dans le même établissement par clés composites.
+- La base bloque elle-même publication, envoi et progression de livraison quand
+  les interrupteurs sont coupés. Une livraison ou un travail opérationnel exige
+  une communication et une version déjà validées.
+- Les versions sont immuables après validation, les audiences après validation
+  et les identités techniques des livraisons/travaux après insertion. L'audit
+  est append-only.
+- La recette fictive distante a vérifié les refus de fuite, croisement, doublon,
+  contournement et mutation, puis a laissé zéro résidu. Aucun groupe, contact,
+  contenu, envoi ou paramètre réel n'a été activé.
+- La revue Claude est préparée mais non exécutée sans modèle exact et plafond de
+  consommation explicitement autorisés.
+
 ## 8. Prochain ordre recommande
 
 1. Publier et tester le pré-triage ordinateur portable avec des données fictives.

@@ -41,3 +41,10 @@ puis ajouter l'envoi individuel. L'import automatique depuis Gmail vient après
 la validation de ce circuit : il accélère l'entrée, mais ne doit jamais devenir
 un chemin de publication sans contrôle humain.
 
+## État technique au 30 août 2026
+
+Les validateurs, interrupteurs, tables privées, versions, audiences opaques,
+livraisons, file idempotente, entrants et audit sont installés sur la preview et
+désactivés. Les tests fictifs passent et la base ne contient aucun résidu de
+recette. Le prochain lot autorisé est l'API manuelle de brouillon ; l'interface,
+les groupes réels et toute diffusion restent bloqués par T001 à T004.

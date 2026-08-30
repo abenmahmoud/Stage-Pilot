@@ -1643,3 +1643,229 @@ export const agentRuntimeMetrics = pgTable(
     ),
   ]
 );
+
+export const communicationSettings = pgTable("communication_settings", {
+  institutionId: uuid("institution_id")
+    .primaryKey()
+    .references(() => institutions.id, { onDelete: "restrict" }),
+  moduleEnabled: boolean("module_enabled").notNull().default(false),
+  publicationEnabled: boolean("publication_enabled").notNull().default(false),
+  sendingEnabled: boolean("sending_enabled").notNull().default(false),
+  updatedBy: uuid("updated_by"),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+}, (table) => [
+  index("communication_settings_updated_by_fk_idx").on(table.updatedBy),
+]);
+
+export const communications = pgTable(
+  "communications",
+  {
+    id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+    institutionId: uuid("institution_id")
+      .notNull()
+      .references(() => institutions.id, { onDelete: "restrict" }),
+    sourceType: text("source_type").notNull(),
+    sourceFingerprint: text("source_fingerprint").notNull(),
+    sourceLabel: text("source_label").notNull(),
+    sourceReceivedAt: timestamp("source_received_at", { withTimezone: true }).notNull().defaultNow(),
+    status: text("status").notNull().default("draft"),
+    visibility: text("visibility").notNull().default("internal"),
+    category: text("category").notNull().default("information"),
+    templateKey: text("template_key"),
+    publicSlug: text("public_slug"),
+    siteContentId: uuid("site_content_id").references(() => siteContentItems.id, { onDelete: "restrict" }),
+    currentVersion: integer("current_version").notNull().default(1),
+    approvedBy: uuid("approved_by"),
+    approvedAt: timestamp("approved_at", { withTimezone: true }),
+    publishAt: timestamp("publish_at", { withTimezone: true }),
+    expiresAt: timestamp("expires_at", { withTimezone: true }),
+    publishedAt: timestamp("published_at", { withTimezone: true }),
+    archivedAt: timestamp("archived_at", { withTimezone: true }),
+    createdBy: uuid("created_by").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    uniqueIndex("communications_institution_source_uidx").on(table.institutionId, table.sourceFingerprint),
+    uniqueIndex("communications_institution_slug_uidx").on(table.institutionId, table.publicSlug),
+    index("communications_institution_status_updated_idx").on(table.institutionId, table.status, table.updatedAt),
+    index("communications_site_content_idx").on(table.siteContentId),
+  ]
+);
+
+export const communicationVersions = pgTable(
+  "communication_versions",
+  {
+    id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+    institutionId: uuid("institution_id")
+      .notNull()
+      .references(() => institutions.id, { onDelete: "restrict" }),
+    communicationId: uuid("communication_id")
+      .notNull()
+      .references(() => communications.id, { onDelete: "restrict" }),
+    version: integer("version").notNull(),
+    status: text("status").notNull().default("draft"),
+    title: text("title").notNull(),
+    summary: text("summary").notNull().default(""),
+    bodyMarkdown: text("body_markdown").notNull(),
+    structuredFacts: jsonb("structured_facts").notNull().default({}),
+    openQuestions: jsonb("open_questions").notNull().default([]),
+    contentHash: text("content_hash").notNull(),
+    createdBy: uuid("created_by").notNull(),
+    approvedBy: uuid("approved_by"),
+    approvedAt: timestamp("approved_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    uniqueIndex("communication_versions_communication_version_uidx").on(table.communicationId, table.version),
+    index("communication_versions_communication_scope_fk_idx").on(table.communicationId, table.institutionId),
+    index("communication_versions_scope_status_idx").on(table.institutionId, table.communicationId, table.status, table.version),
+  ]
+);
+
+export const communicationAudiences = pgTable(
+  "communication_audiences",
+  {
+    id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+    institutionId: uuid("institution_id")
+      .notNull()
+      .references(() => institutions.id, { onDelete: "restrict" }),
+    communicationId: uuid("communication_id")
+      .notNull()
+      .references(() => communications.id, { onDelete: "restrict" }),
+    groupRef: text("group_ref").notNull(),
+    status: text("status").notNull().default("active"),
+    createdBy: uuid("created_by").notNull(),
+    removedBy: uuid("removed_by"),
+    removedAt: timestamp("removed_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    uniqueIndex("communication_audiences_communication_group_uidx").on(table.communicationId, table.groupRef),
+    index("communication_audiences_communication_scope_fk_idx").on(table.communicationId, table.institutionId),
+    index("communication_audiences_scope_status_idx").on(table.institutionId, table.communicationId, table.status),
+  ]
+);
+
+export const communicationDeliveries = pgTable(
+  "communication_deliveries",
+  {
+    id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+    institutionId: uuid("institution_id")
+      .notNull()
+      .references(() => institutions.id, { onDelete: "restrict" }),
+    communicationId: uuid("communication_id")
+      .notNull()
+      .references(() => communications.id, { onDelete: "restrict" }),
+    versionId: uuid("version_id")
+      .notNull()
+      .references(() => communicationVersions.id, { onDelete: "restrict" }),
+    version: integer("version").notNull(),
+    contactRef: text("contact_ref").notNull(),
+    channel: text("channel").notNull().default("email"),
+    status: text("status").notNull().default("prepared"),
+    idempotencyKeyHash: text("idempotency_key_hash").notNull(),
+    providerMessageRef: text("provider_message_ref"),
+    attemptCount: integer("attempt_count").notNull().default(0),
+    lastErrorCode: text("last_error_code"),
+    queuedAt: timestamp("queued_at", { withTimezone: true }),
+    sentAt: timestamp("sent_at", { withTimezone: true }),
+    deliveredAt: timestamp("delivered_at", { withTimezone: true }),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    uniqueIndex("communication_deliveries_institution_idempotency_uidx").on(table.institutionId, table.idempotencyKeyHash),
+    index("communication_deliveries_communication_scope_fk_idx").on(table.communicationId, table.institutionId),
+    index("communication_deliveries_version_scope_fk_idx").on(table.versionId, table.institutionId, table.communicationId, table.version),
+    index("communication_deliveries_scope_status_idx").on(table.institutionId, table.communicationId, table.status, table.updatedAt),
+    index("communication_deliveries_version_idx").on(table.versionId, table.institutionId),
+  ]
+);
+
+export const communicationJobs = pgTable(
+  "communication_jobs",
+  {
+    id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+    institutionId: uuid("institution_id")
+      .notNull()
+      .references(() => institutions.id, { onDelete: "restrict" }),
+    communicationId: uuid("communication_id")
+      .notNull()
+      .references(() => communications.id, { onDelete: "restrict" }),
+    versionId: uuid("version_id").references(() => communicationVersions.id, { onDelete: "restrict" }),
+    version: integer("version"),
+    deliveryId: uuid("delivery_id").references(() => communicationDeliveries.id, { onDelete: "restrict" }),
+    jobType: text("job_type").notNull(),
+    status: text("status").notNull().default("pending"),
+    idempotencyKeyHash: text("idempotency_key_hash").notNull(),
+    attemptCount: integer("attempt_count").notNull().default(0),
+    runAfter: timestamp("run_after", { withTimezone: true }).notNull().defaultNow(),
+    lockedAt: timestamp("locked_at", { withTimezone: true }),
+    completedAt: timestamp("completed_at", { withTimezone: true }),
+    lastErrorCode: text("last_error_code"),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    uniqueIndex("communication_jobs_institution_idempotency_uidx").on(table.institutionId, table.idempotencyKeyHash),
+    index("communication_jobs_communication_scope_fk_idx").on(table.communicationId, table.institutionId),
+    index("communication_jobs_version_scope_fk_idx").on(table.versionId, table.institutionId, table.communicationId, table.version),
+    index("communication_jobs_delivery_scope_fk_idx").on(table.deliveryId, table.institutionId),
+    index("communication_jobs_scope_status_idx").on(table.institutionId, table.communicationId, table.status, table.createdAt),
+    index("communication_jobs_version_idx").on(table.versionId, table.institutionId),
+    index("communication_jobs_delivery_idx").on(table.deliveryId, table.institutionId),
+  ]
+);
+
+export const communicationInbound = pgTable(
+  "communication_inbound",
+  {
+    id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+    institutionId: uuid("institution_id")
+      .notNull()
+      .references(() => institutions.id, { onDelete: "restrict" }),
+    communicationId: uuid("communication_id").references(() => communications.id, { onDelete: "restrict" }),
+    provider: text("provider").notNull(),
+    externalMessageHash: text("external_message_hash").notNull(),
+    status: text("status").notNull().default("received"),
+    classification: text("classification"),
+    storageRef: text("storage_ref"),
+    createdDraftId: uuid("created_draft_id").references(() => communications.id, { onDelete: "restrict" }),
+    receivedAt: timestamp("received_at", { withTimezone: true }).notNull().defaultNow(),
+    processedAt: timestamp("processed_at", { withTimezone: true }),
+    errorCode: text("error_code"),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    uniqueIndex("communication_inbound_provider_message_uidx").on(table.institutionId, table.provider, table.externalMessageHash),
+    index("communication_inbound_scope_status_idx").on(table.institutionId, table.status, table.receivedAt),
+  ]
+);
+
+export const communicationEvents = pgTable(
+  "communication_events",
+  {
+    id: bigint("id", { mode: "number" }).primaryKey().generatedAlwaysAsIdentity(),
+    institutionId: uuid("institution_id")
+      .notNull()
+      .references(() => institutions.id, { onDelete: "restrict" }),
+    communicationId: uuid("communication_id")
+      .notNull()
+      .references(() => communications.id, { onDelete: "restrict" }),
+    resourceType: text("resource_type").notNull(),
+    resourceId: uuid("resource_id").notNull(),
+    eventType: text("event_type").notNull(),
+    actorUserId: uuid("actor_user_id"),
+    actorType: text("actor_type").notNull(),
+    summary: jsonb("summary").notNull().default({}),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    index("communication_events_communication_scope_fk_idx").on(table.communicationId, table.institutionId),
+    index("communication_events_scope_created_idx").on(table.institutionId, table.communicationId, table.createdAt),
+    index("communication_events_resource_created_idx").on(table.resourceType, table.resourceId, table.createdAt),
+  ]
+);

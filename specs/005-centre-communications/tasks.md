@@ -9,8 +9,14 @@
 
 ## Phase 2 - Données et règles
 
-- [ ] T005 Ajouter les tables, contraintes, index, droits et audit.
-- [ ] T006 Ajouter la file durable et les clés d'idempotence.
+- [x] T005 Ajouter les tables, contraintes, index, droits et audit. Les huit
+  tables privées sont appliquées sur la preview, sous RLS forcée et sans droit
+  client. Une recette fictive transactionnelle a vérifié cloisonnement,
+  immutabilité et audit avant nettoyage à zéro.
+- [x] T006 Ajouter la file durable et les clés d'idempotence. Travaux et
+  livraisons portent une clé unique par établissement, un état, une reprise et
+  des limites d'essais. La base refuse toute exécution sans version validée et
+  tout envoi ou publication dont l'interrupteur est coupé.
 - [x] T007 Construire les validateurs de source, visibilité, audience et dates.
   Le contrat refuse les champs inconnus, les adresses dans l'audience, les
   groupes absents pour une cible, la publication web non publique et les dates
