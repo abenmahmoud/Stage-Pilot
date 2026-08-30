@@ -70,7 +70,7 @@ test("cancels pending work and distinguishes delivery compensation from recall",
   }), {
     canCancelJob: true,
     nextStatus: "cancelled",
-    deliveryAction: "enqueue_cancel_delivery",
+    deliveryAction: "cancel_pre_send_delivery",
     reason: "cancelled_before_execution",
   });
   assert.equal(planCommunicationJobCancellation({

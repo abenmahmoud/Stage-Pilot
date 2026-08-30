@@ -33,6 +33,15 @@ export async function requireCommunicationTemplateManager(req: VercelRequest) {
   return requireCommunicationManager(req);
 }
 
+export async function requireCommunicationDirection(req: VercelRequest) {
+  const context = await requireSupportAgent(req);
+  await requireAal2(req);
+  if (!COMMUNICATION_TEMPLATE_MANAGER_ROLES.has(context.user.role)) {
+    throw new HttpError(403, "Seule la direction peut gérer les communications.");
+  }
+  return context;
+}
+
 export async function requireCommunicationManager(req: VercelRequest) {
   const context = await requireCommunicationEditor(req);
   if (!COMMUNICATION_TEMPLATE_MANAGER_ROLES.has(context.user.role)) {

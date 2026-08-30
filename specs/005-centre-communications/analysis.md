@@ -28,6 +28,11 @@ Les états `deferred`, `rejected`, `spam` et `unsubscribed` sont désormais
 explicitement non rappelables, comme `sent` et `delivered`. Seuls les états
 réellement antérieurs à l'envoi peuvent déclencher une annulation de livraison.
 
+L'annulation direction est maintenant persistée sous deux verrous et confirmée
+explicitement. Une migration additive maintient seulement les transitions
+`pending/retry -> cancelled` et pré-envoi vers `cancelled` quand les
+interrupteurs sont coupés ; elle reste à appliquer sur la preview.
+
 ## Résultat
 
 La proposition est cohérente avec les fonctionnalités `001`, `002`, `003` et

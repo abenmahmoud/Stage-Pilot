@@ -36,6 +36,13 @@
 - Une annulation peut arrêter une reprise, mais ne prétend jamais rappeler un
   message déjà accepté par le fournisseur.
 
+## Jalon du 30 août 2026 - annulation d'urgence préparée
+
+- Direction sous MFA et confirmation exacte uniquement.
+- L'arrêt d'un travail `pending` ou `retry` reste possible lorsque l'envoi est
+  coupé ; un travail `running` attend son point de contrôle.
+- La migration est préparée mais non appliquée à distance.
+
 ## Jalon du 29 août 2026 - scénarios humains de la charte
 
 - Une urgence affiche le 15/112, le 3114 lorsque pertinent et un recours à un

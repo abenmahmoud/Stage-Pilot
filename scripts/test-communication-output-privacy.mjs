@@ -31,11 +31,11 @@ async function sources() {
 
 test("discovers every route and keeps the current surface private", async () => {
   const routes = await sources();
-  assert.equal(routes.length, 9);
+  assert.equal(routes.length, 10);
   for (const { file, source } of routes) {
     assert.match(file, /^api\/communications\/admin\//);
     assert.doesNotMatch(file, /(?:send|deliver|recipient|audience|public)/i);
-    assert.match(source, /await requireCommunication(?:Editor|TemplateManager|Manager|Sender)\(req\)/);
+    assert.match(source, /await requireCommunication(?:Editor|TemplateManager|Manager|Sender|Direction)\(req\)/);
   }
 });
 

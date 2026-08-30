@@ -47,7 +47,7 @@ export type CommunicationJobFailureDecision = {
 export type CommunicationJobCancellationDecision = {
   canCancelJob: boolean;
   nextStatus: CommunicationJobStatus;
-  deliveryAction: "none" | "enqueue_cancel_delivery" | "cannot_recall";
+  deliveryAction: "none" | "cancel_pre_send_delivery" | "cannot_recall";
   reason:
     | "cancelled_before_execution"
     | "running_requires_worker_checkpoint"
@@ -194,7 +194,7 @@ export function planCommunicationJobCancellation(value: unknown): CommunicationJ
   ].includes(deliveryStatus)
     ? "cannot_recall"
     : deliveryStatus && ["prepared", "queued", "error"].includes(deliveryStatus)
-      ? "enqueue_cancel_delivery"
+      ? "cancel_pre_send_delivery"
       : "none";
   return {
     canCancelJob: true,

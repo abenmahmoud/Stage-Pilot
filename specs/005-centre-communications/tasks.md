@@ -173,6 +173,10 @@
 - [x] T020H Laisser un travail accepté mais non persisté sous verrou pour la
   récupération différée, sans seconde tentative immédiate. Le runner propage
   uniquement des codes fermés et T020 reste ouvert jusqu'à la recette DB.
+- [x] T020I Persister et exposer l'annulation direction sous MFA. Elle reste
+  disponible quand l'envoi est coupé, ne touche directement qu'aux états
+  pré-envoi et ne prétend jamais rappeler un message accepté. T020 reste ouvert
+  jusqu'à l'application de la migration et à la recette DB de preview.
 - [x] T021A Ajouter un aperçu éditorial local sûr avant la relecture : rendu
   Markdown borné, images distantes neutralisées, liens isolés et absence de
   destinataire, publication ou envoi.

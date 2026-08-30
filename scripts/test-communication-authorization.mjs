@@ -14,6 +14,7 @@ const routeFiles = [
   "api/communications/admin/[id]/review.ts",
   "api/communications/admin/failures/index.ts",
   "api/communications/admin/failures/[id]/retry.ts",
+  "api/communications/admin/jobs/[id]/cancel.ts",
 ];
 
 async function source(path) {
@@ -41,7 +42,7 @@ test("protects every communication route with the shared private gate", async ()
     const route = await source(path);
     assert.match(
       route,
-      /await requireCommunication(?:Editor|TemplateManager|Manager|Sender)\(req\)/,
+      /await requireCommunication(?:Editor|TemplateManager|Manager|Sender|Direction)\(req\)/,
       `${path} must use the shared communication gate`
     );
   }
