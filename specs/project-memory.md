@@ -2276,6 +2276,20 @@ taches et analyse de coherence avant une automatisation sensible.
 - Le brief Claude est préparé mais non exécuté, faute de modèle exact et de
   plafond propres à cette mission ; aucun jeton externe n’a été consommé.
 
+### Jalon du 30 août 2026 - navigation clavier de l’espace agent
+
+- Le shell authentifié fournit un lien « Aller au contenu principal » vers un
+  repère focalisable et une navigation principale nommée.
+- Le panneau mobile annonce son ouverture, disparaît de l’arbre d’accessibilité
+  quand il est fermé, enferme le focus quand il est modal et se ferme par Échap.
+- Fermer rend le focus au bouton d’ouverture ; choisir une rubrique le place sur
+  le contenu principal. Le menu se ferme aussi après activation d’un lien.
+- T048D est terminée ; T048 reste ouverte pour la recette lecteur d’écran avec
+  comptes nominatifs. Les cinq domaines comptent 381 identifiants uniques : 262
+  lignes terminées et 119 ouvertes.
+- Le brief Claude est préparé mais non exécuté, faute de modèle exact et de
+  plafond propres à cette mission ; aucun jeton externe n’a été consommé.
+
 ## 8. Prochain ordre recommande
 
 1. Publier et tester le pré-triage ordinateur portable avec des données fictives.

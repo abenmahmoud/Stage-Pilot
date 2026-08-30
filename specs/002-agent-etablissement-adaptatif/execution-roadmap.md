@@ -504,6 +504,11 @@ l'autorisation de quota définie par le propriétaire.
   message invalide rejoint l’archive PGMQ ; les échecs valides sont retentés
   quatre fois puis isolés au cinquième. Le `job_id` validé reste la clé Brevo.
   L’interruption d’un worker réel et le p95 HTTP restent à éprouver.
+- Lot N5ZM : navigation clavier du shell agent. **Implémentée et testée par
+  contrat local** : lien d’évitement, contenu principal focalisable, navigation
+  nommée, menu mobile inerte lorsqu’il est fermé, état annoncé, focus contenu
+  après navigation, fermeture par Échap et piège de focus modal. Une recette
+  lecteur d’écran authentifiée reste nécessaire.
 - Lot N6 : tests de non-régression, build, contrôle mobile et rapport d'écarts.
   **Partiellement validé en preview** : 200 transactions concurrentes sans perte
   ni reste après nettoyage, 135 contrôles de sécurité, build réussi, PWA active,

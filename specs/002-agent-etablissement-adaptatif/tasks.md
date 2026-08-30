@@ -512,6 +512,10 @@
   liens pratiques et recherche du suivi atteignent désormais 40 px minimum.
   T048 reste ouvert pour les écrans agents authentifiés, le clavier complet et
   le lecteur d'écran.
+- [x] T048D Rendre le shell agent prévisible au clavier : lien d’évitement vers
+  le contenu, repères nommés, état du menu mobile annoncé, panneau masqué inerte,
+  piège de focus, fermeture par Échap et restitution du focus. La recette avec
+  un lecteur d’écran et des comptes nominatifs reste dans T048.
 - [ ] T049 Exécuter une revue de sécurité et de protection des données.
 - [ ] T050 Ouvrir un pilote limité avec agents nommés et canal de retour.
 - [ ] T051 Mesurer deux semaines : classement, délai, transferts, corrections, coût et incidents.

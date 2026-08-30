@@ -137,6 +137,7 @@
     "test:editor-ux": "node scripts/test-editor-ux.mjs",
     "test:agent-session-ux": "node scripts/test-agent-session-ux.mjs",
     "test:prototype-responsive-contract": "node scripts/test-prototype-responsive-contract.mjs",
+    "test:admin-shell-accessibility": "node scripts/test-admin-shell-accessibility.mjs",
     "test:agent-queue-serverless": "node scripts/test-agent-queue-serverless.mjs",
     "legacy:export": "node scripts/export-legacy-wordpress.mjs",
     "test:load:support": "node scripts/load-test-support.mjs",

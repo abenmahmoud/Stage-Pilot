@@ -1,5 +1,5 @@
 import { Outlet, NavLink, useNavigate } from "react-router-dom";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useAuth } from "../lib/auth-context";
 import { ROLE_LABELS } from "../lib/types";
 import {
@@ -38,6 +38,44 @@ export default function AppLayout() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
+  const mobileMenuButtonRef = useRef<HTMLButtonElement>(null);
+  const mobileCloseButtonRef = useRef<HTMLButtonElement>(null);
+  const mobileNavigationRef = useRef<HTMLElement>(null);
+
+  function closeMobileMenu(focusTarget: "button" | "main" = "button") {
+    setOpen(false);
+    requestAnimationFrame(() => {
+      if (focusTarget === "main") document.getElementById("main-content")?.focus();
+      else mobileMenuButtonRef.current?.focus();
+    });
+  }
+
+  useEffect(() => {
+    if (!open) return;
+    mobileCloseButtonRef.current?.focus();
+    function handleMenuKeyboard(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        closeMobileMenu();
+        return;
+      }
+      if (event.key !== "Tab") return;
+      const focusable = Array.from(
+        mobileNavigationRef.current?.querySelectorAll<HTMLElement>("a[href], button:not([disabled])") ?? []
+      );
+      const first = focusable[0];
+      const last = focusable.at(-1);
+      if (!first || !last) return;
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
+    }
+    document.addEventListener("keydown", handleMenuKeyboard);
+    return () => document.removeEventListener("keydown", handleMenuKeyboard);
+  }, [open]);
 
   if (!user) return null;
 
@@ -69,7 +107,13 @@ export default function AppLayout() {
         </div>
       </div>
 
-      <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
+      <nav
+        aria-label="Navigation principale"
+        className="flex-1 px-3 py-4 space-y-1 overflow-y-auto"
+        onClick={(event) => {
+          if ((event.target as HTMLElement).closest("a")) closeMobileMenu("main");
+        }}
+      >
         {!isEleve && (
           <NavLink to="/stages" end className={navCls}>
             <Briefcase className="w-4 h-4" />
@@ -246,6 +290,12 @@ export default function AppLayout() {
 
   return (
     <div className="flex h-screen overflow-hidden bg-gray-50">
+      <a
+        href="#main-content"
+        className="sr-only z-[80] rounded-md bg-white px-4 py-3 font-semibold text-slate-950 shadow focus:not-sr-only focus:fixed focus:left-4 focus:top-4"
+      >
+        Aller au contenu principal
+      </a>
       <aside className="hidden lg:flex w-64 flex-col bg-primary-500 shrink-0">
         {navContent}
       </aside>
@@ -253,16 +303,24 @@ export default function AppLayout() {
       {open && (
         <div
           className="fixed inset-0 z-40 bg-black/50 lg:hidden"
-          onClick={() => setOpen(false)}
+          onClick={() => closeMobileMenu()}
         />
       )}
       <aside
+        ref={mobileNavigationRef}
+        id="mobile-navigation"
+        role="dialog"
+        aria-modal="true"
+        aria-label="Navigation"
+        aria-hidden={!open}
+        inert={!open}
         className={`fixed inset-y-0 left-0 z-50 w-64 flex flex-col bg-primary-500 transition-transform lg:hidden ${
           open ? "translate-x-0" : "-translate-x-full"
         }`}
       >
         <button
-          onClick={() => setOpen(false)}
+          ref={mobileCloseButtonRef}
+          onClick={() => closeMobileMenu()}
           className="absolute top-4 right-4 text-white/70 hover:text-white"
           aria-label="Fermer le menu"
         >
@@ -274,9 +332,12 @@ export default function AppLayout() {
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
         <header className="h-14 border-b border-gray-200 bg-white flex items-center gap-3 px-4 lg:px-6 shrink-0">
           <button
+            ref={mobileMenuButtonRef}
             onClick={() => setOpen(true)}
             className="lg:hidden text-gray-500 hover:text-gray-700"
             aria-label="Ouvrir le menu"
+            aria-expanded={open}
+            aria-controls="mobile-navigation"
           >
             <Menu className="w-5 h-5" />
           </button>
@@ -286,7 +347,7 @@ export default function AppLayout() {
             <span>2026-2027</span>
           </div>
         </header>
-        <main className="flex-1 overflow-y-auto p-4 lg:p-8">
+        <main id="main-content" tabIndex={-1} className="flex-1 overflow-y-auto p-4 lg:p-8">
           <Outlet />
         </main>
       </div>
