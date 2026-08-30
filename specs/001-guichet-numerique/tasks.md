@@ -253,6 +253,9 @@ voir sa réponse dans le dossier. L'agent traite tout depuis une seule file.
   de confirmation et conserver le dépôt direct des médias privés.
 - [x] **T037V** Borner les huit mutations historiques restantes et remplacer
   l'écriture de masse des paramètres établissement par une liste blanche validée.
+- [x] **T037W** Ajouter une barrière transversale qui refuse toute route lisant
+  `req.body` sans plafond Vercel explicite et l'exécuter dans le contrôle de
+  sécurité de l'aperçu.
 - [x] **T037F** Exclure les contacts desactives des reponses, reserver les
   journaux globaux a un administrateur MFA et exiger `aal2` pour confirmer une
   identite scolaire depuis une source officielle.

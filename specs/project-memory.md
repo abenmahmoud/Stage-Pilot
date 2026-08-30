@@ -2450,6 +2450,19 @@ taches et analyse de coherence avant une automatisation sensible.
   uniques : 263 lignes terminées et 119 ouvertes.
 - Le brief Claude est préparé mais non exécuté, faute de modèle exact et de
   plafond propres à cette mission ; aucun jeton externe n'a été consommé.
+
+### Jalon du 30 août 2026 - couverture globale des corps HTTP
+
+- Un test transversal inventorie récursivement toutes les routes TypeScript qui
+  lisent `req.body`.
+- Chaque route inventoriée doit exporter un plafond `bodyParser.sizeLimit` et ne
+  peut pas désactiver le parseur tout en lisant le corps déjà analysé.
+- Le contrôle est intégré à la barrière de sécurité de l'aperçu afin de bloquer
+  automatiquement toute régression future.
+- T037W est terminée par analyse statique et tests locaux, sans donnée réelle,
+  compte distant ou modification Supabase.
+- Le brief Claude est préparé mais non exécuté, faute de modèle exact et de
+  plafond propres à cette mission ; aucun jeton externe n'a été consommé.
 - L'audit npm des dépendances de production est à zéro. L'audit complet signale
   néanmoins trois alertes hautes et six modérées dans la toolchain de
   développement ; aucun `npm audit fix --force` cassant n'a été appliqué.
