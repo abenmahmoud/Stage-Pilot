@@ -286,6 +286,10 @@ voir sa réponse dans le dossier. L'agent traite tout depuis une seule file.
 - [x] **T039A** Déployer la preview protégée et terminer sa validation technique
   mobile/ordinateur, API, base, email sortant et fichier sain.
 - [ ] **T040** Basculer les DNS seulement après validation fonctionnelle.
+- [ ] **T040A** Résoudre l'écart entre l'ancien déploiement public `a9cf32e` et
+  la preview courante : le portail public répond, mais son flux de contenus
+  échoue en `500`. Vérifier environnement et migrations, puis exécuter une
+  promotion réversible uniquement après autorisation explicite.
 
 ### Sortie Jour 3
 

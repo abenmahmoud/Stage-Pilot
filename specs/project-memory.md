@@ -2500,6 +2500,18 @@ taches et analyse de coherence avant une automatisation sensible.
 - Le brief Claude est préparé mais non exécuté, faute de modèle exact et de
   plafond propres à cette mission ; aucun jeton externe n'a été consommé.
 
+### Jalon du 30 août 2026 - écart du domaine public identifié
+
+- Le domaine `gestion.lycee-blaise-cendrars-sevran.fr` sert encore le commit de
+  production `a9cf32e` : la page répond `200`, mais le flux public répond `500`.
+- La preview `5430ceb` répond `200` pour la page et le flux de contenus avec un
+  accès Vercel temporaire.
+- T040A reste ouverte. Aucune promotion, migration, modification d'alias ou de
+  DNS n'a été exécutée ; la cause exacte et le retour arrière doivent être
+  validés avant toute bascule.
+- Le brief Claude est préparé mais non exécuté, faute de modèle exact et de
+  plafond propres à cette mission ; aucun jeton externe n'a été consommé.
+
 ### Jalon du 30 août 2026 - couverture des commandes sans payload
 
 - Le test transversal couvre maintenant les handlers de mutation qui ne lisent
