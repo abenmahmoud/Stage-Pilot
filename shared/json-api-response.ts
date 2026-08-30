@@ -5,6 +5,7 @@ const MAX_RESPONSE_BYTES = 16 * 1024 * 1024;
 
 type JsonApiResponseOptions = {
   maxBytes?: number;
+  requireOk?: boolean;
 };
 
 function safeApiError(payload: unknown): string | null {
@@ -59,7 +60,9 @@ export async function readJsonApiResponse<T>(
   } catch {
     throw new Error(response.ok ? DEFAULT_INVALID_RESPONSE_MESSAGE : DEFAULT_UNAVAILABLE_MESSAGE);
   }
-  if (!response.ok) throw new Error(safeApiError(payload) ?? DEFAULT_UNAVAILABLE_MESSAGE);
+  if ((options.requireOk ?? true) && !response.ok) {
+    throw new Error(safeApiError(payload) ?? DEFAULT_UNAVAILABLE_MESSAGE);
+  }
   if (!payload || typeof payload !== "object" || Array.isArray(payload)) {
     throw new Error(DEFAULT_INVALID_RESPONSE_MESSAGE);
   }

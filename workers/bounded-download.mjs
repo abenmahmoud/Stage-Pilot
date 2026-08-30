@@ -59,3 +59,20 @@ export async function readBoundedResponseBytes(response, maxBytes) {
   if (totalBytes < 1) throw new BoundedDownloadError();
   return Buffer.concat(chunks, totalBytes);
 }
+
+export async function readBoundedJsonResponse(response, maxBytes) {
+  const responseForBody = response.ok
+    ? response
+    : new Response(response.body, { status: 200, headers: response.headers });
+  const bytes = await readBoundedResponseBytes(responseForBody, maxBytes);
+  let payload;
+  try {
+    payload = JSON.parse(new TextDecoder("utf-8", { fatal: true }).decode(bytes));
+  } catch {
+    throw new BoundedDownloadError("download_json_invalid");
+  }
+  if (!payload || typeof payload !== "object" || Array.isArray(payload)) {
+    throw new BoundedDownloadError("download_json_invalid");
+  }
+  return payload;
+}

@@ -2834,3 +2834,14 @@ taches et analyse de coherence avant une automatisation sensible.
   antivirus ou fichier réel n'a été exécuté.
 - Le brief Claude est préparé mais non exécuté, faute de modèle exact et de
   plafond propres à cette mission ; aucun jeton externe n'a été consommé.
+
+### Jalon du 30 août 2026 - accusés Brevo bornés
+
+- L'API et le worker email limitent les accusés JSON Brevo à 256 Ko et annulent
+  les flux chunkés excessifs.
+- Les doublons HTTP 400 restent reconnus comme succès idempotents, sans second
+  envoi ; les réponses illisibles restent des erreurs fournisseur.
+- T037L est terminée uniquement avec des réponses synthétiques, sans email ni
+  consommation fournisseur.
+- Le brief Claude est préparé mais non exécuté, faute de modèle exact et de
+  plafond propres à cette mission ; aucun jeton externe n'a été consommé.

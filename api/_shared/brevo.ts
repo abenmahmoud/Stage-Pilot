@@ -1,6 +1,8 @@
 import { HttpError } from "./auth.js";
+import { readJsonApiResponse } from "../../shared/json-api-response.js";
 
 const BREVO_ENDPOINT = "https://api.brevo.com/v3/smtp/email";
+const BREVO_RESPONSE_MAX_BYTES = 256 * 1024;
 
 export type TransactionalEmail = {
   to: { email: string; name?: string };
@@ -55,7 +57,15 @@ export async function sendTransactionalEmail(
     }),
   });
 
-  const payload = (await response.json().catch(() => ({}))) as BrevoResponse;
+  let payload: BrevoResponse = {};
+  try {
+    payload = await readJsonApiResponse<BrevoResponse>(response, {
+      maxBytes: BREVO_RESPONSE_MAX_BYTES,
+      requireOk: false,
+    });
+  } catch {
+    payload = {};
+  }
   if (response.ok && payload.messageId) {
     return { messageId: payload.messageId, duplicate: false };
   }

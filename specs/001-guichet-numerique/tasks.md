@@ -231,6 +231,8 @@ voir sa réponse dans le dossier. L'agent traite tout depuis une seule file.
 - [x] **T037K** Vérifier la taille déclarée et réelle des fichiers avant leur
   copie en mémoire dans les cinq workers, et lire les pièces jointes Brevo en
   flux interrompu à 10 Mo.
+- [x] **T037L** Borner à 256 Ko les accusés JSON Brevo dans l'API et le worker
+  email, tout en conservant le traitement idempotent des doublons HTTP 400.
 - [x] **T037F** Exclure les contacts desactives des reponses, reserver les
   journaux globaux a un administrateur MFA et exiger `aal2` pour confirmer une
   identite scolaire depuis une source officielle.

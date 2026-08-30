@@ -1,5 +1,6 @@
 import { randomUUID } from "node:crypto";
 import postgres from "postgres";
+import { readBoundedJsonResponse } from "./bounded-download.mjs";
 
 const databaseUrl = process.env.DATABASE_URL;
 const brevoApiKey = process.env.BREVO_API_KEY;
@@ -15,6 +16,7 @@ const agentEmail = process.env.SUPPORT_AGENT_EMAIL;
 const publicUrl = (process.env.SUPPORT_PUBLIC_URL ?? "").replace(/\/$/, "");
 const agentUrl = (process.env.SUPPORT_AGENT_URL ?? publicUrl).replace(/\/$/, "");
 const institutionSlug = process.env.SUPPORT_INSTITUTION_SLUG ?? "blaise-cendrars-sevran";
+const brevoResponseMaxBytes = 256 * 1024;
 
 function escapeHtml(value) {
   return value
@@ -63,7 +65,7 @@ async function sendEmail({ to, subject, textContent, htmlContent, idempotencyKey
       headers: { idempotencyKey },
     }),
   });
-  const payload = await response.json().catch(() => ({}));
+  const payload = await readBoundedJsonResponse(response, brevoResponseMaxBytes).catch(() => ({}));
   if (response.ok && payload.messageId) return payload.messageId;
   if (payload.code === "duplicate_parameter") return `duplicate:${idempotencyKey}`;
   throw new Error(payload.code || `brevo_http_${response.status}`);
