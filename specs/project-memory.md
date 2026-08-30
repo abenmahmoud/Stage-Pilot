@@ -2410,6 +2410,19 @@ taches et analyse de coherence avant une automatisation sensible.
 - Le brief Claude est préparé mais non exécuté, faute de modèle exact et de
   plafond propres à cette mission ; aucun jeton externe n'a été consommé.
 
+### Jalon du 30 août 2026 - file d'attente usager
+
+- La console agent possède un onglet `En attente` alimenté par le statut serveur
+  `attente_demandeur` et son compteur déjà cloisonné par établissement/service.
+- Les dossiers attendant une précision restent séparés de la file active sans
+  disparaître de l'historique ni perdre leurs messages ou pièces.
+- Le filtre ne déclenche aucune relance, notification, échéance ou changement de
+  statut. Les règles d'automatisation restent soumises à validation métier.
+- T029B est terminée ; T029 reste ouverte. Les cinq domaines comptent 387
+  identifiants uniques : 271 lignes terminées et 116 ouvertes.
+- Le brief Claude est préparé mais non exécuté, faute de modèle exact et de
+  plafond propres à cette mission ; aucun jeton externe n'a été consommé.
+
 ## 8. Prochain ordre recommande
 
 1. Publier et tester le pré-triage ordinateur portable avec des données fictives.

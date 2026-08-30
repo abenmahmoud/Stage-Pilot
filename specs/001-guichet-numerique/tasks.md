@@ -123,6 +123,10 @@ voir sa réponse dans le dossier. L'agent traite tout depuis une seule file.
   onglet `En retard` et absence de SLA automatique à la création. Aucun délai,
   destinataire, rappel ou niveau d'escalade n'est inventé ; T029 reste ouverte
   jusqu'à validation des règles propres à chaque service.
+- [x] **T029B** Isoler dans la console les dossiers `attente_demandeur` avec un
+  onglet et un compteur dédiés. Cette vue aide à séparer travail actif et attente
+  usager sans envoyer de rappel ni calculer de nouveau délai ; T029 reste ouverte
+  pour l'automatisation validée des relances.
 - [x] **T030** Installer le worker antivirus VPS et le déplacement quarantine/clean.
 - [ ] **T031** Mettre en place la sauvegarde chiffrée DB + Storage et un test de
   restauration.
