@@ -19,6 +19,9 @@ de cinq minutes obtient un instantané valable au maximum une heure contenant
 seulement des références de groupe, des libellés, des états et des comptages
 agrégés. LyceeGest ne reçoit ni membres, ni emails, ni téléphones. La résolution
 nominative reste dans le Webmail et un instantané n'autorise jamais un envoi.
+Au moment du travail validé, seul le serveur reçoit des références de contact
+opaques, actives et validées ; la liste nominative reste absente de LyceeGest et
+de son navigateur.
 
 ## Modèle de données additif
 

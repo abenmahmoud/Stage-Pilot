@@ -87,6 +87,11 @@
   champs inconnus, rejeu hors délai et croisement d'établissement sont refusés.
   Aucune route distante, donnée réelle ou diffusion n'est activée.
 - [ ] T017 Préparer les destinataires par référence de contact, côté serveur.
+- [x] T017A Définir une résolution signée et paginée, liée à l'établissement, à
+  la version, à l'instantané approuvé et aux groupes exacts. Seules des
+  références opaques `active_validated_email` deviennent des livraisons
+  idempotentes ; une simulation de 200 contacts ne contient aucune coordonnée.
+  T017 reste ouvert jusqu'à la route Webmail et l'insertion transactionnelle.
 - [ ] T018 Envoyer individuellement via Brevo avec lien canonique.
 - [ ] T019 Enregistrer livré, différé, rejeté, spam et désinscrit.
 - [x] T019A Définir le contrat Brevo de délivrabilité avant toute route. Un
@@ -173,6 +178,10 @@
   l'absence d'API publique, d'audience, de publication ou d'envoi. T028 reste
   ouvert jusqu'à l'existence et au test de l'API publique validée.
 - [ ] T029 Tester doublons, panne Brevo, reprise et 200 destinataires.
+- [x] T029A Simuler localement 200 références opaques : 200 lignes et 200 clés
+  uniques, stables au rejeu. Les doublons, contacts inactifs, coordonnées,
+  instantanés substitués et pages incohérentes sont refusés. T029 reste ouvert
+  jusqu'à la panne et la reprise sur une file de preview.
 - [x] T030 Vérifier PDF, image, DOCX, fichier invalide et données personnelles.
   Les PDF/DOCX fictifs sûrs sont extraits localement ; image, faux PDF et type
   incohérent sont refusés. Une adresse ou un code scolaire supprime le texte

@@ -1624,6 +1624,18 @@ taches et analyse de coherence avant une automatisation sensible.
 - Le brief Claude est préparé mais non exécuté, faute de modèle exact et de
   plafond de consommation propres à cette mission.
 
+### Jalon du 30 août 2026 - résolution opaque de 200 destinataires
+
+- Une page signée relie les références de contact à l'établissement, la
+  communication, la version, l'instantané du registre et les groupes approuvés.
+- Seuls des contacts opaques `active_validated_email` sont préparés. Les clés
+  HMAC restent stables entre pages et rejeux, sans nom, adresse ou téléphone.
+- Six tests simulent 200 livraisons uniques et refusent doublons, contacts
+  inactifs, coordonnées, pages invalides et changements de périmètre. T017A et
+  T029A sont terminés ; les routes et la recette de file restent ouvertes.
+- Le brief Claude est préparé mais non exécuté, faute de modèle exact et de
+  plafond de consommation propres à cette mission.
+
 ### Jalon du 30 août 2026 - contrat de délivrabilité Brevo
 
 - Un vérificateur Bearer commun protège désormais les futurs webhooks entrants

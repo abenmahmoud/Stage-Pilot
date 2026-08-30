@@ -122,3 +122,10 @@ la livraison et insère l'empreinte d'événement avant toute transition. La
 contrainte unique absorbe les rejeux ; les événements hors ordre restent
 audités sans faire régresser un état livré. La migration n'est pas appliquée et
 l'interrupteur demeure absent des environnements distants.
+
+T017A précise une ambiguïté du plan : le navigateur et l'API de sélection ne
+reçoivent aucun membre, mais le worker validé doit obtenir les références
+opaques nécessaires aux lignes `communication_deliveries`. La page signée est
+liée à la version, à l'empreinte de registre et aux groupes approuvés. Une clé
+HMAC stable par contact absorbe les doublons entre rejeux et pages sans révéler
+de coordonnée.
