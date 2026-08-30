@@ -2523,6 +2523,17 @@ taches et analyse de coherence avant une automatisation sensible.
 - Le brief Claude est préparé mais non exécuté, faute de modèle exact et de
   plafond propres à cette mission ; aucun jeton externe n'a été consommé.
 
+### Jalon du 30 août 2026 - worker exhaustif du coffre préparé
+
+- Un worker fermé par défaut parcourt au plus 25 000 enveloppes d'un
+  établissement sous une transaction cohérente et en lots de 250 maximum.
+- Ingestion, rotation et vérification partagent désormais un verrou consultatif
+  transactionnel par établissement.
+- T010B2C6 est terminé localement. Le worker n'est ni installé ni exécuté ; la
+  restauration et le retrait effectif restent dans T010B2C.
+- Le brief Claude est préparé mais non exécuté, faute de modèle exact et de
+  plafond propres à cette mission ; aucun jeton externe n'a été consommé.
+
 ### Jalon du 30 août 2026 - couverture des commandes sans payload
 
 - Le test transversal couvre maintenant les handlers de mutation qui ne lisent

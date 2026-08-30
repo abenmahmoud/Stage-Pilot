@@ -53,6 +53,11 @@ const sql = postgres(databaseUrl, { prepare: false, max: 1, idle_timeout: 20 });
 
 async function rotateOneBatch() {
   return sql.begin(async (transaction) => {
+    await transaction`
+      select pg_advisory_xact_lock(
+        hashtextextended(${`identity-vault:${institutionId}`}, 74219)
+      )
+    `;
     const sourceRows = await transaction`
       select id::text as id, institution_id, import_id, person_ref,
              key_version, payload_schema, iv, auth_tag, ciphertext

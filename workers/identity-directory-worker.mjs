@@ -141,6 +141,11 @@ function privateDatabaseRows(parsed, directoryImport) {
 
 async function persistReport(directoryImport, parsed, msgId) {
   return sql.begin(async (transaction) => {
+    await transaction`
+      select pg_advisory_xact_lock(
+        hashtextextended(${`identity-vault:${directoryImport.institution_id}`}, 74219)
+      )
+    `;
     const [lockedImport] = await transaction`
       select status
       from public.identity_directory_imports

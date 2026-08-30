@@ -88,6 +88,10 @@
   uniquement la version cible, reste déchiffrable avec la nouvelle clé et ne
   charge plus les anciennes clés. La preuve ne contient qu'un compte, les
   versions et une empreinte agrégée ; le retrait réel reste dans T010B2C.
+- [x] T010B2C6 Préparer sans l'installer le worker de vérification exhaustive par
+  établissement : transaction cohérente en lecture seule, pagination bornée,
+  verrou partagé avec ingestion/rotation et preuve agrégée sans clair. La
+  recette distante, la restauration et le retrait réel restent dans T010B2C.
 - [ ] T010B2D Refuser automatiquement mots de passe, codes ENT/PRONOTE et secrets
   dans tous les imports ; cadrer séparément une éventuelle remise de codes avec
   Direction/DPO, identité forte, durée courte et validation humaine.
