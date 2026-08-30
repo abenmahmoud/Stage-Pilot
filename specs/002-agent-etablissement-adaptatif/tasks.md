@@ -534,6 +534,9 @@
   le contenu, repères nommés, état du menu mobile annoncé, panneau masqué inerte,
   piège de focus, fermeture par Échap et restitution du focus. La recette avec
   un lecteur d’écran et des comptes nominatifs reste dans T048.
+- [x] T048E Nommer le groupe des files de demandes et annoncer l'état actif de
+  ses neuf boutons avec `aria-pressed`, tout en conservant les contrôles natifs
+  utilisables au clavier. La recette avec lecteur d'écran reste dans T048.
 - [ ] T049 Exécuter une revue de sécurité et de protection des données.
 - [x] T049A Créer et exécuter une porte de sécurité reproductible pour la
   preview : en-têtes navigateur, cache API, source maps, secrets, limites,
