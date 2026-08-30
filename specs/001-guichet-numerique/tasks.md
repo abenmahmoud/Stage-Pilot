@@ -74,6 +74,8 @@ quarantaine. Une panne d'envoi externe n'affecte pas le dossier.
   locale ou notification, puis ignorer les actualisations réseau obsolètes.
 - [x] **T016D** Valider le dossier public, ses messages et pièces avant rendu,
   isoler ses erreurs et empêcher une ancienne sélection de remplacer la courante.
+- [x] **T016E** Refuser toute réservation de pièce dont le bucket, le chemin,
+  l'identifiant ou le jeton signé ne respecte pas le contrat de quarantaine.
 - [x] **T017** Construire la file agent paginée avec filtres, SLA et assignation.
 - [x] **T017A** Protéger les modifications et réponses par révision, rendre la
   prise en charge atomique et actualiser l'écran après un conflit.

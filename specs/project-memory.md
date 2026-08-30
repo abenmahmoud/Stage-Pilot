@@ -5,6 +5,18 @@
 **Depot** : `abenmahmoud/Stage-Pilot`
 **Dernier jalon de code verifie** : branche de preview Vercel
 
+## Jalon du 30 août 2026 - réservation de pièce verrouillée côté navigateur
+
+- Le navigateur n'appelle le stockage qu'après validation du bucket privé
+  `support-quarantine`, du chemin à trois segments, de l'identifiant lié et du
+  jeton signé borné.
+- Une réservation falsifiée visant un bucket public, une traversée de chemin ou
+  un jeton inattendu est refusée avant tout transfert d'octet.
+- La recette navigateur confirme zéro appel Storage et un avertissement usager
+  propre à 320 et 1 440 px, sans débordement ni erreur JavaScript.
+- Lot preview uniquement : aucun fichier réel, stockage distant ou production
+  n'a été utilisé ou modifié.
+
 ## Jalon du 30 août 2026 - détail public validé et sélection stable
 
 - Le suivi public valide la demande, le contexte, jusqu'à 500 messages et cinq

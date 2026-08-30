@@ -242,10 +242,7 @@ async function readApiResponse<T>(responseInput: Response | Promise<Response>): 
 }
 
 async function uploadSupportFile(publicCode: string, file: File): Promise<void> {
-  const reservation = await readApiResponse<{
-    attachment: { id: string };
-    upload: { bucket: string; path: string; token: string };
-  }>(
+  const reservation = await readApiResponse<unknown>(
     await fetch(`/api/support/requests/${publicCode}/attachments`, {
       method: "POST",
       credentials: "include",
@@ -259,6 +256,9 @@ async function uploadSupportFile(publicCode: string, file: File): Promise<void> 
       }),
     })
   );
+  if (!isSupportUploadReservationPayload(reservation)) {
+    throw new Error("La réservation du fichier reçue est invalide.");
+  }
 
   const { error: uploadError } = await supabase.storage
     .from(reservation.upload.bucket)
@@ -2547,6 +2547,25 @@ function isPublicSupportRequestDetailPayload(value: unknown): value is SupportRe
   const attachmentIds = value.attachments.map((attachment) => attachment.id);
   return new Set(messageIds).size === messageIds.length
     && new Set(attachmentIds).size === attachmentIds.length;
+}
+
+function isSupportUploadReservationPayload(value: unknown): value is {
+  attachment: { id: string };
+  upload: { bucket: "support-quarantine"; path: string; token: string };
+} {
+  if (!isRecord(value) || !isRecord(value.attachment) || !isRecord(value.upload)) return false;
+  const attachmentId = value.attachment.id;
+  const path = value.upload.path;
+  const token = value.upload.token;
+  if (typeof attachmentId !== "string" || !/^[0-9a-f]{8}-[0-9a-f-]{27}$/i.test(attachmentId)) return false;
+  if (value.upload.bucket !== "support-quarantine" || typeof path !== "string") return false;
+  const segments = path.split("/");
+  if (segments.length !== 3
+    || !/^[0-9a-f]{8}-[0-9a-f-]{27}$/i.test(segments[0])
+    || segments[1] !== attachmentId
+    || !/^[A-Za-z0-9][A-Za-z0-9._-]{0,89}$/.test(segments[2])) return false;
+  return isBoundedString(token, 4_096)
+    && /^[A-Za-z0-9._~-]+$/.test(token);
 }
 
 function isAgentRequestCore(value: unknown): value is AgentRequestCore {
