@@ -4,6 +4,7 @@ import { and, desc, eq, gt, inArray, isNull, ne, sql } from "drizzle-orm";
 import { db } from "../../../db/index.js";
 import { initialSupportStatus } from "../../../shared/support-routing.js";
 import { supportDuplicateWindowStart } from "../../../shared/support-duplicate-policy.js";
+import { createSupportRequestPersistenceConfirmation } from "../../../shared/support-request-confirmation.js";
 import {
   supportContacts,
   supportCallbackTasks,
@@ -336,6 +337,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       });
 
       if (result.sessionToken) setSupportSessionCookie(res, result.sessionToken);
+      const confirmation = createSupportRequestPersistenceConfirmation({
+        publicCode: result.publicCode,
+        confirmedAt: new Date(),
+      });
       res.status(result.duplicate ? 200 : 201);
       return {
         request: {
@@ -343,6 +348,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           status: result.status,
           createdAt: result.createdAt,
         },
+        confirmation,
         duplicate: result.duplicate,
       };
     });

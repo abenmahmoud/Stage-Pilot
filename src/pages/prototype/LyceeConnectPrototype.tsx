@@ -74,6 +74,7 @@ import {
   prepareSupportSubmissionConversation,
   summarizeSupportDescription,
 } from "../../../shared/support-conversation";
+import { verifySupportRequestPersistenceConfirmation } from "../../../shared/support-request-confirmation";
 import {
   DEFAULT_SUPPORT_REPLY_TEMPLATES,
   renderSupportReplyTemplate,
@@ -1225,9 +1226,10 @@ function HelpDeskView({
     setSubmitting(true);
     setSubmitError(null);
     try {
-      let publicCode = "BC-2026-000042";
-      if (SUPPORT_API_ENABLED) {
-        const response = await fetch("/api/support/requests", {
+      if (!SUPPORT_API_ENABLED) {
+        throw new Error("La création de demandes n’est pas activée dans cette démonstration.");
+      }
+      const response = await fetch("/api/support/requests", {
           method: "POST",
           credentials: "include",
           headers: {
@@ -1263,23 +1265,34 @@ function HelpDeskView({
             website: form.get("website"),
           }),
         });
-        const payload = (await response.json()) as { request?: { publicCode?: string }; error?: string };
-        if (!response.ok || !payload.request?.publicCode) {
-          throw new Error(payload.error ?? "La demande n’a pas pu être enregistrée");
-        }
-        publicCode = payload.request.publicCode;
+      const payload = (await response.json()) as {
+        request?: { publicCode?: string; status?: string; createdAt?: string };
+        confirmation?: unknown;
+        error?: string;
+      };
+      if (
+        !response.ok ||
+        !payload.request?.publicCode ||
+        !payload.request.createdAt ||
+        !verifySupportRequestPersistenceConfirmation({
+          expectedPublicCode: payload.request.publicCode,
+          confirmation: payload.confirmation,
+        })
+      ) {
+        throw new Error(payload.error ?? "La demande n’a pas pu être confirmée après son enregistrement");
+      }
+      const publicCode = payload.request.publicCode;
+      const persistedCreatedAt = payload.request.createdAt;
 
-        if (files.length > 0) {
-          const uploads = await Promise.allSettled(files.map((file) => uploadSupportFile(publicCode, file)));
-          const failedCount = uploads.filter((result) => result.status === "rejected").length;
-          if (failedCount > 0) {
-            setAttachmentWarning(`La demande est enregistrée, mais ${failedCount} fichier${failedCount > 1 ? "s" : ""} n’a pas été joint. Vous pourrez le renvoyer depuis le suivi.`);
-          }
+      if (files.length > 0) {
+        const uploads = await Promise.allSettled(files.map((file) => uploadSupportFile(publicCode, file)));
+        const failedCount = uploads.filter((result) => result.status === "rejected").length;
+        if (failedCount > 0) {
+          setAttachmentWarning(`La demande est enregistrée, mais ${failedCount} fichier${failedCount > 1 ? "s" : ""} n’a pas été joint. Vous pourrez le renvoyer depuis le suivi.`);
         }
       }
       setConfirmationChannel(preferredChannel === "phone" ? "phone" : "email");
       setTicketCode(publicCode);
-      const now = new Date().toISOString();
       void Promise.all([
         clearSupportDeviceDraft(),
         rememberSupportRequests([{
@@ -1288,8 +1301,8 @@ function HelpDeskView({
           category,
           status: "nouveau",
           priority: "p3",
-          createdAt: now,
-          updatedAt: now,
+          createdAt: persistedCreatedAt,
+          updatedAt: persistedCreatedAt,
         }]),
       ]);
       onTicketCreated(publicCode);

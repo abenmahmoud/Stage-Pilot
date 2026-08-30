@@ -1390,6 +1390,20 @@ taches et analyse de coherence avant une automatisation sensible.
   jamais choisir ni recevoir une référence scolaire brute. Le libellé minimal
   visible doit être validé par le lycée avant cette interface.
 
+### Jalon du 30 août 2026 - preuve de création du dossier public
+
+- Le formulaire ne fabrique plus un numéro d'exemple lorsque l'API est désactivée.
+  Dans ce cas, il affiche une indisponibilité claire sans annoncer de réussite.
+- Après la transaction, l'API construit une confirmation avec le numéro public,
+  une date issue du serveur et une référence strictement liée au numéro.
+- Le navigateur vérifie cette preuve avant de déposer les pièces jointes, de
+  mémoriser le dossier sur l'appareil et d'afficher le succès. Une preuve absente,
+  discordante ou invalide ferme le parcours en échec.
+- Ce lot ferme T028A mais pas T028 : un véritable adaptateur d'action de l'agent
+  devra encore persister et relire `agent_actions.confirmed_at`.
+- La revue Claude est préparée mais non exécutée tant que le modèle exact et le
+  plafond de consommation ne sont pas autorisés.
+
 ## 8. Prochain ordre recommande
 
 1. Publier et tester le pré-triage ordinateur portable avec des données fictives.

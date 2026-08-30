@@ -1,0 +1,70 @@
+import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
+import test from "node:test";
+import {
+  createSupportRequestPersistenceConfirmation,
+  verifySupportRequestPersistenceConfirmation,
+} from "../shared/support-request-confirmation.ts";
+
+const publicCode = "BC-2026-000123";
+
+test("creates and verifies a bounded persistence confirmation", () => {
+  const confirmation = createSupportRequestPersistenceConfirmation({
+    publicCode,
+    confirmedAt: new Date("2026-08-30T10:00:00.000Z"),
+  });
+
+  assert.deepEqual(confirmation, {
+    status: "persisted",
+    publicCode,
+    confirmedAt: "2026-08-30T10:00:00.000Z",
+    confirmationRef: `support:${publicCode}`,
+  });
+  assert.deepEqual(
+    verifySupportRequestPersistenceConfirmation({ expectedPublicCode: publicCode, confirmation }),
+    confirmation
+  );
+});
+
+test("refuses missing, mismatched and malformed confirmations", () => {
+  const valid = createSupportRequestPersistenceConfirmation({
+    publicCode,
+    confirmedAt: new Date("2026-08-30T10:00:00.000Z"),
+  });
+  for (const confirmation of [
+    null,
+    [],
+    { ...valid, status: "pending" },
+    { ...valid, publicCode: "BC-2026-000124" },
+    { ...valid, confirmationRef: "support:other" },
+    { ...valid, confirmedAt: "not-a-date" },
+  ]) {
+    assert.equal(
+      verifySupportRequestPersistenceConfirmation({ expectedPublicCode: publicCode, confirmation }),
+      null
+    );
+  }
+});
+
+test("server confirms only after the database transaction and the UI waits for proof", () => {
+  const route = readFileSync(new URL("../api/support/requests/index.ts", import.meta.url), "utf8");
+  const prototype = readFileSync(
+    new URL("../src/pages/prototype/LyceeConnectPrototype.tsx", import.meta.url),
+    "utf8"
+  );
+  const transaction = route.indexOf("const result = await db.transaction");
+  const confirmation = route.indexOf("createSupportRequestPersistenceConfirmation", transaction);
+  const response = route.indexOf("return {", confirmation);
+  assert.ok(transaction >= 0 && transaction < confirmation && confirmation < response);
+
+  const submit = prototype.slice(
+    prototype.indexOf("async function submitRequest"),
+    prototype.indexOf("async function copyTicketCode")
+  );
+  const verification = submit.indexOf("verifySupportRequestPersistenceConfirmation");
+  const visibleSuccess = submit.indexOf("setTicketCode(publicCode)");
+  const upload = submit.indexOf("uploadSupportFile(publicCode");
+  assert.ok(verification >= 0 && verification < upload && upload < visibleSuccess);
+  assert.doesNotMatch(submit, /BC-2026-000042/);
+  assert.match(submit, /création de demandes n’est pas activée/);
+});

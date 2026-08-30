@@ -324,6 +324,11 @@
   outils discordants, les confirmations absentes, antérieures ou futures. Le
   schéma persistant exige désormais la preuve complète pour `succeeded` ; le
   branchement à un adaptateur réel et à l'interface reste requis.
+- [x] T028A Exiger sur le formulaire public une confirmation de persistance datée
+  par le serveur et liée au numéro relu après transaction. L'interface refuse une
+  preuve absente ou discordante, ne fabrique plus de réussite en mode démo et
+  attend cette preuve avant pièces jointes, mémoire locale et écran de succès.
+  T028 reste ouverte pour le premier adaptateur d'action persisté de l'agent.
 - [x] T029 Ajouter formulaire classique et création de demande sans dépendance à l'IA.
 - [x] T030 Ajouter mesure du coût, de la latence, des transferts et des corrections.
 - [x] T030A Mesurer chaque passage de l'assistant public sans contenu personnel :
