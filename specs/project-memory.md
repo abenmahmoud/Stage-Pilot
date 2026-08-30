@@ -1753,6 +1753,20 @@ taches et analyse de coherence avant une automatisation sensible.
 - Le brief Claude est préparé mais non exécuté, faute de modèle exact et de
   plafond de consommation propres à cette mission.
 
+### Jalon du 30 août 2026 - cibles tactiles de l'accueil
+
+- Une recette réelle du portail à 320 x 800 et 1 440 x 900 ne relève aucun
+  débordement horizontal. L'identité du lycée et l'assistant restent visibles
+  dans le premier écran mobile ; la navigation ordinateur ne se recouvre pas.
+- Trois actions textuelles de 17 à 18 px de haut disposent maintenant d'une
+  cible minimale de 40 px : confidentialité, affichage des services et ouverture
+  de LyceeGest.
+- Un test statique protège les règles mobiles critiques, les cibles et les
+  contrôles sémantiques de l'assistant. T048B est terminé ; T048 reste ouvert
+  pour les écrans agents authentifiés, le clavier complet et le lecteur d'écran.
+- Le brief Claude est préparé mais non exécuté, faute de modèle exact et de
+  plafond de consommation propres à cette mission.
+
 ## 8. Prochain ordre recommande
 
 1. Publier et tester le pré-triage ordinateur portable avec des données fictives.

@@ -136,7 +136,7 @@
 .lycee-ai-response svg { width: 17px; height: 17px; flex: 0 0 17px; }
 .lycee-trust-row { display: flex; gap: 20px; margin-top: 12px; color: #6c7a8d; font-size: 11px; font-weight: 700; }
 .lycee-trust-row span, .lycee-trust-row button { display: inline-flex; align-items: center; gap: 6px; }
-.lycee-trust-row button { padding: 0; border: 0; background: transparent; color: var(--lc-blue); font-weight: 800; }
+.lycee-trust-row button { min-height: 40px; padding: 8px 0; border: 0; background: transparent; color: var(--lc-blue); font-weight: 800; }
 .lycee-trust-row svg { width: 14px; height: 14px; }
 
 @keyframes lycee-assistant-in { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
@@ -144,7 +144,7 @@
 
 .lycee-services { padding: 34px 0 28px; }
 .lycee-section-title { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; margin-bottom: 15px; }
-.lycee-section-title > button, .lycee-section-title > a, .lycee-news > button, .lycee-news > a { display: inline-flex; align-items: center; gap: 4px; padding: 0; border: 0; background: transparent; color: var(--lc-blue); text-decoration: none; font-size: 12px; font-weight: 800; }
+.lycee-section-title > button, .lycee-section-title > a, .lycee-news > button, .lycee-news > a { min-height: 40px; display: inline-flex; align-items: center; gap: 4px; padding: 8px 0; border: 0; background: transparent; color: var(--lc-blue); text-decoration: none; font-size: 12px; font-weight: 800; }
 .lycee-section-title button svg, .lycee-section-title a svg, .lycee-news button svg, .lycee-news a svg { width: 16px; height: 16px; }
 .lycee-service-grid { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 12px; }
 .lycee-service-grid > button { min-height: 102px; display: grid; grid-template-columns: 48px minmax(0,1fr) 22px; align-items: center; gap: 14px; padding: 18px; border: 1px solid var(--lc-line); border-radius: 8px; background: #fff; color: var(--lc-ink); text-align: left; transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease; }
