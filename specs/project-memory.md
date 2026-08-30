@@ -2512,6 +2512,17 @@ taches et analyse de coherence avant une automatisation sensible.
 - Le brief Claude est préparé mais non exécuté, faute de modèle exact et de
   plafond propres à cette mission ; aucun jeton externe n'a été consommé.
 
+### Jalon du 30 août 2026 - vérification locale du retrait d'une clé du coffre
+
+- Un lot de 250 enveloppes maximum doit utiliser uniquement la version cible et
+  rester déchiffrable avec la nouvelle clé avant tout retrait.
+- Le vérificateur refuse une ancienne clé encore chargée et ne restitue que le
+  nombre de lignes, les versions retirées et une empreinte agrégée.
+- T010B2C5 est terminé sur deux personnes fictives. T010B2C reste ouvert pour la
+  vérification exhaustive, la restauration et le retrait effectif en preview.
+- Le brief Claude est préparé mais non exécuté, faute de modèle exact et de
+  plafond propres à cette mission ; aucun jeton externe n'a été consommé.
+
 ### Jalon du 30 août 2026 - couverture des commandes sans payload
 
 - Le test transversal couvre maintenant les handlers de mutation qui ne lisent

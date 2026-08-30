@@ -1,4 +1,4 @@
-import { createCipheriv, createDecipheriv, randomBytes } from "node:crypto";
+import { createCipheriv, createDecipheriv, createHash, randomBytes } from "node:crypto";
 
 export const IDENTITY_VAULT_SCHEMA_VERSION = 1;
 export const IDENTITY_VAULT_ROTATION_MAX_ROWS = 250;
@@ -287,5 +287,107 @@ export function rotateIdentityVaultBatch({
     rotatedCount: rotatedRows.length,
     sourceVersions: Object.fromEntries(Object.entries(sourceVersions).sort(([left], [right]) => left.localeCompare(right))),
     rows: rotatedRows,
+  };
+}
+
+export function verifyIdentityVaultKeyRetirement({
+  rows,
+  institutionId,
+  importId,
+  targetConfig,
+  retiredVersions,
+  env = process.env,
+  batchLimit = IDENTITY_VAULT_ROTATION_MAX_ROWS,
+}) {
+  if (
+    !Number.isInteger(batchLimit) ||
+    batchLimit < 1 ||
+    batchLimit > IDENTITY_VAULT_ROTATION_MAX_ROWS
+  ) {
+    throw new Error("identity_vault_retirement_batch_limit_invalid");
+  }
+  if (!Array.isArray(rows) || rows.length < 1 || rows.length > batchLimit) {
+    throw new Error("identity_vault_retirement_batch_size_invalid");
+  }
+
+  const targetVersion = keyVersion(targetConfig?.version);
+  aad({ institutionId, importId, personRef: "retirement-scope", version: targetVersion });
+  const targetKey = Buffer.isBuffer(targetConfig?.key)
+    ? targetConfig.key
+    : encryptionKey(targetConfig?.key);
+  if (targetKey.length !== 32) throw new Error("identity_vault_key_invalid");
+
+  if (!Array.isArray(retiredVersions) || retiredVersions.length < 1 || retiredVersions.length > 20) {
+    throw new Error("identity_vault_retired_versions_invalid");
+  }
+  const normalizedRetiredVersions = retiredVersions.map(keyVersion);
+  if (new Set(normalizedRetiredVersions).size !== normalizedRetiredVersions.length) {
+    throw new Error("identity_vault_retired_versions_invalid");
+  }
+  const targetNumber = Number.parseInt(targetVersion.slice(1), 10);
+  for (const version of normalizedRetiredVersions) {
+    if (Number.parseInt(version.slice(1), 10) >= targetNumber) {
+      throw new Error("identity_vault_retired_versions_invalid");
+    }
+    const keyName = `IDENTITY_DIRECTORY_ENCRYPTION_KEY_${version.toUpperCase()}`;
+    if (typeof env[keyName] === "string" && env[keyName].trim().length > 0) {
+      throw new Error("identity_vault_retired_key_still_available");
+    }
+  }
+
+  const rowIds = new Set();
+  const evidence = createHash("sha256");
+  for (const input of rows) {
+    const row = exactKeys(input, [
+      "id",
+      "institutionId",
+      "importId",
+      "personRef",
+      "envelope",
+    ], "identity_vault_retirement_row_invalid");
+    const id = rotationRowId(row.id);
+    const idKey = String(id);
+    if (rowIds.has(idKey)) throw new Error("identity_vault_retirement_row_duplicate");
+    rowIds.add(idKey);
+    if (row.institutionId !== institutionId || row.importId !== importId) {
+      throw new Error("identity_vault_retirement_scope_mismatch");
+    }
+    const envelope = exactKeys(row.envelope, [
+      "keyVersion",
+      "payloadSchema",
+      "iv",
+      "authTag",
+      "ciphertext",
+    ], "identity_vault_retirement_envelope_invalid");
+    if (keyVersion(envelope.keyVersion) !== targetVersion) {
+      throw new Error("identity_vault_rotation_incomplete");
+    }
+    decryptIdentityVaultPayload({
+      envelope,
+      institutionId: row.institutionId,
+      importId: row.importId,
+      personRef: row.personRef,
+      key: targetKey,
+    });
+    evidence.update(JSON.stringify([
+      idKey,
+      row.institutionId,
+      row.importId,
+      row.personRef,
+      envelope.keyVersion,
+      envelope.payloadSchema,
+      envelope.iv,
+      envelope.authTag,
+      envelope.ciphertext,
+    ]));
+  }
+
+  return {
+    targetVersion,
+    verifiedCount: rows.length,
+    retiredVersions: [...normalizedRetiredVersions].sort((left, right) =>
+      Number.parseInt(left.slice(1), 10) - Number.parseInt(right.slice(1), 10)
+    ),
+    evidenceDigest: evidence.digest("hex"),
   };
 }

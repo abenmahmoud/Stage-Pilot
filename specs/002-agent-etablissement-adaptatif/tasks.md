@@ -84,6 +84,10 @@
   `SKIP LOCKED`, contrôle optimiste de chaque ancienne enveloppe, audit agrégé et
   index additif. La migration et le worker n'ont pas été exécutés ; recette de
   restauration et retrait de clé restent dans T010B2C.
+- [x] T010B2C5 Vérifier localement avant retrait qu'un lot borné utilise
+  uniquement la version cible, reste déchiffrable avec la nouvelle clé et ne
+  charge plus les anciennes clés. La preuve ne contient qu'un compte, les
+  versions et une empreinte agrégée ; le retrait réel reste dans T010B2C.
 - [ ] T010B2D Refuser automatiquement mots de passe, codes ENT/PRONOTE et secrets
   dans tous les imports ; cadrer séparément une éventuelle remise de codes avec
   Direction/DPO, identité forte, durée courte et validation humaine.
