@@ -69,6 +69,11 @@
   l'activation si le coffre est incomplet, retrait et nettoyage vérifiés sur
   données fictives. La recherche déterministe, la rotation opérationnelle et la
   rétention restent dans T010B2C.
+- [x] T010B2C2 Ajouter la primitive locale de rotation vN vers vN+1 : ancienne
+  clé explicitement disponible, nouvelle version strictement supérieure,
+  déchiffrement avec l'AAD existant, nonce neuf, rechiffrement et refus fermé des
+  clés, contextes ou enveloppes invalides. Le worker par lots, la recette de
+  restauration et le retrait réel d'une ancienne clé restent dans T010B2C.
 - [ ] T010B2D Refuser automatiquement mots de passe, codes ENT/PRONOTE et secrets
   dans tous les imports ; cadrer séparément une éventuelle remise de codes avec
   Direction/DPO, identité forte, durée courte et validation humaine.

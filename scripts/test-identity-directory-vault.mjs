@@ -4,6 +4,7 @@ import {
   decryptIdentityVaultPayload,
   encryptIdentityVaultPayload,
   identityVaultConfig,
+  rotateIdentityVaultEnvelope,
 } from "../workers/identity-directory-vault.mjs";
 
 const institutionId = "11111111-1111-4111-8111-111111111111";
@@ -11,6 +12,7 @@ const importId = "22222222-2222-4222-8222-222222222222";
 const personRef = "TEST-STUDENT-001";
 const key = randomBytes(32);
 const alternateKey = randomBytes(32);
+const rotatedKey = randomBytes(32);
 const value = {
   firstName: "CamilleTest",
   lastName: "MartinTest",
@@ -106,4 +108,80 @@ assert.throws(
   /key_invalid/
 );
 
-console.log("identity directory vault: 9/9 checks passed");
+const rotationEnvironment = {
+  IDENTITY_DIRECTORY_ENCRYPTION_KEY_VERSION: "v2",
+  IDENTITY_DIRECTORY_ENCRYPTION_KEY_V1: key.toString("base64"),
+  IDENTITY_DIRECTORY_ENCRYPTION_KEY_V2: rotatedKey.toString("base64"),
+};
+const rotated = rotateIdentityVaultEnvelope({
+  envelope: first,
+  institutionId,
+  importId,
+  personRef,
+  targetConfig: identityVaultConfig(rotationEnvironment),
+  env: rotationEnvironment,
+});
+assert.equal(rotated.keyVersion, "v2");
+assert.notEqual(rotated.iv, first.iv, "rotation must generate a fresh nonce");
+assert.doesNotMatch(JSON.stringify(rotated), /CamilleTest|MartinTest|example\.test|33600000001/);
+assert.deepEqual(
+  decryptIdentityVaultPayload({
+    envelope: rotated,
+    institutionId,
+    importId,
+    personRef,
+    key: rotatedKey,
+  }),
+  value
+);
+assert.throws(
+  () => decryptIdentityVaultPayload({
+    envelope: rotated,
+    institutionId,
+    importId,
+    personRef,
+    key,
+  }),
+  /authenticate|Unsupported state/i,
+  "the retired key must not decrypt a rotated envelope"
+);
+assert.throws(
+  () => rotateIdentityVaultEnvelope({
+    envelope: rotated,
+    institutionId,
+    importId,
+    personRef,
+    targetConfig: identityVaultConfig(rotationEnvironment),
+    env: rotationEnvironment,
+  }),
+  /rotation_not_required/
+);
+assert.throws(
+  () => rotateIdentityVaultEnvelope({
+    envelope: first,
+    institutionId,
+    importId,
+    personRef,
+    targetConfig: identityVaultConfig(rotationEnvironment),
+    env: {
+      IDENTITY_DIRECTORY_ENCRYPTION_KEY_VERSION: "v2",
+      IDENTITY_DIRECTORY_ENCRYPTION_KEY_V2: rotatedKey.toString("base64"),
+    },
+  }),
+  /key_invalid/,
+  "rotation must fail closed while the source key is unavailable"
+);
+assert.throws(
+  () => rotateIdentityVaultEnvelope({
+    envelope: rotated,
+    institutionId,
+    importId,
+    personRef,
+    targetConfig: configured,
+    env: rotationEnvironment,
+  }),
+  /rotation_target_invalid/,
+  "rotation must never downgrade the key version"
+);
+
+console.log("identity directory vault: 19/19 checks passed");

@@ -5,6 +5,15 @@
 **Depot** : `abenmahmoud/Stage-Pilot`
 **Dernier jalon de code verifie** : branche de preview Vercel
 
+## Jalon du 30 août 2026 - rotation locale du coffre d'identités
+
+- Une enveloppe AES-256-GCM peut être rechiffrée de vN vers une nouvelle version
+  avec l'ancienne clé explicitement conservée pendant la transition.
+- La rotation vérifie l'ancien AAD, crée un nonce neuf et refuse la même version,
+  une clé source absente, un contexte discordant ou une enveloppe altérée.
+- Aucun worker distant, aucune clé réelle et aucune ligne de base n'ont été
+  modifiés ; la rotation par lots et le retrait d'ancienne clé restent ouverts.
+
 ## Jalon du 30 août 2026 - identité, rôle et autorité séparés
 
 - Le runtime utilise désormais I0-I4 pour la preuve d'identité et conserve le

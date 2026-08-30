@@ -134,3 +134,39 @@ export function decryptIdentityVaultPayload({
   ]).toString("utf8");
   return payload(JSON.parse(plaintext));
 }
+
+export function rotateIdentityVaultEnvelope({
+  envelope,
+  institutionId,
+  importId,
+  personRef,
+  targetConfig,
+  env = process.env,
+}) {
+  const sourceVersion = keyVersion(envelope?.keyVersion);
+  const targetVersion = keyVersion(targetConfig?.version);
+  if (sourceVersion === targetVersion) {
+    throw new Error("identity_vault_rotation_not_required");
+  }
+  if (
+    Number.parseInt(targetVersion.slice(1), 10) <
+    Number.parseInt(sourceVersion.slice(1), 10)
+  ) {
+    throw new Error("identity_vault_rotation_target_invalid");
+  }
+
+  const value = decryptIdentityVaultPayload({
+    envelope,
+    institutionId,
+    importId,
+    personRef,
+    key: identityVaultKeyForVersion(sourceVersion, env),
+  });
+  return encryptIdentityVaultPayload({
+    value,
+    institutionId,
+    importId,
+    personRef,
+    config: targetConfig,
+  });
+}
