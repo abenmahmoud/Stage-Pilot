@@ -2326,7 +2326,7 @@ const agentRequests = [
   { id: "BC-2026-000039", name: "Sarah M.", role: "Élève · TSTMG2", subject: "Question Grand Oral", category: "Grand Oral", priority: "Normal", age: "Il y a 1 h" },
 ];
 
-type AgentRequest = {
+type AgentQueueRequest = {
   publicCode: string;
   requesterType: string;
   requesterFirstName: string;
@@ -2339,9 +2339,6 @@ type AgentRequest = {
   subject: string;
   status: string;
   priority: string;
-  identityStatus: IdentityStatus;
-  identityMethod?: string | null;
-  identityVerifiedAt?: string | null;
   assignedTo: string | null;
   assignedTeam: string | null;
   slaDueAt: string | null;
@@ -2349,6 +2346,12 @@ type AgentRequest = {
   updatedAt: string;
   callbackPending: boolean;
   duplicatePending: boolean;
+};
+
+type AgentRequest = AgentQueueRequest & {
+  identityStatus: IdentityStatus;
+  identityMethod?: string | null;
+  identityVerifiedAt?: string | null;
 };
 
 type AgentRequestDetail = {
@@ -2409,8 +2412,77 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null;
 }
 
+function isStringOrNull(value: unknown): value is string | null {
+  return typeof value === "string" || value === null;
+}
+
+function isNonNegativeInteger(value: unknown): value is number {
+  return typeof value === "number" && Number.isInteger(value) && value >= 0;
+}
+
+function isPositiveInteger(value: unknown): value is number {
+  return isNonNegativeInteger(value) && value >= 1;
+}
+
+function isAgentQueueRequest(value: unknown): value is AgentQueueRequest {
+  if (!isRecord(value) || !isRecord(value.subjectContext)) return false;
+  const stringFields = [
+    "publicCode",
+    "requesterType",
+    "requesterFirstName",
+    "requesterLastName",
+    "beneficiaryType",
+    "category",
+    "subject",
+    "status",
+    "priority",
+    "createdAt",
+    "updatedAt",
+  ];
+  return stringFields.every((field) => typeof value[field] === "string")
+    && isStringOrNull(value.beneficiaryFirstName)
+    && isStringOrNull(value.beneficiaryLastName)
+    && isStringOrNull(value.assignedTo)
+    && isStringOrNull(value.assignedTeam)
+    && isStringOrNull(value.slaDueAt)
+    && Object.values(value.subjectContext).every((item) => typeof item === "string")
+    && typeof value.callbackPending === "boolean"
+    && typeof value.duplicatePending === "boolean";
+}
+
+function isAgentQueueStats(value: unknown): value is AgentQueueStats {
+  if (!isRecord(value)) return false;
+  return ["total", "new", "qualify", "urgent", "active", "waitingRequester", "waitingInternal", "unassigned", "overdue", "callbacks", "duplicates"]
+    .every((field) => isNonNegativeInteger(value[field]));
+}
+
+function isAgentServiceStats(value: unknown): value is AgentServiceStats {
+  return isRecord(value)
+    && isStringOrNull(value.service)
+    && ["open", "urgent", "overdue", "unassigned"].every((field) => isNonNegativeInteger(value[field]));
+}
+
+function isAgentQueuePagination(value: unknown): value is AgentQueuePagination {
+  return isRecord(value)
+    && isNonNegativeInteger(value.total)
+    && isPositiveInteger(value.page)
+    && isPositiveInteger(value.pageSize) && value.pageSize >= 10 && value.pageSize <= 50
+    && isPositiveInteger(value.totalPages);
+}
+
+function isAgentAccess(value: unknown): value is AgentAccess {
+  return isRecord(value)
+    && typeof value.role === "string"
+    && typeof value.label === "string"
+    && Array.isArray(value.serviceCodes)
+    && value.serviceCodes.every((service) => typeof service === "string")
+    && typeof value.canViewAll === "boolean"
+    && typeof value.canRoute === "boolean"
+    && typeof value.canManageTemplates === "boolean";
+}
+
 function isAgentQueuePayload(value: unknown): value is {
-  requests: AgentRequest[];
+  requests: AgentQueueRequest[];
   stats: AgentQueueStats;
   serviceStats: AgentServiceStats[];
   pagination: AgentQueuePagination;
@@ -2418,11 +2490,12 @@ function isAgentQueuePayload(value: unknown): value is {
 } {
   return isRecord(value)
     && Array.isArray(value.requests)
-    && isRecord(value.stats)
+    && value.requests.every(isAgentQueueRequest)
+    && isAgentQueueStats(value.stats)
     && Array.isArray(value.serviceStats)
-    && isRecord(value.pagination)
-    && isRecord(value.access)
-    && Array.isArray(value.access.serviceCodes);
+    && value.serviceStats.every(isAgentServiceStats)
+    && isAgentQueuePagination(value.pagination)
+    && isAgentAccess(value.access);
 }
 
 function isAgentRequestDetail(value: unknown): value is AgentRequestDetail {
@@ -2456,7 +2529,7 @@ function AgentView({ onBack }: { onBack: () => void }) {
 }
 
 function ConnectedAgentView({ onBack }: { onBack: () => void }) {
-  const [requests, setRequests] = useState<AgentRequest[]>([]);
+  const [requests, setRequests] = useState<AgentQueueRequest[]>([]);
   const [stats, setStats] = useState<AgentQueueStats>({ total: 0, new: 0, qualify: 0, urgent: 0, active: 0, waitingRequester: 0, waitingInternal: 0, unassigned: 0, overdue: 0, callbacks: 0, duplicates: 0 });
   const [serviceStats, setServiceStats] = useState<AgentServiceStats[]>([]);
   const [pagination, setPagination] = useState<AgentQueuePagination>({ page: 1, pageSize: 30, total: 0, totalPages: 1 });

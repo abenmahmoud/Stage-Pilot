@@ -2568,6 +2568,19 @@ taches et analyse de coherence avant une automatisation sensible.
 - Le brief Claude est préparé mais non exécuté, faute de modèle exact et de
   plafond propres à cette mission ; aucun jeton externe n'a été consommé.
 
+### Jalon du 30 août 2026 - contrat de réponse de file
+
+- La console distingue désormais une ligne de file du détail complet d'une
+  demande, notamment pour les informations d'identité absentes de la liste.
+- Chaque ligne, compteur, statistique de service, valeur de pagination et droit
+  est vérifié avant de remplacer la file visible.
+- La recette Playwright avec une réponse volontairement partielle passe à 320 et
+  1440 px : file précédente conservée, reprise proposée, aucun crash ni débordement.
+- T027B13 est terminée. Les cinq domaines comptent 400 identifiants uniques :
+  284 lignes terminées et 116 ouvertes.
+- Le brief Claude est préparé mais non exécuté, faute de modèle exact et de
+  plafond propres à cette mission ; aucun jeton externe n'a été consommé.
+
 ## 8. Prochain ordre recommande
 
 1. Publier et tester le pré-triage ordinateur portable avec des données fictives.

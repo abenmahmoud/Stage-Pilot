@@ -346,6 +346,8 @@
   exigences de connexion ou de double vérification.
 - [x] T027B12 Borner et valider strictement page, taille et recherche côté
   serveur, puis refléter la longueur maximale dans le champ de recherche.
+- [x] T027B13 Valider chaque ligne, compteur, statistique de service, pagination
+  et droit de la réponse de file avant de remplacer l'état visible.
 - [ ] T027B2 Ajouter les relances internes et l'escalade après validation des
   délais propres à chaque service et des responsables à notifier.
 - [ ] T027C Créer les adhésions de service puis appliquer le périmètre dans les
