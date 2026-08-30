@@ -1457,6 +1457,18 @@ taches et analyse de coherence avant une automatisation sensible.
   idempotente sans dupliquer le brouillon.
 - Aucun écran, groupe, contact, publication ou envoi n'est activé par ce lot.
 
+### Jalon du 30 août 2026 - interface fermée des communications
+
+- La route administrative et son entrée de navigation sont codées, mais le
+  menu n'apparaît que si `VITE_COMMUNICATIONS_ENABLED` vaut exactement `true`.
+  La valeur documentée reste `false` et aucun réglage Vercel n'est changé.
+- L'écran est utilisable en pile à 320 px et en deux colonnes sur ordinateur.
+  Il permet seulement de lister et déposer un texte comme brouillon interne.
+- Les étapes `Vérifier` et `Publier et informer` restent explicitement
+  verrouillées. Aucun champ destinataire, groupe ou contact n'est présent.
+- L'interface ne peut pas ouvrir seule le module : l'API exige encore son
+  interrupteur serveur puis celui de l'établissement en base.
+
 ## 8. Prochain ordre recommande
 
 1. Publier et tester le pré-triage ordinateur portable avec des données fictives.

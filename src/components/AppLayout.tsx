@@ -23,7 +23,9 @@ import {
   Activity,
   CalendarDays,
   BadgeCheck,
+  MessagesSquare,
 } from "lucide-react";
+import { COMMUNICATIONS_UI_ENABLED } from "../lib/feature-flags";
 
 const navCls = ({ isActive }: { isActive: boolean }) =>
   `flex items-center gap-3 rounded-xl px-4 py-2.5 text-sm font-medium transition-all ${
@@ -171,6 +173,12 @@ export default function AppLayout() {
               <Newspaper className="w-4 h-4" />
               Contenus du site
             </NavLink>
+            {COMMUNICATIONS_UI_ENABLED && (
+              <NavLink to="/admin/communications" className={navCls}>
+                <MessagesSquare className="w-4 h-4" />
+                Communications
+              </NavLink>
+            )}
             {(user.role === "superadmin" || isProviseur) && (
               <>
                 <NavLink to="/admin/connaissances-agent" className={navCls}>
