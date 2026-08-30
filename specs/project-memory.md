@@ -2542,6 +2542,19 @@ taches et analyse de coherence avant une automatisation sensible.
 - Le brief Claude est préparé mais non exécuté, faute de modèle exact et de
   plafond propres à cette mission ; aucun jeton externe n'a été consommé.
 
+### Jalon du 30 août 2026 - repères de sélection agent
+
+- La file et la recherche ont un nom accessible explicite.
+- Les boutons de charge par service et chaque ligne de dossier annoncent leur
+  état actif avec `aria-pressed`, tout en restant des boutons natifs.
+- La recette clavier à 320 et 1440 px confirme le focus par nom, l'activation par
+  `Espace` et `Entrée`, un seul état actif et aucun débordement.
+- T048F est terminée ; T048 reste ouverte pour la recette lecteur d'écran et les
+  comptes nominatifs. Les cinq domaines comptent 398 identifiants uniques : 282
+  lignes terminées et 116 ouvertes.
+- Le brief Claude est préparé mais non exécuté, faute de modèle exact et de
+  plafond propres à cette mission ; aucun jeton externe n'a été consommé.
+
 ## 8. Prochain ordre recommande
 
 1. Publier et tester le pré-triage ordinateur portable avec des données fictives.

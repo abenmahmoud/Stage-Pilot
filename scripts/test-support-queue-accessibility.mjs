@@ -19,3 +19,11 @@ test("keeps every filter as a native keyboard-operable button", () => {
   assert.equal((group.match(/<button /g) ?? []).length, 9);
   assert.equal((group.match(/type="button"/g) ?? []).length, 9);
 });
+
+test("names the search and announces the current service and dossier", () => {
+  assert.match(page, /className="lycee-agent-queue" aria-label="File des demandes"/);
+  assert.match(page, /<input aria-label="Rechercher une demande"/);
+  assert.match(page, /<nav aria-label="Filtrer par charge de service">/);
+  assert.match(page, /aria-pressed=\{serviceFilter === value\}/);
+  assert.match(page, /<button aria-pressed=\{selectedCode === request\.publicCode\}/);
+});
