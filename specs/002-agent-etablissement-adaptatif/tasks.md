@@ -407,6 +407,11 @@
   preuve absente ou discordante, ne fabrique plus de réussite en mode démo et
   attend cette preuve avant pièces jointes, mémoire locale et écran de succès.
   T028 reste ouverte pour le premier adaptateur d'action persisté de l'agent.
+- [x] T028B Exiger pour la relance manuelle d'un échec un reçu daté issu de
+  l'événement écrit dans la transaction, lié à l'échec et au nouvel essai. La
+  console vérifie l'opération, les identifiants, la référence et la fraîcheur
+  avant d'afficher la réussite. T028 reste ouverte pour le premier adaptateur
+  métier complet inscrit dans le registre des actions agent.
 - [x] T029 Ajouter formulaire classique et création de demande sans dépendance à l'IA.
 - [x] T030 Ajouter mesure du coût, de la latence, des transferts et des corrections.
 - [x] T030A Mesurer chaque passage de l'assistant public sans contenu personnel :

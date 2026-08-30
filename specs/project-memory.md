@@ -3384,3 +3384,19 @@ taches et analyse de coherence avant une automatisation sensible.
   compte distant ni changement de production. Le brief Claude est préparé mais
   non exécuté faute de modèle exact et de plafond propres à cette mission ;
   aucun jeton externe n'a été consommé.
+
+### Jalon du 30 août 2026 - relance confirmée par la transaction
+
+- La relance manuelle d'un échec ne renvoie plus un simple booléen. Elle retourne
+  un reçu lié à l'échec, au nouvel essai et à l'événement audité dans la même
+  transaction.
+- L'horodatage provient de la ligne d'événement retournée par PostgreSQL. La
+  console valide l'opération, les UUID, la référence et une fenêtre de cinq
+  minutes avant d'afficher que la relance est remise dans la file.
+- Une preuve absente, mal formée, discordante, ancienne ou future produit une
+  erreur explicite et invite à actualiser, sans inventer de réussite.
+- T028B de la spécification 002 est terminée sans migration, compte distant,
+  donnée réelle ni production. T028 reste ouverte pour le premier adaptateur
+  métier complet du registre d'actions. Le brief Claude est préparé mais non
+  exécuté faute de modèle exact et de plafond propres à cette mission ; aucun
+  jeton externe n'a été consommé.

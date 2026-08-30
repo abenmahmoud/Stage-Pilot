@@ -575,6 +575,12 @@ l'autorisation de quota définie par le propriétaire.
   gardes serveur, l'établissement et le périmètre de service restent inchangés.
   Le contrat local vérifie aussi le nom de la navigation, la fermeture par
   Échap et la restitution du focus.
+- Lot N5ZS : preuve transactionnelle de relance. **Implémentée sans migration ni
+  action distante** : une relance manuelle retourne le temps créé par l'événement
+  écrit dans la transaction, l'échec concerné, le nouvel essai et une référence
+  opaque. La console refuse les preuves absentes, discordantes, anciennes,
+  futures ou mal formées avant tout message de réussite. La commande reste
+  réservée à la direction sous MFA et son ancien corps HTTP demeure désactivé.
 
 ## Prochaine séquence verrouillée
 

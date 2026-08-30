@@ -14,6 +14,7 @@ import {
   retryPayloadId,
   supportRetryNeedsRequesterAccess,
 } from "../../../../../shared/support-job-retry.js";
+import { createSupportJobRetryConfirmation } from "../../../../../shared/support-operation-confirmation.js";
 import { HttpError } from "../../../../_shared/auth.js";
 import { requireSupportOperationsManager } from "../../../../_shared/support-operations.js";
 import { SUPPORT_MAGIC_TOKEN_MINUTES, sha256 } from "../../../../_shared/support.js";
@@ -59,7 +60,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (!messageId) throw new HttpError(409, "Le message d’origine est introuvable");
 
     const newJobId = randomUUID();
-    await db.transaction(async (tx) => {
+    const correlationId = randomUUID();
+    const confirmedAt = await db.transaction(async (tx) => {
       const [claimed] = await tx
         .update(supportFailedJobs)
         .set({ retriedBy: context.user.id, retriedAt: new Date() })
@@ -124,18 +126,28 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       await tx.execute(sql`
         select pgmq.send('support_jobs', ${JSON.stringify(queuePayload)}::jsonb)
       `);
-      await tx.insert(supportEvents).values({
-        requestId,
-        eventType: "job.retry_requested",
-        actorType: "agent",
-        actorId: context.user.id,
-        fromValue: { failedJobId: failure.jobId },
-        toValue: { jobId: newJobId, jobType },
-        correlationId: randomUUID(),
-      });
+      const [event] = await tx
+        .insert(supportEvents)
+        .values({
+          requestId,
+          eventType: "job.retry_requested",
+          actorType: "agent",
+          actorId: context.user.id,
+          fromValue: { failedJobId: failure.jobId },
+          toValue: { jobId: newJobId, jobType },
+          correlationId,
+        })
+        .returning({ createdAt: supportEvents.createdAt });
+      if (!event) throw new HttpError(500, "La relance n'a pas pu être confirmée");
+      return event.createdAt;
     });
 
-    return { queued: true, jobId: newJobId };
+    return createSupportJobRetryConfirmation({
+      failedJobId: id,
+      jobId: newJobId,
+      confirmedAt,
+      correlationId,
+    });
   });
 }
 

@@ -14,6 +14,7 @@ import {
   Trash2,
 } from "lucide-react";
 import { apiFetch } from "../../lib/api";
+import { verifySupportJobRetryConfirmation } from "../../../shared/support-operation-confirmation";
 
 type OperationsSummary = {
   failuresWaiting: number;
@@ -187,7 +188,14 @@ export default function SupportOperationsPage() {
     setError("");
     setNotice("");
     try {
-      await apiFetch(`support/agent/operations/${job.id}/retry`, { method: "POST" });
+      const result = await apiFetch<unknown>(`support/agent/operations/${job.id}/retry`, { method: "POST" });
+      const confirmation = verifySupportJobRetryConfirmation({
+        expectedFailedJobId: job.id,
+        confirmation: result,
+      });
+      if (!confirmation) {
+        throw new Error("La relance n'a pas été confirmée par le serveur. Actualisez avant de réessayer.");
+      }
       setNotice(`La relance de ${job.publicCode ?? "cette opération"} a été remise dans la file.`);
       await load();
     } catch (reason) {
