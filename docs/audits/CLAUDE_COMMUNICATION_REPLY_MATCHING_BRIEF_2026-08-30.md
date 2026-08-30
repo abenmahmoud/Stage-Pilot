@@ -3,7 +3,8 @@
 ## Statut
 
 Préparé le 30 août 2026. Audit non exécuté : le modèle Claude exact et le plafond
-de consommation propres à cette mission n'ont pas été confirmés.
+de consommation propres à cette mission n'ont pas été confirmés. Zéro jeton
+externe consommé.
 
 ## Périmètre strict
 
@@ -11,6 +12,8 @@ de consommation propres à cette mission n'ont pas été confirmés.
 - `shared/communication-inbound-matching.ts`
 - `scripts/test-communication-inbound-matching.mjs`
 - `supabase/migrations/20260830110000_secure_communication_reply_matching.sql`
+- `supabase/tests/communication_inbound_matching_security.test.sql`
+- `api/webhooks/brevo/communications-inbound.ts`
 - section `communicationDeliveries` de `db/schema.ts`
 - `docs/operations/COMMUNICATION_REPLY_MATCHING_CONTRACT_2026-08-30.md`
 

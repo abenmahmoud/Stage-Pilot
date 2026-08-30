@@ -234,7 +234,7 @@
   défaut. Le lot est HMAC, idempotent et borné ; aucun expéditeur, sujet, corps,
   nom de fichier ou adresse n'est stocké. T022 reste ouvert jusqu'au stockage
   privé antivirus du contenu et à la recette de rejeu sur la preview.
-- [ ] T023 Rattacher chaque réponse à la bonne communication.
+- [x] T023 Rattacher chaque réponse à la bonne communication.
 - [x] T023A Définir le rattachement strict avant la persistance. La référence
   `In-Reply-To` entrante utilise le même HMAC secret que l'identifiant du message
   sortant. Seule une livraison du même établissement et portant cette référence
@@ -245,6 +245,12 @@
   l'établissement configuré, avec deux candidats au maximum et aucun repli
   nominatif. Les entrants non rattachés restent privés avec communication nulle.
   T023 reste ouvert jusqu'à la recette DB de preview.
+- [x] T023C Prouver le rattachement sur la preview avec deux établissements.
+  La même référence HMAC reste valide séparément dans chaque établissement,
+  mais un doublon dans le même périmètre et une communication croisée sont
+  refusés. L'entrant inconnu conserve une communication nulle, le rejeu crée
+  une seule ligne, les rôles clients n'ont aucun accès direct et le rollback
+  laisse six compteurs à zéro. Le webhook reste fermé.
 - [ ] T024 Classer retrait, correction de contact, question et réponse libre.
 - [x] T024A Définir et tester le classificateur local avant son raccordement. Il
   produit seulement les quatre catégories prévues, comprend des signaux bornés

@@ -2256,13 +2256,16 @@ taches et analyse de coherence avant une automatisation sensible.
 - Le rapprochement exige une référence exacte et un candidat du même
   établissement. Il ne se replie jamais sur les adresses et détecte explicitement
   les absences et ambiguïtés.
-- Une migration additive impose un HMAC de 64 caractères et une unicité sur
-  `(institution_id, provider_message_ref)`. Elle est prête mais non appliquée,
-  car la preview Supabase attendue n'est pas accessible depuis le connecteur.
-- T023A est terminé avec cinq tests locaux. T023 reste ouvert jusqu'à la requête
-  atomique, à la persistance et à la recette concurrente sur la preview.
+- La migration additive `20260830110000` impose un HMAC de 64 caractères et une
+  unicité sur `(institution_id, provider_message_ref)` ; elle est appliquée
+  uniquement sur la preview Supabase.
+- Une transaction fictive avec deux établissements prouve unicité locale,
+  isolation croisée, rejeu idempotent, inconnu non rattaché, tables privées et
+  six compteurs à zéro après rollback.
+- T023, T023A, T023B et T023C sont terminés. Le webhook entrant et ses variables
+  restent fermés ; aucune donnée réelle ou intégration fournisseur n'est utilisée.
 - Le brief Claude est préparé mais non exécuté, faute de modèle exact et de
-  plafond de consommation propres à cette mission.
+  plafond de consommation propres à cette mission ; zéro jeton externe consommé.
 
 ### Jalon du 30 août 2026 - cibles tactiles de l'accueil
 

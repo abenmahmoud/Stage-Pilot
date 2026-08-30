@@ -118,8 +118,11 @@ Le rattachement T023A ne devine jamais une conversation depuis une adresse. Il
 compare le HMAC de `In-Reply-To` au HMAC enregistré sur une livraison du même
 établissement et limite la projection SQL à deux candidats afin de détecter une
 ambiguïté. Une contrainte additive impose le format HMAC et une unicité partielle
-par établissement. Cette migration n'est pas appliquée à distance dans ce lot ;
-T023 restera ouvert jusqu'à la recette transactionnelle du webhook fermé.
+par établissement. La migration `20260830110000` est appliquée uniquement sur
+la preview. Une transaction fictive avec deux établissements prouve l'unicité
+locale, l'isolation croisée, le rejeu idempotent, l'inconnu non rattaché, les
+tables privées et six compteurs à zéro après rollback. T023 est fermé sans
+activer le webhook ni ses secrets.
 
 Le contrat T025A prépare l'import d'un email transféré sans ouvrir de boîte ni
 de route. L'autorisation de la source est un contexte serveur non fourni par le

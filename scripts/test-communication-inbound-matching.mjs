@@ -12,6 +12,10 @@ const migration = readFileSync(new URL(
   import.meta.url
 ), "utf8");
 const schema = readFileSync(new URL("../db/schema.ts", import.meta.url), "utf8");
+const previewRecipe = readFileSync(new URL(
+  "../supabase/tests/communication_inbound_matching_security.test.sql",
+  import.meta.url
+), "utf8");
 const hashingSecret = "reply-matching-test-secret-with-32-characters";
 const institutionId = "00000000-0000-4000-8000-000000000001";
 const deliveryId = "11111111-1111-4111-8111-111111111111";
@@ -105,4 +109,14 @@ test("enforces a unique HMAC reference per institution in SQL and Drizzle", () =
   assert.match(migration, /on public\.communication_deliveries \(institution_id, provider_message_ref\)/);
   assert.match(schema, /uniqueIndex\("communication_deliveries_institution_provider_message_uidx"\)/);
   assert.match(schema, /\.on\(table\.institutionId, table\.providerMessageRef\)/);
+});
+
+test("keeps the preview matching recipe scoped, private and residue-free", () => {
+  assert.match(previewRecipe, /^begin;[\s\S]*rollback;/);
+  assert.match(previewRecipe, /same_scope_provider_duplicate_blocked/);
+  assert.match(previewRecipe, /cross_scope_inbound_blocked/);
+  assert.match(previewRecipe, /on conflict do nothing/);
+  assert.match(previewRecipe, /provider_message_ref = repeat\('a', 64\)\) <> 2/);
+  assert.match(previewRecipe, /has_table_privilege\(role_name, table_name, privilege_name\)/);
+  assert.match(previewRecipe, /auth_residue[\s\S]*institution_residue[\s\S]*communication_residue[\s\S]*delivery_residue[\s\S]*inbound_residue[\s\S]*event_residue/);
 });
