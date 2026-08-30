@@ -166,15 +166,23 @@
   qui remplace l'ancien usage ambigu de L4 pour les actions, est refusé avant
   tout autre contrôle, y compris pour un superadministrateur sous MFA avec une
   approbation.
-- [ ] T018 Construire la boîte de validation L3 avec expiration, motif et audit.
-  Le contrat A3 exige déjà une approbation indépendante liée à l'action, l'outil
-  et l'empreinte de l'entrée, non expirée et non consommée. La persistance,
-  l'interface et le branchement aux futurs adaptateurs restent à construire.
+- [x] T018 Construire la boîte de validation L3 avec expiration, motif et audit.
+  L'espace agent dispose désormais d'une file responsive protégée par MFA,
+  limitée aux services persistés et au rôle exact du valideur. Une approbation,
+  un refus motivé ou une expiration sont décidés sous verrous et audités ; aucune
+  réussite n'est annoncée avant un résultat d'outil confirmé.
 - [x] T018A Persister en preview les actions, validations et audits privés,
   bloquer A4 en base, lier A3 à l'entrée assainie, retirer tout droit de
   suppression au rôle serveur et consommer une validation sous verrous dans une
   transaction. Une recette fictive a validé le flux et le rejet du rejeu avant
   annulation totale ; aucun connecteur réel n'est activé.
+- [x] T018B Ajouter le périmètre service immuable, l'API minimale de consultation
+  et de décision, la boîte de validation ordinateur/téléphone et le motif de
+  refus obligatoire. La recette fictive a bloqué auto-validation et accès
+  interservice, puis est revenue à zéro. À l'ouverture de la boîte, les
+  validations périmées du seul périmètre autorisé sont fermées sous verrous et
+  auditées comme action système. Les futurs adaptateurs restent dans T028 et
+  doivent consommer la validation avant toute exécution.
 - [ ] T019 Mettre les pièces dans un stockage privé avec antivirus, type, taille et URL temporaire.
 - [x] T019A Construire l'alimentation documentaire du registre : dépôt privé
   reprenable, explication métier, classification, propriétaire, état d'analyse

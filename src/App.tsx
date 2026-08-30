@@ -37,6 +37,7 @@ const KnowledgeRegistryPage = lazy(() => import("./pages/admin/KnowledgeRegistry
 const IdentityDirectoryPage = lazy(() => import("./pages/admin/IdentityDirectoryPage"));
 const SupportOperationsPage = lazy(() => import("./pages/admin/SupportOperationsPage"));
 const ScheduleImportPage = lazy(() => import("./pages/admin/ScheduleImportPage"));
+const AgentApprovalsPage = lazy(() => import("./pages/admin/AgentApprovalsPage"));
 
 function PageFallback() {
   return (
@@ -243,6 +244,14 @@ export default function App() {
             element={
               <RoleRoute allowedRoles={["superadmin", "proviseur"]}>
                 <SupportOperationsPage />
+              </RoleRoute>
+            }
+          />
+          <Route
+            path="admin/validations-agent"
+            element={
+              <RoleRoute allowedRoles={["superadmin", "proviseur", "administration", "agent"]}>
+                <AgentApprovalsPage />
               </RoleRoute>
             }
           />

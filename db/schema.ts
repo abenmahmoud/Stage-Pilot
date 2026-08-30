@@ -1379,6 +1379,7 @@ export const agentActions = pgTable(
     skillVersionId: uuid("skill_version_id")
       .notNull()
       .references(() => agentSkillVersions.id, { onDelete: "restrict" }),
+    serviceCode: text("service_code").notNull(),
     toolKey: text("tool_key").notNull(),
     authorityLevel: text("authority_level").notNull(),
     inputRedacted: jsonb("input_redacted").notNull().default({}),
@@ -1401,6 +1402,12 @@ export const agentActions = pgTable(
     ),
     index("agent_actions_institution_status_created_idx").on(
       table.institutionId,
+      table.status,
+      table.requestedAt
+    ),
+    index("agent_actions_institution_service_status_created_idx").on(
+      table.institutionId,
+      table.serviceCode,
       table.status,
       table.requestedAt
     ),

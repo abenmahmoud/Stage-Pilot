@@ -278,6 +278,7 @@ un cours est calculée à partir du créneau autorisé et d'un changement offici
 | `support_request_id` | uuid nullable | Dossier `001` concerné |
 | `conversation_id` | uuid nullable | Session concernée |
 | `skill_version_id` | uuid | Compétence exacte utilisée |
+| `service_code` | enum | Service propriétaire immuable utilisé pour cloisonner la validation |
 | `tool_key` | text | Outil structuré exact de la liste blanche |
 | `authority_level` | enum | `A0`, `A1`, `A2`, `A3` ; `A4` interdit en base |
 | `input_redacted` | jsonb | Entrée minimale et masquée |
@@ -364,6 +365,8 @@ Une migration peut ajouter `institution_id`, `source_channel`, `identity_assuran
   périmètre par défaut.
 - Une action `A3` exige une validation active, non expirée, indépendante, liée
   à l'entrée exacte et consommée atomiquement avant `running`.
+- Le service de l'action est obligatoire et immuable. Une décision est refusée
+  si ce service n'appartient pas au périmètre persistant du valideur.
 - Une action `A4` ne peut pas être créée dans `agent_actions`.
 - Une réussite exige `started_at`, `tool_result`, `confirmation_ref` et
   `confirmed_at` cohérents avec l'heure serveur.

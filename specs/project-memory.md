@@ -1176,17 +1176,46 @@ taches et analyse de coherence avant une automatisation sensible.
 - Une recette entièrement fictive a produit cinq événements, refusé un rejeu,
   puis annulé toutes les écritures. Aucun outil, document réel, production ou
   connecteur officiel n'a été touché.
-- T018 reste ouverte pour l'interface de validation et son branchement. T028
-  reste ouverte pour un adaptateur réel autorisé et l'affichage après preuve.
+- T018 est désormais fermée par la boîte de validation ci-dessous. T028 reste
+  ouverte pour un adaptateur réel autorisé et l'affichage après preuve.
+
+### Jalon du 30 août 2026 - boîte de validation A3
+
+- L'espace agent possède la route `/admin/validations-agent`, accessible aux
+  rôles agents prévus sous MFA et adhésion active persistée.
+- Chaque action porte désormais un `service_code` obligatoire et immuable. Un
+  valideur ne voit que ses services, sauf direction et superadministration ; sa
+  décision exige exactement le rôle attendu et un compte distinct du demandeur.
+- `agent_decide_approval` verrouille l'action puis la validation dans une seule
+  transaction. Une approbation attend encore la consommation par l'adaptateur ;
+  un refus motivé ou une expiration ferme l'action et écrit l'audit.
+- `agent_expire_approvals` est appelé avant la lecture de la boîte. Il ferme sous
+  verrous les validations périmées du seul établissement et des seuls services
+  autorisés, refuse l'action associée et attribue l'audit au système.
+- Une approbation déjà accordée peut devenir expirée uniquement si elle n'a pas
+  été consommée et si son échéance est atteinte. Ce correctif a été vérifié dans
+  la définition SQL installée ; la recette d'expiration en attente a contrôlé
+  l'action refusée et l'audit système avant `ROLLBACK` à zéro.
+- L'API transforme l'entrée masquée en quelques libellés autorisés. Elle ne
+  renvoie ni entrée brute, ni identifiants agents, ni clé technique de l'outil.
+- Une recette fictive a validé approbation, refus, mauvais service,
+  auto-validation et immutabilité, puis annulé toutes les écritures. `anon` et
+  `authenticated` ne peuvent pas exécuter la fonction ; `service_role` seul le
+  peut depuis les routes serveur.
+- Aucun outil, connecteur, notification, donnée réelle ou environnement de
+  production n'a été activé. T028 reste ouverte jusqu'à un adaptateur autorisé et
+  une confirmation externe persistée.
+- Les deux migrations du lot sont appliquées uniquement à la preview vide. Les
+  57 tests ciblés, le build et l'audit npm passent ; le conseiller Supabase ne
+  remonte que les avis informatifs attendus des tables privées sans politique
+  client et des index encore inutilisés.
 
 ## 8. Prochain ordre recommande
 
-1. Construire la boîte de validation A3 et ses API sur le socle persistant,
-   sans brancher encore de connecteur officiel.
-2. Publier et tester le pré-triage ordinateur portable avec des données fictives.
-3. Installer puis éprouver le worker d'emplois du temps sur données fictives,
+1. Publier et tester le pré-triage ordinateur portable avec des données fictives.
+2. Installer puis éprouver le worker d'emplois du temps sur données fictives,
    avant tout dépôt réel ; construire ensuite le lien agent limité à une page.
-4. Reprendre le skill ENT après ouverture de l'accès administrateur du référent.
-5. Terminer le retour email, la sauvegarde, les tests de charge et les comptes
+3. Reprendre le skill ENT après ouverture de l'accès administrateur du référent.
+4. Terminer le retour email, la sauvegarde, les tests de charge et les comptes
    agents nominatifs.
-6. Migrer le reste du site et envisager la bascule seulement après convergence.
+5. Migrer le reste du site et envisager la bascule seulement après convergence.

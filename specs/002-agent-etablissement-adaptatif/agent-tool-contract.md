@@ -43,6 +43,23 @@ l'empreinte, le demandeur, l'approbateur indépendant, le rôle, l'expiration et
 l'absence de consommation. Elle marque ensuite la validation consommée avant de
 passer l'action à `running`. Un second appel avec la même validation échoue.
 
+La fonction `agent_decide_approval` applique le même ordre de verrouillage. Le
+rôle du valideur et ses services viennent de son compte et de son adhésion
+persistée, jamais du navigateur. Elle bloque l'auto-validation, les décisions
+interservices, les rôles incompatibles et les validations trop anciennes. Un
+refus exige un motif et ferme l'action ; l'approbation laisse l'action en attente
+jusqu'à sa consommation par un adaptateur autorisé.
+
+La fonction `agent_expire_approvals` ferme automatiquement, à l'ouverture de la
+boîte, les validations périmées du seul établissement et des seuls services du
+valideur. Elle verrouille toujours l'action avant la validation, marque l'action
+refusée et écrit un audit système sans inventer d'auteur humain. Seul le rôle
+serveur peut exécuter cette maintenance.
+
+L'API de la boîte n'expose ni entrée brute, ni identifiant des agents, ni clé
+d'outil. Elle transforme uniquement quelques champs masqués et explicitement
+autorisés en libellés utiles au contrôle humain.
+
 ## Résultat et réussite
 
 Un résultat d'outil contient l'identifiant d'action, la clé exacte, un état, une
@@ -67,3 +84,8 @@ confirmations.
 `npm run test:agent-action-persistence` vérifie les privilèges, RLS, contraintes,
 transitions, verrous, audit et confirmation. Une recette transactionnelle sur la
 preview a également exécuté puis annulé un flux A3 fictif complet.
+
+`npm run test:agent-approval-inbox` vérifie le schéma fermé de décision, les
+rôles dérivés, le service immuable, le MFA, les verrous, l'expiration, la sortie
+minimale, l'audit système, les privilèges SQL et le comportement responsive de
+l'interface.

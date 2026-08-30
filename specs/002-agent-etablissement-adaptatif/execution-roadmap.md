@@ -362,8 +362,21 @@ l'autorisation de quota définie par le propriétaire.
   et à l'empreinte recalculée. Une fonction `security invoker` verrouille puis
   consomme la validation avant `running`. Le rôle serveur ne possède aucun droit
   de suppression. La recette a vérifié cinq événements d'audit et le refus d'un
-  second appel, puis `ROLLBACK`. T018 reste ouverte pour la boîte de validation
-  et T028 pour le premier adaptateur et l'affichage confirmé.
+  second appel, puis `ROLLBACK`. Le lot N5ZA ferme la boîte de validation T018 ;
+  T028 reste ouverte pour le premier adaptateur et l'affichage confirmé.
+- Lot N5ZA : boîte de validation A3. **Appliqué uniquement à la preview et testé
+  avec des données fictives annulées** : chaque action porte un service immuable ;
+  l'API exige une adhésion persistée, MFA, le rôle exact et un valideur distinct.
+  L'écran `/admin/validations-agent` affiche une entrée minimale sur ordinateur
+  et téléphone, permet validation ou refus motivé et sépare l'historique. La
+  décision SQL verrouille l'action puis la validation, bloque l'accès
+  interservice, ferme un refus et conserve l'audit. L'ouverture de la boîte
+  ferme aussi sous verrous les validations périmées de son seul périmètre et les
+  attribue au système dans l'audit. La recette
+  a vérifié approbation, refus, auto-validation, mauvais service et immutabilité,
+  puis l'expiration automatique et le refus de l'action associée. Une approbation
+  accordée peut expirer seulement si elle n'a pas été consommée. Chaque recette
+  se termine par `ROLLBACK` avec zéro ligne restante. Aucun connecteur n'est activé.
 - Lot N6 : tests de non-régression, build, contrôle mobile et rapport d'écarts.
   **Partiellement validé en preview** : 200 transactions concurrentes sans perte
   ni reste après nettoyage, 135 contrôles de sécurité, build réussi, PWA active,

@@ -22,6 +22,7 @@ import {
   IdCard,
   Activity,
   CalendarDays,
+  BadgeCheck,
 } from "lucide-react";
 
 const navCls = ({ isActive }: { isActive: boolean }) =>
@@ -41,6 +42,9 @@ export default function AppLayout() {
   const isAdmin = ["superadmin", "administration"].includes(user.role);
   const isProviseur = user.role === "proviseur";
   const isEleve = user.role === "eleve";
+  const isSupportAgent = ["superadmin", "administration", "agent", "proviseur"].includes(
+    user.role
+  );
 
   async function handleLogout() {
     await logout();
@@ -146,6 +150,21 @@ export default function AppLayout() {
           </>
         )}
 
+        {user.role === "agent" && (
+          <div className="pt-4 pb-2 px-4">
+            <p className="text-[10px] font-semibold uppercase tracking-wider text-white/40">
+              Espace agent
+            </p>
+          </div>
+        )}
+
+        {isSupportAgent && (
+          <NavLink to="/admin/validations-agent" className={navCls}>
+            <BadgeCheck className="w-4 h-4" />
+            Validations
+          </NavLink>
+        )}
+
         {(isAdmin || isProviseur) && (
           <>
             <NavLink to="/admin/contenus" className={navCls}>
@@ -177,6 +196,13 @@ export default function AppLayout() {
               Sécurité du compte
             </NavLink>
           </>
+        )}
+
+        {user.role === "agent" && (
+          <NavLink to="/security" className={navCls}>
+            <ShieldCheck className="w-4 h-4" />
+            Sécurité du compte
+          </NavLink>
         )}
       </nav>
 
