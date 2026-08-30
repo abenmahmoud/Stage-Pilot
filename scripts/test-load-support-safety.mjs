@@ -29,3 +29,12 @@ test("scopes counts and cleanup to the synthetic run and institution", () => {
   assert.match(source, /pgmq\.create\(\$\{queueName\}\)/);
   assert.match(source, /pgmq\.drop_queue\(\$\{queueName\}\)/);
 });
+
+test("proves one winner when concurrent requests reuse the same key", () => {
+  assert.match(source, /const raceKey = `\$\{prefix\}race-key`/);
+  assert.match(source, /on conflict do nothing[\s\S]*returning id/);
+  assert.match(source, /const raceWinners = raceResults\.filter\(Boolean\)\.length/);
+  assert.match(source, /raceWinners !== 1/);
+  assert.match(source, /result\.race_requests !== 1/);
+  assert.match(source, /result\.jobs !== count \+ 1/);
+});

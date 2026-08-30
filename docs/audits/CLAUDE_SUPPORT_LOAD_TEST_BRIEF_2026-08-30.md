@@ -9,7 +9,8 @@ confirmer ce périmètre et fixer un plafond de consommation.
 
 Vérifier que le test de charge ne peut viser la production, supprimer une donnée
 hors recette ou mélanger deux établissements, sans exécuter le script ni modifier
-les fichiers.
+les fichiers. Vérifier aussi que la course d'idempotence possède un seul gagnant
+et que ses lignes entrent dans le même nettoyage borné.
 
 ## Périmètre en lecture seule
 
@@ -21,7 +22,8 @@ les fichiers.
 
 Constats P0 à P3 avec fichier et ligne, scénario, correctif minimal et test
 manquant. Vérifier les trois verrous de cible, le préfixe aléatoire, la file
-temporaire, les bornes de concurrence et le nettoyage en cas d'échec.
+temporaire, les bornes de concurrence, la course de clé identique et le nettoyage
+en cas d'échec.
 
 ## Interdictions
 

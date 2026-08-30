@@ -41,18 +41,20 @@ restante, soit une configuration externe ou une validation par la direction.
 - [x] **T009** Créer le dépôt direct signé vers la quarantaine et sérialiser la
   réservation pour empêcher de dépasser cinq fichiers par concurrence.
 - [x] **T010** Ajouter le journal append-only et les identifiants de corrélation.
-- [ ] **T011** Ajouter tests unitaires, RLS et intégration de création concurrente.
+- [x] **T011** Ajouter tests unitaires, RLS et intégration de création concurrente.
 - [x] **T011A** Préparer une migration qui force la RLS et retire les droits
   directs sur les seize tables privées `support_*`, puis ajouter un test qui
-  détecte toute future table oubliée. T011 reste ouverte jusqu'à l'application
-  et à la recette RLS/concurrence sur la base de preview.
+  détecte toute future table oubliée. La migration et la recette RLS/concurrence
+  ont ensuite été exécutées uniquement sur la base de preview pour fermer T011.
 - [x] **T012** Vérifier 200 créations, zéro perte et zéro doublon.
   Le script est désormais isolé par exécution, utilise une file temporaire,
   exige une cible preview explicite et nettoie ses données même après un échec.
-- [ ] **T012A** Rejouer les 200 créations après l'ajout obligatoire de
-  `institution_id`. Le script est remis à niveau et ses verrous locaux passent,
-  mais le fichier d'environnement disponible ne contient pas une URL Postgres
-  de preview utilisable ; aucun contrôle de cible n'a été contourné.
+- [x] **T012A** Rejouer les 200 créations après l'ajout obligatoire de
+  `institution_id`. Vingt transactions de dix créations sur la preview ont
+  produit exactement 200 dossiers, messages, contacts, sessions, liaisons et
+  travaux isolés. Une course séparée de vingt concurrents avec la même clé a eu
+  un seul gagnant. La RLS forcée et l'absence de droits clients sont confirmées ;
+  le nettoyage final laisse zéro ligne et zéro file de recette.
 
 ### Sortie Jour 1
 

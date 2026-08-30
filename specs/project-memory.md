@@ -3237,3 +3237,20 @@ taches et analyse de coherence avant une automatisation sensible.
   modification Supabase.
 - Le brief Claude est préparé mais non exécuté, faute de modèle exact et de
   plafond propres à cette mission ; aucun jeton externe n'a été consommé.
+
+### Jalon du 30 août 2026 - RLS et concurrence du guichet prouvées
+
+- La migration `20260830150000_force_support_private_rls.sql` est appliquée
+  uniquement sur la branche Supabase de preview. Les seize tables privées
+  `support_*` ont la RLS activée et forcée, sans droit direct pour `anon` ou
+  `authenticated`.
+- Vingt transactions parallèles de dix demandes fictives ont produit exactement
+  200 dossiers, messages, contacts, sessions, liaisons et travaux dans une file
+  temporaire isolée. Une course de vingt transactions sur la même clé a produit
+  un seul gagnant et un seul ensemble de dépendances.
+- Le nettoyage contrôlé a ramené dossiers, sessions et tables de file à zéro.
+  Le script répétable inclut désormais cette course d'idempotence et conserve ses
+  verrous stricts de cible preview.
+- T011 et T012A de la spécification 001 sont terminées. Le brief Claude reste
+  préparé mais non exécuté faute de modèle exact et de plafond propres à cette
+  mission ; aucun jeton externe n'a été consommé.
