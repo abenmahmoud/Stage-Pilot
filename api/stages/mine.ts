@@ -195,3 +195,5 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return serializeStage(inserted, true);
   });
 }
+
+export const config = { api: { bodyParser: { sizeLimit: "32kb" } } };

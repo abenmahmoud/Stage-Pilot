@@ -2,8 +2,9 @@ import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { eq } from "drizzle-orm";
 import { db } from "../db/index.js";
 import { etablissement } from "../db/schema.js";
+import { parseEtablissementInput } from "../shared/etablissement-input.js";
 import { handleApi, methodNotAllowed } from "./_shared/response.js";
-import { requireRole, requireUser } from "./_shared/auth.js";
+import { HttpError, requireRole, requireUser } from "./_shared/auth.js";
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method === "GET") {
@@ -25,37 +26,25 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       // Écriture réservée aux admins et au proviseur
       await requireRole(req, ["superadmin", "administration", "proviseur"]);
 
-      const body = req.body as Record<string, unknown>;
+      let input;
+      try {
+        input = parseEtablissementInput(req.body);
+      } catch (error) {
+        throw new HttpError(400, error instanceof Error ? error.message : "Paramètres invalides.");
+      }
       const rows = await db.select().from(etablissement).limit(1);
 
       if (rows.length === 0) {
         const [inserted] = await db
           .insert(etablissement)
-          .values(body as typeof etablissement.$inferInsert)
+          .values(input)
           .returning();
         return inserted;
       }
 
       const [updated] = await db
         .update(etablissement)
-        .set({
-          nom: body.nom as string,
-          adresse: body.adresse as string,
-          codePostal: body.codePostal as string,
-          ville: body.ville as string,
-          telephone: body.telephone as string,
-          email: body.email as string,
-          uai: body.uai as string,
-          nomProviseur: body.nomProviseur as string,
-          civiliteProviseur: body.civiliteProviseur as string,
-          anneeScolaire: body.anneeScolaire as string,
-          dateStageDebut: body.dateStageDebut as string,
-          dateStageFin: body.dateStageFin as string,
-          dateLimiteConvention: body.dateLimiteConvention as string,
-          dateGoDebut: body.dateGoDebut as string,
-          dateGoFin: body.dateGoFin as string,
-          updatedAt: new Date(),
-        })
+        .set({ ...input, updatedAt: new Date() })
         .where(eq(etablissement.id, rows[0].id))
         .returning();
 
@@ -65,3 +54,5 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   return methodNotAllowed(res, ["GET", "POST"]);
 }
+
+export const config = { api: { bodyParser: { sizeLimit: "16kb" } } };

@@ -95,3 +95,5 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return { ok: true };
   });
 }
+
+export const config = { api: { bodyParser: { sizeLimit: "8kb" } } };

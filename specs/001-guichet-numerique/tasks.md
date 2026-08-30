@@ -251,6 +251,8 @@ voir sa réponse dans le dossier. L'agent traite tout depuis une seule file.
   parseur de confirmation et conserver le dépôt direct des documents privés.
 - [x] **T037U** Borner les mutations de gestion éditoriale, désactiver le parseur
   de confirmation et conserver le dépôt direct des médias privés.
+- [x] **T037V** Borner les huit mutations historiques restantes et remplacer
+  l'écriture de masse des paramètres établissement par une liste blanche validée.
 - [x] **T037F** Exclure les contacts desactives des reponses, reserver les
   journaux globaux a un administrateur MFA et exiger `aal2` pour confirmer une
   identite scolaire depuis une source officielle.

@@ -2952,3 +2952,16 @@ taches et analyse de coherence avant une automatisation sensible.
   média réel, compte distant ou modification Supabase.
 - Le brief Claude est préparé mais non exécuté, faute de modèle exact et de
   plafond propres à cette mission ; aucun jeton externe n'a été consommé.
+
+### Jalon du 30 août 2026 - mutations historiques bornées
+
+- Les huit routes historiques encore concernées ont désormais un plafond HTTP
+  explicite de 8 à 128 Ko selon leur contrat métier.
+- Les paramètres établissement passent par une liste blanche validée : les
+  champs techniques ou inconnus ne peuvent plus être écrits dans le modèle.
+- UAI, email, téléphone, année scolaire et périodes sont normalisés et validés
+  avant toute insertion ou modification.
+- T037V est terminée par tests locaux, sans donnée réelle, compte distant ou
+  modification Supabase.
+- Le brief Claude est préparé mais non exécuté, faute de modèle exact et de
+  plafond propres à cette mission ; aucun jeton externe n'a été consommé.

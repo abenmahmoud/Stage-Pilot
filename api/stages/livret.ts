@@ -413,3 +413,5 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return formatResponse(updatedStage, nextLivret, canEditEleve, canEditSuivi);
   });
 }
+
+export const config = { api: { bodyParser: { sizeLimit: "128kb" } } };
