@@ -87,6 +87,11 @@
   secrets, coordonnées et contenus trop longs sont refusés. L'interrupteur
   reste fermé et T014 reste ouvert jusqu'à une recette fictive en preview.
 - [ ] T015 Ajouter recherche, filtres, épinglage, expiration et archives publics.
+- [x] T015A Rendre `À la une` consultable sous volume : recherche locale sur
+  titre, résumé et catégorie, filtre de catégorie, compteur, dates et priorité
+  éditoriale. L'API conserve l'ordre épinglé/date, la version publiée et la
+  fenêtre d'expiration ; l'interface passe en une colonne sous 720 px. T015
+  reste ouvert pour la politique d'archives et la pagination au-delà de 100.
 
 ## Phase 4 - Diffusion sécurisée
 

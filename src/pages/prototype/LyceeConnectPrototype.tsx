@@ -82,6 +82,11 @@ import {
 } from "../../../shared/support-reply-templates";
 import { assessSupportQueueItem } from "../../../shared/support-queue-policy";
 import {
+  filterPublicContentFeed,
+  publicContentDateLabel,
+  publicContentFeedCategories,
+} from "../../../shared/public-content-feed";
+import {
   SUPPORT_IDENTITY_VERIFICATION_MESSAGE,
   supportTranslationTargetLanguage,
 } from "../../../shared/support-reply-policy";
@@ -750,6 +755,8 @@ type PublicContent = {
 function NewsView({ onBack }: { onBack: () => void }) {
   const [items, setItems] = useState<PublicContent[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [query, setQuery] = useState("");
+  const [category, setCategory] = useState("all");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -765,7 +772,9 @@ function NewsView({ onBack }: { onBack: () => void }) {
       .finally(() => setLoading(false));
   }, []);
 
-  const selected = items.find((item) => item.id === selectedId) ?? items[0];
+  const categories = publicContentFeedCategories(items);
+  const filteredItems = filterPublicContentFeed(items, query, category);
+  const selected = filteredItems.find((item) => item.id === selectedId) ?? filteredItems[0];
   const selectedImage = selected?.assets.find((asset) => asset.assetKind === "image" && asset.signedUrl);
   const selectedDocuments = selected?.assets.filter((asset) => asset.assetKind === "document" && asset.signedUrl) ?? [];
 
@@ -779,11 +788,30 @@ function NewsView({ onBack }: { onBack: () => void }) {
       />
       {loading ? <div className="lycee-loading-state"><RefreshCw aria-hidden="true" /> Chargement des informations…</div> : null}
       {error ? <div className="lycee-form-error"><CircleAlert aria-hidden="true" />{error}</div> : null}
+      {!loading && !error && items.length > 0 ? (
+        <section className="lycee-news-controls" aria-label="Rechercher dans les informations du lycée">
+          <label>
+            <Search aria-hidden="true" />
+            <span className="sr-only">Rechercher</span>
+            <input type="search" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Rechercher une information" autoComplete="off" />
+          </label>
+          <label>
+            <Filter aria-hidden="true" />
+            <span className="sr-only">Filtrer par catégorie</span>
+            <select value={category} onChange={(event) => setCategory(event.target.value)}>
+              <option value="all">Toutes les catégories</option>
+              {categories.map((item) => <option key={item} value={item}>{item}</option>)}
+            </select>
+          </label>
+          <p aria-live="polite">{filteredItems.length} information{filteredItems.length > 1 ? "s" : ""}</p>
+        </section>
+      ) : null}
       {!loading && !error && !selected ? (
         <section className="lycee-news-empty">
           <Newspaper aria-hidden="true" />
-          <h2>Les prochaines informations seront publiées ici</h2>
-          <p>Les formations et la présentation du lycée restent disponibles dans « Vie du lycée ».</p>
+          <h2>{items.length > 0 ? "Aucune information ne correspond" : "Les prochaines informations seront publiées ici"}</h2>
+          <p>{items.length > 0 ? "Modifiez votre recherche ou choisissez une autre catégorie." : "Les formations et la présentation du lycée restent disponibles dans « Vie du lycée »."}</p>
+          {items.length > 0 ? <button type="button" onClick={() => { setQuery(""); setCategory("all"); }}>Effacer les filtres</button> : null}
         </section>
       ) : null}
       {selected ? (
@@ -791,14 +819,15 @@ function NewsView({ onBack }: { onBack: () => void }) {
           <article className="lycee-news-feature">
             {selectedImage ? <img src={selectedImage.signedUrl ?? ""} alt={selectedImage.altText ?? ""} /> : null}
             <div>
-              <span>{selected.category}</span>
+              <span>{selected.featured ? "À retenir · " : ""}{selected.category}</span>
               <h2>{selected.title}</h2>
+              <time dateTime={selected.publishedAt ?? undefined}>{publicContentDateLabel(selected.publishedAt)}</time>
               {selected.summary ? <p className="lycee-news-summary">{selected.summary}</p> : null}
               <div className="lycee-public-markdown"><ReactMarkdown remarkPlugins={[remarkGfm]}>{selected.bodyMarkdown}</ReactMarkdown></div>
               {selectedDocuments.length ? <div className="lycee-news-documents">{selectedDocuments.map((asset) => <a key={asset.id} href={asset.signedUrl ?? "#"} target="_blank" rel="noreferrer"><FileText aria-hidden="true" /><span><strong>{asset.label}</strong><small>{asset.originalName}</small></span><ExternalLink aria-hidden="true" /></a>)}</div> : null}
             </div>
           </article>
-          {items.length > 1 ? <section className="lycee-news-list" aria-labelledby="news-list-title"><div className="lycee-section-title"><div><span className="lycee-eyebrow">Toutes les informations</span><h2 id="news-list-title">Publié par le lycée</h2></div></div><div>{items.map((item) => { const image = item.assets.find((asset) => asset.assetKind === "image" && asset.signedUrl); return <button className={item.id === selected.id ? "is-active" : ""} type="button" key={item.id} onClick={() => { setSelectedId(item.id); window.scrollTo({ top: 0, behavior: "smooth" }); }}>{image ? <img src={image.signedUrl ?? ""} alt="" /> : <span><Newspaper aria-hidden="true" /></span>}<div><small>{item.category}</small><strong>{item.title}</strong><p>{item.summary}</p></div><ChevronRight aria-hidden="true" /></button>; })}</div></section> : null}
+          {filteredItems.length > 1 ? <section className="lycee-news-list" aria-labelledby="news-list-title"><div className="lycee-section-title"><div><span className="lycee-eyebrow">Toutes les informations</span><h2 id="news-list-title">Publié par le lycée</h2></div></div><div>{filteredItems.map((item) => { const image = item.assets.find((asset) => asset.assetKind === "image" && asset.signedUrl); return <button className={item.id === selected.id ? "is-active" : ""} type="button" key={item.id} onClick={() => { setSelectedId(item.id); window.scrollTo({ top: 0, behavior: "smooth" }); }}>{image ? <img src={image.signedUrl ?? ""} alt="" /> : <span><Newspaper aria-hidden="true" /></span>}<div><small>{item.featured ? "À retenir · " : ""}{item.category}</small><strong>{item.title}</strong><time dateTime={item.publishedAt ?? undefined}>{publicContentDateLabel(item.publishedAt)}</time><p>{item.summary}</p></div><ChevronRight aria-hidden="true" /></button>; })}</div></section> : null}
         </>
       ) : null}
     </div>

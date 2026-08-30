@@ -130,6 +130,7 @@
     "test:legacy-routes": "node scripts/test-legacy-routes.mjs",
     "test:support-templates": "node --experimental-strip-types scripts/test-support-reply-templates.mjs",
     "test:site-content": "node --experimental-strip-types scripts/test-site-content.mjs",
+    "test:public-content-feed": "node --import ./scripts/ts-test-resolver.mjs --experimental-strip-types scripts/test-public-content-feed.mjs",
     "test:editor-ux": "node scripts/test-editor-ux.mjs",
     "test:agent-session-ux": "node scripts/test-agent-session-ux.mjs",
     "test:prototype-responsive-contract": "node scripts/test-prototype-responsive-contract.mjs",

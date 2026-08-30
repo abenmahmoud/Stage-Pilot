@@ -693,11 +693,18 @@
 .lycee-school-life-grid a svg, .lycee-school-life-grid button svg { width: 13px; }
 
 .lycee-news-page { max-width: 1180px; }
+.lycee-news-controls { display: grid; grid-template-columns: minmax(0,1fr) minmax(210px,280px) auto; align-items: center; gap: 10px; margin-bottom: 18px; padding: 12px; border: 1px solid var(--lc-line); border-radius: 8px; background: #fff; }
+.lycee-news-controls label { min-width: 0; display: grid; grid-template-columns: 18px minmax(0,1fr); align-items: center; gap: 8px; min-height: 42px; padding: 0 11px; border: 1px solid #c8d7e6; border-radius: 6px; background: #f8fafc; color: var(--lc-muted); }
+.lycee-news-controls label:focus-within { border-color: #2d8b77; box-shadow: 0 0 0 3px rgba(45,139,119,.14); }
+.lycee-news-controls label svg { width: 17px; height: 17px; }
+.lycee-news-controls input, .lycee-news-controls select { min-width: 0; width: 100%; border: 0; outline: 0; background: transparent; color: var(--lc-ink); font: inherit; font-size: 12px; }
+.lycee-news-controls p { margin: 0; color: var(--lc-muted); font-size: 11px; font-weight: 750; white-space: nowrap; }
 .lycee-news-feature { overflow: hidden; border: 1px solid var(--lc-line); border-radius: 8px; background: #fff; }
 .lycee-news-feature > img { width: 100%; max-height: 420px; object-fit: cover; }
 .lycee-news-feature > div { max-width: 880px; margin: 0 auto; padding: 34px; }
 .lycee-news-feature > div > span { color: var(--lc-green); font-size: 10px; font-weight: 850; text-transform: uppercase; }
 .lycee-news-feature h2 { margin: 7px 0 0; font-size: 30px; line-height: 1.15; }
+.lycee-news-feature time { display: block; margin-top: 9px; color: var(--lc-muted); font-size: 10px; font-weight: 750; }
 .lycee-news-summary { margin: 13px 0 0; color: #52667d; font-size: 16px; line-height: 1.65; }
 .lycee-public-markdown { margin-top: 22px; color: #32475d; font-size: 13px; line-height: 1.75; }
 .lycee-public-markdown h2 { margin: 28px 0 0; font-size: 21px; }
@@ -723,12 +730,14 @@
 .lycee-news-list button > div { min-width: 0; }
 .lycee-news-list small { color: var(--lc-green); font-size: 8px; font-weight: 850; text-transform: uppercase; }
 .lycee-news-list strong { display: block; margin-top: 3px; overflow: hidden; color: var(--lc-ink); font-size: 12px; text-overflow: ellipsis; white-space: nowrap; }
+.lycee-news-list time { display: block; margin-top: 3px; color: var(--lc-muted); font-size: 9px; }
 .lycee-news-list p { display: -webkit-box; margin: 5px 0 0; overflow: hidden; color: var(--lc-muted); font-size: 10px; line-height: 1.4; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
 .lycee-news-list button > svg { width: 16px; color: var(--lc-blue); }
 .lycee-news-empty { display: flex; min-height: 330px; flex-direction: column; align-items: center; justify-content: center; border: 1px solid var(--lc-line); border-radius: 8px; background: #fff; padding: 30px; text-align: center; }
 .lycee-news-empty > svg { width: 34px; color: var(--lc-blue); }
 .lycee-news-empty h2 { margin: 13px 0 0; font-size: 20px; }
 .lycee-news-empty p { max-width: 520px; color: var(--lc-muted); font-size: 12px; }
+.lycee-news-empty button { min-height: 40px; margin-top: 12px; padding: 8px 14px; border: 1px solid #b9cadb; border-radius: 6px; background: #fff; color: var(--lc-blue); font-weight: 800; }
 .lycee-practical-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 8px; }
 .lycee-practical-grid > a, .lycee-practical-grid > div { min-width: 0; display: grid; grid-template-columns: 36px minmax(0,1fr) 16px; align-items: center; gap: 10px; min-height: 76px; padding: 13px; border: 1px solid var(--lc-line); border-radius: 8px; background: #f8fafc; color: var(--lc-ink); text-decoration: none; }
 .lycee-practical-grid > div { grid-template-columns: 36px minmax(0,1fr); }
@@ -1065,6 +1074,8 @@
   .lycee-practical-grid { grid-template-columns: 1fr; }
   .lycee-quick-links > div:last-child { grid-template-columns: repeat(2,minmax(0,1fr)); }
   .lycee-contact-band { grid-template-columns: 1fr; }
+  .lycee-news-controls { grid-template-columns: 1fr; }
+  .lycee-news-controls p { padding: 0 2px; white-space: normal; }
   .lycee-news-feature > div { padding: 22px; }
   .lycee-news-feature h2 { font-size: 24px; }
   .lycee-news-summary { font-size: 14px; }
