@@ -14,24 +14,19 @@ import { handleApi, methodNotAllowed } from "../_shared/response.js";
 import { resolveSupportNotificationTarget } from "../../shared/support-notification-routing.js";
 import { isReservedTestEmail } from "../../shared/support-test-address.js";
 import {
+  parseSupportEmailQueueJob,
+  supportEmailFailureDisposition,
+  type SupportEmailQueueJob,
+} from "../../shared/support-email-job-policy.js";
+import {
   assertLegacySingleInstitutionMode,
   requireConfiguredInstitution,
 } from "../_shared/institution-context.js";
 
-type QueueJob = {
-  job_id: string;
-  job_type: string;
-  institution_id?: string;
-  request_id: string;
-  message_id?: string;
-  contact_id?: string;
-  access_token?: string;
-};
-
 type QueueRow = {
   msg_id: number;
   read_ct: number;
-  message: QueueJob | string;
+  message: unknown;
 };
 
 type EmailContext = {
@@ -101,10 +96,7 @@ function requesterReplyAddress(publicCode: string): string {
   return fallback;
 }
 
-async function deliver(job: QueueJob, institutionId: string): Promise<string> {
-  if (job.institution_id && job.institution_id !== institutionId) {
-    throw new Error("institution_mismatch");
-  }
+async function deliver(job: SupportEmailQueueJob, institutionId: string): Promise<string> {
   const context = await loadEmailContext(institutionId, job.request_id, job.contact_id);
   if (isReservedTestEmail(context.email)) return "skipped:test_address";
   const requesterName = `${context.request.requesterFirstName} ${context.request.requesterLastName}`;
@@ -178,8 +170,13 @@ async function processRow(
   row: QueueRow,
   institutionId: string
 ): Promise<"processed" | "retried" | "failed"> {
-  const job = typeof row.message === "string" ? (JSON.parse(row.message) as QueueJob) : row.message;
-  if (!job?.job_id || !job.job_type || !job.request_id) throw new Error("invalid_queue_payload");
+  let job: SupportEmailQueueJob;
+  try {
+    job = parseSupportEmailQueueJob(row.message, institutionId);
+  } catch {
+    await db.execute(sql`select pgmq.archive('support_jobs', ${row.msg_id}::bigint)`);
+    return "failed";
+  }
 
   const [alreadyDone] = await db
     .select({ id: supportJobRuns.id })
@@ -231,7 +228,7 @@ async function processRow(
       })
       .onConflictDoNothing();
 
-    if (row.read_ct >= 5) {
+    if (supportEmailFailureDisposition(row.read_ct) === "dead_letter") {
       await db.transaction(async (tx) => {
         await tx
           .insert(supportFailedJobs)

@@ -23,6 +23,7 @@ const agentTranslate = await source("api/support/agent/requests/[code]/translate
 const agentAttachment = await source("api/support/agent/attachments/[id].ts");
 const inboundWebhook = await source("api/webhooks/brevo/inbound.ts");
 const supportWorker = await source("api/cron/support-worker.ts");
+const supportEmailJobPolicy = await source("shared/support-email-job-policy.ts");
 
 test("makes the request institution mandatory and immutable", () => {
   assert.match(schema, /institutionId: uuid\("institution_id"\)[\s\S]*?\.notNull\(\)/);
@@ -86,7 +87,8 @@ test("carries and verifies institution ownership through async email work", () =
   assert.match(publicMessages, /'institution_id', \$\{access\.institutionId\}::uuid/);
   assert.match(agentReply, /'institution_id', \$\{institutionId\}::uuid/);
   assert.match(inboundWebhook, /'institution_id', \$\{institution\.id\}::uuid/);
-  assert.match(supportWorker, /job\.institution_id !== institutionId/);
+  assert.match(supportWorker, /parseSupportEmailQueueJob\(row\.message, institutionId\)/);
+  assert.match(supportEmailJobPolicy, /institutionId !== expectedInstitutionId/);
   assert.match(supportWorker, /eq\(supportRequests\.institutionId, institutionId\)/);
 });
 

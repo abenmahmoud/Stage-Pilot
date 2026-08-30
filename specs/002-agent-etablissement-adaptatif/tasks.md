@@ -491,6 +491,11 @@
   création avec concurrence 20 : 200 dossiers, messages, sessions et travaux,
   128,6 créations/s, puis zéro donnée ou file temporaire restante. La reprise
   des workers et le p95 HTTP restent dans T047.
+- [x] T047B Tester sans fournisseur externe la politique du worker email :
+  établissement et UUID obligatoires avant lecture ou envoi, quatre nouvelles
+  tentatives, cinquième échec isolé, message empoisonné archivé et `job_id`
+  conservé comme clé d’idempotence. T047 reste ouverte pour une interruption
+  réelle du worker et la mesure p95 HTTP.
 - [ ] T048 Vérifier mobile 320 px, ordinateur, clavier, lecteur d'écran et installation PWA.
 - [x] T048A Vérifier le portail de preview à 320, 390, 768 et 1 440 px sans
   débordement ni contrôle hors écran, manifeste et service worker actifs,

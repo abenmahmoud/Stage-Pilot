@@ -497,6 +497,13 @@ l'autorisation de quota définie par le propriétaire.
   de groupe, refuse l'autre classe et que le responsable est lié au seul bon
   enfant, puis `ROLLBACK` avec zéro résidu. T042D2 est fermé ; le sélecteur
   multi-enfants reste isolé dans T042D2D et attend le libellé minimal autorisé.
+- Lot N5ZL : politique de reprise du worker email. **Implémentée et testée
+  localement sans appel externe** : chaque message de file est borné et validé
+  avant la recherche en base ou l’envoi. L’établissement, les UUID, le type de
+  travail, les références requises et le jeton temporaire sont contrôlés. Un
+  message invalide rejoint l’archive PGMQ ; les échecs valides sont retentés
+  quatre fois puis isolés au cinquième. Le `job_id` validé reste la clé Brevo.
+  L’interruption d’un worker réel et le p95 HTTP restent à éprouver.
 - Lot N6 : tests de non-régression, build, contrôle mobile et rapport d'écarts.
   **Partiellement validé en preview** : 200 transactions concurrentes sans perte
   ni reste après nettoyage, 135 contrôles de sécurité, build réussi, PWA active,

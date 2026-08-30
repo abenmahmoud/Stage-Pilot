@@ -95,11 +95,11 @@ test("claims inbound webhook work atomically and only reopens retryable receipts
 
 test("deduplicates delivery events and keeps failed email jobs retryable", () => {
   const failureBranch = supportWorker.slice(
-    supportWorker.indexOf("if (row.read_ct >= 5)"),
+    supportWorker.indexOf('if (supportEmailFailureDisposition(row.read_ct) === "dead_letter")'),
     supportWorker.indexOf('return "retried";') + 'return "retried";'.length
   );
   assert.match(deliveryWebhook, /\.onConflictDoNothing\(\)/);
-  assert.match(failureBranch, /if \(row\.read_ct >= 5\)/);
+  assert.match(failureBranch, /supportEmailFailureDisposition\(row\.read_ct\) === "dead_letter"/);
   assert.match(failureBranch, /pgmq\.archive\('support_jobs'/);
   assert.match(failureBranch, /return "retried"/);
   assert.doesNotMatch(failureBranch, /pgmq\.delete\('support_jobs'/);

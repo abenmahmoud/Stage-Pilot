@@ -2259,6 +2259,23 @@ taches et analyse de coherence avant une automatisation sensible.
   plafond de consommation propres à cette mission ; aucun jeton externe n’a été
   consommé.
 
+### Jalon du 30 août 2026 - reprise déterministe du worker email
+
+- Le worker Vercel valide désormais chaque travail avant toute recherche en base
+  et avant Brevo : charge bornée, établissement obligatoire et identique, UUID,
+  type autorisé, message, contact et jeton temporaire selon le canal.
+- Un travail empoisonné est archivé dans PGMQ et compté en échec ; il n’est ni
+  envoyé ni supprimé définitivement. Un travail valide est retenté après les
+  quatre premiers échecs puis copié dans la file d’échec et archivé au cinquième.
+- La clé d’idempotence envoyée au fournisseur reste le `job_id` UUID validé. Les
+  succès, doublons fournisseur et indisponibilités sont couverts par faux client,
+  sans email ni donnée réelle.
+- T047B est terminée ; T047 reste ouverte pour une interruption réelle et le p95
+  HTTP. Les cinq domaines comptent 380 identifiants uniques : 261 lignes
+  terminées et 119 ouvertes.
+- Le brief Claude est préparé mais non exécuté, faute de modèle exact et de
+  plafond propres à cette mission ; aucun jeton externe n’a été consommé.
+
 ## 8. Prochain ordre recommande
 
 1. Publier et tester le pré-triage ordinateur portable avec des données fictives.
