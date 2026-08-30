@@ -3,7 +3,7 @@ import { readFile } from "node:fs/promises";
 import test from "node:test";
 
 const files = await Promise.all([
-  readFile(new URL("../supabase/migrations/20260830090000_create_support_assistant_routing_reviews.sql", import.meta.url), "utf8"),
+  readFile(new URL("../supabase/migrations/20260830090500_create_support_assistant_routing_reviews.sql", import.meta.url), "utf8"),
   readFile(new URL("../api/support/assistant.ts", import.meta.url), "utf8"),
   readFile(new URL("../api/support/requests/index.ts", import.meta.url), "utf8"),
   readFile(new URL("../api/support/agent/requests/[code].ts", import.meta.url), "utf8"),

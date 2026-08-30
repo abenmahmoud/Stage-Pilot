@@ -2,7 +2,7 @@ import { readFile } from "node:fs/promises";
 import postgres from "postgres";
 
 const EXPECTED_PROJECT_REF = "xijocumlwivhbmffrnlj";
-const VERSION = "20260830090000";
+const VERSION = "20260830090500";
 const NAME = "create_support_assistant_routing_reviews";
 const migrationUrl = new URL(`../supabase/migrations/${VERSION}_${NAME}.sql`, import.meta.url);
 const recipeUrl = new URL("../supabase/tests/support_assistant_routing_review_security.test.sql", import.meta.url);

@@ -4,7 +4,7 @@
 
 - Branche applicative : `codex/lycee-connect-prototype`.
 - Base autorisée : preview `xijocumlwivhbmffrnlj` uniquement.
-- Migration : `20260830090000_create_support_assistant_routing_reviews.sql`.
+- Migration : `20260830090500_create_support_assistant_routing_reviews.sql`.
 - Interrupteur : `SUPPORT_ASSISTANT_ROUTING_REVIEW_ENABLED`, désactivé par défaut.
 - Aucune donnée réelle, aucun email, aucun compte et aucune production.
 

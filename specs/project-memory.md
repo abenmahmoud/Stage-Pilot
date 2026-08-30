@@ -1938,7 +1938,7 @@ taches et analyse de coherence avant une automatisation sensible.
 - Les tests ciblés, d'autorisation, de cloisonnement, de concurrence, de routage,
   adversariaux, TypeScript et le build passent. `npm audit --omit=dev` signale
   zéro vulnérabilité.
-- La migration `20260830090000` et une recette fictive avec `ROLLBACK` sont
+- La migration `20260830090500` et une recette fictive avec `ROLLBACK` sont
   prêtes, mais n'ont pas été exécutées : le connecteur Supabase actif ne voit pas
   la preview connue et les variables locales sont masquées. L'interrupteur
   `SUPPORT_ASSISTANT_ROUTING_REVIEW_ENABLED` reste donc désactivé par défaut ;
@@ -2138,7 +2138,7 @@ taches et analyse de coherence avant une automatisation sensible.
 
 ### Jalon du 30 août 2026 - analyse de cohérence Spec Kit
 
-- Les cinq domaines comptent 371 identifiants uniques : 251 lignes terminées et
+- Les cinq domaines comptent 372 identifiants uniques : 252 lignes terminées et
   120 ouvertes. Ces nombres restent un inventaire, jamais un pourcentage global.
 - Les parents encore ouverts correspondent bien à des preuves absentes :
   opérations distantes, décisions métier/DPO, comptes nominatifs, données
@@ -2147,6 +2147,19 @@ taches et analyse de coherence avant une automatisation sensible.
   site `004` ni autoriser une bascule de production.
 - Un test automatique protège les numéros de specs, les cases et les identifiants
   de tâches contre les doublons et pertes structurelles.
+- Le brief Claude est préparé mais non exécuté, faute de modèle exact et de
+  plafond de consommation propres à cette mission.
+
+### Jalon du 30 août 2026 - versions de migrations rendues uniques
+
+- Deux fichiers partageaient la version `20260830090000` : déduplication des
+  événements de communication et revue humaine du classement assistant.
+- La revue du classement, documentée comme non appliquée, utilise désormais la
+  version `20260830090500`. Son script verrouillé, son test, la tâche et les
+  documents pointent tous vers ce nom unique.
+- Un contrôle global refuse désormais les versions dupliquées, noms mal formés,
+  migrations référencées mais absentes et paires `VERSION`/`NAME` incohérentes.
+- T003A est terminé sans appliquer de migration ni accéder à une base distante.
 - Le brief Claude est préparé mais non exécuté, faute de modèle exact et de
   plafond de consommation propres à cette mission.
 

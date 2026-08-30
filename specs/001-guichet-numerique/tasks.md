@@ -23,6 +23,10 @@ restante, soit une configuration externe ou une validation par la direction.
 - [x] **T003** Ajouter la migration des tables support, index et contraintes, et
   restaurer dans Git les trois migrations historiques LyceeGest présentes dans
   le journal Supabase.
+- [x] **T003A** Garantir une version unique pour chaque migration et contrôler
+  automatiquement les références des scripts. La collision `20260830090000`
+  entre communications et revue du routage a été corrigée sans appliquer de
+  migration distante ; la seconde version est désormais `20260830090500`.
 - [x] **T004** Créer les buckets privés `support-quarantine` et `support-clean`.
 - [x] **T005** Écrire et tester les politiques RLS par rôle.
 - [x] **T006** Créer `POST /api/support/requests` avec validation stricte,

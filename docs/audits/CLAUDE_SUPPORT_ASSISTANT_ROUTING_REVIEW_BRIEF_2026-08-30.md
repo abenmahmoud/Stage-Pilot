@@ -14,7 +14,7 @@ de consommation de cette mission n'ont pas été confirmés.
 - `api/support/agent/requests/[code].ts`
 - `api/support/agent/metrics.ts`
 - `db/schema.ts`
-- `supabase/migrations/20260830090000_create_support_assistant_routing_reviews.sql`
+- `supabase/migrations/20260830090500_create_support_assistant_routing_reviews.sql`
 - `supabase/tests/support_assistant_routing_review_security.test.sql`
 - `src/pages/prototype/LyceeConnectPrototype.tsx`
 - `src/pages/admin/SupportOperationsPage.tsx`

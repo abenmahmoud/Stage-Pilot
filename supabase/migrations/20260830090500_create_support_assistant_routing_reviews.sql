@@ -1,5 +1,7 @@
 begin;
 
+-- This migration has a distinct version from communication delivery deduplication.
+
 create table public.support_assistant_routing_reviews (
   id uuid primary key default gen_random_uuid(),
   institution_id uuid not null
