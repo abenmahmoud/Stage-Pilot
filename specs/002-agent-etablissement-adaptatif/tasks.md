@@ -527,6 +527,11 @@
   piège de focus, fermeture par Échap et restitution du focus. La recette avec
   un lecteur d’écran et des comptes nominatifs reste dans T048.
 - [ ] T049 Exécuter une revue de sécurité et de protection des données.
+- [x] T049A Créer et exécuter une porte de sécurité reproductible pour la
+  preview : en-têtes navigateur, cache API, source maps, secrets, limites,
+  sessions, MFA, périmètres agents, cas adversariaux, communications privées et
+  intégrité des migrations. T049 reste ouverte pour la revue DPO, les comptes
+  nominatifs et l'audit externe borné autorisé.
 - [ ] T050 Ouvrir un pilote limité avec agents nommés et canal de retour.
 - [ ] T051 Mesurer deux semaines : classement, délai, transferts, corrections, coût et incidents.
 - [ ] T052 Corriger les écarts puis exécuter `/speckit.analyze` et `/speckit.converge` avant généralisation.

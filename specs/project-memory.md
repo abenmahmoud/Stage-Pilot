@@ -2378,6 +2378,21 @@ taches et analyse de coherence avant une automatisation sensible.
 - Le brief Claude est préparé mais non exécuté, faute de modèle exact et de
   plafond propres à cette mission ; aucun jeton externe n'a été consommé.
 
+### Jalon du 30 août 2026 - porte de sécurité de preview
+
+- La commande `npm run test:preview-security-gate` agrège les contrôles
+  d'en-têtes HTTP, cache, source maps, secrets, limites de débit, sessions, MFA,
+  périmètres agents, entrées adversariales, communications et migrations.
+- Le contrat d'en-têtes exige CSP sans `unsafe-eval`, anti-cadrage, HSTS,
+  `nosniff`, politique de permissions restrictive, API privées sans cache et
+  service worker toujours revalidé.
+- La porte ne contacte aucun compte, fournisseur, base distante ou donnée
+  réelle. Elle ne remplace ni la revue DPO ni une recette avec comptes nominatifs.
+- T049A est terminée ; T049 reste ouverte. Les cinq domaines comptent 386
+  identifiants uniques : 269 lignes terminées et 117 ouvertes.
+- Le brief Claude est préparé mais non exécuté, faute de modèle exact et de
+  plafond propres à cette mission ; aucun jeton externe n'a été consommé.
+
 ## 8. Prochain ordre recommande
 
 1. Publier et tester le pré-triage ordinateur portable avec des données fictives.
