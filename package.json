@@ -97,6 +97,7 @@
     "test:schedule-import-ui": "node scripts/test-schedule-import-ui.mjs",
     "test:skill-registry": "node --import ./scripts/ts-test-resolver.mjs --experimental-strip-types scripts/test-skill-registry-policy.mjs",
     "test:skill-scenarios": "node scripts/test-skill-scenario-coverage.mjs",
+    "test:spec-integrity": "node scripts/test-spec-task-integrity.mjs",
     "test:knowledge-expiry": "node --experimental-strip-types scripts/test-knowledge-expiry-policy.mjs",
     "test:public-skill-context": "node --import ./scripts/ts-test-resolver.mjs --experimental-strip-types scripts/test-public-agent-skill-policy.mjs",
     "test:agent-source-references-ui": "node scripts/test-agent-source-references-ui.mjs",

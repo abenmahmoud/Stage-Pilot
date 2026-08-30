@@ -2136,6 +2136,20 @@ taches et analyse de coherence avant une automatisation sensible.
 - Le brief Claude est élargi mais non exécuté, faute de modèle exact et de
   plafond de consommation propres à cette mission.
 
+### Jalon du 30 août 2026 - analyse de cohérence Spec Kit
+
+- Les cinq domaines comptent 371 identifiants uniques : 251 lignes terminées et
+  120 ouvertes. Ces nombres restent un inventaire, jamais un pourcentage global.
+- Les parents encore ouverts correspondent bien à des preuves absentes :
+  opérations distantes, décisions métier/DPO, comptes nominatifs, données
+  validées, restauration ou pilote.
+- Le domaine `003` est terminé dans son périmètre, sans fermer la migration du
+  site `004` ni autoriser une bascule de production.
+- Un test automatique protège les numéros de specs, les cases et les identifiants
+  de tâches contre les doublons et pertes structurelles.
+- Le brief Claude est préparé mais non exécuté, faute de modèle exact et de
+  plafond de consommation propres à cette mission.
+
 ## 8. Prochain ordre recommande
 
 1. Publier et tester le pré-triage ordinateur portable avec des données fictives.
