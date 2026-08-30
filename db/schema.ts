@@ -1920,3 +1920,60 @@ export const communicationEvents = pgTable(
     index("communication_events_resource_created_idx").on(table.resourceType, table.resourceId, table.createdAt),
   ]
 );
+
+export const communicationSourceDocuments = pgTable(
+  "communication_source_documents",
+  {
+    id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+    institutionId: uuid("institution_id")
+      .notNull()
+      .references(() => institutions.id, { onDelete: "restrict" }),
+    communicationId: uuid("communication_id").references(() => communications.id, { onDelete: "restrict" }),
+    originalName: text("original_name").notNull(),
+    mimeType: text("mime_type").notNull(),
+    sizeBytes: bigint("size_bytes", { mode: "number" }).notNull(),
+    storageBucket: text("storage_bucket").notNull().default("communication-ingest"),
+    storagePath: text("storage_path").notNull().unique(),
+    status: text("status").notNull().default("reserved"),
+    checksum: text("checksum"),
+    extractionSummary: jsonb("extraction_summary").notNull().default({}),
+    extractedText: text("extracted_text"),
+    analysisError: text("analysis_error"),
+    uploadedBy: uuid("uploaded_by").notNull(),
+    uploadedAt: timestamp("uploaded_at", { withTimezone: true }),
+    analyzedAt: timestamp("analyzed_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    uniqueIndex("communication_source_documents_checksum_uidx")
+      .on(table.institutionId, table.checksum)
+      .where(sql`${table.checksum} is not null and ${table.status} not in ('rejected', 'failed')`),
+    index("communication_source_documents_scope_status_idx").on(table.institutionId, table.status, table.createdAt),
+    index("communication_source_documents_communication_scope_fk_idx").on(table.communicationId, table.institutionId),
+    index("communication_source_documents_uploaded_by_idx").on(table.uploadedBy, table.createdAt),
+  ]
+);
+
+export const communicationSourceEvents = pgTable(
+  "communication_source_events",
+  {
+    id: bigint("id", { mode: "number" }).primaryKey().generatedAlwaysAsIdentity(),
+    institutionId: uuid("institution_id")
+      .notNull()
+      .references(() => institutions.id, { onDelete: "restrict" }),
+    sourceDocumentId: uuid("source_document_id")
+      .notNull()
+      .references(() => communicationSourceDocuments.id, { onDelete: "restrict" }),
+    eventType: text("event_type").notNull(),
+    actorUserId: uuid("actor_user_id"),
+    actorType: text("actor_type").notNull(),
+    summary: jsonb("summary").notNull().default({}),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    index("communication_source_events_source_scope_idx").on(table.sourceDocumentId, table.institutionId, table.createdAt),
+    index("communication_source_events_scope_created_idx").on(table.institutionId, table.createdAt),
+    index("communication_source_events_actor_idx").on(table.actorUserId, table.createdAt),
+  ]
+);

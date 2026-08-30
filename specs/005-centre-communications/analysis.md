@@ -45,6 +45,9 @@ un chemin de publication sans contrôle humain.
 
 Les validateurs, interrupteurs, tables privées, versions, audiences opaques,
 livraisons, file idempotente, entrants et audit sont installés sur la preview et
-désactivés. Les tests fictifs passent et la base ne contient aucun résidu de
-recette. Le prochain lot autorisé est l'API manuelle de brouillon ; l'interface,
-les groupes réels et toute diffusion restent bloqués par T001 à T004.
+désactivés. L'API de brouillon, les modèles gouvernés, le dépôt documentaire
+privé et la file d'analyse PDF/DOCX sont également présents derrière les deux
+interrupteurs fermés. Les recettes fictives passent et la base ne contient
+aucun résidu de test. Le prochain lot technique est le raccordement du dépôt à
+l'interface fermée et une preuve antivirus de bout en bout ; les groupes réels,
+la publication et toute diffusion restent bloqués par T001 à T004.

@@ -16,6 +16,9 @@ The workers run on the lycée VPS, not in the browser or in a Vercel function.
   strictement limitée aux PDF et DOCX, un plafond de 100 000 caractères et un
   arrêt en relecture manuelle dès qu'une coordonnée, un secret ou une consigne
   malveillante est détecté. Il n'appelle aucun modèle externe.
+- `communication-document-worker.mjs` est le consommateur préparé pour la file
+  privée `communication_document_scan`. Il n'est pas déployé : aucun service,
+  minuteur, VPS ou environnement réel n'a été modifié dans ce lot.
 - `schedule-document-worker.mjs` consumes `schedule_document_scan`, runs
   ClamAV, verifies the PDF structure and counts pages without extracting names,
   hours or timetable content.
@@ -30,6 +33,7 @@ Required environment variables:
 - `IDENTITY_CONTACT_PEPPER` (at least 32 random characters) for the identity
   directory worker only
 
-Each script runs one bounded batch and exits. The VPS systemd timers invoke them
-every minute; queue visibility and dead-letter handling make repeated execution
-safe. Deployment units live in `deploy/lycee-support-*-worker.*`.
+Each deployed script runs one bounded batch and exits. Existing VPS systemd
+timers invoke only their explicitly installed units. Queue visibility and
+dead-letter handling make repeated execution safe. Deployment units live in
+`deploy/lycee-support-*-worker.*`; the communication worker has no unit yet.

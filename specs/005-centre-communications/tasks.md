@@ -44,6 +44,17 @@
   PDF.js/Mammoth et les précontrôles d'archives existants, ne contacte aucune IA
   et bascule en relecture manuelle pour coordonnées, secrets ou instructions.
   Le dépôt privé, l'antivirus et la file dédiée restent à relier avant T011.
+- [x] T011B Ajouter le dépôt privé et la quarantaine en preview. L'API réserve
+  une URL signée PDF/DOCX de 10 Mo maximum, vérifie exactement taille et type,
+  cloisonne par établissement et place un travail idempotent dans une file PGMQ
+  privée. La liste ne retourne ni chemin de stockage ni texte extrait.
+- [x] T011C Préparer le consommateur local de la file. Il exige ClamAV, extrait
+  localement, bloque menaces et doublons, conserve zéro texte en présence de
+  coordonnées ou secrets et termine toujours en revue humaine. Il n'est pas
+  déployé et n'est relié à aucun environnement réel.
+- [ ] T011D Relier le dépôt à l'interface fermée puis exécuter une recette de
+  bout en bout avec fichiers fictifs sur un moteur ClamAV autorisé. T011 ne sera
+  fermé qu'après cette preuve ; aucune activation distante n'est implicite.
 - [ ] T012 Étendre l'aide IA avec sortie structurée et informations à confirmer.
 - [x] T013 Ajouter les modèles Hebdo, Urgent, Rentrée, Document, Événement et
   Rappel. Le catalogue sûr fonctionne sans donnée persistée ; seuls superadmin
