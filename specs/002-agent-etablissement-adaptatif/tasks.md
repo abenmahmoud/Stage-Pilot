@@ -335,6 +335,9 @@
 - [x] T027B8 Refuser avec une erreur explicite les filtres serveur `status` et
   `assigned` inconnus, afin qu'une valeur mal formée n'élargisse jamais
   silencieusement la file affichée.
+- [x] T027B9 Refuser les valeurs inconnues des indicateurs d'urgence, rappel,
+  doublon et échéance ainsi que les paramètres répétés, avant toute requête de
+  file.
 - [ ] T027B2 Ajouter les relances internes et l'escalade après validation des
   délais propres à chaque service et des responsables à notifier.
 - [ ] T027C Créer les adhésions de service puis appliquer le périmètre dans les

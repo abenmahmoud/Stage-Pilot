@@ -48,7 +48,11 @@ function hasPendingDuplicateReview(): SQL<boolean> {
 }
 
 function queryValue(value: string | string[] | undefined): string {
-  return Array.isArray(value) ? value[0] ?? "" : value ?? "";
+  if (Array.isArray(value)) {
+    if (value.length !== 1) throw new HttpError(400, "Paramètre répété");
+    return value[0] ?? "";
+  }
+  return value ?? "";
 }
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
@@ -60,7 +64,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const pageSize = Math.min(50, Math.max(10, Number.parseInt(queryValue(req.query.pageSize), 10) || 30));
     const search = queryValue(req.query.q).trim().slice(0, 80);
     const status = queryValue(req.query.status);
-    const urgentOnly = queryValue(req.query.urgent) === "true";
+    const urgent = queryValue(req.query.urgent);
     const assigned = queryValue(req.query.assigned);
     if (status && !VALID_STATUSES.has(status)) {
       throw new HttpError(400, "Statut invalide");
@@ -68,11 +72,27 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (assigned && assigned !== "me" && assigned !== "none") {
       throw new HttpError(400, "Attribution invalide");
     }
+    if (urgent && urgent !== "true") {
+      throw new HttpError(400, "Filtre d'urgence invalide");
+    }
+    const callback = queryValue(req.query.callback);
+    const duplicate = queryValue(req.query.duplicate);
+    const overdue = queryValue(req.query.overdue);
+    if (callback && callback !== "pending") {
+      throw new HttpError(400, "Filtre de rappel invalide");
+    }
+    if (duplicate && duplicate !== "pending") {
+      throw new HttpError(400, "Filtre de doublon invalide");
+    }
+    if (overdue && overdue !== "true") {
+      throw new HttpError(400, "Filtre d'échéance invalide");
+    }
+    const urgentOnly = urgent === "true";
     const mineOnly = assigned === "me";
     const unassignedOnly = assigned === "none";
-    const callbackOnly = queryValue(req.query.callback) === "pending";
-    const duplicateOnly = queryValue(req.query.duplicate) === "pending";
-    const overdueOnly = queryValue(req.query.overdue) === "true";
+    const callbackOnly = callback === "pending";
+    const duplicateOnly = duplicate === "pending";
+    const overdueOnly = overdue === "true";
     const service = queryValue(req.query.service);
     const filters: SQL[] = [eq(supportRequests.institutionId, institutionId)];
     const accessFilter = access.canViewAll

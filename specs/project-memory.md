@@ -2505,6 +2505,17 @@ taches et analyse de coherence avant une automatisation sensible.
 - Le brief Claude est préparé mais non exécuté, faute de modèle exact et de
   plafond propres à cette mission ; aucun jeton externe n'a été consommé.
 
+### Jalon du 30 août 2026 - indicateurs de file fermés par défaut
+
+- Les filtres d'urgence, rappel, doublon et échéance n'acceptent que leur valeur
+  documentée ; toute autre valeur reçoit une réponse `400`.
+- Une clé de requête répétée n'est plus réduite silencieusement à sa première
+  valeur : l'API refuse la requête avant la construction SQL.
+- T027B9 est terminée. Les cinq domaines comptent 395 identifiants uniques : 279
+  lignes terminées et 116 ouvertes.
+- Le brief Claude est préparé mais non exécuté, faute de modèle exact et de
+  plafond propres à cette mission ; aucun jeton externe n'a été consommé.
+
 ## 8. Prochain ordre recommande
 
 1. Publier et tester le pré-triage ordinateur portable avec des données fictives.

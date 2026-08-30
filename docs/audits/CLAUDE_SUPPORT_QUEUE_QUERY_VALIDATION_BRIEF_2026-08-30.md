@@ -2,8 +2,9 @@
 
 ## Mission proposée
 
-Auditer uniquement la validation des paramètres `status` et `assigned` de la
-file agent. Vérifier qu'une valeur inconnue échoue avant toute requête SQL et
+Auditer uniquement la validation des paramètres `status`, `assigned`, `urgent`,
+`callback`, `duplicate` et `overdue` de la file agent, ainsi que le refus des
+clés répétées. Vérifier qu'une valeur inconnue échoue avant toute requête SQL et
 qu'aucun filtre valide existant n'est cassé.
 
 ## Fichiers à examiner

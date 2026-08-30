@@ -32,3 +32,19 @@ test("keeps the two documented assignment values", () => {
   assert.match(route, /if \(mineOnly\) filters\.push\(eq\(supportRequests\.assignedTo, user\.id\)\)/);
   assert.match(route, /if \(unassignedOnly\) filters\.push\(isNull\(supportRequests\.assignedTo\)\)/);
 });
+
+test("rejects unknown operational flag values", () => {
+  assert.match(route, /if \(urgent && urgent !== "true"\)/);
+  assert.match(route, /if \(callback && callback !== "pending"\)/);
+  assert.match(route, /if \(duplicate && duplicate !== "pending"\)/);
+  assert.match(route, /if \(overdue && overdue !== "true"\)/);
+  assert.match(route, /throw new HttpError\(400, "Filtre d'urgence invalide"\)/);
+  assert.match(route, /throw new HttpError\(400, "Filtre de rappel invalide"\)/);
+  assert.match(route, /throw new HttpError\(400, "Filtre de doublon invalide"\)/);
+  assert.match(route, /throw new HttpError\(400, "Filtre d'échéance invalide"\)/);
+});
+
+test("rejects repeated query parameters instead of choosing one", () => {
+  assert.match(route, /if \(value\.length !== 1\) throw new HttpError\(400, "Paramètre répété"\)/);
+  assert.doesNotMatch(route, /Array\.isArray\(value\) \? value\[0\]/);
+});
