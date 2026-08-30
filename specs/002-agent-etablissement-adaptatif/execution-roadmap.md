@@ -605,6 +605,14 @@ l'autorisation de quota définie par le propriétaire.
   vérifie le reçu, relit l'identifiant, la direction entrante et l'horodatage,
   puis seulement vide l'éditeur. T028 reste ouverte pour le premier adaptateur
   complet du registre d'actions agent.
+- Lot N5ZW : preuve transactionnelle d'une note interne. **Implémentée sans
+  migration ni donnée réelle** : l'API lie le reçu à l'événement `note.created`
+  écrit dans la transaction. Un rejeu idempotent est accepté uniquement pour le
+  même auteur, le même texte et la même trace. La console conserve la clé après
+  une coupure, vérifie le reçu, relit l'identifiant, la direction interne et
+  l'horodatage, puis seulement vide l'éditeur. Le reçu n'expose ni texte ni
+  identifiant d'agent. T028 reste ouverte pour le premier adaptateur complet du
+  registre d'actions agent.
 
 ## Prochaine séquence verrouillée
 

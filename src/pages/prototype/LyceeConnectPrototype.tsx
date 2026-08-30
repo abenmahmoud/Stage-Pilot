@@ -80,6 +80,7 @@ import { verifySupportRequestPersistenceConfirmation } from "../../../shared/sup
 import { verifySupportRequestMutationConfirmation } from "../../../shared/support-request-mutation-confirmation";
 import { verifySupportAgentReplyConfirmation } from "../../../shared/support-agent-reply-confirmation";
 import { verifySupportRequesterMessageConfirmation } from "../../../shared/support-requester-message-confirmation";
+import { verifySupportInternalNoteConfirmation } from "../../../shared/support-internal-note-confirmation";
 import {
   DEFAULT_SUPPORT_REPLY_TEMPLATES,
   renderSupportReplyTemplate,
@@ -3062,6 +3063,7 @@ function ConnectedAgentView({ onBack }: { onBack: () => void }) {
   const selectedCodeRef = useRef<string | null>(null);
   const agentFileInputRef = useRef<HTMLInputElement>(null);
   const replySubmissionRef = useRef<{ fingerprint: string; idempotencyKey: string } | null>(null);
+  const internalNoteSubmissionRef = useRef<{ fingerprint: string; idempotencyKey: string } | null>(null);
 
   async function loadQueue() {
     const loadId = ++queueLoadIdRef.current;
@@ -3127,6 +3129,7 @@ function ConnectedAgentView({ onBack }: { onBack: () => void }) {
     setError(null);
     setReply("");
     replySubmissionRef.current = null;
+    internalNoteSubmissionRef.current = null;
     setTranslationDraft(null);
     setTranslationValidated(false);
     setSelectedAgentAttachmentIds([]);
@@ -3426,15 +3429,49 @@ function ConnectedAgentView({ onBack }: { onBack: () => void }) {
 
   async function saveInternalNote() {
     if (!selectedCode || !internalNote.trim()) return;
+    const code = selectedCode;
+    const noteText = internalNote.trim();
+    const submissionFingerprint = JSON.stringify({ publicCode: code, note: noteText });
+    if (internalNoteSubmissionRef.current?.fingerprint !== submissionFingerprint) {
+      internalNoteSubmissionRef.current = {
+        fingerprint: submissionFingerprint,
+        idempotencyKey: crypto.randomUUID(),
+      };
+    }
+    const idempotencyKey = internalNoteSubmissionRef.current.idempotencyKey;
     setSaving(true);
     try {
-      await apiFetch(`support/agent/requests/${selectedCode}/notes`, {
+      const payload = await apiFetch<unknown>(`support/agent/requests/${code}/notes`, {
         method: "POST",
-        headers: { "Idempotency-Key": crypto.randomUUID() },
-        body: JSON.stringify({ note: internalNote }),
+        headers: { "Idempotency-Key": idempotencyKey },
+        body: JSON.stringify({ note: noteText }),
       });
+      const confirmation = verifySupportInternalNoteConfirmation({
+        expectedPublicCode: code,
+        confirmation: payload && typeof payload === "object" && !Array.isArray(payload)
+          ? (payload as Record<string, unknown>).confirmation
+          : null,
+      });
+      if (!confirmation) {
+        throw new Error("La note n'a pas été confirmée par le serveur. Réessayez sans la modifier.");
+      }
+      const refreshedDetail = await fetchAgentRequestDetail(code);
+      const persistedNote = refreshedDetail.messages.find((message) =>
+        message.id === confirmation.messageId
+        && message.direction === "internal"
+        && message.createdAt === confirmation.messageCreatedAt
+      );
+      if (!persistedNote) {
+        throw new Error("La note est peut-être enregistrée, mais sa relecture a échoué. Réessayez sans la modifier.");
+      }
+      if (
+        selectedCodeRef.current !== code
+        || internalNoteSubmissionRef.current?.fingerprint !== submissionFingerprint
+        || internalNoteSubmissionRef.current.idempotencyKey !== idempotencyKey
+      ) return;
       setInternalNote("");
-      setDetail(await fetchAgentRequestDetail(selectedCode));
+      internalNoteSubmissionRef.current = null;
+      setDetail(refreshedDetail);
       setError(null);
     } catch (noteError) {
       setError(noteError instanceof Error ? noteError.message : "Note interne non enregistrée");

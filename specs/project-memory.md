@@ -3450,3 +3450,18 @@ taches et analyse de coherence avant une automatisation sensible.
   donnée réelle ni production. T028 reste ouverte pour le premier adaptateur
   complet du registre d'actions. Le brief Claude est préparé en lecture seule ;
   aucune exécution externe n'est comptée tant que son lancement n'est pas borné.
+
+### Jalon du 31 août 2026 - note interne récupérable et confirmée
+
+- Une note interne ne vide plus son éditeur sur le seul succès HTTP. Le reçu lie
+  le dossier, le message, sa création et l'événement transactionnel
+  `note.created`, sans exposer le texte ni l'identifiant de l'agent.
+- Une tentative conserve la même clé tant que son dossier et son texte ne
+  changent pas. Un rejeu retrouve uniquement une note du même auteur avec le
+  même texte et exige la trace correspondante.
+- La console valide le reçu, relit le dossier et exige le même identifiant, la
+  direction interne et le même horodatage avant d'effacer la note. Une coupure
+  conserve donc le diagnostic pour un nouvel essai sans doublon.
+- T028F de la spécification 002 est terminée sans migration, donnée réelle ni
+  production. T028 reste ouverte pour le premier adaptateur complet du registre
+  d'actions. Aucun audit externe n'a été exécuté sans autorisation bornée.

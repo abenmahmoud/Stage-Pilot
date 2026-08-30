@@ -433,6 +433,13 @@
   trace. L'éditeur n'est vidé qu'après relecture du message entrant exact. T028
   reste ouverte pour le premier adaptateur métier complet inscrit dans le
   registre des actions agent.
+- [x] T028F Exiger pour une note interne une preuve datée issue de l'événement
+  `note.created`, liée au dossier, au message, à sa création et à l'agent. Le
+  navigateur conserve la même clé tant que le dossier et le texte ne changent
+  pas ; un rejeu est accepté seulement pour le même auteur, le même texte et la
+  même trace. L'éditeur n'est vidé qu'après relecture de la note interne exacte.
+  T028 reste ouverte pour le premier adaptateur métier complet inscrit dans le
+  registre des actions agent.
 - [x] T029 Ajouter formulaire classique et création de demande sans dépendance à l'IA.
 - [x] T030 Ajouter mesure du coût, de la latence, des transferts et des corrections.
 - [x] T030A Mesurer chaque passage de l'assistant public sans contenu personnel :
