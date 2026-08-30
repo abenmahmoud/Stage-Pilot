@@ -1726,6 +1726,18 @@ taches et analyse de coherence avant une automatisation sensible.
 - Cinq tests de structure vérifient verrou, concurrence, non-régression, audit et
   minimisation. T020D est terminé sans exécution ni base distante.
 
+### Jalon du 30 août 2026 - reprise humaine persistée
+
+- La reprise relit sous verrou un travail mort et sa livraison, puis réapplique
+  les exigences rôle, MFA, confirmation, cause et état de livraison.
+- Le travail mort reste immuable. Un successeur `pending` part à zéro avec une
+  clé HMAC unique issue du travail d'origine ; un rejeu ne crée ni ligne ni audit
+  supplémentaire.
+- L'audit du premier succès conserve l'acteur nominatif, le type de successeur,
+  le code fermé d'origine et la date, sans coordonnées ni texte fournisseur.
+- Cinq tests de structure contrôlent autorisation, idempotence, immutabilité,
+  audit et sortie. T020E est terminé sans route ni base distante.
+
 ### Jalon du 30 août 2026 - contrat de délivrabilité Brevo
 
 - Un vérificateur Bearer commun protège désormais les futurs webhooks entrants

@@ -171,3 +171,8 @@ travail quitte `running` vers `retry` ou `dead`; seule une livraison encore
 `prepared`, `queued` ou `error` devient `error`. Les états fournisseur plus
 avancés restent intacts. L'événement ne contient qu'un code fermé, le numéro
 d'essai et la prochaine échéance.
+
+T020E conserve aussi la preuve humaine : la politique est appliquée après verrou
+du travail mort et de sa livraison. L'original n'est jamais modifié. Une HMAC
+issue de l'établissement et de l'identifiant du travail rend le successeur
+unique ; un double clic n'ajoute ni second travail ni second événement.

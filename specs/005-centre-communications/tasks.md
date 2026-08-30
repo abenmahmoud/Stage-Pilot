@@ -151,6 +151,10 @@
   `dead`, le travail et une livraison encore pré-envoi sont modifiés ensemble,
   puis un audit borné est ajouté. Un état déjà envoyé ne régresse jamais. T020
   reste ouvert jusqu'au runner, à la reprise manuelle persistée et à la boîte UI.
+- [x] T020E Persister la reprise humaine : le travail `dead` reste intact, un
+  successeur `pending` et idempotent est créé uniquement après rôle direction,
+  MFA et confirmation. Un rejeu retrouve la même clé sans second travail ni
+  second audit. T020 reste ouvert jusqu'à la route privée et à la boîte UI.
 - [x] T021A Ajouter un aperçu éditorial local sûr avant la relecture : rendu
   Markdown borné, images distantes neutralisées, liens isolés et absence de
   destinataire, publication ou envoi.
