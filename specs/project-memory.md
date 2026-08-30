@@ -1702,6 +1702,19 @@ taches et analyse de coherence avant une automatisation sensible.
 - Cinq tests de structure contrôlent le verrou, le cloisonnement, l'audit, les
   gardes d'écriture et la sortie. T018E et T029D sont terminés sans base distante.
 
+### Jalon du 30 août 2026 - prise durable des travaux Webmail
+
+- Une CTE prend les travaux d'envoi dus dans l'établissement avec
+  `FOR UPDATE SKIP LOCKED`, par lot de vingt au maximum, et les passe à
+  `running` avec un verrou daté.
+- Une seconde opération récupère au plus cent travaux réellement abandonnés ;
+  le délai est de cinq minutes par défaut et ne peut pas descendre sous deux.
+- L'interruption incrémente l'essai, ferme le verrou, inscrit seulement
+  `worker_interrupted`, puis reprogramme à une minute ou place en `dead` au
+  cinquième échec.
+- Six tests contrôlent périmètre, états, ordre, bornes, reprise et minimisation.
+  T020C et T029E sont terminés sans exécuter de travail ni ouvrir de route.
+
 ### Jalon du 30 août 2026 - contrat de délivrabilité Brevo
 
 - Un vérificateur Bearer commun protège désormais les futurs webhooks entrants

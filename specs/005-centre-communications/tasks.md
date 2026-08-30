@@ -143,6 +143,10 @@
   ainsi que les livraisons absentes ou terminales ne sont jamais relancées.
   T020 reste ouvert jusqu'à la transaction atomique, à la route et à
   l'interface de preview.
+- [x] T020C Ajouter la prise atomique des travaux d'envoi avec
+  `FOR UPDATE SKIP LOCKED`, lot borné et verrou horodaté. Un travail `running`
+  abandonné depuis au moins cinq minutes repart une minute plus tard ou devient
+  `dead` au cinquième échec. T020 reste ouvert jusqu'au runner et à la boîte UI.
 - [x] T021A Ajouter un aperçu éditorial local sûr avant la relecture : rendu
   Markdown borné, images distantes neutralisées, liens isolés et absence de
   destinataire, publication ou envoi.
@@ -220,6 +224,9 @@
 - [x] T029D Verrouiller la fenêtre de course à la complétion : les mises à jour
   exigent encore le statut et l'empreinte de commande lus sous verrou, et un
   conflit annule toute la transaction. T029 reste ouvert jusqu'à la recette DB.
+- [x] T029E Définir la concurrence de prise : vingt travaux au plus par appel,
+  ordre stable, verrous ignorés entre workers et récupération bornée de cent
+  travaux interrompus. T029 reste ouvert jusqu'à la recette DB de concurrence.
 - [x] T030 Vérifier PDF, image, DOCX, fichier invalide et données personnelles.
   Les PDF/DOCX fictifs sûrs sont extraits localement ; image, faux PDF et type
   incohérent sont refusés. Une adresse ou un code scolaire supprime le texte

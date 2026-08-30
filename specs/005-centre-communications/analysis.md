@@ -159,3 +159,9 @@ livraison dans le même périmètre établissement, puis recalcule la politique 
 la commande et le reçu vérifiés. Audit, livraison et travail partagent la
 transaction appelante ; une ligne modifiée entre-temps provoque un conflit et
 aucun état partiel n'est conservé.
+
+T020C rend la file partageable entre workers : une CTE verrouille uniquement
+les travaux dus de l'établissement et `SKIP LOCKED` empêche la double prise. Un
+verrou frais n'est jamais repris. Après cinq minutes, un travail interrompu est
+replanifié une minute plus tard avec un code fermé, ou devient `dead` au
+cinquième échec.
