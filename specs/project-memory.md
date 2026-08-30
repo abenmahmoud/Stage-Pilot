@@ -5,6 +5,17 @@
 **Depot** : `abenmahmoud/Stage-Pilot`
 **Dernier jalon de code verifie** : branche de preview Vercel
 
+## Jalon du 30 août 2026 - création confirmée avant tout effet navigateur
+
+- Le frontend valide désormais le numéro, le statut, les dates, l'idempotence et
+  la preuve de persistance avant affichage, mémoire locale ou dépôt de fichier.
+- Une confirmation liée à un autre dossier est refusée avec une erreur usager
+  claire et sans exposer le faux numéro.
+- La recette Chromium confirme ce refus à 320 et 1 440 px sans débordement ni
+  erreur JavaScript.
+- Lot preview uniquement : aucun dossier réel, envoi, base distante ou
+  production n'a été utilisé ou modifié.
+
 ## Jalon du 30 août 2026 - échange du lien magique validé côté navigateur
 
 - Le frontend n'ouvre plus un suivi à partir d'une confirmation réseau non

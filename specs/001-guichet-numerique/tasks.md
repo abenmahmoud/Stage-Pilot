@@ -31,6 +31,8 @@ restante, soit une configuration externe ou une validation par la direction.
 - [x] **T005** Écrire et tester les politiques RLS par rôle.
 - [x] **T006** Créer `POST /api/support/requests` avec validation stricte,
   transaction et idempotence.
+- [x] **T006A** Valider dans le navigateur la réponse complète de création et sa
+  preuve liée avant affichage ou écriture dans la mémoire de l'appareil.
 - [x] **T007** Créer l'échange jeton magique vers session HttpOnly, limiter les
   tentatives par réseau et faire vérifier uniquement l'adresse destinataire.
 - [x] **T007A** Valider le numéro public renvoyé par l'échange du lien magique

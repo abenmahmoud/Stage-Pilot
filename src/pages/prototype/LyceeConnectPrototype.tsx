@@ -1356,21 +1356,9 @@ function HelpDeskView({
             website: form.get("website"),
           }),
         });
-      const payload = (await response.json()) as {
-        request?: { publicCode?: string; status?: string; createdAt?: string };
-        confirmation?: unknown;
-        error?: string;
-      };
-      if (
-        !response.ok ||
-        !payload.request?.publicCode ||
-        !payload.request.createdAt ||
-        !verifySupportRequestPersistenceConfirmation({
-          expectedPublicCode: payload.request.publicCode,
-          confirmation: payload.confirmation,
-        })
-      ) {
-        throw new Error(payload.error ?? "La demande n’a pas pu être confirmée après son enregistrement");
+      const payload = await readApiResponse<unknown>(response);
+      if (!isSupportRequestCreationPayload(payload)) {
+        throw new Error("La demande n’a pas pu être confirmée après son enregistrement");
       }
       const publicCode = payload.request.publicCode;
       const persistedCreatedAt = payload.request.createdAt;
@@ -2477,6 +2465,31 @@ function isSupportMagicAccessPayload(value: unknown): value is { request: { publ
     && isRecord(value.request)
     && typeof value.request.publicCode === "string"
     && /^BC-\d{4}-\d{6}$/.test(value.request.publicCode);
+}
+
+function isSupportRequestCreationPayload(value: unknown): value is {
+  request: { publicCode: string; status: string; createdAt: string };
+  confirmation: unknown;
+  duplicate: boolean;
+} {
+  if (!isRecord(value) || !isRecord(value.request)) return false;
+  const publicCode = value.request.publicCode;
+  const createdAt = value.request.createdAt;
+  if (typeof publicCode !== "string"
+    || !/^BC-\d{4}-\d{6}$/.test(publicCode)
+    || !Object.hasOwn(supportStatusLabels, String(value.request.status))
+    || !isPublicSupportDate(createdAt)
+    || typeof value.duplicate !== "boolean") return false;
+  const confirmation = verifySupportRequestPersistenceConfirmation({
+    expectedPublicCode: publicCode,
+    confirmation: value.confirmation,
+  });
+  if (!confirmation) return false;
+  const createdTime = Date.parse(createdAt);
+  const confirmedTime = Date.parse(confirmation.confirmedAt);
+  return createdTime <= confirmedTime
+    && createdTime <= Date.now() + (5 * 60_000)
+    && confirmedTime <= Date.now() + (5 * 60_000);
 }
 
 function isPublicSupportRequestSummary(value: unknown): value is SupportRequestSummary {
