@@ -70,6 +70,8 @@ quarantaine. Une panne d'envoi externe n'affecte pas le dossier.
 - [x] **T016B** Afficher les trois niveaux de vérification, exiger le lien avec
   une liste officielle pour confirmer une identité et bloquer la résolution des
   demandes ENT ou email académique sans cette confirmation.
+- [x] **T016C** Valider strictement la liste publique avant affichage, mémoire
+  locale ou notification, puis ignorer les actualisations réseau obsolètes.
 - [x] **T017** Construire la file agent paginée avec filtres, SLA et assignation.
 - [x] **T017A** Protéger les modifications et réponses par révision, rendre la
   prise en charge atomique et actualiser l'écran après un conflit.

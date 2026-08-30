@@ -5,6 +5,17 @@
 **Depot** : `abenmahmoud/Stage-Pilot`
 **Dernier jalon de code verifie** : branche de preview Vercel
 
+## Jalon du 30 août 2026 - liste publique validée avant mémoire
+
+- `Mes demandes` valide chaque numéro, libellé, catégorie, statut, priorité et
+  date avant affichage, notification ou écriture dans IndexedDB.
+- La réponse est limitée à 200 dossiers sans numéro dupliqué ; une actualisation
+  obsolète ne peut plus remplacer une liste plus récente.
+- La recette navigateur refuse une réponse malformée à 320 et 1 440 px, conserve
+  un écran stable sans débordement et la porte de sécurité complète reste verte.
+- Lot preview uniquement : aucune donnée réelle, production ou intégration
+  externe n'a été utilisée ou modifiée.
+
 ## Jalon du 30 août 2026 - extraction locale des présentations PPTX
 
 - Les diapositives et notes PPTX sont extraites localement après antivirus et

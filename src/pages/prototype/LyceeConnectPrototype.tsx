@@ -1681,6 +1681,7 @@ function ConnectedRequestsView({ ticketCode, onBack }: { ticketCode: string | nu
   const followupFileInputRef = useRef<HTMLInputElement>(null);
   const notificationsEnabledRef = useRef(false);
   const selectedCodeRef = useRef<string | null>(ticketCode);
+  const requestsLoadIdRef = useRef(0);
   const notificationSnapshotsRef = useRef(new Map<string, ActiveSupportNotificationSnapshot>());
   const detailedCodesRef = useRef(new Set<string>());
 
@@ -1714,11 +1715,16 @@ function ConnectedRequestsView({ ticketCode, onBack }: { ticketCode: string | nu
   }
 
   async function loadRequests(showLoading = false) {
+    const loadId = ++requestsLoadIdRef.current;
     if (showLoading) setLoading(true);
     try {
-      const payload = await readApiResponse<{ requests: SupportRequestSummary[] }>(
+      const payload = await readApiResponse<unknown>(
         fetch("/api/support/requests", { credentials: "include" })
       );
+      if (!isPublicSupportRequestListPayload(payload)) {
+        throw new Error("La liste des demandes reçue est invalide.");
+      }
+      if (loadId !== requestsLoadIdRef.current) return;
       const receivedCodes = new Set(payload.requests.map((request) => request.publicCode));
       for (const request of payload.requests) {
         if (request.publicCode === selectedCodeRef.current) continue;
@@ -1735,6 +1741,7 @@ function ConnectedRequestsView({ ticketCode, onBack }: { ticketCode: string | nu
       }
       await rememberSupportRequests(payload.requests);
       const remembered = await listRememberedSupportRequests();
+      if (loadId !== requestsLoadIdRef.current) return;
       const serverCodes = new Set(payload.requests.map((request) => request.publicCode));
       const merged: SupportRequestSummary[] = [
         ...payload.requests,
@@ -1746,6 +1753,7 @@ function ConnectedRequestsView({ ticketCode, onBack }: { ticketCode: string | nu
       setSelectedCode((current) => current ?? merged[0]?.publicCode ?? null);
       setError(null);
     } catch (requestError) {
+      if (loadId !== requestsLoadIdRef.current) return;
       const remembered = await listRememberedSupportRequests();
       if (remembered.length > 0) {
         setRequests(remembered.map((request) => ({ ...request, rememberedOnly: true })));
@@ -1759,7 +1767,7 @@ function ConnectedRequestsView({ ticketCode, onBack }: { ticketCode: string | nu
         );
       }
     } finally {
-      if (showLoading) setLoading(false);
+      if (loadId === requestsLoadIdRef.current) setLoading(false);
     }
   }
 
@@ -2427,6 +2435,41 @@ function isNonNegativeInteger(value: unknown): value is number {
 
 function isPositiveInteger(value: unknown): value is number {
   return isNonNegativeInteger(value) && value >= 1;
+}
+
+function isBoundedString(value: unknown, maxLength: number, allowEmpty = false): value is string {
+  return typeof value === "string"
+    && value.length <= maxLength
+    && (allowEmpty || value.trim().length > 0);
+}
+
+function isPublicSupportDate(value: unknown): value is string {
+  return isBoundedString(value, 40) && Number.isFinite(Date.parse(value));
+}
+
+function isPublicSupportRequestSummary(value: unknown): value is SupportRequestSummary {
+  if (!isRecord(value)) return false;
+  const identityStatus = value.identityStatus;
+  const rememberedOnly = value.rememberedOnly;
+  return typeof value.publicCode === "string"
+    && /^BC-\d{4}-\d{6}$/.test(value.publicCode)
+    && isBoundedString(value.subject, 180)
+    && supportCategories.some((category) => category.value === value.category)
+    && Object.hasOwn(supportStatusLabels, String(value.status))
+    && Object.hasOwn(priorityLabels, String(value.priority))
+    && isPublicSupportDate(value.createdAt)
+    && isPublicSupportDate(value.updatedAt)
+    && Date.parse(value.createdAt) <= Date.parse(value.updatedAt)
+    && (identityStatus === undefined || ["non_verifiee", "contact_verifie", "identite_confirmee"].includes(String(identityStatus)))
+    && (rememberedOnly === undefined || typeof rememberedOnly === "boolean");
+}
+
+function isPublicSupportRequestListPayload(value: unknown): value is { requests: SupportRequestSummary[] } {
+  return isRecord(value)
+    && Array.isArray(value.requests)
+    && value.requests.length <= 200
+    && value.requests.every(isPublicSupportRequestSummary)
+    && new Set(value.requests.map((request) => request.publicCode)).size === value.requests.length;
 }
 
 function isAgentRequestCore(value: unknown): value is AgentRequestCore {
