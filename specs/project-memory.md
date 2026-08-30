@@ -1479,6 +1479,9 @@ taches et analyse de coherence avant une automatisation sensible.
   peuvent les modifier, avec l'authentification renforcée déjà imposée.
 - Aucun modèle ne contient de destinataire. Son API ne publie, ne cible et
   n'envoie rien, et reste derrière les deux interrupteurs du module.
+- L'écran fermé permet de préremplir un brouillon depuis un modèle actif. La
+  direction peut modifier les six modèles sans changer leur clé ni ouvrir une
+  action officielle.
 - La migration est appliquée uniquement sur la preview. La recette fictive a
   refusé cinq contournements puis laissé quatre compteurs de résidus à zéro ;
   les auditeurs Supabase ne remontent aucun `WARN` ou `ERROR` sur ces tables.

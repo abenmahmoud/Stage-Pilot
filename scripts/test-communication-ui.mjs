@@ -34,3 +34,12 @@ test("provides bounded responsive fields without recipient inputs", () => {
   assert.match(page, /lg:grid-cols-/);
   assert.doesNotMatch(page, /type="email"|destinataire|contactRef/iu);
 });
+
+test("uses governed templates without opening publication or sending", () => {
+  assert.match(page, /communications\/admin\/templates/);
+  assert.match(page, /applyTemplate/);
+  assert.match(page, /user\?\.role === "superadmin" \|\| user\?\.role === "proviseur"/);
+  assert.match(page, /method: "PATCH"/);
+  assert.match(page, /templateKey: editingTemplate\.templateKey/);
+  assert.doesNotMatch(page, /COMMUNICATION_PUBLICATION_ENABLED|COMMUNICATION_SEND_ENABLED/);
+});

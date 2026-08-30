@@ -13,6 +13,7 @@ const valid = {
   summary: "Résumé fictif",
   bodyMarkdown: "Contenu strictement fictif.",
   category: "information",
+  templateKey: null,
 };
 
 test("parses a bounded direct draft and normalizes line endings", () => {
@@ -28,12 +29,21 @@ test("computes separate stable server fingerprints", () => {
   assert.match(communicationDraftContentHash(input), /^[a-f0-9]{64}$/);
   assert.notEqual(communicationDraftSourceFingerprint(input), communicationDraftContentHash(input));
   assert.equal(communicationDraftSourceFingerprint(input), communicationDraftSourceFingerprint({ ...input }));
+  assert.equal(
+    communicationDraftSourceFingerprint(input),
+    communicationDraftSourceFingerprint({ ...input, category: "urgent", templateKey: "urgent" })
+  );
+  assert.notEqual(
+    communicationDraftContentHash(input),
+    communicationDraftContentHash({ ...input, category: "urgent", templateKey: "urgent" })
+  );
 });
 
 test("rejects secrets, unknown fields and unsupported source types", () => {
   assert.throws(() => parseCommunicationDraftInput({ ...valid, bodyMarkdown: "mot de passe: Azerty123!" }), /secret_forbidden/);
   assert.throws(() => parseCommunicationDraftInput({ ...valid, recipients: ["x@example.test"] }), /unknown_field/);
   assert.throws(() => parseCommunicationDraftInput({ ...valid, sourceType: "forwarded_email" }), /source_type_invalid/);
+  assert.throws(() => parseCommunicationDraftInput({ ...valid, templateKey: "inconnu" }), /template_key_invalid/);
 });
 
 test("keeps the API private, scoped, transactional and idempotent", () => {
@@ -50,4 +60,5 @@ test("keeps the API private, scoped, transactional and idempotent", () => {
   assert.match(route, /communicationEvents/);
   assert.doesNotMatch(route, /req\.body\.sourceFingerprint|input\.sourceFingerprint/);
   assert.match(route, /visibility: "internal"/);
+  assert.match(route, /templateKey: input\.templateKey/);
 });

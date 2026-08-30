@@ -10,6 +10,8 @@ plafond de consommation de cette mission ne sont pas fournis.
 - `shared/communication-templates.ts`
 - `api/communications/admin/templates.ts`
 - ajout de rôles dans `api/_shared/communications.ts`
+- conservation du modèle dans `shared/communication-draft.ts` et l'API de brouillon
+- sélection et édition dans `src/pages/admin/CommunicationsPage.tsx`
 - migration `20260830070000_create_communication_templates.sql`
 - modèles Drizzle et tests associés
 

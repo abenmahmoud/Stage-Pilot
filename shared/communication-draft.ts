@@ -1,5 +1,9 @@
 import { createHash } from "node:crypto";
 import { detectForbiddenSupportSecret } from "./support-secret-policy.js";
+import {
+  COMMUNICATION_TEMPLATE_KEYS,
+  type CommunicationTemplateKey,
+} from "./communication-templates.js";
 
 export type CommunicationDraftInput = {
   sourceType: "direct_text";
@@ -7,9 +11,10 @@ export type CommunicationDraftInput = {
   summary: string;
   bodyMarkdown: string;
   category: string;
+  templateKey: CommunicationTemplateKey | null;
 };
 
-const FIELDS = new Set(["sourceType", "title", "summary", "bodyMarkdown", "category"]);
+const FIELDS = new Set(["sourceType", "title", "summary", "bodyMarkdown", "category", "templateKey"]);
 
 function boundedText(value: unknown, field: string, minimum: number, maximum: number): string {
   if (typeof value !== "string") throw new Error(`${field}_invalid`);
@@ -34,8 +39,14 @@ export function parseCommunicationDraftInput(value: unknown): CommunicationDraft
     summary: boundedText(input.summary ?? "", "summary", 0, 1000),
     bodyMarkdown: boundedText(input.bodyMarkdown, "body", 1, 100000),
     category: boundedText(input.category ?? "information", "category", 2, 40),
+    templateKey: input.templateKey == null
+      ? null
+      : input.templateKey as CommunicationTemplateKey,
   };
   if (!/^[a-z][a-z0-9_-]{1,39}$/.test(parsed.category)) throw new Error("category_invalid");
+  if (parsed.templateKey && !COMMUNICATION_TEMPLATE_KEYS.includes(parsed.templateKey)) {
+    throw new Error("template_key_invalid");
+  }
 
   const combined = `${parsed.title}\n${parsed.summary}\n${parsed.bodyMarkdown}`;
   if (detectForbiddenSupportSecret(combined)) throw new Error("secret_forbidden");
@@ -48,7 +59,14 @@ function hashCommunicationDraft(input: CommunicationDraftInput, purpose: string)
 }
 
 export function communicationDraftSourceFingerprint(input: CommunicationDraftInput): string {
-  return hashCommunicationDraft(input, "source");
+  return hashCommunicationDraft({
+    sourceType: input.sourceType,
+    title: input.title,
+    summary: input.summary,
+    bodyMarkdown: input.bodyMarkdown,
+    category: "source",
+    templateKey: null,
+  }, "source");
 }
 
 export function communicationDraftContentHash(input: CommunicationDraftInput): string {

@@ -7,6 +7,7 @@ import {
   LoaderCircle,
   LockKeyhole,
   MessageSquareText,
+  Pencil,
   Plus,
   RefreshCw,
   Save,
@@ -14,12 +15,14 @@ import {
 } from "lucide-react";
 import { apiFetch } from "../../lib/api";
 import { COMMUNICATIONS_UI_ENABLED } from "../../lib/feature-flags";
+import { useAuth } from "../../lib/auth-context";
 
 type CommunicationRow = {
   id: string;
   status: string;
   visibility: string;
   category: string;
+  templateKey: string | null;
   currentVersion: number;
   updatedAt: string;
   title: string;
@@ -29,8 +32,22 @@ type CommunicationRow = {
 type CommunicationsPayload = { communications: CommunicationRow[] };
 
 type CreatePayload = {
-  communication: CommunicationRow;
+  communication: Pick<CommunicationRow, "id" | "status" | "visibility" | "currentVersion" | "updatedAt">;
   duplicate: boolean;
+};
+
+type CommunicationTemplate = {
+  id: string | null;
+  templateKey: string;
+  label: string;
+  defaultCategory: string;
+  titleHint: string;
+  summaryHint: string;
+  bodyMarkdown: string;
+  active: boolean;
+  version: number;
+  updatedAt: string | null;
+  customized: boolean;
 };
 
 const CATEGORY_OPTIONS = [
@@ -63,15 +80,20 @@ function emptyDraft() {
     summary: "",
     bodyMarkdown: "",
     category: "information",
+    templateKey: null as string | null,
   };
 }
 
 export default function CommunicationsPage() {
+  const { user } = useAuth();
   const [rows, setRows] = useState<CommunicationRow[]>([]);
+  const [templates, setTemplates] = useState<CommunicationTemplate[]>([]);
   const [draft, setDraft] = useState(emptyDraft);
+  const [editingTemplate, setEditingTemplate] = useState<CommunicationTemplate | null>(null);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [loading, setLoading] = useState(COMMUNICATIONS_UI_ENABLED);
   const [saving, setSaving] = useState(false);
+  const [savingTemplate, setSavingTemplate] = useState(false);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
 
@@ -80,8 +102,12 @@ export default function CommunicationsPage() {
     setLoading(true);
     setError("");
     try {
-      const payload = await apiFetch<CommunicationsPayload>("communications/admin");
-      setRows(payload.communications);
+      const [communications, templatePayload] = await Promise.all([
+        apiFetch<CommunicationsPayload>("communications/admin"),
+        apiFetch<{ templates: CommunicationTemplate[] }>("communications/admin/templates"),
+      ]);
+      setRows(communications.communications);
+      setTemplates(templatePayload.templates);
     } catch (reason) {
       setError(reason instanceof Error ? reason.message : "Communications indisponibles.");
     } finally {
@@ -97,6 +123,52 @@ export default function CommunicationsPage() {
     () => rows.find((row) => row.id === selectedId) ?? null,
     [rows, selectedId]
   );
+  const canManageTemplates = user?.role === "superadmin" || user?.role === "proviseur";
+
+  function applyTemplate(templateKey: string) {
+    if (!templateKey) {
+      setDraft((current) => ({ ...current, templateKey: null }));
+      return;
+    }
+    const template = templates.find((item) => item.templateKey === templateKey);
+    if (!template) return;
+    setDraft({
+      templateKey: template.templateKey,
+      category: template.defaultCategory,
+      title: template.titleHint,
+      summary: template.summaryHint,
+      bodyMarkdown: template.bodyMarkdown,
+    });
+  }
+
+  async function saveTemplate(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!editingTemplate) return;
+    setSavingTemplate(true);
+    setError("");
+    setNotice("");
+    try {
+      await apiFetch("communications/admin/templates", {
+        method: "PATCH",
+        body: JSON.stringify({
+          templateKey: editingTemplate.templateKey,
+          label: editingTemplate.label,
+          defaultCategory: editingTemplate.defaultCategory,
+          titleHint: editingTemplate.titleHint,
+          summaryHint: editingTemplate.summaryHint,
+          bodyMarkdown: editingTemplate.bodyMarkdown,
+          active: editingTemplate.active,
+        }),
+      });
+      setEditingTemplate(null);
+      setNotice("Le modèle est enregistré avec une nouvelle version.");
+      await load();
+    } catch (reason) {
+      setError(reason instanceof Error ? reason.message : "Modification du modèle impossible.");
+    } finally {
+      setSavingTemplate(false);
+    }
+  }
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -228,8 +300,9 @@ export default function CommunicationsPage() {
               <span className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-600"><LockKeyhole className="h-3.5 w-3.5" /> Privé</span>
             </div>
             {selected.summary ? <p className="mt-4 whitespace-pre-line text-sm leading-6 text-slate-700">{selected.summary}</p> : null}
-            <dl className="mt-6 grid gap-3 border-y border-slate-200 py-4 text-sm sm:grid-cols-3">
+            <dl className="mt-6 grid gap-3 border-y border-slate-200 py-4 text-sm sm:grid-cols-2 xl:grid-cols-4">
               <div><dt className="text-slate-500">Catégorie</dt><dd className="mt-1 font-semibold text-slate-950">{CATEGORY_OPTIONS.find((item) => item.value === selected.category)?.label ?? selected.category}</dd></div>
+              <div><dt className="text-slate-500">Modèle</dt><dd className="mt-1 font-semibold text-slate-950">{templates.find((item) => item.templateKey === selected.templateKey)?.label ?? "Sans modèle"}</dd></div>
               <div><dt className="text-slate-500">Visibilité</dt><dd className="mt-1 font-semibold text-slate-950">Interne</dd></div>
               <div><dt className="text-slate-500">Version</dt><dd className="mt-1 font-semibold text-slate-950">{selected.currentVersion}</dd></div>
             </dl>
@@ -240,6 +313,21 @@ export default function CommunicationsPage() {
             <div className="flex items-start gap-3">
               <FilePenLine className="mt-0.5 h-5 w-5 shrink-0 text-emerald-700" />
               <div><h2 className="font-bold text-slate-950">Nouvelle communication</h2><p className="mt-1 text-sm text-slate-500">Enregistrée comme brouillon interne</p></div>
+            </div>
+
+            <div className="grid items-end gap-3 sm:grid-cols-[minmax(0,1fr)_auto]">
+              <label className="block text-sm font-semibold text-slate-800">
+                Modèle
+                <select value={draft.templateKey ?? ""} onChange={(event) => applyTemplate(event.target.value)} className="mt-1.5 w-full rounded-md border border-slate-300 bg-white px-3 py-2.5 font-normal text-slate-950 outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100">
+                  <option value="">Sans modèle</option>
+                  {templates.filter((template) => template.active).map((template) => <option key={template.templateKey} value={template.templateKey}>{template.label}</option>)}
+                </select>
+              </label>
+              {canManageTemplates && draft.templateKey ? (
+                <button type="button" onClick={() => setEditingTemplate(templates.find((item) => item.templateKey === draft.templateKey) ?? null)} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-md border border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-slate-700">
+                  <Pencil className="h-4 w-4" /> Modifier
+                </button>
+              ) : null}
             </div>
 
             <label className="block text-sm font-semibold text-slate-800">
@@ -275,6 +363,44 @@ export default function CommunicationsPage() {
           </form>
         )}
       </div>
+
+      {canManageTemplates ? (
+        <section className="space-y-4 border-y border-slate-200 py-5" aria-labelledby="communication-templates-title">
+          <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-end">
+            <div>
+              <p className="text-sm font-semibold text-emerald-700">Direction</p>
+              <h2 id="communication-templates-title" className="mt-1 text-lg font-bold text-slate-950">Modèles de rédaction</h2>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {templates.map((template) => (
+                <button key={template.templateKey} type="button" onClick={() => setEditingTemplate({ ...template })} className={`rounded-md border px-3 py-2 text-sm font-semibold ${editingTemplate?.templateKey === template.templateKey ? "border-emerald-700 bg-emerald-50 text-emerald-800" : "border-slate-200 bg-white text-slate-700"}`}>
+                  {template.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {editingTemplate ? (
+            <form onSubmit={saveTemplate} className="grid gap-4 border-l-4 border-emerald-700 bg-white p-4 shadow-sm sm:p-5">
+              <div className="flex items-center justify-between gap-3">
+                <div><strong className="text-slate-950">{editingTemplate.label}</strong><p className="text-xs text-slate-500">{editingTemplate.customized ? `Version ${editingTemplate.version}` : "Modèle d’origine"}</p></div>
+                <label className="inline-flex items-center gap-2 text-sm font-semibold text-slate-700"><input type="checkbox" checked={editingTemplate.active} onChange={(event) => setEditingTemplate((current) => current ? { ...current, active: event.target.checked } : current)} className="h-4 w-4 accent-emerald-700" /> Actif</label>
+              </div>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <label className="text-sm font-semibold text-slate-800">Nom<input required minLength={2} maxLength={80} value={editingTemplate.label} onChange={(event) => setEditingTemplate((current) => current ? { ...current, label: event.target.value } : current)} className="mt-1.5 w-full rounded-md border border-slate-300 px-3 py-2 font-normal" /></label>
+                <label className="text-sm font-semibold text-slate-800">Catégorie<select value={editingTemplate.defaultCategory} onChange={(event) => setEditingTemplate((current) => current ? { ...current, defaultCategory: event.target.value } : current)} className="mt-1.5 w-full rounded-md border border-slate-300 bg-white px-3 py-2 font-normal">{CATEGORY_OPTIONS.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}</select></label>
+              </div>
+              <label className="text-sm font-semibold text-slate-800">Titre proposé<input maxLength={180} value={editingTemplate.titleHint} onChange={(event) => setEditingTemplate((current) => current ? { ...current, titleHint: event.target.value } : current)} className="mt-1.5 w-full rounded-md border border-slate-300 px-3 py-2 font-normal" /></label>
+              <label className="text-sm font-semibold text-slate-800">Résumé proposé<textarea maxLength={1000} rows={2} value={editingTemplate.summaryHint} onChange={(event) => setEditingTemplate((current) => current ? { ...current, summaryHint: event.target.value } : current)} className="mt-1.5 w-full resize-y rounded-md border border-slate-300 px-3 py-2 font-normal" /></label>
+              <label className="text-sm font-semibold text-slate-800">Structure du message<textarea required maxLength={20000} rows={7} value={editingTemplate.bodyMarkdown} onChange={(event) => setEditingTemplate((current) => current ? { ...current, bodyMarkdown: event.target.value } : current)} className="mt-1.5 w-full resize-y rounded-md border border-slate-300 px-3 py-2 font-normal leading-6" /></label>
+              <div className="flex flex-col-reverse gap-3 border-t border-slate-200 pt-4 sm:flex-row sm:justify-end">
+                <button type="button" onClick={() => setEditingTemplate(null)} className="min-h-10 rounded-md border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700">Annuler</button>
+                <button type="submit" disabled={savingTemplate} className="inline-flex min-h-10 items-center justify-center gap-2 rounded-md bg-emerald-700 px-4 py-2 text-sm font-semibold text-white disabled:opacity-50">{savingTemplate ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />} Enregistrer le modèle</button>
+              </div>
+            </form>
+          ) : null}
+        </section>
+      ) : null}
 
       <section className="grid gap-px overflow-hidden rounded-md border border-slate-200 bg-slate-200 sm:grid-cols-2" aria-label="Actions verrouillées">
         <div className="flex items-center gap-3 bg-white px-4 py-3 text-slate-500"><Check className="h-4 w-4" /><span className="text-sm"><strong className="block text-slate-700">Validation humaine</strong>Aucune validation disponible</span></div>

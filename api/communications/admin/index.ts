@@ -34,6 +34,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           status: communications.status,
           visibility: communications.visibility,
           category: communications.category,
+          templateKey: communications.templateKey,
           currentVersion: communications.currentVersion,
           updatedAt: communications.updatedAt,
           title: communicationVersions.title,
@@ -78,6 +79,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             status: "draft",
             visibility: "internal",
             category: input.category,
+            templateKey: input.templateKey,
             currentVersion: 1,
             createdBy: context.user.id,
           })

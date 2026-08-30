@@ -44,7 +44,8 @@
 - [x] T013 Ajouter les modèles Hebdo, Urgent, Rentrée, Document, Événement et
   Rappel. Le catalogue sûr fonctionne sans donnée persistée ; seuls superadmin
   et proviseur peuvent enregistrer une personnalisation versionnée et auditée,
-  sans publication, audience ou envoi.
+  sans publication, audience ou envoi. Le choix préremplit le brouillon dans
+  l'interface fermée et conserve la référence du modèle.
 - [ ] T014 Publier la version validée dans le flux daté du site.
 - [ ] T015 Ajouter recherche, filtres, épinglage, expiration et archives publics.
 
