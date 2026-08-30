@@ -15,6 +15,7 @@
     "test:support-agent": "node --import ./scripts/ts-test-resolver.mjs --experimental-strip-types scripts/test-support-agent.mjs",
     "test:agent-orchestration": "node --import ./scripts/ts-test-resolver.mjs --experimental-strip-types scripts/test-agent-orchestration.mjs",
     "test:agent-tool-policy": "node --experimental-strip-types scripts/test-agent-tool-policy.mjs",
+    "test:agent-action-persistence": "node scripts/test-agent-action-persistence-security.mjs",
     "test:support-multilingual": "node --import ./scripts/ts-test-resolver.mjs --experimental-transform-types scripts/test-support-multilingual.mjs",
     "test:support-translation": "node --import ./scripts/ts-test-resolver.mjs --experimental-strip-types scripts/test-support-translation.mjs",
     "test:support-pseudonymizer": "node --experimental-strip-types scripts/test-support-pseudonymizer.mjs",

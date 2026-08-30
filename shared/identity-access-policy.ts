@@ -169,6 +169,9 @@ export function authorizeInstitutionAccess(input: {
     if (!["agent", "service_manager", "admin"].includes(membership.role)) {
       return { ok: false, reason: "role_insufficient" };
     }
+    if (actor.authenticatorLevel !== "aal2") {
+      return { ok: false, reason: "mfa_required" };
+    }
     return { ok: true, basis: "membership" };
   }
 

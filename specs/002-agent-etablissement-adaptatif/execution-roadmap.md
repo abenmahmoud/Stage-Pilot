@@ -353,8 +353,17 @@ l'autorisation de quota définie par le propriétaire.
   service, relation et MFA restent séparés. A3 attend une approbation indépendante
   liée à l'action, l'outil et l'empreinte d'entrée ; une approbation expirée,
   consommée ou rejouée est refusée. A4 est bloqué sans exception. La preuve
-  `confirmed_at` est validée, mais T018 et T028 restent ouvertes jusqu'à la
-  persistance atomique, l'interface et un premier adaptateur réel autorisé.
+  `confirmed_at` est validée. Ce lot ne persistait encore rien ; le lot N5Z
+  ajoute cette persistance sans fermer l'interface T018 ni l'adaptateur T028.
+- Lot N5Z : persistance des actions et validations. **Appliqué uniquement à la
+  preview et testé avec des données fictives annulées** : trois tables privées
+  conservent action, validation et audit ; A4 est absent des valeurs acceptées,
+  A3 exige un demandeur nominatif et une validation indépendante liée à l'outil
+  et à l'empreinte recalculée. Une fonction `security invoker` verrouille puis
+  consomme la validation avant `running`. Le rôle serveur ne possède aucun droit
+  de suppression. La recette a vérifié cinq événements d'audit et le refus d'un
+  second appel, puis `ROLLBACK`. T018 reste ouverte pour la boîte de validation
+  et T028 pour le premier adaptateur et l'affichage confirmé.
 - Lot N6 : tests de non-régression, build, contrôle mobile et rapport d'écarts.
   **Partiellement validé en preview** : 200 transactions concurrentes sans perte
   ni reste après nettoyage, 135 contrôles de sécurité, build réussi, PWA active,

@@ -1158,12 +1158,35 @@ taches et analyse de coherence avant une automatisation sensible.
 - Aucun outil, connecteur, compte, donnée réelle ou environnement de production
   n'a été activé par ce jalon.
 
+### Jalon du 30 août 2026 - persistance A3 anti-rejeu
+
+- Les tables privées `agent_actions`, `agent_approvals` et
+  `agent_action_audit` sont appliquées seulement à la branche Supabase de
+  preview. Elles sont vides après recette, sous RLS activée et forcée, sans droit
+  direct pour `anon` ou `authenticated`.
+- L'entrée structurée est assainie puis son empreinte SHA-256 est recalculée côté
+  serveur. Une substitution après validation est refusée. `A4` est interdit par
+  la politique et par les valeurs acceptées en base.
+- Une validation `A3` est liée à l'établissement, l'action, l'outil, l'empreinte
+  et au demandeur nominatif. L'approbateur doit être distinct et posséder le rôle
+  attendu ; la validation doit être courante et non consommée.
+- La fonction `agent_consume_approval` verrouille les lignes dans un ordre fixe,
+  consomme la validation puis démarre l'action dans la même transaction. Le rôle
+  serveur ne peut supprimer ni action, ni validation, ni audit.
+- Une recette entièrement fictive a produit cinq événements, refusé un rejeu,
+  puis annulé toutes les écritures. Aucun outil, document réel, production ou
+  connecteur officiel n'a été touché.
+- T018 reste ouverte pour l'interface de validation et son branchement. T028
+  reste ouverte pour un adaptateur réel autorisé et l'affichage après preuve.
+
 ## 8. Prochain ordre recommande
 
-1. Publier et tester le pré-triage ordinateur portable avec des données fictives.
-2. Installer puis éprouver le worker d'emplois du temps sur données fictives,
+1. Construire la boîte de validation A3 et ses API sur le socle persistant,
+   sans brancher encore de connecteur officiel.
+2. Publier et tester le pré-triage ordinateur portable avec des données fictives.
+3. Installer puis éprouver le worker d'emplois du temps sur données fictives,
    avant tout dépôt réel ; construire ensuite le lien agent limité à une page.
-3. Reprendre le skill ENT après ouverture de l'accès administrateur du référent.
-4. Terminer le retour email, la sauvegarde, les tests de charge et les comptes
+4. Reprendre le skill ENT après ouverture de l'accès administrateur du référent.
+5. Terminer le retour email, la sauvegarde, les tests de charge et les comptes
    agents nominatifs.
-5. Migrer le reste du site et envisager la bascule seulement après convergence.
+6. Migrer le reste du site et envisager la bascule seulement après convergence.

@@ -2,12 +2,12 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import {
   authorizeAgentToolInvocation,
+  fingerprintAgentToolInput,
   verifyAgentToolConfirmation,
 } from "../shared/agent-tool-policy.ts";
 
 const NOW = "2026-08-30T09:00:00.000Z";
 const ACTION_ID = "action:000123";
-const INPUT_FINGERPRINT = "a".repeat(64);
 
 function actor(overrides = {}) {
   return {
@@ -57,6 +57,7 @@ const validInput = {
   status: "en_cours",
   notifyRequester: true,
 };
+const INPUT_FINGERPRINT = fingerprintAgentToolInput(validInput);
 
 test("authorizes only a published skill exact tool grant with bounded input", () => {
   const decision = authorizeAgentToolInvocation({
@@ -188,6 +189,78 @@ test("keeps A3 waiting until an independent current approval exists", () => {
     authorizeAgentToolInvocation({ ...base, approval: { ...approval, consumedAt: "2026-08-30T08:59:30.000Z" } }),
     { ok: false, status: "refused", reason: "approval_invalid" }
   );
+  for (const status of ["rejected", "expired", "cancelled"]) {
+    assert.deepEqual(
+      authorizeAgentToolInvocation({ ...base, approval: { ...approval, status } }),
+      { ok: false, status: "refused", reason: "approval_invalid" }
+    );
+  }
+  assert.deepEqual(
+    authorizeAgentToolInvocation({ ...base, actor: actor({ userId: null }), approval }),
+    { ok: false, status: "refused", reason: "identified_user_required_for_a3" }
+  );
+});
+
+test("rejects substituted input after approval", () => {
+  const a3Tool = tool({ authority: "A3" });
+  const approval = {
+    actionId: ACTION_ID,
+    toolKey: "support.request_update",
+    inputFingerprint: INPUT_FINGERPRINT,
+    status: "approved",
+    requestedByUserId: "user-agent-1",
+    decisionByUserId: "manager-2",
+    decisionRole: "service_manager",
+    decidedAt: "2026-08-30T08:55:00.000Z",
+    expiresAt: "2026-08-30T09:15:00.000Z",
+    consumedAt: null,
+  };
+  const decision = authorizeAgentToolInvocation({
+    actionId: ACTION_ID,
+    inputFingerprint: INPUT_FINGERPRINT,
+    actor: actor(),
+    skill: skill(),
+    tool: a3Tool,
+    requestedAuthority: "A3",
+    toolInput: { ...validInput, status: "resolu" },
+    approval,
+    now: NOW,
+  });
+  assert.deepEqual(decision, {
+    ok: false,
+    status: "refused",
+    reason: "input_fingerprint_mismatch",
+  });
+});
+
+test("rejects an unexpected approval for A0 to A2", () => {
+  const decision = authorizeAgentToolInvocation({
+    actionId: ACTION_ID,
+    inputFingerprint: INPUT_FINGERPRINT,
+    actor: actor(),
+    skill: skill(),
+    tool: tool(),
+    requestedAuthority: "A2",
+    toolInput: validInput,
+    approval: {
+      actionId: ACTION_ID,
+      toolKey: "support.request_update",
+      inputFingerprint: INPUT_FINGERPRINT,
+      status: "approved",
+      requestedByUserId: "user-agent-1",
+      decisionByUserId: "manager-2",
+      decisionRole: "service_manager",
+      decidedAt: "2026-08-30T08:55:00.000Z",
+      expiresAt: "2026-08-30T09:15:00.000Z",
+      consumedAt: null,
+    },
+    now: NOW,
+  });
+  assert.deepEqual(decision, {
+    ok: false,
+    status: "refused",
+    reason: "approval_not_expected",
+  });
 });
 
 test("blocks A4 without exception even for superadmin with MFA and approval", () => {

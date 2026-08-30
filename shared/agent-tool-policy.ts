@@ -1,3 +1,5 @@
+import { createHash } from "node:crypto";
+
 export type AgentIdentityLevel = "I0" | "I1" | "I2" | "I3" | "I4";
 export type AgentActionAuthority = "A0" | "A1" | "A2" | "A3" | "A4";
 export type AgentToolRole =
@@ -86,6 +88,9 @@ export type AgentToolDecisionReason =
   | "relationship_required"
   | "mfa_required"
   | "input_invalid"
+  | "input_fingerprint_mismatch"
+  | "approval_not_expected"
+  | "identified_user_required_for_a3"
   | "approval_required"
   | "approval_invalid";
 
@@ -163,6 +168,20 @@ function validateToolInput(
   return sanitized;
 }
 
+export function fingerprintAgentToolInput(
+  input: Record<string, string | number | boolean>
+): string {
+  const canonical = Object.fromEntries(
+    Object.entries(input)
+      .sort(([left], [right]) => (left < right ? -1 : left > right ? 1 : 0))
+      .map(([key, value]) => [
+        key,
+        typeof value === "string" ? value.normalize("NFC") : value,
+      ])
+  );
+  return createHash("sha256").update(JSON.stringify(canonical), "utf8").digest("hex");
+}
+
 function validApproval(input: {
   approval: AgentToolApproval | null;
   actor: AgentToolActor;
@@ -234,6 +253,9 @@ export function authorizeAgentToolInvocation(input: {
   if (input.requestedAuthority !== input.tool.authority) {
     return { ok: false, status: "refused", reason: "authority_mismatch" };
   }
+  if (input.requestedAuthority !== "A3" && input.approval != null) {
+    return { ok: false, status: "refused", reason: "approval_not_expected" };
+  }
   if (
     !/^[a-zA-Z0-9][a-zA-Z0-9:_-]{7,119}$/.test(input.actionId) ||
     !/^[a-f0-9]{64}$/.test(input.inputFingerprint)
@@ -262,7 +284,13 @@ export function authorizeAgentToolInvocation(input: {
   if (!sanitizedInput) {
     return { ok: false, status: "refused", reason: "input_invalid" };
   }
+  if (fingerprintAgentToolInput(sanitizedInput) !== input.inputFingerprint) {
+    return { ok: false, status: "refused", reason: "input_fingerprint_mismatch" };
+  }
   if (input.requestedAuthority === "A3") {
+    if (input.actor.userId === null) {
+      return { ok: false, status: "refused", reason: "identified_user_required_for_a3" };
+    }
     if (!input.approval || input.approval.status === "pending") {
       return { ok: false, status: "awaiting_approval", reason: "approval_required" };
     }

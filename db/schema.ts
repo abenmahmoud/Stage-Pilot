@@ -1361,3 +1361,134 @@ export const supportRateLimits = pgTable(
     }),
   ]
 );
+
+/**
+ * Actions structurées de l'agent. Ces tables restent exclusivement côté serveur.
+ */
+export const agentActions = pgTable(
+  "agent_actions",
+  {
+    id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+    institutionId: uuid("institution_id")
+      .notNull()
+      .references(() => institutions.id, { onDelete: "restrict" }),
+    supportRequestId: uuid("support_request_id").references(() => supportRequests.id, {
+      onDelete: "set null",
+    }),
+    conversationId: uuid("conversation_id"),
+    skillVersionId: uuid("skill_version_id")
+      .notNull()
+      .references(() => agentSkillVersions.id, { onDelete: "restrict" }),
+    toolKey: text("tool_key").notNull(),
+    authorityLevel: text("authority_level").notNull(),
+    inputRedacted: jsonb("input_redacted").notNull().default({}),
+    inputFingerprint: text("input_fingerprint").notNull(),
+    status: text("status").notNull(),
+    idempotencyKeyHash: text("idempotency_key_hash").notNull(),
+    requestedByUserId: uuid("requested_by_user_id"),
+    requesterRefHash: text("requester_ref_hash").notNull(),
+    toolResult: jsonb("tool_result"),
+    confirmationRef: text("confirmation_ref"),
+    requestedAt: timestamp("requested_at", { withTimezone: true }).notNull().defaultNow(),
+    startedAt: timestamp("started_at", { withTimezone: true }),
+    confirmedAt: timestamp("confirmed_at", { withTimezone: true }),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    uniqueIndex("agent_actions_institution_idempotency_uidx").on(
+      table.institutionId,
+      table.idempotencyKeyHash
+    ),
+    index("agent_actions_institution_status_created_idx").on(
+      table.institutionId,
+      table.status,
+      table.requestedAt
+    ),
+    index("agent_actions_support_request_idx").on(table.supportRequestId),
+    index("agent_actions_skill_version_institution_fk_idx").on(
+      table.skillVersionId,
+      table.institutionId
+    ),
+    index("agent_actions_requested_by_user_fk_idx").on(table.requestedByUserId),
+  ]
+);
+
+export const agentApprovals = pgTable(
+  "agent_approvals",
+  {
+    id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+    institutionId: uuid("institution_id")
+      .notNull()
+      .references(() => institutions.id, { onDelete: "restrict" }),
+    actionId: uuid("action_id")
+      .notNull()
+      .references(() => agentActions.id, { onDelete: "restrict" })
+      .unique(),
+    toolKey: text("tool_key").notNull(),
+    inputFingerprint: text("input_fingerprint").notNull(),
+    requestedByUserId: uuid("requested_by_user_id").notNull(),
+    requestedFromRole: text("requested_from_role").notNull(),
+    status: text("status").notNull().default("pending"),
+    decisionByUserId: uuid("decision_by_user_id"),
+    decisionRole: text("decision_role"),
+    decisionReason: text("decision_reason"),
+    requestedAt: timestamp("requested_at", { withTimezone: true }).notNull().defaultNow(),
+    decidedAt: timestamp("decided_at", { withTimezone: true }),
+    expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+    consumedAt: timestamp("consumed_at", { withTimezone: true }),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    index("agent_approvals_institution_status_expiry_idx").on(
+      table.institutionId,
+      table.status,
+      table.expiresAt
+    ),
+    index("agent_approvals_action_binding_fk_idx").on(
+      table.actionId,
+      table.institutionId,
+      table.toolKey,
+      table.inputFingerprint,
+      table.requestedByUserId
+    ),
+    index("agent_approvals_requested_by_user_fk_idx").on(table.requestedByUserId),
+    index("agent_approvals_decision_by_user_fk_idx").on(table.decisionByUserId),
+  ]
+);
+
+export const agentActionAudit = pgTable(
+  "agent_action_audit",
+  {
+    id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+    institutionId: uuid("institution_id")
+      .notNull()
+      .references(() => institutions.id, { onDelete: "restrict" }),
+    actionId: uuid("action_id")
+      .notNull()
+      .references(() => agentActions.id, { onDelete: "restrict" }),
+    approvalId: uuid("approval_id").references(() => agentApprovals.id, {
+      onDelete: "restrict",
+    }),
+    eventType: text("event_type").notNull(),
+    actorUserId: uuid("actor_user_id"),
+    actorRole: text("actor_role"),
+    summary: jsonb("summary").notNull().default({}),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    index("agent_action_audit_action_created_idx").on(
+      table.actionId,
+      table.institutionId,
+      table.createdAt
+    ),
+    index("agent_action_audit_institution_created_idx").on(
+      table.institutionId,
+      table.createdAt
+    ),
+    index("agent_action_audit_approval_institution_fk_idx").on(
+      table.approvalId,
+      table.institutionId
+    ),
+    index("agent_action_audit_actor_user_fk_idx").on(table.actorUserId),
+  ]
+);

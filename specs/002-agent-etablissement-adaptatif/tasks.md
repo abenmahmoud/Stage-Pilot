@@ -169,7 +169,12 @@
 - [ ] T018 Construire la boîte de validation L3 avec expiration, motif et audit.
   Le contrat A3 exige déjà une approbation indépendante liée à l'action, l'outil
   et l'empreinte de l'entrée, non expirée et non consommée. La persistance,
-  l'interface, la consommation atomique et l'audit restent à construire.
+  l'interface et le branchement aux futurs adaptateurs restent à construire.
+- [x] T018A Persister en preview les actions, validations et audits privés,
+  bloquer A4 en base, lier A3 à l'entrée assainie, retirer tout droit de
+  suppression au rôle serveur et consommer une validation sous verrous dans une
+  transaction. Une recette fictive a validé le flux et le rejet du rejeu avant
+  annulation totale ; aucun connecteur réel n'est activé.
 - [ ] T019 Mettre les pièces dans un stockage privé avec antivirus, type, taille et URL temporaire.
 - [x] T019A Construire l'alimentation documentaire du registre : dépôt privé
   reprenable, explication métier, classification, propriétaire, état d'analyse
@@ -299,7 +304,8 @@
 - [ ] T028 N'afficher une réussite qu'après `confirmed_at` fourni par l'outil.
   Le validateur de résultat refuse déjà les états non réussis, les actions ou
   outils discordants, les confirmations absentes, antérieures ou futures. Le
-  branchement à une action persistée et à l'interface reste requis.
+  schéma persistant exige désormais la preuve complète pour `succeeded` ; le
+  branchement à un adaptateur réel et à l'interface reste requis.
 - [x] T029 Ajouter formulaire classique et création de demande sans dépendance à l'IA.
 - [ ] T030 Ajouter mesure du coût, de la latence, des transferts et des corrections.
 

@@ -278,12 +278,18 @@ un cours est calculée à partir du créneau autorisé et d'un changement offici
 | `support_request_id` | uuid nullable | Dossier `001` concerné |
 | `conversation_id` | uuid nullable | Session concernée |
 | `skill_version_id` | uuid | Compétence exacte utilisée |
-| `action_type` | text | Action structurée |
-| `automation_level` | enum | `L0`, `L1`, `L2`, `L3`, `L4` |
+| `tool_key` | text | Outil structuré exact de la liste blanche |
+| `authority_level` | enum | `A0`, `A1`, `A2`, `A3` ; `A4` interdit en base |
 | `input_redacted` | jsonb | Entrée minimale et masquée |
+| `input_fingerprint` | sha256 | Empreinte de l'entrée assainie calculée côté serveur |
 | `status` | enum | `planned`, `awaiting_approval`, `running`, `succeeded`, `failed`, `refused` |
-| `idempotency_key` | text | Unique pour une action externe |
+| `idempotency_key_hash` | sha256 | Unique par établissement, sans conserver la clé brute |
+| `requested_by_user_id` | uuid nullable | Compte nominatif ; obligatoire pour `A3` |
+| `requester_ref_hash` | sha256 | Référence traçable sans exposer la session ou l'appareil |
 | `tool_result` | jsonb nullable | Preuve technique sans secret |
+| `confirmation_ref` | text nullable | Référence opaque fournie par l'outil |
+| `requested_at` | timestamptz | Heure serveur de préparation |
+| `started_at` | timestamptz nullable | Renseignée seulement au démarrage réel |
 | `confirmed_at` | timestamptz nullable | Requis avant d'annoncer la réussite |
 
 ### `agent_approvals`
@@ -292,12 +298,32 @@ un cours est calculée à partir du créneau autorisé et d'un changement offici
 |---|---|---|
 | `id` | uuid | Clé primaire |
 | `institution_id` | uuid | Cloison obligatoire |
-| `action_id` | uuid | Action L3 |
+| `action_id` | uuid | Action `A3`, une validation au maximum par action |
+| `tool_key` | text | Doit correspondre exactement à l'action |
+| `input_fingerprint` | sha256 | Doit correspondre exactement à l'action |
+| `requested_by_user_id` | uuid | Demandeur nominatif de l'action |
 | `requested_from_role` | text | Rôle habilité attendu |
 | `status` | enum | `pending`, `approved`, `rejected`, `expired`, `cancelled` |
-| `decision_by` | uuid nullable | Compte individuel |
+| `decision_by_user_id` | uuid nullable | Compte individuel distinct du demandeur |
+| `decision_role` | text nullable | Doit correspondre au rôle attendu |
 | `decision_reason` | text nullable | Obligatoire en cas de refus |
+| `decided_at` | timestamptz nullable | Heure serveur de décision |
 | `expires_at` | timestamptz | Empêche une vieille validation |
+| `consumed_at` | timestamptz nullable | Posée atomiquement une seule fois avant exécution |
+
+### `agent_action_audit`
+
+| Champ | Type | Règle |
+|---|---|---|
+| `id` | uuid | Clé primaire |
+| `institution_id` | uuid | Cloison obligatoire |
+| `action_id` | uuid | Action concernée |
+| `approval_id` | uuid nullable | Validation concernée |
+| `event_type` | enum | Création, décision, consommation, démarrage ou résultat |
+| `actor_user_id` | uuid nullable | Compte individuel ou événement système |
+| `actor_role` | text nullable | Rôle au moment de l'événement |
+| `summary` | jsonb | Métadonnées minimales sans entrée brute |
+| `created_at` | timestamptz | Heure serveur immuable |
 
 ### `agent_evaluations`
 
@@ -336,8 +362,13 @@ Une migration peut ajouter `institution_id`, `source_channel`, `identity_assuran
 - Une source interne, personnelle ou sensible est contrôlée par établissement,
   rôle, service et voie d'accès ; un rôle administrateur ne contourne pas ce
   périmètre par défaut.
-- Une action L3 exige une validation active, non expirée, émise par un rôle autorisé.
-- Une action L4 ne peut pas passer à `running`.
+- Une action `A3` exige une validation active, non expirée, indépendante, liée
+  à l'entrée exacte et consommée atomiquement avant `running`.
+- Une action `A4` ne peut pas être créée dans `agent_actions`.
+- Une réussite exige `started_at`, `tool_result`, `confirmation_ref` et
+  `confirmed_at` cohérents avec l'heure serveur.
+- Les actions, validations et audits sont privés, non supprimables par le rôle
+  serveur et sans accès direct `anon` ou `authenticated`.
 - La suppression logique préserve l'audit ; la purge physique suit la politique de rétention.
 - Les journaux excluent mots de passe, codes à usage unique, secrets API et contenu intégral des pièces.
 

@@ -94,11 +94,23 @@ test("limits an active agent to the services in its membership", () => {
   const actor = {
     ...baseActor,
     memberships: [{ institutionId: "school-a", role: "agent", serviceCodes: ["numerique"], status: "active" }],
+    authenticatorLevel: "aal2",
   };
   assert.equal(decide(actor, { kind: "service_queue", institutionId: "school-a", serviceCode: "numerique" }).ok, true);
   assert.deepEqual(
     decide(actor, { kind: "service_queue", institutionId: "school-a", serviceCode: "vie_scolaire" }),
     { ok: false, reason: "service_scope_required" }
+  );
+});
+
+test("requires live MFA to open a service queue", () => {
+  const actor = {
+    ...baseActor,
+    memberships: [{ institutionId: "school-a", role: "agent", serviceCodes: ["numerique"], status: "active" }],
+  };
+  assert.deepEqual(
+    decide(actor, { kind: "service_queue", institutionId: "school-a", serviceCode: "numerique" }),
+    { ok: false, reason: "mfa_required" }
   );
 });
 

@@ -18,11 +18,30 @@ Avant toute exécution, le serveur vérifie dans cet ordre :
 5. niveau d'identité `I0-I4` ;
 6. rôle, service, relation et MFA séparément ;
 7. schéma d'entrée fermé, sans propriété inconnue ;
-8. pour `A3`, approbation indépendante, non expirée et non consommée.
+8. empreinte SHA-256 recalculée côté serveur depuis l'entrée assainie ;
+9. pour `A3`, approbation indépendante, non expirée et non consommée.
 
 Une approbation `A3` est liée à l'identifiant de l'action, à la clé d'outil et à
 l'empreinte de l'entrée. Elle ne peut donc pas être réutilisée pour une autre
 opération. Un administrateur ne contourne aucun de ces contrôles.
+
+L'heure utilisée par la politique vient exclusivement de l'horloge serveur. Le
+navigateur ne fournit jamais `now`, `requested_at`, `decided_at`, `consumed_at`
+ou `confirmed_at`. Les entrées et leur empreinte sont calculées par le même
+adaptateur serveur ; une empreinte envoyée par le client n'est jamais fiable.
+
+## Persistance A3
+
+Les tables privées `agent_actions`, `agent_approvals` et
+`agent_action_audit` sont installées dans la preview. `anon` et `authenticated`
+n'ont aucun droit direct. Le rôle serveur ne peut pas supprimer une action, une
+validation ou un audit.
+
+La fonction serveur `agent_consume_approval` verrouille d'abord l'action puis la
+validation dans une seule transaction. Elle vérifie l'établissement, l'outil,
+l'empreinte, le demandeur, l'approbateur indépendant, le rôle, l'expiration et
+l'absence de consommation. Elle marque ensuite la validation consommée avant de
+passer l'action à `running`. Un second appel avec la même validation échoue.
 
 ## Résultat et réussite
 
@@ -44,3 +63,7 @@ la réussite qu'après lecture de cette preuve.
 l'établissement, l'identité, le rôle, le service, la relation, le MFA,
 l'approbation A3, le rejeu d'approbation, le blocage A4 et les fausses
 confirmations.
+
+`npm run test:agent-action-persistence` vérifie les privilèges, RLS, contraintes,
+transitions, verrous, audit et confirmation. Une recette transactionnelle sur la
+preview a également exécuté puis annulé un flux A3 fictif complet.
