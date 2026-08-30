@@ -5,6 +5,10 @@ import {
   COMMUNICATION_DOCUMENT_MAX_BYTES,
   parseCommunicationDocumentInput,
 } from "../shared/communication-document-input.ts";
+import {
+  communicationDocumentStoragePath,
+  communicationDocumentUploadEnabled,
+} from "../api/_shared/communication-documents.ts";
 
 const migrationPath = new URL(
   "../supabase/migrations/20260830073000_create_communication_document_intake.sql",
@@ -47,6 +51,24 @@ test("rejects path traversal, MIME mismatch, excess size and unknown fields", ()
   }
 });
 
+test("keeps document intake closed unless its dedicated switch is exact", async () => {
+  assert.equal(communicationDocumentUploadEnabled({}), false);
+  assert.equal(communicationDocumentUploadEnabled({ COMMUNICATION_DOCUMENT_UPLOAD_ENABLED: "TRUE" }), false);
+  assert.equal(communicationDocumentUploadEnabled({ COMMUNICATION_DOCUMENT_UPLOAD_ENABLED: "true" }), true);
+  const [reserve, confirm] = await Promise.all([
+    readFile(reservePath, "utf8"),
+    readFile(confirmPath, "utf8"),
+  ]);
+  assert.match(reserve, /if \(!communicationDocumentUploadEnabled\(\)\)/);
+  assert.match(confirm, /if \(!communicationDocumentUploadEnabled\(\)\)/);
+});
+
+test("uses random signed coordinates without institution or user identifiers", () => {
+  const path = communicationDocumentStoragePath("Information-fictive.pdf");
+  assert.match(path, /^private\/\d{4}\/\d{2}\/[0-9a-f-]{36}\.pdf$/);
+  assert.doesNotMatch(path, /institution|utilisateur|@/i);
+});
+
 test("creates a server-only private intake, append-only audit and private queue", async () => {
   const migration = await readFile(migrationPath, "utf8");
   for (const table of ["communication_source_documents", "communication_source_events"]) {
@@ -70,6 +92,7 @@ test("creates a server-only private intake, append-only audit and private queue"
 test("reserves signed uploads without listing private paths or extracted text", async () => {
   const reserve = await readFile(reservePath, "utf8");
   assert.match(reserve, /requireCommunicationEditor\(req\)/);
+  assert.match(reserve, /communicationDocumentUploadEnabled\(\)/);
   assert.match(reserve, /createSignedUploadUrl\(storagePath\)/);
   assert.match(reserve, /status: "reserved"/);
   assert.match(reserve, /eventType: "source\.reserved"/);
@@ -80,6 +103,7 @@ test("reserves signed uploads without listing private paths or extracted text", 
 test("confirms exact object metadata and queues only scoped quarantine work", async () => {
   const confirm = await readFile(confirmPath, "utf8");
   assert.match(confirm, /requireCommunicationEditor\(req\)/);
+  assert.match(confirm, /communicationDocumentUploadEnabled\(\)/);
   assert.match(confirm, /eq\(communicationSourceDocuments\.institutionId, context\.institutionId\)/);
   assert.match(confirm, /uploadedSize !== document\.sizeBytes/);
   assert.match(confirm, /uploadedMime !== document\.mimeType/);

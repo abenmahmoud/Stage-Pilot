@@ -7,6 +7,7 @@ import {
   communicationSourceEvents,
 } from "../../../../../db/schema.js";
 import { HttpError, supabaseAdmin } from "../../../../_shared/auth.js";
+import { communicationDocumentUploadEnabled } from "../../../../_shared/communication-documents.js";
 import { requireCommunicationEditor } from "../../../../_shared/communications.js";
 import { handleApi, methodNotAllowed } from "../../../../_shared/response.js";
 
@@ -36,6 +37,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== "POST") return methodNotAllowed(res, ["POST"]);
   return handleApi(res, async () => {
     const context = await requireCommunicationEditor(req);
+    if (!communicationDocumentUploadEnabled()) {
+      throw new HttpError(503, "Le dépôt documentaire n’est pas encore ouvert");
+    }
     const id = routeId(req);
     const [document] = await db
       .select()

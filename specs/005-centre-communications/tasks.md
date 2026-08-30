@@ -59,6 +59,10 @@
 - [ ] T011D Relier le dépôt à l'interface fermée puis exécuter une recette de
   bout en bout avec fichiers fictifs sur un moteur ClamAV autorisé. T011 ne sera
   fermé qu'après cette preuve ; aucune activation distante n'est implicite.
+- [x] T011D1 Relier le dépôt signé PDF/DOCX à l'interface responsive avec suivi
+  des états, derrière `COMMUNICATION_DOCUMENT_UPLOAD_ENABLED` et
+  `VITE_COMMUNICATION_DOCUMENTS_ENABLED`, tous deux fermés par défaut. La preuve
+  ClamAV fictive et l'activation contrôlée restent dans T011D.
 - [x] T012 Étendre l'aide IA avec sortie structurée et informations à confirmer.
   L'aide propose uniquement structure, correction ou simplification, avec faits
   bornés et questions ouvertes. Elle fonctionne sans persistance fournisseur,

@@ -3,6 +3,7 @@ import {
   Check,
   ChevronRight,
   Clock3,
+  FileText,
   FilePenLine,
   LoaderCircle,
   LockKeyhole,
@@ -13,11 +14,16 @@ import {
   Save,
   Send,
   Sparkles,
+  Upload,
   X,
 } from "lucide-react";
 import { apiFetch } from "../../lib/api";
-import { COMMUNICATIONS_UI_ENABLED } from "../../lib/feature-flags";
+import {
+  COMMUNICATION_DOCUMENTS_UI_ENABLED,
+  COMMUNICATIONS_UI_ENABLED,
+} from "../../lib/feature-flags";
 import { useAuth } from "../../lib/auth-context";
+import { supabase } from "../../lib/supabase-browser";
 
 type CommunicationRow = {
   id: string;
@@ -51,6 +57,20 @@ type AssistSuggestion = Pick<
 > & { reviewNotes: string[] };
 
 type CommunicationsPayload = { communications: CommunicationRow[] };
+
+type CommunicationDocument = {
+  id: string;
+  communicationId: string | null;
+  originalName: string;
+  mimeType: string;
+  sizeBytes: number;
+  status: string;
+  analysisError: string | null;
+  uploadedAt: string | null;
+  analyzedAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+};
 
 type CreatePayload = {
   communication: Pick<CommunicationRow, "id" | "status" | "visibility" | "currentVersion" | "updatedAt">;
@@ -88,6 +108,32 @@ const STATUS_LABELS: Record<string, string> = {
   archived: "Archivé",
 };
 
+const DOCUMENT_STATUS_LABELS: Record<string, string> = {
+  reserved: "Réservé",
+  uploaded: "Reçu",
+  quarantined: "En quarantaine",
+  processing: "Analyse en cours",
+  review: "À vérifier",
+  used: "Utilisé",
+  rejected: "Refusé",
+  failed: "Échec d’analyse",
+};
+
+const DOCX_MIME = "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+
+function communicationDocumentMime(file: File): "application/pdf" | typeof DOCX_MIME | null {
+  const name = file.name.toLowerCase();
+  if (name.endsWith(".pdf") && (!file.type || file.type === "application/pdf")) return "application/pdf";
+  if (name.endsWith(".docx") && (!file.type || file.type === DOCX_MIME)) return DOCX_MIME;
+  return null;
+}
+
+function fileSizeLabel(sizeBytes: number): string {
+  return sizeBytes < 1024 * 1024
+    ? `${Math.max(1, Math.round(sizeBytes / 1024))} Ko`
+    : `${(sizeBytes / (1024 * 1024)).toFixed(1)} Mo`;
+}
+
 function dateLabel(value: string): string {
   return new Intl.DateTimeFormat("fr-FR", {
     dateStyle: "medium",
@@ -119,6 +165,9 @@ export default function CommunicationsPage() {
   const { user } = useAuth();
   const [rows, setRows] = useState<CommunicationRow[]>([]);
   const [templates, setTemplates] = useState<CommunicationTemplate[]>([]);
+  const [documents, setDocuments] = useState<CommunicationDocument[]>([]);
+  const [documentFile, setDocumentFile] = useState<File | null>(null);
+  const [documentPickerKey, setDocumentPickerKey] = useState(0);
   const [draft, setDraft] = useState(emptyDraft);
   const [editingTemplate, setEditingTemplate] = useState<CommunicationTemplate | null>(null);
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -131,6 +180,7 @@ export default function CommunicationsPage() {
   const [assistAction, setAssistAction] = useState<"structure" | "correct" | "simplify">("structure");
   const [reviewNotes, setReviewNotes] = useState<string[]>([]);
   const [requestingReview, setRequestingReview] = useState(false);
+  const [uploadingDocument, setUploadingDocument] = useState(false);
   const [savingTemplate, setSavingTemplate] = useState(false);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
@@ -140,12 +190,16 @@ export default function CommunicationsPage() {
     setLoading(true);
     setError("");
     try {
-      const [communications, templatePayload] = await Promise.all([
+      const [communications, templatePayload, documentPayload] = await Promise.all([
         apiFetch<CommunicationsPayload>("communications/admin"),
         apiFetch<{ templates: CommunicationTemplate[] }>("communications/admin/templates"),
+        COMMUNICATION_DOCUMENTS_UI_ENABLED
+          ? apiFetch<{ documents: CommunicationDocument[] }>("communications/admin/documents")
+          : Promise.resolve({ documents: [] }),
       ]);
       setRows(communications.communications);
       setTemplates(templatePayload.templates);
+      setDocuments(documentPayload.documents);
     } catch (reason) {
       setError(reason instanceof Error ? reason.message : "Communications indisponibles.");
     } finally {
@@ -285,6 +339,44 @@ export default function CommunicationsPage() {
     }
   }
 
+  async function uploadDocument() {
+    if (!documentFile || !COMMUNICATION_DOCUMENTS_UI_ENABLED) return;
+    const mimeType = communicationDocumentMime(documentFile);
+    if (!mimeType || documentFile.size < 1 || documentFile.size > 10 * 1024 * 1024) {
+      setError("Choisissez un fichier PDF ou DOCX de 10 Mo maximum.");
+      return;
+    }
+    setUploadingDocument(true);
+    setError("");
+    setNotice("");
+    try {
+      const reserve = await apiFetch<{
+        document: CommunicationDocument;
+        upload: { bucket: string; path: string; token: string };
+      }>("communications/admin/documents", {
+        method: "POST",
+        body: JSON.stringify({
+          originalName: documentFile.name,
+          mimeType,
+          sizeBytes: documentFile.size,
+        }),
+      });
+      const uploaded = await supabase.storage
+        .from(reserve.upload.bucket)
+        .uploadToSignedUrl(reserve.upload.path, reserve.upload.token, documentFile, { contentType: mimeType });
+      if (uploaded.error) throw new Error("Le transfert privé du document a échoué.");
+      await apiFetch(`communications/admin/documents/${reserve.document.id}/confirm`, { method: "POST" });
+      setDocumentFile(null);
+      setDocumentPickerKey((value) => value + 1);
+      setNotice("Le document est placé en quarantaine pour analyse.");
+      await load();
+    } catch (reason) {
+      setError(reason instanceof Error ? reason.message : "Dépôt du document impossible.");
+    } finally {
+      setUploadingDocument(false);
+    }
+  }
+
   async function saveTemplate(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!editingTemplate) return;
@@ -400,6 +492,44 @@ export default function CommunicationsPage() {
 
       {error ? <p role="alert" className="border border-red-200 bg-red-50 p-3 text-sm text-red-800">{error}</p> : null}
       {notice ? <p role="status" className="border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-800">{notice}</p> : null}
+
+      <section className="border-y border-slate-200 py-5" aria-labelledby="communication-documents-title">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <p className="text-sm font-semibold text-emerald-700">Source</p>
+            <h2 id="communication-documents-title" className="mt-1 text-lg font-bold text-slate-950">Documents à transformer</h2>
+            <p className="mt-1 text-sm text-slate-500">PDF ou DOCX, 10 Mo maximum</p>
+          </div>
+          {COMMUNICATION_DOCUMENTS_UI_ENABLED ? (
+            <div className="flex min-w-0 flex-col gap-2 sm:flex-row sm:items-center">
+              <label className="inline-flex min-h-11 min-w-0 cursor-pointer items-center justify-center gap-2 rounded-md border border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-slate-700">
+                <FileText className="h-4 w-4 shrink-0" />
+                <span className="max-w-56 truncate">{documentFile?.name ?? "Choisir un document"}</span>
+                <input key={documentPickerKey} type="file" accept=".pdf,.docx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document" onChange={(event) => setDocumentFile(event.target.files?.[0] ?? null)} className="sr-only" />
+              </label>
+              <button type="button" onClick={() => void uploadDocument()} disabled={!documentFile || uploadingDocument} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-md bg-slate-950 px-4 py-2 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-50">
+                {uploadingDocument ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />} Déposer
+              </button>
+            </div>
+          ) : (
+            <span className="inline-flex items-center gap-2 text-sm font-semibold text-slate-500"><LockKeyhole className="h-4 w-4" /> Dépôt fermé</span>
+          )}
+        </div>
+        {COMMUNICATION_DOCUMENTS_UI_ENABLED && documents.length > 0 ? (
+          <div className="mt-5 divide-y divide-slate-200 border-y border-slate-200 bg-white">
+            {documents.map((document) => (
+              <div key={document.id} className="flex min-w-0 flex-col gap-2 px-3 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-4">
+                <div className="min-w-0">
+                  <p className="truncate text-sm font-semibold text-slate-950">{document.originalName}</p>
+                  <p className="mt-1 text-xs text-slate-500">{fileSizeLabel(document.sizeBytes)} · {dateLabel(document.createdAt)}</p>
+                  {document.analysisError ? <p className="mt-1 break-words text-xs text-red-700">{document.analysisError}</p> : null}
+                </div>
+                <span className="shrink-0 text-xs font-semibold text-slate-600">{DOCUMENT_STATUS_LABELS[document.status] ?? document.status}</span>
+              </div>
+            ))}
+          </div>
+        ) : null}
+      </section>
 
       <div className="grid gap-6 lg:grid-cols-[minmax(260px,0.72fr)_minmax(0,1.28fr)]">
         <section aria-labelledby="communications-list-title" className="min-w-0">

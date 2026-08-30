@@ -9,8 +9,19 @@ const flags = readFileSync(new URL("../src/lib/feature-flags.ts", import.meta.ur
 
 test("keeps the communication navigation behind a disabled-by-default UI flag", () => {
   assert.match(flags, /VITE_COMMUNICATIONS_ENABLED === "true"/);
+  assert.match(flags, /VITE_COMMUNICATION_DOCUMENTS_ENABLED === "true"/);
+  assert.match(flags, /COMMUNICATION_DOCUMENTS_UI_ENABLED/);
   assert.match(layout, /COMMUNICATIONS_UI_ENABLED &&/);
   assert.match(layout, /to="\/admin\/communications"/);
+});
+
+test("keeps private PDF and DOCX upload behind its own UI switch", () => {
+  assert.match(page, /COMMUNICATION_DOCUMENTS_UI_ENABLED/);
+  assert.match(page, /communications\/admin\/documents/);
+  assert.match(page, /uploadToSignedUrl/);
+  assert.match(page, /communications\/admin\/documents\/\$\{reserve\.document\.id\}\/confirm/);
+  assert.match(page, /PDF ou DOCX, 10 Mo maximum/);
+  assert.doesNotMatch(page, /storagePath|extractedText|checksum/);
 });
 
 test("protects the route with the existing content manager roles", () => {

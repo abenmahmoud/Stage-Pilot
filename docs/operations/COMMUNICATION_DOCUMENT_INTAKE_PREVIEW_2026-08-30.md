@@ -17,10 +17,24 @@
 6. Coordonnées, secrets, consignes visant l'agent, menace ou doublon bloquent
    l'utilisation automatique et ne laissent aucun texte exploitable.
 
+## Interface préparée
+
+- L'écran privé accepte uniquement PDF ou DOCX de 10 Mo maximum.
+- Le transfert utilise une coordonnée signée aléatoire qui ne contient aucun
+  identifiant de personne ou d'établissement. Les listes ne renvoient jamais le
+  chemin persistant, l'empreinte ou le texte extrait.
+- Les états de réservation, quarantaine, analyse, revue, refus et échec restent
+  visibles sans exposer le contenu du document.
+- `COMMUNICATION_DOCUMENT_UPLOAD_ENABLED` et
+  `VITE_COMMUNICATION_DOCUMENTS_ENABLED` doivent valoir exactement `true`.
+  Ils restent absents des environnements distants et échouent donc fermés.
+
 ## Preuves
 
-- Sept tests d'entrée, API, schéma, file et worker réussissent.
+- Neuf tests d'entrée, interrupteurs, chemins, API, schéma, file et worker
+  réussissent.
 - Cinq tests réels d'extraction sur PDF/DOCX fictifs réussissent.
+- La régression agrégée du centre compte 57 tests réussis.
 - Build TypeScript/Vite réussi.
 - Audits npm application et workers : zéro vulnérabilité de production.
 - Recette SQL transactionnelle : création dans un faux état, acteur falsifié,
@@ -38,6 +52,7 @@ https://supabase.com/docs/guides/database/database-linter
 
 ## Limite volontaire
 
-Le consommateur est codé mais non déployé. Le lot global T011 reste ouvert tant
-que l'interface fermée et une recette antivirus fictive de bout en bout n'ont
-pas été validées sur un moteur explicitement autorisé.
+Le consommateur est codé mais non déployé. L'interface est raccordée mais son
+interrupteur dédié reste fermé. Le lot global T011 reste ouvert tant qu'une
+recette antivirus fictive de bout en bout n'a pas été validée sur un moteur
+explicitement autorisé.

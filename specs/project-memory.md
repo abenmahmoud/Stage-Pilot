@@ -1516,10 +1516,30 @@ taches et analyse de coherence avant une automatisation sensible.
 - Une recette fictive a tenté dix contournements de cycle, d'identité, de
   cloisonnement et d'audit. Tous ont été refusés ; le `ROLLBACK` a laissé zéro
   utilisateur, établissement, source, événement et travail de test.
-- T011 reste ouvert jusqu'au raccordement de l'interface fermée et à une preuve
-  antivirus de bout en bout sur un moteur explicitement autorisé.
+- T011 reste ouvert jusqu'à une preuve antivirus de bout en bout sur un moteur
+  explicitement autorisé.
 - La revue Claude est préparée mais non exécutée : une mission courante doit
   encore préciser le modèle, le périmètre et la limite de consommation.
+
+### Jalon du 30 août 2026 - interface du dépôt documentaire
+
+- L'écran Communications sait réserver un dépôt PDF/DOCX signé, transférer le
+  fichier directement vers le bucket privé, confirmer sa réception et afficher
+  seulement le nom, la taille, l'état et l'erreur d'analyse bornée.
+- Le navigateur reçoit seulement une coordonnée de dépôt signée, aléatoire et
+  sans identifiant de personne ou d'établissement. Les listes n'exposent jamais
+  le chemin persistant, l'empreinte ou le texte extrait. La disposition reste en
+  pile sur mobile et en ligne sur les écrans plus larges, sans largeur minimale
+  qui force un défilement horizontal.
+- Deux interrupteurs supplémentaires échouent fermés :
+  `COMMUNICATION_DOCUMENT_UPLOAD_ENABLED` côté serveur et
+  `VITE_COMMUNICATION_DOCUMENTS_ENABLED` côté interface. Aucun réglage distant
+  n'a été ajouté ; le dépôt reste donc indisponible dans la preview publiée.
+- La commande `npm run test:communications` regroupe désormais les 57 tests du
+  centre. Elle passe, comme les builds avec tous les écrans fermés puis activés
+  artificiellement et l'audit npm à zéro vulnérabilité de production.
+- T011D1 est terminé. T011D et T011 restent ouverts jusqu'à une recette fictive
+  complète sur un moteur ClamAV explicitement autorisé.
 
 ### Jalon du 30 août 2026 - assistance structurée et relecture humaine
 
@@ -1537,7 +1557,7 @@ taches et analyse de coherence avant une automatisation sensible.
   différée entre racine et version courante, et figent le contenu dès la
   relecture. Onze tentatives fictives de contournement ont été refusées, puis le
   `ROLLBACK` a laissé quatre compteurs à zéro.
-- Cinquante-quatre tests du centre, les builds avec module fermé et activé et
+- Cinquante-sept tests du centre, les builds avec module fermé et activé et
   les deux audits npm passent. Les auditeurs Supabase ne signalent aucun
   `WARN` ou `ERROR` lié aux communications après retrait d'un index dupliqué.
 - T010C et T012 sont terminées. T010 reste ouvert jusqu'à la publication

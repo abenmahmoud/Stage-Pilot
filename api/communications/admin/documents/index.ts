@@ -9,6 +9,7 @@ import { parseCommunicationDocumentInput } from "../../../../shared/communicatio
 import { HttpError, supabaseAdmin } from "../../../_shared/auth.js";
 import {
   COMMUNICATION_DOCUMENT_BUCKET,
+  communicationDocumentUploadEnabled,
   communicationDocumentStoragePath,
 } from "../../../_shared/communication-documents.js";
 import { requireCommunicationEditor } from "../../../_shared/communications.js";
@@ -51,6 +52,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method === "POST") {
     return handleApi(res, async () => {
       const context = await requireCommunicationEditor(req);
+      if (!communicationDocumentUploadEnabled()) {
+        throw new HttpError(503, "Le dépôt documentaire n’est pas encore ouvert");
+      }
       let input;
       try {
         input = parseCommunicationDocumentInput(req.body);
@@ -58,11 +62,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         invalidDocumentInput(error);
       }
 
-      const storagePath = communicationDocumentStoragePath(
-        context.institutionId,
-        context.user.id,
-        input.originalName
-      );
+      const storagePath = communicationDocumentStoragePath(input.originalName);
       const { data: upload, error: uploadError } = await supabaseAdmin.storage
         .from(COMMUNICATION_DOCUMENT_BUCKET)
         .createSignedUploadUrl(storagePath);
