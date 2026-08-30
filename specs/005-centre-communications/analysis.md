@@ -15,6 +15,13 @@ après acceptation ne relance pas immédiatement le transport : le verrou périm
 et l'idempotence Webmail assurent la reprise. Le lot entier est contrôlé avant
 le premier effet et reste limité à vingt travaux.
 
+## Persistance des destinataires du 30 août 2026
+
+La page signée de références opaques possède maintenant une écriture
+transactionnelle. La version courante validée est verrouillée et chaque rejeu
+est relu après conflit, ce qui ferme le risque d'accepter silencieusement une
+ancienne résolution ou une clé idempotente substituée.
+
 ## Résultat
 
 La proposition est cohérente avec les fonctionnalités `001`, `002`, `003` et

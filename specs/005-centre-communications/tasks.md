@@ -92,6 +92,9 @@
   références opaques `active_validated_email` deviennent des livraisons
   idempotentes ; une simulation de 200 contacts ne contient aucune coordonnée.
   T017 reste ouvert jusqu'à la route Webmail et l'insertion transactionnelle.
+- [x] T017B Persister transactionnellement chaque page vérifiée après verrou de
+  la version courante validée. Un conflit est relu et comparé champ par champ ;
+  l'audit reste agrégé. T017 reste ouvert jusqu'à la route Webmail séparée.
 - [ ] T018 Envoyer individuellement via Brevo avec lien canonique.
 - [x] T018A Définir l'ordre signé LyceeGest vers le Webmail : un seul contact
   opaque, texte validé, chemin canonique sans jeton et idempotence de livraison.

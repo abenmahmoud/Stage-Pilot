@@ -21,6 +21,14 @@
 - Une panne de base après acceptation reste sous verrou pour la récupération
   différée et ne provoque jamais une seconde tentative immédiate.
 
+## Jalon du 30 août 2026 - destinataires opaques persistés
+
+- Chaque page de résolution signée est liée à la version courante validée sous
+  verrou.
+- Les conflits idempotents sont relus et comparés avant acceptation.
+- Seuls références opaques, empreintes et comptages sont conservés ; aucune
+  route Webmail ni liste réelle n'est activée.
+
 ## Jalon du 29 août 2026 - scénarios humains de la charte
 
 - Une urgence affiche le 15/112, le 3114 lorsque pertinent et un recours à un
