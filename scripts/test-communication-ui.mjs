@@ -45,7 +45,7 @@ test("provides bounded responsive fields without recipient inputs", () => {
   assert.match(page, /maxLength=\{100000\}/);
   assert.match(page, /sm:grid-cols-2/);
   assert.match(page, /lg:grid-cols-/);
-  assert.doesNotMatch(page, /type="email"|destinataire|contactRef/iu);
+  assert.doesNotMatch(page, /type="email"|recipientIds|contactRef|audienceRef/iu);
 });
 
 test("uses governed templates without opening publication or sending", () => {
@@ -75,4 +75,15 @@ test("supports private metadata search, status filters and bounded version histo
   assert.match(page, /payload\.versions/);
   assert.match(page, /selectedVersions\.map/);
   assert.doesNotMatch(page, /bodyMarkdown.*toLocaleLowerCase/);
+});
+
+test("renders a safe local preview without opening delivery", () => {
+  assert.match(page, /ReactMarkdown/);
+  assert.match(page, /remarkPlugins=\{\[remarkGfm\]\}/);
+  assert.match(page, /composerMode === "preview"/);
+  assert.match(page, /Écrire/);
+  assert.match(page, /Aperçu interne · aucun destinataire sélectionné/);
+  assert.match(page, /rel="noreferrer noopener"/);
+  assert.match(page, /Image non affichée/);
+  assert.doesNotMatch(page, /communication-send|COMMUNICATION_SEND_ENABLED|audienceRef/);
 });

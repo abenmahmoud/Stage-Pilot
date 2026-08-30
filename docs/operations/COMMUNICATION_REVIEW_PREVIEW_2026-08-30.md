@@ -21,7 +21,7 @@
 
 ## Preuves
 
-- 58 tests de régression du centre de communication réussis.
+- 59 tests de régression du centre de communication réussis.
 - Builds TypeScript/Vite réussis avec le module fermé puis activé.
 - Audits npm application et workers : zéro vulnérabilité de production.
 - Recette SQL fictive : onze contournements de création, séquence, version
@@ -48,3 +48,13 @@ La liste administrative se recherche uniquement sur titre, résumé, catégorie
 et état, puis se filtre localement. Le détail charge la version courante et au
 maximum cent lignes d'historique sans empreinte ni ancien corps de message.
 Cette ergonomie n'ouvre aucun droit supplémentaire.
+
+## Aperçu éditorial local
+
+Le composeur propose un mode `Aperçu` qui rend localement le titre, le résumé
+et le Markdown avant la demande de relecture. Il ne sélectionne aucun
+destinataire, ne publie rien et n'appelle aucun service de diffusion. Les images
+distantes sont neutralisées pour éviter un chargement ou un suivi involontaire,
+les liens s'ouvrent dans un onglet isolé et les tableaux restent contenus à
+320 px. L'aperçu fidèle du message réellement livré reste volontairement hors
+de ce lot.

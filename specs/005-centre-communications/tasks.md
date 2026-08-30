@@ -85,6 +85,9 @@
 - [ ] T018 Envoyer individuellement via Brevo avec lien canonique.
 - [ ] T019 Enregistrer livré, différé, rejeté, spam et désinscrit.
 - [ ] T020 Construire la boîte d'échec, la reprise et l'annulation des travaux.
+- [x] T021A Ajouter un aperçu éditorial local sûr avant la relecture : rendu
+  Markdown borné, images distantes neutralisées, liens isolés et absence de
+  destinataire, publication ou envoi.
 - [ ] T021 Ajouter un aperçu email fidèle avant validation.
 
 ## Phase 5 - Entrants et réponses

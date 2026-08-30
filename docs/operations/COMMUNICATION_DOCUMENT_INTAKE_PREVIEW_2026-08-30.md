@@ -34,7 +34,7 @@
 - Neuf tests d'entrée, interrupteurs, chemins, API, schéma, file et worker
   réussissent.
 - Cinq tests réels d'extraction sur PDF/DOCX fictifs réussissent.
-- La régression agrégée du centre compte 58 tests réussis.
+- La régression agrégée du centre compte 59 tests réussis.
 - Build TypeScript/Vite réussi.
 - Audits npm application et workers : zéro vulnérabilité de production.
 - Recette SQL transactionnelle : création dans un faux état, acteur falsifié,

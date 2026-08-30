@@ -1,8 +1,11 @@
 import { FormEvent, useCallback, useEffect, useMemo, useState } from "react";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 import {
   Check,
   ChevronRight,
   Clock3,
+  Eye,
   FileText,
   FilePenLine,
   LoaderCircle,
@@ -144,6 +147,49 @@ function fileSizeLabel(sizeBytes: number): string {
     : `${(sizeBytes / (1024 * 1024)).toFixed(1)} Mo`;
 }
 
+function CommunicationMessagePreview({
+  title,
+  summary,
+  bodyMarkdown,
+}: Pick<CommunicationDetail, "title" | "summary" | "bodyMarkdown">) {
+  return (
+    <section className="overflow-hidden rounded-md border border-slate-200 bg-white shadow-sm" aria-label="Aperçu du message">
+      <header className="bg-slate-950 px-4 py-4 text-white sm:px-6">
+        <p className="text-xs font-semibold uppercase text-emerald-300">Lycée Blaise Cendrars · Sevran</p>
+        <p className="mt-1 text-sm text-white/70">Communication de l’établissement</p>
+      </header>
+      <div className="px-4 py-5 sm:px-6 sm:py-6">
+        <h2 className="break-words text-xl font-bold text-slate-950">{title.trim() || "Titre du message"}</h2>
+        {summary.trim() ? <p className="mt-2 whitespace-pre-line border-l-2 border-emerald-600 pl-3 text-sm leading-6 text-slate-600">{summary}</p> : null}
+        <div className="mt-6 space-y-3 break-words text-sm leading-7 text-slate-800">
+          <ReactMarkdown
+            remarkPlugins={[remarkGfm]}
+            components={{
+              h1: ({ children }) => <h3 className="mt-5 text-lg font-bold text-slate-950">{children}</h3>,
+              h2: ({ children }) => <h3 className="mt-5 text-base font-bold text-slate-950">{children}</h3>,
+              h3: ({ children }) => <h4 className="mt-4 font-bold text-slate-950">{children}</h4>,
+              p: ({ children }) => <p className="whitespace-pre-wrap">{children}</p>,
+              ul: ({ children }) => <ul className="list-disc space-y-1 pl-5">{children}</ul>,
+              ol: ({ children }) => <ol className="list-decimal space-y-1 pl-5">{children}</ol>,
+              blockquote: ({ children }) => <blockquote className="border-l-2 border-slate-300 pl-3 text-slate-600">{children}</blockquote>,
+              a: ({ href, children }) => <a href={href} target="_blank" rel="noreferrer noopener" className="font-semibold text-emerald-700 underline underline-offset-2">{children}</a>,
+              img: ({ alt }) => <span className="block border border-dashed border-slate-300 px-3 py-2 text-xs text-slate-500">Image non affichée{alt ? ` : ${alt}` : ""}</span>,
+              table: ({ children }) => <div className="max-w-full overflow-x-auto"><table className="min-w-full border-collapse text-left text-xs">{children}</table></div>,
+              th: ({ children }) => <th className="border border-slate-200 bg-slate-50 px-2 py-1 font-bold">{children}</th>,
+              td: ({ children }) => <td className="border border-slate-200 px-2 py-1">{children}</td>,
+            }}
+          >
+            {bodyMarkdown.trim() || "Le contenu du message apparaîtra ici."}
+          </ReactMarkdown>
+        </div>
+      </div>
+      <footer className="border-t border-slate-200 bg-slate-50 px-4 py-3 text-xs text-slate-500 sm:px-6">
+        Aperçu interne · aucun destinataire sélectionné
+      </footer>
+    </section>
+  );
+}
+
 function dateLabel(value: string): string {
   return new Intl.DateTimeFormat("fr-FR", {
     dateStyle: "medium",
@@ -184,6 +230,7 @@ export default function CommunicationsPage() {
   const [selectedDetail, setSelectedDetail] = useState<CommunicationDetail | null>(null);
   const [selectedVersions, setSelectedVersions] = useState<CommunicationVersion[]>([]);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [composerMode, setComposerMode] = useState<"write" | "preview">("write");
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [loading, setLoading] = useState(COMMUNICATIONS_UI_ENABLED);
@@ -269,6 +316,7 @@ export default function CommunicationsPage() {
   function startNew() {
     setDraft(emptyDraft());
     setEditingId(null);
+    setComposerMode("write");
     setSelectedId(null);
     setSelectedDetail(null);
     setSelectedVersions([]);
@@ -288,6 +336,7 @@ export default function CommunicationsPage() {
       openQuestions: selectedDetail.openQuestions,
     });
     setEditingId(selectedDetail.id);
+    setComposerMode("write");
     setSelectedId(null);
     setReviewNotes([]);
     setNotice("");
@@ -725,10 +774,20 @@ export default function CommunicationsPage() {
               </label>
             </div>
 
-            <label className="block text-sm font-semibold text-slate-800">
-              Message
-              <textarea required maxLength={100000} rows={12} value={draft.bodyMarkdown} onChange={(event) => setDraft((current) => ({ ...current, bodyMarkdown: event.target.value }))} className="mt-1.5 w-full resize-y rounded-md border border-slate-300 px-3 py-2.5 font-normal leading-6 text-slate-950 outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100" />
-            </label>
+            <div>
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                <label htmlFor="communication-message" className="text-sm font-semibold text-slate-800">Message</label>
+                <div className="grid grid-cols-2 rounded-md border border-slate-300 bg-white p-0.5" aria-label="Mode du message">
+                  <button type="button" onClick={() => setComposerMode("write")} aria-pressed={composerMode === "write"} className={`inline-flex min-h-9 items-center justify-center gap-2 px-3 text-xs font-semibold ${composerMode === "write" ? "rounded bg-slate-950 text-white" : "text-slate-600"}`}><Pencil className="h-3.5 w-3.5" /> Écrire</button>
+                  <button type="button" onClick={() => setComposerMode("preview")} aria-pressed={composerMode === "preview"} className={`inline-flex min-h-9 items-center justify-center gap-2 px-3 text-xs font-semibold ${composerMode === "preview" ? "rounded bg-slate-950 text-white" : "text-slate-600"}`}><Eye className="h-3.5 w-3.5" /> Aperçu</button>
+                </div>
+              </div>
+              {composerMode === "write" ? (
+                <textarea id="communication-message" required maxLength={100000} rows={12} value={draft.bodyMarkdown} onChange={(event) => setDraft((current) => ({ ...current, bodyMarkdown: event.target.value }))} className="mt-1.5 w-full resize-y rounded-md border border-slate-300 px-3 py-2.5 font-normal leading-6 text-slate-950 outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100" />
+              ) : (
+                <div className="mt-2"><CommunicationMessagePreview title={draft.title} summary={draft.summary} bodyMarkdown={draft.bodyMarkdown} /></div>
+              )}
+            </div>
 
             <section className="border-y border-slate-200 py-4" aria-labelledby="communication-assist-title">
               <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
@@ -792,7 +851,7 @@ export default function CommunicationsPage() {
               <span className="inline-flex items-center gap-2 text-xs text-slate-500"><LockKeyhole className="h-4 w-4" /> Privé jusqu’à validation</span>
               <div className="flex flex-col-reverse gap-2 sm:flex-row">
                 {editingId ? <button type="button" onClick={startNew} className="min-h-11 rounded-md border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700">Annuler</button> : null}
-                <button type="submit" disabled={saving} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-md bg-emerald-700 px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-50">
+                <button type="submit" disabled={saving || draft.bodyMarkdown.trim().length === 0} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-md bg-emerald-700 px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-50">
                   {saving ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
                   {editingId ? "Enregistrer une version" : "Enregistrer"}
                 </button>
