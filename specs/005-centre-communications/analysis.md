@@ -268,3 +268,10 @@ seconde publication provoque une erreur après ses écritures : la sous-
 transaction les annule toutes et laisse la communication validée intacte. Le
 scénario complet laisse huit compteurs à zéro après rollback, sans audience,
 livraison, tâche d'envoi, donnée réelle ou exposition directe des tables.
+
+T015C applique le choix le plus protecteur tant que la durée d'archive n'est pas
+validée : seul un contenu expiré mais encore publié peut apparaître dans le mode
+Archives. Le statut `archive`, utilisé par la direction pour retirer un contenu,
+reste exclu du flux courant, du flux expiré et de l'accès direct par slug. Le
+mode est signé par le curseur opaque et contrôlé dans la réponse cliente. Une
+recette de preview confirme les trois partitions et laisse trois résidus à zéro.

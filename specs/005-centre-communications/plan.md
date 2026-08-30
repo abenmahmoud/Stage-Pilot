@@ -47,6 +47,12 @@ l'ensemble. Ce chemin ne crée jamais d'audience, de livraison ou de travail
 d'envoi ; les interrupteurs Vercel restent fermés tant qu'un pilote public n'est
 pas explicitement autorisé.
 
+Le flux public distingue désormais les publications courantes des publications
+simplement expirées. Un retrait manuel garde la priorité et reste exclu des deux
+ensembles ainsi que de l'accès par slug. Le curseur opaque contient son mode
+pour empêcher une reprise dans le mauvais flux. La durée de conservation des
+expirés reste une décision éditoriale avant fermeture de T015.
+
 ## Automatisation
 
 1. La source est enregistrée avant analyse.

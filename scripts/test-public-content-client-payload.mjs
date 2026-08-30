@@ -10,11 +10,11 @@ const markdown = readFileSync(new URL("../src/components/PublicContentMarkdown.t
 const contentManager = readFileSync(new URL("../src/pages/admin/ContentManagerPage.tsx", import.meta.url), "utf8");
 
 test("routes the initial and paginated public feed through one validator", () => {
-  assert.equal(page.match(/\.then\(readPublicContentPayload\)/g)?.length, 2);
-  assert.match(page, /const payload = await readPublicContentPayload\(response\)/);
+  assert.equal(page.match(/readPublicContentPayload\(response, scope\)/g)?.length, 2);
+  assert.equal(page.match(/\.then\(readPublicContentPayload\)/g)?.length, 1);
   const read = client.indexOf("export async function readPublicContentPayload");
   const unknown = client.indexOf("readJsonApiResponse<unknown>", read);
-  const validation = client.indexOf("if (!isPublicContentPayload(payload))", unknown);
+  const validation = client.indexOf("if (!isPublicContentPayload(payload) || payload.scope !== expectedScope)", unknown);
   assert.ok(read < unknown && unknown < validation);
 });
 
@@ -33,6 +33,8 @@ test("bounds every public item, asset and cursor", () => {
   assert.match(client, /kindMatchesMime/);
   assert.match(client, /isBoundedString\(value\.bodyMarkdown, 30_000, true\)/);
   assert.match(client, /value\.audience === "tous"/);
+  assert.match(client, /value\.scope !== "current" && value\.scope !== "expired"/);
+  assert.match(client, /payload\.scope !== expectedScope/);
   assert.match(client, /isBoundedString\(value\.nextCursor, 512\)/);
   assert.match(client, /new Set\(slugs\)\.size === slugs\.length/);
   assert.match(client, /maxBytes: 16 \* 1024 \* 1024/);

@@ -2576,6 +2576,20 @@ taches et analyse de coherence avant une automatisation sensible.
   activé. Le brief Claude est préparé mais non exécuté faute de modèle exact et
   de plafond propres à cette mission ; zéro jeton externe consommé.
 
+### Jalon du 30 août 2026 - archives publiques prudentes
+
+- T015C sépare en preview les publications en cours des publications expirées.
+- Un retrait manuel reste exclu des deux flux et ne peut pas être relu par slug.
+- Le curseur opaque est lié au mode `current` ou `expired` et la réponse cliente
+  doit confirmer le même mode.
+- La recette Supabase distingue exactement les trois cas et laisse trois
+  résidus à zéro après rollback, sans donnée réelle ni changement de production.
+- Chromium valide le contrôle segmenté à 1 440 px et 390 px sans erreur console
+  ni débordement ; les deux boutons mesurent 40 px de haut sur téléphone.
+- T015 reste ouvert uniquement pour valider la durée de conservation publique
+  des expirés. Le brief Claude est préparé mais non exécuté faute de modèle
+  exact et de plafond ; zéro jeton externe consommé.
+
 ### Jalon du 30 août 2026 - couverture RLS du guichet préparée
 
 - Une migration locale impose la RLS et retire les droits directs sur les seize

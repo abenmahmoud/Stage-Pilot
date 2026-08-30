@@ -3,12 +3,20 @@ import { Buffer } from "node:buffer";
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const MAX_CURSOR_LENGTH = 512;
 export const PUBLIC_CONTENT_PAGE_SIZE = 100;
+export type PublicContentScope = "current" | "expired";
 
 export type PublicContentCursor = {
+  scope: PublicContentScope;
   featured: boolean;
   publishedAt: Date;
   id: string;
 };
+
+export function parsePublicContentScope(value: unknown): PublicContentScope {
+  if (value === undefined || value === "") return "current";
+  if (Array.isArray(value) || value !== "expired") throw new Error("scope_invalid");
+  return value;
+}
 
 function cursorObject(value: unknown): Record<string, unknown> {
   if (!value || typeof value !== "object" || Array.isArray(value)) {
@@ -28,10 +36,13 @@ export function parsePublicContentPageSize(value: string | undefined): number {
 }
 
 export function encodePublicContentCursor(input: PublicContentCursor): string {
-  if (!UUID_PATTERN.test(input.id) || Number.isNaN(input.publishedAt.getTime())) {
+  if ((input.scope !== "current" && input.scope !== "expired")
+    || !UUID_PATTERN.test(input.id)
+    || Number.isNaN(input.publishedAt.getTime())) {
     throw new Error("cursor_invalid");
   }
   return Buffer.from(JSON.stringify({
+    scope: input.scope,
     featured: input.featured,
     publishedAt: input.publishedAt.toISOString(),
     id: input.id,
@@ -51,7 +62,8 @@ export function parsePublicContentCursor(value: string | undefined): PublicConte
   }
   const input = cursorObject(decoded);
   if (
-    Object.keys(input).sort().join(",") !== "featured,id,publishedAt" ||
+    Object.keys(input).sort().join(",") !== "featured,id,publishedAt,scope" ||
+    (input.scope !== "current" && input.scope !== "expired") ||
     typeof input.featured !== "boolean" ||
     typeof input.publishedAt !== "string" ||
     typeof input.id !== "string" ||
@@ -63,5 +75,5 @@ export function parsePublicContentCursor(value: string | undefined): PublicConte
   if (Number.isNaN(publishedAt.getTime()) || publishedAt.toISOString() !== input.publishedAt) {
     throw new Error("cursor_invalid");
   }
-  return { featured: input.featured, publishedAt, id: input.id };
+  return { scope: input.scope, featured: input.featured, publishedAt, id: input.id };
 }

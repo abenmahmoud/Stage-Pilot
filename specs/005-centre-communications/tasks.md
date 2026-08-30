@@ -97,13 +97,20 @@
 - [x] T015A Rendre `À la une` consultable sous volume : recherche locale sur
   titre, résumé et catégorie, filtre de catégorie, compteur, dates et priorité
   éditoriale. L'API conserve l'ordre épinglé/date, la version publiée et la
-  fenêtre d'expiration ; l'interface passe en une colonne sous 720 px. T015
-  reste ouvert pour la politique d'archives et la pagination au-delà de 100.
+  fenêtre d'expiration ; l'interface passe en une colonne sous 720 px. La
+  pagination au-delà de 100 est apportée par T015B.
 - [x] T015B Paginer le flux public au-delà de 100 contenus avec un curseur
   opaque, borné et validé. L'ordre `priorité, date, identifiant` est stable,
   chaque page reconfirme audience publique, publication et expiration, et
   l'interface fusionne sans doublon avec reprise locale en cas d'échec. T015
   reste ouvert uniquement pour la politique d'archives à faire valider.
+- [x] T015C Ajouter en preview une politique d'archives prudente. Seules les
+  publications arrivées à expiration, toujours publiées et destinées à `tous`,
+  rejoignent l'onglet Archives. Un retrait manuel reste invisible dans les deux
+  flux et par slug. Le mode est lié au curseur opaque, l'interface est un
+  contrôle segmenté accessible et la recette Supabase sépare les trois cas avec
+  trois résidus à zéro. T015 reste ouvert pour décider la durée de conservation
+  publique des contenus expirés.
 
 ## Phase 4 - Diffusion sécurisée
 

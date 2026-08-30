@@ -700,6 +700,11 @@
 .lycee-school-life-grid a svg, .lycee-school-life-grid button svg { width: 13px; }
 
 .lycee-news-page { max-width: 1180px; }
+.lycee-news-scope { display: inline-grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 3px; margin-bottom: 12px; padding: 3px; border: 1px solid var(--lc-line); border-radius: 7px; background: #eef4f7; }
+.lycee-news-scope button { min-height: 40px; display: inline-flex; align-items: center; justify-content: center; gap: 7px; padding: 7px 14px; border: 0; border-radius: 5px; background: transparent; color: #476174; font-size: 11px; font-weight: 800; }
+.lycee-news-scope button.is-active { background: #fff; color: var(--lc-blue); box-shadow: 0 1px 3px rgba(20,45,67,.12); }
+.lycee-news-scope button:focus-visible { outline: 3px solid rgba(45,139,119,.28); outline-offset: 1px; }
+.lycee-news-scope svg { width: 15px; height: 15px; }
 .lycee-news-controls { display: grid; grid-template-columns: minmax(0,1fr) minmax(210px,280px) auto; align-items: center; gap: 10px; margin-bottom: 18px; padding: 12px; border: 1px solid var(--lc-line); border-radius: 8px; background: #fff; }
 .lycee-news-controls label { min-width: 0; display: grid; grid-template-columns: 18px minmax(0,1fr); align-items: center; gap: 8px; min-height: 42px; padding: 0 11px; border: 1px solid #c8d7e6; border-radius: 6px; background: #f8fafc; color: var(--lc-muted); }
 .lycee-news-controls label:focus-within { border-color: #2d8b77; box-shadow: 0 0 0 3px rgba(45,139,119,.14); }
@@ -1092,6 +1097,7 @@
   .lycee-quick-links > div:last-child { grid-template-columns: repeat(2,minmax(0,1fr)); }
   .lycee-contact-band { grid-template-columns: 1fr; }
   .lycee-news-controls { grid-template-columns: 1fr; }
+  .lycee-news-scope { display: grid; width: 100%; }
   .lycee-news-controls p { padding: 0 2px; white-space: normal; }
   .lycee-news-feature > div { padding: 22px; }
   .lycee-news-feature h2 { font-size: 24px; }

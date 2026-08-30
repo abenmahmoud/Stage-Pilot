@@ -17,6 +17,7 @@ import {
   encodePublicContentCursor,
   parsePublicContentCursor,
   parsePublicContentPageSize,
+  parsePublicContentScope,
 } from "../_shared/public-content-pagination.js";
 import { signedAssetUrl } from "../_shared/site-content.js";
 import { handleApi, methodNotAllowed } from "../_shared/response.js";
@@ -30,14 +31,20 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (rawSlug && requestedSlug !== rawSlug) throw new HttpError(400, "Adresse de contenu invalide");
     const rawCursor = Array.isArray(req.query.cursor) ? req.query.cursor[0] : req.query.cursor;
     const rawLimit = Array.isArray(req.query.limit) ? req.query.limit[0] : req.query.limit;
+    let scope: ReturnType<typeof parsePublicContentScope>;
     let cursor;
     let pageSize;
     try {
+      scope = parsePublicContentScope(req.query.archive);
       cursor = requestedSlug ? null : parsePublicContentCursor(rawCursor);
       pageSize = requestedSlug ? 1 : parsePublicContentPageSize(rawLimit);
     } catch {
       throw new HttpError(400, "Pagination invalide");
     }
+    if (requestedSlug && scope !== "current") {
+      throw new HttpError(400, "Une archive doit être consultée depuis le flux.");
+    }
+    if (cursor && cursor.scope !== scope) throw new HttpError(400, "Pagination invalide");
     const olderInSamePriority = cursor
       ? or(
           lt(siteContentItems.publishedAt, cursor.publishedAt),
@@ -72,7 +79,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           ne(siteContentItems.status, "archive"),
           eq(siteContentItems.audience, "tous"),
           or(isNull(siteContentItems.publishAt), lte(siteContentItems.publishAt, now)),
-          or(isNull(siteContentItems.expiresAt), gt(siteContentItems.expiresAt, now)),
+          scope === "expired"
+            ? and(isNotNull(siteContentItems.expiresAt), lte(siteContentItems.expiresAt, now))
+            : or(isNull(siteContentItems.expiresAt), gt(siteContentItems.expiresAt, now)),
           requestedSlug ? eq(siteContentItems.slug, requestedSlug) : cursorFilter
         )
       )
@@ -87,6 +96,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const lastPageRow = pageRows.at(-1)?.item;
     const nextCursor = !requestedSlug && rows.length > pageSize && lastPageRow?.publishedAt
       ? encodePublicContentCursor({
+          scope,
           featured: lastPageRow.featured,
           publishedAt: lastPageRow.publishedAt,
           id: lastPageRow.id,
@@ -97,7 +107,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       try {
         if (!hasPublicSiteContentVersion(row.item)) return [];
         const content = parseSiteContentInput(row.snapshot);
-        if (!isSiteContentPublicAt(content, now)) return [];
+        const visible = scope === "expired"
+          ? content.audience === "tous"
+            && (!content.publishAt || content.publishAt <= now)
+            && Boolean(content.expiresAt && content.expiresAt <= now)
+          : isSiteContentPublicAt(content, now);
+        if (!visible) return [];
         return [{ item: row.item, content }];
       } catch {
         return [];
@@ -151,6 +166,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         assets: signedAssets.map(({ importKey: _importKey, ...asset }) => asset),
       };
     }));
-    return { items, nextCursor };
+    return { items, nextCursor, scope };
   });
 }

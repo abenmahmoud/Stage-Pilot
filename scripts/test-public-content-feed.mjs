@@ -5,6 +5,7 @@ import {
   encodePublicContentCursor,
   parsePublicContentCursor,
   parsePublicContentPageSize,
+  parsePublicContentScope,
 } from "../api/_shared/public-content-pagination.ts";
 import {
   filterPublicContentFeed,
@@ -37,12 +38,14 @@ test("formats a public date without inventing one", () => {
 
 test("round-trips a bounded opaque cursor and rejects malformed pagination", () => {
   const cursor = encodePublicContentCursor({
+    scope: "current",
     featured: true,
     publishedAt: new Date("2026-08-30T08:00:00.000Z"),
     id: "55c4f7ca-2cdb-4a9d-8b9a-24f422e7dc2d",
   });
   assert.doesNotMatch(cursor, /55c4f7ca/);
   assert.deepEqual(parsePublicContentCursor(cursor), {
+    scope: "current",
     featured: true,
     publishedAt: new Date("2026-08-30T08:00:00.000Z"),
     id: "55c4f7ca-2cdb-4a9d-8b9a-24f422e7dc2d",
@@ -50,12 +53,22 @@ test("round-trips a bounded opaque cursor and rejects malformed pagination", () 
   assert.equal(parsePublicContentCursor(undefined), null);
   assert.equal(parsePublicContentPageSize(undefined), 100);
   assert.equal(parsePublicContentPageSize("25"), 25);
+  assert.equal(parsePublicContentScope(undefined), "current");
+  assert.equal(parsePublicContentScope("expired"), "expired");
+  assert.throws(() => parsePublicContentScope("all"), /scope_invalid/);
+  assert.throws(() => parsePublicContentScope(["expired", "expired"]), /scope_invalid/);
+  assert.throws(() => encodePublicContentCursor({
+    scope: "all",
+    featured: false,
+    publishedAt: new Date("2026-08-30T08:00:00.000Z"),
+    id: "55c4f7ca-2cdb-4a9d-8b9a-24f422e7dc2d",
+  }), /cursor_invalid/);
   assert.throws(() => parsePublicContentCursor("cursor-falsifie"), /cursor_invalid/);
   assert.throws(() => parsePublicContentPageSize("101"), /limit_invalid/);
   assert.throws(() => parsePublicContentPageSize("1.5"), /limit_invalid/);
 });
 
-test("keeps the public API limited to published, current and non-expired snapshots", async () => {
+test("keeps the public API limited to published snapshots in the requested time scope", async () => {
   const route = await readFile(new URL("../api/content/public.ts", import.meta.url), "utf8");
   assert.match(route, /isNotNull\(siteContentItems\.publishedVersion\)/);
   assert.match(route, /isNotNull\(siteContentItems\.publishedAt\)/);
@@ -63,12 +76,17 @@ test("keeps the public API limited to published, current and non-expired snapsho
   assert.match(route, /eq\(siteContentItems\.audience, "tous"\)/);
   assert.match(route, /lte\(siteContentItems\.publishAt, now\)/);
   assert.match(route, /gt\(siteContentItems\.expiresAt, now\)/);
+  assert.match(route, /parsePublicContentScope\(req\.query\.archive\)/);
+  assert.match(route, /and\(isNotNull\(siteContentItems\.expiresAt\), lte\(siteContentItems\.expiresAt, now\)\)/);
+  assert.match(route, /cursor\.scope !== scope/);
+  assert.match(route, /scope === "expired"/);
+  assert.match(route, /content\.expiresAt <= now/);
   assert.match(route, /isSiteContentPublicAt\(content, now\)/);
   assert.match(route, /desc\(siteContentItems\.featured\)/);
   assert.match(route, /desc\(siteContentItems\.publishedAt\)/);
   assert.match(route, /desc\(siteContentItems\.id\)/);
   assert.match(route, /limit\(requestedSlug \? 1 : pageSize \+ 1\)/);
-  assert.match(route, /return \{ items, nextCursor \}/);
+  assert.match(route, /return \{ items, nextCursor, scope \}/);
   assert.doesNotMatch(route, /communications|communicationVersions|approvedBy|createdBy/);
 });
 
@@ -84,6 +102,10 @@ test("adds accessible metadata-only search and responsive controls", async () =>
   assert.match(page, /Charger plus d’informations/);
   assert.match(page, /knownIds\.has\(item\.id\)/);
   assert.match(page, /loadingMoreRef\.current/);
+  assert.match(page, /role="group"/);
+  assert.match(page, /aria-pressed=\{scope === "expired"\}/);
+  assert.match(page, /archive=expired/);
+  assert.match(page, /Les publications retirées par la direction ne sont jamais affichées ici/);
   assert.doesNotMatch(page, /filterPublicContentFeed\([^\n]*bodyMarkdown/);
   assert.match(css, /\.lycee-news-controls \{[^}]*grid-template-columns: minmax\(0,1fr\)/);
   assert.match(css, /@media \(max-width: 720px\)[\s\S]*\.lycee-news-controls \{ grid-template-columns: 1fr; \}/);

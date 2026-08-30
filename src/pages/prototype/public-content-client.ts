@@ -29,9 +29,12 @@ export type PublicContent = {
   assets: PublicContentAsset[];
 };
 
+export type PublicContentScope = "current" | "expired";
+
 type PublicContentPayload = {
   items: PublicContent[];
   nextCursor: string | null;
+  scope: PublicContentScope;
 };
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -106,6 +109,7 @@ function isPublicContent(value: unknown): value is PublicContent {
 
 function isPublicContentPayload(value: unknown): value is PublicContentPayload {
   if (!isRecord(value)
+    || (value.scope !== "current" && value.scope !== "expired")
     || !Array.isArray(value.items)
     || value.items.length > 100
     || !value.items.every(isPublicContent)
@@ -117,9 +121,12 @@ function isPublicContentPayload(value: unknown): value is PublicContentPayload {
     && new Set(slugs).size === slugs.length;
 }
 
-export async function readPublicContentPayload(response: Response): Promise<PublicContentPayload> {
+export async function readPublicContentPayload(
+  response: Response,
+  expectedScope: PublicContentScope = "current"
+): Promise<PublicContentPayload> {
   const payload = await readJsonApiResponse<unknown>(response, { maxBytes: 16 * 1024 * 1024 });
-  if (!isPublicContentPayload(payload)) {
+  if (!isPublicContentPayload(payload) || payload.scope !== expectedScope) {
     throw new Error("La réponse des informations du lycée est invalide.");
   }
   return payload;

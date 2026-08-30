@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import {
   ArrowLeft,
   ArrowRightLeft,
+  Archive,
   BadgeCheck,
   BarChart3,
   Bell,
@@ -100,6 +101,7 @@ import { readJsonApiResponse } from "../../../shared/json-api-response";
 import {
   readPublicContentPayload,
   type PublicContent,
+  type PublicContentScope,
 } from "./public-content-client";
 import "./lycee-connect.css";
 
@@ -743,6 +745,7 @@ function PageIntro({
 }
 
 function NewsView({ onBack }: { onBack: () => void }) {
+  const [scope, setScope] = useState<PublicContentScope>("current");
   const [items, setItems] = useState<PublicContent[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [query, setQuery] = useState("");
@@ -755,17 +758,33 @@ function NewsView({ onBack }: { onBack: () => void }) {
   const loadingMoreRef = useRef(false);
 
   useEffect(() => {
-    fetch("/api/content/public")
-      .then(readPublicContentPayload)
+    const controller = new AbortController();
+    setItems([]);
+    setSelectedId(null);
+    setNextCursor(null);
+    setLoading(true);
+    setError("");
+    setMoreError("");
+    const url = scope === "expired" ? "/api/content/public?archive=expired" : "/api/content/public";
+    fetch(url, { signal: controller.signal })
+      .then((response) => readPublicContentPayload(response, scope))
       .then((payload) => {
         const newsItems = payload.items.filter((item) => item.contentType !== "page");
         setItems(newsItems);
         setSelectedId(newsItems[0]?.id ?? null);
         setNextCursor(payload.nextCursor);
       })
-      .catch(() => setError("Les informations ne peuvent pas être chargées pour le moment."))
-      .finally(() => setLoading(false));
-  }, []);
+      .catch((reason) => {
+        if (reason instanceof DOMException && reason.name === "AbortError") return;
+        setError(scope === "expired"
+          ? "Les archives ne peuvent pas être chargées pour le moment."
+          : "Les informations ne peuvent pas être chargées pour le moment.");
+      })
+      .finally(() => {
+        if (!controller.signal.aborted) setLoading(false);
+      });
+    return () => controller.abort();
+  }, [scope]);
 
   const loadMore = async () => {
     if (!nextCursor || loadingMoreRef.current) return;
@@ -773,8 +792,9 @@ function NewsView({ onBack }: { onBack: () => void }) {
     setLoadingMore(true);
     setMoreError("");
     try {
-      const response = await fetch(`/api/content/public?cursor=${encodeURIComponent(nextCursor)}`);
-      const payload = await readPublicContentPayload(response);
+      const archiveQuery = scope === "expired" ? "archive=expired&" : "";
+      const response = await fetch(`/api/content/public?${archiveQuery}cursor=${encodeURIComponent(nextCursor)}`);
+      const payload = await readPublicContentPayload(response, scope);
       const newsItems = payload.items.filter((item) => item.contentType !== "page");
       setItems((current) => {
         const knownIds = new Set(current.map((item) => item.id));
@@ -794,6 +814,12 @@ function NewsView({ onBack }: { onBack: () => void }) {
   const selected = filteredItems.find((item) => item.id === selectedId) ?? filteredItems[0];
   const selectedImage = selected?.assets.find((asset) => asset.assetKind === "image" && asset.signedUrl);
   const selectedDocuments = selected?.assets.filter((asset) => asset.assetKind === "document" && asset.signedUrl) ?? [];
+  const changeScope = (nextScope: PublicContentScope) => {
+    if (nextScope === scope) return;
+    setQuery("");
+    setCategory("all");
+    setScope(nextScope);
+  };
 
   return (
     <div className="lycee-page lycee-news-page">
@@ -803,6 +829,14 @@ function NewsView({ onBack }: { onBack: () => void }) {
         description="Les informations, événements et documents publiés par le lycée."
         onBack={onBack}
       />
+      <div className="lycee-news-scope" role="group" aria-label="Période des informations">
+        <button type="button" aria-pressed={scope === "current"} className={scope === "current" ? "is-active" : ""} onClick={() => changeScope("current")}>
+          <Newspaper aria-hidden="true" /> En cours
+        </button>
+        <button type="button" aria-pressed={scope === "expired"} className={scope === "expired" ? "is-active" : ""} onClick={() => changeScope("expired")}>
+          <Archive aria-hidden="true" /> Archives
+        </button>
+      </div>
       {loading ? <div className="lycee-loading-state"><RefreshCw aria-hidden="true" /> Chargement des informations…</div> : null}
       {error ? <div className="lycee-form-error"><CircleAlert aria-hidden="true" />{error}</div> : null}
       {!loading && !error && items.length > 0 ? (
@@ -826,8 +860,8 @@ function NewsView({ onBack }: { onBack: () => void }) {
       {!loading && !error && !selected ? (
         <section className="lycee-news-empty">
           <Newspaper aria-hidden="true" />
-          <h2>{items.length > 0 ? "Aucune information ne correspond" : "Les prochaines informations seront publiées ici"}</h2>
-          <p>{items.length > 0 ? "Modifiez votre recherche ou choisissez une autre catégorie." : "Les formations et la présentation du lycée restent disponibles dans « Vie du lycée »."}</p>
+          <h2>{items.length > 0 ? "Aucune information ne correspond" : scope === "expired" ? "Aucune archive disponible" : "Les prochaines informations seront publiées ici"}</h2>
+          <p>{items.length > 0 ? "Modifiez votre recherche ou choisissez une autre catégorie." : scope === "expired" ? "Les publications retirées par la direction ne sont jamais affichées ici." : "Les formations et la présentation du lycée restent disponibles dans « Vie du lycée »."}</p>
           {items.length > 0 ? <button type="button" onClick={() => { setQuery(""); setCategory("all"); }}>Effacer les filtres</button> : null}
         </section>
       ) : null}
@@ -836,7 +870,7 @@ function NewsView({ onBack }: { onBack: () => void }) {
           <article className="lycee-news-feature">
             {selectedImage ? <img src={selectedImage.signedUrl ?? ""} alt={selectedImage.altText ?? ""} /> : null}
             <div>
-              <span>{selected.featured ? "À retenir · " : ""}{selected.category}</span>
+              <span>{scope === "expired" ? "Archive · " : selected.featured ? "À retenir · " : ""}{selected.category}</span>
               <h2>{selected.title}</h2>
               <time dateTime={selected.publishedAt ?? undefined}>{publicContentDateLabel(selected.publishedAt)}</time>
               {selected.summary ? <p className="lycee-news-summary">{selected.summary}</p> : null}
@@ -844,7 +878,7 @@ function NewsView({ onBack }: { onBack: () => void }) {
               {selectedDocuments.length ? <div className="lycee-news-documents">{selectedDocuments.map((asset) => <a key={asset.id} href={asset.signedUrl ?? "#"} target="_blank" rel="noreferrer"><FileText aria-hidden="true" /><span><strong>{asset.label}</strong><small>{asset.originalName}</small></span><ExternalLink aria-hidden="true" /></a>)}</div> : null}
             </div>
           </article>
-          {filteredItems.length > 1 ? <section className="lycee-news-list" aria-labelledby="news-list-title"><div className="lycee-section-title"><div><span className="lycee-eyebrow">Toutes les informations</span><h2 id="news-list-title">Publié par le lycée</h2></div></div><div>{filteredItems.map((item) => { const image = item.assets.find((asset) => asset.assetKind === "image" && asset.signedUrl); return <button className={item.id === selected.id ? "is-active" : ""} type="button" key={item.id} onClick={() => { setSelectedId(item.id); window.scrollTo({ top: 0, behavior: "smooth" }); }}>{image ? <img src={image.signedUrl ?? ""} alt="" /> : <span><Newspaper aria-hidden="true" /></span>}<div><small>{item.featured ? "À retenir · " : ""}{item.category}</small><strong>{item.title}</strong><time dateTime={item.publishedAt ?? undefined}>{publicContentDateLabel(item.publishedAt)}</time><p>{item.summary}</p></div><ChevronRight aria-hidden="true" /></button>; })}</div></section> : null}
+          {filteredItems.length > 1 ? <section className="lycee-news-list" aria-labelledby="news-list-title"><div className="lycee-section-title"><div><span className="lycee-eyebrow">Toutes les informations</span><h2 id="news-list-title">Publié par le lycée</h2></div></div><div>{filteredItems.map((item) => { const image = item.assets.find((asset) => asset.assetKind === "image" && asset.signedUrl); return <button className={item.id === selected.id ? "is-active" : ""} type="button" key={item.id} onClick={() => { setSelectedId(item.id); window.scrollTo({ top: 0, behavior: "smooth" }); }}>{image ? <img src={image.signedUrl ?? ""} alt="" /> : <span><Newspaper aria-hidden="true" /></span>}<div><small>{scope === "expired" ? "Archive · " : item.featured ? "À retenir · " : ""}{item.category}</small><strong>{item.title}</strong><time dateTime={item.publishedAt ?? undefined}>{publicContentDateLabel(item.publishedAt)}</time><p>{item.summary}</p></div><ChevronRight aria-hidden="true" /></button>; })}</div></section> : null}
         </>
       ) : null}
       {!loading && !error && nextCursor ? (
