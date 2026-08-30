@@ -197,6 +197,9 @@ voir sa réponse dans le dossier. L'agent traite tout depuis une seule file.
   viennent pas du bucket privé signé du lycée et neutraliser les liens non HTTPS
   ou non internes dans les pages et leur aperçu administrateur, sauf email et
   téléphone strictement validés.
+- [x] **T036L** Vérifier chaque URL de média public selon les deux chemins de
+  stockage réellement générés, exiger un unique jeton signé sans paramètre
+  parasite et rejeter les traversées ou encodages de chemin inattendus.
 - [ ] **T037** Ajouter les mentions d'information, durées et procédure d'exercice
   des droits.
 - [x] **T037A** Ajouter la page de confiance de préproduction, le contact DPO, les

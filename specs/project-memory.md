@@ -2787,3 +2787,16 @@ taches et analyse de coherence avant une automatisation sensible.
 4. Terminer le retour email, la sauvegarde, les tests de charge et les comptes
    agents nominatifs.
 5. Migrer le reste du site et envisager la bascule seulement après convergence.
+
+### Jalon du 30 août 2026 - URL signées des médias publics
+
+- Les médias éditoriaux publics acceptent uniquement l'origine Supabase HTTPS
+  configurée et les deux formats de stockage réellement produits par le projet.
+- Un seul jeton signé borné est accepté ; paramètres parasites, fragments,
+  identifiants, encodages et traversées inattendues sont refusés avant rendu.
+- T036L est terminée. Le contrôle comportemental reste dans la barrière de
+  sécurité permanente et n'utilise que des URL fictives.
+- Chromium confirme à 320 et 1 440 px un seul chargement légitime, aucun
+  chargement hostile, aucune erreur et aucun débordement horizontal.
+- Le brief Claude est préparé mais non exécuté, faute de modèle exact et de
+  plafond propres à cette mission ; aucun jeton externe n'a été consommé.

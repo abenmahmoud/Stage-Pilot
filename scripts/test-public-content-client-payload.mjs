@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { readFileSync } from "node:fs";
+import { isAllowedPublicContentSignedUrlForOrigin } from "../shared/public-content-signed-url.ts";
 
 const page = readFileSync(new URL("../src/pages/prototype/LyceeConnectPrototype.tsx", import.meta.url), "utf8");
 const articlePage = readFileSync(new URL("../src/pages/prototype/PublicContentPage.tsx", import.meta.url), "utf8");
@@ -38,10 +39,22 @@ test("bounds every public item, asset and cursor", () => {
 });
 
 test("accepts signed media only from the configured private content bucket", () => {
-  assert.match(client, /url\.protocol === "https:"/);
-  assert.match(client, /url\.origin === supabaseUrl\.origin/);
-  assert.match(client, /url\.pathname\.startsWith\("\/storage\/v1\/object\/sign\/site-content\/"\)/);
-  assert.match(client, /url\.searchParams\.has\("token"\)/);
+  const origin = "https://school-project.supabase.co";
+  const token = "signed-token-value-1234567890";
+  const modern = `${origin}/storage/v1/object/sign/site-content/123e4567-e89b-42d3-a456-426614174000/2026/08/123e4567-e89b-42d3-a456-426614174001.pdf?token=${token}`;
+  const legacy = `${origin}/storage/v1/object/sign/site-content/legacy-wordpress/42/photo-lycee.jpg?token=${token}`;
+
+  assert.equal(isAllowedPublicContentSignedUrlForOrigin(null, origin), true);
+  assert.equal(isAllowedPublicContentSignedUrlForOrigin(modern, origin), true);
+  assert.equal(isAllowedPublicContentSignedUrlForOrigin(legacy, origin), true);
+  assert.equal(isAllowedPublicContentSignedUrlForOrigin(modern, "http://school-project.supabase.co"), false);
+  assert.equal(isAllowedPublicContentSignedUrlForOrigin(modern.replace(origin, "https://other.supabase.co"), origin), false);
+  assert.equal(isAllowedPublicContentSignedUrlForOrigin(`${modern}&download=1`, origin), false);
+  assert.equal(isAllowedPublicContentSignedUrlForOrigin(`${modern}&token=second-token-value`, origin), false);
+  assert.equal(isAllowedPublicContentSignedUrlForOrigin(modern.replace("?token=", "#fragment?token="), origin), false);
+  assert.equal(isAllowedPublicContentSignedUrlForOrigin(modern.replace("123e4567-e89b-42d3-a456-426614174001.pdf", "%2e%2e%2fsecret.pdf"), origin), false);
+  assert.equal(isAllowedPublicContentSignedUrlForOrigin(modern.replace(token, "x"), origin), false);
+  assert.match(client, /isAllowedPublicContentSignedUrlForOrigin\(value, configured\)/);
 });
 
 test("validates the dedicated article response and binds it to the requested slug", () => {

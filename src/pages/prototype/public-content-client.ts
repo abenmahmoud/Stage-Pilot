@@ -1,4 +1,5 @@
 import { readJsonApiResponse } from "../../../shared/json-api-response";
+import { isAllowedPublicContentSignedUrlForOrigin } from "../../../shared/public-content-signed-url";
 
 export type PublicContentAsset = {
   id: string;
@@ -48,24 +49,9 @@ function isValidDate(value: unknown): value is string {
 }
 
 export function isAllowedPublicContentSignedUrl(value: unknown): value is string | null {
-  if (value === null) return true;
-  if (!isBoundedString(value, 4_096)) return false;
   const env = import.meta.env as Record<string, string | undefined>;
   const configured = env.VITE_SUPABASE_URL ?? env.NEXT_PUBLIC_SUPABASE_URL;
-  if (!configured) return false;
-  try {
-    const url = new URL(value);
-    const supabaseUrl = new URL(configured);
-    return url.protocol === "https:"
-      && url.origin === supabaseUrl.origin
-      && !url.username
-      && !url.password
-      && !url.hash
-      && url.pathname.startsWith("/storage/v1/object/sign/site-content/")
-      && url.searchParams.has("token");
-  } catch {
-    return false;
-  }
+  return isAllowedPublicContentSignedUrlForOrigin(value, configured);
 }
 
 function isPublicContentAsset(value: unknown): value is PublicContentAsset {

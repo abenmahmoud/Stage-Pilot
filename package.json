@@ -152,7 +152,7 @@
     "test:support-assistant-client-payload": "node scripts/test-support-assistant-client-payload.mjs",
     "test:support-magic-access-payload": "node scripts/test-support-magic-access-payload.mjs",
     "test:support-request-creation-payload": "node scripts/test-support-request-creation-payload.mjs",
-    "test:public-content-client-payload": "node scripts/test-public-content-client-payload.mjs",
+    "test:public-content-client-payload": "node --experimental-strip-types scripts/test-public-content-client-payload.mjs",
     "test:support-public-mutation-payloads": "node scripts/test-support-public-mutation-payloads.mjs",
     "test:support-single-tracking": "node scripts/test-support-single-tracking-system.mjs",
     "test:official-service-links": "node scripts/test-official-service-links.mjs",
