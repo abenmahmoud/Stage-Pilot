@@ -182,6 +182,10 @@
   des compteurs bornés de pièces jointes. Sujet, corps, expéditeur, adresse,
   nom de fichier et jeton de téléchargement ne sortent jamais du parseur. T022
   reste ouvert jusqu'à la route, la persistance privée et la recette de rejeu.
+- [x] T022B Ajouter la route et la persistance de métadonnées, fermées par
+  défaut. Le lot est HMAC, idempotent et borné ; aucun expéditeur, sujet, corps,
+  nom de fichier ou adresse n'est stocké. T022 reste ouvert jusqu'au stockage
+  privé antivirus du contenu et à la recette de rejeu sur la preview.
 - [ ] T023 Rattacher chaque réponse à la bonne communication.
 - [x] T023A Définir le rattachement strict avant la persistance. La référence
   `In-Reply-To` entrante utilise le même HMAC secret que l'identifiant du message
@@ -189,6 +193,10 @@
   exacte peut être proposée ; absence, ambiguïté, champ de contact ou croisement
   d'établissement sont refusés sans repli sur une adresse. Une migration impose
   l'unicité par établissement mais reste à appliquer sur la preview avant T023.
+- [x] T023B Rattacher la route uniquement par HMAC sortant exact dans
+  l'établissement configuré, avec deux candidats au maximum et aucun repli
+  nominatif. Les entrants non rattachés restent privés avec communication nulle.
+  T023 reste ouvert jusqu'à la recette DB de preview.
 - [ ] T024 Classer retrait, correction de contact, question et réponse libre.
 - [x] T024A Définir et tester le classificateur local avant son raccordement. Il
   produit seulement les quatre catégories prévues, comprend des signaux bornés

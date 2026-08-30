@@ -188,3 +188,9 @@ T020G garde l'action compréhensible : la direction voit seulement le titre, la
 version, une cause française, le nombre d'essais et la date. Un premier bouton
 déclare la cause corrigée ; un second confirme réellement la reprise. La liste
 s'empile sur téléphone et aucun champ de livraison ne traverse l'API.
+
+T022B et T023B ouvrent seulement le reçu technique, derrière un interrupteur
+exact resté faux. Le parseur détruit les coordonnées et le contenu avant la
+transaction. La route cherche au plus deux livraisons par HMAC sortant dans le
+même établissement, insère une ligne idempotente et audite uniquement des
+compteurs. Un entrant sans référence reste non rattaché, sans repli nominatif.

@@ -1763,6 +1763,19 @@ taches et analyse de coherence avant une automatisation sensible.
 - Le test de route couvre aussi l'interface et vérifie l'absence de champs de
   livraison ou destinataire. T020G est terminé ; la recette DB reste ouverte.
 
+### Jalon du 30 août 2026 - persistance des reçus entrants
+
+- Le webhook entrant reste fermé par défaut et exige un Bearer fort ainsi que la
+  clé HMAC fournisseur. Le lot contient vingt messages au maximum.
+- Après le parseur, seules des empreintes et compteurs subsistent. La transaction
+  rattache par HMAC sortant exact dans l'établissement, avec deux candidats au
+  maximum et sans adresse de secours.
+- Une ligne privée idempotente est créée ; un entrant non rattaché garde une
+  communication nulle. L'audit d'un rattachement contient seulement compteurs,
+  présence de texte et besoin de revue spam.
+- Cinq tests de persistance vérifient fermeture, périmètre, minimisation, audit et
+  réponse. T022B et T023B sont terminés sans contenu, secret ou appel réel.
+
 ### Jalon du 30 août 2026 - contrat de délivrabilité Brevo
 
 - Un vérificateur Bearer commun protège désormais les futurs webhooks entrants
