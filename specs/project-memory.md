@@ -2581,6 +2581,19 @@ taches et analyse de coherence avant une automatisation sensible.
 - Le brief Claude est préparé mais non exécuté, faute de modèle exact et de
   plafond propres à cette mission ; aucun jeton externe n'a été consommé.
 
+### Jalon du 30 août 2026 - contrat du détail agent
+
+- Les contrats de ligne et de détail sont séparés selon les champs réellement
+  fournis par les deux routes.
+- Demande, accès, contacts, messages, pièces jointes, rappels et revues sont
+  contrôlés avant que la colonne de traitement ne soit affichée.
+- La recette Playwright avec un second détail incomplet passe à 320 et 1440 px :
+  file conservée, ancien détail retiré, aucune donnée partielle ni erreur écran.
+- T027B14 est terminée. Les cinq domaines comptent 401 identifiants uniques :
+  285 lignes terminées et 116 ouvertes.
+- Le brief Claude est préparé mais non exécuté, faute de modèle exact et de
+  plafond propres à cette mission ; aucun jeton externe n'a été consommé.
+
 ## 8. Prochain ordre recommande
 
 1. Publier et tester le pré-triage ordinateur portable avec des données fictives.

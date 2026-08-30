@@ -2326,7 +2326,7 @@ const agentRequests = [
   { id: "BC-2026-000039", name: "Sarah M.", role: "Élève · TSTMG2", subject: "Question Grand Oral", category: "Grand Oral", priority: "Normal", age: "Il y a 1 h" },
 ];
 
-type AgentQueueRequest = {
+type AgentRequestCore = {
   publicCode: string;
   requesterType: string;
   requesterFirstName: string;
@@ -2344,18 +2344,22 @@ type AgentQueueRequest = {
   slaDueAt: string | null;
   createdAt: string;
   updatedAt: string;
+};
+
+type AgentQueueRequest = AgentRequestCore & {
   callbackPending: boolean;
   duplicatePending: boolean;
 };
 
-type AgentRequest = AgentQueueRequest & {
+type AgentRequest = AgentRequestCore & {
+  description: string;
   identityStatus: IdentityStatus;
-  identityMethod?: string | null;
-  identityVerifiedAt?: string | null;
+  identityMethod: string | null;
+  identityVerifiedAt: string | null;
 };
 
 type AgentRequestDetail = {
-  request: AgentRequest & { description: string };
+  request: AgentRequest;
   contacts: Array<{ id: string; channel: string; value: string; isPrimary: boolean; isVerified: boolean }>;
   messages: Array<{ id: string; direction: string; authorLabel: string | null; bodyText: string; deliveryStatus: string; createdAt: string }>;
   attachments: Array<{ id: string; originalName: string; scanStatus: string; sizeBytes: number; createdAt: string }>;
@@ -2384,6 +2388,7 @@ type AgentRequestDetail = {
     createdAt: string;
     reviewedAt: string | null;
   } | null;
+  access: AgentAccess;
 };
 
 type AgentQueueStats = { total: number; new: number; qualify: number; urgent: number; active: number; waitingRequester: number; waitingInternal: number; unassigned: number; overdue: number; callbacks: number; duplicates: number };
@@ -2424,7 +2429,7 @@ function isPositiveInteger(value: unknown): value is number {
   return isNonNegativeInteger(value) && value >= 1;
 }
 
-function isAgentQueueRequest(value: unknown): value is AgentQueueRequest {
+function isAgentRequestCore(value: unknown): value is AgentRequestCore {
   if (!isRecord(value) || !isRecord(value.subjectContext)) return false;
   const stringFields = [
     "publicCode",
@@ -2445,9 +2450,14 @@ function isAgentQueueRequest(value: unknown): value is AgentQueueRequest {
     && isStringOrNull(value.assignedTo)
     && isStringOrNull(value.assignedTeam)
     && isStringOrNull(value.slaDueAt)
-    && Object.values(value.subjectContext).every((item) => typeof item === "string")
-    && typeof value.callbackPending === "boolean"
-    && typeof value.duplicatePending === "boolean";
+    && Object.values(value.subjectContext).every((item) => typeof item === "string");
+}
+
+function isAgentQueueRequest(value: unknown): value is AgentQueueRequest {
+  if (!isAgentRequestCore(value)) return false;
+  const record = value as AgentRequestCore & Record<string, unknown>;
+  return typeof record.callbackPending === "boolean"
+    && typeof record.duplicatePending === "boolean";
 }
 
 function isAgentQueueStats(value: unknown): value is AgentQueueStats {
@@ -2481,6 +2491,65 @@ function isAgentAccess(value: unknown): value is AgentAccess {
     && typeof value.canManageTemplates === "boolean";
 }
 
+function isAgentRequest(value: unknown): value is AgentRequest {
+  if (!isAgentRequestCore(value)) return false;
+  const record = value as AgentRequestCore & Record<string, unknown>;
+  return typeof record.description === "string"
+    && ["non_verifiee", "contact_verifie", "identite_confirmee"].includes(String(record.identityStatus))
+    && isStringOrNull(record.identityMethod)
+    && isStringOrNull(record.identityVerifiedAt);
+}
+
+function isAgentContact(value: unknown): value is AgentRequestDetail["contacts"][number] {
+  return isRecord(value)
+    && ["id", "channel", "value"].every((field) => typeof value[field] === "string")
+    && typeof value.isPrimary === "boolean"
+    && typeof value.isVerified === "boolean";
+}
+
+function isAgentMessage(value: unknown): value is AgentRequestDetail["messages"][number] {
+  return isRecord(value)
+    && ["id", "direction", "bodyText", "deliveryStatus", "createdAt"].every((field) => typeof value[field] === "string")
+    && isStringOrNull(value.authorLabel);
+}
+
+function isAgentAttachment(value: unknown): value is AgentRequestDetail["attachments"][number] {
+  return isRecord(value)
+    && ["id", "originalName", "scanStatus", "createdAt"].every((field) => typeof value[field] === "string")
+    && isNonNegativeInteger(value.sizeBytes);
+}
+
+function isAgentCallback(value: unknown): value is AgentRequestDetail["callbacks"][number] {
+  return isRecord(value)
+    && ["id", "phoneContactId", "createdAt"].every((field) => typeof value[field] === "string")
+    && isStringOrNull(value.dueAt)
+    && ["todo", "in_progress", "done", "cancelled"].includes(String(value.status))
+    && isStringOrNull(value.outcome)
+    && isStringOrNull(value.completedAt)
+    && typeof value.assigned === "boolean"
+    && typeof value.assignedToCurrentAgent === "boolean";
+}
+
+function isAgentDuplicateReview(value: unknown): value is AgentRequestDetail["duplicateReview"] {
+  return value === null || (
+    isRecord(value)
+    && ["pending", "confirmed", "dismissed"].includes(String(value.status))
+    && typeof value.reason === "string"
+    && isStringOrNull(value.decidedAt)
+    && isStringOrNull(value.candidatePublicCode)
+  );
+}
+
+function isAgentRoutingReview(value: unknown): value is AgentRequestDetail["routingReview"] {
+  return value === null || (
+    isRecord(value)
+    && ["pending", "confirmed", "corrected"].includes(String(value.status))
+    && typeof value.usedAi === "boolean"
+    && ["initialCategory", "initialService", "createdAt"].every((field) => typeof value[field] === "string")
+    && isStringOrNull(value.reviewedAt)
+  );
+}
+
 function isAgentQueuePayload(value: unknown): value is {
   requests: AgentQueueRequest[];
   stats: AgentQueueStats;
@@ -2500,13 +2569,18 @@ function isAgentQueuePayload(value: unknown): value is {
 
 function isAgentRequestDetail(value: unknown): value is AgentRequestDetail {
   return isRecord(value)
-    && isRecord(value.request)
+    && isAgentRequest(value.request)
     && Array.isArray(value.contacts)
+    && value.contacts.every(isAgentContact)
     && Array.isArray(value.messages)
+    && value.messages.every(isAgentMessage)
     && Array.isArray(value.attachments)
+    && value.attachments.every(isAgentAttachment)
     && Array.isArray(value.callbacks)
-    && (value.duplicateReview === null || isRecord(value.duplicateReview))
-    && (value.routingReview === null || isRecord(value.routingReview));
+    && value.callbacks.every(isAgentCallback)
+    && isAgentDuplicateReview(value.duplicateReview)
+    && isAgentRoutingReview(value.routingReview)
+    && isAgentAccess(value.access);
 }
 
 function isAgentTranslationPayload(value: unknown): value is {

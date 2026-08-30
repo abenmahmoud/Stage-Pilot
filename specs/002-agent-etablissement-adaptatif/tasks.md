@@ -348,6 +348,8 @@
   serveur, puis refléter la longueur maximale dans le champ de recherche.
 - [x] T027B13 Valider chaque ligne, compteur, statistique de service, pagination
   et droit de la réponse de file avant de remplacer l'état visible.
+- [x] T027B14 Distinguer le contrat d'une ligne et celui du détail, puis valider
+  demande, accès, contacts, messages, pièces, rappels et revues avant affichage.
 - [ ] T027B2 Ajouter les relances internes et l'escalade après validation des
   délais propres à chaque service et des responsables à notifier.
 - [ ] T027C Créer les adhésions de service puis appliquer le périmètre dans les

@@ -5,8 +5,9 @@ import { readFileSync } from "node:fs";
 const page = readFileSync(new URL("../src/pages/prototype/LyceeConnectPrototype.tsx", import.meta.url), "utf8");
 
 test("distinguishes queue rows from complete request details", () => {
-  assert.match(page, /type AgentQueueRequest = \{/);
-  assert.match(page, /type AgentRequest = AgentQueueRequest & \{/);
+  assert.match(page, /type AgentRequestCore = \{/);
+  assert.match(page, /type AgentQueueRequest = AgentRequestCore & \{/);
+  assert.match(page, /type AgentRequest = AgentRequestCore & \{/);
   assert.match(page, /useState<AgentQueueRequest\[]>\(\[]\)/);
 });
 
