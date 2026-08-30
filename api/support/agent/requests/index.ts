@@ -61,7 +61,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const search = queryValue(req.query.q).trim().slice(0, 80);
     const status = queryValue(req.query.status);
     const urgentOnly = queryValue(req.query.urgent) === "true";
-    const mineOnly = queryValue(req.query.assigned) === "me";
+    const assigned = queryValue(req.query.assigned);
+    const mineOnly = assigned === "me";
+    const unassignedOnly = assigned === "none";
     const callbackOnly = queryValue(req.query.callback) === "pending";
     const duplicateOnly = queryValue(req.query.duplicate) === "pending";
     const overdueOnly = queryValue(req.query.overdue) === "true";
@@ -100,6 +102,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (VALID_STATUSES.has(status)) filters.push(eq(supportRequests.status, status));
     if (urgentOnly) filters.push(sql`${supportRequests.priority} in ('p1', 'p2')`);
     if (mineOnly) filters.push(eq(supportRequests.assignedTo, user.id));
+    if (unassignedOnly) filters.push(isNull(supportRequests.assignedTo));
     if (callbackOnly) filters.push(hasPendingCallback());
     if (duplicateOnly) filters.push(hasPendingDuplicateReview());
     if (overdueOnly) {

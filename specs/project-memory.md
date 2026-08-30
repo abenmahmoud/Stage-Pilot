@@ -2436,6 +2436,19 @@ taches et analyse de coherence avant une automatisation sensible.
 - Le brief Claude est préparé mais non exécuté, faute de modèle exact et de
   plafond propres à cette mission ; aucun jeton externe n'a été consommé.
 
+### Jalon du 30 août 2026 - dossiers sans agent
+
+- Le compteur `Sans responsable` ouvre désormais une file `Sans agent` au lieu
+  de rester un simple indicateur.
+- L'API applique `assignedTo is null` après le cloisonnement établissement et
+  service. Un agent limité ne peut donc pas découvrir les autres files.
+- `Sans agent` ne doit pas être confondu avec `À orienter` : le premier signifie
+  qu'aucun agent n'a pris le dossier, le second qu'aucun service n'est assigné.
+- T027B4 est terminée. Les cinq domaines comptent 389 identifiants uniques : 273
+  lignes terminées et 116 ouvertes.
+- Le brief Claude est préparé mais non exécuté, faute de modèle exact et de
+  plafond propres à cette mission ; aucun jeton externe n'a été consommé.
+
 ## 8. Prochain ordre recommande
 
 1. Publier et tester le pré-triage ordinateur portable avec des données fictives.

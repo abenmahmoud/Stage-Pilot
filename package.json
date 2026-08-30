@@ -134,6 +134,7 @@
     "test:support-sla-monitoring": "node scripts/test-support-sla-monitoring.mjs",
     "test:support-waiting-queue": "node scripts/test-support-waiting-queue.mjs",
     "test:support-internal-review-queue": "node scripts/test-support-internal-review-queue.mjs",
+    "test:support-unassigned-queue": "node scripts/test-support-unassigned-queue.mjs",
     "test:support-single-tracking": "node scripts/test-support-single-tracking-system.mjs",
     "test:official-service-links": "node scripts/test-official-service-links.mjs",
     "test:security-headers": "node scripts/test-preview-security-headers.mjs",

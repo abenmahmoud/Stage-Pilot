@@ -323,6 +323,9 @@
 - [x] T027B3 Isoler les dossiers `attente_interne` dans une file `À vérifier`
   avec un compteur serveur limité au périmètre de l'agent, sans relance ni action
   automatique. T027B reste ouverte pour les délais et relances validés.
+- [x] T027B4 Rendre le compteur sans responsable actionnable avec une file
+  `Sans agent`, filtrée côté serveur après le périmètre d'accès. La file reste
+  distincte de `À orienter`, qui concerne l'absence de service assigné.
 - [ ] T027B2 Ajouter les relances internes et l'escalade après validation des
   délais propres à chaque service et des responsables à notifier.
 - [ ] T027C Créer les adhésions de service puis appliquer le périmètre dans les
