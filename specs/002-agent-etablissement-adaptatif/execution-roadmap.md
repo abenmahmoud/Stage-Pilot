@@ -435,6 +435,13 @@ l'autorisation de quota définie par le propriétaire.
   attendue et maintenant le slug de l'établissement. Le lancement a été refusé
   parce que le fichier local ne contient pas une URL Postgres de preview
   utilisable. Le contrôle n'a pas été contourné et T012A reste ouverte.
+- Lot N5ZH : indicateurs de résolution. **Implémenté et vérifié sur la preview** :
+  l'écran direction agrège sur 30 jours les demandes reçues et résolues, le taux
+  de résolution, les délais moyen et p90, le stock ouvert et les cinq catégories
+  les plus fréquentes. Chaque requête filtre l'établissement du compte agent ;
+  la réponse ne contient ni identité, ni sujet, ni description, ni référence de
+  dossier. La preview compte actuellement 11 demandes ouvertes et aucune
+  résolution ; l'interface affiche alors explicitement `Aucune résolution`.
 - Lot N6 : tests de non-régression, build, contrôle mobile et rapport d'écarts.
   **Partiellement validé en preview** : 200 transactions concurrentes sans perte
   ni reste après nettoyage, 135 contrôles de sécurité, build réussi, PWA active,

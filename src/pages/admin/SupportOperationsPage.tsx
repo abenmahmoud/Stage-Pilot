@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import {
   Activity,
   AlertTriangle,
+  BarChart3,
   BrainCircuit,
   CheckCircle2,
   Clock3,
@@ -9,6 +10,7 @@ import {
   RefreshCw,
   RotateCcw,
   ShieldCheck,
+  Timer,
 } from "lucide-react";
 import { apiFetch } from "../../lib/api";
 
@@ -36,6 +38,15 @@ type FailedJob = {
 type OperationsPayload = {
   generatedAt: string;
   summary: OperationsSummary;
+  activity30d: {
+    created: number;
+    resolved: number;
+    resolutionRate: number;
+    openBacklog: number;
+    averageResolutionHours: number;
+    p90ResolutionHours: number;
+    categories: Array<{ category: string; count: number }>;
+  };
   failures: FailedJob[];
 };
 
@@ -84,6 +95,20 @@ const OUTCOME_LABELS: Record<string, string> = {
   timeout: "Délai IA dépassé",
 };
 
+const CATEGORY_LABELS: Record<string, string> = {
+  inscription: "Inscription",
+  affectation_classe: "Classe ou affectation",
+  documents_scolarite: "Documents de scolarité",
+  ent: "Accès ENT",
+  email_academique: "Messagerie académique",
+  ordinateur: "Ordinateur",
+  logiciel: "Logiciel",
+  restauration_bourse: "Restauration ou bourse",
+  orientation_formation: "Orientation ou formation",
+  vie_scolaire: "Vie scolaire",
+  autre: "Autre demande",
+};
+
 function compactNumber(value: number): string {
   return new Intl.NumberFormat("fr-FR", { notation: "compact", maximumFractionDigits: 1 }).format(value);
 }
@@ -103,6 +128,12 @@ function dateLabel(value: string | null): string {
     dateStyle: "medium",
     timeStyle: "short",
   }).format(new Date(value));
+}
+
+function durationLabel(hours: number): string {
+  if (hours < 1) return "Moins d’une heure";
+  if (hours < 24) return `${hours.toLocaleString("fr-FR")} h`;
+  return `${(hours / 24).toLocaleString("fr-FR", { maximumFractionDigits: 1 })} j`;
 }
 
 export default function SupportOperationsPage() {
@@ -193,6 +224,33 @@ export default function SupportOperationsPage() {
             <div className="border-t-4 border-red-600 bg-white p-4 shadow-sm"><AlertTriangle className="h-5 w-5 text-red-700" /><strong className="mt-3 block text-2xl text-slate-950">{summary.failuresWaiting}</strong><span className="text-sm text-slate-500">Échecs à traiter</span></div>
             <div className="border-t-4 border-amber-500 bg-white p-4 shadow-sm"><Clock3 className="h-5 w-5 text-amber-700" /><strong className="mt-3 block text-2xl text-slate-950">{summary.deliveryAlerts24h + summary.webhookAlerts24h}</strong><span className="text-sm text-slate-500">Alertes email</span></div>
             <div className="border-t-4 border-blue-600 bg-white p-4 shadow-sm"><Clock3 className="h-5 w-5 text-blue-700" /><strong className="mt-3 block text-2xl text-slate-950">{summary.attachmentsWaiting}</strong><span className="text-sm text-slate-500">Fichiers en attente</span></div>
+          </section>
+
+          <section className="grid gap-5 border-y border-slate-200 py-5 lg:grid-cols-[minmax(0,1.3fr)_minmax(280px,0.7fr)]" aria-labelledby="request-activity-title">
+            <div className="space-y-4">
+              <div>
+                <p className="flex items-center gap-2 text-sm font-semibold text-blue-700"><BarChart3 className="h-4 w-4" /> Activité sur 30 jours</p>
+                <h2 id="request-activity-title" className="mt-1 text-lg font-bold text-slate-950">Résolution des demandes</h2>
+                <p className="mt-1 text-sm text-slate-500">Indicateurs agrégés, sans identité ni contenu de dossier.</p>
+              </div>
+              <div className="grid gap-px overflow-hidden border border-slate-200 bg-slate-200 sm:grid-cols-2 xl:grid-cols-4">
+                <div className="bg-white px-4 py-3"><span className="text-xs font-semibold uppercase text-slate-500">Reçues</span><strong className="mt-1 block text-xl text-slate-950">{payload.activity30d.created}</strong></div>
+                <div className="bg-white px-4 py-3"><span className="text-xs font-semibold uppercase text-slate-500">Résolues</span><strong className="mt-1 block text-xl text-slate-950">{payload.activity30d.resolved}</strong></div>
+                <div className="bg-white px-4 py-3"><span className="text-xs font-semibold uppercase text-slate-500">Taux</span><strong className="mt-1 block text-xl text-slate-950">{payload.activity30d.resolutionRate.toLocaleString("fr-FR", { maximumFractionDigits: 1 })} %</strong></div>
+                <div className="bg-white px-4 py-3"><span className="text-xs font-semibold uppercase text-slate-500">Encore ouvertes</span><strong className="mt-1 block text-xl text-slate-950">{payload.activity30d.openBacklog}</strong></div>
+              </div>
+              <div className="flex flex-col gap-2 text-sm text-slate-600 sm:flex-row sm:gap-6">
+                <span className="inline-flex items-center gap-2"><Timer className="h-4 w-4 text-slate-500" /> Délai moyen : <strong className="text-slate-950">{payload.activity30d.resolved > 0 ? durationLabel(payload.activity30d.averageResolutionHours) : "Aucune résolution"}</strong></span>
+                <span>90 % résolues en moins de <strong className="text-slate-950">{payload.activity30d.resolved > 0 ? durationLabel(payload.activity30d.p90ResolutionHours) : "Aucune résolution"}</strong></span>
+              </div>
+            </div>
+            <div className="space-y-3">
+              <h3 className="font-bold text-slate-950">Demandes les plus fréquentes</h3>
+              <div className="divide-y border-y border-slate-200 bg-white">
+                {payload.activity30d.categories.map((item) => <div key={item.category} className="flex items-center justify-between gap-3 px-3 py-2.5"><span className="text-sm text-slate-600">{CATEGORY_LABELS[item.category] ?? "Autre demande"}</span><strong className="text-sm text-slate-950">{item.count}</strong></div>)}
+                {payload.activity30d.categories.length === 0 ? <p className="px-3 py-8 text-center text-sm text-slate-500">Aucune demande sur cette période</p> : null}
+              </div>
+            </div>
           </section>
 
           {agentMetrics ? (

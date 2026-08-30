@@ -221,7 +221,9 @@ Le support continue à fonctionner si l'IA est coupée.
 - [ ] **T049** Activer SMS Brevo pour les notifications essentielles.
 - [ ] **T050** Ajouter WhatsApp transactionnel seulement après cadrage juridique.
 - [ ] **T051** Construire une base de connaissances validée par la direction.
-- [ ] **T052** Ajouter statistiques de résolution et motifs récurrents.
+- [x] **T052** Ajouter statistiques de résolution et motifs récurrents. L'écran
+  direction affiche sur 30 jours les volumes, le taux, le stock ouvert, les
+  délais moyen et p90 et cinq catégories fermées, sans identité ni texte libre.
 - [ ] **T053** Migrer progressivement les pages éditoriales WordPress dans la PWA,
   sans interrompre le site actuel.
 - [ ] **T054** Ajouter SSO ou rapprochement ENT lorsqu'une intégration officielle

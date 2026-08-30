@@ -18,7 +18,43 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   return handleApi(res, async () => {
     const context = await requireSupportOperationsManager(req);
     const since = new Date(Date.now() - 24 * 60 * 60 * 1000);
+    const activitySince = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
     const waitingSince = new Date(Date.now() - 15 * 60 * 1000);
+
+    const [activityStats] = await db
+      .select({
+        created: sql<number>`count(*)`.mapWith(Number),
+        resolved: sql<number>`count(*) filter (where ${supportRequests.resolvedAt} is not null)`.mapWith(Number),
+        averageResolutionHours: sql<number>`coalesce(avg(extract(epoch from (${supportRequests.resolvedAt} - ${supportRequests.createdAt})) / 3600) filter (where ${supportRequests.resolvedAt} >= ${supportRequests.createdAt}), 0)`.mapWith(Number),
+        p90ResolutionHours: sql<number>`coalesce(percentile_cont(0.9) within group (order by extract(epoch from (${supportRequests.resolvedAt} - ${supportRequests.createdAt})) / 3600) filter (where ${supportRequests.resolvedAt} >= ${supportRequests.createdAt}), 0)`.mapWith(Number),
+      })
+      .from(supportRequests)
+      .where(and(
+        eq(supportRequests.institutionId, context.institutionId),
+        gte(supportRequests.createdAt, activitySince)
+      ));
+
+    const [backlogStats] = await db
+      .select({ count: sql<number>`count(*)`.mapWith(Number) })
+      .from(supportRequests)
+      .where(and(
+        eq(supportRequests.institutionId, context.institutionId),
+        sql`${supportRequests.status} not in ('resolu', 'clos', 'indesirable')`
+      ));
+
+    const categories = await db
+      .select({
+        category: supportRequests.category,
+        count: sql<number>`count(*)`.mapWith(Number),
+      })
+      .from(supportRequests)
+      .where(and(
+        eq(supportRequests.institutionId, context.institutionId),
+        gte(supportRequests.createdAt, activitySince)
+      ))
+      .groupBy(supportRequests.category)
+      .orderBy(desc(sql`count(*)`), supportRequests.category)
+      .limit(5);
 
     const [jobStats] = await db
       .select({
@@ -94,6 +130,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       .orderBy(desc(supportFailedJobs.failedAt))
       .limit(50);
 
+    const created30d = activityStats?.created ?? 0;
+    const resolved30d = activityStats?.resolved ?? 0;
+
     return {
       generatedAt: new Date(),
       summary: {
@@ -104,6 +143,17 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         deliveryAlerts24h: deliveryStats?.count ?? 0,
         attachmentsWaiting: attachmentStats?.count ?? 0,
         lastSuccessAt: jobStats?.lastSuccessAt ?? null,
+      },
+      activity30d: {
+        created: created30d,
+        resolved: resolved30d,
+        resolutionRate: created30d > 0
+          ? Number(((resolved30d / created30d) * 100).toFixed(1))
+          : 0,
+        openBacklog: backlogStats?.count ?? 0,
+        averageResolutionHours: Math.round(activityStats?.averageResolutionHours ?? 0),
+        p90ResolutionHours: Math.round(activityStats?.p90ResolutionHours ?? 0),
+        categories,
       },
       failures,
     };

@@ -1326,6 +1326,21 @@ taches et analyse de coherence avant une automatisation sensible.
   nouveau passage après T015B1 dès qu'une connexion Postgres preview utilisable
   est fournie de façon sûre.
 
+### Jalon du 30 août 2026 - indicateurs de résolution agrégés
+
+- L'espace opérations de la direction mesure désormais l'activité des 30 derniers
+  jours : reçues, résolues, taux, stock encore ouvert, délai moyen, p90 et cinq
+  catégories fermées les plus fréquentes.
+- L'API exige le rôle opérations direction avec MFA et filtre toutes les requêtes
+  par l'établissement persistant de l'agent. Les agrégats ne renvoient ni nom,
+  ni coordonnées, ni sujet, ni texte libre, ni référence de dossier.
+- Une lecture agrégée de la preview a confirmé 11 demandes créées, zéro résolue et
+  11 ouvertes. Aucun contenu de demande n'a été lu. Le cas sans résolution est
+  présenté comme `Aucune résolution`, sans fabriquer de délai nul.
+- Le build et les tests ciblés de métriques, opérations, cloisonnement technique
+  et frontières adversariales passent. La revue Claude est préparée mais non
+  exécutée sans modèle et plafond de consommation explicitement autorisés.
+
 ## 8. Prochain ordre recommande
 
 1. Publier et tester le pré-triage ordinateur portable avec des données fictives.
