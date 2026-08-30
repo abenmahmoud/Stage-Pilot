@@ -280,6 +280,9 @@
 - [x] T023C Résoudre progressivement I0 à I4 à partir du token Supabase, de
   l'email confirmé, des fiches élève/professeur liées et des adhésions actives,
   puis transmettre facultativement la session via le frontend sans bloquer I0.
+- [x] T023D Valider dans le navigateur chaque sortie de l'assistant et son reçu
+  de routage avant affichage ; une catégorie, une action, une source, une taille
+  ou une échéance incohérente déclenche l'analyse locale déterministe.
 - [x] T024A Autoriser le contexte public à tous, le contexte interne uniquement
   aux agents de rôle habilité avec I3 ou I4 dans le service de la source, et interdire l'injection directe des
   classifications personnelles ou sensibles, même pour un administrateur.

@@ -5,6 +5,17 @@
 **Depot** : `abenmahmoud/Stage-Pilot`
 **Dernier jalon de code verifie** : branche de preview Vercel
 
+## Jalon du 30 août 2026 - réponse de l'assistant validée dans le navigateur
+
+- Le frontend traite désormais toute réponse de l'assistant comme inconnue et
+  valide ses vocabulaires, tailles, sources, compteurs et reçu avant affichage.
+- Une sortie malformée ou un reçu incohérent déclenche automatiquement l'analyse
+  locale déterministe sans montrer le contenu injecté à l'usager.
+- La recette Chromium confirme le classement local `ENT ou EduConnect` à 320 et
+  1 440 px, sans débordement ni erreur JavaScript.
+- Lot preview uniquement : aucun modèle externe, donnée réelle ou environnement
+  de production n'a été utilisé ou modifié.
+
 ## Jalon du 30 août 2026 - réservation de pièce verrouillée côté navigateur
 
 - Le navigateur n'appelle le stockage qu'après validation du bucket privé

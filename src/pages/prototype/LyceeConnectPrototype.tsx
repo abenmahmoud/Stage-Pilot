@@ -975,8 +975,8 @@ type AssistantInsight = {
 };
 
 type AssistantApiResult = AssistantInsight & {
-  routingReceipt?: string | null;
-  routingReceiptExpiresAt?: string | null;
+  routingReceipt: string | null;
+  routingReceiptExpiresAt: string | null;
 };
 
 function inferSupportCategory(text: string): SupportCategory {
@@ -1193,7 +1193,7 @@ function HelpDeskView({
     let routingReceipt: string | null = null;
     if (AI_ASSISTANT_ENABLED) {
       try {
-        const apiResult = await apiFetch<AssistantApiResult>("support/assistant", {
+        const apiResult = await apiFetch<unknown>("support/assistant", {
           method: "POST",
           headers: { "X-Support-Device": assistantSessionId },
           body: JSON.stringify({
@@ -1202,9 +1202,12 @@ function HelpDeskView({
             attachments: files.map((file) => ({ name: file.name, type: file.type, size: file.size })),
           }),
         });
+        if (!isAssistantApiResult(apiResult)) {
+          throw new Error("La réponse de l'assistant est invalide.");
+        }
         const { routingReceipt: signedReceipt, routingReceiptExpiresAt: _expiresAt, ...assistantResult } = apiResult;
         result = assistantResult;
-        routingReceipt = typeof signedReceipt === "string" ? signedReceipt : null;
+        routingReceipt = signedReceipt;
       } catch {
         result = localAssistantFallback(nextMessages, files);
       }
@@ -2566,6 +2569,57 @@ function isSupportUploadReservationPayload(value: unknown): value is {
     || !/^[A-Za-z0-9][A-Za-z0-9._-]{0,89}$/.test(segments[2])) return false;
   return isBoundedString(token, 4_096)
     && /^[A-Za-z0-9._~-]+$/.test(token);
+}
+
+function isAssistantStringList(value: unknown): value is string[] {
+  return Array.isArray(value)
+    && value.length <= 5
+    && value.every((item) => isBoundedString(item, 180));
+}
+
+function isAssistantSourceReference(value: unknown): value is AssistantSourceReference {
+  return isRecord(value)
+    && isBoundedString(value.title, 200)
+    && isPublicSupportDate(value.updatedAt);
+}
+
+function hasValidAssistantRoutingReceipt(value: Record<string, unknown>): boolean {
+  if (value.routingReceipt === null && value.routingReceiptExpiresAt === null) return true;
+  if (typeof value.routingReceipt !== "string"
+    || value.routingReceipt.length < 80
+    || value.routingReceipt.length > 2_048
+    || !/^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$/.test(value.routingReceipt)
+    || !isPublicSupportDate(value.routingReceiptExpiresAt)) return false;
+  const expiresAt = Date.parse(value.routingReceiptExpiresAt);
+  return expiresAt >= Date.now() - 30_000
+    && expiresAt <= Date.now() + (16 * 60_000);
+}
+
+function isAssistantApiResult(value: unknown): value is AssistantApiResult {
+  if (!isRecord(value)) return false;
+  return isBoundedString(value.reply, 1_500)
+    && supportCategories.some((category) => category.value === value.category)
+    && ["eleve", "parent", "professeur", "personnel", "autre", "inconnu"].includes(String(value.requesterType))
+    && ["faible", "normale", "urgente"].includes(String(value.urgency))
+    && ["high", "medium", "low"].includes(String(value.confidence))
+    && isAssistantStringList(value.missingInformation)
+    && isAssistantStringList(value.suggestedDocuments)
+    && typeof value.readyToCreate === "boolean"
+    && (value.safetyNotice === null || isBoundedString(value.safetyNotice, 500))
+    && (value.detectedLanguage === null || isBoundedString(value.detectedLanguage, 60))
+    && (value.internalSummaryFr === null || isBoundedString(value.internalSummaryFr, 700))
+    && typeof value.usedAi === "boolean"
+    && ["school_support", "education_help", "wellbeing", "privacy_request", "out_of_scope", "unknown"].includes(String(value.scope))
+    && ["continue", "offer_case", "human_transfer", "stop"].includes(String(value.action))
+    && isNonNegativeInteger(value.turnCount)
+    && value.turnCount <= 10
+    && isNonNegativeInteger(value.remainingTurns)
+    && value.remainingTurns <= 10
+    && typeof value.limitReached === "boolean"
+    && Array.isArray(value.sourceReferences)
+    && value.sourceReferences.length <= 20
+    && value.sourceReferences.every(isAssistantSourceReference)
+    && hasValidAssistantRoutingReceipt(value);
 }
 
 function isAgentRequestCore(value: unknown): value is AgentRequestCore {
