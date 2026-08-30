@@ -1649,6 +1649,20 @@ taches et analyse de coherence avant une automatisation sensible.
 - Le brief Claude est préparé mais non exécuté, faute de modèle exact et de
   plafond de consommation propres à cette mission.
 
+### Jalon du 30 août 2026 - reçu signé du Webmail
+
+- Le Webmail transforme le `message-id` Brevo en HMAC avant de répondre à
+  LyceeGest ; l'identifiant fournisseur brut et l'adresse ne sortent pas de son
+  périmètre.
+- Le reçu de cinq minutes est lié à l'établissement, à la livraison, à
+  l'empreinte exacte de commande et à la clé d'idempotence. Il distingue un
+  premier envoi accepté d'un doublon sans provoquer un nouvel envoi.
+- Sept tests simulent 200 reçus distincts, les doublons et les refus de rejeu,
+  altération, expiration, mauvaise clé ou mauvaise commande. T018B et T027C sont
+  terminés ; l'endpoint Webmail et la recette fictive restent ouverts.
+- Le brief Claude est préparé mais non exécuté, faute de modèle exact et de
+  plafond de consommation propres à cette mission.
+
 ### Jalon du 30 août 2026 - contrat de délivrabilité Brevo
 
 - Un vérificateur Bearer commun protège désormais les futurs webhooks entrants

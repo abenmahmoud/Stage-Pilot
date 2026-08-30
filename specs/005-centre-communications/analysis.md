@@ -133,5 +133,11 @@ de coordonnée.
 T018A maintient la séparation des dépôts : LyceeGest ne contacte pas Brevo pour
 ce centre et ne reçoit pas l'adresse. Il signe un ordre individuel contenant le
 texte officiel et un chemin canonique sans origine ; le Webmail résout et
-revérifie le contact, construit l'URL depuis sa configuration et envoie. Le reçu
-signé et l'appel fictif entre applications restent à implémenter.
+revérifie le contact, construit l'URL depuis sa configuration et envoie. L'appel
+fictif entre applications reste à implémenter.
+
+T018B complète le retour minimal : le Webmail signe un reçu lié à l'empreinte
+de la commande, à la livraison et à sa clé d'idempotence. Il transforme le
+`message-id` Brevo en HMAC avant toute réponse. Une répétition renvoie la même
+empreinte avec l'issue `duplicate`; elle ne peut donc pas être confondue avec
+une nouvelle livraison. La route distante et sa transaction restent ouvertes.

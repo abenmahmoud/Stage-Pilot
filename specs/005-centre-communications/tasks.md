@@ -96,7 +96,12 @@
 - [x] T018A Définir l'ordre signé LyceeGest vers le Webmail : un seul contact
   opaque, texte validé, chemin canonique sans jeton et idempotence de livraison.
   Le Webmail reste seul à résoudre l'adresse et à appeler Brevo. T018 reste
-  ouvert jusqu'à l'endpoint séparé, au reçu signé et à la recette fictive.
+  ouvert jusqu'à l'endpoint séparé et à la recette fictive.
+- [x] T018B Définir le reçu signé Webmail vers LyceeGest : il est lié à la
+  commande exacte et renvoie seulement l'issue, les empreintes d'idempotence et
+  de message fournisseur, ainsi que des dates bornées. Le brut Brevo et les
+  coordonnées ne reviennent jamais. T018 reste ouvert jusqu'à l'endpoint séparé
+  et à la recette fictive entre applications.
 - [ ] T019 Enregistrer livré, différé, rejeté, spam et désinscrit.
 - [x] T019A Définir le contrat Brevo de délivrabilité avant toute route. Un
   Bearer fort est comparé en temps constant ; seuls les événements documentés
@@ -180,6 +185,9 @@
 - [x] T027B Simuler 200 ordres individuels signés sans adresse, nom, tableau de
   contacts, origine externe ou jeton dans le lien. T027 reste ouvert jusqu'à la
   preuve entre les deux applications sur la preview.
+- [x] T027C Simuler 200 reçus de livraison signés, chacun lié à sa commande et
+  sans adresse, identifiant Brevo brut ni contenu utilisateur. T027 reste ouvert
+  jusqu'à la recette réseau et transactionnelle sur la preview.
 - [ ] T028 Tester rôles, MFA, contenus internes et API publique.
 - [x] T028A Exiger `aal2` sur toutes les routes privées du centre et vérifier
   les rôles bornés, le cloisonnement établissement, la fermeture du module et
