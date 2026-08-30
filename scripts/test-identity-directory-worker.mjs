@@ -41,6 +41,8 @@ assert.match(worker, /set status = 'review'/);
 assert.match(worker, /pgmq\.delete\('identity_directory_scan'/);
 assert.match(worker, /pgmq\.archive\('identity_directory_scan'/);
 assert.match(parser, /createHmac\("sha256", pepper\)/);
+assert.match(parser, /documentSecretSignals/);
+assert.match(parser, /secret_forbidden/);
 assert.doesNotMatch(parser, /firstName:/);
 assert.doesNotMatch(parser, /lastName:/);
 assert.match(vault, /aes-256-gcm/);
@@ -56,4 +58,4 @@ assert.match(service, /MemoryMax=512M/);
 assert.match(service, /PrivateTmp=true/);
 assert.match(service, /ProtectSystem=strict/);
 
-console.log("identity directory worker: 26/26 checks passed");
+console.log("identity directory worker: 28/28 checks passed");

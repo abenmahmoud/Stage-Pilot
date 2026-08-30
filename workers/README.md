@@ -8,7 +8,8 @@ The workers run on the lycée VPS, not in the browser or in a Vercel function.
   through Brevo, records each attempt, and archives repeated failures.
 - `identity-directory-worker.mjs` consumes `identity_directory_scan`, runs
   ClamAV, validates bounded CSV/XLSX files and writes a review report containing
-  only opaque references and keyed contact fingerprints.
+  only opaque references and keyed contact fingerprints. Secret-bearing headers
+  or cells stop the import before hashing or vault encryption.
 - `knowledge-document-worker.mjs` consumes `knowledge_document_scan`, runs
   ClamAV and extracts bounded text locally from safe PDF, DOCX, XLSX, CSV and
   text files. Personal, sensitive or privacy-signalled content stays manual.

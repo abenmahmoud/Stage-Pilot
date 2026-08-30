@@ -1,10 +1,13 @@
 import { createHash, createHmac } from "node:crypto";
 import * as XLSX from "xlsx";
+import { documentSecretSignals } from "./knowledge-document-secret-policy.mjs";
 
 export const IDENTITY_DIRECTORY_MAX_BYTES = 50 * 1024 * 1024;
 export const IDENTITY_DIRECTORY_MAX_ROWS = 25_000;
 const MAX_COLUMNS = 24;
 const MAX_CELL_LENGTH = 500;
+const FORBIDDEN_SECRET_HEADER =
+  /(?:^|_)(?:password|mot_de_passe|mdp|otp|token|api_key|cle_api|client_secret|secret_key|cle_secrete|private_key|cle_privee)(?:_|$)|^code_(?:[a-z0-9_]{0,24}_)?(?:ent|pronote|educonnect|academique)(?:_|$)/u;
 
 const PERSON_TYPES = new Set(["student", "guardian", "staff"]);
 const RELATIONSHIP_TYPES = new Set([
@@ -73,6 +76,28 @@ function normalizeHeader(value) {
     .replace(/[’']/g, "")
     .replace(/[^a-z0-9]+/g, "_")
     .replace(/^_+|_+$/g, "");
+}
+
+function assertNoForbiddenDirectorySecrets(matrix) {
+  const headers = Array.isArray(matrix[0]) ? matrix[0] : [];
+  if (headers.some((header) => FORBIDDEN_SECRET_HEADER.test(normalizeHeader(header)))) {
+    throw new IdentityDirectoryParseError(
+      "secret_forbidden",
+      "Le fichier contient une donnée secrète interdite"
+    );
+  }
+
+  for (const row of matrix) {
+    const cells = Array.isArray(row) ? row : [row];
+    for (const cell of cells) {
+      if (documentSecretSignals(cell).length > 0) {
+        throw new IdentityDirectoryParseError(
+          "secret_forbidden",
+          "Le fichier contient une donnée secrète interdite"
+        );
+      }
+    }
+  }
 }
 
 function normalizeText(value) {
@@ -313,6 +338,7 @@ function sheetRecords(sheet, sheetName) {
     blankrows: false,
   });
   if (matrix.length === 0) return [];
+  assertNoForbiddenDirectorySecrets(matrix);
   const rawHeaders = matrix[0];
   const headers = rawHeaders.map((header) => {
     const normalized = normalizeHeader(header);

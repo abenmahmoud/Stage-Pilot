@@ -16,10 +16,13 @@ function parseCsv(csv, nextPepper = pepper) {
   });
 }
 
-function expectParseCode(run, code) {
+function expectParseCode(run, code, forbiddenFragments = []) {
   assert.throws(run, (error) => {
     assert.ok(error instanceof IdentityDirectoryParseError);
     assert.equal(error.code, code);
+    for (const fragment of forbiddenFragments) {
+      assert.equal(error.message.includes(fragment), false, "secret leaked in parser error");
+    }
     return true;
   });
 }
@@ -85,6 +88,38 @@ person,STU-001,student,information libre,2026-09-01`),
   "unsupported_column"
 );
 
+for (const [header, value] of [
+  ["mot_de_passe", "Azerty123!"],
+  ["code_ent", "BC93-2026"],
+  ["code d'accès ENT", "BC93-2026"],
+  ["api_key", "sk-exampletoken123456789"],
+]) {
+  expectParseCode(
+    () => parseCsv(`record_type,person_ref,person_type,${header},active_from
+person,STU-001,student,${value},2026-09-01`),
+    "secret_forbidden",
+    [value]
+  );
+}
+
+for (const secretValue of [
+  "Mot de passe: Azerty123!",
+  "Code Pronote: 923864",
+  "-----BEGIN PRIVATE KEY-----",
+  "Bearer abcdefghijklmnopqrstuvwxyz123456",
+]) {
+  expectParseCode(
+    () => parseCsv(`record_type,person_ref,person_type,first_name,active_from
+person,STU-001,student,${secretValue},2026-09-01`),
+    "secret_forbidden",
+    [secretValue]
+  );
+}
+
+const benignAccessHelp = parseCsv(`record_type,person_ref,person_type,first_name,last_name,service_code,active_from
+person,STA-001,staff,Mot de passe oublié,Test,secretariat,2026-09-01`);
+assert.equal(benignAccessHelp.summary.rejectedRowCount, 0);
+
 const workbook = XLSX.utils.book_new();
 const worksheet = XLSX.utils.aoa_to_sheet([
   ["person_ref", "person_type", "academic_email", "active_from"],
@@ -108,4 +143,4 @@ assert.equal(invalidValues.summary.rejectedRowCount, 1);
 assert.equal(invalidValues.summary.issueCounts.invalid_phone, 1);
 assert.equal(invalidValues.summary.issueCounts.invalid_date, 1);
 
-console.log("identity directory parser: 8/8 checks passed");
+console.log("identity directory parser: 17/17 checks passed");

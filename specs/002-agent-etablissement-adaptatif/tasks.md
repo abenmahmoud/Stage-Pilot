@@ -90,6 +90,10 @@
   Une procédure qui mentionne seulement la réinitialisation d'un accès reste
   exploitable après validation MFA. Les images et présentations sans extraction
   fiable restent en lecture humaine, sans OCR automatique.
+- [x] T010B2D3 Refuser avant empreinte ou chiffrement tout annuaire CSV/XLSX dont
+  un en-tête désigne un secret ou dont une cellule contient une valeur de mot de
+  passe, OTP, code ENT/PRONOTE, jeton API ou clé privée. Le worker conserve
+  seulement le motif générique `secret_forbidden` et ne recopie jamais la valeur.
 - [ ] T010B3 Brancher l'OTP de contact à usage unique avec limites, expiration,
   session rotative et révocation, sans promouvoir ce contact en identité scolaire.
 - [ ] T010B4 Rapprocher une identité uniquement contre une version active du

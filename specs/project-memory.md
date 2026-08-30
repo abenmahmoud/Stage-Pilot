@@ -5,6 +5,15 @@
 **Depot** : `abenmahmoud/Stage-Pilot`
 **Dernier jalon de code verifie** : branche de preview Vercel
 
+## Jalon du 30 août 2026 - secrets refusés dans les annuaires
+
+- Les annuaires CSV/XLSX refusent les en-têtes et cellules contenant mot de
+  passe, OTP, code ENT/PRONOTE, jeton API ou clé privée.
+- Le contrôle intervient après antivirus mais avant empreinte, chiffrement ou
+  persistance ; seul le motif générique `secret_forbidden` atteint le worker.
+- Une mention sans valeur, telle que « mot de passe oublié », reste acceptée.
+  La remise éventuelle de codes demeure un chantier séparé Direction/DPO.
+
 ## Jalon du 30 août 2026 - matrices de scénarios des compétences
 
 - Les cinq compétences pilotes possèdent chacune cinq cas positifs, trois cas
