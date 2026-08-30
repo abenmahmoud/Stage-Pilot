@@ -1535,7 +1535,7 @@ taches et analyse de coherence avant une automatisation sensible.
   `COMMUNICATION_DOCUMENT_UPLOAD_ENABLED` côté serveur et
   `VITE_COMMUNICATION_DOCUMENTS_ENABLED` côté interface. Aucun réglage distant
   n'a été ajouté ; le dépôt reste donc indisponible dans la preview publiée.
-- La commande `npm run test:communications` regroupe désormais les 57 tests du
+- La commande `npm run test:communications` regroupe désormais les 58 tests du
   centre. Elle passe, comme les builds avec tous les écrans fermés puis activés
   artificiellement et l'audit npm à zéro vulnérabilité de production.
 - T011D1 est terminé. T011D et T011 restent ouverts jusqu'à une recette fictive
@@ -1557,13 +1557,29 @@ taches et analyse de coherence avant une automatisation sensible.
   différée entre racine et version courante, et figent le contenu dès la
   relecture. Onze tentatives fictives de contournement ont été refusées, puis le
   `ROLLBACK` a laissé quatre compteurs à zéro.
-- Cinquante-sept tests du centre, les builds avec module fermé et activé et
+- Cinquante-huit tests du centre, les builds avec module fermé et activé et
   les deux audits npm passent. Les auditeurs Supabase ne signalent aucun
   `WARN` ou `ERROR` lié aux communications après retrait d'un index dupliqué.
 - T010C et T012 sont terminées. T010 reste ouvert jusqu'à la publication
   validée ; T011 reste ouvert jusqu'à la preuve antivirus de bout en bout.
 - Le brief Claude de ce lot est préparé mais non exécuté, faute de modèle exact
   et de plafond de consommation propres à cette mission.
+
+### Jalon du 30 août 2026 - gestion des communications sous volume
+
+- La liste privée se recherche localement par titre, résumé, catégorie ou état
+  et se filtre par cycle. Le corps des messages n'est ni chargé pour la liste,
+  ni inclus dans l'index de recherche, ni transmis à un service externe.
+- Le détail affiche jusqu'à cent métadonnées de versions, de la plus récente à
+  la plus ancienne, sans empreinte ni contenu historique. Le message complet
+  reste limité à la seule version courante demandée par un agent autorisé.
+- Les contrôles s'empilent à 320 px et utilisent des libellés accessibles. Un
+  filtre vide affiche un état sans résultat sans modifier la sélection ni les
+  données en base.
+- T010D est terminé. La commande agrégée compte désormais 58 tests réussis et
+  le build avec communications et documents activés artificiellement passe.
+- Le brief Claude est préparé mais non exécuté, faute de modèle exact et de
+  plafond de consommation propres à cette mission.
 
 ## 8. Prochain ordre recommande
 

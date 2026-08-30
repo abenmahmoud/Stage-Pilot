@@ -43,6 +43,9 @@
   humaine. Chaque correction crée une version privée, les questions ouvertes
   bloquent la relecture et la base refuse les états incohérents ou les mutations
   du contenu en revue. Publication, audience et envoi restent verrouillés.
+- [x] T010D Rendre la liste privée exploitable sous volume : recherche locale
+  sur les métadonnées, filtre par état, compteur de résultats et historique
+  borné des versions. Aucun corps de message n'entre dans la recherche.
 - [ ] T011 Extraire localement le texte des PDF et DOCX autorisés.
 - [x] T011A Ajouter l'extracteur local borné PDF/DOCX. Il réutilise le moteur
   PDF.js/Mammoth et les précontrôles d'archives existants, ne contacte aucune IA

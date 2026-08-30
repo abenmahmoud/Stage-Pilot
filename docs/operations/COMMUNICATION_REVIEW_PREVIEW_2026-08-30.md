@@ -21,7 +21,7 @@
 
 ## Preuves
 
-- 54 tests de régression du centre de communication réussis.
+- 58 tests de régression du centre de communication réussis.
 - Builds TypeScript/Vite réussis avec le module fermé puis activé.
 - Audits npm application et workers : zéro vulnérabilité de production.
 - Recette SQL fictive : onze contournements de création, séquence, version
@@ -41,3 +41,10 @@ T010 reste ouvert : aucune approbation finale, publication, audience ou
 diffusion n'est activée. T011 reste ouvert jusqu'au raccordement de l'interface
 documentaire et à une preuve ClamAV fictive de bout en bout sur un moteur
 explicitement autorisé.
+
+## Gestion privée
+
+La liste administrative se recherche uniquement sur titre, résumé, catégorie
+et état, puis se filtre localement. Le détail charge la version courante et au
+maximum cent lignes d'historique sans empreinte ni ancien corps de message.
+Cette ergonomie n'ouvre aucun droit supplémentaire.

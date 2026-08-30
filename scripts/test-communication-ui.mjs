@@ -65,3 +65,14 @@ test("shows bounded AI facts and keeps every uncertainty under human control", (
   assert.match(page, /Marquer comme vérifié/);
   assert.match(page, /selectedDetail\.openQuestions\.length > 0/);
 });
+
+test("supports private metadata search, status filters and bounded version history", () => {
+  assert.match(page, /const filteredRows = useMemo/);
+  assert.match(page, /row\.title, row\.summary, row\.category/);
+  assert.match(page, /type="search"/);
+  assert.match(page, /value="review">À vérifier/);
+  assert.match(page, /Historique des versions/);
+  assert.match(page, /payload\.versions/);
+  assert.match(page, /selectedVersions\.map/);
+  assert.doesNotMatch(page, /bodyMarkdown.*toLocaleLowerCase/);
+});

@@ -12,6 +12,7 @@ import {
   Plus,
   RefreshCw,
   Save,
+  Search,
   Send,
   Sparkles,
   Upload,
@@ -49,6 +50,14 @@ type StructuredFacts = {
 
 type CommunicationDetail = CommunicationRow & {
   bodyMarkdown: string;
+};
+
+type CommunicationVersion = {
+  id: string;
+  version: number;
+  status: string;
+  createdAt: string;
+  updatedAt: string;
 };
 
 type AssistSuggestion = Pick<
@@ -106,6 +115,7 @@ const STATUS_LABELS: Record<string, string> = {
   approved: "Validé",
   published: "Publié",
   archived: "Archivé",
+  cancelled: "Annulé",
 };
 
 const DOCUMENT_STATUS_LABELS: Record<string, string> = {
@@ -172,7 +182,10 @@ export default function CommunicationsPage() {
   const [editingTemplate, setEditingTemplate] = useState<CommunicationTemplate | null>(null);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [selectedDetail, setSelectedDetail] = useState<CommunicationDetail | null>(null);
+  const [selectedVersions, setSelectedVersions] = useState<CommunicationVersion[]>([]);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
   const [loading, setLoading] = useState(COMMUNICATIONS_UI_ENABLED);
   const [detailLoading, setDetailLoading] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -214,14 +227,20 @@ export default function CommunicationsPage() {
   useEffect(() => {
     if (!selectedId || !COMMUNICATIONS_UI_ENABLED) {
       setSelectedDetail(null);
+      setSelectedVersions([]);
       return;
     }
     let active = true;
     setDetailLoading(true);
+    setSelectedDetail(null);
+    setSelectedVersions([]);
     setError("");
-    void apiFetch<{ communication: CommunicationDetail }>(`communications/admin/${selectedId}`)
+    void apiFetch<{ communication: CommunicationDetail; versions: CommunicationVersion[] }>(`communications/admin/${selectedId}`)
       .then((payload) => {
-        if (active) setSelectedDetail(payload.communication);
+        if (active) {
+          setSelectedDetail(payload.communication);
+          setSelectedVersions(payload.versions);
+        }
       })
       .catch((reason) => {
         if (active) setError(reason instanceof Error ? reason.message : "Lecture impossible.");
@@ -236,6 +255,15 @@ export default function CommunicationsPage() {
     () => rows.find((row) => row.id === selectedId) ?? null,
     [rows, selectedId]
   );
+  const filteredRows = useMemo(() => {
+    const query = searchQuery.trim().toLocaleLowerCase("fr-FR");
+    return rows.filter((row) => {
+      if (statusFilter !== "all" && row.status !== statusFilter) return false;
+      if (!query) return true;
+      return [row.title, row.summary, row.category, STATUS_LABELS[row.status] ?? row.status]
+        .some((value) => value.toLocaleLowerCase("fr-FR").includes(query));
+    });
+  }, [rows, searchQuery, statusFilter]);
   const canManageTemplates = user?.role === "superadmin" || user?.role === "proviseur";
 
   function startNew() {
@@ -243,6 +271,7 @@ export default function CommunicationsPage() {
     setEditingId(null);
     setSelectedId(null);
     setSelectedDetail(null);
+    setSelectedVersions([]);
     setReviewNotes([]);
     setNotice("");
   }
@@ -535,18 +564,39 @@ export default function CommunicationsPage() {
         <section aria-labelledby="communications-list-title" className="min-w-0">
           <div className="mb-3 flex items-center justify-between gap-3">
             <div>
-              <h2 id="communications-list-title" className="font-bold text-slate-950">Brouillons</h2>
-              <p className="text-xs text-slate-500">{rows.length} élément{rows.length > 1 ? "s" : ""}</p>
+              <h2 id="communications-list-title" className="font-bold text-slate-950">Communications</h2>
+              <p className="text-xs text-slate-500">{filteredRows.length} sur {rows.length}</p>
             </div>
             <button type="button" onClick={startNew} className="inline-flex items-center gap-2 rounded-md bg-slate-950 px-3 py-2 text-sm font-semibold text-white">
               <Plus className="h-4 w-4" /> Nouveau
             </button>
           </div>
 
+          <div className="mb-3 grid gap-2 sm:grid-cols-[minmax(0,1fr)_9rem]">
+            <label className="relative block">
+              <span className="sr-only">Rechercher une communication</span>
+              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+              <input type="search" value={searchQuery} onChange={(event) => setSearchQuery(event.target.value)} placeholder="Rechercher" className="min-h-10 w-full rounded-md border border-slate-300 bg-white py-2 pl-9 pr-3 text-sm text-slate-950 outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100" />
+            </label>
+            <label>
+              <span className="sr-only">Filtrer par état</span>
+              <select value={statusFilter} onChange={(event) => setStatusFilter(event.target.value)} className="min-h-10 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-950 outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100">
+                <option value="all">Tous les états</option>
+                <option value="draft">Brouillons</option>
+                <option value="review">À vérifier</option>
+                <option value="approved">Validés</option>
+                <option value="published">Publiés</option>
+                <option value="archived">Archivés</option>
+                <option value="cancelled">Annulés</option>
+              </select>
+            </label>
+          </div>
+
           <div className="divide-y divide-slate-200 border-y border-slate-200 bg-white">
             {loading ? <div className="flex min-h-36 items-center justify-center"><LoaderCircle className="h-7 w-7 animate-spin text-emerald-700" /></div> : null}
-            {!loading && rows.length === 0 ? <p className="px-4 py-10 text-center text-sm text-slate-500">Aucun brouillon</p> : null}
-            {rows.map((row) => (
+            {!loading && rows.length === 0 ? <p className="px-4 py-10 text-center text-sm text-slate-500">Aucune communication</p> : null}
+            {!loading && rows.length > 0 && filteredRows.length === 0 ? <p className="px-4 py-10 text-center text-sm text-slate-500">Aucun résultat</p> : null}
+            {filteredRows.map((row) => (
               <button
                 key={row.id}
                 type="button"
@@ -608,6 +658,19 @@ export default function CommunicationsPage() {
                   <div className="border-l-4 border-amber-400 bg-amber-50 p-4">
                     <h3 className="text-sm font-bold text-amber-950">Informations à confirmer</h3>
                     <ul className="mt-2 space-y-1 text-sm text-amber-900">{selectedDetail.openQuestions.map((question) => <li key={question}>{question}</li>)}</ul>
+                  </div>
+                ) : null}
+                {selectedVersions.length > 0 ? (
+                  <div>
+                    <h3 className="text-sm font-bold text-slate-950">Historique des versions</h3>
+                    <ol className="mt-2 divide-y divide-slate-200 border-y border-slate-200">
+                      {selectedVersions.map((version) => (
+                        <li key={version.id} className="flex items-center justify-between gap-3 py-2 text-sm">
+                          <span className="font-semibold text-slate-800">Version {version.version}</span>
+                          <span className="text-right text-xs text-slate-500">{STATUS_LABELS[version.status] ?? version.status}<br />{dateLabel(version.createdAt)}</span>
+                        </li>
+                      ))}
+                    </ol>
                   </div>
                 ) : null}
                 {selectedDetail.status === "draft" ? (
