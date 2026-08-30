@@ -396,7 +396,11 @@
 
 ## Phase 5 - Intégrations
 
-- [ ] T039 Connecter le guichet `001` comme unique système de suivi.
+- [x] T039 Connecter le guichet `001` comme unique système de suivi. Le dialogue
+  et le formulaire convergent vers la même création idempotente ; suivi usager,
+  messages, pièces, routage et consoles agents relisent les mêmes entités
+  `support_*`. L'assistant prépare uniquement une analyse et un reçu de routage
+  éphémère : il ne possède ni dossier ni stockage parallèle.
 - [ ] T040 Relier LycéeGest pour les stages par lien contextuel, sans duplication.
 - [ ] T041 Ajouter les liens officiels Scolarité Services et PRONOTE.
 - [ ] T042 Piloter les données locales avec imports limités, datés et révocables.
