@@ -1497,6 +1497,30 @@ taches et analyse de coherence avant une automatisation sensible.
   l'antivirus, la file et la persistance restent volontairement ouverts dans
   T011 avant de rendre le dépôt documentaire utilisable.
 
+### Jalon du 30 août 2026 - dépôt privé des sources de communication
+
+- La branche Supabase de preview possède maintenant deux tables privées, un
+  bucket non public et la file PGMQ `communication_document_scan`. Aucun rôle
+  client ne peut lire les tables, le stockage ou la file.
+- L'API administrative réserve un dépôt signé PDF/DOCX de 10 Mo maximum. Elle
+  exige le rôle éditeur, l'établissement persistant et les deux interrupteurs
+  fermés par défaut ; elle contrôle ensuite taille et type exacts avant la mise
+  en quarantaine.
+- La liste administrative ne renvoie jamais le chemin privé, l'empreinte ni le
+  texte extrait. L'audit lie strictement acteur humain ou système et chaque
+  source à son établissement.
+- Un worker local est préparé pour ClamAV, l'extraction bornée, le refus des
+  menaces et doublons, puis l'état `review`. Il ne peut ni relier la source à une
+  communication, ni publier, ni envoyer. Il n'est pas déployé et aucun VPS n'a
+  été modifié.
+- Une recette fictive a tenté dix contournements de cycle, d'identité, de
+  cloisonnement et d'audit. Tous ont été refusés ; le `ROLLBACK` a laissé zéro
+  utilisateur, établissement, source, événement et travail de test.
+- T011 reste ouvert jusqu'au raccordement de l'interface fermée et à une preuve
+  antivirus de bout en bout sur un moteur explicitement autorisé.
+- La revue Claude est préparée mais non exécutée : une mission courante doit
+  encore préciser le modèle, le périmètre et la limite de consommation.
+
 ## 8. Prochain ordre recommande
 
 1. Publier et tester le pré-triage ordinateur portable avec des données fictives.
