@@ -102,6 +102,10 @@
 
 - [ ] T027 Tester qu'aucune adresse d'un autre destinataire n'est exposée.
 - [ ] T028 Tester rôles, MFA, contenus internes et API publique.
+- [x] T028A Exiger `aal2` sur toutes les routes privées du centre et vérifier
+  les rôles bornés, le cloisonnement établissement, la fermeture du module et
+  l'absence d'API publique, d'audience, de publication ou d'envoi. T028 reste
+  ouvert jusqu'à l'existence et au test de l'API publique validée.
 - [ ] T029 Tester doublons, panne Brevo, reprise et 200 destinataires.
 - [ ] T030 Vérifier PDF, image, DOCX, fichier invalide et données personnelles.
 - [ ] T031 Vérifier 320 px, ordinateur, clavier et lecteur d'écran.

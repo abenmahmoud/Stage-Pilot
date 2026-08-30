@@ -21,7 +21,7 @@
 
 ## Preuves
 
-- 59 tests de régression du centre de communication réussis.
+- 64 tests de régression du centre de communication réussis.
 - Builds TypeScript/Vite réussis avec le module fermé puis activé.
 - Audits npm application et workers : zéro vulnérabilité de production.
 - Recette SQL fictive : onze contournements de création, séquence, version
@@ -58,3 +58,11 @@ distantes sont neutralisées pour éviter un chargement ou un suivi involontaire
 les liens s'ouvrent dans un onglet isolé et les tableaux restent contenus à
 320 px. L'aperçu fidèle du message réellement livré reste volontairement hors
 de ce lot.
+
+## Autorisation renforcée
+
+Toutes les routes privées du centre exigent explicitement une double
+vérification `aal2`, en plus du rôle, de l'adhésion active, de l'établissement et
+des interrupteurs du module. Cette règle ne dépend pas de l'activation générale
+du MFA dans l'environnement. Les sept routes actuelles restent administratives ;
+aucune API publique, audience, publication ou diffusion n'est exposée.

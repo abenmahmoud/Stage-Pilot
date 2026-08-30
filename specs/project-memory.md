@@ -1535,7 +1535,7 @@ taches et analyse de coherence avant une automatisation sensible.
   `COMMUNICATION_DOCUMENT_UPLOAD_ENABLED` côté serveur et
   `VITE_COMMUNICATION_DOCUMENTS_ENABLED` côté interface. Aucun réglage distant
   n'a été ajouté ; le dépôt reste donc indisponible dans la preview publiée.
-- La commande `npm run test:communications` regroupe désormais les 59 tests du
+- La commande `npm run test:communications` regroupe désormais les 64 tests du
   centre. Elle passe, comme les builds avec tous les écrans fermés puis activés
   artificiellement et l'audit npm à zéro vulnérabilité de production.
 - T011D1 est terminé. T011D et T011 restent ouverts jusqu'à une recette fictive
@@ -1557,7 +1557,7 @@ taches et analyse de coherence avant une automatisation sensible.
   différée entre racine et version courante, et figent le contenu dès la
   relecture. Onze tentatives fictives de contournement ont été refusées, puis le
   `ROLLBACK` a laissé quatre compteurs à zéro.
-- Cinquante-neuf tests du centre, les builds avec module fermé et activé et
+- Soixante-quatre tests du centre, les builds avec module fermé et activé et
   les deux audits npm passent. Les auditeurs Supabase ne signalent aucun
   `WARN` ou `ERROR` lié aux communications après retrait d'un index dupliqué.
 - T010C et T012 sont terminées. T010 reste ouvert jusqu'à la publication
@@ -1576,7 +1576,7 @@ taches et analyse de coherence avant une automatisation sensible.
 - Les contrôles s'empilent à 320 px et utilisent des libellés accessibles. Un
   filtre vide affiche un état sans résultat sans modifier la sélection ni les
   données en base.
-- T010D est terminé. La commande agrégée compte désormais 59 tests réussis et
+- T010D est terminé. La commande agrégée compte désormais 64 tests réussis et
   le build avec communications et documents activés artificiellement passe.
 - Le brief Claude est préparé mais non exécuté, faute de modèle exact et de
   plafond de consommation propres à cette mission.
@@ -1591,11 +1591,29 @@ taches et analyse de coherence avant une automatisation sensible.
   mobile.
 - L'écran rappelle qu'il s'agit d'un aperçu interne sans destinataire. Aucun
   champ d'audience, droit de publication ou appel d'envoi n'a été ajouté.
-- T021A est terminé avec 59 tests du centre et un build activé réussi. T021
+- T021A est terminé avec 64 tests du centre et un build activé réussi. T021
   reste ouvert jusqu'à l'intégration autorisée d'un fournisseur et à une preuve
   de fidélité du message réellement livré.
 - Le brief Claude de ce lot est préparé mais non exécuté, faute de modèle exact
   et de plafond de consommation propres à cette mission.
+
+### Jalon du 30 août 2026 - autorisation renforcée des communications
+
+- Chaque route privée du centre exige désormais explicitement une session
+  `aal2`, même si l'obligation MFA générale de l'environnement n'est pas encore
+  activée. La règle commune s'applique aussi aux modèles, documents, aide IA,
+  versions et demande de relecture.
+- Les rôles d'édition restent limités à superadministration, administration et
+  proviseur ; la personnalisation des modèles reste limitée à
+  superadministration et proviseur. Le filtre établissement demeure obligatoire
+  pour chaque lecture ou écriture persistée.
+- Une nouvelle suite contrôle les sept routes, les deux listes de rôles, les
+  deux interrupteurs du module et l'absence d'API publique, d'audience, de
+  publication ou d'envoi. Le centre compte maintenant 64 tests réussis.
+- T028A est terminé. T028 reste ouvert jusqu'à la création autorisée d'une API
+  publique et à ses contrôles de visibilité. Aucun réglage distant n'a changé.
+- Le brief Claude du lot est préparé mais non exécuté, faute de modèle exact et
+  de plafond de consommation propres à cette mission.
 
 ## 8. Prochain ordre recommande
 
