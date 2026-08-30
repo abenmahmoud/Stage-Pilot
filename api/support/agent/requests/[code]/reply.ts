@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { and, eq, inArray, isNull, sql } from "drizzle-orm";
+import { and, desc, eq, inArray, isNull, sql } from "drizzle-orm";
 import { db } from "../../../../../db/index.js";
 import {
   supportAttachments,
@@ -39,6 +39,14 @@ import {
   SupportTranslationFailure,
   verifySupportTranslationReceipt,
 } from "../../../../_shared/support-translation.js";
+import { createSupportAgentReplyConfirmation } from "../../../../../shared/support-agent-reply-confirmation.js";
+
+function sameAttachmentIds(expected: string[], actual: string[]): boolean {
+  if (expected.length !== actual.length) return false;
+  const expectedSorted = [...expected].sort();
+  const actualSorted = [...actual].sort();
+  return expectedSorted.every((value, index) => value === actualSorted[index]);
+}
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== "POST") return methodNotAllowed(res, ["POST"]);
@@ -92,6 +100,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         requestId: supportMessages.requestId,
         createdAt: supportMessages.createdAt,
         channel: supportMessages.channel,
+        bodyText: supportMessages.bodyText,
       })
       .from(supportMessages)
       .where(and(
@@ -100,17 +109,51 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       ))
       .limit(1);
     if (existingReply) {
-      if (existingReply.requestId !== request.id) {
+      const existingAttachments = await db
+        .select({ id: supportAttachments.id })
+        .from(supportAttachments)
+        .where(and(
+          eq(supportAttachments.requestId, request.id),
+          eq(supportAttachments.messageId, existingReply.id)
+        ));
+      const [existingEvent] = await db
+        .select({
+          createdAt: supportEvents.createdAt,
+          correlationId: supportEvents.correlationId,
+        })
+        .from(supportEvents)
+        .where(and(
+          eq(supportEvents.requestId, request.id),
+          eq(
+            supportEvents.eventType,
+            existingReply.channel === "email" ? "reply.queued" : "callback.created"
+          ),
+          sql`${supportEvents.toValue}->>'messageId' = ${existingReply.id}`
+        ))
+        .orderBy(desc(supportEvents.createdAt))
+        .limit(1);
+      if (
+        existingReply.requestId !== request.id
+        || !["email", "phone"].includes(existingReply.channel)
+        || existingReply.bodyText !== messageText
+        || !sameAttachmentIds(attachmentIds, existingAttachments.map((attachment) => attachment.id))
+      ) {
         throw new HttpError(409, "Cette clé d’envoi a déjà été utilisée pour un autre dossier");
+      }
+      if (!existingEvent?.correlationId) {
+        throw new HttpError(409, "La réponse enregistrée n'a pas de confirmation exploitable");
       }
       res.status(200);
       return {
-        message: {
-          id: existingReply.id,
-          createdAt: existingReply.createdAt,
-          channel: existingReply.channel,
+        confirmation: createSupportAgentReplyConfirmation({
+          publicCode: code,
+          messageId: existingReply.id,
+          channel: existingReply.channel === "email" ? "email" : "phone",
           duplicate: true,
-        },
+          messageCreatedAt: existingReply.createdAt,
+          confirmedAt: existingEvent.createdAt,
+          correlationId: existingEvent.correlationId,
+        }),
       };
     }
     await enforceAgentWriteRateLimit(user.id);
@@ -223,6 +266,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             id: supportMessages.id,
             requestId: supportMessages.requestId,
             createdAt: supportMessages.createdAt,
+            channel: supportMessages.channel,
+            bodyText: supportMessages.bodyText,
           })
           .from(supportMessages)
           .where(and(
@@ -231,10 +276,48 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           ))
           .limit(1);
         if (!existing) throw new Error("Idempotent agent reply could not be recovered");
-        if (existing.requestId !== request.id) {
+        const existingAttachments = await tx
+          .select({ id: supportAttachments.id })
+          .from(supportAttachments)
+          .where(and(
+            eq(supportAttachments.requestId, request.id),
+            eq(supportAttachments.messageId, existing.id)
+          ));
+        const [existingEvent] = await tx
+          .select({
+            createdAt: supportEvents.createdAt,
+            correlationId: supportEvents.correlationId,
+          })
+          .from(supportEvents)
+          .where(and(
+            eq(supportEvents.requestId, request.id),
+            eq(
+              supportEvents.eventType,
+              existing.channel === "email" ? "reply.queued" : "callback.created"
+            ),
+            sql`${supportEvents.toValue}->>'messageId' = ${existing.id}`
+          ))
+          .orderBy(desc(supportEvents.createdAt))
+          .limit(1);
+        if (
+          existing.requestId !== request.id
+          || existing.channel !== (email ? "email" : "phone")
+          || existing.bodyText !== messageText
+          || !sameAttachmentIds(attachmentIds, existingAttachments.map((attachment) => attachment.id))
+        ) {
           throw new HttpError(409, "Cette clé d’envoi a déjà été utilisée pour un autre dossier");
         }
-        return { ...existing, duplicate: true, channel: email ? "email" : "phone" };
+        if (!existingEvent?.correlationId) {
+          throw new HttpError(409, "La réponse enregistrée n'a pas de confirmation exploitable");
+        }
+        return {
+          ...existing,
+          duplicate: true,
+          channel: email ? "email" as const : "phone" as const,
+          attachmentCount: existingAttachments.length,
+          confirmedAt: existingEvent.createdAt,
+          correlationId: existingEvent.correlationId,
+        };
       }
 
       if (attachmentIds.length > 0) {
@@ -325,7 +408,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       if (!updatedRequest) {
         throw new HttpError(409, "Ce dossier a été modifié ou transféré par un autre agent. Il vient d’être actualisé.");
       }
-      await tx.insert(supportEvents).values({
+      const [replyEvent] = await tx.insert(supportEvents).values({
         requestId: request.id,
         eventType: email ? "reply.queued" : "callback.created",
         actorType: "agent",
@@ -339,17 +422,32 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           attachmentCount: attachmentIds.length,
         },
         correlationId,
-      });
+      }).returning({ createdAt: supportEvents.createdAt });
+      if (!replyEvent) {
+        throw new HttpError(409, "La réponse n'a pas été confirmée par le journal du dossier");
+      }
       return {
         ...created,
         duplicate: false,
-        channel: email ? "email" : "phone",
+        channel: email ? "email" as const : "phone" as const,
         attachmentCount: attachmentIds.length,
+        confirmedAt: replyEvent.createdAt,
+        correlationId,
       };
     });
 
     res.status(result.duplicate ? 200 : 201);
-    return { message: result };
+    return {
+      confirmation: createSupportAgentReplyConfirmation({
+        publicCode: code,
+        messageId: result.id,
+        channel: result.channel,
+        duplicate: result.duplicate,
+        messageCreatedAt: result.createdAt,
+        confirmedAt: result.confirmedAt,
+        correlationId: result.correlationId,
+      }),
+    };
   });
 }
 

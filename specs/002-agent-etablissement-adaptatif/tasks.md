@@ -419,6 +419,13 @@
   discordantes, anciennes ou futures, puis relit exactement la révision annoncée
   avant de rafraîchir le dossier. T028 reste ouverte pour le premier adaptateur
   métier complet inscrit dans le registre des actions agent.
+- [x] T028D Exiger pour une réponse agent une preuve datée issue de l'événement
+  `reply.queued` ou `callback.created`, liée au dossier, au message, au canal et à
+  sa date de création. Le navigateur conserve la même clé tant que le brouillon
+  et ses pièces ne changent pas ; après une coupure, le serveur retrouve l'envoi
+  exact au lieu de le dupliquer. L'éditeur n'est vidé qu'après relecture du même
+  message sortant. T028 reste ouverte pour le premier adaptateur métier complet
+  inscrit dans le registre des actions agent.
 - [x] T029 Ajouter formulaire classique et création de demande sans dépendance à l'IA.
 - [x] T030 Ajouter mesure du coût, de la latence, des transferts et des corrections.
 - [x] T030A Mesurer chaque passage de l'assistant public sans contenu personnel :

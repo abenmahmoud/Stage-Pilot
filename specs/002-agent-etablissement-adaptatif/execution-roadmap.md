@@ -589,6 +589,14 @@ l'autorisation de quota définie par le propriétaire.
   relue corresponde exactement à la preuve avant de mettre l'écran à jour. Une
   preuve absente, rejouée ou discordante devient une erreur explicite. T028 reste
   ouverte pour le premier adaptateur complet du registre d'actions agent.
+- Lot N5ZU : preuve transactionnelle d'une réponse agent. **Implémentée sans
+  envoi réel, migration ni donnée réelle** : l'API retourne l'événement qui a
+  placé le courriel dans la file ou créé le rappel. Un rejeu idempotent est
+  accepté uniquement si le texte et les pièces correspondent au message déjà
+  persisté et si son événement existe. Le navigateur réutilise la même clé pour
+  le même brouillon, vérifie le reçu, relit l'identifiant et l'horodatage du
+  message sortant, puis seulement vide l'éditeur. T028 reste ouverte pour le
+  premier adaptateur complet du registre d'actions agent.
 
 ## Prochaine séquence verrouillée
 

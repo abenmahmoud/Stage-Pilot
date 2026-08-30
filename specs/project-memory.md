@@ -3417,3 +3417,20 @@ taches et analyse de coherence avant une automatisation sensible.
   métier complet du registre d'actions. Le brief Claude est préparé mais non
   exécuté dans l'attente du modèle et du plafond explicitement confirmés ; aucun
   jeton externe n'a été consommé pour ce lot.
+
+### Jalon du 31 août 2026 - réponse agent récupérable et confirmée
+
+- Une réponse agent ne vide plus son éditeur sur le seul succès HTTP. Le reçu
+  lie le dossier, le message, le canal, sa création et l'événement transactionnel
+  `reply.queued` ou `callback.created`.
+- La même composition conserve sa clé d'idempotence après une erreur réseau. Un
+  rejeu retrouve le message existant seulement si son texte et ses pièces sont
+  identiques et si la trace correspondante est présente ; une clé réutilisée
+  pour un autre contenu est refusée.
+- L'interface valide le reçu, relit le détail et exige le même identifiant, la
+  direction sortante et le même horodatage avant d'effacer texte, traduction et
+  sélection de documents. Un reçu invalide conserve donc le travail de l'agent.
+- T028D de la spécification 002 est terminée sans envoi, migration, compte
+  distant, donnée réelle ni production. T028 reste ouverte pour le premier
+  adaptateur complet du registre d'actions. Le brief Claude est préparé mais non
+  exécuté dans l'attente de l'autorisation bornée de cette mission.

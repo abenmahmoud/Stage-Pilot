@@ -78,6 +78,7 @@ import {
 } from "../../../shared/support-conversation";
 import { verifySupportRequestPersistenceConfirmation } from "../../../shared/support-request-confirmation";
 import { verifySupportRequestMutationConfirmation } from "../../../shared/support-request-mutation-confirmation";
+import { verifySupportAgentReplyConfirmation } from "../../../shared/support-agent-reply-confirmation";
 import {
   DEFAULT_SUPPORT_REPLY_TEMPLATES,
   renderSupportReplyTemplate,
@@ -3036,6 +3037,7 @@ function ConnectedAgentView({ onBack }: { onBack: () => void }) {
   const detailLoadIdRef = useRef(0);
   const selectedCodeRef = useRef<string | null>(null);
   const agentFileInputRef = useRef<HTMLInputElement>(null);
+  const replySubmissionRef = useRef<{ fingerprint: string; idempotencyKey: string } | null>(null);
 
   async function loadQueue() {
     const loadId = ++queueLoadIdRef.current;
@@ -3100,6 +3102,7 @@ function ConnectedAgentView({ onBack }: { onBack: () => void }) {
     setDetailLoadError(null);
     setError(null);
     setReply("");
+    replySubmissionRef.current = null;
     setTranslationDraft(null);
     setTranslationValidated(false);
     setSelectedAgentAttachmentIds([]);
@@ -3251,11 +3254,23 @@ function ConnectedAgentView({ onBack }: { onBack: () => void }) {
     );
     const outgoingMessage = useTranslation ? translationDraft!.translatedText : sourceMessage;
     if (!selectedCode || !request || !outgoingMessage) return;
+    const submissionFingerprint = JSON.stringify({
+      publicCode: selectedCode,
+      message: outgoingMessage,
+      attachmentIds: [...selectedAgentAttachmentIds].sort(),
+    });
+    if (replySubmissionRef.current?.fingerprint !== submissionFingerprint) {
+      replySubmissionRef.current = {
+        fingerprint: submissionFingerprint,
+        idempotencyKey: crypto.randomUUID(),
+      };
+    }
+    const idempotencyKey = replySubmissionRef.current.idempotencyKey;
     setSaving(true);
     try {
-      await apiFetch(`support/agent/requests/${selectedCode}/reply`, {
+      const payload = await apiFetch<unknown>(`support/agent/requests/${selectedCode}/reply`, {
         method: "POST",
-        headers: { "Idempotency-Key": crypto.randomUUID() },
+        headers: { "Idempotency-Key": idempotencyKey },
         body: JSON.stringify({
           message: outgoingMessage,
           expectedUpdatedAt: request.updatedAt,
@@ -3271,10 +3286,29 @@ function ConnectedAgentView({ onBack }: { onBack: () => void }) {
           attachmentIds: selectedAgentAttachmentIds,
         }),
       });
+      const confirmation = verifySupportAgentReplyConfirmation({
+        expectedPublicCode: selectedCode,
+        confirmation: payload && typeof payload === "object" && !Array.isArray(payload)
+          ? (payload as Record<string, unknown>).confirmation
+          : null,
+      });
+      if (!confirmation) {
+        throw new Error("La réponse n'a pas été confirmée par le serveur. Réessayez sans modifier le message.");
+      }
+      const refreshedDetail = await fetchAgentRequestDetail(selectedCode);
+      const persistedMessage = refreshedDetail.messages.find((message) => (
+        message.id === confirmation.messageId
+        && message.direction === "outbound"
+        && message.createdAt === confirmation.messageCreatedAt
+      ));
+      if (!persistedMessage) {
+        throw new Error("La réponse confirmée n'apparaît pas encore dans le dossier. Réessayez sans modifier le message.");
+      }
+      setDetail(refreshedDetail);
+      replySubmissionRef.current = null;
       setReply("");
       setSelectedAgentAttachmentIds([]);
       clearTranslation();
-      setDetail(await fetchAgentRequestDetail(selectedCode));
       await loadQueue();
     } catch (sendError) {
       const message = sendError instanceof Error ? sendError.message : "Réponse non enregistrée";
