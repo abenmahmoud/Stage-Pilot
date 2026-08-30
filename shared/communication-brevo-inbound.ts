@@ -1,4 +1,8 @@
-import { createHash, createHmac, timingSafeEqual } from "node:crypto";
+import { createHmac } from "node:crypto";
+import {
+  isCommunicationWebhookSecret,
+  verifyCommunicationWebhookBearerHeader,
+} from "./communication-webhook-auth.js";
 
 export type CommunicationBrevoInboundReceipt = {
   provider: "brevo_inbound";
@@ -48,13 +52,6 @@ type InboundItem = {
   Attachments?: unknown;
   SpamScore?: unknown;
 };
-
-function secretValid(value: string | undefined): value is string {
-  return typeof value === "string" &&
-    value.length >= 32 &&
-    value.length <= 512 &&
-    !/[\s\u0000-\u001f\u007f,]/u.test(value);
-}
 
 function digest(domain: string, value: string, secret: string): string {
   return createHmac("sha256", secret).update(domain).update("\0").update(value).digest("hex");
@@ -150,7 +147,7 @@ export function hashCommunicationProviderOutboundMessageId(
   value: unknown,
   hashingSecret: string
 ): string {
-  if (!secretValid(hashingSecret)) {
+  if (!isCommunicationWebhookSecret(hashingSecret)) {
     throw new CommunicationBrevoInboundError("hashing_secret_invalid");
   }
   const messageId = boundedHeaderValue(value, "provider_message_id", true) as string;
@@ -197,24 +194,14 @@ export function verifyCommunicationInboundBearerHeader(
   authorization: string | string[] | undefined,
   expectedSecret: string | undefined
 ): boolean {
-  if (
-    typeof authorization !== "string" ||
-    !secretValid(expectedSecret)
-  ) {
-    return false;
-  }
-  const match = /^Bearer ([\x21-\x7e]{32,512})$/u.exec(authorization);
-  if (!match || match[1].includes(",")) return false;
-  const expected = createHash("sha256").update(expectedSecret).digest();
-  const provided = createHash("sha256").update(match[1]).digest();
-  return timingSafeEqual(expected, provided);
+  return verifyCommunicationWebhookBearerHeader(authorization, expectedSecret);
 }
 
 export function parseCommunicationBrevoInboundEnvelope(
   value: unknown,
   hashingSecret: string
 ): CommunicationBrevoInboundReceipt[] {
-  if (!secretValid(hashingSecret)) {
+  if (!isCommunicationWebhookSecret(hashingSecret)) {
     throw new CommunicationBrevoInboundError("hashing_secret_invalid");
   }
   if (!value || typeof value !== "object" || Array.isArray(value)) {

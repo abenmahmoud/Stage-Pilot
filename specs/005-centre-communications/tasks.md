@@ -89,6 +89,14 @@
 - [ ] T017 Préparer les destinataires par référence de contact, côté serveur.
 - [ ] T018 Envoyer individuellement via Brevo avec lien canonique.
 - [ ] T019 Enregistrer livré, différé, rejeté, spam et désinscrit.
+- [x] T019A Définir le contrat Brevo de délivrabilité avant toute route. Un
+  Bearer fort est comparé en temps constant ; seuls les événements documentés
+  utiles deviennent `delivered`, `deferred`, `rejected`, `spam` ou
+  `unsubscribed`. L'identifiant sortant et la clé de rejeu sont des HMAC
+  cloisonnés ; email, objet, motif, IP et tags du fournisseur sont ignorés. La
+  fenêtre temporelle est bornée à trente jours avec cinq minutes de tolérance
+  future. T019 reste ouvert jusqu'à la route, la persistance idempotente et la
+  recette de rejeu sur la preview.
 - [ ] T020 Construire la boîte d'échec, la reprise et l'annulation des travaux.
 - [x] T021A Ajouter un aperçu éditorial local sûr avant la relecture : rendu
   Markdown borné, images distantes neutralisées, liens isolés et absence de

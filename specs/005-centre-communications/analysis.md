@@ -89,3 +89,11 @@ distantes sont retirés ou neutralisés ; secrets et balisages actifs sont
 refusés. Les éventuelles données personnelles restent dans le brouillon privé,
 sont signalées et interdisent toute aide IA avant rédaction. Aucun public,
 groupe, publication ou envoi n'est déduit du message.
+
+Le contrat T019A suit la documentation Brevo des webhooks transactionnels et de
+leur authentification Bearer. Il réduit les événements utiles aux cinq états du
+produit et refuse les événements de suivi d'ouverture ou de clic. Le même HMAC
+de message sortant sert au rapprochement, tandis qu'un domaine HMAC distinct
+produit la clé de rejeu à partir du message, de l'état et de l'horodatage UTC en
+millisecondes. Aucune adresse, objet, raison, IP ou étiquette fournisseur ne
+sort du parseur. La route et l'écriture transactionnelle restent à construire.

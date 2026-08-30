@@ -1584,6 +1584,19 @@ taches et analyse de coherence avant une automatisation sensible.
 - Le brief Claude est préparé mais non exécuté, faute de modèle exact et de
   plafond de consommation propres à cette mission.
 
+### Jalon du 30 août 2026 - contrat de délivrabilité Brevo
+
+- Un vérificateur Bearer commun protège désormais les futurs webhooks entrants
+  et de délivrabilité avec secret fort et comparaison en temps constant.
+- Le reçu de délivrabilité conserve seulement la HMAC du message, une clé de
+  rejeu HMAC, l'état produit et l'heure UTC. Email, objet, motif, IP et tags sont
+  ignorés ; ouverture et clic ne sont pas acceptés.
+- Cinq tests dédiés et les six tests Brevo entrants passent. T019A est terminé ;
+  T019 reste ouvert jusqu'à la route privée, la persistance idempotente et le
+  rejeu en preview.
+- Le brief Claude est préparé mais non exécuté, faute de modèle exact et de
+  plafond de consommation propres à cette mission.
+
 ### Jalon du 30 août 2026 - aperçu éditorial local sûr
 
 - Le composeur privé propose désormais deux modes stables, `Écrire` et
