@@ -54,6 +54,8 @@ manquantes et les laisse comme questions bloquantes. Les gardes SQL imposent la
 cohérence entre la racine et sa version courante et figent le contenu en revue.
 Les recettes fictives passent et la base ne contient aucun résidu de test. Le
 dépôt signé est raccordé à l'interface derrière deux interrupteurs dédiés qui
-restent fermés. Le prochain lot technique est une preuve antivirus de bout en
-bout sur fichiers fictifs ; les groupes réels, la publication et toute
-diffusion restent bloqués par T001 à T004.
+restent fermés. Le contrat signé du registre Webmail accepte seulement des
+groupes opaques et l'éditeur dispose d'aperçus séparés pour la page et l'email,
+toujours sans destinataire ni action d'envoi. Le prochain lot documentaire est
+une preuve antivirus de bout en bout sur fichiers fictifs ; les groupes réels,
+la publication et toute diffusion restent bloqués par T001 à T004.

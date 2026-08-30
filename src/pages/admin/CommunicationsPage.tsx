@@ -10,6 +10,7 @@ import {
   FilePenLine,
   LoaderCircle,
   LockKeyhole,
+  Mail,
   MessageSquareText,
   Pencil,
   Plus,
@@ -28,6 +29,10 @@ import {
 } from "../../lib/feature-flags";
 import { useAuth } from "../../lib/auth-context";
 import { supabase } from "../../lib/supabase-browser";
+import {
+  buildCommunicationEmailPreview,
+  safeCommunicationPreviewHref,
+} from "../../../shared/communication-email-preview";
 
 type CommunicationRow = {
   id: string;
@@ -147,7 +152,36 @@ function fileSizeLabel(sizeBytes: number): string {
     : `${(sizeBytes / (1024 * 1024)).toFixed(1)} Mo`;
 }
 
-function CommunicationMessagePreview({
+function SafeCommunicationMarkdown({ bodyMarkdown }: { bodyMarkdown: string }) {
+  return (
+    <ReactMarkdown
+      remarkPlugins={[remarkGfm]}
+      components={{
+        h1: ({ children }) => <h3 className="mt-5 text-lg font-bold text-slate-950">{children}</h3>,
+        h2: ({ children }) => <h3 className="mt-5 text-base font-bold text-slate-950">{children}</h3>,
+        h3: ({ children }) => <h4 className="mt-4 font-bold text-slate-950">{children}</h4>,
+        p: ({ children }) => <p className="whitespace-pre-wrap">{children}</p>,
+        ul: ({ children }) => <ul className="list-disc space-y-1 pl-5">{children}</ul>,
+        ol: ({ children }) => <ol className="list-decimal space-y-1 pl-5">{children}</ol>,
+        blockquote: ({ children }) => <blockquote className="border-l-2 border-slate-300 pl-3 text-slate-600">{children}</blockquote>,
+        a: ({ href, children }) => {
+          const safeHref = safeCommunicationPreviewHref(href);
+          return safeHref
+            ? <a href={safeHref} target="_blank" rel="noreferrer noopener" className="font-semibold text-emerald-700 underline underline-offset-2">{children}</a>
+            : <span className="font-semibold text-slate-700 underline decoration-dotted underline-offset-2" title="Lien non affiché dans l’aperçu">{children}</span>;
+        },
+        img: ({ alt }) => <span className="block border border-dashed border-slate-300 px-3 py-2 text-xs text-slate-500">Image non affichée{alt ? ` : ${alt}` : ""}</span>,
+        table: ({ children }) => <div className="max-w-full overflow-x-auto"><table className="min-w-full border-collapse text-left text-xs">{children}</table></div>,
+        th: ({ children }) => <th className="border border-slate-200 bg-slate-50 px-2 py-1 font-bold">{children}</th>,
+        td: ({ children }) => <td className="border border-slate-200 px-2 py-1">{children}</td>,
+      }}
+    >
+      {bodyMarkdown}
+    </ReactMarkdown>
+  );
+}
+
+function CommunicationPagePreview({
   title,
   summary,
   bodyMarkdown,
@@ -162,30 +196,52 @@ function CommunicationMessagePreview({
         <h2 className="break-words text-xl font-bold text-slate-950">{title.trim() || "Titre du message"}</h2>
         {summary.trim() ? <p className="mt-2 whitespace-pre-line border-l-2 border-emerald-600 pl-3 text-sm leading-6 text-slate-600">{summary}</p> : null}
         <div className="mt-6 space-y-3 break-words text-sm leading-7 text-slate-800">
-          <ReactMarkdown
-            remarkPlugins={[remarkGfm]}
-            components={{
-              h1: ({ children }) => <h3 className="mt-5 text-lg font-bold text-slate-950">{children}</h3>,
-              h2: ({ children }) => <h3 className="mt-5 text-base font-bold text-slate-950">{children}</h3>,
-              h3: ({ children }) => <h4 className="mt-4 font-bold text-slate-950">{children}</h4>,
-              p: ({ children }) => <p className="whitespace-pre-wrap">{children}</p>,
-              ul: ({ children }) => <ul className="list-disc space-y-1 pl-5">{children}</ul>,
-              ol: ({ children }) => <ol className="list-decimal space-y-1 pl-5">{children}</ol>,
-              blockquote: ({ children }) => <blockquote className="border-l-2 border-slate-300 pl-3 text-slate-600">{children}</blockquote>,
-              a: ({ href, children }) => <a href={href} target="_blank" rel="noreferrer noopener" className="font-semibold text-emerald-700 underline underline-offset-2">{children}</a>,
-              img: ({ alt }) => <span className="block border border-dashed border-slate-300 px-3 py-2 text-xs text-slate-500">Image non affichée{alt ? ` : ${alt}` : ""}</span>,
-              table: ({ children }) => <div className="max-w-full overflow-x-auto"><table className="min-w-full border-collapse text-left text-xs">{children}</table></div>,
-              th: ({ children }) => <th className="border border-slate-200 bg-slate-50 px-2 py-1 font-bold">{children}</th>,
-              td: ({ children }) => <td className="border border-slate-200 px-2 py-1">{children}</td>,
-            }}
-          >
-            {bodyMarkdown.trim() || "Le contenu du message apparaîtra ici."}
-          </ReactMarkdown>
+          <SafeCommunicationMarkdown bodyMarkdown={bodyMarkdown.trim() || "Le contenu du message apparaîtra ici."} />
         </div>
       </div>
       <footer className="border-t border-slate-200 bg-slate-50 px-4 py-3 text-xs text-slate-500 sm:px-6">
-        Aperçu interne · aucun destinataire sélectionné
+        Aperçu de la page · aucun destinataire sélectionné
       </footer>
+    </section>
+  );
+}
+
+function CommunicationEmailPreview({
+  title,
+  summary,
+  bodyMarkdown,
+}: Pick<CommunicationDetail, "title" | "summary" | "bodyMarkdown">) {
+  const preview = buildCommunicationEmailPreview({ title, summary, bodyMarkdown });
+  return (
+    <section className="overflow-hidden rounded-md border border-slate-300 bg-slate-100 shadow-sm" aria-label="Aperçu email">
+      <header className="flex flex-col gap-3 border-b border-slate-300 bg-white px-4 py-4 sm:px-6">
+        <div className="flex items-center gap-2 text-sm font-bold text-slate-950"><Mail className="h-4 w-4 text-emerald-700" /> Aperçu email</div>
+        <dl className="grid min-w-0 gap-2 text-xs sm:grid-cols-[4rem_minmax(0,1fr)]">
+          <dt className="font-semibold text-slate-500">De</dt><dd className="break-words font-semibold text-slate-800">{preview.senderName}</dd>
+          <dt className="font-semibold text-slate-500">À</dt><dd className="break-words text-slate-600">Aucun destinataire sélectionné</dd>
+          <dt className="font-semibold text-slate-500">Objet</dt><dd className="break-words font-semibold text-slate-950">{preview.subject}</dd>
+          <dt className="font-semibold text-slate-500">Pré-en-tête</dt><dd className="break-words text-slate-600">{preview.preheader}</dd>
+        </dl>
+      </header>
+      <div className="p-3 sm:p-6">
+        <article className="mx-auto max-w-[680px] overflow-hidden border border-slate-200 bg-white shadow-sm">
+          <div className="border-t-4 border-emerald-700 px-4 py-5 sm:px-8 sm:py-7">
+            <p className="text-xs font-bold uppercase text-emerald-700">Lycée Blaise Cendrars · Sevran</p>
+            <p className="sr-only">{preview.preheader}</p>
+            <h2 className="mt-3 break-words text-xl font-bold text-slate-950 sm:text-2xl">{preview.subject}</h2>
+            {summary.trim() ? <p className="mt-3 whitespace-pre-line text-sm leading-6 text-slate-600">{summary}</p> : null}
+            <div className="mt-6 space-y-3 break-words text-sm leading-7 text-slate-800">
+              <SafeCommunicationMarkdown bodyMarkdown={preview.bodyMarkdown} />
+            </div>
+            <div className="mt-7 border-l-2 border-slate-300 pl-3 text-xs leading-5 text-slate-500">
+              Le lien officiel sera ajouté après publication. Cet aperçu ne permet aucun envoi.
+            </div>
+          </div>
+          <footer className="border-t border-slate-200 bg-slate-50 px-4 py-4 text-xs leading-5 text-slate-500 sm:px-8">
+            Message institutionnel · Réponse et retrait gérés après activation du pilote
+          </footer>
+        </article>
+      </div>
     </section>
   );
 }
@@ -230,7 +286,7 @@ export default function CommunicationsPage() {
   const [selectedDetail, setSelectedDetail] = useState<CommunicationDetail | null>(null);
   const [selectedVersions, setSelectedVersions] = useState<CommunicationVersion[]>([]);
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [composerMode, setComposerMode] = useState<"write" | "preview">("write");
+  const [composerMode, setComposerMode] = useState<"write" | "page" | "email">("write");
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [loading, setLoading] = useState(COMMUNICATIONS_UI_ENABLED);
@@ -777,16 +833,17 @@ export default function CommunicationsPage() {
             <div>
               <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                 <label htmlFor="communication-message" className="text-sm font-semibold text-slate-800">Message</label>
-                <div className="grid grid-cols-2 rounded-md border border-slate-300 bg-white p-0.5" aria-label="Mode du message">
+                <div className="grid grid-cols-3 rounded-md border border-slate-300 bg-white p-0.5" aria-label="Mode du message">
                   <button type="button" onClick={() => setComposerMode("write")} aria-pressed={composerMode === "write"} className={`inline-flex min-h-9 items-center justify-center gap-2 px-3 text-xs font-semibold ${composerMode === "write" ? "rounded bg-slate-950 text-white" : "text-slate-600"}`}><Pencil className="h-3.5 w-3.5" /> Écrire</button>
-                  <button type="button" onClick={() => setComposerMode("preview")} aria-pressed={composerMode === "preview"} className={`inline-flex min-h-9 items-center justify-center gap-2 px-3 text-xs font-semibold ${composerMode === "preview" ? "rounded bg-slate-950 text-white" : "text-slate-600"}`}><Eye className="h-3.5 w-3.5" /> Aperçu</button>
+                  <button type="button" onClick={() => setComposerMode("page")} aria-pressed={composerMode === "page"} className={`inline-flex min-h-9 items-center justify-center gap-2 px-3 text-xs font-semibold ${composerMode === "page" ? "rounded bg-slate-950 text-white" : "text-slate-600"}`}><Eye className="h-3.5 w-3.5" /> Page</button>
+                  <button type="button" onClick={() => setComposerMode("email")} aria-pressed={composerMode === "email"} className={`inline-flex min-h-9 items-center justify-center gap-2 px-3 text-xs font-semibold ${composerMode === "email" ? "rounded bg-slate-950 text-white" : "text-slate-600"}`}><Mail className="h-3.5 w-3.5" /> Email</button>
                 </div>
               </div>
               {composerMode === "write" ? (
                 <textarea id="communication-message" required maxLength={100000} rows={12} value={draft.bodyMarkdown} onChange={(event) => setDraft((current) => ({ ...current, bodyMarkdown: event.target.value }))} className="mt-1.5 w-full resize-y rounded-md border border-slate-300 px-3 py-2.5 font-normal leading-6 text-slate-950 outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100" />
-              ) : (
-                <div className="mt-2"><CommunicationMessagePreview title={draft.title} summary={draft.summary} bodyMarkdown={draft.bodyMarkdown} /></div>
-              )}
+              ) : null}
+              {composerMode === "page" ? <div className="mt-2"><CommunicationPagePreview title={draft.title} summary={draft.summary} bodyMarkdown={draft.bodyMarkdown} /></div> : null}
+              {composerMode === "email" ? <div className="mt-2"><CommunicationEmailPreview title={draft.title} summary={draft.summary} bodyMarkdown={draft.bodyMarkdown} /></div> : null}
             </div>
 
             <section className="border-y border-slate-200 py-4" aria-labelledby="communication-assist-title">

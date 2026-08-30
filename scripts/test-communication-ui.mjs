@@ -80,9 +80,15 @@ test("supports private metadata search, status filters and bounded version histo
 test("renders a safe local preview without opening delivery", () => {
   assert.match(page, /ReactMarkdown/);
   assert.match(page, /remarkPlugins=\{\[remarkGfm\]\}/);
-  assert.match(page, /composerMode === "preview"/);
+  assert.match(page, /composerMode === "page"/);
+  assert.match(page, /composerMode === "email"/);
   assert.match(page, /Écrire/);
-  assert.match(page, /Aperçu interne · aucun destinataire sélectionné/);
+  assert.match(page, /Aperçu de la page · aucun destinataire sélectionné/);
+  assert.match(page, /Aperçu email/);
+  assert.match(page, /Aucun destinataire sélectionné/);
+  assert.match(page, /Pré-en-tête/);
+  assert.match(page, /Le lien officiel sera ajouté après publication/);
+  assert.match(page, /safeCommunicationPreviewHref/);
   assert.match(page, /rel="noreferrer noopener"/);
   assert.match(page, /Image non affichée/);
   assert.doesNotMatch(page, /communication-send|COMMUNICATION_SEND_ENABLED|audienceRef/);

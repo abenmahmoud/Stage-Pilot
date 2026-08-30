@@ -1672,6 +1672,23 @@ taches et analyse de coherence avant une automatisation sensible.
 - Le brief Claude est préparé mais non exécuté, faute de modèle exact et de
   plafond de consommation propres à cette mission.
 
+### Jalon du 30 août 2026 - aperçu email fidèle et fermé
+
+- L'éditeur privé distingue désormais `Écrire`, `Page` et `Email`. Le rendu
+  email utilise le même titre, résumé et corps que la communication, avec
+  expéditeur institutionnel, objet, pré-en-tête et largeur proche d'un client
+  email.
+- Aucun destinataire n'est sélectionné et le lien officiel reste explicitement
+  en attente de publication. Le modèle retourne toujours `canSend: false` et
+  refuse tout champ supplémentaire de destinataire ou de livraison.
+- Les images distantes sont neutralisées. Seuls les chemins internes et liens
+  HTTPS sans identifiants restent cliquables ; les autres deviennent du texte.
+- Les tests ciblés et le build passent sans API, secret, donnée réelle ou
+  modification distante. T021 est terminé ; la publication et l'envoi restent
+  verrouillés.
+- Le brief Claude est préparé mais non exécuté, faute de modèle exact et de
+  plafond de consommation propres à cette mission.
+
 ## 8. Prochain ordre recommande
 
 1. Publier et tester le pré-triage ordinateur portable avec des données fictives.

@@ -93,7 +93,11 @@
 - [x] T021A Ajouter un aperçu éditorial local sûr avant la relecture : rendu
   Markdown borné, images distantes neutralisées, liens isolés et absence de
   destinataire, publication ou envoi.
-- [ ] T021 Ajouter un aperçu email fidèle avant validation.
+- [x] T021 Ajouter un aperçu email fidèle avant validation. Le même modèle
+  éditorial borné alimente l'aperçu page et l'aperçu email local. Expéditeur,
+  objet, pré-en-tête, corps et état du lien officiel sont visibles, sans adresse
+  ni destinataire. Images distantes et liens dangereux sont neutralisés ; le
+  rendu ne peut ni valider, ni publier, ni envoyer.
 
 ## Phase 5 - Entrants et réponses
 
