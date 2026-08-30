@@ -38,6 +38,7 @@ import {
   Paperclip,
   Phone,
   RefreshCw,
+  RotateCcw,
   Search,
   Send,
   Settings2,
@@ -2519,6 +2520,13 @@ function ConnectedAgentView({ onBack }: { onBack: () => void }) {
     }
   }
 
+  function resetQueueFilters() {
+    setQuery("");
+    setQueueMode("all");
+    setServiceFilter("");
+    setPage(1);
+  }
+
   useEffect(() => {
     let active = true;
     void supabase.auth.refreshSession().finally(() => {
@@ -2811,6 +2819,7 @@ function ConnectedAgentView({ onBack }: { onBack: () => void }) {
   const availableTeams = access?.canViewAll
     ? supportTeams
     : supportTeams.filter((team) => access?.serviceCodes.includes(team.value));
+  const hasQueueFilters = query.trim().length > 0 || queueMode !== "all" || serviceFilter !== "";
   const orderedServiceStats = [
     serviceStats.find((item) => item.service === null),
     ...supportTeams.map((team) => serviceStats.find((item) => item.service === team.value)),
@@ -2839,7 +2848,7 @@ function ConnectedAgentView({ onBack }: { onBack: () => void }) {
       {access?.canViewAll && orderedServiceStats.length > 0 ? <section className="lycee-service-load" aria-label="Charge par service"><div><small>Vue superadministrateur</small><strong>Charge par service</strong></div><nav>{orderedServiceStats.map((item) => { const value = item.service ?? "unassigned"; return <button type="button" className={serviceFilter === value ? "is-active" : ""} onClick={() => { setServiceFilter(value); setPage(1); }} key={value}><span>{supportTeamLabel(item.service)}</span><strong>{item.open}</strong><small>{item.urgent > 0 ? `${item.urgent} urgente${item.urgent > 1 ? "s" : ""}` : "Aucune urgence"}{item.overdue > 0 ? ` · ${item.overdue} en retard` : ""}</small></button>; })}</nav></section> : null}
       <div className="lycee-agent-workspace">
         <section className="lycee-agent-queue">
-          <div className="lycee-agent-toolbar"><label><Search aria-hidden="true" /><input value={query} onChange={(event) => { setQuery(event.target.value); setPage(1); }} placeholder="Nom, numéro ou objet" /></label><button className={queueMode === "mine" ? "is-active" : ""} type="button" aria-label="Afficher mes demandes" aria-pressed={queueMode === "mine"} title="Afficher mes demandes" onClick={() => { setQueueMode((current) => current === "mine" ? "all" : "mine"); setPage(1); }}><Filter aria-hidden="true" /></button><select aria-label="Filtrer par service" value={serviceFilter} onChange={(event) => { setServiceFilter(event.target.value); setPage(1); }}><option value="">{access?.canViewAll ? "Tous les services" : "Mon périmètre"}</option>{access?.canViewAll ? <option value="unassigned">À orienter</option> : null}{availableTeams.map((team) => <option value={team.value} key={team.value}>{team.label}</option>)}</select></div>
+          <div className="lycee-agent-toolbar"><label><Search aria-hidden="true" /><input value={query} onChange={(event) => { setQuery(event.target.value); setPage(1); }} placeholder="Nom, numéro ou objet" /></label><button className={queueMode === "mine" ? "is-active" : ""} type="button" aria-label="Afficher mes demandes" aria-pressed={queueMode === "mine"} title="Afficher mes demandes" onClick={() => { setQueueMode((current) => current === "mine" ? "all" : "mine"); setPage(1); }}><Filter aria-hidden="true" /></button><button type="button" aria-label="Réinitialiser les filtres" title="Réinitialiser les filtres" disabled={!hasQueueFilters} onClick={resetQueueFilters}><RotateCcw aria-hidden="true" /></button><select aria-label="Filtrer par service" value={serviceFilter} onChange={(event) => { setServiceFilter(event.target.value); setPage(1); }}><option value="">{access?.canViewAll ? "Tous les services" : "Mon périmètre"}</option>{access?.canViewAll ? <option value="unassigned">À orienter</option> : null}{availableTeams.map((team) => <option value={team.value} key={team.value}>{team.label}</option>)}</select></div>
           <div className="lycee-agent-tabs" aria-label="Filtrer les demandes"><button aria-pressed={queueMode === "all"} className={queueMode === "all" ? "is-active" : ""} type="button" onClick={() => { setQueueMode("all"); setPage(1); }}>Toutes <span>{stats.total}</span></button><button aria-pressed={queueMode === "qualify"} className={queueMode === "qualify" ? "is-active" : ""} type="button" onClick={() => { setQueueMode("qualify"); setPage(1); }}>À classer <span>{stats.qualify}</span></button><button aria-pressed={queueMode === "urgent"} className={queueMode === "urgent" ? "is-active" : ""} type="button" onClick={() => { setQueueMode("urgent"); setPage(1); }}>Urgentes <span>{stats.urgent}</span></button><button aria-pressed={queueMode === "overdue"} className={queueMode === "overdue" ? "is-active" : ""} type="button" onClick={() => { setQueueMode("overdue"); setPage(1); }}>En retard <span>{stats.overdue}</span></button><button aria-pressed={queueMode === "waiting"} className={queueMode === "waiting" ? "is-active" : ""} type="button" onClick={() => { setQueueMode("waiting"); setPage(1); }}>En attente <span>{stats.waitingRequester}</span></button><button aria-pressed={queueMode === "internal"} className={queueMode === "internal" ? "is-active" : ""} type="button" onClick={() => { setQueueMode("internal"); setPage(1); }}>À vérifier <span>{stats.waitingInternal}</span></button><button aria-pressed={queueMode === "unassigned"} className={queueMode === "unassigned" ? "is-active" : ""} type="button" onClick={() => { setQueueMode("unassigned"); setPage(1); }}>Sans agent <span>{stats.unassigned}</span></button><button aria-pressed={queueMode === "callbacks"} className={queueMode === "callbacks" ? "is-active" : ""} type="button" onClick={() => { setQueueMode("callbacks"); setPage(1); }}>Rappels <span>{stats.callbacks}</span></button><button aria-pressed={queueMode === "duplicates"} className={queueMode === "duplicates" ? "is-active" : ""} type="button" onClick={() => { setQueueMode("duplicates"); setPage(1); }}>Doublons <span>{stats.duplicates}</span></button></div>
           <div className="lycee-agent-list">
             {requests.map((request) => {

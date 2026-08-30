@@ -2472,6 +2472,17 @@ taches et analyse de coherence avant une automatisation sensible.
 - Le brief Claude est préparé mais non exécuté, faute de modèle exact et de
   plafond propres à cette mission ; aucun jeton externe n'a été consommé.
 
+### Jalon du 30 août 2026 - remise à zéro des filtres
+
+- La barre agent possède une action icône `Réinitialiser les filtres` qui efface
+  en une fois recherche, file, service et pagination.
+- Le bouton est désactivé dans la vue complète, afin de ne pas produire une
+  action inutile ou ambiguë.
+- T027B6 est terminée. Les cinq domaines comptent 392 identifiants uniques : 276
+  lignes terminées et 116 ouvertes.
+- Le brief Claude est préparé mais non exécuté, faute de modèle exact et de
+  plafond propres à cette mission ; aucun jeton externe n'a été consommé.
+
 ## 8. Prochain ordre recommande
 
 1. Publier et tester le pré-triage ordinateur portable avec des données fictives.
