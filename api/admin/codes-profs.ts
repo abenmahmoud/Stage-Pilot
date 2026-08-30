@@ -3,7 +3,7 @@ import { asc } from "drizzle-orm";
 import { db } from "../../db/index.js";
 import { professeurs } from "../../db/schema.js";
 import { handleApi, methodNotAllowed } from "../_shared/response.js";
-import { requireRole, HttpError } from "../_shared/auth.js";
+import { requireAal2, requireRole, HttpError } from "../_shared/auth.js";
 
 function splitMatieres(value: string | null): string[] {
   if (!value) return ["—"];
@@ -19,6 +19,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   await handleApi(res, async () => {
     await requireRole(req, ["superadmin", "administration"]);
+    await requireAal2(req);
 
     const matiereFilter = (req.query.matiere as string) || "all";
 

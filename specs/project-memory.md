@@ -2451,6 +2451,19 @@ taches et analyse de coherence avant une automatisation sensible.
 - Le brief Claude est préparé mais non exécuté, faute de modèle exact et de
   plafond propres à cette mission ; aucun jeton externe n'a été consommé.
 
+### Jalon du 30 août 2026 - MFA sur les anciens codes d'accès
+
+- Les listes administratives élèves et professeurs qui exposent les anciens
+  codes exigent maintenant `aal2` après le contrôle du rôle.
+- Les imports historiques qui génèrent encore ces valeurs exigent eux aussi
+  `aal2` ; la création massive de comptes demeure neutralisée.
+- Aucun compte ou code existant n'est supprimé. Leur retrait complet reste un
+  choix métier à traiter avec une migration nominative/OTP.
+- T037Y est terminée par tests locaux, sans compte distant, donnée réelle ou
+  modification Supabase.
+- Le brief Claude est préparé mais non exécuté, faute de modèle exact et de
+  plafond propres à cette mission ; aucun jeton externe n'a été consommé.
+
 ### Jalon du 30 août 2026 - retrait des comptes professeurs dérivés de codes
 
 - La commande historique qui écrivait directement dans `auth.users` est

@@ -2,7 +2,7 @@ import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { db } from "../../db/index.js";
 import { professeurs, importLogs } from "../../db/schema.js";
 import { handleApi, methodNotAllowed } from "../_shared/response.js";
-import { HttpError, requireRole } from "../_shared/auth.js";
+import { HttpError, requireAal2, requireRole } from "../_shared/auth.js";
 import { parseLegacyTeacherImport } from "../../shared/legacy-import-input.js";
 
 type ProfRow = {
@@ -46,6 +46,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   await handleApi(res, async () => {
     const user = await requireRole(req, ["superadmin", "administration"]);
+    await requireAal2(req);
 
     let rows: ProfRow[];
     try {

@@ -258,6 +258,8 @@ voir sa réponse dans le dossier. L'agent traite tout depuis une seule file.
   sécurité de l'aperçu.
 - [x] **T037X** Neutraliser la création historique de comptes professeurs à
   partir de codes, retirer son bouton et durcir les commandes sans payload.
+- [x] **T037Y** Exiger `aal2` pour consulter ou exporter les anciens codes
+  d'accès et pour les imports historiques qui en génèrent encore.
 - [x] **T037F** Exclure les contacts desactives des reponses, reserver les
   journaux globaux a un administrateur MFA et exiger `aal2` pour confirmer une
   identite scolaire depuis une source officielle.
