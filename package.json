@@ -36,6 +36,7 @@
     "test:communication-foundation": "node scripts/test-communication-foundation.mjs",
     "test:communication-draft": "node --import ./scripts/ts-test-resolver.mjs --experimental-strip-types scripts/test-communication-draft.mjs",
     "test:communication-ui": "node scripts/test-communication-ui.mjs",
+    "test:communication-templates": "node --import ./scripts/ts-test-resolver.mjs --experimental-strip-types scripts/test-communication-templates.mjs",
     "test:support-concurrency": "node --experimental-strip-types scripts/test-support-concurrency.mjs",
     "test:support-device-memory": "node --experimental-strip-types scripts/test-support-device-memory.mjs",
     "test:support-callback-policy": "node --experimental-strip-types scripts/test-support-callback-policy.mjs",

@@ -1657,6 +1657,57 @@ export const communicationSettings = pgTable("communication_settings", {
   index("communication_settings_updated_by_fk_idx").on(table.updatedBy),
 ]);
 
+export const communicationTemplates = pgTable(
+  "communication_templates",
+  {
+    id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+    institutionId: uuid("institution_id")
+      .notNull()
+      .references(() => institutions.id, { onDelete: "restrict" }),
+    templateKey: text("template_key").notNull(),
+    label: text("label").notNull(),
+    defaultCategory: text("default_category").notNull(),
+    titleHint: text("title_hint").notNull().default(""),
+    summaryHint: text("summary_hint").notNull().default(""),
+    bodyMarkdown: text("body_markdown").notNull(),
+    active: boolean("active").notNull().default(true),
+    version: integer("version").notNull().default(1),
+    createdBy: uuid("created_by").notNull(),
+    updatedBy: uuid("updated_by").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    uniqueIndex("communication_templates_institution_key_uidx").on(table.institutionId, table.templateKey),
+    index("communication_templates_scope_active_idx").on(table.institutionId, table.active, table.templateKey),
+    index("communication_templates_created_by_idx").on(table.createdBy, table.createdAt),
+    index("communication_templates_updated_by_idx").on(table.updatedBy, table.updatedAt),
+  ]
+);
+
+export const communicationTemplateEvents = pgTable(
+  "communication_template_events",
+  {
+    id: bigint("id", { mode: "number" }).primaryKey().generatedAlwaysAsIdentity(),
+    institutionId: uuid("institution_id")
+      .notNull()
+      .references(() => institutions.id, { onDelete: "restrict" }),
+    templateId: uuid("template_id")
+      .notNull()
+      .references(() => communicationTemplates.id, { onDelete: "restrict" }),
+    eventType: text("event_type").notNull(),
+    actorUserId: uuid("actor_user_id").notNull(),
+    version: integer("version").notNull(),
+    summary: jsonb("summary").notNull().default({}),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    index("communication_template_events_template_scope_idx").on(table.templateId, table.institutionId, table.createdAt),
+    index("communication_template_events_scope_created_idx").on(table.institutionId, table.createdAt),
+    index("communication_template_events_actor_idx").on(table.actorUserId, table.createdAt),
+  ]
+);
+
 export const communications = pgTable(
   "communications",
   {

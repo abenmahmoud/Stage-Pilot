@@ -58,6 +58,16 @@ Audit fonctionnel minimal : type, ressource, acteur, résumé borné et date.
 Interrupteurs par établissement, tous à `false` par défaut : module,
 publication et diffusion.
 
+### `communication_templates` et `communication_template_events`
+
+`communication_templates` contient uniquement les personnalisations des six
+modèles du catalogue, par établissement. L'absence de ligne conserve le modèle
+sûr livré par le code. La clé et le périmètre sont immuables et chaque mise à
+jour incrémente exactement la version.
+
+`communication_template_events` conserve un historique append-only sans
+destinataire ni corps complet : modèle, version, état actif, auteur et date.
+
 ## Contrat de validation déjà implémenté
 
 `shared/communication-policy.ts` refuse les champs inconnus, les sources hors

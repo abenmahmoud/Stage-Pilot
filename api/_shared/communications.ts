@@ -7,6 +7,7 @@ import { HttpError } from "./auth.js";
 import { requireSupportAgent } from "./support-agent-access.js";
 
 const COMMUNICATION_EDITOR_ROLES = new Set(["superadmin", "administration", "proviseur"]);
+const COMMUNICATION_TEMPLATE_MANAGER_ROLES = new Set(["superadmin", "proviseur"]);
 
 export async function requireCommunicationEditor(req: VercelRequest) {
   const context = await requireSupportAgent(req);
@@ -23,6 +24,14 @@ export async function requireCommunicationEditor(req: VercelRequest) {
     .limit(1);
   if (!settings?.moduleEnabled) {
     throw new HttpError(503, "Le centre de communications n’est pas activé.");
+  }
+  return context;
+}
+
+export async function requireCommunicationTemplateManager(req: VercelRequest) {
+  const context = await requireCommunicationEditor(req);
+  if (!COMMUNICATION_TEMPLATE_MANAGER_ROLES.has(context.user.role)) {
+    throw new HttpError(403, "Seule la direction peut modifier les modèles.");
   }
   return context;
 }

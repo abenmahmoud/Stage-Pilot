@@ -1469,6 +1469,20 @@ taches et analyse de coherence avant une automatisation sensible.
 - L'interface ne peut pas ouvrir seule le module : l'API exige encore son
   interrupteur serveur puis celui de l'établissement en base.
 
+### Jalon du 30 août 2026 - modèles de communication
+
+- Les six modèles prévus sont fournis par un catalogue de code déterministe :
+  Hebdo, Urgent, Rentrée, Document, Événement et Rappel.
+- Une personnalisation est privée, cloisonnée par établissement, versionnée et
+  auditée. L'absence de personnalisation conserve le modèle sûr du catalogue.
+- L'administration peut lire les modèles ; seuls superadmin et proviseur
+  peuvent les modifier, avec l'authentification renforcée déjà imposée.
+- Aucun modèle ne contient de destinataire. Son API ne publie, ne cible et
+  n'envoie rien, et reste derrière les deux interrupteurs du module.
+- La migration est appliquée uniquement sur la preview. La recette fictive a
+  refusé cinq contournements puis laissé quatre compteurs de résidus à zéro ;
+  les auditeurs Supabase ne remontent aucun `WARN` ou `ERROR` sur ces tables.
+
 ## 8. Prochain ordre recommande
 
 1. Publier et tester le pré-triage ordinateur portable avec des données fictives.
