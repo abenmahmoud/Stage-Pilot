@@ -332,6 +332,9 @@
   service et de la pagination, désactivée lorsque la vue complète est active.
 - [x] T027B7 Empêcher les réponses réseau obsolètes de remplacer une file ou un
   détail plus récent lorsque l'agent change rapidement de filtre ou de dossier.
+- [x] T027B8 Refuser avec une erreur explicite les filtres serveur `status` et
+  `assigned` inconnus, afin qu'une valeur mal formée n'élargisse jamais
+  silencieusement la file affichée.
 - [ ] T027B2 Ajouter les relances internes et l'escalade après validation des
   délais propres à chaque service et des responsables à notifier.
 - [ ] T027C Créer les adhésions de service puis appliquer le périmètre dans les

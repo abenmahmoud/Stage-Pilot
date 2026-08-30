@@ -62,6 +62,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const status = queryValue(req.query.status);
     const urgentOnly = queryValue(req.query.urgent) === "true";
     const assigned = queryValue(req.query.assigned);
+    if (status && !VALID_STATUSES.has(status)) {
+      throw new HttpError(400, "Statut invalide");
+    }
+    if (assigned && assigned !== "me" && assigned !== "none") {
+      throw new HttpError(400, "Attribution invalide");
+    }
     const mineOnly = assigned === "me";
     const unassignedOnly = assigned === "none";
     const callbackOnly = queryValue(req.query.callback) === "pending";

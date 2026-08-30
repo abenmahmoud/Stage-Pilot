@@ -2494,6 +2494,17 @@ taches et analyse de coherence avant une automatisation sensible.
 - Le brief Claude est préparé mais non exécuté, faute de modèle exact et de
   plafond propres à cette mission ; aucun jeton externe n'a été consommé.
 
+### Jalon du 30 août 2026 - validation des filtres de file
+
+- L'API de file refuse désormais tout statut inconnu et toute attribution autre
+  que `me` ou `none` avec une réponse `400` explicite.
+- Une valeur mal formée ne peut plus être ignorée puis produire une liste plus
+  large que celle demandée par l'interface.
+- T027B8 est terminée. Les cinq domaines comptent 394 identifiants uniques : 278
+  lignes terminées et 116 ouvertes.
+- Le brief Claude est préparé mais non exécuté, faute de modèle exact et de
+  plafond propres à cette mission ; aucun jeton externe n'a été consommé.
+
 ## 8. Prochain ordre recommande
 
 1. Publier et tester le pré-triage ordinateur portable avec des données fictives.
