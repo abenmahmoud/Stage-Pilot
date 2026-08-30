@@ -1782,6 +1782,21 @@ taches et analyse de coherence avant une automatisation sensible.
 - Le brief Claude a été élargi à ces vues mais demeure non exécuté, faute de
   modèle exact et de plafond de consommation propres à cette mission.
 
+### Jalon du 30 août 2026 - email transféré en brouillon interne
+
+- Un contrat local prépare un email transféré uniquement si sa source est déjà
+  autorisée côté serveur. Aucun expéditeur, destinataire, domaine ou filtre
+  n'est configuré dans ce lot.
+- Les en-têtes techniques, l'ancien fil et les images distantes sont retirés ou
+  neutralisés. Secrets et balisages actifs sont refusés ; adresses et téléphones
+  imposent un masquage avant toute aide IA.
+- Le résultat est toujours `internal` et `draft`, sans publication ni
+  notification, avec empreinte anti-doublon et relecture humaine. Cinq tests et
+  la compilation complète passent. T025A est terminé ; T025 reste ouvert pour
+  la route privée, la persistance et le rejeu.
+- Le brief Claude est préparé mais non exécuté, faute de modèle exact et de
+  plafond de consommation propres à cette mission.
+
 ## 8. Prochain ordre recommande
 
 1. Publier et tester le pré-triage ordinateur portable avec des données fictives.

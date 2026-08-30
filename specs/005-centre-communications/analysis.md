@@ -80,3 +80,12 @@ compare le HMAC de `In-Reply-To` au HMAC enregistré sur une livraison du même
 ambiguïté. Une contrainte additive impose le format HMAC et une unicité partielle
 par établissement. Cette migration n'est pas appliquée à distance dans ce lot ;
 T023 restera ouvert jusqu'à la recette transactionnelle du webhook fermé.
+
+Le contrat T025A prépare l'import d'un email transféré sans ouvrir de boîte ni
+de route. L'autorisation de la source est un contexte serveur non fourni par le
+message. L'identifiant externe est déjà HMAC et produit une empreinte stable
+anti-doublon. Les en-têtes de transport, les anciennes citations et les images
+distantes sont retirés ou neutralisés ; secrets et balisages actifs sont
+refusés. Les éventuelles données personnelles restent dans le brouillon privé,
+sont signalées et interdisent toute aide IA avant rédaction. Aucun public,
+groupe, publication ou envoi n'est déduit du message.

@@ -6,7 +6,7 @@ import {
 } from "./communication-templates.js";
 
 export type CommunicationDraftInput = {
-  sourceType: "direct_text";
+  sourceType: "direct_text" | "forwarded_email";
   title: string;
   summary: string;
   bodyMarkdown: string;

@@ -123,6 +123,14 @@
   revue sécurisée en présence d'un secret. Toute action reste humaine ; T024
   demeure ouvert jusqu'à la boîte entrante et sa persistance.
 - [ ] T025 Créer un brouillon depuis un email transféré autorisé.
+- [x] T025A Définir le contrat local avant toute boîte de collecte. Seule une
+  source déjà autorisée côté serveur peut produire un brouillon ; l'identifiant
+  fournisseur reste un HMAC et devient une empreinte anti-doublon. Les en-têtes
+  de transfert, anciens fils et images distantes sont neutralisés, les secrets
+  et balisages actifs sont refusés, les données personnelles sont signalées
+  avant toute aide IA. Le résultat reste `internal`, `draft`, sans publication,
+  audience ni notification, avec relecture humaine obligatoire. T025 reste
+  ouvert jusqu'à la route privée, la persistance et la recette de rejeu.
 - [ ] T026 Configurer le domaine et le filtre Gmail uniquement après autorisation.
 
 ## Phase 6 - Validation
