@@ -1,6 +1,4 @@
 import { useEffect, useRef, useState } from "react";
-import ReactMarkdown from "react-markdown";
-import remarkGfm from "remark-gfm";
 import {
   ArrowLeft,
   ArrowRightLeft,
@@ -56,6 +54,7 @@ import {
 } from "lucide-react";
 import { supabase } from "../../lib/supabase-browser";
 import { apiFetch } from "../../lib/api";
+import { PublicContentMarkdown } from "../../components/PublicContentMarkdown";
 import {
   clearSupportDeviceDraft,
   clearRememberedSupportRequests,
@@ -841,7 +840,7 @@ function NewsView({ onBack }: { onBack: () => void }) {
               <h2>{selected.title}</h2>
               <time dateTime={selected.publishedAt ?? undefined}>{publicContentDateLabel(selected.publishedAt)}</time>
               {selected.summary ? <p className="lycee-news-summary">{selected.summary}</p> : null}
-              <div className="lycee-public-markdown"><ReactMarkdown remarkPlugins={[remarkGfm]}>{selected.bodyMarkdown}</ReactMarkdown></div>
+              <div className="lycee-public-markdown"><PublicContentMarkdown>{selected.bodyMarkdown}</PublicContentMarkdown></div>
               {selectedDocuments.length ? <div className="lycee-news-documents">{selectedDocuments.map((asset) => <a key={asset.id} href={asset.signedUrl ?? "#"} target="_blank" rel="noreferrer"><FileText aria-hidden="true" /><span><strong>{asset.label}</strong><small>{asset.originalName}</small></span><ExternalLink aria-hidden="true" /></a>)}</div> : null}
             </div>
           </article>

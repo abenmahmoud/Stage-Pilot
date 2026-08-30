@@ -5,6 +5,8 @@ import { readFileSync } from "node:fs";
 const page = readFileSync(new URL("../src/pages/prototype/LyceeConnectPrototype.tsx", import.meta.url), "utf8");
 const articlePage = readFileSync(new URL("../src/pages/prototype/PublicContentPage.tsx", import.meta.url), "utf8");
 const client = readFileSync(new URL("../src/pages/prototype/public-content-client.ts", import.meta.url), "utf8");
+const markdown = readFileSync(new URL("../src/components/PublicContentMarkdown.tsx", import.meta.url), "utf8");
+const contentManager = readFileSync(new URL("../src/pages/admin/ContentManagerPage.tsx", import.meta.url), "utf8");
 
 test("routes the initial and paginated public feed through one validator", () => {
   assert.equal(page.match(/\.then\(readPublicContentPayload\)/g)?.length, 2);
@@ -48,4 +50,16 @@ test("validates the dedicated article response and binds it to the requested slu
   assert.match(client, /payload\.items\.length > 1/);
   assert.match(client, /payload\.nextCursor !== null/);
   assert.match(client, /item && item\.slug !== expectedSlug/);
+});
+
+test("renders public markdown through one media and link policy", () => {
+  assert.equal(page.match(/<PublicContentMarkdown>/g)?.length, 1);
+  assert.equal(articlePage.match(/<PublicContentMarkdown>/g)?.length, 1);
+  assert.equal(contentManager.match(/<PublicContentMarkdown>/g)?.length, 1);
+  assert.match(markdown, /isAllowedPublicContentSignedUrl\(src\)/);
+  assert.match(markdown, /url\.protocol !== "https:"/);
+  assert.match(markdown, /\^mailto:/);
+  assert.match(markdown, /\^tel:/);
+  assert.match(markdown, /loading="lazy"/);
+  assert.match(markdown, /referrerPolicy="no-referrer"/);
 });

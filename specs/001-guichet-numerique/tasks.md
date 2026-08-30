@@ -193,6 +193,10 @@ voir sa réponse dans le dossier. L'agent traite tout depuis une seule file.
 - [x] **T036J** Valider la réponse de chaque page éditoriale dédiée avec le même
   contrat que les flux publics, puis exiger que l'article corresponde exactement
   à l'adresse demandée avant tout rendu ou chargement de média.
+- [x] **T036K** Centraliser le rendu Markdown public, refuser les images qui ne
+  viennent pas du bucket privé signé du lycée et neutraliser les liens non HTTPS
+  ou non internes dans les pages et leur aperçu administrateur, sauf email et
+  téléphone strictement validés.
 - [ ] **T037** Ajouter les mentions d'information, durées et procédure d'exercice
   des droits.
 - [x] **T037A** Ajouter la page de confiance de préproduction, le contact DPO, les

@@ -5,6 +5,18 @@
 **Depot** : `abenmahmoud/Stage-Pilot`
 **Dernier jalon de code verifie** : branche de preview Vercel
 
+## Jalon du 30 août 2026 - médias Markdown publics verrouillés
+
+- Les deux pages publiques et l'aperçu du gestionnaire utilisent désormais un
+  rendu Markdown commun.
+- Une image Markdown ne se charge que depuis une URL signée du bucket privé
+  `site-content` sur l'origine Supabase configurée ; tout autre média disparaît.
+- Les liens restent limités aux chemins internes, aux URL HTTPS sans identifiants
+  et aux coordonnées `mailto:`/`tel:` strictes de l'ancien site, avec isolation
+  de l'onglet externe.
+- La recette Chromium bloque une image sur un projet Supabase tiers à 320 et
+  1 440 px, sans requête sortante, débordement ni erreur JavaScript.
+
 ## Jalon du 30 août 2026 - client API privé raccordé au lecteur borné
 
 - `apiFetch` applique désormais le même lecteur borné aux succès et erreurs JSON

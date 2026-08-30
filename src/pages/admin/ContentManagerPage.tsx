@@ -1,6 +1,4 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import ReactMarkdown from "react-markdown";
-import remarkGfm from "remark-gfm";
 import {
   Archive, BadgeCheck, Bold, Bot, Check, Copy, Download, ExternalLink, FileText, Heading2,
   Image, Italic, Link, List, LoaderCircle, Monitor, Newspaper, Plus, Quote,
@@ -9,6 +7,7 @@ import {
 import { apiFetch } from "../../lib/api";
 import { useAuth } from "../../lib/auth-context";
 import { supabase } from "../../lib/supabase-browser";
+import { PublicContentMarkdown } from "../../components/PublicContentMarkdown";
 
 type ContentType = "article" | "alerte" | "page" | "document";
 type ContentStatus = "brouillon" | "a_valider" | "publie" | "archive";
@@ -111,7 +110,7 @@ function Preview({ draft, mobile }: { draft: Draft; mobile: boolean }) {
       <p className="!mt-0 text-xs font-bold uppercase text-emerald-700">{draft.category} · {TYPES[draft.contentType]}</p>
       <h1>{draft.title || "Titre de votre contenu"}</h1>
       {draft.summary ? <p className="lead">{draft.summary}</p> : null}
-      <ReactMarkdown remarkPlugins={[remarkGfm]}>{draft.bodyMarkdown || "Votre texte apparaîtra ici."}</ReactMarkdown>
+      <PublicContentMarkdown>{draft.bodyMarkdown || "Votre texte apparaîtra ici."}</PublicContentMarkdown>
     </article>
   );
 }

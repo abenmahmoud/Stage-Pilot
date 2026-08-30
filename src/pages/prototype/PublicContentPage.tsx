@@ -1,8 +1,7 @@
 import { useEffect, useState } from "react";
 import { ArrowLeft, ExternalLink, FileText, LoaderCircle } from "lucide-react";
-import ReactMarkdown from "react-markdown";
 import { Link, useParams } from "react-router-dom";
-import remarkGfm from "remark-gfm";
+import { PublicContentMarkdown } from "../../components/PublicContentMarkdown";
 import {
   readPublicContentPagePayload,
   type PublicContent,
@@ -49,7 +48,7 @@ export default function PublicContentPage() {
           <p className="lycee-eyebrow">{item.category}</p>
           <h1>{item.title}</h1>
           {item.summary ? <p className="lycee-article-lead">{item.summary}</p> : null}
-          <div className="lycee-public-markdown"><ReactMarkdown remarkPlugins={[remarkGfm]}>{item.bodyMarkdown}</ReactMarkdown></div>
+          <div className="lycee-public-markdown"><PublicContentMarkdown>{item.bodyMarkdown}</PublicContentMarkdown></div>
           {documents.length ? <section className="lycee-article-documents" aria-labelledby="documents-title"><h2 id="documents-title">Documents</h2><div>{documents.map((asset) => <a key={asset.id} href={asset.signedUrl ?? "#"} target="_blank" rel="noreferrer"><FileText aria-hidden="true" /><span><strong>{asset.label}</strong><small>{asset.originalName}</small></span><ExternalLink aria-hidden="true" /></a>)}</div></section> : null}
         </article> : null}
       </main>

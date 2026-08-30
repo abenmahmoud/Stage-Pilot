@@ -47,7 +47,7 @@ function isValidDate(value: unknown): value is string {
   return typeof value === "string" && value.length <= 40 && Number.isFinite(Date.parse(value));
 }
 
-function isAllowedSignedUrl(value: unknown): value is string | null {
+export function isAllowedPublicContentSignedUrl(value: unknown): value is string | null {
   if (value === null) return true;
   if (!isBoundedString(value, 4_096)) return false;
   const env = import.meta.env as Record<string, string | undefined>;
@@ -93,7 +93,7 @@ function isPublicContentAsset(value: unknown): value is PublicContentAsset {
     && Number.isInteger(value.position)
     && Number(value.position) >= 0
     && Number(value.position) <= 1_000
-    && isAllowedSignedUrl(value.signedUrl);
+    && isAllowedPublicContentSignedUrl(value.signedUrl);
 }
 
 function isPublicContent(value: unknown): value is PublicContent {
