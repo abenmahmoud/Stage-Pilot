@@ -10,6 +10,7 @@ import {
   Bot,
   BriefcaseBusiness,
   CheckCircle2,
+  ChevronLeft,
   ChevronRight,
   CircleAlert,
   CircleUserRound,
@@ -98,6 +99,7 @@ import {
   assessSupportQueueItem,
   resolveSupportQueueNextAction,
 } from "../../../shared/support-queue-policy";
+import { resolveSupportQueueNavigation } from "../../../shared/support-queue-navigation";
 import {
   hasSupportAgentWorkDraft,
   readSupportAgentWorkDraft,
@@ -4093,6 +4095,8 @@ function ConnectedAgentView({ onBack }: { onBack: () => void }) {
     (attachment) => attachment.direction === "agent" && attachment.messageId === null
   ) ?? [];
   const nextQueueAction = resolveSupportQueueNextAction(stats);
+  const queueNavigation = resolveSupportQueueNavigation(requests, selectedCode);
+  const queueNavigationDisabled = saving || detailLoading || agentUploading || translating;
   const agentError = queueLoadError ?? detailLoadError ?? error;
   const needsAgentSecurity = Boolean(
     agentError && /double vérification|vérification renforcée/i.test(agentError)
@@ -4141,7 +4145,7 @@ function ConnectedAgentView({ onBack }: { onBack: () => void }) {
         <article className="lycee-agent-detail" aria-busy={detailLoading}>
           {detailLoading ? <div className="lycee-loading-state" role="status" aria-live="polite"><Clock3 aria-hidden="true" /> Chargement du dossier…</div> : selected && detail ? (
             <>
-              <div className="lycee-agent-detail-head"><div><span>{selected.publicCode}</span><h2>{selected.subject}</h2><p>{selected.requesterFirstName} {selected.requesterLastName} · {requesterProfileLabels[selected.requesterType] ?? selected.requesterType}</p></div><div className="lycee-agent-controls"><select aria-label="Priorité" value={selected.priority} disabled={saving} onChange={(event) => void updateRequest({ priority: event.target.value })}><option value="p1">Critique</option><option value="p2">Urgente</option><option value="p3">Normale</option><option value="p4">Faible</option></select><select aria-label="Statut" value={selected.status} disabled={saving || selected.status === "clos"} onChange={(event) => void updateRequest({ status: event.target.value })}><option value="nouveau">Nouvelle demande</option><option value="a_qualifier">À classer</option><option value="assigne">Assignée</option><option value="en_cours">En cours</option><option value="attente_demandeur">En attente de l’utilisateur</option><option value="attente_interne">Vérification interne</option><option value="resolu">Résolue</option>{selected.status === "clos" ? <option value="clos">Fermée</option> : null}</select></div></div>
+              <div className="lycee-agent-detail-head"><div><span>{selected.publicCode}</span><h2>{selected.subject}</h2><p>{selected.requesterFirstName} {selected.requesterLastName} · {requesterProfileLabels[selected.requesterType] ?? selected.requesterType}</p></div><div className="lycee-agent-detail-tools"><nav className="lycee-agent-record-navigation" aria-label="Parcourir la page de demandes"><button type="button" aria-label="Dossier précédent dans la page" title="Dossier précédent" disabled={queueNavigationDisabled || !queueNavigation.previousCode} onClick={() => queueNavigation.previousCode && setSelectedCode(queueNavigation.previousCode)}><ChevronLeft aria-hidden="true" /></button><span aria-live="polite">{queueNavigation.position} sur {queueNavigation.total}<small>dans cette page</small></span><button type="button" aria-label="Dossier suivant dans la page" title="Dossier suivant" disabled={queueNavigationDisabled || !queueNavigation.nextCode} onClick={() => queueNavigation.nextCode && setSelectedCode(queueNavigation.nextCode)}><ChevronRight aria-hidden="true" /></button></nav><div className="lycee-agent-controls"><select aria-label="Priorité" value={selected.priority} disabled={saving} onChange={(event) => void updateRequest({ priority: event.target.value })}><option value="p1">Critique</option><option value="p2">Urgente</option><option value="p3">Normale</option><option value="p4">Faible</option></select><select aria-label="Statut" value={selected.status} disabled={saving || selected.status === "clos"} onChange={(event) => void updateRequest({ status: event.target.value })}><option value="nouveau">Nouvelle demande</option><option value="a_qualifier">À classer</option><option value="assigne">Assignée</option><option value="en_cours">En cours</option><option value="attente_demandeur">En attente de l’utilisateur</option><option value="attente_interne">Vérification interne</option><option value="resolu">Résolue</option>{selected.status === "clos" ? <option value="clos">Fermée</option> : null}</select></div></div></div>
               <div className="lycee-agent-contact-row">{detail.contacts.map((contact) => <span className={contact.isVerified ? "is-verified" : ""} key={contact.id}>{contact.channel === "email" ? <Mail aria-hidden="true" /> : <Phone aria-hidden="true" />}{contact.value}{contact.isVerified ? " · vérifié" : ""}</span>)}<button type="button" disabled={saving || Boolean(selected.assignedTo)} onClick={() => void updateRequest({ assignToMe: true })}>{selected.assignedTo ? "Déjà attribuée" : "Prendre la demande"}</button></div>
               {phoneContact ? (
                 <section className="lycee-agent-callback" data-status={activeCallback?.status ?? lastFinishedCallback?.status ?? "idle"}>

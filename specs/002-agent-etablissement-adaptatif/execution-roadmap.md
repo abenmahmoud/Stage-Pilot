@@ -694,6 +694,13 @@ l'autorisation de quota définie par le propriétaire.
   attendue efface seulement le champ concerné ; un échec le conserve. Une recette
   Chrome sur deux dossiers fictifs confirme restauration exacte, badge dans la
   file et absence de débordement à 390 px.
+- Lot N5ZZG : parcours séquentiel de la file. **Implémenté sans nouvelle lecture
+  ni permission** : précédent et suivant se limitent aux dossiers de la page déjà
+  validée par le client après le contrôle serveur. La position indique clairement
+  cette limite et les commandes se désactivent aux bornes ou pendant une opération
+  mutable. Une recette Chrome sur trois dossiers fictifs restaure exactement le
+  brouillon après un aller-retour, passe Axe sans violation ni point incomplet et
+  ne déborde pas à 390 ou 1 440 px.
 
 ## Prochaine séquence verrouillée
 

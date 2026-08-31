@@ -728,6 +728,12 @@
   persistant du navigateur ou sur le réseau ; le champ correspondant disparaît
   seulement après confirmation et relecture serveur. Le badge `Brouillon`, la
   restauration entre deux dossiers fictifs et le rendu à 390 px sont vérifiés.
+- [x] T056E Ajouter dans le dossier agent une navigation précédent/suivant limitée
+  aux lignes de la page de file déjà validée et autorisée. La position reste
+  explicite, les commandes sont accessibles et bloquées pendant une écriture,
+  un chargement, un upload ou une traduction. Une recette sur trois dossiers
+  fictifs confirme le maintien du brouillon, zéro violation Axe et aucun
+  débordement à 390 ou 1 440 px, sans nouvelle API ni permission.
 - [ ] T057 Ajouter supervision, alertes, sauvegarde restaurable, file d'échec,
   journal d'accès et procédure d'incident.
 - [x] T057A Signaler dans la santé des demandes les retraits de brouillons agent

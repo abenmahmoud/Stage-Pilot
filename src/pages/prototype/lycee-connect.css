@@ -867,6 +867,13 @@
 .lycee-agent-detail-head h2 { margin: 4px 0; font-size: 19px; }
 .lycee-agent-detail-head p { margin: 0; color: var(--lc-muted); font-size: 10px; }
 .lycee-agent-detail-head select { height: 36px; padding: 0 9px; border: 1px solid #cbd5e1; border-radius: 7px; background: #fff; color: var(--lc-ink); font-size: 10px; font-weight: 750; }
+.lycee-agent-detail-tools { min-width: 0; display: grid; justify-items: end; gap: 8px; }
+.lycee-agent-record-navigation { display: grid; grid-template-columns: 40px minmax(74px,auto) 40px; align-items: center; gap: 5px; }
+.lycee-agent-record-navigation button { width: 40px; height: 40px; display: grid; place-items: center; border: 1px solid #cbd5e1; border-radius: 7px; background: #fff; color: var(--lc-blue); }
+.lycee-agent-record-navigation button:disabled { color: #94a3b8; background: #f8fafc; cursor: not-allowed; }
+.lycee-agent-record-navigation button svg { width: 16px; height: 16px; }
+.lycee-agent-record-navigation > span { display: grid; justify-items: center; color: var(--lc-ink); font-size: 10px; font-weight: 850; line-height: 1.15; }
+.lycee-agent-record-navigation small { color: var(--lc-muted); font-size: 8px; font-weight: 700; }
 .lycee-agent-controls { display: flex; align-items: flex-start; gap: 7px; }
 .lycee-agent-contact-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding: 12px 0; border-bottom: 1px solid var(--lc-line); }
 .lycee-agent-contact-row span { min-width: 0; display: inline-flex; align-items: center; gap: 5px; color: #53657a; font-size: 10px; overflow-wrap: anywhere; }
@@ -1145,6 +1152,8 @@
   .lycee-agent-list { max-height: 340px; }
   .lycee-agent-detail { margin-top: 10px; padding: 14px; }
   .lycee-agent-detail-head { flex-direction: column; }
+  .lycee-agent-detail-tools { width: 100%; justify-items: stretch; }
+  .lycee-agent-record-navigation { justify-content: start; }
   .lycee-agent-controls { width: 100%; }
   .lycee-agent-detail-head select { width: 100%; }
   .lycee-agent-contact-row { align-items: stretch; flex-direction: column; }

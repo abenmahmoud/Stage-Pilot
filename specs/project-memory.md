@@ -3746,3 +3746,18 @@ taches et analyse de coherence avant une automatisation sensible.
 - Une recette Chrome avec deux dossiers entièrement fictifs restaure exactement
   le premier texte après un aller-retour, affiche son badge dans la file et ne
   produit ni erreur navigateur ni débordement à 390 px. T056D est terminé.
+
+### Jalon du 31 août 2026 - parcours séquentiel des dossiers agents
+
+- L'agent peut ouvrir le dossier précédent ou suivant sans revenir chercher sa
+  ligne dans la file. La navigation reste strictement limitée à la page de trente
+  dossiers déjà reçue et validée ; elle ne devine aucun dossier d'une autre page
+  et ne déclenche aucune lecture supplémentaire.
+- La position `n sur total dans cette page` rend la borne visible. Les deux
+  commandes sont indisponibles pendant un chargement, une écriture, un upload ou
+  une traduction afin de ne pas masquer une opération en cours.
+- Les brouillons volatils restent liés à leur numéro : une recette avec trois
+  dossiers fictifs saisit un texte dans le deuxième, ouvre le troisième, revient
+  au deuxième et retrouve exactement le texte. Axe confirme zéro violation et
+  zéro point incomplet sur l'en-tête ; Chrome confirme zéro débordement à 390 et
+  1 440 px. T056E est terminé sans API, stockage ou permission supplémentaire.
