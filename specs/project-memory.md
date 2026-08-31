@@ -3693,6 +3693,24 @@ taches et analyse de coherence avant une automatisation sensible.
 - Le registre d'action conserve uniquement catégorie, service, type de demandeur,
   canal et indicateurs booléens. Il exclut identité, coordonnées, objet,
   description, conversation et pièces.
-- T028J est terminé. T028 reste ouverte pour une recette DB de preview avec une
-  compétence strictement fictive, l'activation bornée du drapeau et le nettoyage
-  contrôlé. Aucun audit externe n'a été exécuté pour ce lot.
+- T028J et T028 sont terminés après la recette runtime de T028K. Aucun audit
+  externe n'a été exécuté pour ce lot.
+
+### Jalon du 31 août 2026 - recette runtime de création par l'agent
+
+- La recette a d'abord validé les contraintes directement dans la branche
+  Supabase `guichet-lycee-preview`, avec transaction annulée et six compteurs à
+  zéro après contrôle indépendant.
+- Le vrai code TypeScript a ensuite été exécuté dans un déploiement Vercel isolé,
+  protégé par un secret de 128 caractères, limité à `VERCEL_ENV=preview` et avec
+  le drapeau activé uniquement pour cette exécution.
+- Une compétence et une source publiques fictives ont été sélectionnées. Le reçu
+  a été refusé sur un autre appareil, puis l'action A2 et le dossier ont atteint
+  `succeeded` avec trois événements d'audit et une preuve `confirmed_at`.
+- Le rejeu a retrouvé la même action. Le registre ne contenait que sept champs de
+  routage non personnels. La transaction action-dossier a été annulée et la
+  compétence supprimée.
+- Supabase a confirmé ensuite zéro compétence, source, action et dossier de la
+  recette. La route temporaire et six déploiements techniques sans alias ont
+  été retirés. Aucun drapeau distant, secret, donnée réelle ou changement de
+  production ne subsiste.

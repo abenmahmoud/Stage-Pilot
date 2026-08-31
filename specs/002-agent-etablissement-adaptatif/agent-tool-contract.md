@@ -83,9 +83,10 @@ booléens ; elle exclut noms, coordonnées, objet, description, conversation et
 pièces. Le passage de l'action à `running`, la création ou la reprise idempotente
 du dossier et la preuve `confirmed_at` sont écrits dans la même transaction.
 
-Cette implémentation ne vaut pas activation opérationnelle. T028 reste ouverte
-jusqu'à une recette DB de preview avec compétence fictive, activation bornée du
-drapeau, vérification des refus et nettoyage contrôlé.
+Cette implémentation ne vaut pas activation opérationnelle permanente. T028 est
+validée par une recette DB et runtime de preview avec compétence fictive,
+activation bornée du drapeau, refus sur autre appareil, rejeu idempotent et
+nettoyage contrôlé. Le drapeau distant reste absent après la recette.
 
 ## Preuve automatisée
 
@@ -102,6 +103,12 @@ preview a également exécuté puis annulé un flux A3 fictif complet.
 l'appareil et à la compétence publiée, la minimisation de l'entrée, la
 transaction action-dossier, l'idempotence et le refus d'un faux succès côté
 navigateur.
+
+`npm run test:preview-support-create-request-action-safety` verrouille la recette
+réelle à la branche Supabase attendue et à un runtime Vercel de preview
+explicitement autorisé. La recette du 31 août 2026 a exécuté le vrai adaptateur,
+puis confirmé `skills=0`, `sources=0`, `actions=0` et `requests=0` après retour
+arrière et nettoyage.
 
 `npm run test:agent-approval-inbox` vérifie le schéma fermé de décision, les
 rôles dérivés, le service immuable, le MFA, les verrous, l'expiration, la sortie

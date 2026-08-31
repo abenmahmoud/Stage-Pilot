@@ -403,11 +403,12 @@
 - [x] T027C2C Attribuer, après autorisation explicite, le rôle superadministrateur
   au compte nominatif du propriétaire dans la preview uniquement, conserver une
   adhésion `admin` active et actualiser la session avant de charger la console.
-- [ ] T028 N'afficher une réussite qu'après `confirmed_at` fourni par l'outil.
-  Le validateur de résultat refuse déjà les états non réussis, les actions ou
-  outils discordants, les confirmations absentes, antérieures ou futures. Le
-  schéma persistant exige désormais la preuve complète pour `succeeded` ; le
-  branchement à un adaptateur réel et à l'interface reste requis.
+- [x] T028 N'afficher une réussite qu'après `confirmed_at` fourni par l'outil.
+  Le validateur refuse les états non réussis, les actions ou outils discordants,
+  les confirmations absentes, antérieures ou futures. Le premier adaptateur
+  réel persiste action et dossier dans la même transaction ; l'interface exige
+  les deux preuves avant tout succès. La recette Vercel/Supabase fictive et
+  nettoyable de T028K confirme le branchement complet.
 - [x] T028A Exiger sur le formulaire public une confirmation de persistance datée
   par le serveur et liée au numéro relu après transaction. L'interface refuse une
   preuve absente ou discordante, ne fabrique plus de réussite en mode démo et
@@ -479,9 +480,15 @@
   `running`, puis le dossier et la preuve `confirmed_at` sont persistés dans la
   même transaction idempotente. L'entrée d'audit exclut noms, coordonnées,
   objet, description et conversation. Le navigateur exige le reçu lié au
-  numéro avant tout écran de succès. T028 reste ouverte jusqu'à la recette DB de
-  preview avec une compétence strictement fictive, l'activation bornée du
-  drapeau et le nettoyage contrôlé.
+  numéro avant tout écran de succès. La recette DB et runtime strictement
+  fictive de T028K a ensuite fermé T028, sans activation durable du drapeau.
+- [x] T028K Exécuter le vrai adaptateur dans un déploiement Vercel de preview
+  isolé avec secret éphémère et drapeau borné. Une compétence publique et un
+  dossier strictement fictifs ont produit une action `succeeded`, trois événements
+  d'audit, une preuve liée au numéro et un rejeu idempotent. L'entrée du registre
+  contient sept champs non personnels. La transaction a été annulée, les
+  fixtures supprimées, Supabase a confirmé six puis quatre compteurs à zéro, et
+  la route ainsi que le déploiement temporaires ont été retirés.
 - [x] T029 Ajouter formulaire classique et création de demande sans dépendance à l'IA.
 - [x] T030 Ajouter mesure du coût, de la latence, des transferts et des corrections.
 - [x] T030A Mesurer chaque passage de l'assistant public sans contenu personnel :

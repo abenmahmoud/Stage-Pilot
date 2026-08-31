@@ -2,10 +2,10 @@
 
 ## État
 
-Le code est déployable mais l'interrupteur
-`SUPPORT_AGENT_CREATE_REQUEST_ACTION_ENABLED` reste faux par défaut. Aucun
-connecteur externe, aucune donnée réelle et aucune variable Vercel ne sont
-modifiés par ce lot.
+Le code est déployable et la recette de preview est réussie. L'interrupteur
+`SUPPORT_AGENT_CREATE_REQUEST_ACTION_ENABLED` reste faux par défaut et aucune
+variable Vercel distante ne demeure active. Aucun connecteur externe ni aucune
+donnée réelle n'ont été utilisés.
 
 ## Contrat
 
@@ -21,23 +21,31 @@ Le registre d'action conserve uniquement la catégorie, le service, le type de
 demandeur, le canal et les indicateurs de rappel, email et téléphone. Noms,
 coordonnées, objet, description, conversation et pièces en sont exclus.
 
-## Recette DB de preview à exécuter ultérieurement
+## Recette exécutée le 31 août 2026
 
-- créer une compétence et une version strictement fictives dans l'établissement
-  de recette ;
-- publier la version avec la seule autorisation `support.create_request` ;
-- activer le drapeau uniquement sur la preview et pour la durée de la recette ;
-- créer un dossier fictif depuis l'assistant puis rejouer la même clé ;
-- vérifier un seul dossier, une seule action, le même reçu et un audit minimal ;
-- vérifier les refus : autre appareil, autre établissement, compétence inactive,
-  outil absent, reçu expiré, routage modifié et entrée discordante ;
-- remettre le drapeau à faux puis supprimer les données fictives selon la
-  procédure de nettoyage approuvée.
+- cible : branche Supabase `guichet-lycee-preview`, jamais la base principale ;
+- compétence et source publiques strictement fictives ;
+- déploiement Vercel isolé, sans alias, avec secret éphémère et drapeau injecté
+  uniquement dans ce runtime ;
+- résultat : `actionState=succeeded`, trois audits, reçu lié au numéro, sept
+  champs non personnels et rejeu idempotent ;
+- retour arrière : transaction action-dossier annulée, compétence et source
+  supprimées ;
+- contre-vérification Supabase : compétences, versions, sources, actions, audits
+  et dossiers à zéro ;
+- fin de recette : route locale supprimée et déploiement isolé retiré.
+
+La recette permanente se trouve dans
+`scripts/test-preview-support-create-request-action.mjs`. Son test de sécurité
+fait partie de la porte de preview. Une exécution distante future exige à nouveau
+une route temporaire protégée, un secret neuf et un déploiement sans alias ; ces
+éléments ne doivent jamais être conservés dans Git.
 
 ## Vérification locale
 
 ```powershell
 npm run test:support-create-request-action
+npm run test:preview-support-create-request-action-safety
 npm run test:agent-tool-policy
 npm run test:agent-action-persistence
 npm run test:preview-security-gate

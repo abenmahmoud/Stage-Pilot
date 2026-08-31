@@ -669,6 +669,14 @@ l'autorisation de quota définie par le propriétaire.
   `confirmed_at` liée au numéro. Le registre ne reçoit que des catégories et
   indicateurs minimaux. T028 reste ouverte pour la recette DB de preview avec
   compétence fictive, activation bornée du drapeau et nettoyage contrôlé.
+- Lot N5ZZD : recette complète du premier adaptateur. **Exécutée uniquement sur
+  un déploiement Vercel isolé relié à la branche Supabase de preview** : le vrai
+  code a sélectionné une compétence fictive publiée, lié son reçu à l'appareil,
+  créé l'action et le dossier, confirmé trois événements puis retrouvé la même
+  action au rejeu. La transaction a été annulée et les fixtures, la route et le
+  déploiement techniques ont été supprimés. Une requête indépendante confirme
+  zéro résidu. T028 est terminée ; l'activation durable reste une décision de
+  pilote distincte.
 
 ## Prochaine séquence verrouillée
 
