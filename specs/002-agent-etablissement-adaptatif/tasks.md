@@ -387,6 +387,10 @@
   même numéro de dossier, deux agrégats du même service ou une pagination
   incohérente avec le total et les lignes visibles. La navigation séquentielle
   ne peut ainsi jamais pointer vers une sélection ambiguë.
+- [x] T027B19 Borner et valider avant affichage les identifiants, noms, contexte,
+  catégorie, statut, priorité, dates, service et droits de chaque réponse de
+  file. Refuser aussi les compteurs non sûrs ou les agrégats qui dépassent leur
+  total ouvert, sans remplacer l'état déjà validé.
 - [ ] T027B2 Ajouter les relances internes et l'escalade après validation des
   délais propres à chaque service et des responsables à notifier.
 - [ ] T027C Créer les adhésions de service puis appliquer le périmètre dans les

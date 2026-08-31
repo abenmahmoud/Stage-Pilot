@@ -706,6 +706,14 @@ l'autorisation de quota définie par le propriétaire.
   agrégats répétés pour un service et toute relation impossible entre page,
   taille, total, nombre de pages et lignes reçues. Les cas valides, limites et
   contradictoires sont couverts par la porte de sécurité permanente.
+- Lot N5ZZI : contrat borné de la file. **Implémenté côté navigateur sans donnée
+  réelle ni permission supplémentaire** : chaque ligne doit respecter le format
+  du numéro public, les longueurs de création, les catégories, statuts,
+  priorités, services, UUID et dates connus. Le contexte est limité à vingt
+  entrées bornées. Les droits refusent rôles inconnus, services dupliqués ou hors
+  nomenclature ; les agrégats refusent les compteurs non sûrs et les sous-totaux
+  supérieurs au nombre ouvert. Une réponse invalide ne remplace jamais la file
+  déjà validée. T027B19 est terminée.
 
 ## Prochaine séquence verrouillée
 

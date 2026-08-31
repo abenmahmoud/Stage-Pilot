@@ -3774,3 +3774,18 @@ taches et analyse de coherence avant une automatisation sensible.
 - Les règles sont isolées dans un helper pur, testées avec des pages pleines,
   finales, vides, dupliquées et contradictoires, puis rejouées par la porte de
   sécurité. T027B18 est terminé sans nouvelle donnée, permission ou requête.
+
+### Jalon du 31 août 2026 - contrat borné de la file agent
+
+- Les lignes de la file ne sont plus acceptées sur leur seule forme générale.
+  Numéro public, profils, noms, contexte, catégorie, objet, statut, priorité,
+  affectation et dates suivent désormais les formats, nomenclatures et limites
+  déjà imposés lors de la création d'une demande.
+- Le contexte est limité à vingt clés et à 700 caractères par valeur afin qu'une
+  réponse anormale ne puisse pas saturer l'écran. Les services, rôles et listes
+  de périmètre sont fermés, bornés et sans doublon.
+- Les compteurs doivent être des entiers sûrs. Pour chaque service, urgence,
+  retard et absence d'agent ne peuvent pas dépasser le nombre de dossiers
+  ouverts. Neuf tests ciblés rejouent les cas valides et les refus. T027B19 est
+  terminé sans base distante, donnée réelle, permission ou changement de
+  production.

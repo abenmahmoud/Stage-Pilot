@@ -103,6 +103,9 @@ import {
   hasCoherentSupportQueuePagination,
   hasUniqueSupportQueueRows,
   hasUniqueSupportQueueServices,
+  isKnownSupportQueueService,
+  isValidSupportQueueAccess,
+  isValidSupportQueueCoreRow,
 } from "../../../shared/support-queue-payload-policy";
 import { resolveSupportQueueNavigation } from "../../../shared/support-queue-navigation";
 import {
@@ -2779,7 +2782,7 @@ function isStringOrNull(value: unknown): value is string | null {
 }
 
 function isNonNegativeInteger(value: unknown): value is number {
-  return typeof value === "number" && Number.isInteger(value) && value >= 0;
+  return typeof value === "number" && Number.isSafeInteger(value) && value >= 0;
 }
 
 function isPositiveInteger(value: unknown): value is number {
@@ -3100,27 +3103,7 @@ function isAssistantApiResult(value: unknown): value is AssistantApiResult {
 }
 
 function isAgentRequestCore(value: unknown): value is AgentRequestCore {
-  if (!isRecord(value) || !isRecord(value.subjectContext)) return false;
-  const stringFields = [
-    "publicCode",
-    "requesterType",
-    "requesterFirstName",
-    "requesterLastName",
-    "beneficiaryType",
-    "category",
-    "subject",
-    "status",
-    "priority",
-    "createdAt",
-    "updatedAt",
-  ];
-  return stringFields.every((field) => typeof value[field] === "string")
-    && isStringOrNull(value.beneficiaryFirstName)
-    && isStringOrNull(value.beneficiaryLastName)
-    && isStringOrNull(value.assignedTo)
-    && isStringOrNull(value.assignedTeam)
-    && isStringOrNull(value.slaDueAt)
-    && Object.values(value.subjectContext).every((item) => typeof item === "string");
+  return isValidSupportQueueCoreRow(value);
 }
 
 function isAgentQueueRequest(value: unknown): value is AgentQueueRequest {
@@ -3138,8 +3121,11 @@ function isAgentQueueStats(value: unknown): value is AgentQueueStats {
 
 function isAgentServiceStats(value: unknown): value is AgentServiceStats {
   return isRecord(value)
-    && isStringOrNull(value.service)
-    && ["open", "urgent", "overdue", "unassigned"].every((field) => isNonNegativeInteger(value[field]));
+    && isKnownSupportQueueService(value.service)
+    && ["open", "urgent", "overdue", "unassigned"].every((field) => isNonNegativeInteger(value[field]))
+    && Number(value.urgent) <= Number(value.open)
+    && Number(value.overdue) <= Number(value.open)
+    && Number(value.unassigned) <= Number(value.open);
 }
 
 function isAgentQueuePagination(value: unknown): value is AgentQueuePagination {
@@ -3151,14 +3137,7 @@ function isAgentQueuePagination(value: unknown): value is AgentQueuePagination {
 }
 
 function isAgentAccess(value: unknown): value is AgentAccess {
-  return isRecord(value)
-    && typeof value.role === "string"
-    && typeof value.label === "string"
-    && Array.isArray(value.serviceCodes)
-    && value.serviceCodes.every((service) => typeof service === "string")
-    && typeof value.canViewAll === "boolean"
-    && typeof value.canRoute === "boolean"
-    && typeof value.canManageTemplates === "boolean";
+  return isValidSupportQueueAccess(value);
 }
 
 function isAgentRequest(value: unknown): value is AgentRequest {
