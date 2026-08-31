@@ -23,9 +23,16 @@
   pièce, sa direction, son état et l'empreinte des métadonnées.
 - Aucun nom de fichier, chemin, jeton ou contenu n'entre dans cet événement ;
   l'identifiant opaque de session reste la preuve d'accès nécessaire à l'audit.
-- La reprise navigateur couvre la page encore ouverte. La reprise après
-  fermeture complète du navigateur reste un lot séparé à concevoir avec une
-  conservation locale bornée et sans donnée personnelle.
+- La reprise couvre aussi une fermeture complète du navigateur. La personne
+  sélectionne à nouveau le même fichier ; l'empreinte locale retrouve la clé et
+  l'identifiant de réservation sans conserver le fichier.
+- IndexedDB garde au plus vingt opérations pendant sept jours. Chaque entrée
+  contient le numéro public, une empreinte SHA-256, une clé UUID et
+  éventuellement l'identifiant opaque de la pièce. Aucun nom, contenu, chemin,
+  jeton ou URL n'est persisté.
+- Une confirmation, un retrait du brouillon ou l'action « Oublier les demandes »
+  supprime l'entrée locale. Les entrées expirées, invalides ou excédentaires sont
+  purgées à la lecture.
 - Ce lot n'ajoute aucune migration et n'utilise aucun fichier ou compte réel.
 
 ## Vérification

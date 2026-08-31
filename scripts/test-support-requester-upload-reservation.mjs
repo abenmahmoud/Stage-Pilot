@@ -67,18 +67,21 @@ test("confirms one requester upload once under concurrency", () => {
   assert.match(confirmationRoute, /return \{ scanStatus: current\.scanStatus, duplicate: true \}/);
 });
 
-test("keeps per-file keys and reuses successful work in a partial batch", () => {
+test("keeps hashed per-file keys and resumes work after a browser restart", () => {
   const upload = page.slice(
     page.indexOf("type RequesterUploadSubmission"),
     page.indexOf("const navigation")
   );
   assert.match(upload, /const requesterUploadSubmissions = new Map/);
-  assert.match(upload, /submission\.attempted = true[\s\S]*"Idempotency-Key": submission\.idempotencyKey/);
+  assert.match(upload, /crypto\.subtle\.digest\("SHA-256"/);
+  assert.match(upload, /readPendingRequesterUpload\(publicCode, fingerprint\)/);
+  assert.match(upload, /persisted\?\.idempotencyKey \?\? crypto\.randomUUID\(\)/);
+  assert.match(upload, /submission\.attempted = true[\s\S]*rememberRequesterUploadSubmission\(submission\)[\s\S]*"Idempotency-Key": submission\.idempotencyKey/);
   assert.match(upload, /isRequesterSupportUploadReservationPayload/);
   assert.match(upload, /uploadToSignedUrl[\s\S]*upsert: true/);
   assert.match(upload, /entry\.submission\.completed && entry\.submission\.attachmentId/);
-  assert.match(upload, /results\.every\(\(result\) => result\.status === "fulfilled"\)/);
-  assert.match(upload, /requesterUploadSubmissions\.delete\(entry\.fingerprint\)/);
+  assert.match(upload, /completeRequesterUploadSubmission\(submission\)/);
+  assert.match(upload, /clearPendingRequesterUpload\(submission\.fingerprintDigest\)/);
 });
 
 test("allows only a known interrupted upload to bypass a full client counter", () => {
@@ -86,7 +89,7 @@ test("allows only a known interrupted upload to bypass a full client counter", (
     page.indexOf("function selectFollowupFiles"),
     page.indexOf("async function sendReply")
   );
-  assert.match(selection, /requesterUploadEntries\(selectedCode, combined\)/);
+  assert.match(selection, /await requesterUploadEntries\(code, combined\)/);
   assert.match(selection, /entry\.submission\.attempted \|\| entry\.submission\.attachmentId/);
   assert.match(selection, /availableNewSlots < 1/);
   assert.match(selection, /requesterUploadSubmissions\.delete\(entry\.fingerprint\)/);
@@ -100,6 +103,7 @@ test("allows only a known interrupted upload to bypass a full client counter", (
   assert.ok(uploadFirst >= 0 && uploadFirst < message);
   assert.match(send, /!reply\.trim\(\) && followupFiles\.length === 0/);
   assert.match(send, /if \(!messageText\) return/);
+  assert.match(page, /attachment\.scanStatus === "awaiting_upload" && attachment\.canRemoveDraft/);
 });
 
 test("keeps the public and agent reservation validators separate", () => {

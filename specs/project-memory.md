@@ -3559,3 +3559,19 @@ taches et analyse de coherence avant une automatisation sensible.
 - Les événements ne contiennent ni nom, ni chemin, ni URL, ni jeton, ni contenu.
   T037AD est terminé sans migration, fichier réel ou production. Le brief Claude
   est seulement préparé ; aucun modèle externe n'a été lancé.
+
+### Jalon du 31 août 2026 - reprise de pièce après redémarrage
+
+- Une tentative de pièce demandeur interrompue survit désormais à une fermeture
+  complète du navigateur. La personne sélectionne à nouveau le même fichier et
+  l'empreinte SHA-256 locale retrouve la clé UUID et la réservation existante.
+- IndexedDB conserve au plus vingt opérations pendant sept jours. Une entrée
+  contient seulement l'empreinte, le numéro public, la clé UUID et éventuellement
+  l'identifiant opaque de la pièce ; aucun fichier, nom, contenu, chemin, jeton
+  ou URL n'est persisté.
+- Une confirmation de dépôt, un retrait confirmé et « Oublier les demandes »
+  nettoient l'état local. Les entrées invalides, expirées ou excédentaires sont
+  purgées automatiquement.
+- T037AE est terminé sans migration, fichier réel, donnée réelle ni production.
+  Un brief Claude borné est préparé mais non exécuté ; aucun jeton externe n'a
+  été consommé.

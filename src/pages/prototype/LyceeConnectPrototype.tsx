@@ -57,11 +57,16 @@ import { supabase } from "../../lib/supabase-browser";
 import { apiFetch } from "../../lib/api";
 import { PublicContentMarkdown } from "../../components/PublicContentMarkdown";
 import {
+  clearPendingRequesterUpload,
+  clearPendingRequesterUploadByAttachmentId,
+  clearPendingRequesterUploads,
   clearSupportDeviceDraft,
   clearRememberedSupportRequests,
   listRememberedSupportRequests,
+  readPendingRequesterUpload,
   readSupportDeviceDraft,
   rememberSupportRequests,
+  savePendingRequesterUpload,
   saveSupportDeviceDraft,
   type SupportDraftFormValues,
 } from "../../lib/support-device-memory";
@@ -254,6 +259,8 @@ async function readApiResponse<T>(responseInput: Response | Promise<Response>): 
 }
 
 type RequesterUploadSubmission = {
+  publicCode: string;
+  fingerprintDigest: string;
   idempotencyKey: string;
   attachmentId: string | null;
   attempted: boolean;
@@ -268,11 +275,27 @@ type RequesterUploadEntry = {
 
 const requesterUploadSubmissions = new Map<string, RequesterUploadSubmission>();
 
-function requesterUploadEntries(publicCode: string, files: File[]): RequesterUploadEntry[] {
+async function requesterUploadFingerprint(
+  publicCode: string,
+  file: File,
+  occurrence: number
+): Promise<string> {
+  const metadata = JSON.stringify([
+    publicCode,
+    file.name.normalize("NFC"),
+    file.type,
+    file.size,
+    file.lastModified,
+    occurrence,
+  ]);
+  const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(metadata));
+  return Array.from(new Uint8Array(digest), (byte) => byte.toString(16).padStart(2, "0")).join("");
+}
+
+async function requesterUploadEntries(publicCode: string, files: File[]): Promise<RequesterUploadEntry[]> {
   const occurrences = new Map<string, number>();
-  return files.map((file) => {
+  return Promise.all(files.map(async (file) => {
     const baseFingerprint = [
-      publicCode,
       file.name.normalize("NFC"),
       file.type,
       String(file.size),
@@ -280,26 +303,43 @@ function requesterUploadEntries(publicCode: string, files: File[]): RequesterUpl
     ].join(":");
     const occurrence = occurrences.get(baseFingerprint) ?? 0;
     occurrences.set(baseFingerprint, occurrence + 1);
-    const fingerprint = `${baseFingerprint}:${occurrence}`;
+    const fingerprint = await requesterUploadFingerprint(publicCode, file, occurrence);
     let submission = requesterUploadSubmissions.get(fingerprint);
     if (!submission) {
+      const persisted = await readPendingRequesterUpload(publicCode, fingerprint);
       submission = {
-        idempotencyKey: crypto.randomUUID(),
-        attachmentId: null,
-        attempted: false,
+        publicCode,
+        fingerprintDigest: fingerprint,
+        idempotencyKey: persisted?.idempotencyKey ?? crypto.randomUUID(),
+        attachmentId: persisted?.attachmentId ?? null,
+        attempted: persisted !== null,
         completed: false,
       };
       requesterUploadSubmissions.set(fingerprint, submission);
     }
     return { file, fingerprint, submission };
-  });
+  }));
 }
 
 function hasPendingRequesterUpload(publicCode: string): boolean {
-  const prefix = `${publicCode}:`;
-  return [...requesterUploadSubmissions.entries()].some(([fingerprint, submission]) => (
-    fingerprint.startsWith(prefix) && submission.attempted && !submission.completed
+  return [...requesterUploadSubmissions.values()].some((submission) => (
+    submission.publicCode === publicCode && submission.attempted && !submission.completed
   ));
+}
+
+async function rememberRequesterUploadSubmission(submission: RequesterUploadSubmission): Promise<void> {
+  await savePendingRequesterUpload({
+    publicCode: submission.publicCode,
+    fingerprintDigest: submission.fingerprintDigest,
+    idempotencyKey: submission.idempotencyKey,
+    attachmentId: submission.attachmentId,
+  });
+}
+
+async function completeRequesterUploadSubmission(submission: RequesterUploadSubmission): Promise<void> {
+  submission.completed = true;
+  requesterUploadSubmissions.delete(submission.fingerprintDigest);
+  await clearPendingRequesterUpload(submission.fingerprintDigest);
 }
 
 async function uploadSupportFile(
@@ -308,6 +348,7 @@ async function uploadSupportFile(
   submission: RequesterUploadSubmission
 ): Promise<string> {
   submission.attempted = true;
+  await rememberRequesterUploadSubmission(submission);
   const reservation = await readApiResponse<unknown>(
     await fetch(`/api/support/requests/${publicCode}/attachments`, {
       method: "POST",
@@ -329,11 +370,12 @@ async function uploadSupportFile(
     throw new Error("La réservation du fichier reçue est invalide.");
   }
   submission.attachmentId = reservation.attachment.id;
+  await rememberRequesterUploadSubmission(submission);
   if (reservation.upload === null) {
     if (!["quarantine", "clean"].includes(reservation.attachment.scanStatus)) {
       throw new Error(`Le document ${file.name} a été refusé.`);
     }
-    submission.completed = true;
+    await completeRequesterUploadSubmission(submission);
     return reservation.attachment.id;
   }
 
@@ -356,20 +398,17 @@ async function uploadSupportFile(
   if (!isSupportAttachmentConfirmationPayload(confirmation, reservation.attachment.id)) {
     throw new Error("La confirmation du fichier reçue est invalide.");
   }
-  submission.completed = true;
+  await completeRequesterUploadSubmission(submission);
   return reservation.attachment.id;
 }
 
 async function uploadRequesterFiles(publicCode: string, files: File[]): Promise<PromiseSettledResult<string>[]> {
-  const entries = requesterUploadEntries(publicCode, files);
+  const entries = await requesterUploadEntries(publicCode, files);
   const results = await Promise.allSettled(entries.map((entry) => (
     entry.submission.completed && entry.submission.attachmentId
       ? Promise.resolve(entry.submission.attachmentId)
       : uploadSupportFile(publicCode, entry.file, entry.submission)
   )));
-  if (results.every((result) => result.status === "fulfilled")) {
-    for (const entry of entries) requesterUploadSubmissions.delete(entry.fingerprint);
-  }
   return results;
 }
 
@@ -1986,21 +2025,23 @@ function ConnectedRequestsView({ ticketCode, onBack }: { ticketCode: string | nu
     setError(null);
   }
 
-  function selectFollowupFiles(event: React.ChangeEvent<HTMLInputElement>) {
+  async function selectFollowupFiles(event: React.ChangeEvent<HTMLInputElement>) {
     const selected = Array.from(event.target.files ?? []);
+    event.target.value = "";
     const invalid = selected.find(
       (file) => !SUPPORT_FILE_TYPES.includes(file.type) || file.size > MAX_SUPPORT_FILE_BYTES
     );
     if (invalid) {
       setError("Formats acceptés : PDF, image, texte, Word ou Excel, jusqu’à 10 Mo.");
-      event.target.value = "";
       return;
     }
     const requesterAttachmentCount = detail?.attachments.filter(
       (attachment) => attachment.direction === "requester"
     ).length ?? 0;
     const combined = [...followupFiles, ...selected];
-    const entries = selectedCode ? requesterUploadEntries(selectedCode, combined) : [];
+    const code = selectedCode;
+    const entries = code ? await requesterUploadEntries(code, combined) : [];
+    if (selectedCodeRef.current !== code) return;
     let availableNewSlots = Math.max(0, MAX_SUPPORT_FILES - requesterAttachmentCount);
     const acceptedEntries = entries.filter((entry) => {
       if (entry.submission.attempted || entry.submission.attachmentId) return true;
@@ -2020,7 +2061,6 @@ function ConnectedRequestsView({ ticketCode, onBack }: { ticketCode: string | nu
     } else {
       setError(null);
     }
-    event.target.value = "";
   }
 
   async function sendReply(event: React.FormEvent<HTMLFormElement>) {
@@ -2169,6 +2209,7 @@ function ConnectedRequestsView({ ticketCode, onBack }: { ticketCode: string | nu
       for (const [fingerprint, submission] of requesterUploadSubmissions) {
         if (submission.attachmentId === id) requesterUploadSubmissions.delete(fingerprint);
       }
+      await clearPendingRequesterUploadByAttachmentId(id);
       if (detailLoadIdRef.current === refreshLoadId) setDetail(refreshedDetail);
       setError(null);
     } catch (removeError) {
@@ -2193,9 +2234,11 @@ function ConnectedRequestsView({ ticketCode, onBack }: { ticketCode: string | nu
         throw new Error("La confirmation de fermeture reçue est invalide.");
       }
       await Promise.all([
+        clearPendingRequesterUploads(),
         clearSupportDeviceDraft(),
         clearRememberedSupportRequests(),
       ]);
+      requesterUploadSubmissions.clear();
       forgetSupportAssistantDevice();
       setRequests([]);
       setSelectedCode(null);
@@ -2277,9 +2320,9 @@ function ConnectedRequestsView({ ticketCode, onBack }: { ticketCode: string | nu
               ) : null}
               <form className="lycee-followup-form" onSubmit={sendReply}>
                 <label><span>Ajouter un message</span><textarea id="lycee-followup-message" name="followupMessage" rows={3} value={reply} onChange={(event) => setReply(event.target.value)} placeholder="Précisez votre demande ou répondez à l’agent." maxLength={5000} /></label>
-                <input id="lycee-followup-files" name="followupFiles" aria-label="Documents à ajouter au suivi" ref={followupFileInputRef} className="lycee-file-input" type="file" multiple accept={SUPPORT_FILE_TYPES.join(",")} onChange={selectFollowupFiles} />
+                <input id="lycee-followup-files" name="followupFiles" aria-label="Documents à ajouter au suivi" ref={followupFileInputRef} className="lycee-file-input" type="file" multiple accept={SUPPORT_FILE_TYPES.join(",")} onChange={(event) => void selectFollowupFiles(event)} />
                 {followupFiles.length > 0 ? <div className="lycee-selected-files lycee-followup-files">{followupFiles.map((file, index) => <div key={`${file.name}-${file.lastModified}`}><FileText aria-hidden="true" /><span><strong>{file.name}</strong><small>{(file.size / 1024 / 1024).toFixed(1)} Mo</small></span><button type="button" onClick={() => setFollowupFiles((current) => current.filter((_, fileIndex) => fileIndex !== index))}>Retirer</button></div>)}</div> : null}
-                <div className="lycee-followup-actions"><button className="lycee-secondary-action" type="button" disabled={(detail.attachments.filter((attachment) => attachment.direction === "requester").length + followupFiles.length) >= MAX_SUPPORT_FILES && !(selectedCode && hasPendingRequesterUpload(selectedCode))} onClick={() => followupFileInputRef.current?.click()}><Paperclip aria-hidden="true" /> Joindre</button><button className="lycee-primary-action" type="submit" disabled={replying || (!reply.trim() && followupFiles.length === 0)}>{replying ? "Envoi…" : "Envoyer"}<Send aria-hidden="true" /></button></div>
+                <div className="lycee-followup-actions"><button className="lycee-secondary-action" type="button" disabled={(detail.attachments.filter((attachment) => attachment.direction === "requester").length + followupFiles.length) >= MAX_SUPPORT_FILES && !(selectedCode && hasPendingRequesterUpload(selectedCode)) && !detail.attachments.some((attachment) => attachment.direction === "requester" && attachment.scanStatus === "awaiting_upload" && attachment.canRemoveDraft)} onClick={() => followupFileInputRef.current?.click()}><Paperclip aria-hidden="true" /> Joindre</button><button className="lycee-primary-action" type="submit" disabled={replying || (!reply.trim() && followupFiles.length === 0)}>{replying ? "Envoi…" : "Envoyer"}<Send aria-hidden="true" /></button></div>
               </form>
             </article>
           ) : null}

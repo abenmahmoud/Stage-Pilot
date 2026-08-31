@@ -79,7 +79,11 @@ En cas de doute réseau, il renvoie la même clé et récupère le même dossier
 
 ### Même appareil
 
-- IndexedDB garde le brouillon et la liste des numéros publics.
+- IndexedDB garde le brouillon, la liste des numéros publics et, pendant sept
+  jours au maximum, vingt opérations de pièce jointe interrompues. Une opération
+  contient uniquement une empreinte SHA-256 de métadonnées, sa clé UUID et les
+  identifiants opaques du dossier et de la pièce ; aucun fichier, nom, jeton,
+  chemin ou contenu n'est conservé.
 - Un cookie sécurisé permet de rouvrir les dossiers autorisés.
 - Le service worker met en cache uniquement l'interface publique, jamais les
   réponses privées ni les pièces jointes.

@@ -120,6 +120,11 @@ et ne clôture pas un dossier sans validation humaine.
 - La session réelle est portée par un cookie `HttpOnly`, `Secure`, `SameSite=Lax`.
 - Un brouillon non envoyé est conservé localement et peut être renvoyé après une
   coupure de réseau avec la même clé d'idempotence.
+- Une pièce jointe interrompue peut être reprise après la fermeture complète du
+  navigateur en sélectionnant de nouveau le même fichier. L'appareil conserve
+  au plus sept jours et vingt opérations : numéro public, clé UUID, identifiant
+  opaque de pièce et empreinte SHA-256 des métadonnées. Il ne conserve ni le
+  fichier, ni son nom, ni son contenu, ni un jeton ou une URL de dépôt.
 - Les données sensibles et les jetons bruts ne sont jamais écrits dans
   `localStorage`.
 
@@ -306,6 +311,7 @@ L'IA peut suggérer la priorité. Seul un agent peut confirmer P1 ou clôturer.
 ## 10. Durées proposées à valider par la direction et le DPO
 
 - Brouillons locaux : 30 jours.
+- Tentatives locales de pièces jointes interrompues : 7 jours, 20 au maximum.
 - Sessions d'appareil public : 30 jours, renouvelables.
 - Jetons à usage unique : 30 minutes.
 - Dossiers actifs : pendant le traitement.

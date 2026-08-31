@@ -305,6 +305,13 @@ voir sa réponse dans le dossier. L'agent traite tout depuis une seule file.
   rejouée retrouve la preuve de retrait sans seconde mutation. Le navigateur
   valide le reçu puis relit l'absence exacte avant de libérer l'emplacement.
   Aucun nom, chemin, URL, jeton ou contenu n'entre dans les événements.
+- [x] **T037AE** Reprendre une réservation demandeur après fermeture complète du
+  navigateur. IndexedDB conserve au plus sept jours et vingt opérations sous la
+  forme d'une empreinte SHA-256 des métadonnées, d'une clé UUID et des
+  identifiants opaques du dossier et de la pièce. Le fichier doit être
+  sélectionné à nouveau ; son nom, son contenu, le chemin, le jeton et l'URL ne
+  sont jamais persistés. Un succès, un retrait confirmé ou « Oublier les
+  demandes » efface l'opération locale.
 - [x] **T037F** Exclure les contacts desactives des reponses, reserver les
   journaux globaux a un administrateur MFA et exiger `aal2` pour confirmer une
   identite scolaire depuis une source officielle.
