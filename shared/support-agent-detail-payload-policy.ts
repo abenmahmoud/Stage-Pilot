@@ -41,10 +41,12 @@ const ATTACHMENT_SCAN_STATUSES = [
 const DUPLICATE_REVIEW_STATUSES = ["pending", "confirmed", "dismissed"] as const;
 const ROUTING_REVIEW_STATUSES = ["pending", "confirmed", "corrected"] as const;
 
-const MAX_CONTACTS = 10;
-const MAX_MESSAGES = 500;
-const MAX_ATTACHMENTS = 10;
-const MAX_CALLBACKS = 100;
+export const SUPPORT_AGENT_DETAIL_LIMITS = Object.freeze({
+  contacts: 10,
+  messages: 500,
+  attachments: 10,
+  callbacks: 100,
+});
 const MAX_FILE_BYTES = 10 * 1024 * 1024;
 
 const REQUEST_FIELDS = new Set([
@@ -273,16 +275,16 @@ export function isValidSupportAgentDetailPayload(value: unknown): boolean {
     || !hasOnlyKeys(value, DETAIL_FIELDS)
     || !isValidSupportAgentRequest(value.request)
     || !Array.isArray(value.contacts)
-    || value.contacts.length > MAX_CONTACTS
+    || value.contacts.length > SUPPORT_AGENT_DETAIL_LIMITS.contacts
     || !value.contacts.every(isValidSupportAgentContact)
     || !Array.isArray(value.messages)
-    || value.messages.length > MAX_MESSAGES
+    || value.messages.length > SUPPORT_AGENT_DETAIL_LIMITS.messages
     || !value.messages.every(isValidSupportAgentMessage)
     || !Array.isArray(value.attachments)
-    || value.attachments.length > MAX_ATTACHMENTS
+    || value.attachments.length > SUPPORT_AGENT_DETAIL_LIMITS.attachments
     || !value.attachments.every(isValidSupportAgentAttachment)
     || !Array.isArray(value.callbacks)
-    || value.callbacks.length > MAX_CALLBACKS
+    || value.callbacks.length > SUPPORT_AGENT_DETAIL_LIMITS.callbacks
     || !value.callbacks.every(isValidSupportAgentCallback)
     || !isValidSupportAgentDuplicateReview(value.duplicateReview)
     || !isValidSupportAgentRoutingReview(value.routingReview)

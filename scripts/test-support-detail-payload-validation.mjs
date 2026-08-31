@@ -2,7 +2,10 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import test from "node:test";
 
-import { isValidSupportAgentDetailPayload } from "../shared/support-agent-detail-payload-policy.ts";
+import {
+  isValidSupportAgentDetailPayload,
+  SUPPORT_AGENT_DETAIL_LIMITS,
+} from "../shared/support-agent-detail-payload-policy.ts";
 
 const page = readFileSync(
   new URL("../src/pages/prototype/LyceeConnectPrototype.tsx", import.meta.url),
@@ -15,6 +18,10 @@ const route = readFileSync(
 
 const phoneContactId = "123e4567-e89b-12d3-a456-426614174001";
 const messageId = "123e4567-e89b-12d3-a456-426614174002";
+
+function fixtureUuid(index) {
+  return `00000000-0000-4000-8000-${String(index).padStart(12, "0")}`;
+}
 
 const validDetail = {
   request: {
@@ -193,6 +200,67 @@ test("minimizes request and message rows before returning the detail", () => {
   ]) {
     assert.equal(getSection.includes(forbidden), false, `${forbidden} must stay server-side`);
   }
+});
+
+test("bounds server reads and refuses partial agent history", () => {
+  const getSection = route.slice(route.indexOf("const [contacts, messages"));
+  assert.deepEqual(SUPPORT_AGENT_DETAIL_LIMITS, {
+    contacts: 10,
+    messages: 500,
+    attachments: 10,
+    callbacks: 100,
+  });
+  for (const collection of ["contacts", "messages", "attachments", "callbacks"]) {
+    assert.match(
+      getSection,
+      new RegExp(`\\.limit\\(SUPPORT_AGENT_DETAIL_LIMITS\\.${collection} \\+ 1\\)`)
+    );
+    assert.match(
+      getSection,
+      new RegExp(`assertCompleteSupportDetailCollection\\([\\s\\S]*?SUPPORT_AGENT_DETAIL_LIMITS\\.${collection}`)
+    );
+  }
+  assert.match(route, /Aucun historique partiel n’a été affiché/);
+  assert.ok(
+    getSection.indexOf("assertCompleteSupportDetailCollection(")
+      < getSection.indexOf("const duplicateReview =")
+  );
+});
+
+test("rejects every collection just above its shared limit", () => {
+  const contacts = Array.from(
+    { length: SUPPORT_AGENT_DETAIL_LIMITS.contacts + 1 },
+    (_, index) => ({
+      ...validDetail.contacts[0],
+      id: fixtureUuid(100 + index),
+    })
+  );
+  const messages = Array.from(
+    { length: SUPPORT_AGENT_DETAIL_LIMITS.messages + 1 },
+    (_, index) => ({
+      ...validDetail.messages[0],
+      id: fixtureUuid(1_000 + index),
+    })
+  );
+  const attachments = Array.from(
+    { length: SUPPORT_AGENT_DETAIL_LIMITS.attachments + 1 },
+    (_, index) => ({
+      ...validDetail.attachments[0],
+      id: fixtureUuid(2_000 + index),
+    })
+  );
+  const callbacks = Array.from(
+    { length: SUPPORT_AGENT_DETAIL_LIMITS.callbacks + 1 },
+    (_, index) => ({
+      ...validDetail.callbacks[0],
+      id: fixtureUuid(3_000 + index),
+    })
+  );
+
+  assert.equal(isValidSupportAgentDetailPayload({ ...validDetail, contacts }), false);
+  assert.equal(isValidSupportAgentDetailPayload({ ...validDetail, messages }), false);
+  assert.equal(isValidSupportAgentDetailPayload({ ...validDetail, attachments }), false);
+  assert.equal(isValidSupportAgentDetailPayload({ ...validDetail, callbacks }), false);
 });
 
 test("validates every detail refresh before replacing state", () => {

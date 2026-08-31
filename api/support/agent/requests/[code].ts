@@ -30,6 +30,7 @@ import {
 } from "../../../../shared/support-duplicate-policy.js";
 import { supportAssistantRoutingReviewEnabled } from "../../../../shared/support-assistant-routing-receipt.js";
 import { createSupportRequestMutationConfirmation } from "../../../../shared/support-request-mutation-confirmation.js";
+import { SUPPORT_AGENT_DETAIL_LIMITS } from "../../../../shared/support-agent-detail-payload-policy.js";
 
 const STATUSES = new Set([
   "nouveau",
@@ -62,6 +63,19 @@ function publicCode(req: VercelRequest): string {
     throw new HttpError(400, "Numéro de demande invalide");
   }
   return code;
+}
+
+function assertCompleteSupportDetailCollection(
+  rowCount: number,
+  limit: number,
+  label: string
+): void {
+  if (rowCount > limit) {
+    throw new HttpError(
+      409,
+      `Le dossier contient trop de ${label} pour un chargement complet. Aucun historique partiel n’a été affiché.`
+    );
+  }
 }
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
@@ -442,7 +456,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           isVerified: supportContacts.isVerified,
         })
         .from(supportContacts)
-        .where(and(eq(supportContacts.requestId, request.id), eq(supportContacts.usageScope, "support"))),
+        .where(and(eq(supportContacts.requestId, request.id), eq(supportContacts.usageScope, "support")))
+        .limit(SUPPORT_AGENT_DETAIL_LIMITS.contacts + 1),
       db
         .select({
           id: supportMessages.id,
@@ -455,7 +470,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         })
         .from(supportMessages)
         .where(eq(supportMessages.requestId, request.id))
-        .orderBy(asc(supportMessages.createdAt)),
+        .orderBy(asc(supportMessages.createdAt))
+        .limit(SUPPORT_AGENT_DETAIL_LIMITS.messages + 1),
       db
         .select({
           id: supportAttachments.id,
@@ -469,7 +485,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           createdAt: supportAttachments.createdAt,
         })
         .from(supportAttachments)
-        .where(eq(supportAttachments.requestId, request.id)),
+        .where(eq(supportAttachments.requestId, request.id))
+        .limit(SUPPORT_AGENT_DETAIL_LIMITS.attachments + 1),
       db
         .select({
           id: supportCallbackTasks.id,
@@ -483,7 +500,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         })
         .from(supportCallbackTasks)
         .where(eq(supportCallbackTasks.requestId, request.id))
-        .orderBy(asc(supportCallbackTasks.createdAt)),
+        .orderBy(asc(supportCallbackTasks.createdAt))
+        .limit(SUPPORT_AGENT_DETAIL_LIMITS.callbacks + 1),
       db
         .select({
           eventType: supportEvents.eventType,
@@ -515,6 +533,27 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             .limit(1)
         : Promise.resolve([]),
     ]);
+
+    assertCompleteSupportDetailCollection(
+      contacts.length,
+      SUPPORT_AGENT_DETAIL_LIMITS.contacts,
+      "contacts"
+    );
+    assertCompleteSupportDetailCollection(
+      messages.length,
+      SUPPORT_AGENT_DETAIL_LIMITS.messages,
+      "messages"
+    );
+    assertCompleteSupportDetailCollection(
+      attachments.length,
+      SUPPORT_AGENT_DETAIL_LIMITS.attachments,
+      "pièces jointes"
+    );
+    assertCompleteSupportDetailCollection(
+      callbacks.length,
+      SUPPORT_AGENT_DETAIL_LIMITS.callbacks,
+      "rappels"
+    );
 
     const duplicateReview = deriveSupportDuplicateReview(duplicateEvents);
     const [duplicateCandidate] = duplicateReview

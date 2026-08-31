@@ -395,6 +395,10 @@
   refuser avant affichage les champs internes, collections excessives, doublons,
   références orphelines ou états incohérents d'identité, message, pièce, rappel
   et revue. Conserver les valeurs nulles légitimes du contexte borné.
+- [x] T027B21 Borner les lectures serveur du détail au plafond partagé augmenté
+  d'une ligne de détection, puis refuser explicitement tout dépassement avant de
+  construire la réponse afin de ne jamais charger ni afficher un historique
+  silencieusement tronqué.
 - [ ] T027B2 Ajouter les relances internes et l'escalade après validation des
   délais propres à chaque service et des responsables à notifier.
 - [ ] T027C Créer les adhésions de service puis appliquer le périmètre dans les

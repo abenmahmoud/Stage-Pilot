@@ -3805,3 +3805,12 @@ taches et analyse de coherence avant une automatisation sensible.
   de décision. Les valeurs nulles créées légitimement lors d'une remise à zéro
   d'identité restent compatibles avec le contexte borné. Six scénarios ciblés
   passent. T027B20 est terminé sans production, base distante ou donnée réelle.
+## 2026-08-31 - Détail agent borné côté serveur
+
+- T027B21 partage les plafonds de contacts, messages, pièces et rappels entre la
+  route agent et le validateur d'exécution.
+- Les requêtes lisent au plus `plafond + 1` et refusent explicitement le
+  dépassement avant de construire une réponse : aucun historique partiel n'est
+  présenté comme complet.
+- Le lot reste limité à la preview, sans migration, donnée réelle ni modification
+  de production.

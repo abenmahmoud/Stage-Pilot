@@ -721,6 +721,12 @@ l'autorisation de quota définie par le propriétaire.
   objet exact et borne contacts, messages, pièces et rappels ; il vérifie leur
   unicité, ordre, références croisées et états possibles. Les valeurs `null`
   légitimes du contexte d'identité restent acceptées. T027B20 est terminée.
+- Lot N5ZZK : lecture bornée du détail agent. **Implémentée sans pagination
+  silencieuse** : contacts, messages, pièces et rappels partagent désormais les
+  mêmes plafonds entre API et validateur. Chaque requête lit au plus une ligne
+  au-delà du plafond pour détecter le dépassement ; l'API refuse alors le dossier
+  avant toute construction de réponse et indique qu'aucun historique partiel
+  n'a été affiché. T027B21 est terminée.
 
 ## Prochaine séquence verrouillée
 
