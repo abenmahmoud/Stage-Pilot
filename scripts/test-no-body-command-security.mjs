@@ -6,6 +6,7 @@ const noBodyCommands = [
   ["génération historique", "../api/admin/generate-prof-accounts.ts"],
   ["cachet Grand Oral", "../api/grand-oral/[id]/cachet.ts"],
   ["confirmation communication", "../api/communications/admin/documents/[id]/confirm.ts"],
+  ["pièce demandeur", "../api/support/attachments/[id].ts"],
 ];
 
 test("les commandes sans payload désactivent le parseur HTTP", () => {

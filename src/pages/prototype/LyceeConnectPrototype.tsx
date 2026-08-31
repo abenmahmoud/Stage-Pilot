@@ -1702,6 +1702,7 @@ type SupportRequestDetail = {
     detectedMime: string | null;
     sizeBytes: number;
     scanStatus: string;
+    canRemoveDraft: boolean;
     createdAt: string;
   }>;
 };
@@ -1776,8 +1777,13 @@ function ConnectedRequestsView({ ticketCode, onBack }: { ticketCode: string | nu
     typeof window !== "undefined" && "Notification" in window ? Notification.permission : "unsupported"
   );
   const [followupFiles, setFollowupFiles] = useState<File[]>([]);
+  const [requesterDeletingAttachmentId, setRequesterDeletingAttachmentId] = useState<string | null>(null);
   const followupFileInputRef = useRef<HTMLInputElement>(null);
   const requesterReplySubmissionRef = useRef<{ fingerprint: string; idempotencyKey: string } | null>(null);
+  const requesterAttachmentRemovalSubmissionRef = useRef<{
+    fingerprint: string;
+    idempotencyKey: string;
+  } | null>(null);
   const notificationsEnabledRef = useRef(false);
   const selectedCodeRef = useRef<string | null>(ticketCode);
   const requestsLoadIdRef = useRef(0);
@@ -1916,6 +1922,9 @@ function ConnectedRequestsView({ ticketCode, onBack }: { ticketCode: string | nu
   useEffect(() => {
     selectedCodeRef.current = selectedCode;
     requesterReplySubmissionRef.current = null;
+    requesterAttachmentRemovalSubmissionRef.current = null;
+    setRequesterDeletingAttachmentId(null);
+    setFollowupFiles([]);
     detailLoadIdRef.current += 1;
     setDetail(null);
     setDetailError(null);
@@ -2112,6 +2121,63 @@ function ConnectedRequestsView({ ticketCode, onBack }: { ticketCode: string | nu
     }
   }
 
+  async function removeRequesterAttachment(id: string, originalName: string) {
+    const code = selectedCode;
+    if (!code || !window.confirm(`Retirer « ${originalName} » de votre dossier ?`)) return;
+    const submissionFingerprint = `${code}:${id}`;
+    if (requesterAttachmentRemovalSubmissionRef.current?.fingerprint !== submissionFingerprint) {
+      requesterAttachmentRemovalSubmissionRef.current = {
+        fingerprint: submissionFingerprint,
+        idempotencyKey: crypto.randomUUID(),
+      };
+    }
+    const idempotencyKey = requesterAttachmentRemovalSubmissionRef.current.idempotencyKey;
+    setRequesterDeletingAttachmentId(id);
+    setError(null);
+    try {
+      const payload = await readApiResponse<unknown>(
+        await fetch(`/api/support/attachments/${id}?code=${encodeURIComponent(code)}`, {
+          method: "DELETE",
+          credentials: "include",
+          headers: { "Idempotency-Key": idempotencyKey },
+        })
+      );
+      const confirmation = verifySupportAttachmentRemovalConfirmation({
+        expectedPublicCode: code,
+        expectedAttachmentId: id,
+        confirmation: isRecord(payload) ? payload.confirmation : null,
+      });
+      if (!confirmation) throw new Error("Confirmation de retrait invalide");
+
+      const refreshLoadId = ++detailLoadIdRef.current;
+      const refreshedDetail = await readApiResponse<unknown>(
+        fetch(`/api/support/requests/${code}`, { credentials: "include" })
+      );
+      if (!isPublicSupportRequestDetailPayload(refreshedDetail) || refreshedDetail.request.publicCode !== code) {
+        throw new Error("Le retrait est confirmé, mais la relecture du dossier a échoué.");
+      }
+      if (refreshedDetail.attachments.some((attachment) => attachment.id === confirmation.attachmentId)) {
+        throw new Error("Le document apparaît encore dans le dossier. Réessayez le retrait.");
+      }
+      if (
+        selectedCodeRef.current !== code
+        || requesterAttachmentRemovalSubmissionRef.current?.fingerprint !== submissionFingerprint
+        || requesterAttachmentRemovalSubmissionRef.current.idempotencyKey !== idempotencyKey
+      ) return;
+
+      requesterAttachmentRemovalSubmissionRef.current = null;
+      for (const [fingerprint, submission] of requesterUploadSubmissions) {
+        if (submission.attachmentId === id) requesterUploadSubmissions.delete(fingerprint);
+      }
+      if (detailLoadIdRef.current === refreshLoadId) setDetail(refreshedDetail);
+      setError(null);
+    } catch (removeError) {
+      setError(removeError instanceof Error ? removeError.message : "Document non retiré");
+    } finally {
+      setRequesterDeletingAttachmentId(null);
+    }
+  }
+
   async function forgetThisDevice() {
     if (!window.confirm("Retirer de cet appareil l’accès à toutes les demandes suivies ?")) return;
     setForgettingDevice(true);
@@ -2205,7 +2271,7 @@ function ConnectedRequestsView({ ticketCode, onBack }: { ticketCode: string | nu
               {detail.attachments.length > 0 ? (
                 <div className="lycee-tracked-files">
                   {detail.attachments.map((attachment) => (
-                    <div key={attachment.id}><FileText aria-hidden="true" /><span><strong>{attachment.originalName}</strong><small>{attachment.direction === "agent" ? "Document du lycée · " : "Votre document · "}{attachment.scanStatus === "clean" ? "vérifié" : attachment.scanStatus === "blocked" ? "refusé" : "contrôle en cours"}</small></span>{attachment.scanStatus === "clean" ? <button type="button" onClick={() => void openPublicAttachment(attachment.id)} aria-label={`Ouvrir ${attachment.originalName}`}><ExternalLink aria-hidden="true" /></button> : null}</div>
+                    <div key={attachment.id}><FileText aria-hidden="true" /><span><strong>{attachment.originalName}</strong><small>{attachment.direction === "agent" ? "Document du lycée · " : "Votre document · "}{attachment.scanStatus === "clean" ? "vérifié" : attachment.scanStatus === "blocked" ? "refusé" : attachment.scanStatus === "scan_error" ? "contrôle indisponible" : attachment.scanStatus === "removal_pending" ? "retrait à reprendre" : "contrôle en cours"}</small></span>{attachment.scanStatus === "clean" ? <button type="button" onClick={() => void openPublicAttachment(attachment.id)} aria-label={`Ouvrir ${attachment.originalName}`}><ExternalLink aria-hidden="true" /></button> : attachment.canRemoveDraft ? <button className="lycee-requester-file-remove" type="button" disabled={requesterDeletingAttachmentId !== null || replying} title="Retirer ce document" aria-label={`Retirer ${attachment.originalName}`} onClick={() => void removeRequesterAttachment(attachment.id, attachment.originalName)}>{requesterDeletingAttachmentId === attachment.id ? <RefreshCw className="is-spinning" aria-hidden="true" /> : <Trash2 aria-hidden="true" />}</button> : null}</div>
                   ))}
                 </div>
               ) : null}
@@ -2765,6 +2831,7 @@ function isPublicSupportAttachment(value: unknown): value is SupportRequestDetai
     && (value.detectedMime === null || isBoundedString(value.detectedMime, 150))
     && isNonNegativeInteger(value.sizeBytes) && value.sizeBytes <= MAX_SUPPORT_FILE_BYTES
     && isBoundedString(value.scanStatus, 40)
+    && typeof value.canRemoveDraft === "boolean"
     && isPublicSupportDate(value.createdAt);
 }
 

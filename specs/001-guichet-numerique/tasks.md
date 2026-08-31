@@ -296,6 +296,15 @@ voir sa réponse dans le dossier. L'agent traite tout depuis une seule file.
   réservations déjà comptées et autorise l'envoi d'un document de suivi sans
   imposer un second message. Aucun nom, chemin, jeton ou contenu n'entre dans
   l'événement de réservation.
+- [x] **T037AD** Permettre au demandeur de retirer un brouillon de pièce
+  inutilisable sans perdre durablement l'un des cinq emplacements. Le retrait
+  reste limité à la session ayant créé une pièce `awaiting_upload`, `blocked`,
+  `scan_error` ou déjà `removal_pending`; un document en contrôle ou propre ne
+  peut pas être retiré depuis l'espace public. La suppression Storage précède
+  la suppression de la ligne, une erreur reste reprenable et une clé UUID
+  rejouée retrouve la preuve de retrait sans seconde mutation. Le navigateur
+  valide le reçu puis relit l'absence exacte avant de libérer l'emplacement.
+  Aucun nom, chemin, URL, jeton ou contenu n'entre dans les événements.
 - [x] **T037F** Exclure les contacts desactives des reponses, reserver les
   journaux globaux a un administrateur MFA et exiger `aal2` pour confirmer une
   identite scolaire depuis une source officielle.

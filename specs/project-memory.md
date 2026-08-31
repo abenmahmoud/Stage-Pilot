@@ -3540,3 +3540,22 @@ taches et analyse de coherence avant une automatisation sensible.
   ni contenu. T037AC de la spécification 001 est terminée sans migration, fichier
   réel ou production. Aucun audit externe n'a été exécuté sans autorisation
   bornée.
+
+### Jalon du 31 août 2026 - retrait de brouillon demandeur récupérable
+
+- Le demandeur peut retirer uniquement une pièce qu'il a réservée dans la même
+  session et qui est interrompue, refusée, en erreur ou déjà en cours de retrait.
+  Un fichier en contrôle ou propre reste dans le dossier et n'est jamais rendu
+  supprimable par le navigateur.
+- Le serveur marque d'abord la ligne `removal_pending`, retire l'objet du stockage
+  privé puis supprime la ligne sous le verrou du dossier. Un échec Storage revient
+  à `scan_error`, afin que le retrait puisse être repris sans disparition muette.
+- `attachment.draft_removed` confirme la première suppression et
+  `attachment.draft_removal_reused` confirme une reprise concurrente. La clé UUID
+  est liée au dossier, à la session et à l'identifiant opaque de la pièce.
+- Le navigateur conserve la clé jusqu'au reçu puis relit le dossier et exige
+  l'absence exacte de la pièce avant de libérer une place. Les états d'un dépôt
+  interrompu ne bloquent donc plus définitivement les cinq emplacements.
+- Les événements ne contiennent ni nom, ni chemin, ni URL, ni jeton, ni contenu.
+  T037AD est terminé sans migration, fichier réel ou production. Le brief Claude
+  est seulement préparé ; aucun modèle externe n'a été lancé.

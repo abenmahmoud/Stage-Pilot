@@ -20,7 +20,10 @@ function accessEventBlock(source) {
 test("audits requester download links only after scoped access and signing", () => {
   const access = publicRoute.indexOf("requireSupportAccess(req, code)");
   const rateLimit = publicRoute.indexOf("enforceAttachmentDownloadRateLimit(access.sessionId)");
-  const scopedAttachment = publicRoute.indexOf("eq(supportAttachments.requestId, access.requestId)");
+  const scopedAttachment = publicRoute.indexOf(
+    "eq(supportAttachments.requestId, access.requestId)",
+    rateLimit
+  );
   const signing = publicRoute.indexOf("createSignedUrl");
   const audit = publicRoute.indexOf('eventType: "attachment.download_link_issued"');
   const response = publicRoute.indexOf("return { url: data.signedUrl, expiresIn: 60 }");

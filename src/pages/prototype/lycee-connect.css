@@ -603,6 +603,9 @@
 .lycee-tracked-files > div { grid-template-columns: 26px minmax(0,1fr) auto; background: #f8fafc; }
 .lycee-tracked-files button { width: 30px; height: 30px; display: grid; place-items: center; border: 1px solid var(--lc-line); border-radius: 7px; background: #fff; color: var(--lc-blue); }
 .lycee-tracked-files button svg { width: 14px; }
+.lycee-tracked-files .lycee-requester-file-remove { color: #b42335; }
+.lycee-tracked-files .lycee-requester-file-remove:hover { border-color: #fecdd3; background: #fff1f2; }
+.lycee-tracked-files .lycee-requester-file-remove:disabled { cursor: wait; opacity: .5; }
 .lycee-followup-form { display: grid; gap: 9px; padding-top: 14px; border-top: 1px solid var(--lc-line); }
 .lycee-followup-form label { display: grid; gap: 6px; }
 .lycee-followup-form label > span { color: #4c5c70; font-size: 10px; font-weight: 800; }

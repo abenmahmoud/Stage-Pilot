@@ -70,6 +70,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         detectedMime: supportAttachments.detectedMime,
         sizeBytes: supportAttachments.sizeBytes,
         scanStatus: supportAttachments.scanStatus,
+        uploadedBySession: supportAttachments.uploadedBySession,
         createdAt: supportAttachments.createdAt,
       })
       .from(supportAttachments)
@@ -109,7 +110,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         identityVerifiedAt: typeof identityContext.identityVerifiedAt === "string" ? identityContext.identityVerifiedAt : null,
       },
       messages,
-      attachments,
+      attachments: attachments.map(({ uploadedBySession, ...attachment }) => ({
+        ...attachment,
+        canRemoveDraft:
+          attachment.direction === "requester"
+          && uploadedBySession === access.sessionId
+          && ["awaiting_upload", "blocked", "scan_error", "removal_pending"].includes(attachment.scanStatus),
+      })),
     };
   });
 }
