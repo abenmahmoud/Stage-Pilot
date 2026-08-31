@@ -72,6 +72,11 @@
   des états, derrière `COMMUNICATION_DOCUMENT_UPLOAD_ENABLED` et
   `VITE_COMMUNICATION_DOCUMENTS_ENABLED`, tous deux fermés par défaut. La preuve
   ClamAV fictive et l'activation contrôlée restent dans T011D.
+- [x] T011D2 Valider côté navigateur les réponses inconnues de liste,
+  réservation signée et confirmation avant tout accès au stockage ou message de
+  succès. Le bucket, le chemin privé, le jeton borné, le fichier attendu, les
+  statuts, dates et limites sont contrôlés ; T011D reste ouvert pour la recette
+  ClamAV fictive et l'activation contrôlée.
 - [x] T012 Étendre l'aide IA avec sortie structurée et informations à confirmer.
   L'aide propose uniquement structure, correction ou simplification, avec faits
   bornés et questions ouvertes. Elle fonctionne sans persistance fournisseur,

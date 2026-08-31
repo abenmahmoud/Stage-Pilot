@@ -275,3 +275,12 @@ Archives. Le statut `archive`, utilisé par la direction pour retirer un contenu
 reste exclu du flux courant, du flux expiré et de l'accès direct par slug. Le
 mode est signé par le curseur opaque et contrôlé dans la réponse cliente. Une
 recette de preview confirme les trois partitions et laisse trois résidus à zéro.
+
+T011D2 ferme la confiance implicite du navigateur envers l'API documentaire.
+La liste, la réservation signée et la confirmation ont trois contrats exacts et
+bornés. Le client refuse notamment le mauvais bucket, un chemin non privé, une
+extension substituée, un jeton avec espaces ou contrôles, un fichier différent
+de celui annoncé et une confirmation sans quarantaine vérifiable. Aucun accès
+Storage n'a lieu avant la validation de la réservation et aucun succès n'est
+affiché avant la validation de la confirmation. Le dépôt et l'interface restent
+fermés par défaut ; la preuve antivirus et l'activation restent dans T011D.

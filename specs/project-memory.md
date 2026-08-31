@@ -3623,3 +3623,20 @@ taches et analyse de coherence avant une automatisation sensible.
   restauration distante restent des portes humaines de T057.
 - T057C est terminé sans migration, service distant, donnée réelle ou
   production. Le brief Claude est préparé mais non exécuté sans accord borné.
+
+### Jalon du 31 août 2026 - réponses documentaires de communication
+
+- La console Communications valide désormais à l'exécution la liste des
+  documents, la réservation signée et la confirmation avant tout effet sensible.
+- Le contrat impose les clés exactes, cent documents au plus, des identifiants et
+  dates valides, les deux types autorisés, dix mégaoctets maximum et les états
+  connus. Il recoupe aussi le rattachement d'une source déjà utilisée.
+- La réservation doit reprendre exactement le fichier choisi, le bucket privé
+  gouverné et un chemin aléatoire PDF ou DOCX ; le jeton est borné et ne peut
+  contenir d'espace ou de caractère de contrôle.
+- Une réponse invalide bloque l'accès Storage. Après transfert, seule une
+  confirmation du même document dans un état postérieur au dépôt autorise le
+  message de quarantaine ; sinon le choix reste visible pour vérification.
+- T011D2 est terminé sans activation, téléversement réel, migration, donnée
+  réelle ou production. T011D reste ouvert pour la recette ClamAV fictive. Le
+  brief Claude est préparé mais non exécuté sans accord borné.

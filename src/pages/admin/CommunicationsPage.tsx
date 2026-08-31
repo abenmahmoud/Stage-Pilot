@@ -39,6 +39,12 @@ import {
   buildCommunicationEmailPreview,
   safeCommunicationPreviewHref,
 } from "../../../shared/communication-email-preview";
+import {
+  parseCommunicationDocumentConfirmationPayload,
+  parseCommunicationDocumentListPayload,
+  parseCommunicationDocumentReservationPayload,
+  type CommunicationDocumentPayload,
+} from "../../../shared/communication-document-payload";
 
 type CommunicationRow = {
   id: string;
@@ -82,20 +88,6 @@ type AssistSuggestion = Pick<
 > & { reviewNotes: string[] };
 
 type CommunicationsPayload = { communications: CommunicationRow[] };
-
-type CommunicationDocument = {
-  id: string;
-  communicationId: string | null;
-  originalName: string;
-  mimeType: string;
-  sizeBytes: number;
-  status: string;
-  analysisError: string | null;
-  uploadedAt: string | null;
-  analyzedAt: string | null;
-  createdAt: string;
-  updatedAt: string;
-};
 
 type CommunicationFailure = {
   id: string;
@@ -325,7 +317,7 @@ export default function CommunicationsPage() {
   const { user } = useAuth();
   const [rows, setRows] = useState<CommunicationRow[]>([]);
   const [templates, setTemplates] = useState<CommunicationTemplate[]>([]);
-  const [documents, setDocuments] = useState<CommunicationDocument[]>([]);
+  const [documents, setDocuments] = useState<CommunicationDocumentPayload[]>([]);
   const [failures, setFailures] = useState<CommunicationFailure[]>([]);
   const [inbound, setInbound] = useState<CommunicationInbound[]>([]);
   const [documentFile, setDocumentFile] = useState<File | null>(null);
@@ -366,16 +358,20 @@ export default function CommunicationsPage() {
         apiFetch<CommunicationsPayload>("communications/admin"),
         apiFetch<{ templates: CommunicationTemplate[] }>("communications/admin/templates"),
         COMMUNICATION_DOCUMENTS_UI_ENABLED
-          ? apiFetch<{ documents: CommunicationDocument[] }>("communications/admin/documents")
+          ? apiFetch<unknown>("communications/admin/documents")
           : Promise.resolve({ documents: [] }),
         canManageTemplates
           ? apiFetch<{ failures: CommunicationFailure[] }>("communications/admin/failures")
           : Promise.resolve({ failures: [] }),
         apiFetch<{ inbound: CommunicationInbound[] }>("communications/admin/inbound"),
       ]);
+      const validatedDocuments = parseCommunicationDocumentListPayload(documentPayload);
+      if (!validatedDocuments) {
+        throw new Error("La réponse documentaire est invalide. Aucun document n’a été affiché.");
+      }
       setRows(communications.communications);
       setTemplates(templatePayload.templates);
-      setDocuments(documentPayload.documents);
+      setDocuments(validatedDocuments.documents);
       setFailures(failurePayload.failures);
       setInbound(inboundPayload.inbound);
     } catch (reason) {
@@ -610,25 +606,39 @@ export default function CommunicationsPage() {
     setError("");
     setNotice("");
     try {
-      const reserve = await apiFetch<{
-        document: CommunicationDocument;
-        upload: { bucket: string; path: string; token: string };
-      }>("communications/admin/documents", {
+      const requestedDocument = {
+        originalName: documentFile.name,
+        mimeType,
+        sizeBytes: documentFile.size,
+      };
+      const reservationPayload = await apiFetch<unknown>("communications/admin/documents", {
         method: "POST",
-        body: JSON.stringify({
-          originalName: documentFile.name,
-          mimeType,
-          sizeBytes: documentFile.size,
-        }),
+        body: JSON.stringify(requestedDocument),
       });
+      const reserve = parseCommunicationDocumentReservationPayload(reservationPayload, requestedDocument);
+      if (!reserve) {
+        throw new Error("La réservation privée est invalide. Aucun transfert n’a été lancé.");
+      }
       const uploaded = await supabase.storage
         .from(reserve.upload.bucket)
         .uploadToSignedUrl(reserve.upload.path, reserve.upload.token, documentFile, { contentType: mimeType });
       if (uploaded.error) throw new Error("Le transfert privé du document a échoué.");
-      await apiFetch(`communications/admin/documents/${reserve.document.id}/confirm`, { method: "POST" });
+      const confirmationPayload = await apiFetch<unknown>(
+        `communications/admin/documents/${reserve.document.id}/confirm`,
+        { method: "POST" }
+      );
+      const confirmation = parseCommunicationDocumentConfirmationPayload(
+        confirmationPayload,
+        reserve.document
+      );
+      if (!confirmation) {
+        throw new Error("Le serveur n’a pas confirmé la quarantaine. Vérifiez l’état avant de recommencer.");
+      }
       setDocumentFile(null);
       setDocumentPickerKey((value) => value + 1);
-      setNotice("Le document est placé en quarantaine pour analyse.");
+      setNotice(confirmation.duplicate
+        ? "Le document était déjà confirmé et reste sous contrôle humain."
+        : "Le document est placé en quarantaine pour analyse.");
       await load();
     } catch (reason) {
       setError(reason instanceof Error ? reason.message : "Dépôt du document impossible.");

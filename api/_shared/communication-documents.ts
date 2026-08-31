@@ -1,6 +1,7 @@
 import { randomUUID } from "node:crypto";
+import { COMMUNICATION_DOCUMENT_BUCKET } from "../../shared/communication-document-payload.js";
 
-export const COMMUNICATION_DOCUMENT_BUCKET = "communication-ingest";
+export { COMMUNICATION_DOCUMENT_BUCKET };
 
 export function communicationDocumentUploadEnabled(
   env: Partial<Record<"COMMUNICATION_DOCUMENT_UPLOAD_ENABLED", string>> = process.env
