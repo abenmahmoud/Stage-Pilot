@@ -3658,3 +3658,23 @@ taches et analyse de coherence avant une automatisation sensible.
 - T027D est terminé sans intégration, migration, donnée réelle ou production.
   T027 reste ouvert pour la recette réseau fictive. Le brief Claude est préparé
   mais non exécuté sans autorisation bornée.
+
+### Jalon du 31 août 2026 - confirmations fiables des actions Communications
+
+- La fiche d'une communication et son historique sont désormais lus comme une
+  réponse inconnue. L'identifiant doit correspondre à la sélection, les versions
+  sont uniques, consécutives et décroissantes, et la version courante concorde
+  avec l'état de la communication.
+- Création, correction, aide à la rédaction, demande de vérification, validation
+  direction, publication, personnalisation d'un modèle et reprise d'un échec ne
+  montrent plus de réussite sur la seule présence d'un HTTP 2xx. Chaque réponse
+  est validée avant tout effacement, message ou modification d'état visible.
+- Une publication exige le même identifiant, l'état publié, la visibilité
+  publique, un slug et une date valides. Une validation lie également version et
+  date d'approbation. Une reprise confirme exactement création ou idempotence.
+- La route de personnalisation d'un modèle ne renvoie plus `institutionId`,
+  `createdBy` ou `updatedBy`; seule la projection éditoriale nécessaire revient
+  au navigateur.
+- T027E est terminé sans intégration distante, migration, donnée réelle ou
+  production. T027 reste ouvert pour la recette réseau fictive. Le brief Claude
+  est préparé mais non exécuté sans autorisation bornée pour ce lot.

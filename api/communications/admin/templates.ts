@@ -82,7 +82,18 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
               updatedBy: context.user.id,
             },
           })
-          .returning();
+          .returning({
+            id: communicationTemplates.id,
+            templateKey: communicationTemplates.templateKey,
+            label: communicationTemplates.label,
+            defaultCategory: communicationTemplates.defaultCategory,
+            titleHint: communicationTemplates.titleHint,
+            summaryHint: communicationTemplates.summaryHint,
+            bodyMarkdown: communicationTemplates.bodyMarkdown,
+            active: communicationTemplates.active,
+            version: communicationTemplates.version,
+            updatedAt: communicationTemplates.updatedAt,
+          });
 
         await tx.insert(communicationTemplateEvents).values({
           institutionId: context.institutionId,
@@ -94,7 +105,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         });
         return template;
       });
-      return { template: result };
+      return { template: { ...result, customized: true } };
     });
   }
 

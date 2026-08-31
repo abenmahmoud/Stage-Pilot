@@ -56,28 +56,18 @@ import {
   type CommunicationTemplate,
   type StructuredFacts,
 } from "../../../shared/communication-admin-payload";
-
-type CommunicationDetail = CommunicationRow & {
-  bodyMarkdown: string;
-};
-
-type CommunicationVersion = {
-  id: string;
-  version: number;
-  status: string;
-  createdAt: string;
-  updatedAt: string;
-};
-
-type AssistSuggestion = Pick<
-  CommunicationDetail,
-  "title" | "summary" | "bodyMarkdown" | "structuredFacts" | "openQuestions"
-> & { reviewNotes: string[] };
-
-type CreatePayload = {
-  communication: Pick<CommunicationRow, "id" | "status" | "visibility" | "currentVersion" | "updatedAt">;
-  duplicate: boolean;
-};
+import {
+  parseCommunicationApprovalPayload,
+  parseCommunicationAssistPayload,
+  parseCommunicationDetailPayload,
+  parseCommunicationDraftMutationPayload,
+  parseCommunicationPublicationPayload,
+  parseCommunicationRetryPayload,
+  parseCommunicationReviewPayload,
+  parseCommunicationTemplateMutationPayload,
+  type CommunicationDetail,
+  type CommunicationVersion,
+} from "../../../shared/communication-admin-action-payload";
 
 const CATEGORY_OPTIONS = [
   { value: "information", label: "Information" },
@@ -352,8 +342,10 @@ export default function CommunicationsPage() {
     setSelectedDetail(null);
     setSelectedVersions([]);
     setError("");
-    void apiFetch<{ communication: CommunicationDetail; versions: CommunicationVersion[] }>(`communications/admin/${selectedId}`)
-      .then((payload) => {
+    void apiFetch<unknown>(`communications/admin/${selectedId}`)
+      .then((response) => {
+        const payload = parseCommunicationDetailPayload(response, selectedId);
+        if (!payload) throw new Error("La fiche de communication reçue est invalide.");
         if (active) {
           setSelectedDetail(payload.communication);
           setSelectedVersions(payload.versions);
@@ -388,12 +380,16 @@ export default function CommunicationsPage() {
     setError("");
     setNotice("");
     try {
-      await apiFetch(`communications/admin/failures/${id}/retry`, {
+      const response = await apiFetch<unknown>(`communications/admin/failures/${id}/retry`, {
         method: "POST",
         body: JSON.stringify({ operatorConfirmedReady: true }),
       });
+      const payload = parseCommunicationRetryPayload(response);
+      if (!payload) throw new Error("La reprise n’a pas été confirmée par le serveur.");
       setConfirmingRetryId(null);
-      setNotice("La reprise est planifiée. L’échec d’origine reste conservé.");
+      setNotice(payload.duplicate
+        ? "La reprise était déjà planifiée. L’échec d’origine reste conservé."
+        : "La reprise est planifiée. L’échec d’origine reste conservé.");
       await load();
     } catch (reason) {
       setError(reason instanceof Error ? reason.message : "Reprise impossible.");
@@ -455,17 +451,20 @@ export default function CommunicationsPage() {
     setError("");
     setNotice("");
     try {
-      const payload = await apiFetch<{ suggestion: AssistSuggestion }>("communications/admin/assist", {
+      const requestInput = {
+        action: assistAction,
+        title: draft.title,
+        summary: draft.summary,
+        bodyMarkdown: draft.bodyMarkdown,
+        category: draft.category,
+        templateKey: draft.templateKey,
+      };
+      const response = await apiFetch<unknown>("communications/admin/assist", {
         method: "POST",
-        body: JSON.stringify({
-          action: assistAction,
-          title: draft.title,
-          summary: draft.summary,
-          bodyMarkdown: draft.bodyMarkdown,
-          category: draft.category,
-          templateKey: draft.templateKey,
-        }),
+        body: JSON.stringify(requestInput),
       });
+      const payload = parseCommunicationAssistPayload(response, requestInput);
+      if (!payload) throw new Error("La proposition reçue est invalide et n’a pas été appliquée.");
       const { reviewNotes: notes, ...suggestedDraft } = payload.suggestion;
       setDraft((current) => ({ ...current, ...suggestedDraft }));
       setReviewNotes(notes);
@@ -493,13 +492,15 @@ export default function CommunicationsPage() {
     setError("");
     setNotice("");
     try {
-      await apiFetch(`communications/admin/${selectedDetail.id}/review`, {
+      const response = await apiFetch<unknown>(`communications/admin/${selectedDetail.id}/review`, {
         method: "POST",
         body: JSON.stringify({ confirmation: "VERIFIER", visibility: reviewVisibility }),
       });
+      const payload = parseCommunicationReviewPayload(response, selectedDetail.id, reviewVisibility);
+      if (!payload) throw new Error("La demande de vérification n’a pas été confirmée par le serveur.");
       setNotice("La communication est transmise pour vérification humaine.");
       await load();
-      setSelectedDetail((current) => current ? { ...current, status: "review", visibility: reviewVisibility } : current);
+      setSelectedDetail((current) => current ? { ...current, ...payload.communication } : current);
     } catch (reason) {
       setError(reason instanceof Error ? reason.message : "Demande de vérification impossible.");
     } finally {
@@ -513,15 +514,17 @@ export default function CommunicationsPage() {
     setError("");
     setNotice("");
     try {
-      await apiFetch(`communications/admin/${selectedDetail.id}/approve`, {
+      const response = await apiFetch<unknown>(`communications/admin/${selectedDetail.id}/approve`, {
         method: "POST",
         body: JSON.stringify({ confirmation: "VALIDER" }),
       });
+      const payload = parseCommunicationApprovalPayload(response, selectedDetail.id);
+      if (!payload) throw new Error("La validation n’a pas été confirmée par le serveur.");
       setNotice(selectedDetail.visibility === "public"
         ? "La version est validée. La publication reste une action distincte."
         : "La communication interne est validée.");
       await load();
-      setSelectedDetail((current) => current ? { ...current, status: "approved" } : current);
+      setSelectedDetail((current) => current ? { ...current, ...payload.communication } : current);
     } catch (reason) {
       setError(reason instanceof Error ? reason.message : "Validation impossible.");
     } finally {
@@ -535,12 +538,12 @@ export default function CommunicationsPage() {
     setError("");
     setNotice("");
     try {
-      const payload = await apiFetch<{
-        communication: Pick<CommunicationRow, "status" | "visibility" | "publicSlug" | "publishedAt">;
-      }>(`communications/admin/${selectedDetail.id}/publish`, {
+      const response = await apiFetch<unknown>(`communications/admin/${selectedDetail.id}/publish`, {
         method: "POST",
         body: JSON.stringify({ confirmation: "PUBLIER" }),
       });
+      const payload = parseCommunicationPublicationPayload(response, selectedDetail.id);
+      if (!payload) throw new Error("La publication n’a pas été confirmée par le serveur.");
       setNotice("La communication est publiée dans « À la une ».");
       await load();
       setSelectedDetail((current) => current ? { ...current, ...payload.communication } : current);
@@ -610,18 +613,21 @@ export default function CommunicationsPage() {
     setError("");
     setNotice("");
     try {
-      await apiFetch("communications/admin/templates", {
+      const templateInput = {
+        templateKey: editingTemplate.templateKey,
+        label: editingTemplate.label,
+        defaultCategory: editingTemplate.defaultCategory,
+        titleHint: editingTemplate.titleHint,
+        summaryHint: editingTemplate.summaryHint,
+        bodyMarkdown: editingTemplate.bodyMarkdown,
+        active: editingTemplate.active,
+      };
+      const response = await apiFetch<unknown>("communications/admin/templates", {
         method: "PATCH",
-        body: JSON.stringify({
-          templateKey: editingTemplate.templateKey,
-          label: editingTemplate.label,
-          defaultCategory: editingTemplate.defaultCategory,
-          titleHint: editingTemplate.titleHint,
-          summaryHint: editingTemplate.summaryHint,
-          bodyMarkdown: editingTemplate.bodyMarkdown,
-          active: editingTemplate.active,
-        }),
+        body: JSON.stringify(templateInput),
       });
+      const payload = parseCommunicationTemplateMutationPayload(response, templateInput);
+      if (!payload) throw new Error("L’enregistrement du modèle n’a pas été confirmé par le serveur.");
       setEditingTemplate(null);
       setNotice("Le modèle est enregistré avec une nouvelle version.");
       await load();
@@ -638,12 +644,14 @@ export default function CommunicationsPage() {
     setError("");
     setNotice("");
     try {
-      const payload = await apiFetch<CreatePayload>(
+      const response = await apiFetch<unknown>(
         editingId ? `communications/admin/${editingId}` : "communications/admin",
         {
         method: editingId ? "PATCH" : "POST",
         body: JSON.stringify({ sourceType: "direct_text", ...draft }),
       });
+      const payload = parseCommunicationDraftMutationPayload(response, editingId);
+      if (!payload) throw new Error("L’enregistrement n’a pas été confirmé par le serveur.");
       setNotice(
         payload.duplicate
           ? "Cette version existait déjà. Aucun doublon n’a été créé."

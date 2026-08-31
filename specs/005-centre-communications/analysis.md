@@ -292,3 +292,13 @@ les statuts, les relations publication/visibilité, les faits structurés, les s
 modèles versionnés, les seuls travaux relançables et les entrants rattachés. Une
 altération ou un secret bloque l'ensemble sans état partiel. Cela n'ouvre aucun
 destinataire ni échange réseau ; la preuve inter-applications reste dans T027.
+
+T027E ferme les faux succès possibles après une action. La fiche et ses cent
+dernières versions sont liées à l'identifiant demandé, ordonnées et cohérentes
+avec la version courante. Chaque mutation est relue comme `unknown` puis recoupée
+avec l'identifiant, la visibilité, la version et l'état attendus avant de vider
+un formulaire, d'afficher une réussite ou de modifier l'écran. L'aide IA repasse
+par son parseur strict et la reprise doit confirmer exactement création ou
+idempotence. La réponse de personnalisation d'un modèle est réduite à sa
+projection éditoriale ; établissement et agents ne sont plus renvoyés. T027
+reste ouvert pour la recette réseau fictive, pas pour un autre contrat local.

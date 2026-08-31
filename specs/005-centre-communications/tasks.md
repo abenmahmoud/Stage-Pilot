@@ -321,6 +321,12 @@
   statuts, relations, six modèles officiels, limites, tris et textes sans secret
   sont contrôlés ensemble ; T027 reste ouvert pour la recette réseau entre les
   deux applications avec contacts fictifs.
+- [x] T027E Valider à l'exécution la fiche, l'historique et chaque réponse
+  d'action avant tout succès visible : brouillon, aide IA, vérification,
+  validation, publication, modèle et reprise. L'identifiant, la version et
+  l'état attendus sont liés à la commande ; la réponse d'un modèle ne retourne
+  plus les identifiants internes inutiles. T027 reste ouvert pour la recette
+  réseau fictive entre LyceeGest et le Webmail.
 - [x] T028 Tester rôles, MFA, contenus internes et API publique.
 - [x] T028A Exiger `aal2` sur toutes les routes privées du centre et vérifier
   les rôles bornés, le cloisonnement établissement, la fermeture du module et
