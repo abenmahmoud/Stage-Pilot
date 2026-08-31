@@ -307,6 +307,10 @@
 - [x] T023D Valider dans le navigateur chaque sortie de l'assistant et son reçu
   de routage avant affichage ; une catégorie, une action, une source, une taille
   ou une échéance incohérente déclenche l'analyse locale déterministe.
+- [x] T023E Projeter explicitement la réponse publique de l'assistant côté
+  serveur, puis la valider avec le même contrat exact dans l'API et le
+  navigateur : aucun champ interne supplémentaire, source dupliquée, compteur
+  de tours contradictoire, action non prête ou reçu incomplet n'est accepté.
 - [x] T024A Autoriser le contexte public à tous, le contexte interne uniquement
   aux agents de rôle habilité avec I3 ou I4 dans le service de la source, et interdire l'injection directe des
   classifications personnelles ou sensibles, même pour un administrateur.

@@ -3838,3 +3838,16 @@ taches et analyse de coherence avant une automatisation sensible.
   connues, des numéros uniques et un ordre décroissant cohérent avant notification
   ou écriture dans IndexedDB.
 - Le lot reste limité à la preview, sans donnée réelle, migration ni production.
+
+## 2026-09-01 - Réponse publique de l'assistant exacte
+
+- T023E remplace la propagation `...result` par une projection explicite des
+  vingt et un champs publics utiles. Un ajout futur au résultat interne ne peut
+  donc pas devenir public par accident.
+- L'API et le navigateur partagent le même contrat strict : tailles et valeurs
+  connues, sources exactes et uniques, tours cohérents, action prête et reçu
+  court avec échéance proche. Le serveur refuse lui-même une sortie invalide
+  avant de répondre ; le navigateur conserve son repli déterministe.
+- Huit scénarios ciblés couvrent réponse valide, champs cachés, dépassements,
+  doublons, compteurs, actions et reçus. Le lot ne lit aucune donnée réelle et
+  ne modifie ni base, production, DNS, VPS, ENT, PRONOTE ou webmail.

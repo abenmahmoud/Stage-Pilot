@@ -111,6 +111,7 @@ import { resolveSupportQueueNavigation } from "../../../shared/support-queue-nav
 import { isValidSupportAgentDetailPayload } from "../../../shared/support-agent-detail-payload-policy";
 import { isValidSupportPublicDetailPayload } from "../../../shared/support-public-detail-payload-policy";
 import { isValidSupportPublicListPayload } from "../../../shared/support-public-list-payload-policy";
+import { isValidSupportAssistantPayload } from "../../../shared/support-assistant-payload-policy";
 import {
   hasSupportAgentWorkDraft,
   readSupportAgentWorkDraft,
@@ -2974,57 +2975,8 @@ async function uploadAgentSupportFile(
   return reservation.attachment.id;
 }
 
-function isAssistantStringList(value: unknown): value is string[] {
-  return Array.isArray(value)
-    && value.length <= 5
-    && value.every((item) => isBoundedString(item, 180));
-}
-
-function isAssistantSourceReference(value: unknown): value is AssistantSourceReference {
-  return isRecord(value)
-    && isBoundedString(value.title, 200)
-    && isPublicSupportDate(value.updatedAt);
-}
-
-function hasValidAssistantRoutingReceipt(value: Record<string, unknown>): boolean {
-  if (value.routingReceipt === null && value.routingReceiptExpiresAt === null) return true;
-  if (typeof value.routingReceipt !== "string"
-    || value.routingReceipt.length < 80
-    || value.routingReceipt.length > 2_048
-    || !/^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$/.test(value.routingReceipt)
-    || !isPublicSupportDate(value.routingReceiptExpiresAt)) return false;
-  const expiresAt = Date.parse(value.routingReceiptExpiresAt);
-  return expiresAt >= Date.now() - 30_000
-    && expiresAt <= Date.now() + (16 * 60_000);
-}
-
 function isAssistantApiResult(value: unknown): value is AssistantApiResult {
-  if (!isRecord(value)) return false;
-  return isBoundedString(value.reply, 1_500)
-    && supportCategories.some((category) => category.value === value.category)
-    && ["eleve", "parent", "professeur", "personnel", "autre", "inconnu"].includes(String(value.requesterType))
-    && ["faible", "normale", "urgente"].includes(String(value.urgency))
-    && ["high", "medium", "low"].includes(String(value.confidence))
-    && isAssistantStringList(value.missingInformation)
-    && isAssistantStringList(value.suggestedDocuments)
-    && typeof value.readyToCreate === "boolean"
-    && (value.safetyNotice === null || isBoundedString(value.safetyNotice, 500))
-    && (value.detectedLanguage === null || isBoundedString(value.detectedLanguage, 60))
-    && (value.internalSummaryFr === null || isBoundedString(value.internalSummaryFr, 700))
-    && typeof value.usedAi === "boolean"
-    && ["school_support", "education_help", "wellbeing", "privacy_request", "out_of_scope", "unknown"].includes(String(value.scope))
-    && ["continue", "offer_case", "human_transfer", "stop"].includes(String(value.action))
-    && isNonNegativeInteger(value.turnCount)
-    && value.turnCount <= 10
-    && isNonNegativeInteger(value.remainingTurns)
-    && value.remainingTurns <= 10
-    && typeof value.limitReached === "boolean"
-    && Array.isArray(value.sourceReferences)
-    && value.sourceReferences.length <= 20
-    && value.sourceReferences.every(isAssistantSourceReference)
-    && typeof value.requestActionAuthorized === "boolean"
-    && (!value.requestActionAuthorized || value.routingReceipt !== null)
-    && hasValidAssistantRoutingReceipt(value);
+  return isValidSupportAssistantPayload(value);
 }
 
 function isAgentRequestCore(value: unknown): value is AgentRequestCore {

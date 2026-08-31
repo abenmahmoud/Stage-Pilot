@@ -58,7 +58,7 @@ test("confirms a concurrent upload only once", () => {
 test("the browser keeps one key through lost responses and partial batches", () => {
   const upload = page.slice(
     page.indexOf("type AgentUploadSubmission"),
-    page.indexOf("function isAssistantStringList")
+    page.indexOf("function isAssistantApiResult")
   );
   assert.match(upload, /attempted: boolean/);
   assert.match(upload, /submission\.attempted = true[\s\S]*"Idempotency-Key": submission\.idempotencyKey/);

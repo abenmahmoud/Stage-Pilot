@@ -7,6 +7,7 @@ const helper = readFileSync(new URL("../api/_shared/support-create-request-actio
 const assistantRoute = readFileSync(new URL("../api/support/assistant.ts", import.meta.url), "utf8");
 const requestRoute = readFileSync(new URL("../api/support/requests/index.ts", import.meta.url), "utf8");
 const page = readFileSync(new URL("../src/pages/prototype/LyceeConnectPrototype.tsx", import.meta.url), "utf8");
+const assistantPayloadPolicy = readFileSync(new URL("../shared/support-assistant-payload-policy.ts", import.meta.url), "utf8");
 const envExample = readFileSync(new URL("../.env.local.example", import.meta.url), "utf8");
 
 const actionId = "11111111-1111-4111-8111-111111111111";
@@ -100,7 +101,9 @@ test("binds the grant to the device and fails closed on an invalid signed prepar
 
 test("keeps the adapter disabled by default and requires its receipt before visible success", () => {
   assert.match(envExample, /SUPPORT_AGENT_CREATE_REQUEST_ACTION_ENABLED=false/);
-  assert.match(page, /typeof value\.requestActionAuthorized === "boolean"/);
+  assert.match(page, /return isValidSupportAssistantPayload\(value\)/);
+  assert.match(assistantPayloadPolicy, /typeof value\.requestActionAuthorized !== "boolean"/);
+  assert.match(assistantPayloadPolicy, /if \(value\.requestActionAuthorized\)/);
   assert.match(page, /setAssistantRequestActionExpected\(requestActionAuthorized\)/);
   assert.match(page, /isSupportRequestCreationPayload\([\s\S]+!classicForm && assistantRequestActionExpected/);
   const validatorStart = page.indexOf("function isSupportRequestCreationPayload");

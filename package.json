@@ -200,7 +200,7 @@
     "test:support-public-list-payload": "node --import ./scripts/ts-test-resolver.mjs --experimental-strip-types scripts/test-support-public-list-payload.mjs",
     "test:support-public-detail-payload": "node --import ./scripts/ts-test-resolver.mjs --experimental-strip-types scripts/test-support-public-detail-payload.mjs",
     "test:support-public-upload-reservation": "node scripts/test-support-public-upload-reservation.mjs",
-    "test:support-assistant-client-payload": "node scripts/test-support-assistant-client-payload.mjs",
+    "test:support-assistant-client-payload": "node --import ./scripts/ts-test-resolver.mjs --experimental-strip-types scripts/test-support-assistant-client-payload.mjs",
     "test:support-magic-access-payload": "node scripts/test-support-magic-access-payload.mjs",
     "test:support-request-creation-payload": "node scripts/test-support-request-creation-payload.mjs",
     "test:public-content-client-payload": "node --experimental-strip-types scripts/test-public-content-client-payload.mjs",

@@ -727,6 +727,13 @@ l'autorisation de quota définie par le propriétaire.
   au-delà du plafond pour détecter le dépassement ; l'API refuse alors le dossier
   avant toute construction de réponse et indique qu'aucun historique partiel
   n'a été affiché. T027B21 est terminée.
+- Lot N5ZZL : contrat exact de réponse de l'assistant. **Implémenté sans donnée
+  réelle, migration ni action externe** : l'API projette explicitement les vingt
+  et un champs publics au lieu de propager l'objet interne. Serveur et navigateur
+  partagent un validateur qui refuse champ caché, source dupliquée, valeur hors
+  nomenclature, compteur de tours contradictoire, action non prête et reçu absent,
+  mal formé ou trop long. Une réponse invalide provoque le repli déterministe et
+  n'est jamais affichée comme une réponse fiable. T023E est terminée.
 
 ## Prochaine séquence verrouillée
 

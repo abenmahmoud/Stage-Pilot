@@ -20,6 +20,7 @@ import {
   supportAssistantRoutingReviewEnabled,
   type SupportAssistantActionGrant,
 } from "../../shared/support-assistant-routing-receipt.js";
+import { isValidSupportAssistantPayload } from "../../shared/support-assistant-payload-policy.js";
 import { loadPublicKnowledgeContext } from "../_shared/public-knowledge-context.js";
 
 function cleanMessages(value: unknown): SupportAgentMessage[] {
@@ -143,12 +144,33 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           secret: process.env.SUPPORT_HASH_SECRET,
         })
       : null;
-    return {
-      ...result,
+    const payload = {
+      reply: result.reply,
+      category: result.category,
+      requesterType: result.requesterType,
+      urgency: result.urgency,
+      confidence: result.confidence,
+      missingInformation: result.missingInformation,
+      suggestedDocuments: result.suggestedDocuments,
+      readyToCreate: result.readyToCreate,
+      safetyNotice: result.safetyNotice,
+      detectedLanguage: result.detectedLanguage,
+      internalSummaryFr: result.internalSummaryFr,
+      usedAi: result.usedAi,
+      scope: result.scope,
+      action: result.action,
+      turnCount: result.turnCount,
+      remainingTurns: result.remainingTurns,
+      limitReached: result.limitReached,
+      sourceReferences: result.sourceReferences.map(({ title, updatedAt }) => ({ title, updatedAt })),
       routingReceipt: signedRouting?.receipt ?? null,
       routingReceiptExpiresAt: signedRouting?.expiresAt ?? null,
       requestActionAuthorized: actionGrant !== null && signedRouting !== null,
     };
+    if (!isValidSupportAssistantPayload(payload)) {
+      throw new HttpError(503, "La réponse de l’assistant est invalide. Réessayez.");
+    }
+    return payload;
   });
 }
 
