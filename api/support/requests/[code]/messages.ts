@@ -16,12 +16,16 @@ import {
 import { SUPPORT_RATE_LIMIT_POLICIES } from "../../../../shared/support-rate-limit-policy.js";
 import { createSupportRequesterMessageConfirmation } from "../../../../shared/support-requester-message-confirmation.js";
 import { verifySupportRequesterMessageMutationPayload } from "../../../../shared/support-public-mutation-payload-policy.js";
+import {
+  isSupportRequesterMessageInput,
+  singleSupportQueryValue,
+} from "../../../../shared/support-public-mutation-input-policy.js";
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== "POST") return methodNotAllowed(res, ["POST"]);
 
   return handleApi(res, async () => {
-    const code = Array.isArray(req.query.code) ? req.query.code[0] : req.query.code;
+    const code = singleSupportQueryValue(req.query.code);
     if (!code || !/^BC-\d{4}-\d{6}$/.test(code)) {
       throw new HttpError(400, "Numéro de demande invalide");
     }
@@ -31,8 +35,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       keyHash: personalHash(`message:${access.sessionId}`),
     });
     const messageIdempotencyHash = sha256(idempotencyKey(req));
-    const body = req.body as Record<string, unknown>;
-    if (typeof body?.message !== "string") throw new HttpError(400, "Message requis");
+    if (!isSupportRequesterMessageInput(req.body)) throw new HttpError(400, "Message invalide");
+    const body = req.body;
     const text = body.message
       .replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F]/g, "")
       .trim();

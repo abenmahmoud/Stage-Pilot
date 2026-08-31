@@ -103,6 +103,10 @@ quarantaine. Une panne d'envoi externe n'affecte pas le dossier.
   validées côté API puis navigateur avant succès visible, effacement d'un
   brouillon ou suppression de la mémoire locale. Les reçus internes ajoutés par
   erreur sont refusés au lieu d'être ignorés.
+- [x] **T016K** Fermer les entrées des mutations du suivi public : corps exacts
+  pour message, réservation et confirmation de fichier, champs inconnus, types
+  ou longueurs hors limites refusés avant lecture métier, et paramètres
+  dynamiques répétés refusés sans jamais choisir silencieusement le premier.
 - [x] **T017** Construire la file agent paginée avec filtres, SLA et assignation.
 - [x] **T017A** Protéger les modifications et réponses par révision, rendre la
   prise en charge atomique et actualiser l'écran après un conflit.

@@ -12,6 +12,7 @@ import {
 } from "../../_shared/support-rate-limits.js";
 import { createSupportAttachmentRemovalConfirmation } from "../../../shared/support-attachment-removal-confirmation.js";
 import { verifySupportAttachmentRemovalMutationPayload } from "../../../shared/support-public-mutation-payload-policy.js";
+import { singleSupportQueryValue } from "../../../shared/support-public-mutation-input-policy.js";
 
 const REMOVABLE_REQUESTER_STATUSES = ["awaiting_upload", "blocked", "scan_error"] as const;
 
@@ -49,8 +50,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   return handleApi(res, async () => {
-    const id = Array.isArray(req.query.id) ? req.query.id[0] : req.query.id;
-    const code = Array.isArray(req.query.code) ? req.query.code[0] : req.query.code;
+    const id = singleSupportQueryValue(req.query.id);
+    const code = singleSupportQueryValue(req.query.code);
     if (!id || !/^[0-9a-f-]{36}$/i.test(id)) throw new HttpError(400, "Pièce jointe invalide");
     if (!code || !/^BC-\d{4}-\d{6}$/.test(code)) throw new HttpError(400, "Numéro de demande invalide");
 

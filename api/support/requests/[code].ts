@@ -12,6 +12,7 @@ import { handleApi, methodNotAllowed } from "../../_shared/response.js";
 import { requireSupportAccess } from "../../_shared/support.js";
 import { SUPPORT_PUBLIC_DETAIL_LIMITS } from "../../../shared/support-public-detail-limits.js";
 import { selectSupportPublicSubjectContext } from "../../../shared/support-public-detail-payload-policy.js";
+import { singleSupportQueryValue } from "../../../shared/support-public-mutation-input-policy.js";
 
 function assertCompletePublicDetailCollection(
   rowCount: number,
@@ -30,7 +31,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== "GET") return methodNotAllowed(res, ["GET"]);
 
   return handleApi(res, async () => {
-    const code = Array.isArray(req.query.code) ? req.query.code[0] : req.query.code;
+    const code = singleSupportQueryValue(req.query.code);
     if (!code || !/^BC-\d{4}-\d{6}$/.test(code)) {
       throw new HttpError(400, "Numéro de demande invalide");
     }

@@ -9,6 +9,10 @@ import { requireSupportAccess } from "../../../_shared/support.js";
 import { enforceAttachmentConfirmationRateLimit } from "../../../_shared/support-rate-limits.js";
 import { readBoundedBlobBytes } from "../../../../shared/bounded-blob.js";
 import { isSupportAttachmentConfirmationPayload } from "../../../../shared/support-public-mutation-payload-policy.js";
+import {
+  isSupportAttachmentConfirmationInput,
+  singleSupportQueryValue,
+} from "../../../../shared/support-public-mutation-input-policy.js";
 
 const MAX_FILE_BYTES = 10 * 1024 * 1024;
 
@@ -53,15 +57,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== "POST") return methodNotAllowed(res, ["POST"]);
 
   return handleApi(res, async () => {
-    const attachmentId = Array.isArray(req.query.id) ? req.query.id[0] : req.query.id;
-    const publicCode = (req.body as Record<string, unknown> | undefined)?.publicCode;
+    const attachmentId = singleSupportQueryValue(req.query.id);
+    if (!isSupportAttachmentConfirmationInput(req.body)) {
+      throw new HttpError(400, "Numéro de demande invalide");
+    }
+    const publicCode = req.body.publicCode;
     if (!attachmentId || !/^[0-9a-f-]{36}$/i.test(attachmentId)) {
       throw new HttpError(400, "Pièce jointe invalide");
     }
-    if (typeof publicCode !== "string" || !/^BC-\d{4}-\d{6}$/.test(publicCode)) {
-      throw new HttpError(400, "Numéro de demande invalide");
-    }
-
     const access = await requireSupportAccess(req, publicCode);
     await enforceAttachmentConfirmationRateLimit(access.sessionId);
     const [attachment] = await db

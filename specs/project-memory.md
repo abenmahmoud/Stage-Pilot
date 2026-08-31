@@ -3920,3 +3920,14 @@ taches et analyse de coherence avant une automatisation sensible.
   au message ou à la pièce et à leur preuve durable.
 - Les contrôles utilisent uniquement des identifiants et dates fictifs ; aucune
   base distante, donnée réelle, production ou intégration externe n'est appelée.
+
+## 2026-09-01 - Entrées publiques du suivi à contrat fermé
+
+- T016K partage les contrats exacts des messages demandeur, réservations de
+  fichier et confirmations de dépôt avant toute lecture ou action métier.
+- Les champs inconnus, types incorrects, tailles hors limites et paramètres
+  dynamiques répétés sont refusés. Une requête ambiguë ne choisit jamais
+  silencieusement le premier numéro de dossier ou identifiant de pièce.
+- Six scénarios ciblés couvrent les champs exacts, les bornes et les paramètres
+  répétés. Le lot n'appelle ni base distante, service externe, donnée réelle ou
+  production et ne modifie aucun DNS, VPS, ENT, PRONOTE ou webmail.

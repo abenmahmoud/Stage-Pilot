@@ -11,6 +11,10 @@ import {
   requireSupportAccess,
 } from "../../../_shared/support.js";
 import { enforceAttachmentReservationRateLimit } from "../../../_shared/support-rate-limits.js";
+import {
+  isSupportRequesterAttachmentReservationInput,
+  singleSupportQueryValue,
+} from "../../../../shared/support-public-mutation-input-policy.js";
 
 const MAX_FILE_BYTES = 10 * 1024 * 1024;
 const MAX_FILES_PER_REQUEST = 5;
@@ -78,14 +82,17 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== "POST") return methodNotAllowed(res, ["POST"]);
 
   return handleApi(res, async () => {
-    const code = Array.isArray(req.query.code) ? req.query.code[0] : req.query.code;
+    const code = singleSupportQueryValue(req.query.code);
     if (!code || !/^BC-\d{4}-\d{6}$/.test(code)) {
       throw new HttpError(400, "Numéro de demande invalide");
     }
 
     const access = await requireSupportAccess(req, code);
     await enforceAttachmentReservationRateLimit(access.sessionId);
-    const body = (req.body ?? {}) as Record<string, unknown>;
+    if (!isSupportRequesterAttachmentReservationInput(req.body)) {
+      throw new HttpError(400, "Données du fichier invalides");
+    }
+    const body = req.body;
     const originalName = requiredText(body.fileName, "Nom du fichier", 180);
     assertNoForbiddenSupportSecret(originalName);
     const declaredMime = requiredText(body.mimeType, "Type du fichier", 150).toLowerCase();
