@@ -21,12 +21,16 @@ import {
 } from "../../_shared/support.js";
 import { enforceMagicTokenNetworkGuard } from "../../_shared/support-rate-limits.js";
 import { requireConfiguredInstitution } from "../../_shared/institution-context.js";
+import { isSupportMagicAccessPayload } from "../../../shared/support-magic-access-payload-policy.js";
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== "POST") return methodNotAllowed(res, ["POST"]);
 
   return handleApi(res, async () => {
-    const rawMagicToken = Array.isArray(req.query.token) ? req.query.token[0] : req.query.token;
+    if (Array.isArray(req.query.token)) {
+      throw new HttpError(400, "Lien de suivi invalide");
+    }
+    const rawMagicToken = req.query.token;
     if (!rawMagicToken || !/^[A-Za-z0-9_-]{40,60}$/.test(rawMagicToken)) {
       throw new HttpError(400, "Lien de suivi invalide");
     }
@@ -187,8 +191,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return { publicCode: magic.publicCode };
     });
 
+    const payload = { request: result };
+    if (!isSupportMagicAccessPayload(payload, result.publicCode)) {
+      throw new HttpError(503, "La confirmation du lien de suivi est invalide.");
+    }
     setSupportSessionCookie(res, newSessionToken);
-    return { request: result };
+    return payload;
   });
 }
 

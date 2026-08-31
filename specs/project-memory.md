@@ -3897,3 +3897,15 @@ taches et analyse de coherence avant une automatisation sensible.
 - Dix-neuf scénarios ciblés et le build passent avec des données fictives. Le lot
   ne touche ni base réelle, production, DNS, VPS, ENT, PRONOTE ou webmail et
   n'active aucun worker.
+
+## 2026-09-01 - Preuve email sans mot de passe durcie
+
+- T010B3A formalise le lien email à usage unique existant comme premier parcours
+  de preuve de contact sans compte ni mot de passe. Le jeton expire après trente
+  minutes, est consommé atomiquement et remplace la session appareil précédente.
+- Le navigateur retire le jeton de l'adresse avant tout appel réseau, y compris
+  lorsque le guichet est désactivé. La route refuse les paramètres répétés et ne
+  retourne que le numéro public validé avant l'émission du cookie.
+- Cette preuve marque uniquement l'adresse du dossier comme contact vérifié ;
+  elle ne confirme jamais l'identité scolaire. Douze scénarios ciblés passent
+  sans adresse réelle, envoi, base distante, production ou service externe.

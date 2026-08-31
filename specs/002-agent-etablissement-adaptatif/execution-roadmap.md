@@ -761,6 +761,14 @@ l'autorisation de quota définie par le propriétaire.
   bornent la pagination, les lignes et les anomalies, et ignorent toute réponse
   périmée. Dix-neuf scénarios ciblés couvrent le contrat et le cycle existant.
   T010B2A2 est terminée.
+- Lot N5ZZP : preuve email sans mot de passe. **Durcie sans adresse réelle ni
+  envoi externe** : le lien de trente minutes est consommé sous transaction,
+  remplace la session appareil et ne vérifie que le contact du dossier. Le jeton
+  disparaît de l'adresse avant tout appel, même si le guichet est désactivé ; un
+  paramètre répété est refusé. API et navigateur partagent une réponse exacte
+  limitée au numéro public, validée avant cookie ou changement d'écran. Douze
+  scénarios ciblés couvrent contrat, rotation et séparation de l'identité.
+  T010B3A est terminée ; T010B3 reste ouverte pour le code numérique ou téléphone.
 
 ## Prochaine séquence verrouillée
 

@@ -112,6 +112,7 @@ import { isValidSupportAgentDetailPayload } from "../../../shared/support-agent-
 import { isValidSupportPublicDetailPayload } from "../../../shared/support-public-detail-payload-policy";
 import { isValidSupportPublicListPayload } from "../../../shared/support-public-list-payload-policy";
 import { isValidSupportAssistantPayload } from "../../../shared/support-assistant-payload-policy";
+import { isSupportMagicAccessPayload } from "../../../shared/support-magic-access-payload-policy";
 import {
   hasSupportAgentWorkDraft,
   readSupportAgentWorkDraft,
@@ -555,10 +556,12 @@ export default function LyceeConnectPrototype() {
   const homeAssistantRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
-    if (!SUPPORT_API_ENABLED) return;
     const url = new URL(window.location.href);
     const token = url.searchParams.get("support_token");
     if (!token) return;
+    url.searchParams.delete("support_token");
+    window.history.replaceState({}, "", url);
+    if (!SUPPORT_API_ENABLED) return;
     readApiResponse<unknown>(
       fetch(`/api/support/access/${encodeURIComponent(token)}`, {
         method: "POST",
@@ -571,13 +574,8 @@ export default function LyceeConnectPrototype() {
         }
         setTicketCreated(payload.request.publicCode);
         setView("requests");
-        url.searchParams.delete("support_token");
-        window.history.replaceState({}, "", url);
       })
-      .catch(() => {
-        url.searchParams.delete("support_token");
-        window.history.replaceState({}, "", url);
-      });
+      .catch(() => undefined);
   }, []);
 
   function changeView(nextView: View) {
@@ -2800,13 +2798,6 @@ function isBoundedString(value: unknown, maxLength: number, allowEmpty = false):
 
 function isPublicSupportDate(value: unknown): value is string {
   return isBoundedString(value, 40) && Number.isFinite(Date.parse(value));
-}
-
-function isSupportMagicAccessPayload(value: unknown): value is { request: { publicCode: string } } {
-  return isRecord(value)
-    && isRecord(value.request)
-    && typeof value.request.publicCode === "string"
-    && /^BC-\d{4}-\d{6}$/.test(value.request.publicCode);
 }
 
 function isSupportRequestCreationPayload(value: unknown, requireAgentAction: boolean): value is {

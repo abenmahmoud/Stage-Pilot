@@ -126,6 +126,11 @@
   seulement le motif générique `secret_forbidden` et ne recopie jamais la valeur.
 - [ ] T010B3 Brancher l'OTP de contact à usage unique avec limites, expiration,
   session rotative et révocation, sans promouvoir ce contact en identité scolaire.
+- [x] T010B3A Fermer le premier parcours sans mot de passe par lien email à usage
+  unique : jeton de trente minutes consommé atomiquement, limite réseau, session
+  appareil rotative et révocable, contact email vérifié seulement pour le suivi,
+  réponse minimale exacte validée avant cookie et retrait du jeton de l'URL avant
+  tout appel réseau. Un code numérique ou un canal téléphone reste dans T010B3.
 - [ ] T010B4 Rapprocher une identité uniquement contre une version active du
   répertoire, avec MFA agent, justification, gestion des conflits et audit.
 - [ ] T010B4A Construire en preview le canal de recherche déterministe chiffré :
