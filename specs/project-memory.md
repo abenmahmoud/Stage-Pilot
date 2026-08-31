@@ -3931,3 +3931,14 @@ taches et analyse de coherence avant une automatisation sensible.
 - Six scénarios ciblés couvrent les champs exacts, les bornes et les paramètres
   répétés. Le lot n'appelle ni base distante, service externe, donnée réelle ou
   production et ne modifie aucun DNS, VPS, ENT, PRONOTE ou webmail.
+
+## 2026-09-01 - Traduction agent à contrat fermé
+
+- T023G accepte uniquement une commande `sourceMessage` bornée et refuse un
+  numéro de dossier répété avant toute lecture métier ou traduction.
+- L'API projette six champs exacts, puis le serveur et le navigateur contrôlent
+  langue attendue, textes, avertissements, reçu signé et expiration proche. Un
+  champ interne, une autre langue ou une proposition expirée n'est pas affiché.
+- Douze tests ciblés couvrent le masquage, le reçu, la validation humaine et les
+  contrats réseau ; le build passe sans appel externe réel, donnée réelle, base
+  distante, production, DNS, VPS, ENT, PRONOTE ou webmail.

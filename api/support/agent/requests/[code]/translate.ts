@@ -23,17 +23,23 @@ import {
   createSupportTranslationReceipt,
   prepareSupportTranslation,
 } from "../../../../_shared/support-translation.js";
+import {
+  isSupportAgentTranslationInput,
+  isValidSupportAgentTranslationPayload,
+} from "../../../../../shared/support-agent-translation-payload-policy.js";
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== "POST") return methodNotAllowed(res, ["POST"]);
   return handleApi(res, async () => {
     const { user, access, institutionId } = await requireSupportAgent(req);
-    const code = Array.isArray(req.query.code) ? req.query.code[0] : req.query.code;
+    const code = typeof req.query.code === "string" ? req.query.code : null;
     if (!code || !/^BC-\d{4}-\d{6}$/.test(code)) {
       throw new HttpError(400, "Numéro de demande invalide");
     }
-    const body = (req.body ?? {}) as Record<string, unknown>;
-    const sourceMessage = normalizeSupportReplyText(body.sourceMessage, 5_000);
+    if (!isSupportAgentTranslationInput(req.body)) {
+      throw new HttpError(400, "Message de traduction invalide");
+    }
+    const sourceMessage = normalizeSupportReplyText(req.body.sourceMessage, 5_000);
     if (!sourceMessage) throw new HttpError(400, "Rédigez d’abord la réponse en français");
     assertNoForbiddenSupportSecret(sourceMessage);
 
@@ -97,14 +103,20 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         translatedMessage: draft.translatedText,
         targetLanguage,
       });
-      return {
+      const payload = {
         translation: {
-          ...draft,
+          translatedText: draft.translatedText,
+          backTranslationFr: draft.backTranslationFr,
+          warnings: draft.warnings,
           targetLanguage,
           receipt: signed.receipt,
           expiresAt: signed.expiresAt,
         },
       };
+      if (!isValidSupportAgentTranslationPayload(payload, { expectedTargetLanguage: targetLanguage })) {
+        throw new SupportTranslationFailure("invalid_output", "La traduction reçue est incomplète");
+      }
+      return payload;
     } catch (error) {
       if (error instanceof SupportTranslationFailure) {
         const status = error.code === "not_configured" ? 503 : 502;

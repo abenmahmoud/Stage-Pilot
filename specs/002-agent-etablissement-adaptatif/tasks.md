@@ -330,6 +330,11 @@
   terminé par le demandeur, dix tours au maximum et métadonnées de pièces
   jointes réelles refusées hors des types et tailles autorisés, sans troncature
   ni correction silencieuse.
+- [x] T023G Fermer le contrat de traduction agent de bout en bout : commande à
+  champ unique et message borné, numéro de dossier non ambigu, réponse exacte
+  liée à la langue attendue, textes et avertissements bornés, reçu signé de
+  courte durée et validation serveur puis navigateur avant affichage. La
+  comparaison et l'autorisation humaines restent obligatoires avant envoi.
 - [x] T024A Autoriser le contexte public à tous, le contexte interne uniquement
   aux agents de rôle habilité avec I3 ou I4 dans le service de la source, et interdire l'injection directe des
   classifications personnelles ou sensibles, même pour un administrateur.

@@ -134,6 +134,7 @@ import {
   SUPPORT_IDENTITY_VERIFICATION_MESSAGE,
   supportTranslationTargetLanguage,
 } from "../../../shared/support-reply-policy";
+import { isValidSupportAgentTranslationPayload } from "../../../shared/support-agent-translation-payload-policy";
 import {
   reconcileActiveSupportNotification,
   type ActiveSupportNotification,
@@ -3036,20 +3037,6 @@ async function fetchAgentRequestDetail(code: string): Promise<AgentRequestDetail
   return payload;
 }
 
-function isAgentTranslationPayload(value: unknown): value is {
-  translation: Omit<AgentTranslationDraft, "sourceMessage">;
-} {
-  if (!isRecord(value) || !isRecord(value.translation)) return false;
-  const translation = value.translation;
-  return typeof translation.translatedText === "string"
-    && typeof translation.backTranslationFr === "string"
-    && Array.isArray(translation.warnings)
-    && translation.warnings.every((warning) => typeof warning === "string")
-    && typeof translation.targetLanguage === "string"
-    && typeof translation.receipt === "string"
-    && typeof translation.expiresAt === "string";
-}
-
 function isSupportReplyTemplate(value: unknown): value is SupportReplyTemplate {
   if (!isRecord(value)) return false;
   const allowedVariables = ["prenom", "numero", "objet"];
@@ -3300,14 +3287,17 @@ function ConnectedAgentView({ onBack }: { onBack: () => void }) {
       && request.identityStatus !== "identite_confirmee"
       ? SUPPORT_IDENTITY_VERIFICATION_MESSAGE
       : reply.trim();
-    if (!request || !code || !sourceMessage) return;
+    const expectedTargetLanguage = supportTranslationTargetLanguage(
+      request?.subjectContext.detectedLanguage
+    );
+    if (!request || !code || !sourceMessage || !expectedTargetLanguage) return;
     setTranslating(true);
     try {
       const payload = await apiFetch<unknown>(`support/agent/requests/${code}/translate`, {
         method: "POST",
         body: JSON.stringify({ sourceMessage }),
       });
-      if (!isAgentTranslationPayload(payload)) {
+      if (!isValidSupportAgentTranslationPayload(payload, { expectedTargetLanguage })) {
         throw new Error("La proposition de traduction est incomplète");
       }
       if (selectedCodeRef.current !== code) return;
