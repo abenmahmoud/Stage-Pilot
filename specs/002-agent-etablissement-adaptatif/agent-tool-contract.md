@@ -74,6 +74,19 @@ Cette vérification constitue le socle de T028. T028 reste ouverte jusqu'à ce
 qu'un outil réel persiste atomiquement son résultat et que l'interface n'affiche
 la réussite qu'après lecture de cette preuve.
 
+Le premier adaptateur `support.create_request` est désormais implémenté derrière
+`SUPPORT_AGENT_CREATE_REQUEST_ACTION_ENABLED=false`. Le reçu HMAC de préparation
+lie l'appareil, l'établissement et la version active d'une compétence publiée
+qui autorise exactement l'outil. L'entrée persistée dans le registre est limitée
+à la catégorie, au routage, au type de demandeur, au canal et à quatre indicateurs
+booléens ; elle exclut noms, coordonnées, objet, description, conversation et
+pièces. Le passage de l'action à `running`, la création ou la reprise idempotente
+du dossier et la preuve `confirmed_at` sont écrits dans la même transaction.
+
+Cette implémentation ne vaut pas activation opérationnelle. T028 reste ouverte
+jusqu'à une recette DB de preview avec compétence fictive, activation bornée du
+drapeau, vérification des refus et nettoyage contrôlé.
+
 ## Preuve automatisée
 
 `npm run test:agent-tool-policy` couvre la liste blanche, les schémas fermés,
@@ -84,6 +97,11 @@ confirmations.
 `npm run test:agent-action-persistence` vérifie les privilèges, RLS, contraintes,
 transitions, verrous, audit et confirmation. Une recette transactionnelle sur la
 preview a également exécuté puis annulé un flux A3 fictif complet.
+
+`npm run test:support-create-request-action` vérifie la liaison du reçu à
+l'appareil et à la compétence publiée, la minimisation de l'entrée, la
+transaction action-dossier, l'idempotence et le refus d'un faux succès côté
+navigateur.
 
 `npm run test:agent-approval-inbox` vérifie le schéma fermé de décision, les
 rôles dérivés, le service immuable, le MFA, les verrous, l'expiration, la sortie

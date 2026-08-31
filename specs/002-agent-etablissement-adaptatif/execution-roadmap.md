@@ -661,6 +661,14 @@ l'autorisation de quota définie par le propriétaire.
   prétend jamais avoir transmis une alerte et ne déclenche aucune réparation.
   T057 reste ouverte pour les responsables, seuils métier, alertes externes et
   restauration distante validés.
+- Lot N5ZZC : premier adaptateur d'action de l'agent. **Implémenté mais désactivé
+  par défaut, sans donnée réelle ni production** : `support.create_request`
+  exige un reçu signé lié à l'appareil et à une version active de compétence
+  publiée. L'action A2 et le dossier sont persistés dans la même transaction ;
+  la console publique n'affiche le succès qu'après vérification de la preuve
+  `confirmed_at` liée au numéro. Le registre ne reçoit que des catégories et
+  indicateurs minimaux. T028 reste ouverte pour la recette DB de preview avec
+  compétence fictive, activation bornée du drapeau et nettoyage contrôlé.
 
 ## Prochaine séquence verrouillée
 

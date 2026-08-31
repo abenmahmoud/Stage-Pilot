@@ -61,10 +61,16 @@ test("server confirms only after the database transaction and the UI waits for p
     prototype.indexOf("async function submitRequest"),
     prototype.indexOf("async function copyTicketCode")
   );
-  const verification = submit.indexOf("verifySupportRequestPersistenceConfirmation");
+  const verification = submit.indexOf("isSupportRequestCreationPayload");
   const visibleSuccess = submit.indexOf("setTicketCode(publicCode)");
-  const upload = submit.indexOf("uploadSupportFile(publicCode");
+  const upload = submit.indexOf("uploadRequesterFiles(publicCode");
   assert.ok(verification >= 0 && verification < upload && upload < visibleSuccess);
+  const payloadValidator = prototype.slice(
+    prototype.indexOf("function isSupportRequestCreationPayload"),
+    prototype.indexOf("function isSupportFileReservationPayload")
+  );
+  assert.match(payloadValidator, /verifySupportRequestPersistenceConfirmation/);
+  assert.match(payloadValidator, /verifySupportCreateRequestActionConfirmation/);
   assert.doesNotMatch(submit, /BC-2026-000042/);
   assert.match(submit, /création de demandes n’est pas activée/);
 });

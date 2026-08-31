@@ -6,6 +6,7 @@ import { initialSupportStatus } from "../../../shared/support-routing.js";
 import { supportDuplicateWindowStart } from "../../../shared/support-duplicate-policy.js";
 import { createSupportRequestPersistenceConfirmation } from "../../../shared/support-request-confirmation.js";
 import {
+  supportAgentCreateRequestActionEnabled,
   supportAssistantRoutingReviewEnabled,
   verifySupportAssistantRoutingReceipt,
 } from "../../../shared/support-assistant-routing-receipt.js";
@@ -21,6 +22,11 @@ import {
   supportSessionRequests,
 } from "../../../db/schema.js";
 import { handleApi, methodNotAllowed } from "../../_shared/response.js";
+import { HttpError } from "../../_shared/auth.js";
+import {
+  completeSupportCreateRequestAction,
+  startSupportCreateRequestAction,
+} from "../../_shared/support-create-request-action.js";
 import {
   SUPPORT_MAGIC_TOKEN_MINUTES,
   SUPPORT_SESSION_DAYS,
@@ -89,15 +95,32 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       }
       await enforceSupportRequestCreationLimits({ parsed: input, deviceKey });
       const institution = await requireConfiguredInstitution();
-      const verifiedRoutingReceipt = supportAssistantRoutingReviewEnabled()
+      const routingReviewEnabled = supportAssistantRoutingReviewEnabled();
+      const createRequestActionEnabled = supportAgentCreateRequestActionEnabled();
+      const verifiedRoutingReceipt = (routingReviewEnabled || createRequestActionEnabled)
         ? verifySupportAssistantRoutingReceipt({
             receipt: input.assistantRoutingReceipt,
             institutionId: institution.id,
             category: input.category,
             service: input.routing.service,
+            expectedRequesterRefHash: deviceKey,
             secret: process.env.SUPPORT_HASH_SECRET,
           })
         : null;
+      if (
+        input.assistantRoutingReceipt
+        && (routingReviewEnabled || createRequestActionEnabled)
+        && !verifiedRoutingReceipt
+      ) {
+        throw new HttpError(
+          400,
+          "La préparation de l’assistant a expiré ou ne correspond plus à cette demande."
+        );
+      }
+      const actionGrant = createRequestActionEnabled
+        ? verifiedRoutingReceipt?.actionGrant ?? null
+        : null;
+      const routingReviewReceipt = routingReviewEnabled ? verifiedRoutingReceipt : null;
       const idempotencyHash = sha256(idempotencyKey(req));
       const correlationId = randomUUID();
       const requesterJobId = randomUUID();
@@ -106,6 +129,16 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
       const result = await db.transaction(async (tx) => {
         const session = await getOrCreateDeviceSession(tx, req);
+        const createRequestAction = actionGrant
+          ? await startSupportCreateRequestAction({
+              tx,
+              institutionId: institution.id,
+              grant: actionGrant,
+              supportInput: input,
+              requesterRefHash: deviceKey ?? "",
+              requestIdempotencyHash: idempotencyHash,
+            })
+          : null;
         const [existing] = await tx
           .select({
             id: supportRequests.id,
@@ -125,7 +158,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             .insert(supportSessionRequests)
             .values({ sessionId: session.id, requestId: existing.id })
             .onConflictDoNothing();
-          return { ...existing, sessionToken: session.rawToken, duplicate: true };
+          const agentAction = createRequestAction
+            ? await completeSupportCreateRequestAction({
+                tx,
+                action: createRequestAction,
+                request: existing,
+                duplicate: true,
+              })
+            : null;
+          return { ...existing, sessionToken: session.rawToken, duplicate: true, agentAction };
         }
 
         const contactHashes = [input.email, input.phone]
@@ -203,7 +244,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             .insert(supportSessionRequests)
             .values({ sessionId: session.id, requestId: racedRequest.id })
             .onConflictDoNothing();
-          return { ...racedRequest, sessionToken: session.rawToken, duplicate: true };
+          const agentAction = createRequestAction
+            ? await completeSupportCreateRequestAction({
+                tx,
+                action: createRequestAction,
+                request: racedRequest,
+                duplicate: true,
+              })
+            : null;
+          return { ...racedRequest, sessionToken: session.rawToken, duplicate: true, agentAction };
         }
 
         const contacts = [
@@ -259,15 +308,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           .find((message) => message.direction === "inbound");
         if (!sourceMessage) throw new Error("Support request transcript has no requester message");
 
-        const [attachedRoutingReview] = verifiedRoutingReceipt
+        const [attachedRoutingReview] = routingReviewReceipt
           ? await tx
               .insert(supportAssistantRoutingReviews)
               .values({
                 institutionId: institution.id,
                 requestId: created.id,
-                receiptHash: verifiedRoutingReceipt.receiptHash,
-                usedAi: verifiedRoutingReceipt.usedAi,
-                model: verifiedRoutingReceipt.model,
+                receiptHash: routingReviewReceipt.receiptHash,
+                usedAi: routingReviewReceipt.usedAi,
+                model: routingReviewReceipt.model,
                 initialCategory: input.category,
                 initialService: input.routing.service,
               })
@@ -366,7 +415,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           )
         `);
 
-        return { ...created, sessionToken: session.rawToken, duplicate: false };
+        const agentAction = createRequestAction
+          ? await completeSupportCreateRequestAction({
+              tx,
+              action: createRequestAction,
+              request: created,
+              duplicate: false,
+            })
+          : null;
+        return { ...created, sessionToken: session.rawToken, duplicate: false, agentAction };
       });
 
       if (result.sessionToken) setSupportSessionCookie(res, result.sessionToken);
@@ -382,6 +439,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           createdAt: result.createdAt,
         },
         confirmation,
+        agentAction: result.agentAction,
         duplicate: result.duplicate,
       };
     });

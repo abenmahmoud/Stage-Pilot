@@ -82,6 +82,7 @@ import {
   summarizeSupportDescription,
 } from "../../../shared/support-conversation";
 import { verifySupportRequestPersistenceConfirmation } from "../../../shared/support-request-confirmation";
+import { verifySupportCreateRequestActionConfirmation } from "../../../shared/support-create-request-action-confirmation";
 import { verifySupportRequestMutationConfirmation } from "../../../shared/support-request-mutation-confirmation";
 import { verifySupportAgentReplyConfirmation } from "../../../shared/support-agent-reply-confirmation";
 import { verifySupportRequesterMessageConfirmation } from "../../../shared/support-requester-message-confirmation";
@@ -1120,6 +1121,7 @@ type AssistantInsight = {
 type AssistantApiResult = AssistantInsight & {
   routingReceipt: string | null;
   routingReceiptExpiresAt: string | null;
+  requestActionAuthorized: boolean;
 };
 
 function inferSupportCategory(text: string): SupportCategory {
@@ -1216,6 +1218,7 @@ function HelpDeskView({
   const [chatInput, setChatInput] = useState("");
   const [insight, setInsight] = useState<AssistantInsight | null>(null);
   const [assistantRoutingReceipt, setAssistantRoutingReceipt] = useState<string | null>(null);
+  const [assistantRequestActionExpected, setAssistantRequestActionExpected] = useState(false);
   const [assistantBusy, setAssistantBusy] = useState(false);
   const [showDetails, setShowDetails] = useState(initialClassicForm);
   const [classicForm, setClassicForm] = useState(initialClassicForm);
@@ -1334,6 +1337,7 @@ function HelpDeskView({
     setSubmitError(null);
     let result: AssistantInsight = localAssistantFallback(nextMessages, files);
     let routingReceipt: string | null = null;
+    let requestActionAuthorized = false;
     if (AI_ASSISTANT_ENABLED) {
       try {
         const apiResult = await apiFetch<unknown>("support/assistant", {
@@ -1348,14 +1352,21 @@ function HelpDeskView({
         if (!isAssistantApiResult(apiResult)) {
           throw new Error("La réponse de l'assistant est invalide.");
         }
-        const { routingReceipt: signedReceipt, routingReceiptExpiresAt: _expiresAt, ...assistantResult } = apiResult;
+        const {
+          routingReceipt: signedReceipt,
+          routingReceiptExpiresAt: _expiresAt,
+          requestActionAuthorized: authorizedAction,
+          ...assistantResult
+        } = apiResult;
         result = assistantResult;
         routingReceipt = signedReceipt;
+        requestActionAuthorized = authorizedAction;
       } catch {
         result = localAssistantFallback(nextMessages, files);
       }
     }
     setAssistantRoutingReceipt(routingReceipt);
+    setAssistantRequestActionExpected(requestActionAuthorized);
     setInsight(result);
     setCategory(result.category);
     if (result.requesterType !== "inconnu" && !profile) setProfile(result.requesterType);
@@ -1394,6 +1405,7 @@ function HelpDeskView({
     setChatInput("");
     setInsight(null);
     setAssistantRoutingReceipt(null);
+    setAssistantRequestActionExpected(false);
     setShowDetails(false);
     setClassicForm(false);
     setProfile("");
@@ -1497,7 +1509,10 @@ function HelpDeskView({
           }),
         });
       const payload = await readApiResponse<unknown>(response);
-      if (!isSupportRequestCreationPayload(payload)) {
+      if (!isSupportRequestCreationPayload(
+        payload,
+        !classicForm && assistantRequestActionExpected
+      )) {
         throw new Error("La demande n’a pas pu être confirmée après son enregistrement");
       }
       const publicCode = payload.request.publicCode;
@@ -2771,9 +2786,10 @@ function isSupportMagicAccessPayload(value: unknown): value is { request: { publ
     && /^BC-\d{4}-\d{6}$/.test(value.request.publicCode);
 }
 
-function isSupportRequestCreationPayload(value: unknown): value is {
+function isSupportRequestCreationPayload(value: unknown, requireAgentAction: boolean): value is {
   request: { publicCode: string; status: string; createdAt: string };
   confirmation: unknown;
+  agentAction: unknown;
   duplicate: boolean;
 } {
   if (!isRecord(value) || !isRecord(value.request)) return false;
@@ -2789,6 +2805,17 @@ function isSupportRequestCreationPayload(value: unknown): value is {
     confirmation: value.confirmation,
   });
   if (!confirmation) return false;
+  if (requireAgentAction) {
+    const actionConfirmation = verifySupportCreateRequestActionConfirmation({
+      expectedPublicCode: publicCode,
+      requestCreatedAt: createdAt,
+      persistenceConfirmedAt: confirmation.confirmedAt,
+      confirmation: value.agentAction,
+    });
+    if (!actionConfirmation) return false;
+  } else if (value.agentAction !== null) {
+    return false;
+  }
   const createdTime = Date.parse(createdAt);
   const confirmedTime = Date.parse(confirmation.confirmedAt);
   return createdTime <= confirmedTime
@@ -3050,6 +3077,8 @@ function isAssistantApiResult(value: unknown): value is AssistantApiResult {
     && Array.isArray(value.sourceReferences)
     && value.sourceReferences.length <= 20
     && value.sourceReferences.every(isAssistantSourceReference)
+    && typeof value.requestActionAuthorized === "boolean"
+    && (!value.requestActionAuthorized || value.routingReceipt !== null)
     && hasValidAssistantRoutingReceipt(value);
 }
 

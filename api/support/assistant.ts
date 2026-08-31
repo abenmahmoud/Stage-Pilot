@@ -16,8 +16,11 @@ import { readNextCourseForVerifiedIdentity } from "../_shared/schedule-identity-
 import { routeSupportRequest } from "../../shared/support-routing.js";
 import {
   createSupportAssistantRoutingReceipt,
+  supportAgentCreateRequestActionEnabled,
   supportAssistantRoutingReviewEnabled,
+  type SupportAssistantActionGrant,
 } from "../../shared/support-assistant-routing-receipt.js";
+import { loadPublicKnowledgeContext } from "../_shared/public-knowledge-context.js";
 
 function cleanMessages(value: unknown): SupportAgentMessage[] {
   if (!Array.isArray(value) || value.length === 0 || value.length > 21) {
@@ -93,14 +96,41 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         }
       },
     });
+    const requesterQuery = messages
+      .filter((message) => message.role === "requester")
+      .map((message) => message.content)
+      .join("\n");
     const route = routeSupportRequest({
       category: result.category,
-      description: messages
-        .filter((message) => message.role === "requester")
-        .map((message) => message.content)
-        .join("\n"),
+      description: requesterQuery,
     });
-    const signedRouting = knowledgeActor && supportAssistantRoutingReviewEnabled()
+    let actionGrant: SupportAssistantActionGrant | null = null;
+    if (
+      knowledgeActor
+      && supportAgentCreateRequestActionEnabled()
+      && (result.readyToCreate || result.action === "human_transfer")
+    ) {
+      try {
+        const context = await loadPublicKnowledgeContext({
+          query: requesterQuery,
+          actor: knowledgeActor,
+        });
+        const grantedVersion = context.versions.find((version) =>
+          version.allowedTools?.includes("support.create_request")
+        );
+        if (grantedVersion) {
+          actionGrant = {
+            toolKey: "support.create_request" as const,
+            skillVersionId: grantedVersion.versionId,
+            requesterRefHash: deviceKey,
+          };
+        }
+      } catch {
+        actionGrant = null;
+      }
+    }
+    const signedRouting = knowledgeActor
+      && (supportAssistantRoutingReviewEnabled() || actionGrant)
       ? createSupportAssistantRoutingReceipt({
           institutionId: knowledgeActor.institutionId,
           category: result.category,
@@ -109,6 +139,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           model: result.usedAi
             ? process.env.OPENAI_SUPPORT_MODEL || "gpt-5.6-luna"
             : null,
+          actionGrant,
           secret: process.env.SUPPORT_HASH_SECRET,
         })
       : null;
@@ -116,6 +147,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       ...result,
       routingReceipt: signedRouting?.receipt ?? null,
       routingReceiptExpiresAt: signedRouting?.expiresAt ?? null,
+      requestActionAuthorized: actionGrant !== null && signedRouting !== null,
     };
   });
 }

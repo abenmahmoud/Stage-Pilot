@@ -3678,3 +3678,21 @@ taches et analyse de coherence avant une automatisation sensible.
 - T027E est terminé sans intégration distante, migration, donnée réelle ou
   production. T027 reste ouvert pour la recette réseau fictive. Le brief Claude
   est préparé mais non exécuté sans autorisation bornée pour ce lot.
+
+### Jalon du 31 août 2026 - premier adaptateur d'action de l'agent
+
+- `support.create_request` est le premier outil A2 relié au parcours public. Son
+  interrupteur serveur reste faux par défaut et aucune variable distante n'a été
+  modifiée.
+- Le reçu signé lie l'appareil, l'établissement, le routage, la clé d'outil et la
+  version active d'une compétence publiée. Une compétence sans cette autorisation
+  exacte ne peut pas préparer l'action.
+- L'action passe à `running`, puis le dossier et sa preuve `confirmed_at` sont
+  écrits dans la même transaction idempotente. Le navigateur refuse le succès si
+  la preuve d'action est absente, discordante, ancienne ou future.
+- Le registre d'action conserve uniquement catégorie, service, type de demandeur,
+  canal et indicateurs booléens. Il exclut identité, coordonnées, objet,
+  description, conversation et pièces.
+- T028J est terminé. T028 reste ouverte pour une recette DB de preview avec une
+  compétence strictement fictive, l'activation bornée du drapeau et le nettoyage
+  contrôlé. Aucun audit externe n'a été exécuté pour ce lot.

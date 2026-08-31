@@ -23,6 +23,8 @@ test("bounds assistant fields, actions, sources and turns", () => {
   assert.match(page, /value\.remainingTurns <= 10/);
   assert.match(page, /value\.sourceReferences\.length <= 20/);
   assert.match(page, /value\.sourceReferences\.every\(isAssistantSourceReference\)/);
+  assert.match(page, /typeof value\.requestActionAuthorized === "boolean"/);
+  assert.match(page, /!value\.requestActionAuthorized \|\| value\.routingReceipt !== null/);
 });
 
 test("accepts only an absent receipt pair or a bounded short-lived signed receipt", () => {

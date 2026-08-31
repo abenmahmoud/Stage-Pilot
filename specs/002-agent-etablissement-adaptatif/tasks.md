@@ -472,6 +472,16 @@
   chemin, jeton ou contenu n'entre dans l'événement de réservation. T028 reste
   ouverte pour le premier adaptateur métier complet inscrit dans le registre
   des actions agent.
+- [x] T028J Implémenter le premier adaptateur métier `support.create_request`
+  derrière un interrupteur serveur fermé par défaut. Le reçu signé lie
+  l'appareil, l'établissement, le routage et une version active de compétence
+  publiée qui autorise exactement cet outil. L'action A2 passe de `planned` à
+  `running`, puis le dossier et la preuve `confirmed_at` sont persistés dans la
+  même transaction idempotente. L'entrée d'audit exclut noms, coordonnées,
+  objet, description et conversation. Le navigateur exige le reçu lié au
+  numéro avant tout écran de succès. T028 reste ouverte jusqu'à la recette DB de
+  preview avec une compétence strictement fictive, l'activation bornée du
+  drapeau et le nettoyage contrôlé.
 - [x] T029 Ajouter formulaire classique et création de demande sans dépendance à l'IA.
 - [x] T030 Ajouter mesure du coût, de la latence, des transferts et des corrections.
 - [x] T030A Mesurer chaque passage de l'assistant public sans contenu personnel :

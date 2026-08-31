@@ -4,6 +4,7 @@ import type { SchoolService } from "./support-routing.js";
 const RECEIPT_VERSION = 1;
 const RECEIPT_TTL_SECONDS = 15 * 60;
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+const SHA256_PATTERN = /^[a-f0-9]{64}$/;
 const CATEGORY_PATTERN = /^[a-z][a-z0-9_]{1,39}$/;
 const SERVICES = new Set<SchoolService>([
   "referent_numerique",
@@ -15,6 +16,12 @@ const SERVICES = new Set<SchoolService>([
   "administration",
 ]);
 
+export type SupportAssistantActionGrant = {
+  toolKey: "support.create_request";
+  skillVersionId: string;
+  requesterRefHash: string;
+};
+
 type RoutingReceiptClaims = {
   v: 1;
   institutionId: string;
@@ -22,6 +29,7 @@ type RoutingReceiptClaims = {
   service: SchoolService;
   usedAi: boolean;
   model: string | null;
+  actionGrant?: SupportAssistantActionGrant | null;
   iat: number;
   exp: number;
   nonce: string;
@@ -44,6 +52,10 @@ export function supportAssistantRoutingReviewEnabled(): boolean {
   return process.env.SUPPORT_ASSISTANT_ROUTING_REVIEW_ENABLED === "true";
 }
 
+export function supportAgentCreateRequestActionEnabled(): boolean {
+  return process.env.SUPPORT_AGENT_CREATE_REQUEST_ACTION_ENABLED === "true";
+}
+
 function signature(payload: string, secret: string): string {
   return createHmac("sha256", secret)
     .update("support-assistant-routing-receipt-v1\0")
@@ -61,12 +73,24 @@ function validModel(model: string | null): boolean {
   return model === null || (model.length >= 1 && model.length <= 80 && !/[\u0000-\u001f]/.test(model));
 }
 
+function validActionGrant(value: unknown): value is SupportAssistantActionGrant {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return false;
+  const grant = value as Record<string, unknown>;
+  return Object.keys(grant).length === 3
+    && grant.toolKey === "support.create_request"
+    && typeof grant.skillVersionId === "string"
+    && UUID_PATTERN.test(grant.skillVersionId)
+    && typeof grant.requesterRefHash === "string"
+    && SHA256_PATTERN.test(grant.requesterRefHash);
+}
+
 export function createSupportAssistantRoutingReceipt(input: {
   institutionId: string;
   category: string;
   service: SchoolService;
   usedAi: boolean;
   model: string | null;
+  actionGrant?: SupportAssistantActionGrant | null;
   secret: string | undefined;
   now?: number;
   nonce?: string;
@@ -77,6 +101,9 @@ export function createSupportAssistantRoutingReceipt(input: {
     !CATEGORY_PATTERN.test(input.category) ||
     !SERVICES.has(input.service) ||
     !validModel(input.model) ||
+    (input.actionGrant !== undefined
+      && input.actionGrant !== null
+      && !validActionGrant(input.actionGrant)) ||
     (input.usedAi && input.model === null) ||
     (!input.usedAi && input.model !== null)
   ) {
@@ -92,6 +119,7 @@ export function createSupportAssistantRoutingReceipt(input: {
     service: input.service,
     usedAi: input.usedAi,
     model: input.model,
+    actionGrant: input.actionGrant ?? null,
     iat: issuedAt,
     exp: issuedAt + RECEIPT_TTL_SECONDS,
     nonce: input.nonce ?? randomUUID(),
@@ -109,6 +137,7 @@ export function verifySupportAssistantRoutingReceipt(input: {
   institutionId: string;
   category: string;
   service: SchoolService;
+  expectedRequesterRefHash?: string | null;
   secret: string | undefined;
   now?: number;
 }): VerifiedSupportAssistantRoutingReceipt | null {
@@ -136,6 +165,7 @@ export function verifySupportAssistantRoutingReceipt(input: {
     return null;
   }
   const now = Math.floor((input.now ?? Date.now()) / 1000);
+  const actionGrant = claims.actionGrant ?? null;
   if (
     claims.v !== RECEIPT_VERSION ||
     !UUID_PATTERN.test(claims.institutionId) ||
@@ -143,6 +173,10 @@ export function verifySupportAssistantRoutingReceipt(input: {
     !SERVICES.has(claims.service) ||
     typeof claims.usedAi !== "boolean" ||
     !validModel(claims.model) ||
+    (actionGrant !== null && !validActionGrant(actionGrant)) ||
+    (actionGrant !== null
+      && (!input.expectedRequesterRefHash
+        || actionGrant.requesterRefHash !== input.expectedRequesterRefHash)) ||
     (claims.usedAi && claims.model === null) ||
     (!claims.usedAi && claims.model !== null) ||
     !Number.isInteger(claims.iat) ||
@@ -163,6 +197,7 @@ export function verifySupportAssistantRoutingReceipt(input: {
     service: claims.service,
     usedAi: claims.usedAi,
     model: claims.model,
+    actionGrant,
     receiptHash: createHash("sha256").update(input.receipt).digest("hex"),
     issuedAt: new Date(claims.iat * 1000),
     expiresAt: new Date(claims.exp * 1000),

@@ -7,7 +7,10 @@ const page = readFileSync(new URL("../src/pages/prototype/LyceeConnectPrototype.
 test("validates creation before remembering or displaying the dossier", () => {
   const submit = page.indexOf("async function submitRequest");
   const readUnknown = page.indexOf("const payload = await readApiResponse<unknown>(response)", submit);
-  const validation = page.indexOf("if (!isSupportRequestCreationPayload(payload))", readUnknown);
+  const validation = page.indexOf(
+    "if (!isSupportRequestCreationPayload(",
+    readUnknown
+  );
   const remember = page.indexOf("rememberSupportRequests", validation);
   const ticket = page.indexOf("setTicketCode(publicCode)", validation);
   assert.notEqual(submit, -1);
@@ -23,6 +26,7 @@ test("requires a complete, linked persistence confirmation", () => {
   assert.match(page, /Object\.hasOwn\(supportStatusLabels, String\(value\.request\.status\)\)/);
   assert.match(page, /typeof value\.duplicate !== "boolean"/);
   assert.match(page, /verifySupportRequestPersistenceConfirmation/);
+  assert.match(page, /verifySupportCreateRequestActionConfirmation/);
   assert.match(page, /createdTime <= confirmedTime/);
 });
 

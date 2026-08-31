@@ -26,6 +26,7 @@ const MAX_DATABASE_CANDIDATES = 30;
 export type PublicKnowledgeVersionRef = {
   institutionId: string;
   versionId: string;
+  allowedTools?: string[];
 };
 
 export type PublicKnowledgeSourceRef = {
@@ -210,6 +211,7 @@ export async function loadPublicKnowledgeContext(input: {
     versions: selected.map((skill) => ({
       institutionId: skill.institutionId,
       versionId: skill.versionId,
+      allowedTools: skill.allowedTools,
     })),
     sources: [...new Set(selectedExcerpts.map((excerpt) => excerpt.sourceId))].flatMap(
       (sourceId) => {
