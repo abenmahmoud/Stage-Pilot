@@ -722,6 +722,12 @@
   doublons, et n'attribue, ne transfère ni ne répond automatiquement. Le rendu
   réel est vérifié à 1 440 et 390 px sans débordement horizontal ; une panne de
   file ne peut pas être présentée comme une file vide.
+- [x] T056D Conserver séparément, pendant la navigation dans l'onglet agent, les
+  brouillons non envoyés de trente dossiers au maximum : réponse, note interne,
+  résultat de rappel et motif de clôture. Aucun contenu n'entre dans le stockage
+  persistant du navigateur ou sur le réseau ; le champ correspondant disparaît
+  seulement après confirmation et relecture serveur. Le badge `Brouillon`, la
+  restauration entre deux dossiers fictifs et le rendu à 390 px sont vérifiés.
 - [ ] T057 Ajouter supervision, alertes, sauvegarde restaurable, file d'échec,
   journal d'accès et procédure d'incident.
 - [x] T057A Signaler dans la santé des demandes les retraits de brouillons agent

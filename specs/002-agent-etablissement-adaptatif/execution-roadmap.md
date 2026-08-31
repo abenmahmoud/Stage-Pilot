@@ -686,6 +686,14 @@ l'autorisation de quota définie par le propriétaire.
   tests unitaires, clavier et les recettes Chrome à 1 440 et 390 px passent sans
   débordement horizontal. Le guide reste absent tant que la file n'a pas fourni
   un périmètre valide, afin qu'une panne ne ressemble jamais à une file vide.
+- Lot N5ZZF : brouillons de travail multi-dossiers. **Implémentés en mémoire
+  volatile uniquement** : l'onglet agent garde séparément réponse, note interne,
+  résultat de rappel et motif de clôture pour trente dossiers au maximum. Aucun
+  texte n'entre dans `localStorage`, `sessionStorage`, IndexedDB, une API ou une
+  base avant l'action explicite. Une confirmation serveur suivie de la relecture
+  attendue efface seulement le champ concerné ; un échec le conserve. Une recette
+  Chrome sur deux dossiers fictifs confirme restauration exacte, badge dans la
+  file et absence de débordement à 390 px.
 
 ## Prochaine séquence verrouillée
 

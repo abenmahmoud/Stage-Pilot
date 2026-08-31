@@ -3730,3 +3730,19 @@ taches et analyse de coherence avant une automatisation sensible.
 - Le rendu Chrome réel passe à 1 440 et 390 px sans erreur navigateur ni
   débordement horizontal. T056C est terminé ; T056 reste ouvert pour les comptes
   individuels et la validation des périmètres réels.
+
+### Jalon du 31 août 2026 - continuité des brouillons agents
+
+- Changer de dossier dans la console ne détruit plus une réponse, une note
+  interne, un résultat de rappel ou un motif de clôture en cours. Chaque texte
+  est lié au numéro public du dossier et restauré quand l'agent y revient.
+- La mémoire reste volontairement limitée à trente dossiers et à la durée de vie
+  de l'onglet. Aucun de ces textes n'est écrit dans le stockage persistant du
+  navigateur, envoyé à une API ou partagé avec un autre compte avant l'action
+  explicite de l'agent.
+- Après confirmation serveur et relecture de la donnée attendue, seul le champ
+  effectivement enregistré est effacé. Une panne, une réponse invalide ou une
+  confirmation absente conserve le brouillon.
+- Une recette Chrome avec deux dossiers entièrement fictifs restaure exactement
+  le premier texte après un aller-retour, affiche son badge dans la file et ne
+  produit ni erreur navigateur ni débordement à 390 px. T056D est terminé.
