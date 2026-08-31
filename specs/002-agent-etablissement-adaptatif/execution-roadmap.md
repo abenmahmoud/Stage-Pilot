@@ -629,6 +629,17 @@ l'autorisation de quota définie par le propriétaire.
   refusée. La console relit le dossier et ne retire l'élément visible qu'après
   avoir constaté son absence. Le reçu ne contient ni nom, ni chemin, ni contenu.
   T028 reste ouverte pour le premier adaptateur complet du registre d'actions.
+- Lot N5ZZ : réservation de pièce agent récupérable. **Implémentée sans
+  migration, fichier réel ni production** : une clé UUID et une empreinte des
+  seules métadonnées déclarées retrouvent la même ligne après une coupure. Tant
+  que le dépôt est en attente, le serveur émet un nouveau jeton privé pour le
+  même chemin avec écrasement contrôlé ; après confirmation, il n'émet plus de
+  jeton. La console conserve l'état de chaque fichier d'un lot partiellement
+  réussi et autorise la reprise d'une tentative dont la réponse a été perdue,
+  même si les cinq emplacements sont déjà réservés. Une confirmation concurrente
+  n'écrit qu'un événement et qu'un travail antivirus. L'événement de réservation
+  ne contient ni nom, ni chemin, ni jeton, ni contenu. T028 reste ouverte pour
+  le premier adaptateur complet du registre d'actions.
 
 ## Prochaine séquence verrouillée
 

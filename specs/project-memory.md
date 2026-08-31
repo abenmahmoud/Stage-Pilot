@@ -3499,3 +3499,22 @@ taches et analyse de coherence avant une automatisation sensible.
 - Le reçu et les événements de reprise n'exposent ni nom de fichier, ni chemin de
   stockage, ni URL, ni contenu. T028H est terminé sans migration, fichier réel ou
   production ; T028 reste ouverte pour un adaptateur du registre d'actions.
+
+### Jalon du 31 août 2026 - réservation de pièce agent récupérable
+
+- Une réservation de pièce agent possède désormais une clé UUID stable et une
+  empreinte SHA-256 des métadonnées déclarées. Le serveur retrouve la même ligne
+  seulement pour le même dossier, le même agent et le même fichier.
+- Si le dépôt est encore en attente, un rejeu délivre un nouveau jeton privé pour
+  le chemin déjà réservé avec écrasement contrôlé. Si le fichier est déjà
+  confirmé, aucun nouveau jeton n'est émis.
+- La console conserve l'état de chaque fichier d'un lot partiellement réussi.
+  Une réponse de réservation perdue reste donc reprenable, même lorsque les cinq
+  emplacements du dossier existent déjà côté serveur.
+- La confirmation applique une transition conditionnelle de
+  `awaiting_upload` vers son état contrôlé. Deux confirmations concurrentes ne
+  créent ainsi qu'un événement et qu'un travail antivirus.
+- `attachment.draft_reserved` ne conserve ni nom, ni chemin, ni URL, ni jeton,
+  ni contenu. T028I est terminé sans migration, fichier réel ou production ;
+  T028 reste ouverte pour un adaptateur du registre d'actions. Aucun audit
+  externe n'a été exécuté sans autorisation bornée.

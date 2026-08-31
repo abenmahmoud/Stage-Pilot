@@ -33,7 +33,8 @@ test("la réservation agent reste privée, bornée et limitée au service autori
   assert.match(source.reserve, /enforceAgentWriteRateLimit\(user\.id\)/);
   assert.match(source.reserve, /MAX_FILE_BYTES = 10 \* 1024 \* 1024/);
   assert.match(source.reserve, /MAX_AGENT_PENDING_FILES = 5/);
-  assert.match(source.reserve, /createSignedUploadUrl\(storagePath\)/);
+  assert.match(source.reserve, /createSignedUploadUrl\(reservation\.attachment\.storagePath, \{ upsert: true \}\)/);
+  assert.match(source.reserve, /eventType: "attachment\.draft_reserved"/);
   assert.match(source.reserve, /direction: "agent"/);
   assert.match(source.reserve, /uploadedByUser: user\.id/);
   assert.doesNotMatch(source.reserve, /getPublicUrl|publicUrl/);
@@ -46,6 +47,8 @@ test("la confirmation agent lie le fichier au compte et réutilise l’antivirus
   assert.match(source.confirm, /readBoundedBlobBytes\(file, Number\(attachment\.sizeBytes\), MAX_FILE_BYTES\)/);
   assert.match(source.confirm, /'support_file_scan'/);
   assert.match(source.confirm, /actorType: "agent"/);
+  assert.match(source.confirm, /const \[confirmed\] = await tx/);
+  assert.match(source.confirm, /return \{ scanStatus: current\.scanStatus, duplicate: true \}/);
 });
 
 test("la réponse ne libère que les fichiers propres et refuse les dossiers sensibles non vérifiés", () => {
@@ -98,7 +101,7 @@ test("le demandeur ne voit et ne télécharge jamais un brouillon agent", () => 
 
 test("l’interface valide les réponses API et n’attache pas les binaires aux emails", () => {
   assert.match(source.page, /uploadAgentSupportFile/);
-  assert.match(source.page, /isSupportUploadReservationPayload\(reservation\)/);
+  assert.match(source.page, /isAgentSupportUploadReservationPayload\(reservation\)/);
   assert.match(source.page, /isSupportAttachmentConfirmationPayload\(confirmation/);
   assert.match(source.page, /attachmentIds: selectedAgentAttachmentIds/);
   assert.match(source.page, /Documents à joindre à la réponse/);

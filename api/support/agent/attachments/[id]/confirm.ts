@@ -89,8 +89,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const correlationId = randomUUID();
     const jobId = randomUUID();
 
-    await db.transaction(async (tx) => {
-      await tx
+    const confirmation = await db.transaction(async (tx) => {
+      const [confirmed] = await tx
         .update(supportAttachments)
         .set({
           detectedMime,
@@ -103,7 +103,18 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         .where(and(
           eq(supportAttachments.id, attachment.id),
           eq(supportAttachments.scanStatus, "awaiting_upload")
-        ));
+        ))
+        .returning({ scanStatus: supportAttachments.scanStatus });
+
+      if (!confirmed) {
+        const [current] = await tx
+          .select({ scanStatus: supportAttachments.scanStatus })
+          .from(supportAttachments)
+          .where(eq(supportAttachments.id, attachment.id))
+          .limit(1);
+        if (!current) throw new HttpError(404, "Pièce jointe introuvable");
+        return { scanStatus: current.scanStatus, duplicate: true };
+      }
 
       await tx.insert(supportEvents).values({
         requestId: attachment.requestId,
@@ -130,8 +141,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           )
         `);
       }
+      return { scanStatus, duplicate: false };
     });
 
+    if (confirmation.duplicate) {
+      return {
+        attachment: { id: attachment.id, scanStatus: confirmation.scanStatus },
+        duplicate: true,
+      };
+    }
     if (!accepted) throw new HttpError(422, "Le contenu du fichier n'est pas accepté");
     res.status(202);
     return { attachment: { id: attachment.id, scanStatus }, duplicate: false };

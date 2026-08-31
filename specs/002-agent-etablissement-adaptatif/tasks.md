@@ -456,6 +456,16 @@
   dossier et exige son absence avant de l'enlever de l'écran. Aucun nom, chemin
   privé ou contenu n'entre dans le reçu. T028 reste ouverte pour le premier
   adaptateur métier complet inscrit dans le registre des actions agent.
+- [x] T028I Rendre la réservation d'une pièce jointe agent récupérable avec une
+  clé UUID stable, un événement `attachment.draft_reserved` lié à l'agent et à
+  l'empreinte minimale du fichier, et une nouvelle URL privée temporaire lors
+  d'un rejeu encore en attente. La console mémorise séparément chaque fichier
+  d'un lot partiellement réussi, y compris lorsque la réponse de réservation a
+  été perdue. La confirmation applique une transition atomique afin qu'une
+  course ne crée ni second événement ni second travail antivirus. Aucun nom,
+  chemin, jeton ou contenu n'entre dans l'événement de réservation. T028 reste
+  ouverte pour le premier adaptateur métier complet inscrit dans le registre
+  des actions agent.
 - [x] T029 Ajouter formulaire classique et création de demande sans dépendance à l'IA.
 - [x] T030 Ajouter mesure du coût, de la latence, des transferts et des corrections.
 - [x] T030A Mesurer chaque passage de l'assistant public sans contenu personnel :

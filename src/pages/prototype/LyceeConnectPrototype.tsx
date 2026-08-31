@@ -2708,24 +2708,62 @@ function isSupportUploadReservationPayload(value: unknown): value is {
     && /^[A-Za-z0-9._~-]+$/.test(token);
 }
 
-async function uploadAgentSupportFile(publicCode: string, file: File): Promise<string> {
+type AgentUploadSubmission = {
+  idempotencyKey: string;
+  attachmentId: string | null;
+  attempted: boolean;
+  completed: boolean;
+};
+
+function isAgentSupportUploadReservationPayload(value: unknown): value is {
+  attachment: { id: string; scanStatus: string };
+  upload: { bucket: "support-quarantine"; path: string; token: string } | null;
+  duplicate: boolean;
+} {
+  if (
+    !isRecord(value)
+    || !isRecord(value.attachment)
+    || typeof value.attachment.id !== "string"
+    || !/^[0-9a-f]{8}-[0-9a-f-]{27}$/i.test(value.attachment.id)
+    || !isBoundedString(value.attachment.scanStatus, 40)
+    || typeof value.duplicate !== "boolean"
+  ) return false;
+  if (value.upload === null) {
+    return value.duplicate && value.attachment.scanStatus !== "awaiting_upload";
+  }
+  if (value.attachment.scanStatus !== "awaiting_upload") return false;
+  return isSupportUploadReservationPayload(value);
+}
+
+async function uploadAgentSupportFile(
+  publicCode: string,
+  file: File,
+  submission: AgentUploadSubmission
+): Promise<string> {
+  submission.attempted = true;
   const reservation = await apiFetch<unknown>(`support/agent/requests/${publicCode}/attachments`, {
     method: "POST",
+    headers: { "Idempotency-Key": submission.idempotencyKey },
     body: JSON.stringify({
       fileName: file.name,
       mimeType: file.type,
       sizeBytes: file.size,
     }),
   });
-  if (!isSupportUploadReservationPayload(reservation)) {
+  if (!isAgentSupportUploadReservationPayload(reservation)) {
     throw new Error("La réservation du fichier reçue est invalide.");
+  }
+  submission.attachmentId = reservation.attachment.id;
+  if (reservation.upload === null) {
+    submission.completed = true;
+    return reservation.attachment.id;
   }
 
   const { error: uploadError } = await supabase.storage
     .from(reservation.upload.bucket)
     .uploadToSignedUrl(reservation.upload.path, reservation.upload.token, file, {
       contentType: file.type,
-      upsert: false,
+      upsert: true,
     });
   if (uploadError) throw new Error(`Échec de l'envoi de ${file.name}`);
 
@@ -2736,6 +2774,7 @@ async function uploadAgentSupportFile(publicCode: string, file: File): Promise<s
   if (!isSupportAttachmentConfirmationPayload(confirmation, reservation.attachment.id)) {
     throw new Error("La confirmation du fichier reçue est invalide.");
   }
+  submission.completed = true;
   return reservation.attachment.id;
 }
 
@@ -3062,6 +3101,7 @@ function ConnectedAgentView({ onBack }: { onBack: () => void }) {
   const callbackCreateSubmissionRef = useRef<{ fingerprint: string; idempotencyKey: string } | null>(null);
   const callbackActionSubmissionRef = useRef<{ fingerprint: string; idempotencyKey: string } | null>(null);
   const attachmentRemovalSubmissionRef = useRef<{ fingerprint: string; idempotencyKey: string } | null>(null);
+  const agentUploadSubmissionsRef = useRef<Map<string, AgentUploadSubmission>>(new Map());
 
   async function loadQueue() {
     const loadId = ++queueLoadIdRef.current;
@@ -3131,6 +3171,7 @@ function ConnectedAgentView({ onBack }: { onBack: () => void }) {
     callbackCreateSubmissionRef.current = null;
     callbackActionSubmissionRef.current = null;
     attachmentRemovalSubmissionRef.current = null;
+    agentUploadSubmissionsRef.current.clear();
     setTranslationDraft(null);
     setTranslationValidated(false);
     setSelectedAgentAttachmentIds([]);
@@ -3370,17 +3411,54 @@ function ConnectedAgentView({ onBack }: { onBack: () => void }) {
     const pendingCount = detail.attachments.filter(
       (attachment) => attachment.direction === "agent" && attachment.messageId === null
     ).length;
-    const acceptedFiles = files.slice(0, Math.max(0, MAX_SUPPORT_FILES - pendingCount));
-    if (acceptedFiles.length !== files.length || acceptedFiles.length === 0) {
+    const occurrences = new Map<string, number>();
+    const entries = files.map((file) => {
+      const baseFingerprint = [
+        code,
+        file.name.normalize("NFC"),
+        file.type,
+        String(file.size),
+        String(file.lastModified),
+      ].join(":");
+      const occurrence = occurrences.get(baseFingerprint) ?? 0;
+      occurrences.set(baseFingerprint, occurrence + 1);
+      const fingerprint = `${baseFingerprint}:${occurrence}`;
+      let submission = agentUploadSubmissionsRef.current.get(fingerprint);
+      if (!submission) {
+        submission = {
+          idempotencyKey: crypto.randomUUID(),
+          attachmentId: null,
+          attempted: false,
+          completed: false,
+        };
+        agentUploadSubmissionsRef.current.set(fingerprint, submission);
+      }
+      return { file, fingerprint, submission };
+    });
+    let availableNewSlots = Math.max(0, MAX_SUPPORT_FILES - pendingCount);
+    const acceptedEntries = entries.filter((entry) => {
+      if (entry.submission.attachmentId || entry.submission.attempted) return true;
+      if (availableNewSlots < 1) return false;
+      availableNewSlots -= 1;
+      return true;
+    });
+    if (acceptedEntries.length !== files.length || acceptedEntries.length === 0) {
       setError("Une réponse peut préparer au maximum 5 documents.");
-      if (acceptedFiles.length === 0) return;
+      if (acceptedEntries.length === 0) return;
     }
 
     setAgentUploading(true);
     try {
       const uploadedIds: string[] = [];
-      for (const file of acceptedFiles) {
-        uploadedIds.push(await uploadAgentSupportFile(code, file));
+      for (const entry of acceptedEntries) {
+        if (entry.submission.completed && entry.submission.attachmentId) {
+          uploadedIds.push(entry.submission.attachmentId);
+          continue;
+        }
+        uploadedIds.push(await uploadAgentSupportFile(code, entry.file, entry.submission));
+      }
+      for (const entry of acceptedEntries) {
+        agentUploadSubmissionsRef.current.delete(entry.fingerprint);
       }
       let latest = await fetchAgentRequestDetail(code);
       for (let attempt = 0; attempt < 8; attempt += 1) {
