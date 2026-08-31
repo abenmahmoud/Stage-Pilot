@@ -622,6 +622,13 @@ l'autorisation de quota définie par le propriétaire.
   rappel, agent, transition et résultat ; une clé discordante est refusée. La console
   relit l'état exact et ne vide le résultat qu'après cette preuve. T028 reste
   ouverte pour le premier adaptateur complet du registre d'actions agent.
+- Lot N5ZY : retrait de brouillon agent récupérable. **Implémenté sans migration,
+  fichier réel ni production** : la suppression finale et sa reprise concurrente
+  possèdent une clé stable et un événement exact. Un rejeu retrouve la preuve
+  après disparition de la ligne, tandis qu'une clé liée à une autre pièce est
+  refusée. La console relit le dossier et ne retire l'élément visible qu'après
+  avoir constaté son absence. Le reçu ne contient ni nom, ni chemin, ni contenu.
+  T028 reste ouverte pour le premier adaptateur complet du registre d'actions.
 
 ## Prochaine séquence verrouillée
 

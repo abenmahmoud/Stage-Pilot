@@ -3484,3 +3484,18 @@ taches et analyse de coherence avant une automatisation sensible.
   réelle ni production. T028 reste ouverte pour le premier adaptateur complet
   du registre d'actions. Aucun audit externe n'a été exécuté sans autorisation
   bornée.
+
+### Jalon du 31 août 2026 - retrait de brouillon agent récupérable
+
+- Le retrait d'une pièce préparée par un agent conserve une clé UUID tant que la
+  même pièce est affichée, puis exige un reçu issu de l'événement final.
+- `attachment.draft_removed` confirme la première suppression et
+  `attachment.draft_removal_reused` confirme une reprise concurrente sans créer
+  de seconde mutation. Un rejeu avec la même clé reste vérifiable après la
+  disparition de la ligne de pièce.
+- La console relit le détail du dossier et exige l'absence de l'identifiant avant
+  de retirer le brouillon de l'écran. Une preuve invalide ou une relecture en
+  échec conserve la même clé pour un nouvel essai.
+- Le reçu et les événements de reprise n'exposent ni nom de fichier, ni chemin de
+  stockage, ni URL, ni contenu. T028H est terminé sans migration, fichier réel ou
+  production ; T028 reste ouverte pour un adaptateur du registre d'actions.

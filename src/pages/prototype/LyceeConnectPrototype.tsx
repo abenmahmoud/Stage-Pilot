@@ -82,6 +82,7 @@ import { verifySupportAgentReplyConfirmation } from "../../../shared/support-age
 import { verifySupportRequesterMessageConfirmation } from "../../../shared/support-requester-message-confirmation";
 import { verifySupportInternalNoteConfirmation } from "../../../shared/support-internal-note-confirmation";
 import { verifySupportCallbackConfirmation } from "../../../shared/support-callback-confirmation";
+import { verifySupportAttachmentRemovalConfirmation } from "../../../shared/support-attachment-removal-confirmation";
 import {
   DEFAULT_SUPPORT_REPLY_TEMPLATES,
   renderSupportReplyTemplate,
@@ -2884,13 +2885,6 @@ function isAgentAttachment(value: unknown): value is AgentRequestDetail["attachm
     && isNonNegativeInteger(value.sizeBytes);
 }
 
-function isAgentAttachmentRemovalPayload(value: unknown): value is { attachment: { id: string }; removed: true } {
-  return isRecord(value)
-    && value.removed === true
-    && isRecord(value.attachment)
-    && typeof value.attachment.id === "string";
-}
-
 function isAgentCallback(value: unknown): value is AgentRequestDetail["callbacks"][number] {
   return isRecord(value)
     && ["id", "phoneContactId", "createdAt"].every((field) => typeof value[field] === "string")
@@ -3067,6 +3061,7 @@ function ConnectedAgentView({ onBack }: { onBack: () => void }) {
   const internalNoteSubmissionRef = useRef<{ fingerprint: string; idempotencyKey: string } | null>(null);
   const callbackCreateSubmissionRef = useRef<{ fingerprint: string; idempotencyKey: string } | null>(null);
   const callbackActionSubmissionRef = useRef<{ fingerprint: string; idempotencyKey: string } | null>(null);
+  const attachmentRemovalSubmissionRef = useRef<{ fingerprint: string; idempotencyKey: string } | null>(null);
 
   async function loadQueue() {
     const loadId = ++queueLoadIdRef.current;
@@ -3135,6 +3130,7 @@ function ConnectedAgentView({ onBack }: { onBack: () => void }) {
     internalNoteSubmissionRef.current = null;
     callbackCreateSubmissionRef.current = null;
     callbackActionSubmissionRef.current = null;
+    attachmentRemovalSubmissionRef.current = null;
     setTranslationDraft(null);
     setTranslationValidated(false);
     setSelectedAgentAttachmentIds([]);
@@ -3643,24 +3639,43 @@ function ConnectedAgentView({ onBack }: { onBack: () => void }) {
   async function removeAgentAttachment(id: string, originalName: string) {
     const code = selectedCode;
     if (!code || !window.confirm(`Retirer « ${originalName} » de cette réponse ?`)) return;
+    const submissionFingerprint = `${code}:${id}`;
+    if (attachmentRemovalSubmissionRef.current?.fingerprint !== submissionFingerprint) {
+      attachmentRemovalSubmissionRef.current = {
+        fingerprint: submissionFingerprint,
+        idempotencyKey: crypto.randomUUID(),
+      };
+    }
+    const idempotencyKey = attachmentRemovalSubmissionRef.current.idempotencyKey;
     setAgentDeletingAttachmentId(id);
     try {
-      const payload = await apiFetch<unknown>(`support/agent/attachments/${id}`, { method: "DELETE" });
-      if (!isAgentAttachmentRemovalPayload(payload) || payload.attachment.id !== id) {
+      const payload = await apiFetch<unknown>(`support/agent/attachments/${id}`, {
+        method: "DELETE",
+        headers: { "Idempotency-Key": idempotencyKey },
+      });
+      const confirmation = verifySupportAttachmentRemovalConfirmation({
+        expectedPublicCode: code,
+        expectedAttachmentId: id,
+        confirmation: isRecord(payload) ? payload.confirmation : null,
+      });
+      if (!confirmation) {
         throw new Error("Confirmation de retrait invalide");
       }
+      const refreshedDetail = await fetchAgentRequestDetail(code);
+      if (refreshedDetail.attachments.some((attachment) => attachment.id === confirmation.attachmentId)) {
+        throw new Error("Le document apparaît encore dans le dossier. Réessayez le retrait.");
+      }
+      if (
+        selectedCodeRef.current !== code
+        || attachmentRemovalSubmissionRef.current?.fingerprint !== submissionFingerprint
+        || attachmentRemovalSubmissionRef.current.idempotencyKey !== idempotencyKey
+      ) return;
+      attachmentRemovalSubmissionRef.current = null;
       setSelectedAgentAttachmentIds((current) => current.filter((attachmentId) => attachmentId !== id));
-      if (selectedCodeRef.current === code) setDetail(await fetchAgentRequestDetail(code));
+      setDetail(refreshedDetail);
       setError(null);
     } catch (removeError) {
       setError(removeError instanceof Error ? removeError.message : "Document non retiré");
-      if (selectedCodeRef.current === code) {
-        try {
-          setDetail(await fetchAgentRequestDetail(code));
-        } catch {
-          // Le message de retrait reste prioritaire.
-        }
-      }
     } finally {
       setAgentDeletingAttachmentId(null);
     }

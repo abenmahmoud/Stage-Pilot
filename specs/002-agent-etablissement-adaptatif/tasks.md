@@ -449,6 +449,13 @@
   clé réutilisée pour un autre rappel ou résultat est refusée. T028 reste ouverte
   pour le premier adaptateur métier complet inscrit dans le registre des actions
   agent.
+- [x] T028H Exiger pour le retrait d'un brouillon de pièce agent une clé stable
+  et un reçu issu de `attachment.draft_removed` ou de sa reprise concurrente,
+  liés au dossier, à la pièce et à l'agent. Après une coupure, le serveur retrouve
+  la suppression même si la ligne de pièce n'existe plus ; la console relit le
+  dossier et exige son absence avant de l'enlever de l'écran. Aucun nom, chemin
+  privé ou contenu n'entre dans le reçu. T028 reste ouverte pour le premier
+  adaptateur métier complet inscrit dans le registre des actions agent.
 - [x] T029 Ajouter formulaire classique et création de demande sans dépendance à l'IA.
 - [x] T030 Ajouter mesure du coût, de la latence, des transferts et des corrections.
 - [x] T030A Mesurer chaque passage de l'assistant public sans contenu personnel :

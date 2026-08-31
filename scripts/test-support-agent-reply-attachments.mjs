@@ -106,7 +106,7 @@ test("l’interface valide les réponses API et n’attache pas les binaires aux
   assert.match(source.page, /Retrait à reprendre/);
   assert.match(source.page, /removeAgentAttachment/);
   assert.match(source.page, /method: "DELETE"/);
-  assert.match(source.page, /isAgentAttachmentRemovalPayload/);
+  assert.match(source.page, /verifySupportAttachmentRemovalConfirmation/);
   for (const worker of [source.emailWorker, source.cronWorker]) {
     assert.match(worker, /dans votre suivi sécurisé/);
     assert.doesNotMatch(worker, /attachment:\s*\[/);

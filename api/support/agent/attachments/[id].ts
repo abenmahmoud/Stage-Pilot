@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { and, eq, inArray, isNull, sql } from "drizzle-orm";
+import { and, desc, eq, inArray, isNull, sql } from "drizzle-orm";
 import { db } from "../../../../db/index.js";
 import {
   supportAttachments,
@@ -9,6 +9,7 @@ import {
 } from "../../../../db/schema.js";
 import { HttpError, supabaseAdmin } from "../../../_shared/auth.js";
 import { handleApi, methodNotAllowed } from "../../../_shared/response.js";
+import { idempotencyKey } from "../../../_shared/support.js";
 import {
   assertSupportRequestAccess,
   requireSupportAgent,
@@ -17,6 +18,7 @@ import {
   enforceAgentAttachmentDownloadRateLimit,
   enforceAgentWriteRateLimit,
 } from "../../../_shared/support-rate-limits.js";
+import { createSupportAttachmentRemovalConfirmation } from "../../../../shared/support-attachment-removal-confirmation.js";
 
 const REMOVABLE_DRAFT_STATUSES = ["clean", "blocked", "scan_error"] as const;
 
@@ -24,6 +26,14 @@ function attachmentId(req: VercelRequest): string {
   const id = Array.isArray(req.query.id) ? req.query.id[0] : req.query.id;
   if (!id || !/^[0-9a-f-]{36}$/i.test(id)) throw new HttpError(400, "Pièce jointe invalide");
   return id;
+}
+
+function operationId(req: VercelRequest): string {
+  const value = idempotencyKey(req);
+  if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value)) {
+    throw new HttpError(400, "Clé de retrait invalide");
+  }
+  return value;
 }
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
@@ -37,11 +47,53 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     if (req.method === "DELETE") {
       await enforceAgentWriteRateLimit(user.id);
+      const removalOperationId = operationId(req);
+      const [operationEvent] = await db
+        .select({
+          eventType: supportEvents.eventType,
+          actorId: supportEvents.actorId,
+          attachmentId: sql<string | null>`${supportEvents.fromValue}->>'attachmentId'`,
+          removed: sql<string | null>`${supportEvents.toValue}->>'removed'`,
+          publicCode: supportRequests.publicCode,
+          assignedTeam: supportRequests.assignedTeam,
+          createdAt: supportEvents.createdAt,
+          correlationId: supportEvents.correlationId,
+        })
+        .from(supportEvents)
+        .innerJoin(supportRequests, eq(supportRequests.id, supportEvents.requestId))
+        .where(and(
+          eq(supportRequests.institutionId, institutionId),
+          eq(supportEvents.correlationId, removalOperationId)
+        ))
+        .orderBy(desc(supportEvents.createdAt))
+        .limit(1);
+      if (operationEvent) {
+        if (
+          !["attachment.draft_removed", "attachment.draft_removal_reused"].includes(operationEvent.eventType)
+          || operationEvent.actorId !== user.id
+          || operationEvent.attachmentId !== id
+          || operationEvent.removed !== "true"
+        ) {
+          throw new HttpError(409, "Cette clé de retrait a déjà été utilisée pour une autre action");
+        }
+        assertSupportRequestAccess(access, operationEvent.assignedTeam);
+        return {
+          confirmation: createSupportAttachmentRemovalConfirmation({
+            publicCode: operationEvent.publicCode,
+            attachmentId: id,
+            duplicate: true,
+            confirmedAt: operationEvent.createdAt,
+            correlationId: operationEvent.correlationId,
+          }),
+        };
+      }
+
       const prepared = await db.transaction(async (tx) => {
         const [candidate] = await tx
           .select({
             id: supportAttachments.id,
             requestId: supportAttachments.requestId,
+            publicCode: supportRequests.publicCode,
             assignedTeam: supportRequests.assignedTeam,
           })
           .from(supportAttachments)
@@ -119,6 +171,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         return {
           id: lockedCandidate.id,
           requestId: lockedCandidate.requestId,
+          publicCode: candidate.publicCode,
           storageBucket: lockedCandidate.storageBucket,
           storagePath: lockedCandidate.storagePath,
         };
@@ -184,23 +237,93 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
               eq(supportAttachments.requestId, prepared.requestId)
             ))
             .limit(1);
-          if (!remaining) return { id: prepared.id, duplicate: true };
+          if (!remaining) {
+            const [previousRemoval] = await tx
+              .select({
+                createdAt: supportEvents.createdAt,
+                correlationId: supportEvents.correlationId,
+              })
+              .from(supportEvents)
+              .where(and(
+                eq(supportEvents.requestId, prepared.requestId),
+                inArray(supportEvents.eventType, [
+                  "attachment.draft_removed",
+                  "attachment.draft_removal_reused",
+                ]),
+                eq(supportEvents.actorId, user.id),
+                sql`${supportEvents.fromValue}->>'attachmentId' = ${prepared.id}`,
+                sql`${supportEvents.toValue}->>'removed' = 'true'`
+              ))
+              .orderBy(desc(supportEvents.createdAt))
+              .limit(1);
+            if (!previousRemoval) {
+              throw new HttpError(409, "La disparition du document n'est pas confirmée par le journal du dossier");
+            }
+            if (previousRemoval.correlationId === removalOperationId) {
+              return {
+                id: prepared.id,
+                duplicate: true,
+                confirmedAt: previousRemoval.createdAt,
+                correlationId: previousRemoval.correlationId,
+              };
+            }
+            const [reuseEvent] = await tx.insert(supportEvents).values({
+              requestId: prepared.requestId,
+              eventType: "attachment.draft_removal_reused",
+              actorType: "agent",
+              actorId: user.id,
+              fromValue: { attachmentId: prepared.id, direction: "agent" },
+              toValue: { removed: true, reused: true },
+              correlationId: removalOperationId,
+            }).returning({
+              createdAt: supportEvents.createdAt,
+              correlationId: supportEvents.correlationId,
+            });
+            if (!reuseEvent) {
+              throw new HttpError(409, "La reprise du retrait n'a pas été confirmée");
+            }
+            return {
+              id: prepared.id,
+              duplicate: true,
+              confirmedAt: reuseEvent.createdAt,
+              correlationId: reuseEvent.correlationId,
+            };
+          }
           throw new HttpError(409, "Ce document vient d’être modifié");
         }
 
-        await tx.insert(supportEvents).values({
+        const [removedEvent] = await tx.insert(supportEvents).values({
           requestId: prepared.requestId,
           eventType: "attachment.draft_removed",
           actorType: "agent",
           actorId: user.id,
           fromValue: { attachmentId: prepared.id, direction: "agent", scanStatus: "removal_pending" },
           toValue: { removed: true },
-          correlationId: randomUUID(),
+          correlationId: removalOperationId,
+        }).returning({
+          createdAt: supportEvents.createdAt,
+          correlationId: supportEvents.correlationId,
         });
-        return { id: deleted.id, duplicate: false };
+        if (!removedEvent) {
+          throw new HttpError(409, "Le retrait n'a pas été confirmé par le journal du dossier");
+        }
+        return {
+          id: deleted.id,
+          duplicate: false,
+          confirmedAt: removedEvent.createdAt,
+          correlationId: removedEvent.correlationId,
+        };
       });
 
-      return { attachment: { id: removed.id }, removed: true, duplicate: removed.duplicate };
+      return {
+        confirmation: createSupportAttachmentRemovalConfirmation({
+          publicCode: prepared.publicCode,
+          attachmentId: removed.id,
+          duplicate: removed.duplicate,
+          confirmedAt: removed.confirmedAt,
+          correlationId: removed.correlationId,
+        }),
+      };
     }
 
     await enforceAgentAttachmentDownloadRateLimit(user.id);
