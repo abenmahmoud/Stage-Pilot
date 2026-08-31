@@ -316,6 +316,11 @@
 - [x] T027C Simuler 200 reçus de livraison signés, chacun lié à sa commande et
   sans adresse, identifiant Brevo brut ni contenu utilisateur. T027 reste ouvert
   jusqu'à la recette réseau et transactionnelle sur la preview.
+- [x] T027D Valider à l'exécution les réponses initiales de communications,
+  modèles, échecs et entrants avant tout remplacement d'état. Les listes,
+  statuts, relations, six modèles officiels, limites, tris et textes sans secret
+  sont contrôlés ensemble ; T027 reste ouvert pour la recette réseau entre les
+  deux applications avec contacts fictifs.
 - [x] T028 Tester rôles, MFA, contenus internes et API publique.
 - [x] T028A Exiger `aal2` sur toutes les routes privées du centre et vérifier
   les rôles bornés, le cloisonnement établissement, la fermeture du module et

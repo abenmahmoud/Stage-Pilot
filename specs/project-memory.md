@@ -3640,3 +3640,21 @@ taches et analyse de coherence avant une automatisation sensible.
 - T011D2 est terminé sans activation, téléversement réel, migration, donnée
   réelle ou production. T011D reste ouvert pour la recette ClamAV fictive. Le
   brief Claude est préparé mais non exécuté sans accord borné.
+
+### Jalon du 31 août 2026 - chargement fiable de la console Communications
+
+- Les réponses de communications, modèles, échecs et entrants sont désormais
+  lues comme inconnues et validées avec le contrat documentaire avant tout
+  remplacement d'état visible.
+- Chaque liste est bornée à la projection serveur, triée et sans doublon. Les
+  statuts, dates, catégories, versions, slugs, faits et questions sont validés,
+  et une publication exige la visibilité, le slug et la date publics cohérents.
+- Les six modèles officiels doivent tous être présents. Un modèle local non
+  personnalisé doit rester identique au catalogue ; une personnalisation exige
+  un identifiant, une version et une date valides.
+- Les échecs restent limités aux travaux d'envoi ou de reprise. Un entrant sans
+  communication reste sans titre ; un entrant rattaché doit avoir son titre.
+  Tout texte révélant un secret ferme le chargement.
+- T027D est terminé sans intégration, migration, donnée réelle ou production.
+  T027 reste ouvert pour la recette réseau fictive. Le brief Claude est préparé
+  mais non exécuté sans autorisation bornée.

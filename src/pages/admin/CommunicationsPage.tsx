@@ -45,30 +45,17 @@ import {
   parseCommunicationDocumentReservationPayload,
   type CommunicationDocumentPayload,
 } from "../../../shared/communication-document-payload";
-
-type CommunicationRow = {
-  id: string;
-  status: string;
-  visibility: string;
-  category: string;
-  templateKey: string | null;
-  publicSlug: string | null;
-  currentVersion: number;
-  publishedAt: string | null;
-  updatedAt: string;
-  title: string;
-  summary: string;
-  structuredFacts: StructuredFacts;
-  openQuestions: string[];
-};
-
-type StructuredFacts = {
-  dates: string[];
-  times: string[];
-  places: string[];
-  documents: string[];
-  actions: string[];
-};
+import {
+  parseCommunicationFailuresPayload,
+  parseCommunicationInboundPayload,
+  parseCommunicationsPayload,
+  parseCommunicationTemplatesPayload,
+  type CommunicationFailure,
+  type CommunicationInbound,
+  type CommunicationRow,
+  type CommunicationTemplate,
+  type StructuredFacts,
+} from "../../../shared/communication-admin-payload";
 
 type CommunicationDetail = CommunicationRow & {
   bodyMarkdown: string;
@@ -87,44 +74,9 @@ type AssistSuggestion = Pick<
   "title" | "summary" | "bodyMarkdown" | "structuredFacts" | "openQuestions"
 > & { reviewNotes: string[] };
 
-type CommunicationsPayload = { communications: CommunicationRow[] };
-
-type CommunicationFailure = {
-  id: string;
-  jobType: string;
-  attemptCount: number;
-  failureCode: string | null;
-  failedAt: string;
-  title: string;
-  version: number | null;
-};
-
-type CommunicationInbound = {
-  id: string;
-  communicationId: string | null;
-  status: string;
-  classification: string | null;
-  receivedAt: string;
-  title: string | null;
-};
-
 type CreatePayload = {
   communication: Pick<CommunicationRow, "id" | "status" | "visibility" | "currentVersion" | "updatedAt">;
   duplicate: boolean;
-};
-
-type CommunicationTemplate = {
-  id: string | null;
-  templateKey: string;
-  label: string;
-  defaultCategory: string;
-  titleHint: string;
-  summaryHint: string;
-  bodyMarkdown: string;
-  active: boolean;
-  version: number;
-  updatedAt: string | null;
-  customized: boolean;
 };
 
 const CATEGORY_OPTIONS = [
@@ -354,24 +306,28 @@ export default function CommunicationsPage() {
     setLoading(true);
     setError("");
     try {
-      const [communications, templatePayload, documentPayload, failurePayload, inboundPayload] = await Promise.all([
-        apiFetch<CommunicationsPayload>("communications/admin"),
-        apiFetch<{ templates: CommunicationTemplate[] }>("communications/admin/templates"),
+      const [communicationResponse, templateResponse, documentResponse, failureResponse, inboundResponse] = await Promise.all([
+        apiFetch<unknown>("communications/admin"),
+        apiFetch<unknown>("communications/admin/templates"),
         COMMUNICATION_DOCUMENTS_UI_ENABLED
           ? apiFetch<unknown>("communications/admin/documents")
           : Promise.resolve({ documents: [] }),
         canManageTemplates
-          ? apiFetch<{ failures: CommunicationFailure[] }>("communications/admin/failures")
+          ? apiFetch<unknown>("communications/admin/failures")
           : Promise.resolve({ failures: [] }),
-        apiFetch<{ inbound: CommunicationInbound[] }>("communications/admin/inbound"),
+        apiFetch<unknown>("communications/admin/inbound"),
       ]);
-      const validatedDocuments = parseCommunicationDocumentListPayload(documentPayload);
-      if (!validatedDocuments) {
-        throw new Error("La réponse documentaire est invalide. Aucun document n’a été affiché.");
+      const communicationPayload = parseCommunicationsPayload(communicationResponse);
+      const templatePayload = parseCommunicationTemplatesPayload(templateResponse);
+      const documentPayload = parseCommunicationDocumentListPayload(documentResponse);
+      const failurePayload = parseCommunicationFailuresPayload(failureResponse);
+      const inboundPayload = parseCommunicationInboundPayload(inboundResponse);
+      if (!communicationPayload || !templatePayload || !documentPayload || !failurePayload || !inboundPayload) {
+        throw new Error("Les données de communication reçues sont invalides. Aucun résultat n’a été remplacé.");
       }
-      setRows(communications.communications);
+      setRows(communicationPayload.communications);
       setTemplates(templatePayload.templates);
-      setDocuments(validatedDocuments.documents);
+      setDocuments(documentPayload.documents);
       setFailures(failurePayload.failures);
       setInbound(inboundPayload.inbound);
     } catch (reason) {

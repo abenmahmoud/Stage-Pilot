@@ -148,8 +148,8 @@ test("validates runtime payloads before storage and success side effects", async
     readFile(SERVER_SHARED_PATH, "utf8"),
   ]);
   const listRead = page.indexOf('apiFetch<unknown>("communications/admin/documents")');
-  const listValidation = page.indexOf("parseCommunicationDocumentListPayload(documentPayload)", listRead);
-  const listState = page.indexOf("setDocuments(validatedDocuments.documents)", listValidation);
+  const listValidation = page.indexOf("parseCommunicationDocumentListPayload(documentResponse)", listRead);
+  const listState = page.indexOf("setDocuments(documentPayload.documents)", listValidation);
   assert.ok(listRead >= 0 && listValidation > listRead && listState > listValidation);
 
   const reservationRead = page.indexOf('apiFetch<unknown>("communications/admin/documents", {');

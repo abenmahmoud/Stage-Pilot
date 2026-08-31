@@ -284,3 +284,11 @@ de celui annoncé et une confirmation sans quarantaine vérifiable. Aucun accès
 Storage n'a lieu avant la validation de la réservation et aucun succès n'est
 affiché avant la validation de la confirmation. Le dépôt et l'interface restent
 fermés par défaut ; la preuve antivirus et l'activation restent dans T011D.
+
+T027D ferme la même confiance implicite pour le chargement principal. Les quatre
+réponses de liste sont lues comme `unknown`, validées avec le contrat documentaire
+puis appliquées ensemble. Le contrôle recoupe les plafonds SQL, l'unicité, le tri,
+les statuts, les relations publication/visibilité, les faits structurés, les six
+modèles versionnés, les seuls travaux relançables et les entrants rattachés. Une
+altération ou un secret bloque l'ensemble sans état partiel. Cela n'ouvre aucun
+destinataire ni échange réseau ; la preuve inter-applications reste dans T027.
