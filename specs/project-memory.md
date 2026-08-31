@@ -3761,3 +3761,16 @@ taches et analyse de coherence avant une automatisation sensible.
   au deuxième et retrouve exactement le texte. Axe confirme zéro violation et
   zéro point incomplet sur l'en-tête ; Chrome confirme zéro débordement à 390 et
   1 440 px. T056E est terminé sans API, stockage ou permission supplémentaire.
+
+### Jalon du 31 août 2026 - file agent non ambiguë
+
+- Le navigateur refuse désormais une réponse de file qui répète un numéro public
+  ou un agrégat de service. La sélection, les brouillons et la navigation ne
+  peuvent donc pas être associés à deux lignes concurrentes portant la même clé.
+- Page, taille, total, nombre de pages et quantité de lignes doivent former un
+  ensemble cohérent. Une page vide alors que le total annonce encore des dossiers,
+  une page hors limites ou plus de lignes que la taille déclarée produit une
+  erreur explicite sans remplacer la file connue.
+- Les règles sont isolées dans un helper pur, testées avec des pages pleines,
+  finales, vides, dupliquées et contradictoires, puis rejouées par la porte de
+  sécurité. T027B18 est terminé sans nouvelle donnée, permission ou requête.

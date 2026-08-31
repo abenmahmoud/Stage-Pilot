@@ -99,6 +99,11 @@ import {
   assessSupportQueueItem,
   resolveSupportQueueNextAction,
 } from "../../../shared/support-queue-policy";
+import {
+  hasCoherentSupportQueuePagination,
+  hasUniqueSupportQueueRows,
+  hasUniqueSupportQueueServices,
+} from "../../../shared/support-queue-payload-policy";
 import { resolveSupportQueueNavigation } from "../../../shared/support-queue-navigation";
 import {
   hasSupportAgentWorkDraft,
@@ -3227,14 +3232,22 @@ function isAgentQueuePayload(value: unknown): value is {
   pagination: AgentQueuePagination;
   access: AgentAccess;
 } {
-  return isRecord(value)
-    && Array.isArray(value.requests)
-    && value.requests.every(isAgentQueueRequest)
-    && isAgentQueueStats(value.stats)
-    && Array.isArray(value.serviceStats)
-    && value.serviceStats.every(isAgentServiceStats)
-    && isAgentQueuePagination(value.pagination)
-    && isAgentAccess(value.access);
+  if (
+    !isRecord(value)
+    || !Array.isArray(value.requests)
+    || !value.requests.every(isAgentQueueRequest)
+    || !isAgentQueueStats(value.stats)
+    || !Array.isArray(value.serviceStats)
+    || !value.serviceStats.every(isAgentServiceStats)
+    || !isAgentQueuePagination(value.pagination)
+    || !isAgentAccess(value.access)
+  ) {
+    return false;
+  }
+
+  return hasUniqueSupportQueueRows(value.requests)
+    && hasUniqueSupportQueueServices(value.serviceStats)
+    && hasCoherentSupportQueuePagination(value.requests.length, value.pagination);
 }
 
 function isAgentRequestDetail(value: unknown): value is AgentRequestDetail {

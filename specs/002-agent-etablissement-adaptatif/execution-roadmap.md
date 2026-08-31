@@ -701,6 +701,11 @@ l'autorisation de quota définie par le propriétaire.
   mutable. Une recette Chrome sur trois dossiers fictifs restaure exactement le
   brouillon après un aller-retour, passe Axe sans violation ni point incomplet et
   ne déborde pas à 390 ou 1 440 px.
+- Lot N5ZZH : cohérence de la page de file. **Implémentée avant tout remplacement
+  d'état visible** : le validateur refuse les numéros de dossier dupliqués, les
+  agrégats répétés pour un service et toute relation impossible entre page,
+  taille, total, nombre de pages et lignes reçues. Les cas valides, limites et
+  contradictoires sont couverts par la porte de sécurité permanente.
 
 ## Prochaine séquence verrouillée
 

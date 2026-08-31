@@ -383,6 +383,10 @@
   pièces aux URL HTTPS signées du stockage configuré avec expiration bornée.
 - [x] T027B17 Séparer les erreurs de détail, ignorer les réponses concurrentes et
   permettre de relancer le dossier sans confondre connexion, MFA ou file globale.
+- [x] T027B18 Refuser avant affichage une page de file contenant deux fois le
+  même numéro de dossier, deux agrégats du même service ou une pagination
+  incohérente avec le total et les lignes visibles. La navigation séquentielle
+  ne peut ainsi jamais pointer vers une sélection ambiguë.
 - [ ] T027B2 Ajouter les relances internes et l'escalade après validation des
   délais propres à chaque service et des responsables à notifier.
 - [ ] T027C Créer les adhésions de service puis appliquer le périmètre dans les
