@@ -94,7 +94,10 @@ import {
   renderSupportReplyTemplate,
   type SupportReplyTemplate,
 } from "../../../shared/support-reply-templates";
-import { assessSupportQueueItem } from "../../../shared/support-queue-policy";
+import {
+  assessSupportQueueItem,
+  resolveSupportQueueNextAction,
+} from "../../../shared/support-queue-policy";
 import {
   filterPublicContentFeed,
   publicContentDateLabel,
@@ -4049,6 +4052,7 @@ function ConnectedAgentView({ onBack }: { onBack: () => void }) {
   const agentDraftAttachments = detail?.attachments.filter(
     (attachment) => attachment.direction === "agent" && attachment.messageId === null
   ) ?? [];
+  const nextQueueAction = resolveSupportQueueNextAction(stats);
   const agentError = queueLoadError ?? detailLoadError ?? error;
   const needsAgentSecurity = Boolean(
     agentError && /double vérification|vérification renforcée/i.test(agentError)
@@ -4066,6 +4070,15 @@ function ConnectedAgentView({ onBack }: { onBack: () => void }) {
         <div><span><UserRound aria-hidden="true" /></span><strong>{stats.unassigned}</strong><small>Sans responsable</small></div>
         <div><span><Clock3 aria-hidden="true" /></span><strong>{stats.overdue}</strong><small>Échéances dépassées</small></div>
       </div>
+      {access && !queueLoadError ? <section className="lycee-agent-next-action" data-mode={nextQueueAction.mode ?? "empty"} aria-labelledby="agent-next-action-title">
+        <span><TicketCheck aria-hidden="true" /></span>
+        <div>
+          <small>Priorité maintenant</small>
+          <strong id="agent-next-action-title">{nextQueueAction.headline}</strong>
+          <p>{nextQueueAction.detail}</p>
+        </div>
+        {nextQueueAction.mode && nextQueueAction.actionLabel ? <button type="button" onClick={() => { setQueueMode(nextQueueAction.mode ?? "all"); setPage(1); setSelectedCode(null); }}><b>{nextQueueAction.count}</b><span>{nextQueueAction.actionLabel}</span><ChevronRight aria-hidden="true" /></button> : <b className="lycee-agent-next-action-done"><CheckCircle2 aria-hidden="true" /> À jour</b>}
+      </section> : null}
       {access?.canViewAll && orderedServiceStats.length > 0 ? <section className="lycee-service-load" aria-label="Charge par service"><div><small>Vue superadministrateur</small><strong>Charge par service</strong></div><nav aria-label="Filtrer par charge de service">{orderedServiceStats.map((item) => { const value = item.service ?? "unassigned"; return <button type="button" aria-pressed={serviceFilter === value} className={serviceFilter === value ? "is-active" : ""} onClick={() => { setServiceFilter(value); setPage(1); }} key={value}><span>{supportTeamLabel(item.service)}</span><strong>{item.open}</strong><small>{item.urgent > 0 ? `${item.urgent} urgente${item.urgent > 1 ? "s" : ""}` : "Aucune urgence"}{item.overdue > 0 ? ` · ${item.overdue} en retard` : ""}</small></button>; })}</nav></section> : null}
       <div className="lycee-agent-workspace">
         <section className="lycee-agent-queue" aria-label="File des demandes">

@@ -3714,3 +3714,19 @@ taches et analyse de coherence avant une automatisation sensible.
   recette. La route temporaire et six déploiements techniques sans alias ont
   été retirés. Aucun drapeau distant, secret, donnée réelle ou changement de
   production ne subsiste.
+
+### Jalon du 31 août 2026 - priorité opérationnelle des agents
+
+- La console propose désormais une seule priorité lisible à partir des compteurs
+  serveur validés : urgence, échéance dépassée enregistrée, classement, absence
+  d'agent, vérification interne, rappel, doublon puis file complète.
+- Cette proposition ne crée aucun délai, n'attribue aucun dossier et ne déclenche
+  ni transfert, réponse, notification ou action IA. Son bouton ouvre uniquement
+  le filtre correspondant et retire l'ancien détail de l'écran.
+- Une file vide validée est annoncée comme à jour sans bouton d'action. Une panne
+  ou l'absence de périmètre masque le guide au lieu d'inventer une file vide. Les
+  tests couvrent l'ordre complet, le repli neutre, le clavier et le libellé
+  accessible.
+- Le rendu Chrome réel passe à 1 440 et 390 px sans erreur navigateur ni
+  débordement horizontal. T056C est terminé ; T056 reste ouvert pour les comptes
+  individuels et la validation des périmètres réels.

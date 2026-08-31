@@ -677,6 +677,15 @@ l'autorisation de quota définie par le propriétaire.
   déploiement techniques ont été supprimés. Une requête indépendante confirme
   zéro résidu. T028 est terminée ; l'activation durable reste une décision de
   pilote distincte.
+- Lot N5ZZE : priorité opérationnelle de la console. **Implémentée sans donnée
+  réelle, nouvelle permission ni automatisation métier** : une règle locale
+  déterministe transforme uniquement les compteurs serveur validés en une
+  prochaine file proposée. Urgences et échéances enregistrées précèdent le
+  classement, les dossiers sans agent, les vérifications, rappels et doublons.
+  Le bouton change seulement le filtre et désélectionne l'ancien dossier. Les
+  tests unitaires, clavier et les recettes Chrome à 1 440 et 390 px passent sans
+  débordement horizontal. Le guide reste absent tant que la file n'a pas fourni
+  un périmètre valide, afin qu'une panne ne ressemble jamais à une file vide.
 
 ## Prochaine séquence verrouillée
 

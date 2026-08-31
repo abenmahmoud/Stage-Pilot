@@ -27,3 +27,15 @@ test("names the search and announces the current service and dossier", () => {
   assert.match(page, /aria-pressed=\{serviceFilter === value\}/);
   assert.match(page, /<button aria-pressed=\{selectedCode === request\.publicCode\}/);
 });
+
+test("exposes one keyboard-operable next action without changing a dossier", () => {
+  assert.match(page, /\{access && !queueLoadError \? <section className="lycee-agent-next-action"/);
+  assert.match(
+    page,
+    /className="lycee-agent-next-action"[\s\S]*?aria-labelledby="agent-next-action-title"/
+  );
+  assert.match(page, /<strong id="agent-next-action-title">\{nextQueueAction\.headline\}<\/strong>/);
+  assert.match(page, /setQueueMode\(nextQueueAction\.mode \?\? "all"\)/);
+  assert.match(page, /setSelectedCode\(null\)/);
+  assert.match(page, /<button type="button" onClick=/);
+});

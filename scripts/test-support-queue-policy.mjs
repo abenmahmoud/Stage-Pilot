@@ -3,6 +3,7 @@ import test from "node:test";
 import {
   assessSupportQueueItem,
   compareSupportQueueItems,
+  resolveSupportQueueNextAction,
 } from "../shared/support-queue-policy.ts";
 
 const now = "2026-08-27T10:00:00.000Z";
@@ -60,4 +61,69 @@ test("orders the closest recorded deadline first at equal priority", () => {
 test("keeps requests without a deadline after dated requests", () => {
   const withoutDeadline = { ...request, slaDueAt: null };
   assert.equal(compareSupportQueueItems(request, withoutDeadline) < 0, true);
+});
+
+const emptyStats = {
+  total: 0,
+  urgent: 0,
+  overdue: 0,
+  qualify: 0,
+  unassigned: 0,
+  waitingInternal: 0,
+  callbacks: 0,
+  duplicates: 0,
+};
+
+test("guides the agent through validated signals without taking an action", () => {
+  const priorities = [
+    ["urgent", "urgent"],
+    ["overdue", "overdue"],
+    ["qualify", "qualify"],
+    ["unassigned", "unassigned"],
+    ["waitingInternal", "internal"],
+    ["callbacks", "callbacks"],
+    ["duplicates", "duplicates"],
+  ];
+  for (const [counter, expectedMode] of priorities) {
+    const result = resolveSupportQueueNextAction({
+      ...emptyStats,
+      total: 3,
+      [counter]: 3,
+    });
+    assert.equal(result.mode, expectedMode);
+    assert.equal(result.count, 3);
+    assert.ok(result.actionLabel);
+  }
+});
+
+test("keeps urgent and recorded overdue work ahead of lower signals", () => {
+  assert.equal(resolveSupportQueueNextAction({
+    ...emptyStats,
+    total: 10,
+    urgent: 1,
+    overdue: 2,
+    qualify: 3,
+    unassigned: 4,
+  }).mode, "urgent");
+  assert.equal(resolveSupportQueueNextAction({
+    ...emptyStats,
+    total: 9,
+    overdue: 2,
+    qualify: 3,
+    unassigned: 4,
+  }).mode, "overdue");
+});
+
+test("falls back to the complete scoped queue without inventing an alert", () => {
+  const result = resolveSupportQueueNextAction({ ...emptyStats, total: 6 });
+  assert.equal(result.mode, "all");
+  assert.equal(result.count, 6);
+  assert.match(result.detail, /Aucun signal prioritaire/);
+});
+
+test("reports a genuinely empty scoped queue without an action button", () => {
+  const result = resolveSupportQueueNextAction(emptyStats);
+  assert.equal(result.mode, null);
+  assert.equal(result.count, 0);
+  assert.equal(result.actionLabel, null);
 });

@@ -716,6 +716,12 @@
 - [x] T056B Ajouter dans le shell authentifié un accès direct `Demandes` pour le
   superadministrateur, l'administration, les agents de service et la direction,
   sans modifier leurs pages d'accueil ni élargir leurs périmètres d'accès.
+- [x] T056C Ajouter un guidage `Priorité maintenant` dans la console agent. La
+  règle utilise uniquement les compteurs serveur déjà validés, ouvre la file
+  urgente, en retard, à classer, sans agent, à vérifier, de rappels ou de
+  doublons, et n'attribue, ne transfère ni ne répond automatiquement. Le rendu
+  réel est vérifié à 1 440 et 390 px sans débordement horizontal ; une panne de
+  file ne peut pas être présentée comme une file vide.
 - [ ] T057 Ajouter supervision, alertes, sauvegarde restaurable, file d'échec,
   journal d'accès et procédure d'incident.
 - [x] T057A Signaler dans la santé des demandes les retraits de brouillons agent
