@@ -3592,3 +3592,20 @@ taches et analyse de coherence avant une automatisation sensible.
   périmètre, ciphertext altéré, mauvais secret de sauvegarde et lots hors limite
   sont refusés. T010B2C7 est terminé sans accès distant, donnée réelle,
   migration ni production. Le brief Claude est préparé mais non exécuté.
+
+### Jalon du 31 août 2026 - tableau de santé borné et cohérent
+
+- La console direction traite désormais les réponses santé et mesures IA comme
+  des données inconnues. Elle valide leur forme exacte, leurs limites et leurs
+  relations avant de remplacer l'affichage existant.
+- Les compteurs sont entiers et bornés, les dates sont strictes, les catégories
+  et résultats sont connus et uniques, les listes respectent les plafonds API et
+  les totaux, taux, décisions de classement et séries quotidiennes se recoupent.
+- Une réponse santé invalide ferme tout le tableau. Une réponse de mesures IA
+  invalide masque uniquement ce module, en conservant la santé opérationnelle.
+- Une panne antivirus peut entrer dans la file d'échec mais n'est pas une
+  notification relançable. Elle reste visible avec « Intervention manuelle » ;
+  seules les quatre notifications idempotentes conservent l'action `Relancer`.
+- T057B est terminé sans migration, donnée réelle ou production. Un brief Claude
+  borné est préparé mais non exécuté tant que le modèle et le plafond propres à
+  cette revue ne sont pas fixés.

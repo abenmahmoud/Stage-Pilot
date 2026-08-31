@@ -15,80 +15,23 @@ import {
 } from "lucide-react";
 import { apiFetch } from "../../lib/api";
 import { verifySupportJobRetryConfirmation } from "../../../shared/support-operation-confirmation";
+import { isSupportRetryableJobType } from "../../../shared/support-job-retry";
+import {
+  parseAgentMetricsPayload,
+  parseSupportOperationsPayload,
+  type AgentMetricsPayload,
+  type SupportOperationsPayload,
+} from "../../../shared/support-operations-payload";
 
-type OperationsSummary = {
-  failuresWaiting: number;
-  jobSuccesses24h: number;
-  jobFailures24h: number;
-  webhookAlerts24h: number;
-  deliveryAlerts24h: number;
-  attachmentsWaiting: number;
-  attachmentRemovalsWaiting: number;
-  lastSuccessAt: string | null;
-};
-
-type FailedJob = {
-  id: string;
-  jobType: string;
-  attempts: number;
-  lastErrorCode: string | null;
-  lastErrorSummary: string | null;
-  failedAt: string;
-  publicCode: string | null;
-  subject: string | null;
-};
-
-type OperationsPayload = {
-  generatedAt: string;
-  summary: OperationsSummary;
-  activity30d: {
-    created: number;
-    resolved: number;
-    resolutionRate: number;
-    openBacklog: number;
-    averageResolutionHours: number;
-    p90ResolutionHours: number;
-    categories: Array<{ category: string; count: number }>;
-  };
-  failures: FailedJob[];
-};
-
-type AgentMetricsPayload = {
-  generatedAt: string;
-  days: 7 | 30;
-  summary: {
-    total: number;
-    aiAttempts: number;
-    aiSuccesses: number;
-    localOrFallback: number;
-    averageLatencyMs: number;
-    p95LatencyMs: number;
-    inputTokens: number;
-    outputTokens: number;
-    totalTokens: number;
-    estimatedCostMicros: number;
-    pricedRuns: number;
-    pricingConfigured: boolean;
-    pricingComplete: boolean;
-    serviceChanges: number;
-    routingCorrections: number;
-    routingCorrectionRate: number;
-    routingReviewTotal: number;
-    routingReviewPending: number;
-    routingReviewConfirmed: number;
-    routingReviewCorrected: number;
-    routingReviewCompletionRate: number;
-    routingReviewCorrectionRate: number;
-  };
-  outcomes: Array<{ outcome: string; count: number }>;
-  daily: Array<{ date: string; total: number; aiSuccesses: number; averageLatencyMs: number }>;
-};
+type FailedJob = SupportOperationsPayload["failures"][number];
 
 const JOB_LABELS: Record<string, string> = {
   notify_requester_request_created: "Confirmation au demandeur",
   notify_agent_request_created: "Alerte de nouvelle demande",
   notify_agent_message_received: "Alerte de nouvelle réponse",
   send_requester_reply: "Réponse de l’agent au demandeur",
+  scan_attachment: "Contrôle antivirus d’un document",
+  import_brevo_attachment: "Contrôle antivirus d’une pièce reçue",
 };
 
 const OUTCOME_LABELS: Record<string, string> = {
@@ -146,7 +89,7 @@ function durationLabel(hours: number): string {
 }
 
 export default function SupportOperationsPage() {
-  const [payload, setPayload] = useState<OperationsPayload | null>(null);
+  const [payload, setPayload] = useState<SupportOperationsPayload | null>(null);
   const [agentMetrics, setAgentMetrics] = useState<AgentMetricsPayload | null>(null);
   const [metricsDays, setMetricsDays] = useState<7 | 30>(7);
   const [loading, setLoading] = useState(true);
@@ -161,13 +104,23 @@ export default function SupportOperationsPage() {
     setMetricsError("");
     try {
       const [operations, metrics] = await Promise.allSettled([
-        apiFetch<OperationsPayload>("support/agent/operations"),
-        apiFetch<AgentMetricsPayload>(`support/agent/metrics?days=${metricsDays}`),
+        apiFetch<unknown>("support/agent/operations"),
+        apiFetch<unknown>(`support/agent/metrics?days=${metricsDays}`),
       ]);
       if (operations.status === "rejected") throw operations.reason;
-      setPayload(operations.value);
+      const operationsPayload = parseSupportOperationsPayload(operations.value);
+      if (!operationsPayload) {
+        throw new Error("La réponse de santé est invalide. Aucune donnée n'a été affichée.");
+      }
+      setPayload(operationsPayload);
       if (metrics.status === "fulfilled") {
-        setAgentMetrics(metrics.value);
+        const metricsPayload = parseAgentMetricsPayload(metrics.value);
+        if (!metricsPayload || metricsPayload.days !== metricsDays) {
+          setAgentMetrics(null);
+          setMetricsError("Les mesures de l’assistant sont invalides ou ne correspondent pas à la période demandée.");
+        } else {
+          setAgentMetrics(metricsPayload);
+        }
       } else {
         setAgentMetrics(null);
         setMetricsError("Les mesures de l’assistant sont momentanément indisponibles.");
@@ -184,6 +137,10 @@ export default function SupportOperationsPage() {
   }, [metricsDays]);
 
   async function retry(job: FailedJob) {
+    if (!isSupportRetryableJobType(job.jobType)) {
+      setError("Cette opération nécessite une intervention manuelle et ne peut pas être relancée ici.");
+      return;
+    }
     setRetryingId(job.id);
     setError("");
     setNotice("");
@@ -328,10 +285,16 @@ export default function SupportOperationsPage() {
               {payload?.failures.map((job) => (
                 <article key={job.id} className="grid gap-3 px-4 py-4 md:grid-cols-[minmax(0,1fr)_180px_auto] md:items-center">
                   <div className="min-w-0"><strong className="block truncate text-slate-950">{job.publicCode ?? "Dossier supprimé"} · {job.subject ?? "Sans objet"}</strong><span className="mt-1 block text-sm text-slate-600">{JOB_LABELS[job.jobType] ?? "Opération technique"}</span><small className="mt-1 block text-slate-500">Échec après {job.attempts} essais · {dateLabel(job.failedAt)}</small></div>
-                  <span className="text-sm font-medium text-red-700">{job.lastErrorSummary ?? "Envoi interrompu"}</span>
-                  <button type="button" onClick={() => void retry(job)} disabled={retryingId !== null} className="inline-flex items-center justify-center gap-2 rounded-md bg-slate-950 px-3 py-2 text-sm font-semibold text-white disabled:opacity-50">
-                    {retryingId === job.id ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <RotateCcw className="h-4 w-4" />} Relancer
-                  </button>
+                  <span className="text-sm font-medium text-red-700">{job.lastErrorSummary ?? "Opération interrompue"}</span>
+                  {isSupportRetryableJobType(job.jobType) ? (
+                    <button type="button" onClick={() => void retry(job)} disabled={retryingId !== null} className="inline-flex items-center justify-center gap-2 rounded-md bg-slate-950 px-3 py-2 text-sm font-semibold text-white disabled:opacity-50">
+                      {retryingId === job.id ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <RotateCcw className="h-4 w-4" />} Relancer
+                    </button>
+                  ) : (
+                    <span className="inline-flex min-h-10 items-center justify-center border border-amber-300 bg-amber-50 px-3 py-2 text-center text-sm font-semibold text-amber-900">
+                      Intervention manuelle
+                    </span>
+                  )}
                 </article>
               ))}
               {payload?.failures.length === 0 ? <p className="px-4 py-10 text-center text-sm text-slate-500">Aucune opération n’attend de relance.</p> : null}

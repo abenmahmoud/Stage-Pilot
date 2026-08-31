@@ -706,6 +706,12 @@
   établissement, sans nom de fichier, chemin privé, contenu ni identité. La
   reprise reste une action explicite de l'agent propriétaire ; T057 demeure
   ouverte pour les alertes externes, la restauration et la procédure d'incident.
+- [x] T057B Valider et borner dans le navigateur toutes les réponses du tableau
+  de santé direction avant affichage : schémas exacts, compteurs, dates, listes,
+  taux et cohérences agrégées. Une réponse invalide n'écrase jamais l'état connu.
+  Les pannes antivirus restent visibles mais ne proposent pas la relance réservée
+  aux quatre notifications idempotentes ; T057 reste ouverte pour les alertes
+  externes, la restauration distante et la procédure d'incident complète.
 - [ ] T058 Faire valider le cadre ESSUF GROUP-lycée : rôles RGPD, support,
   propriété, mentions, réversibilité et fin de partenariat.
 - [ ] T059 Exécuter un pilote avec données minimales, responsables nommés et plan

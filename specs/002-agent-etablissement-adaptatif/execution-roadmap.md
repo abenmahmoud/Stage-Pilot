@@ -644,6 +644,15 @@ l'autorisation de quota définie par le propriétaire.
   n'écrit qu'un événement et qu'un travail antivirus. L'événement de réservation
   ne contient ni nom, ni chemin, ni jeton, ni contenu. T028 reste ouverte pour
   le premier adaptateur complet du registre d'actions.
+- Lot N5ZZA : validation runtime du tableau de santé. **Implémentée sans donnée
+  réelle ni migration** : les deux réponses privées sont lues comme inconnues,
+  puis validées intégralement avant de remplacer l'écran. Les limites couvrent
+  compteurs, dates, cinquante échecs, cinq catégories, périodes, résultats et
+  séries journalières ; les totaux, pourcentages et décisions doivent rester
+  cohérents. Une panne antivirus demeure visible mais affiche « Intervention
+  manuelle » au lieu d'un bouton de relance que le serveur refuserait. La porte
+  de sécurité permanente rejoue ces cas ; T057 reste ouverte pour les alertes
+  externes, la restauration distante et la procédure d'incident.
 
 ## Prochaine séquence verrouillée
 
