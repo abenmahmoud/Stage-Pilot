@@ -5,6 +5,7 @@ import {
   BarChart3,
   BrainCircuit,
   CheckCircle2,
+  ClipboardCopy,
   Clock3,
   LoaderCircle,
   RefreshCw,
@@ -16,6 +17,7 @@ import {
 import { apiFetch } from "../../lib/api";
 import { verifySupportJobRetryConfirmation } from "../../../shared/support-operation-confirmation";
 import { isSupportRetryableJobType } from "../../../shared/support-job-retry";
+import { buildSupportIncidentGuidance } from "../../../shared/support-incident-guidance";
 import {
   parseAgentMetricsPayload,
   parseSupportOperationsPayload,
@@ -97,6 +99,7 @@ export default function SupportOperationsPage() {
   const [error, setError] = useState("");
   const [metricsError, setMetricsError] = useState("");
   const [notice, setNotice] = useState("");
+  const [incidentCopyStatus, setIncidentCopyStatus] = useState<"" | "success" | "error">("");
 
   async function load() {
     setLoading(true);
@@ -162,6 +165,19 @@ export default function SupportOperationsPage() {
     }
   }
 
+  async function copyIncidentReport(report: string) {
+    setIncidentCopyStatus("");
+    try {
+      if (!navigator.clipboard?.writeText) {
+        throw new Error("Clipboard unavailable");
+      }
+      await navigator.clipboard.writeText(report);
+      setIncidentCopyStatus("success");
+    } catch {
+      setIncidentCopyStatus("error");
+    }
+  }
+
   const summary = payload?.summary;
   const healthy = Boolean(
     summary
@@ -169,6 +185,7 @@ export default function SupportOperationsPage() {
     && summary.jobFailures24h === 0
     && summary.attachmentRemovalsWaiting === 0
   );
+  const incidentGuidance = payload ? buildSupportIncidentGuidance(payload) : null;
 
   return (
     <div className="mx-auto max-w-6xl space-y-6">
@@ -204,6 +221,33 @@ export default function SupportOperationsPage() {
             <div className="border-t-4 border-blue-600 bg-white p-4 shadow-sm"><Clock3 className="h-5 w-5 text-blue-700" /><strong className="mt-3 block text-2xl text-slate-950">{summary.attachmentsWaiting}</strong><span className="text-sm text-slate-500">Fichiers en attente</span></div>
             <div className="border-t-4 border-rose-600 bg-white p-4 shadow-sm"><Trash2 className="h-5 w-5 text-rose-700" /><strong className="mt-3 block text-2xl text-slate-950">{summary.attachmentRemovalsWaiting}</strong><span className="text-sm text-slate-500">Retraits à reprendre</span></div>
           </section>
+
+          {incidentGuidance ? (
+            <section className="grid gap-5 border-y border-slate-200 py-5 lg:grid-cols-[minmax(240px,0.7fr)_minmax(0,1.3fr)]" aria-labelledby="incident-guidance-title">
+              <div className="space-y-3">
+                <p className={`text-sm font-semibold ${incidentGuidance.state === "nominal" ? "text-emerald-700" : "text-amber-700"}`}>Procédure locale</p>
+                <h2 id="incident-guidance-title" className="text-lg font-bold text-slate-950">Conduite à tenir</h2>
+                <div className={`border-l-4 p-4 ${incidentGuidance.state === "nominal" ? "border-emerald-600 bg-emerald-50" : "border-amber-600 bg-amber-50"}`}>
+                  <strong className="text-slate-950">{incidentGuidance.title}</strong>
+                  <p className="mt-1 text-sm leading-6 text-slate-600">{incidentGuidance.description}</p>
+                </div>
+                <button type="button" onClick={() => void copyIncidentReport(incidentGuidance.technicalReport)} className="inline-flex min-h-10 items-center justify-center gap-2 rounded-md border border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-slate-800 hover:bg-slate-50">
+                  <ClipboardCopy className="h-4 w-4" aria-hidden="true" /> Copier le résumé technique
+                </button>
+                {incidentCopyStatus === "success" ? <p role="status" className="text-sm font-medium text-emerald-700">Résumé technique copié.</p> : null}
+                {incidentCopyStatus === "error" ? <p role="alert" className="text-sm font-medium text-red-700">La copie est indisponible sur cet appareil.</p> : null}
+                <p className="text-xs leading-5 text-slate-500">Le résumé contient uniquement des compteurs et l’heure du relevé. Il n’envoie aucune alerte.</p>
+              </div>
+              <ol className="divide-y border-y border-slate-200 bg-white">
+                {incidentGuidance.steps.map((step, index) => (
+                  <li key={step.id} className="grid gap-3 px-4 py-4 sm:grid-cols-[32px_minmax(0,1fr)]">
+                    <span className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-950 text-sm font-bold text-white" aria-hidden="true">{index + 1}</span>
+                    <div><strong className="text-slate-950">{step.title}</strong><p className="mt-1 text-sm leading-6 text-slate-600">{step.detail}</p></div>
+                  </li>
+                ))}
+              </ol>
+            </section>
+          ) : null}
 
           <section className="grid gap-5 border-y border-slate-200 py-5 lg:grid-cols-[minmax(0,1.3fr)_minmax(280px,0.7fr)]" aria-labelledby="request-activity-title">
             <div className="space-y-4">

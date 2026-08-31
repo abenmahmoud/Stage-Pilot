@@ -712,6 +712,11 @@
   Les pannes antivirus restent visibles mais ne proposent pas la relance réservée
   aux quatre notifications idempotentes ; T057 reste ouverte pour les alertes
   externes, la restauration distante et la procédure d'incident complète.
+- [x] T057C Ajouter dans la santé Direction une conduite à tenir déterministe et
+  contextualisée à partir des seuls compteurs validés. Le résumé technique
+  copiable exclut toute donnée de dossier et n'est confirmé qu'après réussite du
+  presse-papier. Aucune alerte, réparation, suppression ou restauration n'est
+  déclenchée ; T057 reste ouverte pour l'exploitation externe validée.
 - [ ] T058 Faire valider le cadre ESSUF GROUP-lycée : rôles RGPD, support,
   propriété, mentions, réversibilité et fin de partenariat.
 - [ ] T059 Exécuter un pilote avec données minimales, responsables nommés et plan

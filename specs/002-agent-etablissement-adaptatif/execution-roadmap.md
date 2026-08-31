@@ -653,6 +653,14 @@ l'autorisation de quota définie par le propriétaire.
   manuelle » au lieu d'un bouton de relance que le serveur refuserait. La porte
   de sécurité permanente rejoue ces cas ; T057 reste ouverte pour les alertes
   externes, la restauration distante et la procédure d'incident.
+- Lot N5ZZB : conduite à tenir locale. **Implémentée sans donnée réelle ni
+  intégration externe** : la santé Direction propose uniquement les étapes liées
+  aux signaux validés de file, messagerie, antivirus et retrait. Un résumé
+  technique borné et agrégé peut être copié après confirmation du navigateur ;
+  il exclut dossier, identité, message, erreur détaillée et fichier. L'écran ne
+  prétend jamais avoir transmis une alerte et ne déclenche aucune réparation.
+  T057 reste ouverte pour les responsables, seuils métier, alertes externes et
+  restauration distante validés.
 
 ## Prochaine séquence verrouillée
 

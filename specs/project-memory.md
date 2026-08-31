@@ -3609,3 +3609,17 @@ taches et analyse de coherence avant une automatisation sensible.
 - T057B est terminé sans migration, donnée réelle ou production. Un brief Claude
   borné est préparé mais non exécuté tant que le modèle et le plafond propres à
   cette revue ne sont pas fixés.
+
+### Jalon du 31 août 2026 - conduite à tenir locale
+
+- La santé Direction transforme désormais les compteurs validés en étapes
+  courtes pour la file d'échec, la chaîne email, l'antivirus et les retraits de
+  brouillons. L'état nominal conserve une seule consigne de surveillance.
+- Le résumé technique copiable contient uniquement l'heure serveur et six
+  compteurs. Il ne lit ni dossier, ni identité, ni coordonnées, ni message, ni
+  erreur détaillée, ni fichier, et la réussite apparaît seulement après la copie.
+- Cette aide n'envoie aucune alerte et ne lance aucune réparation, suppression
+  ou restauration. Les responsables, seuils métier, canaux externes et la
+  restauration distante restent des portes humaines de T057.
+- T057C est terminé sans migration, service distant, donnée réelle ou
+  production. Le brief Claude est préparé mais non exécuté sans accord borné.
