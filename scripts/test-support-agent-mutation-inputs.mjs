@@ -6,6 +6,8 @@ import {
   isSupportAgentCallbackCreateInput,
   isSupportAgentCallbackMutationInput,
   isSupportAgentInternalNoteInput,
+  isSupportAgentReplyInput,
+  isSupportAgentRequestMutationInput,
   isSupportAgentTemplateInput,
   singleSupportAgentRouteValue,
 } from "../shared/support-agent-mutation-input-policy.ts";
@@ -25,6 +27,8 @@ const metricsRoute = source("../api/support/agent/metrics.ts");
 const approvalsRoute = source("../api/support/agent/approvals/index.ts");
 
 const uuid = "123e4567-e89b-42d3-a456-426614174000";
+const revision = "2026-09-01T08:00:00.000Z";
+const translationReceipt = `${"a".repeat(80)}.${"b".repeat(43)}`;
 
 test("accepts one route value and rejects missing, typed or repeated values", () => {
   assert.equal(singleSupportAgentRouteValue("BC-2026-000123"), "BC-2026-000123");
@@ -90,8 +94,67 @@ test("accepts only action-specific callback fields", () => {
   }
 });
 
+test("accepts only meaningful exact request mutations", () => {
+  for (const candidate of [
+    { expectedUpdatedAt: revision, priority: "p2" },
+    { expectedUpdatedAt: revision, status: "assigne", assignedTeam: "secretariat" },
+    { expectedUpdatedAt: revision, identityStatus: "contact_verifie", identityMethod: "phone_callback" },
+    { expectedUpdatedAt: revision, status: "clos", closureReason: "Demande traitée" },
+    { expectedUpdatedAt: revision, duplicateDecision: "dismissed" },
+    { expectedUpdatedAt: revision, routingDecision: "confirmed" },
+    { expectedUpdatedAt: revision, assignToMe: true },
+  ]) {
+    assert.equal(isSupportAgentRequestMutationInput(candidate), true);
+  }
+  for (const candidate of [
+    { expectedUpdatedAt: revision },
+    { expectedUpdatedAt: revision, priority: "p2", actorId: uuid },
+    { expectedUpdatedAt: revision, priority: "urgent" },
+    { expectedUpdatedAt: revision, assignToMe: false },
+    { expectedUpdatedAt: revision, assignedTeam: "" },
+    { expectedUpdatedAt: revision, closureReason: "sans clôture" },
+    { expectedUpdatedAt: 42, status: "en_cours" },
+    { expectedUpdatedAt: "x".repeat(41), status: "en_cours" },
+  ]) {
+    assert.equal(isSupportAgentRequestMutationInput(candidate), false);
+  }
+});
+
+test("accepts only exact replies, attachments and signed translation fields", () => {
+  const reply = {
+    message: "Votre demande a été traitée.",
+    expectedUpdatedAt: revision,
+    attachmentIds: [uuid],
+  };
+  assert.equal(isSupportAgentReplyInput(reply), true);
+  assert.equal(isSupportAgentReplyInput({ ...reply, safeTemplate: "identity_verification" }), true);
+  assert.equal(isSupportAgentReplyInput({
+    ...reply,
+    translation: {
+      sourceMessage: "Votre demande a été traitée.",
+      targetLanguage: "arabe",
+      receipt: translationReceipt,
+      validated: true,
+    },
+  }), true);
+  for (const candidate of [
+    { ...reply, authorUserId: uuid },
+    { message: reply.message, expectedUpdatedAt: revision },
+    { ...reply, attachmentIds: [uuid, uuid] },
+    { ...reply, attachmentIds: [[uuid]] },
+    { ...reply, message: "x".repeat(10_001) },
+    { ...reply, safeTemplate: "password_reset" },
+    { ...reply, translation: { sourceMessage: "Texte", targetLanguage: "arabe", receipt: "unsigned", validated: true } },
+    { ...reply, translation: { sourceMessage: "Texte", targetLanguage: "arabe", receipt: translationReceipt, validated: true, model: "hidden" } },
+  ]) {
+    assert.equal(isSupportAgentReplyInput(candidate), false);
+  }
+});
+
 test("mutation routes validate shared bodies before their first business query", () => {
   const checks = [
+    [requestRoute, "isSupportAgentRequestMutationInput(req.body)", "const [request] = await db"],
+    [replyRoute, "isSupportAgentReplyInput(req.body)", "const [request] = await db"],
     [reservationRoute, "isSupportAgentAttachmentReservationInput(req.body)", "const [request] = await db"],
     [noteRoute, "isSupportAgentInternalNoteInput(req.body)", "const [request] = await db"],
     [callbackRoute, "isSupportAgentCallbackCreateInput(bodyInput)", "const [request] = await db"],

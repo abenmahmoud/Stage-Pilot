@@ -3971,3 +3971,17 @@ taches et analyse de coherence avant une automatisation sensible.
   production, DNS, VPS, ENT, PRONOTE, webmail ou envoi externe.
 - La porte de sécurité complète, l'intégrité des 501 tâches Spec Kit et l'audit
   des dépendances livrées passent ; ce dernier retourne zéro vulnérabilité.
+
+## 2026-09-01 - Modification et réponse agent à contrat fermé
+
+- T027B23 exige une révision et au moins une action connue pour modifier un
+  dossier. Statut, priorité, identité, méthode, service, doublon, classement et
+  clôture utilisent des valeurs fermées ; le motif ne voyage qu'avec la clôture.
+- Une réponse agent contient exactement message, révision et liste de pièces,
+  plus le modèle sécurisé ou la traduction signée facultatifs. Les UUID sont
+  uniques et les quatre champs de traduction sont bornés avant vérification HMAC.
+- Les deux commandes sont validées avant la première lecture du dossier. Huit
+  scénarios ciblés et le build passent sans envoi, base distante, donnée réelle,
+  production, DNS, VPS, ENT, PRONOTE ou webmail.
+- La porte de sécurité complète et l'intégrité des 502 tâches Spec Kit passent.
+  L'audit des dépendances livrées retourne également zéro vulnérabilité.

@@ -29,7 +29,10 @@ import {
   SUPPORT_DUPLICATE_EVENT_TYPES,
 } from "../../../../shared/support-duplicate-policy.js";
 import { supportAssistantRoutingReviewEnabled } from "../../../../shared/support-assistant-routing-receipt.js";
-import { singleSupportAgentRouteValue } from "../../../../shared/support-agent-mutation-input-policy.js";
+import {
+  isSupportAgentRequestMutationInput,
+  singleSupportAgentRouteValue,
+} from "../../../../shared/support-agent-mutation-input-policy.js";
 import { createSupportRequestMutationConfirmation } from "../../../../shared/support-request-mutation-confirmation.js";
 import { SUPPORT_AGENT_DETAIL_LIMITS } from "../../../../shared/support-agent-detail-payload-policy.js";
 
@@ -88,6 +91,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const { user, access, institutionId } = await requireSupportAgent(req);
     const routingReviewEnabled = supportAssistantRoutingReviewEnabled();
     const code = publicCode(req);
+    const mutationBody = req.method === "PATCH" && isSupportAgentRequestMutationInput(req.body)
+      ? req.body
+      : null;
+    if (req.method === "PATCH" && !mutationBody) {
+      throw new HttpError(400, "Modification du dossier invalide");
+    }
     const [request] = await db
       .select()
       .from(supportRequests)
@@ -101,7 +110,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     if (req.method === "PATCH") {
       await enforceAgentWriteRateLimit(user.id);
-      const body = (req.body ?? {}) as Record<string, unknown>;
+      const body = mutationBody;
+      if (!body) throw new HttpError(400, "Modification du dossier invalide");
       const expectedRevision = parseSupportRevision(body.expectedUpdatedAt);
       if (!expectedRevision) {
         throw new HttpError(400, "La version du dossier est requise");

@@ -40,7 +40,10 @@ import {
   verifySupportTranslationReceipt,
 } from "../../../../_shared/support-translation.js";
 import { createSupportAgentReplyConfirmation } from "../../../../../shared/support-agent-reply-confirmation.js";
-import { singleSupportAgentRouteValue } from "../../../../../shared/support-agent-mutation-input-policy.js";
+import {
+  isSupportAgentReplyInput,
+  singleSupportAgentRouteValue,
+} from "../../../../../shared/support-agent-mutation-input-policy.js";
 
 function sameAttachmentIds(expected: string[], actual: string[]): boolean {
   if (expected.length !== actual.length) return false;
@@ -58,7 +61,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (!code || !/^BC-\d{4}-\d{6}$/.test(code)) {
       throw new HttpError(400, "Numéro de demande invalide");
     }
-    const body = (req.body ?? {}) as Record<string, unknown>;
+    if (!isSupportAgentReplyInput(req.body)) {
+      throw new HttpError(400, "Réponse agent invalide");
+    }
+    const body = req.body;
     let messageText = normalizeSupportReplyText(body.message);
     if (!messageText) throw new HttpError(400, "Message invalide");
     assertNoForbiddenSupportSecret(messageText);

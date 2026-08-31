@@ -776,6 +776,13 @@ l'autorisation de quota définie par le propriétaire.
   choisissent plus la première valeur d'un numéro de dossier, identifiant de
   pièce, opération, validation ou filtre répété. Six scénarios ciblés et le
   build passent. T027B22 est terminée.
+- Lot N5ZZR : modification et réponse agent. **Fermées sans donnée réelle,
+  migration ni envoi** : une mise à jour possède une révision et au moins une
+  action documentée ; statuts, priorités, identité, services et décisions sont
+  bornés. Une réponse possède un message, une révision et une liste de pièces
+  unique, avec modèle sûr ou traduction signée à structure exacte. Les deux
+  commandes sont refusées avant la première lecture du dossier. Huit scénarios
+  ciblés et le build passent. T027B23 est terminée.
 
 ## Prochaine séquence verrouillée
 
