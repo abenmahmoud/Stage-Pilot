@@ -311,6 +311,11 @@
   serveur, puis la valider avec le même contrat exact dans l'API et le
   navigateur : aucun champ interne supplémentaire, source dupliquée, compteur
   de tours contradictoire, action non prête ou reçu incomplet n'est accepté.
+- [x] T023F Valider exactement l'entrée publique de l'assistant avant toute
+  lecture du registre ou analyse : champs connus uniquement, dialogue alterné
+  terminé par le demandeur, dix tours au maximum et métadonnées de pièces
+  jointes réelles refusées hors des types et tailles autorisés, sans troncature
+  ni correction silencieuse.
 - [x] T024A Autoriser le contexte public à tous, le contexte interne uniquement
   aux agents de rôle habilité avec I3 ou I4 dans le service de la source, et interdire l'injection directe des
   classifications personnelles ou sensibles, même pour un administrateur.

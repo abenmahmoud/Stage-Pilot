@@ -734,6 +734,14 @@ l'autorisation de quota définie par le propriétaire.
   nomenclature, compteur de tours contradictoire, action non prête et reçu absent,
   mal formé ou trop long. Une réponse invalide provoque le repli déterministe et
   n'est jamais affichée comme une réponse fiable. T023E est terminée.
+- Lot N5ZZM : contrat exact d'entrée de l'assistant. **Implémenté sans donnée
+  réelle, migration ni appel supplémentaire au modèle** : le serveur accepte
+  uniquement la session, le dialogue et les métadonnées de pièces documentés.
+  Le dialogue doit alterner les rôles, finir par le demandeur et rester dans dix
+  tours et douze mille caractères. Les noms, types et tailles de fichiers hors
+  limites sont refusés au lieu d'être tronqués ou ramenés silencieusement dans
+  la plage. Le contrôle des secrets précède la limite de débit, le registre et
+  l'analyse. T023F est terminée.
 
 ## Prochaine séquence verrouillée
 

@@ -7,7 +7,7 @@ const routes = [
     "assistant public",
     "../api/support/assistant.ts",
     "32kb",
-    "cleanMessages(input.messages)",
+    "parseSupportAssistantInput(req.body)",
     "const deviceKey = await enforceAssistantRateLimits",
     "const result = await analyzeSupportConversation",
   ],

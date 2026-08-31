@@ -3851,3 +3851,18 @@ taches et analyse de coherence avant une automatisation sensible.
 - Huit scénarios ciblés couvrent réponse valide, champs cachés, dépassements,
   doublons, compteurs, actions et reçus. Le lot ne lit aucune donnée réelle et
   ne modifie ni base, production, DNS, VPS, ENT, PRONOTE ou webmail.
+
+## 2026-09-01 - Entrée publique de l'assistant exacte
+
+- T023F remplace les deux nettoyages permissifs de la route par un parseur
+  partagé et testable. Le corps ne peut contenir que `sessionId`, `messages` et
+  les métadonnées facultatives `attachments`; chaque objet imbriqué possède
+  aussi une liste fermée de champs.
+- Le dialogue alterne demandeur et assistant, se termine par le demandeur et ne
+  dépasse pas dix tours, vingt et un messages ni douze mille caractères. Les
+  métadonnées de cinq pièces au maximum doivent conserver un nom borné, un type
+  explicitement autorisé et une taille entière entre un octet et dix mégaoctets.
+- Une valeur hors limite est refusée : le serveur ne tronque plus un nom ou un
+  type et ne réduit plus une taille annoncée. Sept scénarios ciblés prouvent les
+  limites, séquences, champs exacts et l'ordre des contrôles avant le registre et
+  l'IA, sans donnée réelle, base, production ou service externe.
