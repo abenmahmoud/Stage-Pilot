@@ -88,6 +88,10 @@ quarantaine. Une panne d'envoi externe n'affecte pas le dossier.
   l'identifiant ou le jeton signé ne respecte pas le contrat de quarantaine.
 - [x] **T016F** Valider les confirmations serveur de fichier, message et fermeture
   de session avant tout succès visible ou effacement de mémoire locale.
+- [x] **T016G** Partager les plafonds du suivi public entre API et interface,
+  lire au plus une ligne de détection au-delà de chaque plafond et refuser tout
+  dépassement avant la réponse afin de ne jamais présenter une conversation
+  partielle comme complète.
 - [x] **T017** Construire la file agent paginée avec filtres, SLA et assignation.
 - [x] **T017A** Protéger les modifications et réponses par révision, rendre la
   prise en charge atomique et actualiser l'écran après un conflit.

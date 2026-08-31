@@ -3814,3 +3814,11 @@ taches et analyse de coherence avant une automatisation sensible.
   présenté comme complet.
 - Le lot reste limité à la preview, sans migration, donnée réelle ni modification
   de production.
+## 2026-08-31 - Suivi public borné côté serveur
+
+- T016G partage les plafonds de messages et pièces entre la route publique et
+  son validateur navigateur.
+- L'API lit au plus `plafond + 1`, refuse tout dépassement avant la réponse et
+  ne présente jamais une conversation partielle comme complète. La recherche
+  d'un contact vérifié s'arrête à la première preuve utile.
+- Le lot reste limité à la preview, sans donnée réelle, migration ou production.

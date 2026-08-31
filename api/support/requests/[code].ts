@@ -10,6 +10,20 @@ import {
 import { HttpError } from "../../_shared/auth.js";
 import { handleApi, methodNotAllowed } from "../../_shared/response.js";
 import { requireSupportAccess } from "../../_shared/support.js";
+import { SUPPORT_PUBLIC_DETAIL_LIMITS } from "../../../shared/support-public-detail-limits.js";
+
+function assertCompletePublicDetailCollection(
+  rowCount: number,
+  limit: number,
+  label: string
+): void {
+  if (rowCount > limit) {
+    throw new HttpError(
+      409,
+      `Ce dossier contient trop de ${label} pour être affiché complètement. Aucune conversation partielle n’a été affichée.`
+    );
+  }
+}
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== "GET") return methodNotAllowed(res, ["GET"]);
@@ -42,6 +56,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         eq(supportRequests.id, access.requestId)
       ))
       .limit(1);
+    if (!request) throw new HttpError(404, "Demande introuvable");
 
     const [messages, attachments, verifiedContacts] = await Promise.all([
       db.select({
@@ -60,7 +75,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           ne(supportMessages.direction, "internal")
         )
       )
-      .orderBy(asc(supportMessages.createdAt)),
+      .orderBy(asc(supportMessages.createdAt))
+      .limit(SUPPORT_PUBLIC_DETAIL_LIMITS.messages + 1),
       db.select({
         id: supportAttachments.id,
         messageId: supportAttachments.messageId,
@@ -84,7 +100,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             isNotNull(supportAttachments.releasedAt)
           )
         )
-      )),
+      ))
+      .limit(SUPPORT_PUBLIC_DETAIL_LIMITS.attachments + 1),
       db.select({ id: supportContacts.id })
         .from(supportContacts)
         .where(
@@ -93,8 +110,20 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             eq(supportContacts.isVerified, true),
             isNull(supportContacts.disabledAt)
           )
-        ),
+        )
+        .limit(1),
     ]);
+
+    assertCompletePublicDetailCollection(
+      messages.length,
+      SUPPORT_PUBLIC_DETAIL_LIMITS.messages,
+      "messages"
+    );
+    assertCompletePublicDetailCollection(
+      attachments.length,
+      SUPPORT_PUBLIC_DETAIL_LIMITS.attachments,
+      "pièces jointes"
+    );
 
     const identityContext = (request.subjectContext ?? {}) as Record<string, unknown>;
     const contextIdentityStatus = identityContext.identityStatus;

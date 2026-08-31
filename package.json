@@ -198,7 +198,7 @@
     "test:support-agent-auxiliary": "node scripts/test-support-agent-auxiliary-payloads.mjs",
     "test:support-detail-recovery": "node scripts/test-support-detail-recovery.mjs",
     "test:support-public-list-payload": "node scripts/test-support-public-list-payload.mjs",
-    "test:support-public-detail-payload": "node scripts/test-support-public-detail-payload.mjs",
+    "test:support-public-detail-payload": "node --import ./scripts/ts-test-resolver.mjs --experimental-strip-types scripts/test-support-public-detail-payload.mjs",
     "test:support-public-upload-reservation": "node scripts/test-support-public-upload-reservation.mjs",
     "test:support-assistant-client-payload": "node scripts/test-support-assistant-client-payload.mjs",
     "test:support-magic-access-payload": "node scripts/test-support-magic-access-payload.mjs",

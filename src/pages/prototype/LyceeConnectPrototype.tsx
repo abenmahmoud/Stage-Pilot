@@ -109,6 +109,7 @@ import {
 } from "../../../shared/support-queue-payload-policy";
 import { resolveSupportQueueNavigation } from "../../../shared/support-queue-navigation";
 import { isValidSupportAgentDetailPayload } from "../../../shared/support-agent-detail-payload-policy";
+import { SUPPORT_PUBLIC_DETAIL_LIMITS } from "../../../shared/support-public-detail-limits";
 import {
   hasSupportAgentWorkDraft,
   readSupportAgentWorkDraft,
@@ -149,7 +150,6 @@ const SCOLARITE_SERVICES_URL = "https://www.education.gouv.fr/scolarite-services
 const WEBMAIL_URL = "https://mail.lycee-blaise-cendrars-sevran.fr/";
 const WEBMAIL_ADMIN_URL = `${WEBMAIL_URL}admin`;
 const MAX_SUPPORT_FILES = 5;
-const MAX_SUPPORT_ATTACHMENTS_PER_REQUEST = 10;
 const MAX_SUPPORT_FILE_BYTES = 10 * 1024 * 1024;
 const SUPPORT_FILE_TYPES = [
   "application/pdf",
@@ -2930,10 +2930,10 @@ function isPublicSupportRequestDetailPayload(value: unknown): value is SupportRe
   if (!isRecord(value)
     || !isPublicSupportRequest(value.request)
     || !Array.isArray(value.messages)
-    || value.messages.length > 500
+    || value.messages.length > SUPPORT_PUBLIC_DETAIL_LIMITS.messages
     || !value.messages.every(isPublicSupportMessage)
     || !Array.isArray(value.attachments)
-    || value.attachments.length > MAX_SUPPORT_ATTACHMENTS_PER_REQUEST
+    || value.attachments.length > SUPPORT_PUBLIC_DETAIL_LIMITS.attachments
     || !value.attachments.every(isPublicSupportAttachment)) return false;
   const messageIds = value.messages.map((message) => message.id);
   const attachmentIds = value.attachments.map((attachment) => attachment.id);
