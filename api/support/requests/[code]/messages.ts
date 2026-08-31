@@ -15,6 +15,7 @@ import {
 } from "../../../_shared/support.js";
 import { SUPPORT_RATE_LIMIT_POLICIES } from "../../../../shared/support-rate-limit-policy.js";
 import { createSupportRequesterMessageConfirmation } from "../../../../shared/support-requester-message-confirmation.js";
+import { verifySupportRequesterMessageMutationPayload } from "../../../../shared/support-public-mutation-payload-policy.js";
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== "POST") return methodNotAllowed(res, ["POST"]);
@@ -144,8 +145,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       };
     });
 
-    res.status(message.duplicate ? 200 : 201);
-    return {
+    const payload = {
       confirmation: createSupportRequesterMessageConfirmation({
         publicCode: code,
         messageId: message.id,
@@ -155,6 +155,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         correlationId: message.correlationId,
       }),
     };
+    if (!verifySupportRequesterMessageMutationPayload({
+      value: payload,
+      expectedPublicCode: code,
+    })) {
+      throw new HttpError(503, "La confirmation du message est invalide");
+    }
+    res.status(message.duplicate ? 200 : 201);
+    return payload;
   });
 }
 

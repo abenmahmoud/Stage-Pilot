@@ -60,6 +60,7 @@ test("accepts an old duplicate but rejects false or unbound removal", () => {
     { ...valid, duplicate: "false" },
     { ...valid, confirmedAt: "2026-08-31T08:54:59.000Z" },
     { ...valid, confirmationRef: "support:attachment-removal:unknown" },
+    { ...valid, storagePath: "hidden" },
   ]) {
     assert.equal(
       verifySupportAttachmentRemovalConfirmation({

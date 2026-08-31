@@ -61,6 +61,7 @@ test("accepts an old duplicate receipt but rejects false or malformed success", 
     { ...valid, messageCreatedAt: "2026-08-31T09:00:01.000Z" },
     { ...valid, confirmedAt: "2026-08-31T08:54:59.000Z" },
     { ...valid, confirmationRef: "support:requester-message:unknown" },
+    { ...valid, internalEventId: "hidden" },
   ]) {
     assert.equal(
       verifySupportRequesterMessageConfirmation({
@@ -99,7 +100,7 @@ test("keeps one submission key and clears only after re-reading the inbound mess
   );
   const key = send.indexOf("requesterReplySubmissionRef.current?.fingerprint !== submissionFingerprint");
   const request = send.indexOf("fetch(`/api/support/requests/${code}/messages`", key);
-  const verify = send.indexOf("verifySupportRequesterMessageConfirmation", request);
+  const verify = send.indexOf("verifySupportRequesterMessageMutationPayload", request);
   const reread = send.indexOf("fetch(`/api/support/requests/${code}`", verify);
   const persisted = send.indexOf("message.id === confirmation.messageId", reread);
   const persistedAt = send.indexOf("message.createdAt === confirmation.messageCreatedAt", persisted);

@@ -3909,3 +3909,14 @@ taches et analyse de coherence avant une automatisation sensible.
 - Cette preuve marque uniquement l'adresse du dossier comme contact vérifié ;
   elle ne confirme jamais l'identité scolaire. Douze scénarios ciblés passent
   sans adresse réelle, envoi, base distante, production ou service externe.
+
+## 2026-09-01 - Confirmations publiques à contrat fermé
+
+- T016J partage entre API et navigateur les contrats exacts des confirmations de
+  fichier, message demandeur, retrait de brouillon et fermeture de session.
+- Un champ racine ou imbriqué inattendu est refusé avant affichage d'un succès,
+  effacement d'un éditeur, retrait d'une clé de reprise ou suppression de la
+  mémoire de l'appareil. Les confirmations existantes restent liées au dossier,
+  au message ou à la pièce et à leur preuve durable.
+- Les contrôles utilisent uniquement des identifiants et dates fictifs ; aucune
+  base distante, donnée réelle, production ou intégration externe n'est appelée.

@@ -73,7 +73,7 @@ test("keeps the browser key until receipt and exact absence are verified", () =>
   );
   const stableKey = removal.indexOf("requesterAttachmentRemovalSubmissionRef.current?.fingerprint !== submissionFingerprint");
   const request = removal.indexOf('method: "DELETE"', stableKey);
-  const verify = removal.indexOf("verifySupportAttachmentRemovalConfirmation", request);
+  const verify = removal.indexOf("verifySupportAttachmentRemovalMutationPayload", request);
   const reread = removal.indexOf("const refreshedDetail", verify);
   const absence = removal.indexOf("refreshedDetail.attachments.some", reread);
   const clear = removal.indexOf("requesterAttachmentRemovalSubmissionRef.current = null", absence);

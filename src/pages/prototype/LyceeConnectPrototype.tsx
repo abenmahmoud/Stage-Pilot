@@ -86,7 +86,6 @@ import { verifySupportRequestPersistenceConfirmation } from "../../../shared/sup
 import { verifySupportCreateRequestActionConfirmation } from "../../../shared/support-create-request-action-confirmation";
 import { verifySupportRequestMutationConfirmation } from "../../../shared/support-request-mutation-confirmation";
 import { verifySupportAgentReplyConfirmation } from "../../../shared/support-agent-reply-confirmation";
-import { verifySupportRequesterMessageConfirmation } from "../../../shared/support-requester-message-confirmation";
 import { verifySupportInternalNoteConfirmation } from "../../../shared/support-internal-note-confirmation";
 import { verifySupportCallbackConfirmation } from "../../../shared/support-callback-confirmation";
 import { verifySupportAttachmentRemovalConfirmation } from "../../../shared/support-attachment-removal-confirmation";
@@ -113,6 +112,12 @@ import { isValidSupportPublicDetailPayload } from "../../../shared/support-publi
 import { isValidSupportPublicListPayload } from "../../../shared/support-public-list-payload-policy";
 import { isValidSupportAssistantPayload } from "../../../shared/support-assistant-payload-policy";
 import { isSupportMagicAccessPayload } from "../../../shared/support-magic-access-payload-policy";
+import {
+  isSupportAttachmentConfirmationPayload,
+  isSupportSessionClearPayload,
+  verifySupportAttachmentRemovalMutationPayload,
+  verifySupportRequesterMessageMutationPayload,
+} from "../../../shared/support-public-mutation-payload-policy";
 import {
   hasSupportAgentWorkDraft,
   readSupportAgentWorkDraft,
@@ -2138,12 +2143,10 @@ function ConnectedRequestsView({ ticketCode, onBack }: { ticketCode: string | nu
           body: JSON.stringify({ message: messageText }),
         })
       );
-      const confirmation = isRecord(payload)
-        ? verifySupportRequesterMessageConfirmation({
-            expectedPublicCode: code,
-            confirmation: payload.confirmation,
-          })
-        : null;
+      const confirmation = verifySupportRequesterMessageMutationPayload({
+        value: payload,
+        expectedPublicCode: code,
+      });
       if (!confirmation) {
         throw new Error("La confirmation du message reçue est invalide. Réessayez sans modifier le message.");
       }
@@ -2218,10 +2221,10 @@ function ConnectedRequestsView({ ticketCode, onBack }: { ticketCode: string | nu
           headers: { "Idempotency-Key": idempotencyKey },
         })
       );
-      const confirmation = verifySupportAttachmentRemovalConfirmation({
+      const confirmation = verifySupportAttachmentRemovalMutationPayload({
+        value: payload,
         expectedPublicCode: code,
         expectedAttachmentId: id,
-        confirmation: isRecord(payload) ? payload.confirmation : null,
       });
       if (!confirmation) throw new Error("Confirmation de retrait invalide");
 
@@ -2835,18 +2838,6 @@ function isSupportRequestCreationPayload(value: unknown, requireAgentAction: boo
   return createdTime <= confirmedTime
     && createdTime <= Date.now() + (5 * 60_000)
     && confirmedTime <= Date.now() + (5 * 60_000);
-}
-
-function isSupportAttachmentConfirmationPayload(value: unknown, expectedId: string): boolean {
-  return isRecord(value)
-    && isRecord(value.attachment)
-    && value.attachment.id === expectedId
-    && ["quarantine", "clean"].includes(String(value.attachment.scanStatus))
-    && typeof value.duplicate === "boolean";
-}
-
-function isSupportSessionClearPayload(value: unknown): value is { cleared: true } {
-  return isRecord(value) && value.cleared === true;
 }
 
 function isPublicSupportRequestListPayload(value: unknown): value is { requests: SupportRequestSummary[] } {

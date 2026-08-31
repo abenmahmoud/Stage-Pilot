@@ -8,6 +8,7 @@ import {
   readSupportSessionToken,
   sha256,
 } from "../_shared/support.js";
+import { isSupportSessionClearPayload } from "../../shared/support-public-mutation-payload-policy.js";
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== "DELETE") return methodNotAllowed(res, ["DELETE"]);
@@ -26,7 +27,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         );
     }
     clearSupportSessionCookie(res);
-    return { cleared: true };
+    const payload = { cleared: true as const };
+    if (!isSupportSessionClearPayload(payload)) {
+      throw new Error("Support session closure payload is invalid");
+    }
+    return payload;
   });
 }
 

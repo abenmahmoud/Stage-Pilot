@@ -11,6 +11,7 @@ import {
   enforceAttachmentReservationRateLimit,
 } from "../../_shared/support-rate-limits.js";
 import { createSupportAttachmentRemovalConfirmation } from "../../../shared/support-attachment-removal-confirmation.js";
+import { verifySupportAttachmentRemovalMutationPayload } from "../../../shared/support-public-mutation-payload-policy.js";
 
 const REMOVABLE_REQUESTER_STATUSES = ["awaiting_upload", "blocked", "scan_error"] as const;
 
@@ -20,6 +21,26 @@ function operationId(req: VercelRequest): string {
     throw new HttpError(400, "Clé de retrait invalide");
   }
   return value;
+}
+
+function attachmentRemovalPayload(input: {
+  publicCode: string;
+  attachmentId: string;
+  duplicate: boolean;
+  confirmedAt: Date;
+  correlationId: string;
+}) {
+  const payload = {
+    confirmation: createSupportAttachmentRemovalConfirmation(input),
+  };
+  if (!verifySupportAttachmentRemovalMutationPayload({
+    value: payload,
+    expectedPublicCode: input.publicCode,
+    expectedAttachmentId: input.attachmentId,
+  })) {
+    throw new HttpError(503, "La confirmation du retrait est invalide");
+  }
+  return payload;
 }
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
@@ -65,15 +86,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         ) {
           throw new HttpError(409, "Cette clé de retrait a déjà été utilisée pour une autre action");
         }
-        return {
-          confirmation: createSupportAttachmentRemovalConfirmation({
-            publicCode: code,
-            attachmentId: id,
-            duplicate: true,
-            confirmedAt: operationEvent.createdAt,
-            correlationId: operationEvent.correlationId,
-          }),
-        };
+        return attachmentRemovalPayload({
+          publicCode: code,
+          attachmentId: id,
+          duplicate: true,
+          confirmedAt: operationEvent.createdAt,
+          correlationId: operationEvent.correlationId,
+        });
       }
 
       const prepared = await db.transaction(async (tx) => {
@@ -279,15 +298,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         };
       });
 
-      return {
-        confirmation: createSupportAttachmentRemovalConfirmation({
-          publicCode: code,
-          attachmentId: removed.id,
-          duplicate: removed.duplicate,
-          confirmedAt: removed.confirmedAt,
-          correlationId: removed.correlationId,
-        }),
-      };
+      return attachmentRemovalPayload({
+        publicCode: code,
+        attachmentId: removed.id,
+        duplicate: removed.duplicate,
+        confirmedAt: removed.confirmedAt,
+        correlationId: removed.correlationId,
+      });
     }
 
     await enforceAttachmentDownloadRateLimit(access.sessionId);

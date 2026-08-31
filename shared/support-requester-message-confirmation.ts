@@ -12,6 +12,16 @@ export type SupportRequesterMessageConfirmation = {
 const PUBLIC_CODE_PATTERN = /^BC-[0-9]{4}-[0-9]{6}$/;
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const CONFIRMATION_WINDOW_MS = 5 * 60 * 1000;
+const CONFIRMATION_FIELDS = new Set([
+  "status",
+  "operation",
+  "publicCode",
+  "messageId",
+  "duplicate",
+  "messageCreatedAt",
+  "confirmedAt",
+  "confirmationRef",
+]);
 
 export function createSupportRequesterMessageConfirmation(input: {
   publicCode: string;
@@ -59,6 +69,7 @@ export function verifySupportRequesterMessageConfirmation(input: {
   }
 
   const confirmation = input.confirmation as Record<string, unknown>;
+  const keys = Object.keys(confirmation);
   const messageCreatedAt = typeof confirmation.messageCreatedAt === "string"
     ? Date.parse(confirmation.messageCreatedAt)
     : Number.NaN;
@@ -68,7 +79,9 @@ export function verifySupportRequesterMessageConfirmation(input: {
   const now = input.now ?? Date.now();
 
   if (
-    confirmation.status !== "stored"
+    keys.length !== CONFIRMATION_FIELDS.size
+    || !keys.every((key) => CONFIRMATION_FIELDS.has(key))
+    || confirmation.status !== "stored"
     || confirmation.operation !== "support_requester_message"
     || confirmation.publicCode !== input.expectedPublicCode
     || typeof confirmation.messageId !== "string"

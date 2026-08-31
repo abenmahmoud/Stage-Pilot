@@ -98,6 +98,11 @@ quarantaine. Une panne d'envoi externe n'affecte pas le dossier.
 - [x] **T016I** Borner la liste publique à 200 dossiers côté serveur avec une
   ligne de détection, refuser toute liste partielle et valider avant usage un
   contrat exact, unique et trié du plus récent au plus ancien.
+- [x] **T016J** Fermer les réponses des mutations publiques : confirmation de
+  dépôt, message, retrait de brouillon et fermeture de session à champs exacts,
+  validées côté API puis navigateur avant succès visible, effacement d'un
+  brouillon ou suppression de la mémoire locale. Les reçus internes ajoutés par
+  erreur sont refusés au lieu d'être ignorés.
 - [x] **T017** Construire la file agent paginée avec filtres, SLA et assignation.
 - [x] **T017A** Protéger les modifications et réponses par révision, rendre la
   prise en charge atomique et actualiser l'écran après un conflit.

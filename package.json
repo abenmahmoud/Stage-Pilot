@@ -208,7 +208,7 @@
     "test:support-request-creation-payload": "node scripts/test-support-request-creation-payload.mjs",
     "test:public-content-client-payload": "node --experimental-strip-types scripts/test-public-content-client-payload.mjs",
     "test:public-content-expired-archive": "node scripts/test-public-content-expired-archive.mjs",
-    "test:support-public-mutation-payloads": "node scripts/test-support-public-mutation-payloads.mjs",
+    "test:support-public-mutation-payloads": "node --import ./scripts/ts-test-resolver.mjs --experimental-strip-types scripts/test-support-public-mutation-payloads.mjs",
     "test:support-agent-reply-attachments": "node scripts/test-support-agent-reply-attachments.mjs",
     "test:support-attachment-access-audit": "node scripts/test-support-attachment-access-audit.mjs",
     "test:support-agent-navigation": "node scripts/test-support-agent-navigation.mjs",
