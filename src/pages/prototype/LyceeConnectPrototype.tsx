@@ -108,6 +108,7 @@ import {
   isValidSupportQueueCoreRow,
 } from "../../../shared/support-queue-payload-policy";
 import { resolveSupportQueueNavigation } from "../../../shared/support-queue-navigation";
+import { isValidSupportAgentDetailPayload } from "../../../shared/support-agent-detail-payload-policy";
 import {
   hasSupportAgentWorkDraft,
   readSupportAgentWorkDraft,
@@ -2683,7 +2684,7 @@ type AgentRequestCore = {
   beneficiaryType: string;
   beneficiaryFirstName: string | null;
   beneficiaryLastName: string | null;
-  subjectContext: Record<string, string>;
+  subjectContext: Record<string, string | null>;
   category: string;
   subject: string;
   status: string;
@@ -2710,7 +2711,7 @@ type AgentRequest = AgentRequestCore & {
 type AgentRequestDetail = {
   request: AgentRequest;
   contacts: Array<{ id: string; channel: string; value: string; isPrimary: boolean; isVerified: boolean }>;
-  messages: Array<{ id: string; direction: string; authorLabel: string | null; bodyText: string; deliveryStatus: string; createdAt: string }>;
+  messages: Array<{ id: string; direction: string; channel: string; authorLabel: string | null; bodyText: string; deliveryStatus: string; createdAt: string }>;
   attachments: Array<{
     id: string;
     messageId: string | null;
@@ -3140,70 +3141,6 @@ function isAgentAccess(value: unknown): value is AgentAccess {
   return isValidSupportQueueAccess(value);
 }
 
-function isAgentRequest(value: unknown): value is AgentRequest {
-  if (!isAgentRequestCore(value)) return false;
-  const record = value as AgentRequestCore & Record<string, unknown>;
-  return typeof record.description === "string"
-    && ["non_verifiee", "contact_verifie", "identite_confirmee"].includes(String(record.identityStatus))
-    && isStringOrNull(record.identityMethod)
-    && isStringOrNull(record.identityVerifiedAt);
-}
-
-function isAgentContact(value: unknown): value is AgentRequestDetail["contacts"][number] {
-  return isRecord(value)
-    && ["id", "channel", "value"].every((field) => typeof value[field] === "string")
-    && typeof value.isPrimary === "boolean"
-    && typeof value.isVerified === "boolean";
-}
-
-function isAgentMessage(value: unknown): value is AgentRequestDetail["messages"][number] {
-  return isRecord(value)
-    && ["id", "direction", "bodyText", "deliveryStatus", "createdAt"].every((field) => typeof value[field] === "string")
-    && isStringOrNull(value.authorLabel);
-}
-
-function isAgentAttachment(value: unknown): value is AgentRequestDetail["attachments"][number] {
-  return isRecord(value)
-    && ["id", "originalName", "scanStatus", "createdAt"].every((field) => typeof value[field] === "string")
-    && isStringOrNull(value.messageId)
-    && ["requester", "agent"].includes(String(value.direction))
-    && isStringOrNull(value.releasedAt)
-    && typeof value.canAttachToReply === "boolean"
-    && typeof value.canRemoveDraft === "boolean"
-    && isNonNegativeInteger(value.sizeBytes);
-}
-
-function isAgentCallback(value: unknown): value is AgentRequestDetail["callbacks"][number] {
-  return isRecord(value)
-    && ["id", "phoneContactId", "createdAt"].every((field) => typeof value[field] === "string")
-    && isStringOrNull(value.dueAt)
-    && ["todo", "in_progress", "done", "cancelled"].includes(String(value.status))
-    && isStringOrNull(value.outcome)
-    && isStringOrNull(value.completedAt)
-    && typeof value.assigned === "boolean"
-    && typeof value.assignedToCurrentAgent === "boolean";
-}
-
-function isAgentDuplicateReview(value: unknown): value is AgentRequestDetail["duplicateReview"] {
-  return value === null || (
-    isRecord(value)
-    && ["pending", "confirmed", "dismissed"].includes(String(value.status))
-    && typeof value.reason === "string"
-    && isStringOrNull(value.decidedAt)
-    && isStringOrNull(value.candidatePublicCode)
-  );
-}
-
-function isAgentRoutingReview(value: unknown): value is AgentRequestDetail["routingReview"] {
-  return value === null || (
-    isRecord(value)
-    && ["pending", "confirmed", "corrected"].includes(String(value.status))
-    && typeof value.usedAi === "boolean"
-    && ["initialCategory", "initialService", "createdAt"].every((field) => typeof value[field] === "string")
-    && isStringOrNull(value.reviewedAt)
-  );
-}
-
 function isAgentQueuePayload(value: unknown): value is {
   requests: AgentQueueRequest[];
   stats: AgentQueueStats;
@@ -3230,19 +3167,7 @@ function isAgentQueuePayload(value: unknown): value is {
 }
 
 function isAgentRequestDetail(value: unknown): value is AgentRequestDetail {
-  return isRecord(value)
-    && isAgentRequest(value.request)
-    && Array.isArray(value.contacts)
-    && value.contacts.every(isAgentContact)
-    && Array.isArray(value.messages)
-    && value.messages.every(isAgentMessage)
-    && Array.isArray(value.attachments)
-    && value.attachments.every(isAgentAttachment)
-    && Array.isArray(value.callbacks)
-    && value.callbacks.every(isAgentCallback)
-    && isAgentDuplicateReview(value.duplicateReview)
-    && isAgentRoutingReview(value.routingReview)
-    && isAgentAccess(value.access);
+  return isValidSupportAgentDetailPayload(value);
 }
 
 async function fetchAgentRequestDetail(code: string): Promise<AgentRequestDetail> {
@@ -4162,7 +4087,7 @@ function ConnectedAgentView({ onBack }: { onBack: () => void }) {
               {detail.duplicateReview ? <section className="lycee-agent-duplicate" data-status={detail.duplicateReview.status}><Copy aria-hidden="true" /><span><strong>{detail.duplicateReview.status === "pending" ? "Possible doublon à vérifier" : detail.duplicateReview.status === "confirmed" ? "Doublon confirmé" : "Dossiers distincts"}</strong><small>Même contact et même catégorie sur sept jours. Aucun dossier n’est fusionné automatiquement.</small></span><div>{detail.duplicateReview.candidatePublicCode ? <button type="button" onClick={() => setSelectedCode(detail.duplicateReview?.candidatePublicCode ?? null)}>Voir {detail.duplicateReview.candidatePublicCode}</button> : null}{detail.duplicateReview.status === "pending" && detail.duplicateReview.candidatePublicCode ? <><button type="button" disabled={saving} onClick={() => void updateRequest({ duplicateDecision: "dismissed" })}>Dossiers distincts</button><button type="button" disabled={saving} onClick={() => void updateRequest({ duplicateDecision: "confirmed" })}>Confirmer</button></> : detail.duplicateReview.status === "pending" ? <small>Validation réservée à un agent autorisé à consulter les deux dossiers.</small> : <small>Décision humaine enregistrée dans l’audit.</small>}</div></section> : null}
               <div className="lycee-agent-thread">{detail.messages.map((message) => <div data-direction={message.direction} data-author={message.authorLabel === "Assistant du lycée" ? "assistant" : undefined} key={message.id}><span><strong>{message.direction === "internal" ? "Note interne" : message.authorLabel ?? "Utilisateur"}</strong><small>{supportDate(message.createdAt)}{message.direction === "internal" ? " · invisible pour l’utilisateur" : message.authorLabel === "Assistant du lycée" ? " · réponse automatique" : ` · ${supportDeliveryLabel(message.deliveryStatus)}`}</small></span><p>{message.bodyText}</p></div>)}</div>
               {detail.attachments.length > 0 ? <div className="lycee-tracked-files">{detail.attachments.map((attachment) => <div key={attachment.id}><FileText aria-hidden="true" /><span><strong>{attachment.originalName}</strong><small>{attachment.direction === "agent" ? attachment.releasedAt ? "Envoyé au demandeur · " : "Préparé par un agent · " : "Reçu du demandeur · "}{attachment.scanStatus === "clean" ? "vérifié" : attachment.scanStatus === "blocked" ? "refusé" : attachment.scanStatus === "scan_error" ? "contrôle indisponible" : "contrôle en cours"}</small></span>{attachment.scanStatus === "clean" ? <button type="button" onClick={() => void openAgentAttachment(attachment.id)} aria-label={`Ouvrir ${attachment.originalName}`}><ExternalLink aria-hidden="true" /></button> : null}</div>)}</div> : null}
-              <section className="lycee-agent-ai"><div><WandSparkles aria-hidden="true" /><span><span className="lycee-eyebrow">Aide au traitement</span><h3>{supportCategoryLabel(selected.category)} · priorité {priorityLabels[selected.priority] ?? "Normale"}</h3></span></div><dl><div><dt>Personne</dt><dd>{selected.beneficiaryType === "self" ? "Demandeur" : `${selected.beneficiaryFirstName ?? ""} ${selected.beneficiaryLastName ?? ""}`}</dd></div><div><dt>Canal disponible</dt><dd>{detail.contacts.map((contact) => channelLabels[contact.channel] ?? contact.channel).join(" + ")}</dd></div><div><dt>Langue détectée</dt><dd>{selected.subjectContext.detectedLanguage ?? "Non déterminée"}</dd></div><div><dt>Langue de réponse</dt><dd>{languagePreferenceLabels[selected.subjectContext.languagePreference] ?? "Non précisée"}</dd></div><div><dt>Aide à la compréhension</dt><dd>{selected.subjectContext.communicationSupport ?? "Réponse écrite"}</dd></div><div><dt>Pièces</dt><dd>{detail.attachments.length} {detail.attachments.length > 1 ? "documents" : "document"}</dd></div></dl>{selected.subjectContext.internalSummaryFr ? <div className="lycee-agent-french-summary"><Languages aria-hidden="true" /><span><small>Résumé automatique en français</small><p>{selected.subjectContext.internalSummaryFr}</p><em>À vérifier avec le message original avant toute décision.</em></span></div> : null}</section>
+              <section className="lycee-agent-ai"><div><WandSparkles aria-hidden="true" /><span><span className="lycee-eyebrow">Aide au traitement</span><h3>{supportCategoryLabel(selected.category)} · priorité {priorityLabels[selected.priority] ?? "Normale"}</h3></span></div><dl><div><dt>Personne</dt><dd>{selected.beneficiaryType === "self" ? "Demandeur" : `${selected.beneficiaryFirstName ?? ""} ${selected.beneficiaryLastName ?? ""}`}</dd></div><div><dt>Canal disponible</dt><dd>{detail.contacts.map((contact) => channelLabels[contact.channel] ?? contact.channel).join(" + ")}</dd></div><div><dt>Langue détectée</dt><dd>{selected.subjectContext.detectedLanguage ?? "Non déterminée"}</dd></div><div><dt>Langue de réponse</dt><dd>{languagePreferenceLabels[selected.subjectContext.languagePreference ?? ""] ?? "Non précisée"}</dd></div><div><dt>Aide à la compréhension</dt><dd>{selected.subjectContext.communicationSupport ?? "Réponse écrite"}</dd></div><div><dt>Pièces</dt><dd>{detail.attachments.length} {detail.attachments.length > 1 ? "documents" : "document"}</dd></div></dl>{selected.subjectContext.internalSummaryFr ? <div className="lycee-agent-french-summary"><Languages aria-hidden="true" /><span><small>Résumé automatique en français</small><p>{selected.subjectContext.internalSummaryFr}</p><em>À vérifier avec le message original avant toute décision.</em></span></div> : null}</section>
               <section className="lycee-agent-actions"><div><span><StickyNote aria-hidden="true" /><strong>Note interne</strong><small>Visible uniquement par les agents.</small></span><textarea aria-label="Note interne" rows={3} value={internalNote} disabled={saving} onChange={(event) => changeInternalNote(event.target.value)} placeholder="Diagnostic, appel effectué ou prochaine action…" maxLength={5000} /><button type="button" disabled={saving || !internalNote.trim()} onClick={() => void saveInternalNote()}>Ajouter la note</button></div><div data-closed={selected.status === "clos"}><span><CheckCircle2 aria-hidden="true" /><strong>{selected.status === "clos" ? "Dossier clôturé" : "Clôturer proprement"}</strong><small>{selected.status === "clos" ? selected.subjectContext.closureReason ?? "Motif enregistré dans l’historique." : requiresSafeIdentityReply ? "Confirmez d’abord l’identité scolaire pour cette demande sensible." : "Un motif est obligatoire et reste dans l’audit."}</small></span>{selected.status === "clos" ? <button type="button" disabled={saving} onClick={() => void updateRequest({ status: "en_cours" })}>Rouvrir le dossier</button> : <><textarea aria-label="Motif de clôture" rows={3} value={closureReason} onChange={(event) => changeClosureReason(event.target.value)} placeholder="Solution apportée ou raison de la clôture…" maxLength={500} /><button type="button" disabled={saving || !closureReason.trim() || requiresSafeIdentityReply} onClick={() => void updateRequest({ status: "clos", closureReason })}>Clôturer le dossier</button></>}</div></section>
               <section className="lycee-reply-box">
                 <div>

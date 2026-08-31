@@ -444,7 +444,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         .from(supportContacts)
         .where(and(eq(supportContacts.requestId, request.id), eq(supportContacts.usageScope, "support"))),
       db
-        .select()
+        .select({
+          id: supportMessages.id,
+          direction: supportMessages.direction,
+          channel: supportMessages.channel,
+          authorLabel: supportMessages.authorLabel,
+          bodyText: supportMessages.bodyText,
+          deliveryStatus: supportMessages.deliveryStatus,
+          createdAt: supportMessages.createdAt,
+        })
         .from(supportMessages)
         .where(eq(supportMessages.requestId, request.id))
         .orderBy(asc(supportMessages.createdAt)),
@@ -454,9 +462,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           messageId: supportAttachments.messageId,
           direction: supportAttachments.direction,
           originalName: supportAttachments.originalName,
-          documentType: supportAttachments.documentType,
-          concernsLabel: supportAttachments.concernsLabel,
-          detectedMime: supportAttachments.detectedMime,
           sizeBytes: supportAttachments.sizeBytes,
           scanStatus: supportAttachments.scanStatus,
           uploadedByUser: supportAttachments.uploadedByUser,
@@ -544,7 +549,24 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         : "non_verifiee";
     return {
       request: {
-        ...request,
+        publicCode: request.publicCode,
+        requesterType: request.requesterType,
+        requesterFirstName: request.requesterFirstName,
+        requesterLastName: request.requesterLastName,
+        beneficiaryType: request.beneficiaryType,
+        beneficiaryFirstName: request.beneficiaryFirstName,
+        beneficiaryLastName: request.beneficiaryLastName,
+        subjectContext: request.subjectContext,
+        category: request.category,
+        subject: request.subject,
+        description: request.description,
+        status: request.status,
+        priority: request.priority,
+        assignedTo: request.assignedTo,
+        assignedTeam: request.assignedTeam,
+        slaDueAt: request.slaDueAt,
+        createdAt: request.createdAt,
+        updatedAt: request.updatedAt,
         identityStatus,
         identityMethod: typeof identityContext.identityMethod === "string" ? identityContext.identityMethod : contacts.some((contact) => contact.isVerified) ? "email_magic_link" : null,
         identityVerifiedAt: typeof identityContext.identityVerifiedAt === "string" ? identityContext.identityVerifiedAt : null,
@@ -556,9 +578,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         messageId: attachment.messageId,
         direction: attachment.direction,
         originalName: attachment.originalName,
-        documentType: attachment.documentType,
-        concernsLabel: attachment.concernsLabel,
-        detectedMime: attachment.detectedMime,
         sizeBytes: attachment.sizeBytes,
         scanStatus: attachment.scanStatus,
         releasedAt: attachment.releasedAt,

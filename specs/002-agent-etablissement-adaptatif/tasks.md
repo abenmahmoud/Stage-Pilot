@@ -391,6 +391,10 @@
   catégorie, statut, priorité, dates, service et droits de chaque réponse de
   file. Refuser aussi les compteurs non sûrs ou les agrégats qui dépassent leur
   total ouvert, sans remplacer l'état déjà validé.
+- [x] T027B20 Réduire la réponse de détail agent aux seuls champs nécessaires et
+  refuser avant affichage les champs internes, collections excessives, doublons,
+  références orphelines ou états incohérents d'identité, message, pièce, rappel
+  et revue. Conserver les valeurs nulles légitimes du contexte borné.
 - [ ] T027B2 Ajouter les relances internes et l'escalade après validation des
   délais propres à chaque service et des responsables à notifier.
 - [ ] T027C Créer les adhésions de service puis appliquer le périmètre dans les

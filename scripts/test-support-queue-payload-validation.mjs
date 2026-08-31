@@ -109,6 +109,7 @@ const validQueueRow = {
   subjectContext: {
     className: "2GT4",
     internalSummaryFr: "Le responsable demande une aide de connexion.",
+    identityVerifiedBy: null,
   },
   category: "ent",
   subject: "Accès ENT",

@@ -3789,3 +3789,19 @@ taches et analyse de coherence avant une automatisation sensible.
   ouverts. Neuf tests ciblés rejouent les cas valides et les refus. T027B19 est
   terminé sans base distante, donnée réelle, permission ou changement de
   production.
+
+### Jalon du 31 août 2026 - détail agent minimal et borné
+
+- La lecture d'un dossier ne diffuse plus les lignes SQL complètes. La demande
+  et les messages sont projetés sur leurs seuls champs visibles ; empreintes
+  d'idempotence, références fournisseur, empreinte réseau et identifiants
+  techniques inutiles restent exclusivement côté serveur.
+- Le navigateur exige la liste exacte des champs autorisés. Il borne à dix
+  contacts, cinq cents messages, dix pièces et cent rappels, puis contrôle UUID,
+  dates, états, tailles, ordre chronologique, unicité et références entre
+  messages, pièces, téléphones et rappels.
+- Les combinaisons impossibles sont refusées : identité confirmée sans registre,
+  rappel terminé sans résultat, brouillon agent contradictoire ou revue sans date
+  de décision. Les valeurs nulles créées légitimement lors d'une remise à zéro
+  d'identité restent compatibles avec le contexte borné. Six scénarios ciblés
+  passent. T027B20 est terminé sans production, base distante ou donnée réelle.

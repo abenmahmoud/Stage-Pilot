@@ -714,6 +714,13 @@ l'autorisation de quota définie par le propriétaire.
   nomenclature ; les agrégats refusent les compteurs non sûrs et les sous-totaux
   supérieurs au nombre ouvert. Une réponse invalide ne remplace jamais la file
   déjà validée. T027B19 est terminée.
+- Lot N5ZZJ : détail agent minimal et cohérent. **Implémenté sans migration ni
+  donnée réelle** : la route ne renvoie plus les lignes complètes de demande et
+  de message. Empreintes d'idempotence, identifiants de fournisseur, empreinte
+  réseau et autres colonnes techniques restent côté serveur. Le client exige un
+  objet exact et borne contacts, messages, pièces et rappels ; il vérifie leur
+  unicité, ordre, références croisées et états possibles. Les valeurs `null`
+  légitimes du contexte d'identité restent acceptées. T027B20 est terminée.
 
 ## Prochaine séquence verrouillée
 

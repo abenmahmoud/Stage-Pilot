@@ -81,7 +81,7 @@ type SupportQueueCoreRow = {
   beneficiaryType: string;
   beneficiaryFirstName: string | null;
   beneficiaryLastName: string | null;
-  subjectContext: Record<string, string>;
+  subjectContext: Record<string, string | null>;
   category: string;
   subject: string;
   status: string;
@@ -120,22 +120,34 @@ function isKnownValue<T extends readonly string[]>(value: unknown, allowed: T): 
   return typeof value === "string" && allowed.includes(value as T[number]);
 }
 
-function isSupportDate(value: unknown): value is string {
+export function isSupportQueueDate(value: unknown): value is string {
   return isBoundedText(value, 40) && Number.isFinite(Date.parse(value));
 }
 
 function isNullableSupportDate(value: unknown): value is string | null {
-  return value === null || isSupportDate(value);
+  return value === null || isSupportQueueDate(value);
 }
 
-function isSubjectContext(value: unknown): value is Record<string, string> {
+function isSubjectContext(value: unknown): value is Record<string, string | null> {
   if (!isRecord(value)) return false;
   const entries = Object.entries(value);
   return entries.length <= MAX_SUBJECT_CONTEXT_ENTRIES
     && entries.every(([key, item]) => (
       isBoundedText(key, MAX_SUBJECT_CONTEXT_KEY_LENGTH)
-      && isBoundedText(item, MAX_SUBJECT_CONTEXT_VALUE_LENGTH)
+      && (item === null || isBoundedText(item, MAX_SUBJECT_CONTEXT_VALUE_LENGTH))
     ));
+}
+
+export function isSupportQueuePublicCode(value: unknown): value is string {
+  return typeof value === "string" && SUPPORT_PUBLIC_CODE_PATTERN.test(value);
+}
+
+export function isSupportQueueUuid(value: unknown): value is string {
+  return typeof value === "string" && UUID_PATTERN.test(value);
+}
+
+export function isKnownSupportQueueCategory(value: unknown): value is string {
+  return isKnownValue(value, SUPPORT_QUEUE_CATEGORIES);
 }
 
 export function isKnownSupportQueueService(value: unknown): value is string | null {
@@ -144,8 +156,7 @@ export function isKnownSupportQueueService(value: unknown): value is string | nu
 
 export function isValidSupportQueueCoreRow(value: unknown): value is SupportQueueCoreRow {
   if (!isRecord(value)) return false;
-  return typeof value.publicCode === "string"
-    && SUPPORT_PUBLIC_CODE_PATTERN.test(value.publicCode)
+  return isSupportQueuePublicCode(value.publicCode)
     && isKnownValue(value.requesterType, SUPPORT_QUEUE_REQUESTER_TYPES)
     && isBoundedText(value.requesterFirstName, 100)
     && isBoundedText(value.requesterLastName, 100)
@@ -153,15 +164,15 @@ export function isValidSupportQueueCoreRow(value: unknown): value is SupportQueu
     && isNullableBoundedText(value.beneficiaryFirstName, 100)
     && isNullableBoundedText(value.beneficiaryLastName, 100)
     && isSubjectContext(value.subjectContext)
-    && isKnownValue(value.category, SUPPORT_QUEUE_CATEGORIES)
+    && isKnownSupportQueueCategory(value.category)
     && isBoundedText(value.subject, 180)
     && isKnownValue(value.status, SUPPORT_QUEUE_STATUSES)
     && isKnownValue(value.priority, SUPPORT_QUEUE_PRIORITIES)
-    && (value.assignedTo === null || (typeof value.assignedTo === "string" && UUID_PATTERN.test(value.assignedTo)))
+    && (value.assignedTo === null || isSupportQueueUuid(value.assignedTo))
     && isKnownSupportQueueService(value.assignedTeam)
     && isNullableSupportDate(value.slaDueAt)
-    && isSupportDate(value.createdAt)
-    && isSupportDate(value.updatedAt);
+    && isSupportQueueDate(value.createdAt)
+    && isSupportQueueDate(value.updatedAt);
 }
 
 export function isValidSupportQueueAccess(value: unknown): value is SupportQueueAccessPayload {

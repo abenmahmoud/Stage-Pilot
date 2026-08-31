@@ -194,7 +194,7 @@
     "test:support-queue-loading": "node scripts/test-support-queue-loading-state.mjs",
     "test:support-queue-recovery": "node scripts/test-support-queue-recovery.mjs",
     "test:support-queue-payload": "node --experimental-strip-types scripts/test-support-queue-payload-validation.mjs",
-    "test:support-detail-payload": "node scripts/test-support-detail-payload-validation.mjs",
+    "test:support-detail-payload": "node --import ./scripts/ts-test-resolver.mjs --experimental-strip-types scripts/test-support-detail-payload-validation.mjs",
     "test:support-agent-auxiliary": "node scripts/test-support-agent-auxiliary-payloads.mjs",
     "test:support-detail-recovery": "node scripts/test-support-detail-recovery.mjs",
     "test:support-public-list-payload": "node scripts/test-support-public-list-payload.mjs",
