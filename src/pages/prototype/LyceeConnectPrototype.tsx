@@ -110,6 +110,7 @@ import {
 import { resolveSupportQueueNavigation } from "../../../shared/support-queue-navigation";
 import { isValidSupportAgentDetailPayload } from "../../../shared/support-agent-detail-payload-policy";
 import { isValidSupportPublicDetailPayload } from "../../../shared/support-public-detail-payload-policy";
+import { isValidSupportPublicListPayload } from "../../../shared/support-public-list-payload-policy";
 import {
   hasSupportAgentWorkDraft,
   readSupportAgentWorkDraft,
@@ -2856,29 +2857,8 @@ function isSupportSessionClearPayload(value: unknown): value is { cleared: true 
   return isRecord(value) && value.cleared === true;
 }
 
-function isPublicSupportRequestSummary(value: unknown): value is SupportRequestSummary {
-  if (!isRecord(value)) return false;
-  const identityStatus = value.identityStatus;
-  const rememberedOnly = value.rememberedOnly;
-  return typeof value.publicCode === "string"
-    && /^BC-\d{4}-\d{6}$/.test(value.publicCode)
-    && isBoundedString(value.subject, 180)
-    && supportCategories.some((category) => category.value === value.category)
-    && Object.hasOwn(supportStatusLabels, String(value.status))
-    && Object.hasOwn(priorityLabels, String(value.priority))
-    && isPublicSupportDate(value.createdAt)
-    && isPublicSupportDate(value.updatedAt)
-    && Date.parse(value.createdAt) <= Date.parse(value.updatedAt)
-    && (identityStatus === undefined || ["non_verifiee", "contact_verifie", "identite_confirmee"].includes(String(identityStatus)))
-    && (rememberedOnly === undefined || typeof rememberedOnly === "boolean");
-}
-
 function isPublicSupportRequestListPayload(value: unknown): value is { requests: SupportRequestSummary[] } {
-  return isRecord(value)
-    && Array.isArray(value.requests)
-    && value.requests.length <= 200
-    && value.requests.every(isPublicSupportRequestSummary)
-    && new Set(value.requests.map((request) => request.publicCode)).size === value.requests.length;
+  return isValidSupportPublicListPayload(value);
 }
 
 function isPublicSupportRequestDetailPayload(value: unknown): value is SupportRequestDetail {

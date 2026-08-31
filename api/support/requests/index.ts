@@ -45,6 +45,7 @@ import {
   supportDeviceRateKey,
 } from "../../_shared/support-rate-limits.js";
 import { requireConfiguredInstitution } from "../../_shared/institution-context.js";
+import { SUPPORT_PUBLIC_LIST_LIMITS } from "../../../shared/support-public-list-payload-policy.js";
 
 type DeviceSession = { id: string; rawToken: string | null };
 
@@ -475,7 +476,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             eq(supportRequests.institutionId, institution.id)
           )
         )
-        .orderBy(desc(supportRequests.createdAt));
+        .orderBy(desc(supportRequests.createdAt))
+        .limit(SUPPORT_PUBLIC_LIST_LIMITS.requests + 1);
+
+      if (requests.length > SUPPORT_PUBLIC_LIST_LIMITS.requests) {
+        throw new HttpError(
+          409,
+          "Trop de demandes sont liées à cet appareil pour afficher une liste complète. Aucune liste partielle n’a été affichée."
+        );
+      }
 
       return { requests };
     });

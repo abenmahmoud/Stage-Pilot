@@ -3830,3 +3830,11 @@ taches et analyse de coherence avant une automatisation sensible.
   identité cohérente, états de pièces permis, ordre chronologique, identifiants
   uniques et rattachements à un message visible.
 - Le lot reste limité à la preview, sans donnée réelle, migration ni production.
+## 2026-09-01 - Liste publique bornée et exacte
+
+- T016I limite la lecture serveur de `Mes demandes` à 201 lignes de détection et
+  refuse le dépassement au lieu de présenter 200 dossiers comme une liste complète.
+- Le contrat navigateur accepte uniquement sept champs par dossier, des valeurs
+  connues, des numéros uniques et un ordre décroissant cohérent avant notification
+  ou écriture dans IndexedDB.
+- Le lot reste limité à la preview, sans donnée réelle, migration ni production.
