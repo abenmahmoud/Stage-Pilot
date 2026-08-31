@@ -3518,3 +3518,25 @@ taches et analyse de coherence avant une automatisation sensible.
   ni contenu. T028I est terminé sans migration, fichier réel ou production ;
   T028 reste ouverte pour un adaptateur du registre d'actions. Aucun audit
   externe n'a été exécuté sans autorisation bornée.
+
+### Jalon du 31 août 2026 - réservation de pièce demandeur récupérable
+
+- Chaque pièce jointe du demandeur utilise une clé UUID stable et une empreinte
+  SHA-256 de toutes les métadonnées déclarées, y compris le contexte du document.
+  Le serveur retrouve la même ligne uniquement pour le même dossier, la même
+  session et le même fichier.
+- Une réservation en attente peut délivrer un nouveau jeton privé pour le même
+  chemin avec écrasement contrôlé. Une réservation déjà confirmée ne délivre
+  plus de jeton, et une réutilisation discordante est refusée.
+- La confirmation passe atomiquement de `awaiting_upload` à son état contrôlé.
+  Deux confirmations concurrentes ne créent qu'un événement et qu'un travail
+  antivirus.
+- Le navigateur conserve séparément les fichiers d'un lot partiellement réussi.
+  Il peut reprendre une tentative connue lorsque les cinq emplacements sont déjà
+  réservés et n'envoie pas une seconde fois les fichiers déjà confirmés.
+- Le suivi accepte désormais une pièce seule : un parent ou un élève n'est pas
+  obligé d'ajouter un nouveau message pour reprendre un dépôt interrompu.
+- `attachment.draft_reserved` ne conserve ni nom, ni chemin, ni URL, ni jeton,
+  ni contenu. T037AC de la spécification 001 est terminée sans migration, fichier
+  réel ou production. Aucun audit externe n'a été exécuté sans autorisation
+  bornée.

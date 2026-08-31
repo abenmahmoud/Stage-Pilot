@@ -287,6 +287,15 @@ voir sa réponse dans le dossier. L'agent traite tout depuis une seule file.
 - [x] **T037AB** Inventorier les routes des sept espaces privés et exiger une
   garde d'authentification/habilitation dans chacune. Les 65 routes présentes
   sont couvertes automatiquement.
+- [x] **T037AC** Rendre la réservation d'une pièce demandeur récupérable avec
+  une clé UUID stable, une empreinte de toutes les métadonnées déclarées et un
+  événement lié au dossier et à la session. Un rejeu encore en attente reçoit
+  un nouveau jeton privé sans nouvelle ligne ; une confirmation concurrente ne
+  produit qu'un événement et qu'un travail antivirus. Le navigateur conserve
+  chaque fichier d'un lot partiellement réussi, permet de reprendre cinq
+  réservations déjà comptées et autorise l'envoi d'un document de suivi sans
+  imposer un second message. Aucun nom, chemin, jeton ou contenu n'entre dans
+  l'événement de réservation.
 - [x] **T037F** Exclure les contacts desactives des reponses, reserver les
   journaux globaux a un administrateur MFA et exiger `aal2` pour confirmer une
   identite scolaire depuis une source officielle.

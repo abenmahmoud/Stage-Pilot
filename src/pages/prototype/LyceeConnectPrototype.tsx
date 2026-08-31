@@ -253,12 +253,69 @@ async function readApiResponse<T>(responseInput: Response | Promise<Response>): 
   return readJsonApiResponse<T>(responseInput);
 }
 
-async function uploadSupportFile(publicCode: string, file: File): Promise<void> {
+type RequesterUploadSubmission = {
+  idempotencyKey: string;
+  attachmentId: string | null;
+  attempted: boolean;
+  completed: boolean;
+};
+
+type RequesterUploadEntry = {
+  file: File;
+  fingerprint: string;
+  submission: RequesterUploadSubmission;
+};
+
+const requesterUploadSubmissions = new Map<string, RequesterUploadSubmission>();
+
+function requesterUploadEntries(publicCode: string, files: File[]): RequesterUploadEntry[] {
+  const occurrences = new Map<string, number>();
+  return files.map((file) => {
+    const baseFingerprint = [
+      publicCode,
+      file.name.normalize("NFC"),
+      file.type,
+      String(file.size),
+      String(file.lastModified),
+    ].join(":");
+    const occurrence = occurrences.get(baseFingerprint) ?? 0;
+    occurrences.set(baseFingerprint, occurrence + 1);
+    const fingerprint = `${baseFingerprint}:${occurrence}`;
+    let submission = requesterUploadSubmissions.get(fingerprint);
+    if (!submission) {
+      submission = {
+        idempotencyKey: crypto.randomUUID(),
+        attachmentId: null,
+        attempted: false,
+        completed: false,
+      };
+      requesterUploadSubmissions.set(fingerprint, submission);
+    }
+    return { file, fingerprint, submission };
+  });
+}
+
+function hasPendingRequesterUpload(publicCode: string): boolean {
+  const prefix = `${publicCode}:`;
+  return [...requesterUploadSubmissions.entries()].some(([fingerprint, submission]) => (
+    fingerprint.startsWith(prefix) && submission.attempted && !submission.completed
+  ));
+}
+
+async function uploadSupportFile(
+  publicCode: string,
+  file: File,
+  submission: RequesterUploadSubmission
+): Promise<string> {
+  submission.attempted = true;
   const reservation = await readApiResponse<unknown>(
     await fetch(`/api/support/requests/${publicCode}/attachments`, {
       method: "POST",
       credentials: "include",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        "Idempotency-Key": submission.idempotencyKey,
+      },
       body: JSON.stringify({
         fileName: file.name,
         mimeType: file.type,
@@ -268,15 +325,23 @@ async function uploadSupportFile(publicCode: string, file: File): Promise<void> 
       }),
     })
   );
-  if (!isSupportUploadReservationPayload(reservation)) {
+  if (!isRequesterSupportUploadReservationPayload(reservation)) {
     throw new Error("La réservation du fichier reçue est invalide.");
+  }
+  submission.attachmentId = reservation.attachment.id;
+  if (reservation.upload === null) {
+    if (!["quarantine", "clean"].includes(reservation.attachment.scanStatus)) {
+      throw new Error(`Le document ${file.name} a été refusé.`);
+    }
+    submission.completed = true;
+    return reservation.attachment.id;
   }
 
   const { error: uploadError } = await supabase.storage
     .from(reservation.upload.bucket)
     .uploadToSignedUrl(reservation.upload.path, reservation.upload.token, file, {
       contentType: file.type,
-      upsert: false,
+      upsert: true,
     });
   if (uploadError) throw new Error(`Échec de l'envoi de ${file.name}`);
 
@@ -291,6 +356,21 @@ async function uploadSupportFile(publicCode: string, file: File): Promise<void> 
   if (!isSupportAttachmentConfirmationPayload(confirmation, reservation.attachment.id)) {
     throw new Error("La confirmation du fichier reçue est invalide.");
   }
+  submission.completed = true;
+  return reservation.attachment.id;
+}
+
+async function uploadRequesterFiles(publicCode: string, files: File[]): Promise<PromiseSettledResult<string>[]> {
+  const entries = requesterUploadEntries(publicCode, files);
+  const results = await Promise.allSettled(entries.map((entry) => (
+    entry.submission.completed && entry.submission.attachmentId
+      ? Promise.resolve(entry.submission.attachmentId)
+      : uploadSupportFile(publicCode, entry.file, entry.submission)
+  )));
+  if (results.every((result) => result.status === "fulfilled")) {
+    for (const entry of entries) requesterUploadSubmissions.delete(entry.fingerprint);
+  }
+  return results;
 }
 
 const navigation = [
@@ -1385,7 +1465,7 @@ function HelpDeskView({
       const persistedCreatedAt = payload.request.createdAt;
 
       if (files.length > 0) {
-        const uploads = await Promise.allSettled(files.map((file) => uploadSupportFile(publicCode, file)));
+        const uploads = await uploadRequesterFiles(publicCode, files);
         const failedCount = uploads.filter((result) => result.status === "rejected").length;
         if (failedCount > 0) {
           setAttachmentWarning(`La demande est enregistrée, mais ${failedCount} fichier${failedCount > 1 ? "s" : ""} n’a pas été joint. Vous pourrez le renvoyer depuis le suivi.`);
@@ -1910,10 +1990,23 @@ function ConnectedRequestsView({ ticketCode, onBack }: { ticketCode: string | nu
     const requesterAttachmentCount = detail?.attachments.filter(
       (attachment) => attachment.direction === "requester"
     ).length ?? 0;
-    const availableSlots = Math.max(0, MAX_SUPPORT_FILES - requesterAttachmentCount);
-    const next = [...followupFiles, ...selected].slice(0, availableSlots);
-    setFollowupFiles(next);
-    if (followupFiles.length + selected.length > availableSlots) {
+    const combined = [...followupFiles, ...selected];
+    const entries = selectedCode ? requesterUploadEntries(selectedCode, combined) : [];
+    let availableNewSlots = Math.max(0, MAX_SUPPORT_FILES - requesterAttachmentCount);
+    const acceptedEntries = entries.filter((entry) => {
+      if (entry.submission.attempted || entry.submission.attachmentId) return true;
+      if (availableNewSlots < 1) return false;
+      availableNewSlots -= 1;
+      return true;
+    });
+    const acceptedFingerprints = new Set(acceptedEntries.map((entry) => entry.fingerprint));
+    for (const entry of entries) {
+      if (!acceptedFingerprints.has(entry.fingerprint) && !entry.submission.attempted) {
+        requesterUploadSubmissions.delete(entry.fingerprint);
+      }
+    }
+    setFollowupFiles(acceptedEntries.map((entry) => entry.file));
+    if (acceptedEntries.length !== combined.length) {
       setError("Une demande peut contenir au maximum 5 fichiers.");
     } else {
       setError(null);
@@ -1923,22 +2016,34 @@ function ConnectedRequestsView({ ticketCode, onBack }: { ticketCode: string | nu
 
   async function sendReply(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (!selectedCode || !reply.trim()) return;
+    if (!selectedCode || (!reply.trim() && followupFiles.length === 0)) return;
+    const code = selectedCode;
     const messageText = reply.trim();
-    const submissionFingerprint = JSON.stringify({ publicCode: selectedCode, message: messageText });
-    if (requesterReplySubmissionRef.current?.fingerprint !== submissionFingerprint) {
-      requesterReplySubmissionRef.current = {
-        fingerprint: submissionFingerprint,
-        idempotencyKey: crypto.randomUUID(),
-      };
-    }
-    const idempotencyKey = requesterReplySubmissionRef.current.idempotencyKey;
     setReplying(true);
     setError(null);
     try {
-      let uploadWarning: string | null = null;
+      if (followupFiles.length > 0) {
+        const uploads = await uploadRequesterFiles(code, followupFiles);
+        const failedCount = uploads.filter((result) => result.status === "rejected").length;
+        await loadDetail(code);
+        if (failedCount > 0) {
+          setError(`${failedCount} document${failedCount > 1 ? "s n’ont" : " n’a"} pas été joint. Réessayez : les documents déjà reçus ne seront pas renvoyés.`);
+          return;
+        }
+        setFollowupFiles([]);
+      }
+      if (!messageText) return;
+
+      const submissionFingerprint = JSON.stringify({ publicCode: code, message: messageText });
+      if (requesterReplySubmissionRef.current?.fingerprint !== submissionFingerprint) {
+        requesterReplySubmissionRef.current = {
+          fingerprint: submissionFingerprint,
+          idempotencyKey: crypto.randomUUID(),
+        };
+      }
+      const idempotencyKey = requesterReplySubmissionRef.current.idempotencyKey;
       const payload = await readApiResponse<unknown>(
-        await fetch(`/api/support/requests/${selectedCode}/messages`, {
+        await fetch(`/api/support/requests/${code}/messages`, {
           method: "POST",
           credentials: "include",
           headers: {
@@ -1950,7 +2055,7 @@ function ConnectedRequestsView({ ticketCode, onBack }: { ticketCode: string | nu
       );
       const confirmation = isRecord(payload)
         ? verifySupportRequesterMessageConfirmation({
-            expectedPublicCode: selectedCode,
+            expectedPublicCode: code,
             confirmation: payload.confirmation,
           })
         : null;
@@ -1959,9 +2064,9 @@ function ConnectedRequestsView({ ticketCode, onBack }: { ticketCode: string | nu
       }
 
       const persistedPayload = await readApiResponse<unknown>(
-        fetch(`/api/support/requests/${selectedCode}`, { credentials: "include" })
+        fetch(`/api/support/requests/${code}`, { credentials: "include" })
       );
-      if (!isPublicSupportRequestDetailPayload(persistedPayload) || persistedPayload.request.publicCode !== selectedCode) {
+      if (!isPublicSupportRequestDetailPayload(persistedPayload) || persistedPayload.request.publicCode !== code) {
         throw new Error("Le message est peut-être enregistré, mais sa relecture a échoué. Réessayez sans modifier le message.");
       }
       const persistedMessage = persistedPayload.messages.find((message) =>
@@ -1975,18 +2080,7 @@ function ConnectedRequestsView({ ticketCode, onBack }: { ticketCode: string | nu
 
       setReply("");
       requesterReplySubmissionRef.current = null;
-      if (followupFiles.length > 0) {
-        const uploads = await Promise.allSettled(
-          followupFiles.map((file) => uploadSupportFile(selectedCode, file))
-        );
-        const failedCount = uploads.filter((result) => result.status === "rejected").length;
-        if (failedCount > 0) {
-          uploadWarning = `Votre message est enregistré, mais ${failedCount} fichier${failedCount > 1 ? "s" : ""} n’a pas été joint.`;
-        }
-        setFollowupFiles([]);
-      }
-      await Promise.all([loadDetail(selectedCode), loadRequests()]);
-      if (uploadWarning) setError(uploadWarning);
+      await Promise.all([loadDetail(code), loadRequests()]);
     } catch (replyError) {
       setError(replyError instanceof Error ? replyError.message : "Le message n'a pas été envoyé");
     } finally {
@@ -2119,7 +2213,7 @@ function ConnectedRequestsView({ ticketCode, onBack }: { ticketCode: string | nu
                 <label><span>Ajouter un message</span><textarea id="lycee-followup-message" name="followupMessage" rows={3} value={reply} onChange={(event) => setReply(event.target.value)} placeholder="Précisez votre demande ou répondez à l’agent." maxLength={5000} /></label>
                 <input id="lycee-followup-files" name="followupFiles" aria-label="Documents à ajouter au suivi" ref={followupFileInputRef} className="lycee-file-input" type="file" multiple accept={SUPPORT_FILE_TYPES.join(",")} onChange={selectFollowupFiles} />
                 {followupFiles.length > 0 ? <div className="lycee-selected-files lycee-followup-files">{followupFiles.map((file, index) => <div key={`${file.name}-${file.lastModified}`}><FileText aria-hidden="true" /><span><strong>{file.name}</strong><small>{(file.size / 1024 / 1024).toFixed(1)} Mo</small></span><button type="button" onClick={() => setFollowupFiles((current) => current.filter((_, fileIndex) => fileIndex !== index))}>Retirer</button></div>)}</div> : null}
-                <div className="lycee-followup-actions"><button className="lycee-secondary-action" type="button" disabled={(detail.attachments.filter((attachment) => attachment.direction === "requester").length + followupFiles.length) >= MAX_SUPPORT_FILES} onClick={() => followupFileInputRef.current?.click()}><Paperclip aria-hidden="true" /> Joindre</button><button className="lycee-primary-action" type="submit" disabled={replying || !reply.trim()}>{replying ? "Envoi…" : "Envoyer"}<Send aria-hidden="true" /></button></div>
+                <div className="lycee-followup-actions"><button className="lycee-secondary-action" type="button" disabled={(detail.attachments.filter((attachment) => attachment.direction === "requester").length + followupFiles.length) >= MAX_SUPPORT_FILES && !(selectedCode && hasPendingRequesterUpload(selectedCode))} onClick={() => followupFileInputRef.current?.click()}><Paperclip aria-hidden="true" /> Joindre</button><button className="lycee-primary-action" type="submit" disabled={replying || (!reply.trim() && followupFiles.length === 0)}>{replying ? "Envoi…" : "Envoyer"}<Send aria-hidden="true" /></button></div>
               </form>
             </article>
           ) : null}
@@ -2706,6 +2800,26 @@ function isSupportUploadReservationPayload(value: unknown): value is {
     || !/^[A-Za-z0-9][A-Za-z0-9._-]{0,89}$/.test(segments[2])) return false;
   return isBoundedString(token, 4_096)
     && /^[A-Za-z0-9._~-]+$/.test(token);
+}
+
+function isRequesterSupportUploadReservationPayload(value: unknown): value is {
+  attachment: { id: string; scanStatus: string };
+  upload: { bucket: "support-quarantine"; path: string; token: string } | null;
+  duplicate: boolean;
+} {
+  if (
+    !isRecord(value)
+    || !isRecord(value.attachment)
+    || typeof value.attachment.id !== "string"
+    || !/^[0-9a-f]{8}-[0-9a-f-]{27}$/i.test(value.attachment.id)
+    || !isBoundedString(value.attachment.scanStatus, 40)
+    || typeof value.duplicate !== "boolean"
+  ) return false;
+  if (value.upload === null) {
+    return value.duplicate && value.attachment.scanStatus !== "awaiting_upload";
+  }
+  if (value.attachment.scanStatus !== "awaiting_upload") return false;
+  return isSupportUploadReservationPayload(value);
 }
 
 type AgentUploadSubmission = {

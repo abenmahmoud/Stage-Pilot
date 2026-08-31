@@ -7,7 +7,7 @@ const page = readFileSync(new URL("../src/pages/prototype/LyceeConnectPrototype.
 test("validates the upload reservation before calling Supabase", () => {
   const uploadFunction = page.indexOf("async function uploadSupportFile");
   const readUnknown = page.indexOf("const reservation = await readApiResponse<unknown>", uploadFunction);
-  const validation = page.indexOf("if (!isSupportUploadReservationPayload(reservation))", readUnknown);
+  const validation = page.indexOf("if (!isRequesterSupportUploadReservationPayload(reservation))", readUnknown);
   const storageCall = page.indexOf("supabase.storage", validation);
   assert.notEqual(uploadFunction, -1);
   assert.ok(uploadFunction < readUnknown);

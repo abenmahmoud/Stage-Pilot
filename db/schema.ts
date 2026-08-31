@@ -1361,7 +1361,7 @@ export const supportAttachments = pgTable("support_attachments", {
   sha256: text("sha256"),
   storageBucket: text("storage_bucket").notNull(),
   storagePath: text("storage_path").notNull().unique(),
-  scanStatus: text("scan_status").notNull().default("quarantine"),
+  scanStatus: text("scan_status").notNull().default("awaiting_upload"),
   scanDetail: text("scan_detail"),
   direction: text("direction").notNull().default("requester"),
   uploadedBySession: uuid("uploaded_by_session").references(

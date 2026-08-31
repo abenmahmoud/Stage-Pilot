@@ -98,9 +98,9 @@ test("keeps one submission key and clears only after re-reading the inbound mess
     page.indexOf("async function openPublicAttachment")
   );
   const key = send.indexOf("requesterReplySubmissionRef.current?.fingerprint !== submissionFingerprint");
-  const request = send.indexOf("fetch(`/api/support/requests/${selectedCode}/messages`", key);
+  const request = send.indexOf("fetch(`/api/support/requests/${code}/messages`", key);
   const verify = send.indexOf("verifySupportRequesterMessageConfirmation", request);
-  const reread = send.indexOf("fetch(`/api/support/requests/${selectedCode}`", verify);
+  const reread = send.indexOf("fetch(`/api/support/requests/${code}`", verify);
   const persisted = send.indexOf("message.id === confirmation.messageId", reread);
   const persistedAt = send.indexOf("message.createdAt === confirmation.messageCreatedAt", persisted);
   const clear = send.indexOf('setReply("")', persistedAt);
