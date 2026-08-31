@@ -3,12 +3,16 @@ import { readFile } from "node:fs/promises";
 import test from "node:test";
 import {
   IDENTITY_DIRECTORY_MAX_BYTES,
+  IDENTITY_DIRECTORY_MAX_ROWS,
   identityDirectoryMime,
   parseIdentityDirectoryInput,
 } from "../shared/identity-directory-input.ts";
 import { identityDirectoryStoragePath } from "../api/_shared/identity-directory-path.ts";
 import { generateFictitiousIdentityDirectory } from "../shared/fictitious-identity-directory.ts";
-import { parseIdentityDirectoryBytes } from "../workers/identity-directory-parser.mjs";
+import {
+  IDENTITY_DIRECTORY_MAX_ROWS as PARSER_MAX_ROWS,
+  parseIdentityDirectoryBytes,
+} from "../workers/identity-directory-parser.mjs";
 
 const migrationPath = new URL(
   "../supabase/migrations/20260828212703_create_identity_directory_intake.sql",
@@ -55,6 +59,10 @@ const viewPath = new URL(
   "../api/_shared/identity-directory-view.ts",
   import.meta.url
 );
+const decisionInputPath = new URL(
+  "../shared/identity-directory-admin-input.ts",
+  import.meta.url
+);
 
 function validInput(overrides = {}) {
   return {
@@ -70,6 +78,7 @@ function validInput(overrides = {}) {
 }
 
 test("accepts only bounded CSV and XLSX directory files", () => {
+  assert.equal(IDENTITY_DIRECTORY_MAX_ROWS, PARSER_MAX_ROWS);
   assert.equal(parseIdentityDirectoryInput(validInput()).sourceType, "official_export");
   assert.equal(identityDirectoryMime("liste.csv", "application/octet-stream"), "text/csv");
   assert.throws(
@@ -161,13 +170,14 @@ test("keeps operational identity payloads encrypted and server-only", async () =
 });
 
 test("exposes only a redacted report and requires MFA lifecycle actions", async () => {
-  const [report, approve, activate, retire, view, retirementSql] = await Promise.all([
+  const [report, approve, activate, retire, view, retirementSql, decisionInput] = await Promise.all([
     readFile(reportPath, "utf8"),
     readFile(approvePath, "utf8"),
     readFile(activatePath, "utf8"),
     readFile(retirePath, "utf8"),
     readFile(viewPath, "utf8"),
     readFile(retirementMigrationPath, "utf8"),
+    readFile(decisionInputPath, "utf8"),
   ]);
   for (const source of [report, approve, activate, retire]) {
     assert.match(source, /requireIdentityDirectoryManager\(req\)/);
@@ -179,13 +189,13 @@ test("exposes only a redacted report and requires MFA lifecycle actions", async 
   assert.match(approve, /identityDirectoryPrivateRows/);
   assert.match(approve, /encryptedPersonCount/);
   assert.match(approve, /status: "approved"/);
-  assert.match(activate, /confirmation !== "ACTIVER"/);
+  assert.match(activate, /parseIdentityDirectoryDecisionInput\(req\.body, "activate"\)/);
   assert.match(activate, /status: "superseded"/);
   assert.match(activate, /status: "active"/);
   assert.match(activate, /identityDirectoryPrivateRows/);
   assert.match(activate, /coffre chiffré est incomplet/);
   assert.match(activate, /pg_advisory_xact_lock/);
-  assert.match(retire, /confirmation !== "RETIRER"/);
+  assert.match(retire, /parseIdentityDirectoryDecisionInput\(req\.body, "retire"\)/);
   assert.match(retire, /candidate\.status === "active"/);
   assert.match(retire, /schoolIdentities/);
   assert.match(retire, /schoolRelationships/);
@@ -196,6 +206,9 @@ test("exposes only a redacted report and requires MFA lifecycle actions", async 
   assert.match(retirementSql, /identity_directory_imports_retirement_check/i);
   assert.match(retirementSql, /identity_directory_require_active_source/i);
   assert.match(retirementSql, /'retire'/);
+  assert.match(decisionInput, /decision === "activate" \? "ACTIVER"/);
+  assert.match(decisionInput, /decision === "retire" \? "RETIRER"/);
+  assert.match(decisionInput, /exactFields\(input, confirmation/);
   assert.doesNotMatch(view, /storagePath:/);
   assert.doesNotMatch(view, /storageBucket:/);
   assert.doesNotMatch(view, /uploadedBy:/);

@@ -48,6 +48,11 @@
 - [x] T010B2A1 Ajouter dans l'interface un générateur local de 2 100 personnes
   fictives et 1 900 relations, sans code ni domaine réel, validé intégralement
   par le même parseur que les futurs imports.
+- [x] T010B2A2 Fermer les contrats d'administration du répertoire privé : corps
+  de réservation et de décision à champs exacts, listes, reçus de dépôt,
+  rapports et confirmations minimaux validés côté API puis navigateur avant
+  affichage, transfert ou succès ; refuser doublons, pages incohérentes,
+  réponses périmées et tout champ interne supplémentaire.
 - [x] T010B2B Fournir le secret HMAC au worker isolé, installer son timer VPS
   après autorisation précise, puis exécuter
   la recette antivirus, doublons, approbation, remplacement et suppression avec

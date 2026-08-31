@@ -15,38 +15,16 @@ import {
   IDENTITY_DIRECTORY_MAX_BYTES,
   identityDirectoryMime,
 } from "../../../shared/identity-directory-input";
+import {
+  type IdentityDirectoryListItem,
+  type IdentityDirectoryStatus,
+  isIdentityDirectoryActionPayload,
+  isIdentityDirectoryListPayload,
+  isIdentityDirectoryReservationPayload,
+} from "../../../shared/identity-directory-admin-payload-policy";
 import { generateFictitiousIdentityDirectory } from "../../../shared/fictitious-identity-directory";
 import IdentityDirectoryReport from "./IdentityDirectoryReport";
 import IdentityDirectoryLookupPanel from "./IdentityDirectoryLookupPanel";
-
-type DirectoryStatus =
-  | "reserved"
-  | "uploaded"
-  | "quarantined"
-  | "parsing"
-  | "review"
-  | "approved"
-  | "active"
-  | "superseded"
-  | "rejected"
-  | "failed"
-  | "retired";
-
-type DirectoryImport = {
-  id: string;
-  title: string;
-  purposeDescription: string;
-  sourceType: string;
-  originalName: string;
-  mimeType: string;
-  sizeBytes: number;
-  status: DirectoryStatus;
-  rowCount: number | null;
-  validRowCount: number | null;
-  rejectedRowCount: number | null;
-  uploadedAt: string | null;
-  createdAt: string;
-};
 
 function downloadLargeFictitiousDirectory() {
   const blob = new Blob([generateFictitiousIdentityDirectory()], {
@@ -62,7 +40,7 @@ function downloadLargeFictitiousDirectory() {
   URL.revokeObjectURL(href);
 }
 
-const STATUS: Record<DirectoryStatus, { label: string; style: string }> = {
+const STATUS: Record<IdentityDirectoryStatus, { label: string; style: string }> = {
   reserved: { label: "Transfert à terminer", style: "bg-slate-100 text-slate-700" },
   uploaded: { label: "Reçu, contrôle requis", style: "bg-blue-100 text-blue-800" },
   quarantined: { label: "Contrôle de sécurité", style: "bg-amber-100 text-amber-800" },
@@ -90,7 +68,7 @@ function dateLabel(value: string): string {
 
 export default function IdentityDirectoryPage() {
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [imports, setImports] = useState<DirectoryImport[]>([]);
+  const [imports, setImports] = useState<IdentityDirectoryListItem[]>([]);
   const [file, setFile] = useState<File | null>(null);
   const [title, setTitle] = useState("");
   const [purposeDescription, setPurposeDescription] = useState("");
@@ -106,7 +84,10 @@ export default function IdentityDirectoryPage() {
     setLoading(true);
     setError("");
     try {
-      const result = await apiFetch<{ imports: DirectoryImport[] }>("identity/admin/imports");
+      const result = await apiFetch<unknown>("identity/admin/imports");
+      if (!isIdentityDirectoryListPayload(result)) {
+        throw new Error("La liste reçue du répertoire privé est invalide.");
+      }
       setImports(result.imports);
     } catch (reason) {
       setError(reason instanceof Error ? reason.message : "Chargement impossible.");
@@ -135,10 +116,7 @@ export default function IdentityDirectoryPage() {
     setNotice("");
     setProgress(0);
     try {
-      const reservation = await apiFetch<{
-        import: DirectoryImport;
-        upload: { bucket: string; path: string; token: string };
-      }>("identity/admin/imports", {
+      const reservation = await apiFetch<unknown>("identity/admin/imports", {
         method: "POST",
         body: JSON.stringify({
           title,
@@ -149,13 +127,25 @@ export default function IdentityDirectoryPage() {
           sizeBytes: file.size,
         }),
       });
+      if (!isIdentityDirectoryReservationPayload(reservation)) {
+        throw new Error("La réservation du dépôt privé est invalide.");
+      }
       const uploadFile = file.type === mimeType
         ? file
         : new File([file], file.name, { type: mimeType });
       await uploadPrivateFile(uploadFile, reservation.upload, setProgress);
-      await apiFetch(`identity/admin/imports/${reservation.import.id}/confirm`, {
-        method: "POST",
-      });
+      const confirmation = await apiFetch<unknown>(
+        `identity/admin/imports/${reservation.import.id}/confirm`, {
+          method: "POST",
+        }
+      );
+      if (!isIdentityDirectoryActionPayload(
+        confirmation,
+        reservation.import.id,
+        ["quarantined", "parsing", "review", "approved", "active"]
+      )) {
+        throw new Error("La confirmation du dépôt privé est invalide.");
+      }
       setNotice(
         "Fichier reçu dans l’espace privé. Il ne sera ni activé ni transmis à l’IA avant les contrôles et la validation humaine."
       );

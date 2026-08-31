@@ -752,6 +752,15 @@ l'autorisation de quota définie par le propriétaire.
   technique ou identifiant discordant avant d'afficher un résultat. Huit
   scénarios ciblés et les vingt-trois contrôles cryptographiques passent.
   T010B4A1A est terminée ; T010B4A2 reste soumise à autorisation VPS explicite.
+- Lot N5ZZO : contrats exacts d'administration du répertoire. **Implémentés sans
+  donnée réelle, migration, worker ni action externe** : réservation, liste,
+  rapport, approbation, activation et retrait utilisent des projections
+  minimales et des validateurs runtime partagés. Le navigateur lit chaque
+  réponse comme `unknown` et la refuse avant transfert, affichage ou message de
+  succès. Les commandes rejettent les champs supplémentaires ; les rapports
+  bornent la pagination, les lignes et les anomalies, et ignorent toute réponse
+  périmée. Dix-neuf scénarios ciblés couvrent le contrat et le cycle existant.
+  T010B2A2 est terminée.
 
 ## Prochaine séquence verrouillée
 

@@ -9,9 +9,12 @@ import {
   schoolIdentities,
   schoolRelationships,
 } from "../../../../../db/schema.js";
+import { parseIdentityDirectoryDecisionInput } from "../../../../../shared/identity-directory-admin-input.js";
+import { isIdentityDirectoryActionPayload } from "../../../../../shared/identity-directory-admin-payload-policy.js";
 import { HttpError, supabaseAdmin } from "../../../../_shared/auth.js";
 import { requireIdentityDirectoryManager } from "../../../../_shared/identity-directory.js";
-import { identityDirectoryView } from "../../../../_shared/identity-directory-view.js";
+import { identityDirectoryActionView } from "../../../../_shared/identity-directory-view.js";
+import { registryInputError } from "../../../../_shared/knowledge-registry.js";
 import { handleApi, methodNotAllowed } from "../../../../_shared/response.js";
 
 const RETIRABLE_STATUSES = ["review", "approved", "superseded", "rejected", "failed"];
@@ -24,27 +27,17 @@ function routeId(req: VercelRequest): string {
   return value;
 }
 
-function retirementInput(req: VercelRequest): string {
-  const body = req.body as Record<string, unknown> | undefined;
-  if (body?.confirmation !== "RETIRER") {
-    throw new HttpError(400, "Confirmation de retrait manquante");
-  }
-  if (
-    typeof body.justification !== "string" ||
-    body.justification.trim().length < 20 ||
-    body.justification.trim().length > 1000
-  ) {
-    throw new HttpError(400, "Expliquez le retrait en 20 à 1 000 caractères");
-  }
-  return body.justification.trim();
-}
-
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== "POST") return methodNotAllowed(res, ["POST"]);
   return handleApi(res, async () => {
     const context = await requireIdentityDirectoryManager(req);
     const id = routeId(req);
-    const reason = retirementInput(req);
+    let reason;
+    try {
+      reason = parseIdentityDirectoryDecisionInput(req.body, "retire").justification;
+    } catch (error) {
+      registryInputError(error);
+    }
 
     const result = await db.transaction(async (tx) => {
       await tx.execute(sql`
@@ -152,7 +145,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return { import: retired, duplicate: false };
     });
 
-    return { import: identityDirectoryView(result.import), duplicate: result.duplicate };
+    const payload = {
+      import: identityDirectoryActionView(result.import),
+      duplicate: result.duplicate,
+    };
+    if (!isIdentityDirectoryActionPayload(payload, id, ["retired"])) {
+      throw new HttpError(503, "La confirmation du retrait est invalide.");
+    }
+    return payload;
   });
 }
 

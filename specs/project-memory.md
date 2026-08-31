@@ -3883,3 +3883,17 @@ taches et analyse de coherence avant une automatisation sensible.
   des dépendances livrées retourne zéro vulnérabilité ; l'audit incluant les
   outils de développement conserve neuf alertes transitives Vercel/Drizzle dont
   le seul correctif automatique proposé est une rupture majeure forcée.
+
+## 2026-09-01 - Administration du répertoire à contrat fermé
+
+- T010B2A2 ferme les entrées et sorties de réservation, liste, rapport,
+  approbation, activation et retrait du répertoire privé. Les vues serveur sont
+  minimales et le navigateur valide chaque réponse avant transfert, affichage,
+  changement d'état ou message de succès.
+- Les contrats refusent champs cachés, UUID et dates invalides, compteurs
+  contradictoires, doublons, ordre incorrect, pagination incomplète, anomalies
+  inconnues et chemin de stockage mal formé. Les rapports arrivés après un
+  changement d'import sont ignorés.
+- Dix-neuf scénarios ciblés et le build passent avec des données fictives. Le lot
+  ne touche ni base réelle, production, DNS, VPS, ENT, PRONOTE ou webmail et
+  n'active aucun worker.

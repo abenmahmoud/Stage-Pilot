@@ -64,6 +64,12 @@ Le fichier réel ne doit pas être envoyé dans une conversation, ajouté au dé
 Git ou placé dans un dossier public. L'écran `Identités du lycée` sera son seul
 point d'entrée lorsque `T010B2` sera terminée et validée.
 
+L'administration du répertoire suit désormais un contrat fermé : le navigateur
+ne fait confiance à aucune réponse réseau avant validation, les listes et
+rapports ne contiennent que les champs utiles, et toute approbation, activation
+ou suppression exige une commande exacte et justifiée. Un champ technique ou
+personnel ajouté par erreur à une réponse provoque son refus, pas son affichage.
+
 Un modèle entièrement fictif est désormais disponible dans l'écran et dans
 `public/modeles/repertoire-identites-fictif.csv`. Il illustre les deux types de
 ligne `person` et `relationship`. Les intitulés supplémentaires, commentaires

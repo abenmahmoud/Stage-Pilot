@@ -6,13 +6,20 @@ import {
   identityDirectoryImports,
 } from "../../../../db/schema.js";
 import { parseIdentityDirectoryInput } from "../../../../shared/identity-directory-input.js";
-import { supabaseAdmin } from "../../../_shared/auth.js";
+import {
+  isIdentityDirectoryListPayload,
+  isIdentityDirectoryReservationPayload,
+} from "../../../../shared/identity-directory-admin-payload-policy.js";
+import { HttpError, supabaseAdmin } from "../../../_shared/auth.js";
 import {
   IDENTITY_DIRECTORY_BUCKET,
   requireIdentityDirectoryManager,
 } from "../../../_shared/identity-directory.js";
 import { identityDirectoryStoragePath } from "../../../_shared/identity-directory-path.js";
-import { identityDirectoryView } from "../../../_shared/identity-directory-view.js";
+import {
+  identityDirectoryActionView,
+  identityDirectoryListView,
+} from "../../../_shared/identity-directory-view.js";
 import { registryInputError } from "../../../_shared/knowledge-registry.js";
 import { handleApi, methodNotAllowed } from "../../../_shared/response.js";
 
@@ -26,7 +33,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         .where(eq(identityDirectoryImports.institutionId, context.institutionId))
         .orderBy(desc(identityDirectoryImports.createdAt))
         .limit(100);
-      return { imports: imports.map(identityDirectoryView) };
+      const payload = { imports: imports.map(identityDirectoryListView) };
+      if (!isIdentityDirectoryListPayload(payload)) {
+        throw new HttpError(503, "La liste du répertoire privé est invalide.");
+      }
+      return payload;
     });
   }
 
@@ -75,14 +86,18 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           sizeBytes: directoryImport.sizeBytes,
         },
       });
-      return {
-        import: identityDirectoryView(directoryImport),
+      const payload = {
+        import: identityDirectoryActionView(directoryImport),
         upload: {
           bucket: IDENTITY_DIRECTORY_BUCKET,
           path: upload.path,
           token: upload.token,
         },
       };
+      if (!isIdentityDirectoryReservationPayload(payload)) {
+        throw new HttpError(503, "La réservation du dépôt privé est invalide.");
+      }
+      return payload;
     });
   }
 

@@ -5,9 +5,10 @@ import {
   identityDirectoryImports,
   identityDirectoryRows,
 } from "../../../../../db/schema.js";
+import { isIdentityDirectoryReportPayload } from "../../../../../shared/identity-directory-admin-payload-policy.js";
 import { HttpError } from "../../../../_shared/auth.js";
 import { requireIdentityDirectoryManager } from "../../../../_shared/identity-directory.js";
-import { identityDirectoryView } from "../../../../_shared/identity-directory-view.js";
+import { identityDirectoryReportImportView } from "../../../../_shared/identity-directory-view.js";
 import { handleApi, methodNotAllowed } from "../../../../_shared/response.js";
 
 function routeId(req: VercelRequest): string {
@@ -19,8 +20,15 @@ function routeId(req: VercelRequest): string {
 }
 
 function pageNumber(value: string | string[] | undefined): number {
-  const parsed = Number(Array.isArray(value) ? value[0] : value ?? 1);
-  return Number.isSafeInteger(parsed) && parsed >= 1 && parsed <= 250 ? parsed : 1;
+  if (value === undefined) return 1;
+  if (Array.isArray(value) || !/^[1-9]\d{0,2}$/.test(value)) {
+    throw new HttpError(400, "Page de rapport invalide");
+  }
+  const parsed = Number(value);
+  if (!Number.isSafeInteger(parsed) || parsed > 250) {
+    throw new HttpError(400, "Page de rapport invalide");
+  }
+  return parsed;
 }
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
@@ -72,14 +80,23 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         .offset((page - 1) * pageSize),
     ]);
 
-    return {
-      import: identityDirectoryView(directoryImport),
+    const total = Number(totalResult[0]?.value ?? 0);
+    const maximumPage = Math.max(1, Math.ceil(total / pageSize));
+    if (page > maximumPage) {
+      throw new HttpError(400, "Page de rapport invalide");
+    }
+    const payload = {
+      import: identityDirectoryReportImportView(directoryImport),
       rows,
       pagination: {
         page,
         pageSize,
-        total: Number(totalResult[0]?.value ?? 0),
+        total,
       },
     };
+    if (!isIdentityDirectoryReportPayload(payload, id, page)) {
+      throw new HttpError(503, "Le rapport du répertoire privé est invalide.");
+    }
+    return payload;
   });
 }

@@ -6,9 +6,10 @@ import {
   identityDirectoryAudit,
   identityDirectoryImports,
 } from "../../../../../db/schema.js";
+import { isIdentityDirectoryActionPayload } from "../../../../../shared/identity-directory-admin-payload-policy.js";
 import { HttpError, supabaseAdmin } from "../../../../_shared/auth.js";
 import { requireIdentityDirectoryManager } from "../../../../_shared/identity-directory.js";
-import { identityDirectoryView } from "../../../../_shared/identity-directory-view.js";
+import { identityDirectoryActionView } from "../../../../_shared/identity-directory-view.js";
 import { handleApi, methodNotAllowed } from "../../../../_shared/response.js";
 
 function routeId(req: VercelRequest): string {
@@ -36,7 +37,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       .limit(1);
     if (!directoryImport) throw new HttpError(404, "Import introuvable");
     if (["quarantined", "parsing", "review", "approved", "active"].includes(directoryImport.status)) {
-      return { import: identityDirectoryView(directoryImport), duplicate: true };
+      const payload = { import: identityDirectoryActionView(directoryImport), duplicate: true };
+      if (!isIdentityDirectoryActionPayload(
+        payload,
+        id,
+        ["quarantined", "parsing", "review", "approved", "active"]
+      )) {
+        throw new HttpError(503, "La confirmation du dépôt privé est invalide.");
+      }
+      return payload;
     }
     if (!["reserved", "uploaded"].includes(directoryImport.status)) {
       throw new HttpError(409, "Ce dépôt ne peut plus être confirmé");
@@ -145,7 +154,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       throw new HttpError(409, "Ce dépôt a déjà été traité");
     }
     res.status(202);
-    return { import: identityDirectoryView(confirmed), duplicate: false };
+    const payload = { import: identityDirectoryActionView(confirmed), duplicate: false };
+    if (!isIdentityDirectoryActionPayload(payload, id, ["quarantined"])) {
+      throw new HttpError(503, "La confirmation du dépôt privé est invalide.");
+    }
+    return payload;
   });
 }
 

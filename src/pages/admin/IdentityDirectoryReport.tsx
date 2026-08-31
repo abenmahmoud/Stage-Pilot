@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   AlertTriangle,
   CheckCircle2,
@@ -10,50 +10,12 @@ import {
   XCircle,
 } from "lucide-react";
 import { apiFetch } from "../../lib/api";
-
-type ReportIssue = {
-  severity: "warning" | "error";
-  code: string;
-  column: string;
-};
-
-type ReportRow = {
-  id: number;
-  sourceSheet: string;
-  rowNumber: number;
-  recordType: "person" | "relationship" | "unknown";
-  personRef: string | null;
-  personType: string | null;
-  subjectPersonRef: string | null;
-  relationshipType: string | null;
-  objectRef: string | null;
-  classRef: string | null;
-  serviceCode: string | null;
-  validFrom: string | null;
-  validUntil: string | null;
-  validationStatus: "valid" | "warning" | "rejected";
-  issues: ReportIssue[];
-};
-
-type ReportResponse = {
-  import: {
-    id: string;
-    status: string;
-    rowCount: number | null;
-    validRowCount: number | null;
-    rejectedRowCount: number | null;
-    validationSummary: {
-      warningRowCount?: number;
-      personCount?: number;
-      relationshipCount?: number;
-      issueCounts?: Record<string, number>;
-      antivirus?: string;
-      readyForApproval?: boolean;
-    };
-  };
-  rows: ReportRow[];
-  pagination: { page: number; pageSize: number; total: number };
-};
+import {
+  type IdentityDirectoryReportPayload,
+  type IdentityDirectoryReportRow,
+  isIdentityDirectoryActionPayload,
+  isIdentityDirectoryReportPayload,
+} from "../../../shared/identity-directory-admin-payload-policy";
 
 const ISSUE_LABELS: Record<string, string> = {
   duplicate_person_ref: "Référence de personne en double",
@@ -83,7 +45,7 @@ function issueLabel(code: string): string {
   return ISSUE_LABELS[code] ?? code.replaceAll("_", " ");
 }
 
-function rowReference(row: ReportRow): string {
+function rowReference(row: IdentityDirectoryReportRow): string {
   if (row.recordType === "person") return row.personRef ?? "Référence absente";
   if (row.recordType === "relationship") {
     return `${row.subjectPersonRef ?? "?"} → ${row.objectRef ?? "?"}`;
@@ -98,7 +60,8 @@ export default function IdentityDirectoryReport({
   importId: string;
   onChanged: () => Promise<void>;
 }) {
-  const [report, setReport] = useState<ReportResponse | null>(null);
+  const loadIdRef = useRef(0);
+  const [report, setReport] = useState<IdentityDirectoryReportPayload | null>(null);
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
@@ -110,22 +73,31 @@ export default function IdentityDirectoryReport({
   const [retirementConfirmed, setRetirementConfirmed] = useState(false);
 
   async function load(nextPage = page) {
+    const loadId = ++loadIdRef.current;
     setLoading(true);
     setError("");
     try {
-      const result = await apiFetch<ReportResponse>(
+      const result = await apiFetch<unknown>(
         `identity/admin/imports/${importId}/report?page=${nextPage}`
       );
+      if (!isIdentityDirectoryReportPayload(result, importId, nextPage)) {
+        throw new Error("Le rapport reçu du répertoire privé est invalide.");
+      }
+      if (loadId !== loadIdRef.current) return;
       setReport(result);
       setPage(result.pagination.page);
     } catch (reason) {
-      setError(reason instanceof Error ? reason.message : "Rapport indisponible.");
+      if (loadId === loadIdRef.current) {
+        setError(reason instanceof Error ? reason.message : "Rapport indisponible.");
+      }
     } finally {
-      setLoading(false);
+      if (loadId === loadIdRef.current) setLoading(false);
     }
   }
 
   useEffect(() => {
+    loadIdRef.current += 1;
+    setReport(null);
     setPage(1);
     setJustification("");
     setActivationConfirmed(false);
@@ -139,10 +111,13 @@ export default function IdentityDirectoryReport({
     setError("");
     setNotice("");
     try {
-      await apiFetch(`identity/admin/imports/${importId}/approve`, {
+      const result = await apiFetch<unknown>(`identity/admin/imports/${importId}/approve`, {
         method: "POST",
         body: JSON.stringify({ justification }),
       });
+      if (!isIdentityDirectoryActionPayload(result, importId, ["approved"])) {
+        throw new Error("La confirmation de l’approbation est invalide.");
+      }
       setNotice("Rapport approuvé. La version reste inactive jusqu’à votre confirmation finale.");
       setJustification("");
       await Promise.all([load(page), onChanged()]);
@@ -158,10 +133,13 @@ export default function IdentityDirectoryReport({
     setError("");
     setNotice("");
     try {
-      await apiFetch(`identity/admin/imports/${importId}/activate`, {
+      const result = await apiFetch<unknown>(`identity/admin/imports/${importId}/activate`, {
         method: "POST",
         body: JSON.stringify({ confirmation: "ACTIVER", justification }),
       });
+      if (!isIdentityDirectoryActionPayload(result, importId, ["active"])) {
+        throw new Error("La confirmation de l’activation est invalide.");
+      }
       setNotice("Cette version est maintenant la seule version active du répertoire privé.");
       setJustification("");
       setActivationConfirmed(false);
@@ -178,10 +156,13 @@ export default function IdentityDirectoryReport({
     setError("");
     setNotice("");
     try {
-      await apiFetch(`identity/admin/imports/${importId}/retire`, {
+      const result = await apiFetch<unknown>(`identity/admin/imports/${importId}/retire`, {
         method: "POST",
         body: JSON.stringify({ confirmation: "RETIRER", justification: retirementReason }),
       });
+      if (!isIdentityDirectoryActionPayload(result, importId, ["retired"])) {
+        throw new Error("La confirmation du retrait est invalide.");
+      }
       setNotice("Version retirée : le fichier privé et ses lignes de contrôle ont été supprimés.");
       setRetirementReason("");
       setRetirementConfirmed(false);

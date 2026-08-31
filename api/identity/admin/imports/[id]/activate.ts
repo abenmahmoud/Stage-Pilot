@@ -6,9 +6,12 @@ import {
   identityDirectoryImports,
   identityDirectoryPrivateRows,
 } from "../../../../../db/schema.js";
+import { parseIdentityDirectoryDecisionInput } from "../../../../../shared/identity-directory-admin-input.js";
+import { isIdentityDirectoryActionPayload } from "../../../../../shared/identity-directory-admin-payload-policy.js";
 import { HttpError } from "../../../../_shared/auth.js";
 import { requireIdentityDirectoryManager } from "../../../../_shared/identity-directory.js";
-import { identityDirectoryView } from "../../../../_shared/identity-directory-view.js";
+import { identityDirectoryActionView } from "../../../../_shared/identity-directory-view.js";
+import { registryInputError } from "../../../../_shared/knowledge-registry.js";
 import { handleApi, methodNotAllowed } from "../../../../_shared/response.js";
 
 function routeId(req: VercelRequest): string {
@@ -19,27 +22,17 @@ function routeId(req: VercelRequest): string {
   return value;
 }
 
-function activationInput(req: VercelRequest): string {
-  const body = req.body as Record<string, unknown> | undefined;
-  if (body?.confirmation !== "ACTIVER") {
-    throw new HttpError(400, "Confirmation d’activation manquante");
-  }
-  if (
-    typeof body.justification !== "string" ||
-    body.justification.trim().length < 20 ||
-    body.justification.trim().length > 1000
-  ) {
-    throw new HttpError(400, "Expliquez l’activation en 20 à 1 000 caractères");
-  }
-  return body.justification.trim();
-}
-
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== "POST") return methodNotAllowed(res, ["POST"]);
   return handleApi(res, async () => {
     const context = await requireIdentityDirectoryManager(req);
     const id = routeId(req);
-    const reason = activationInput(req);
+    let reason;
+    try {
+      reason = parseIdentityDirectoryDecisionInput(req.body, "activate").justification;
+    } catch (error) {
+      registryInputError(error);
+    }
     const result = await db.transaction(async (tx) => {
       await tx.execute(sql`
         select pg_advisory_xact_lock(
@@ -133,7 +126,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       });
       return { import: updated, duplicate: false };
     });
-    return { import: identityDirectoryView(result.import), duplicate: result.duplicate };
+    const payload = {
+      import: identityDirectoryActionView(result.import),
+      duplicate: result.duplicate,
+    };
+    if (!isIdentityDirectoryActionPayload(payload, id, ["active"])) {
+      throw new HttpError(503, "La confirmation de l’activation est invalide.");
+    }
+    return payload;
   });
 }
 

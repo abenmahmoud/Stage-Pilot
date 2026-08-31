@@ -6,9 +6,12 @@ import {
   identityDirectoryImports,
   identityDirectoryPrivateRows,
 } from "../../../../../db/schema.js";
+import { parseIdentityDirectoryDecisionInput } from "../../../../../shared/identity-directory-admin-input.js";
+import { isIdentityDirectoryActionPayload } from "../../../../../shared/identity-directory-admin-payload-policy.js";
 import { HttpError } from "../../../../_shared/auth.js";
 import { requireIdentityDirectoryManager } from "../../../../_shared/identity-directory.js";
-import { identityDirectoryView } from "../../../../_shared/identity-directory-view.js";
+import { identityDirectoryActionView } from "../../../../_shared/identity-directory-view.js";
+import { registryInputError } from "../../../../_shared/knowledge-registry.js";
 import { handleApi, methodNotAllowed } from "../../../../_shared/response.js";
 
 function routeId(req: VercelRequest): string {
@@ -19,20 +22,17 @@ function routeId(req: VercelRequest): string {
   return value;
 }
 
-function justification(req: VercelRequest): string {
-  const value = (req.body as Record<string, unknown> | undefined)?.justification;
-  if (typeof value !== "string" || value.trim().length < 20 || value.trim().length > 1000) {
-    throw new HttpError(400, "Expliquez la vérification effectuée en 20 à 1 000 caractères");
-  }
-  return value.trim();
-}
-
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== "POST") return methodNotAllowed(res, ["POST"]);
   return handleApi(res, async () => {
     const context = await requireIdentityDirectoryManager(req);
     const id = routeId(req);
-    const reason = justification(req);
+    let reason;
+    try {
+      reason = parseIdentityDirectoryDecisionInput(req.body, "approve").justification;
+    } catch (error) {
+      registryInputError(error);
+    }
     const [candidate] = await db
       .select()
       .from(identityDirectoryImports)
@@ -45,7 +45,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       .limit(1);
     if (!candidate) throw new HttpError(404, "Import introuvable");
     if (candidate.status === "approved") {
-      return { import: identityDirectoryView(candidate), duplicate: true };
+      const payload = { import: identityDirectoryActionView(candidate), duplicate: true };
+      if (!isIdentityDirectoryActionPayload(payload, id, ["approved"])) {
+        throw new HttpError(503, "La confirmation de l’approbation est invalide.");
+      }
+      return payload;
     }
     if (candidate.status !== "review") {
       throw new HttpError(409, "Le rapport doit être terminé avant l’approbation");
@@ -100,7 +104,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return updated;
     });
     if (!approved) throw new HttpError(409, "Ce rapport a déjà changé");
-    return { import: identityDirectoryView(approved), duplicate: false };
+    const payload = { import: identityDirectoryActionView(approved), duplicate: false };
+    if (!isIdentityDirectoryActionPayload(payload, id, ["approved"])) {
+      throw new HttpError(503, "La confirmation de l’approbation est invalide.");
+    }
+    return payload;
   });
 }
 

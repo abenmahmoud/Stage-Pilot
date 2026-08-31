@@ -1,4 +1,5 @@
 export const IDENTITY_DIRECTORY_MAX_BYTES = 50 * 1024 * 1024;
+export const IDENTITY_DIRECTORY_MAX_ROWS = 25_000;
 
 export const IDENTITY_DIRECTORY_MIME_TYPES = [
   "text/csv",
@@ -25,6 +26,13 @@ function record(value: unknown): Record<string, unknown> {
     throw new Error("Les données sont invalides");
   }
   return value as Record<string, unknown>;
+}
+
+function exactFields(value: Record<string, unknown>, fields: readonly string[]): void {
+  const keys = Object.keys(value);
+  if (keys.length !== fields.length || keys.some((key) => !fields.includes(key))) {
+    throw new Error("Les données sont invalides");
+  }
 }
 
 function cleanText(value: unknown, label: string, min: number, max: number): string {
@@ -59,6 +67,14 @@ export function identityDirectoryMime(fileName: string, suppliedMime = ""): stri
 
 export function parseIdentityDirectoryInput(value: unknown): IdentityDirectoryInput {
   const input = record(value);
+  exactFields(input, [
+    "title",
+    "purposeDescription",
+    "sourceType",
+    "originalName",
+    "mimeType",
+    "sizeBytes",
+  ]);
   const originalName = cleanText(input.originalName, "Nom du fichier", 1, 255);
   const mimeType = enumValue(
     identityDirectoryMime(originalName, String(input.mimeType ?? "")),
