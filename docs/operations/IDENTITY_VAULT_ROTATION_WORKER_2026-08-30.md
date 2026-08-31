@@ -6,6 +6,11 @@ Le code et la migration additive sont préparés uniquement dans Git. Ils n'ont
 pas été exécutés sur Supabase, installés sur le VPS ou associés à un minuteur.
 Aucune clé ni donnée réelle n'a été utilisée.
 
+Une preuve locale séparée restaure désormais un paquet base et stockage
+entièrement fictif, vérifie les enveloppes avant rotation, les migre vers une
+nouvelle version puis confirme le retrait logique des anciennes clés. Cette
+preuve ne remplace pas la restauration sur une cible distante isolée.
+
 ## Conditions avant une recette
 
 1. Obtenir une autorisation précise pour une preview isolée et fictive.

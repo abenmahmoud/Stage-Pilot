@@ -3575,3 +3575,20 @@ taches et analyse de coherence avant une automatisation sensible.
 - T037AE est terminé sans migration, fichier réel, donnée réelle ni production.
   Un brief Claude borné est préparé mais non exécuté ; aucun jeton externe n'a
   été consommé.
+
+### Jalon du 31 août 2026 - restauration locale du coffre d'identités
+
+- Un vérificateur local contrôle un lot chiffré borné à 250 lignes, son périmètre
+  établissement/import, la forme exacte de chaque enveloppe, sa version de clé
+  et son déchiffrement. Son reçu contient seulement un compte, les versions et
+  une empreinte SHA-256 agrégée.
+- La recette utilise trois personnes strictement fictives, un artefact de base
+  et un document Storage fictif. Le paquet de sauvegarde est chiffré avec une
+  clé distincte et n'expose ni chemin source, ni contenu, ni identité.
+- Après restauration, l'empreinte chiffrée est identique. Toutes les enveloppes
+  `v1` et `v2` sont ensuite rechiffrées en `v3`, revérifiées sans charger les
+  anciennes clés, puis soumises au contrôle de retrait logique.
+- Les clés absentes, lignes supplémentaires en clair, doublons, mauvais
+  périmètre, ciphertext altéré, mauvais secret de sauvegarde et lots hors limite
+  sont refusés. T010B2C7 est terminé sans accès distant, donnée réelle,
+  migration ni production. Le brief Claude est préparé mais non exécuté.

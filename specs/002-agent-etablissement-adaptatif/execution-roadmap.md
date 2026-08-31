@@ -272,8 +272,12 @@ l'autorisation de quota définie par le propriétaire.
   transaction d'écriture et l'audit agrégé sont maintenant préparés dans un
   worker fermé par défaut, ciblé sur un seul établissement et un seul import.
   Il n'est ni installé ni exécuté et sa migration additive n'est pas appliquée.
-  La recette fictive isolée, la rétention, la restauration et le retrait de clé
-  restent à réaliser avant toute donnée réelle.
+  Une recette locale entièrement fictive prouve désormais qu'un paquet base et
+  stockage chiffré séparément peut être restauré, que toutes les enveloppes sont
+  encore déchiffrables sans exposer leur clair, que l'empreinte avant/après reste
+  identique, puis que la rotation `v1`/`v2` vers `v3` permet de vérifier le lot
+  avec la seule clé `v3`. La restauration distante isolée, la rétention et le
+  retrait réel d'une ancienne clé restent à réaliser avant toute donnée réelle.
 - Lot N5P : recherche contrôlée du répertoire. **Canal applicatif implémenté et
   fermé par défaut** : accès direction nominatif avec MFA, motif obligatoire,
   recherche exacte uniquement, requête et résultat chiffrés, reçu lié à l'agent

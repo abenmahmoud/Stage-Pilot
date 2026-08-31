@@ -67,8 +67,10 @@
 
 - Construire un outil de recherche déterministe, borné au bon établissement et
   au bon rôle, exigeant MFA et justification, avec résultat minimal et audit.
-- Définir et tester la rotation des clés, la conservation des anciennes clés
-  pendant la migration, la révocation et la restauration isolée.
+- La rotation locale, la vérification avant retrait et la restauration d'un
+  paquet chiffré entièrement fictif sont prouvées. Il reste à exécuter une
+  restauration isolée sur une cible distante autorisée, à fixer la conservation
+  des anciennes clés et à valider leur révocation réelle.
 - Fixer finalités, colonnes, habilitations, rétention, sauvegarde et procédure
   d'incident avec la Direction et le DPO.
 - Ajouter un refus automatique plus large des mots de passe, codes ENT/PRONOTE

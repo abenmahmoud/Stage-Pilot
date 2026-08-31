@@ -92,6 +92,12 @@
   établissement : transaction cohérente en lecture seule, pagination bornée,
   verrou partagé avec ingestion/rotation et preuve agrégée sans clair. La
   recette distante, la restauration et le retrait réel restent dans T010B2C.
+- [x] T010B2C7 Prouver localement la restauration du coffre avant rotation :
+  paquet base et stockage entièrement fictif, chiffré avec une clé de sauvegarde
+  distincte, validation stricte de toutes les enveloppes sans conserver le clair,
+  empreinte identique avant et après restauration, rotation `v1`/`v2` vers `v3`
+  puis vérification avec les seules clés autorisées. La restauration distante,
+  la rétention et le retrait réel d'une ancienne clé restent dans T010B2C.
 - [ ] T010B2D Refuser automatiquement mots de passe, codes ENT/PRONOTE et secrets
   dans tous les imports ; cadrer séparément une éventuelle remise de codes avec
   Direction/DPO, identité forte, durée courte et validation humaine.

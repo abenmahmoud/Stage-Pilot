@@ -391,3 +391,89 @@ export function verifyIdentityVaultKeyRetirement({
     evidenceDigest: evidence.digest("hex"),
   };
 }
+
+export function verifyIdentityVaultRecoverySnapshot({
+  rows,
+  institutionId,
+  importId,
+  env = process.env,
+  batchLimit = IDENTITY_VAULT_ROTATION_MAX_ROWS,
+}) {
+  if (
+    !Number.isInteger(batchLimit) ||
+    batchLimit < 1 ||
+    batchLimit > IDENTITY_VAULT_ROTATION_MAX_ROWS
+  ) {
+    throw new Error("identity_vault_recovery_batch_limit_invalid");
+  }
+  if (!Array.isArray(rows) || rows.length < 1 || rows.length > batchLimit) {
+    throw new Error("identity_vault_recovery_batch_size_invalid");
+  }
+  aad({ institutionId, importId, personRef: "recovery-scope", version: "v1" });
+
+  const rowIds = new Set();
+  const normalizedRows = [];
+  for (const input of rows) {
+    const row = exactKeys(input, [
+      "id",
+      "institutionId",
+      "importId",
+      "personRef",
+      "envelope",
+    ], "identity_vault_recovery_row_invalid");
+    const id = rotationRowId(row.id);
+    const idKey = String(id);
+    if (rowIds.has(idKey)) throw new Error("identity_vault_recovery_row_duplicate");
+    rowIds.add(idKey);
+    if (row.institutionId !== institutionId || row.importId !== importId) {
+      throw new Error("identity_vault_recovery_scope_mismatch");
+    }
+    const envelope = exactKeys(row.envelope, [
+      "keyVersion",
+      "payloadSchema",
+      "iv",
+      "authTag",
+      "ciphertext",
+    ], "identity_vault_recovery_envelope_invalid");
+    const version = keyVersion(envelope.keyVersion);
+    if (envelope.payloadSchema !== IDENTITY_VAULT_SCHEMA_VERSION) {
+      throw new Error("identity_vault_schema_unsupported");
+    }
+    normalizedRows.push({ idKey, row, envelope, version });
+  }
+
+  const keyVersions = {};
+  const evidence = createHash("sha256");
+  normalizedRows.sort((left, right) => left.idKey.localeCompare(right.idKey));
+  for (const { idKey, row, envelope, version } of normalizedRows) {
+    decryptIdentityVaultPayload({
+      envelope,
+      institutionId: row.institutionId,
+      importId: row.importId,
+      personRef: row.personRef,
+      key: identityVaultKeyForVersion(version, env),
+    });
+    keyVersions[version] = (keyVersions[version] ?? 0) + 1;
+    evidence.update(JSON.stringify([
+      idKey,
+      row.institutionId,
+      row.importId,
+      row.personRef,
+      envelope.keyVersion,
+      envelope.payloadSchema,
+      envelope.iv,
+      envelope.authTag,
+      envelope.ciphertext,
+    ]));
+  }
+
+  return {
+    verifiedCount: rows.length,
+    keyVersions: Object.fromEntries(
+      Object.entries(keyVersions).sort(([left], [right]) =>
+        Number.parseInt(left.slice(1), 10) - Number.parseInt(right.slice(1), 10)
+      )
+    ),
+    evidenceDigest: evidence.digest("hex"),
+  };
+}
