@@ -14,6 +14,10 @@ const page = readFileSync(
   new URL("../src/pages/prototype/LyceeConnectPrototype.tsx", import.meta.url),
   "utf8"
 );
+const detailPolicy = readFileSync(
+  new URL("../shared/support-public-detail-payload-policy.ts", import.meta.url),
+  "utf8"
+);
 
 test("limits public removal to an owned terminal requester draft", () => {
   const access = route.indexOf("const access = await requireSupportAccess(req, code)");
@@ -56,7 +60,9 @@ test("exposes only the server-calculated removal capability", () => {
   assert.match(detailRoute, /uploadedBySession: supportAttachments\.uploadedBySession/);
   assert.match(detailRoute, /uploadedBySession === access\.sessionId/);
   assert.match(detailRoute, /\["awaiting_upload", "blocked", "scan_error", "removal_pending"\]\.includes\(attachment\.scanStatus\)/);
-  assert.match(page, /typeof value\.canRemoveDraft === "boolean"/);
+  assert.match(detailPolicy, /typeof value\.canRemoveDraft !== "boolean"/);
+  assert.match(detailPolicy, /value\.direction === "agent"[\s\S]*!value\.canRemoveDraft/);
+  assert.match(detailPolicy, /if \(value\.canRemoveDraft\)[\s\S]*REMOVABLE_REQUESTER_STATUSES/);
   assert.match(page, /attachment\.canRemoveDraft \? <button className="lycee-requester-file-remove"/);
 });
 

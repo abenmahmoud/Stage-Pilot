@@ -109,7 +109,7 @@ import {
 } from "../../../shared/support-queue-payload-policy";
 import { resolveSupportQueueNavigation } from "../../../shared/support-queue-navigation";
 import { isValidSupportAgentDetailPayload } from "../../../shared/support-agent-detail-payload-policy";
-import { SUPPORT_PUBLIC_DETAIL_LIMITS } from "../../../shared/support-public-detail-limits";
+import { isValidSupportPublicDetailPayload } from "../../../shared/support-public-detail-payload-policy";
 import {
   hasSupportAgentWorkDraft,
   readSupportAgentWorkDraft,
@@ -2881,64 +2881,8 @@ function isPublicSupportRequestListPayload(value: unknown): value is { requests:
     && new Set(value.requests.map((request) => request.publicCode)).size === value.requests.length;
 }
 
-function isPublicSupportContext(value: unknown): value is Record<string, string> {
-  if (!isRecord(value)) return false;
-  const entries = Object.entries(value);
-  return entries.length <= 30
-    && entries.every(([key, item]) => isBoundedString(key, 80) && isBoundedString(item, 700, true));
-}
-
-function isPublicSupportRequest(value: unknown): value is SupportRequestDetail["request"] {
-  if (!isPublicSupportRequestSummary(value)) return false;
-  const record = value as Record<string, unknown>;
-  return ["eleve", "parent", "professeur", "personnel", "autre"].includes(String(record.requesterType))
-    && ["self", "eleve", "professeur", "personnel", "autre"].includes(String(record.beneficiaryType))
-    && ["email", "phone", "web"].includes(String(record.preferredChannel))
-    && isPublicSupportContext(record.subjectContext)
-    && ["non_verifiee", "contact_verifie", "identite_confirmee"].includes(String(record.identityStatus))
-    && (record.identityMethod === null || isBoundedString(record.identityMethod, 80))
-    && (record.identityVerifiedAt === null || isPublicSupportDate(record.identityVerifiedAt))
-    && (record.resolvedAt === null || isPublicSupportDate(record.resolvedAt));
-}
-
-function isPublicSupportMessage(value: unknown): value is SupportRequestDetail["messages"][number] {
-  return isRecord(value)
-    && typeof value.id === "string" && /^[0-9a-f]{8}-[0-9a-f-]{27}$/i.test(value.id)
-    && ["inbound", "outbound"].includes(String(value.direction))
-    && ["email", "phone", "web"].includes(String(value.channel))
-    && (value.authorLabel === null || isBoundedString(value.authorLabel, 180))
-    && isBoundedString(value.bodyText, 5_000)
-    && isBoundedString(value.deliveryStatus, 40)
-    && isPublicSupportDate(value.createdAt);
-}
-
-function isPublicSupportAttachment(value: unknown): value is SupportRequestDetail["attachments"][number] {
-  return isRecord(value)
-    && typeof value.id === "string" && /^[0-9a-f]{8}-[0-9a-f-]{27}$/i.test(value.id)
-    && (value.messageId === null || (typeof value.messageId === "string" && /^[0-9a-f]{8}-[0-9a-f-]{27}$/i.test(value.messageId)))
-    && ["requester", "agent"].includes(String(value.direction))
-    && isBoundedString(value.documentType, 100)
-    && isBoundedString(value.originalName, 255)
-    && (value.detectedMime === null || isBoundedString(value.detectedMime, 150))
-    && isNonNegativeInteger(value.sizeBytes) && value.sizeBytes <= MAX_SUPPORT_FILE_BYTES
-    && isBoundedString(value.scanStatus, 40)
-    && typeof value.canRemoveDraft === "boolean"
-    && isPublicSupportDate(value.createdAt);
-}
-
 function isPublicSupportRequestDetailPayload(value: unknown): value is SupportRequestDetail {
-  if (!isRecord(value)
-    || !isPublicSupportRequest(value.request)
-    || !Array.isArray(value.messages)
-    || value.messages.length > SUPPORT_PUBLIC_DETAIL_LIMITS.messages
-    || !value.messages.every(isPublicSupportMessage)
-    || !Array.isArray(value.attachments)
-    || value.attachments.length > SUPPORT_PUBLIC_DETAIL_LIMITS.attachments
-    || !value.attachments.every(isPublicSupportAttachment)) return false;
-  const messageIds = value.messages.map((message) => message.id);
-  const attachmentIds = value.attachments.map((attachment) => attachment.id);
-  return new Set(messageIds).size === messageIds.length
-    && new Set(attachmentIds).size === attachmentIds.length;
+  return isValidSupportPublicDetailPayload(value);
 }
 
 function isSupportUploadReservationPayload(value: unknown): value is {

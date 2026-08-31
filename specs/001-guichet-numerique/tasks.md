@@ -92,6 +92,9 @@ quarantaine. Une panne d'envoi externe n'affecte pas le dossier.
   lire au plus une ligne de détection au-delà de chaque plafond et refuser tout
   dépassement avant la réponse afin de ne jamais présenter une conversation
   partielle comme complète.
+- [x] **T016H** Exposer uniquement le contexte public utile du dossier et valider
+  un contrat exact avant chaque rendu : champs connus, états cohérents, ordre du
+  fil, identifiants uniques et pièces rattachées à un message public existant.
 - [x] **T017** Construire la file agent paginée avec filtres, SLA et assignation.
 - [x] **T017A** Protéger les modifications et réponses par révision, rendre la
   prise en charge atomique et actualiser l'écran après un conflit.

@@ -3822,3 +3822,11 @@ taches et analyse de coherence avant une automatisation sensible.
   ne présente jamais une conversation partielle comme complète. La recherche
   d'un contact vérifié s'arrête à la première preuve utile.
 - Le lot reste limité à la preview, sans donnée réelle, migration ou production.
+## 2026-08-31 - Contexte et historique publics minimisés
+
+- T016H retire du détail public les résumés internes, motifs de routage,
+  identifiants d'agent et métadonnées de clôture conservés dans le contexte brut.
+- Le navigateur exige désormais un contrat exact partagé : champs connus,
+  identité cohérente, états de pièces permis, ordre chronologique, identifiants
+  uniques et rattachements à un message visible.
+- Le lot reste limité à la preview, sans donnée réelle, migration ni production.

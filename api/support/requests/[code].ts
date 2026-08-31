@@ -11,6 +11,7 @@ import { HttpError } from "../../_shared/auth.js";
 import { handleApi, methodNotAllowed } from "../../_shared/response.js";
 import { requireSupportAccess } from "../../_shared/support.js";
 import { SUPPORT_PUBLIC_DETAIL_LIMITS } from "../../../shared/support-public-detail-limits.js";
+import { selectSupportPublicSubjectContext } from "../../../shared/support-public-detail-payload-policy.js";
 
 function assertCompletePublicDetailCollection(
   rowCount: number,
@@ -101,6 +102,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           )
         )
       ))
+      .orderBy(asc(supportAttachments.createdAt))
       .limit(SUPPORT_PUBLIC_DETAIL_LIMITS.attachments + 1),
       db.select({ id: supportContacts.id })
         .from(supportContacts)
@@ -134,6 +136,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return {
       request: {
         ...request,
+        subjectContext: selectSupportPublicSubjectContext(request.subjectContext),
         identityStatus,
         identityMethod: typeof identityContext.identityMethod === "string" ? identityContext.identityMethod : verifiedContacts.length > 0 ? "email_magic_link" : null,
         identityVerifiedAt: typeof identityContext.identityVerifiedAt === "string" ? identityContext.identityVerifiedAt : null,
