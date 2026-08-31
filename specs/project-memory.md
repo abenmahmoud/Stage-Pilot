@@ -3942,3 +3942,32 @@ taches et analyse de coherence avant une automatisation sensible.
 - Douze tests ciblés couvrent le masquage, le reçu, la validation humaine et les
   contrats réseau ; le build passe sans appel externe réel, donnée réelle, base
   distante, production, DNS, VPS, ENT, PRONOTE ou webmail.
+
+## 2026-09-01 - Audit Claude ciblé des mutations publiques et de la traduction
+
+- Claude Code Sonnet a exécuté une seule revue en lecture seule sur les deux lots
+  récents et le passage demandeur-agent, sans terminal, réseau, écriture, secret
+  ou donnée personnelle. Aucun défaut P0 n'a été signalé.
+- Le P1 supposant un reçu de traduction non vérifié est non confirmé : la route
+  d'envoi appelle `verifySupportTranslationReceipt` et lie la signature au
+  dossier, à l'agent, aux textes et à la langue avant toute persistance.
+- Le manque de tests runtime est partiellement confirmé : les contrats sont bien
+  exécutés dans les tests, mais une future recette de handlers mockés renforcera
+  encore la preuve d'ordre. Le contrôle OOXML reste superficiel avant ClamAV ; il
+  demeure une amélioration distincte avant de faire confiance au type bureautique.
+- Les champs métier bornés `concernsType` et la taille déclarée restent
+  volontairement indicatifs : la route contrôle les secrets, la taille réelle
+  remplace la déclaration et le plafond absolu reste dix mégaoctets.
+
+## 2026-09-01 - Entrées simples de la console agent à contrat fermé
+
+- T027B22 partage les contrats exacts des modèles, réservations de fichier,
+  notes internes et rappels. Un champ caché, un type ambigu, un identifiant
+  invalide ou une valeur hors limite est refusé avant la première lecture métier.
+- Tous les numéros de dossier et identifiants dynamiques des routes agent refusent
+  désormais les tableaux. Les filtres facultatifs de période et de validation
+  refusent eux aussi les paramètres répétés.
+- Six scénarios ciblés et le build passent sans base distante, donnée réelle,
+  production, DNS, VPS, ENT, PRONOTE, webmail ou envoi externe.
+- La porte de sécurité complète, l'intégrité des 501 tâches Spec Kit et l'audit
+  des dépendances livrées passent ; ce dernier retourne zéro vulnérabilité.

@@ -25,6 +25,11 @@ import {
   createSupportCallbackConfirmation,
   type SupportCallbackConfirmationOperation,
 } from "../../../../../shared/support-callback-confirmation.js";
+import {
+  isSupportAgentCallbackCreateInput,
+  isSupportAgentCallbackMutationInput,
+  singleSupportAgentRouteValue,
+} from "../../../../../shared/support-agent-mutation-input-policy.js";
 
 const CALLBACK_ACTIONS = new Set<SupportCallbackAction>(["claim", "complete", "cancel"]);
 
@@ -48,7 +53,7 @@ function callbackStatus(value: string): SupportCallbackStatus {
 }
 
 function publicCode(req: VercelRequest): string {
-  const code = Array.isArray(req.query.code) ? req.query.code[0] : req.query.code;
+  const code = singleSupportAgentRouteValue(req.query.code);
   if (!code || !/^BC-\d{4}-\d{6}$/.test(code)) {
     throw new HttpError(400, "Numéro de demande invalide");
   }
@@ -70,6 +75,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   return handleApi(res, async () => {
     const { user, access, institutionId } = await requireSupportAgent(req);
     const code = publicCode(req);
+    const bodyInput = req.method === "POST" && req.body === undefined ? {} : req.body;
+    if (req.method === "POST" && !isSupportAgentCallbackCreateInput(bodyInput)) {
+      throw new HttpError(400, "Création du rappel invalide");
+    }
+    if (req.method === "PATCH" && !isSupportAgentCallbackMutationInput(bodyInput)) {
+      throw new HttpError(400, "Action de rappel invalide");
+    }
+    const body = bodyInput;
     const [request] = await db
       .select({
         id: supportRequests.id,
@@ -85,7 +98,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (!request) throw new HttpError(404, "Demande introuvable");
     assertSupportRequestAccess(access, request.assignedTeam);
 
-    const body = (req.body ?? {}) as Record<string, unknown>;
     if (req.method === "POST") {
       if (["clos", "indesirable"].includes(request.status)) {
         throw new HttpError(409, "Rouvrez le dossier avant de programmer un rappel");

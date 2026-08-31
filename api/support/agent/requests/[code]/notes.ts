@@ -20,6 +20,10 @@ import {
 } from "../../../../_shared/support-agent-access.js";
 import { enforceAgentWriteRateLimit } from "../../../../_shared/support-rate-limits.js";
 import { createSupportInternalNoteConfirmation } from "../../../../../shared/support-internal-note-confirmation.js";
+import {
+  isSupportAgentInternalNoteInput,
+  singleSupportAgentRouteValue,
+} from "../../../../../shared/support-agent-mutation-input-policy.js";
 
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
@@ -27,12 +31,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   return handleApi(res, async () => {
     const { user, access, institutionId } = await requireSupportAgent(req);
-    const code = Array.isArray(req.query.code) ? req.query.code[0] : req.query.code;
+    const code = singleSupportAgentRouteValue(req.query.code);
     if (!code || !/^BC-\d{4}-\d{6}$/.test(code)) {
       throw new HttpError(400, "Numéro de demande invalide");
     }
-    const body = (req.body ?? {}) as Record<string, unknown>;
-    if (typeof body.note !== "string") throw new HttpError(400, "Note requise");
+    if (!isSupportAgentInternalNoteInput(req.body)) {
+      throw new HttpError(400, "Note invalide");
+    }
+    const body = req.body;
     const note = body.note
       .replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F]/g, "")
       .trim();

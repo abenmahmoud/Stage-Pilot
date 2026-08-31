@@ -19,11 +19,12 @@ import {
   enforceAgentWriteRateLimit,
 } from "../../../_shared/support-rate-limits.js";
 import { createSupportAttachmentRemovalConfirmation } from "../../../../shared/support-attachment-removal-confirmation.js";
+import { singleSupportAgentRouteValue } from "../../../../shared/support-agent-mutation-input-policy.js";
 
 const REMOVABLE_DRAFT_STATUSES = ["clean", "blocked", "scan_error"] as const;
 
 function attachmentId(req: VercelRequest): string {
-  const id = Array.isArray(req.query.id) ? req.query.id[0] : req.query.id;
+  const id = singleSupportAgentRouteValue(req.query.id);
   if (!id || !/^[0-9a-f-]{36}$/i.test(id)) throw new HttpError(400, "Pièce jointe invalide");
   return id;
 }

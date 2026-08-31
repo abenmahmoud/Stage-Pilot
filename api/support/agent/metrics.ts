@@ -11,9 +11,12 @@ import { HttpError } from "../../_shared/auth.js";
 import { requireAgentApprovalReviewer } from "../../_shared/agent-approvals.js";
 import { handleApi, methodNotAllowed } from "../../_shared/response.js";
 import { supportAssistantRoutingReviewEnabled } from "../../../shared/support-assistant-routing-receipt.js";
+import { singleSupportAgentRouteValue } from "../../../shared/support-agent-mutation-input-policy.js";
 
 function requestedDays(req: VercelRequest): 7 | 30 {
-  const value = Array.isArray(req.query.days) ? req.query.days[0] : req.query.days;
+  const value = req.query.days === undefined
+    ? undefined
+    : singleSupportAgentRouteValue(req.query.days);
   if (value === undefined || value === "7") return 7;
   if (value === "30") return 30;
   throw new HttpError(400, "Période de mesure invalide.");

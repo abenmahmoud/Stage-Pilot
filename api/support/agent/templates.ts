@@ -7,6 +7,7 @@ import {
   SUPPORT_TEMPLATE_VARIABLES,
   supportTemplateVariables,
 } from "../../../shared/support-reply-templates.js";
+import { isSupportAgentTemplateInput } from "../../../shared/support-agent-mutation-input-policy.js";
 import { HttpError } from "../../_shared/auth.js";
 import { handleApi, methodNotAllowed } from "../../_shared/response.js";
 import { assertNoForbiddenSupportSecret } from "../../_shared/support.js";
@@ -35,7 +36,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       if (!access.canManageTemplates) {
         throw new HttpError(403, "Seule la direction peut enregistrer un modèle partagé");
       }
-      const body = (req.body ?? {}) as Record<string, unknown>;
+      if (!isSupportAgentTemplateInput(req.body)) {
+        throw new HttpError(400, "Contenu du modèle invalide");
+      }
+      const body = req.body;
       const name = cleanText(body.name, "Nom du modèle", 80);
       const bodyText = cleanText(body.bodyText, "Texte du modèle", 5000);
       assertNoForbiddenSupportSecret(bodyText);

@@ -769,6 +769,13 @@ l'autorisation de quota définie par le propriétaire.
   limitée au numéro public, validée avant cookie ou changement d'écran. Douze
   scénarios ciblés couvrent contrat, rotation et séparation de l'identité.
   T010B3A est terminée ; T010B3 reste ouverte pour le code numérique ou téléphone.
+- Lot N5ZZQ : entrées simples de la console agent. **Fermées sans donnée réelle,
+  migration ni action externe** : modèles, réservations de fichier, notes et
+  rappels partagent des contrats runtime à champs exacts. Les types, identifiants
+  et tailles sont refusés avant la première lecture métier. Les routes agent ne
+  choisissent plus la première valeur d'un numéro de dossier, identifiant de
+  pièce, opération, validation ou filtre répété. Six scénarios ciblés et le
+  build passent. T027B22 est terminée.
 
 ## Prochaine séquence verrouillée
 

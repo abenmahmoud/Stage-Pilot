@@ -76,7 +76,7 @@ test("rejects expired, implausibly distant and non-canonical expiry dates", () =
 });
 
 test("validates route parameters and input before translation work", () => {
-  assert.match(route, /typeof req\.query\.code === "string" \? req\.query\.code : null/);
+  assert.match(route, /singleSupportAgentRouteValue\(req\.query\.code\)/);
   assert.doesNotMatch(route, /Array\.isArray\(req\.query\.code\).*\[0\]/);
   assert.match(route, /isSupportAgentTranslationInput\(req\.body\)[\s\S]*normalizeSupportReplyText\(req\.body\.sourceMessage/);
   assert.match(route, /isValidSupportAgentTranslationPayload\(payload,[\s\S]*return payload/);

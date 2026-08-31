@@ -29,6 +29,7 @@ import {
   SUPPORT_DUPLICATE_EVENT_TYPES,
 } from "../../../../shared/support-duplicate-policy.js";
 import { supportAssistantRoutingReviewEnabled } from "../../../../shared/support-assistant-routing-receipt.js";
+import { singleSupportAgentRouteValue } from "../../../../shared/support-agent-mutation-input-policy.js";
 import { createSupportRequestMutationConfirmation } from "../../../../shared/support-request-mutation-confirmation.js";
 import { SUPPORT_AGENT_DETAIL_LIMITS } from "../../../../shared/support-agent-detail-payload-policy.js";
 
@@ -58,7 +59,7 @@ const IDENTITY_METHODS = new Set(["email_magic_link", "phone_callback", "officia
 const SENSITIVE_CATEGORIES = new Set(["ent", "email_academique"]);
 
 function publicCode(req: VercelRequest): string {
-  const code = Array.isArray(req.query.code) ? req.query.code[0] : req.query.code;
+  const code = singleSupportAgentRouteValue(req.query.code);
   if (!code || !/^BC-\d{4}-\d{6}$/.test(code)) {
     throw new HttpError(400, "Numéro de demande invalide");
   }

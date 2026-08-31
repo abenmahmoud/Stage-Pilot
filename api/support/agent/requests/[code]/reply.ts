@@ -40,6 +40,7 @@ import {
   verifySupportTranslationReceipt,
 } from "../../../../_shared/support-translation.js";
 import { createSupportAgentReplyConfirmation } from "../../../../../shared/support-agent-reply-confirmation.js";
+import { singleSupportAgentRouteValue } from "../../../../../shared/support-agent-mutation-input-policy.js";
 
 function sameAttachmentIds(expected: string[], actual: string[]): boolean {
   if (expected.length !== actual.length) return false;
@@ -53,7 +54,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   return handleApi(res, async () => {
     const { user, access, institutionId } = await requireSupportAgent(req);
-    const code = Array.isArray(req.query.code) ? req.query.code[0] : req.query.code;
+    const code = singleSupportAgentRouteValue(req.query.code);
     if (!code || !/^BC-\d{4}-\d{6}$/.test(code)) {
       throw new HttpError(400, "Numéro de demande invalide");
     }

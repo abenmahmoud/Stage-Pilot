@@ -15,13 +15,14 @@ import {
   supportRetryNeedsRequesterAccess,
 } from "../../../../../shared/support-job-retry.js";
 import { createSupportJobRetryConfirmation } from "../../../../../shared/support-operation-confirmation.js";
+import { singleSupportAgentRouteValue } from "../../../../../shared/support-agent-mutation-input-policy.js";
 import { HttpError } from "../../../../_shared/auth.js";
 import { requireSupportOperationsManager } from "../../../../_shared/support-operations.js";
 import { SUPPORT_MAGIC_TOKEN_MINUTES, sha256 } from "../../../../_shared/support.js";
 import { handleApi, methodNotAllowed } from "../../../../_shared/response.js";
 
 function routeId(req: VercelRequest): string {
-  const value = Array.isArray(req.query.id) ? req.query.id[0] : req.query.id;
+  const value = singleSupportAgentRouteValue(req.query.id);
   const id = retryPayloadId({ messageId: value }, "messageId");
   if (!id) throw new HttpError(400, "Échec à relancer invalide");
   return id;

@@ -15,6 +15,7 @@ import {
 } from "../../../../_shared/support-agent-access.js";
 import { enforceAgentWriteRateLimit } from "../../../../_shared/support-rate-limits.js";
 import { readBoundedBlobBytes } from "../../../../../shared/bounded-blob.js";
+import { singleSupportAgentRouteValue } from "../../../../../shared/support-agent-mutation-input-policy.js";
 
 const MAX_FILE_BYTES = 10 * 1024 * 1024;
 
@@ -40,7 +41,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   return handleApi(res, async () => {
     const { user, access, institutionId } = await requireSupportAgent(req);
     await enforceAgentWriteRateLimit(user.id);
-    const attachmentId = Array.isArray(req.query.id) ? req.query.id[0] : req.query.id;
+    const attachmentId = singleSupportAgentRouteValue(req.query.id);
     if (!attachmentId || !/^[0-9a-f-]{36}$/i.test(attachmentId)) {
       throw new HttpError(400, "Pièce jointe invalide");
     }

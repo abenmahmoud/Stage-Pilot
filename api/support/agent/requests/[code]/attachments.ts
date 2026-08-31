@@ -18,6 +18,10 @@ import {
   requireSupportAgent,
 } from "../../../../_shared/support-agent-access.js";
 import { enforceAgentWriteRateLimit } from "../../../../_shared/support-rate-limits.js";
+import {
+  isSupportAgentAttachmentReservationInput,
+  singleSupportAgentRouteValue,
+} from "../../../../../shared/support-agent-mutation-input-policy.js";
 
 const MAX_FILE_BYTES = 10 * 1024 * 1024;
 const MAX_AGENT_PENDING_FILES = 5;
@@ -80,10 +84,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   return handleApi(res, async () => {
     const { user, access, institutionId } = await requireSupportAgent(req);
     await enforceAgentWriteRateLimit(user.id);
-    const code = Array.isArray(req.query.code) ? req.query.code[0] : req.query.code;
+    const code = singleSupportAgentRouteValue(req.query.code);
     if (!code || !/^BC-\d{4}-\d{6}$/.test(code)) {
       throw new HttpError(400, "Numéro de demande invalide");
     }
+    if (!isSupportAgentAttachmentReservationInput(req.body)) {
+      throw new HttpError(400, "Dépôt de fichier invalide");
+    }
+    const body = req.body;
 
     const [request] = await db
       .select({
@@ -101,11 +109,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     assertSupportRequestAccess(access, request.assignedTeam);
     if (request.status === "clos") throw new HttpError(409, "Ce dossier est fermé");
 
-    const body = (req.body ?? {}) as Record<string, unknown>;
     const originalName = requiredText(body.fileName, "Nom du fichier", 180);
     assertNoForbiddenSupportSecret(originalName);
     const declaredMime = requiredText(body.mimeType, "Type du fichier", 150).toLowerCase();
-    const sizeBytes = Number(body.sizeBytes);
+    const sizeBytes = body.sizeBytes;
     if (!Number.isSafeInteger(sizeBytes) || sizeBytes < 1 || sizeBytes > MAX_FILE_BYTES) {
       throw new HttpError(400, "Le fichier doit peser moins de 10 Mo");
     }

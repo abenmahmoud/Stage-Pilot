@@ -427,6 +427,11 @@
   d'une ligne de détection, puis refuser explicitement tout dépassement avant de
   construire la réponse afin de ne jamais charger ni afficher un historique
   silencieusement tronqué.
+- [x] T027B22 Fermer les entrées simples de la console agent pour les modèles,
+  réservations de fichier, notes internes et rappels : champs exacts, types et
+  tailles bornés avant la première lecture métier. Refuser aussi les numéros de
+  dossier, identifiants de pièce, opérations, validations et filtres répétés au
+  lieu de choisir silencieusement leur première valeur.
 - [ ] T027B2 Ajouter les relances internes et l'escalade après validation des
   délais propres à chaque service et des responsables à notifier.
 - [ ] T027C Créer les adhésions de service puis appliquer le périmètre dans les

@@ -16,6 +16,7 @@ import {
   supportServiceLabel,
   type SupportService,
 } from "../../../../shared/support-agent-access.js";
+import { singleSupportAgentRouteValue } from "../../../../shared/support-agent-mutation-input-policy.js";
 import { HttpError } from "../../../_shared/auth.js";
 import { requireAgentApprovalReviewer } from "../../../_shared/agent-approvals.js";
 import { handleApi, methodNotAllowed } from "../../../_shared/response.js";
@@ -23,7 +24,9 @@ import { handleApi, methodNotAllowed } from "../../../_shared/response.js";
 type ApprovalView = "pending" | "history" | "all";
 
 function requestedView(req: VercelRequest): ApprovalView {
-  const value = Array.isArray(req.query.view) ? req.query.view[0] : req.query.view;
+  const value = req.query.view === undefined
+    ? undefined
+    : singleSupportAgentRouteValue(req.query.view);
   if (value === undefined) return "pending";
   if (value === "pending" || value === "history" || value === "all") return value;
   throw new HttpError(400, "Vue de validation invalide.");

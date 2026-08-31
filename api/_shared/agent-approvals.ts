@@ -7,6 +7,7 @@ import {
   type AgentApprovalRole,
 } from "../../shared/agent-approval-input.js";
 import { resolvePersistedSupportAgentAccess } from "../../shared/support-agent-access.js";
+import { singleSupportAgentRouteValue } from "../../shared/support-agent-mutation-input-policy.js";
 import { HttpError, requireAal2 } from "./auth.js";
 import {
   requireSupportAgent,
@@ -70,7 +71,7 @@ export async function requireAgentApprovalReviewer(
 }
 
 export function agentApprovalRouteId(req: VercelRequest): string {
-  const value = Array.isArray(req.query.id) ? req.query.id[0] : req.query.id;
+  const value = singleSupportAgentRouteValue(req.query.id);
   if (
     typeof value !== "string" ||
     !/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value)

@@ -27,12 +27,13 @@ import {
   isSupportAgentTranslationInput,
   isValidSupportAgentTranslationPayload,
 } from "../../../../../shared/support-agent-translation-payload-policy.js";
+import { singleSupportAgentRouteValue } from "../../../../../shared/support-agent-mutation-input-policy.js";
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== "POST") return methodNotAllowed(res, ["POST"]);
   return handleApi(res, async () => {
     const { user, access, institutionId } = await requireSupportAgent(req);
-    const code = typeof req.query.code === "string" ? req.query.code : null;
+    const code = singleSupportAgentRouteValue(req.query.code);
     if (!code || !/^BC-\d{4}-\d{6}$/.test(code)) {
       throw new HttpError(400, "Numéro de demande invalide");
     }
