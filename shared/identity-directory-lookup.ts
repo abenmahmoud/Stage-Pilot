@@ -29,8 +29,16 @@ function plainObject(value: unknown): Record<string, unknown> {
   return value as Record<string, unknown>;
 }
 
+function exactFields(value: Record<string, unknown>, fields: readonly string[]): void {
+  const keys = Object.keys(value);
+  if (keys.length !== fields.length || keys.some((key) => !fields.includes(key))) {
+    throw new Error("La recherche est invalide.");
+  }
+}
+
 export function parseIdentityLookupInput(value: unknown): IdentityLookupInput {
   const input = plainObject(value);
+  exactFields(input, ["searchType", "query", "reasonCategory", "justification"]);
   if (
     typeof input.searchType !== "string" ||
     !IDENTITY_LOOKUP_SEARCH_TYPES.includes(input.searchType as IdentityLookupSearchType)
@@ -98,6 +106,17 @@ export type IdentityLookupResult = {
 
 export function parseIdentityLookupResult(value: unknown): IdentityLookupResult {
   const result = plainObject(value);
+  exactFields(result, [
+    "firstName",
+    "lastName",
+    "personType",
+    "classRef",
+    "serviceCode",
+    "personRef",
+    "matchedBy",
+    "directoryVersionId",
+    "directoryActivatedAt",
+  ]);
   const shortText = (field: string, maximum: number): string => {
     const entry = result[field];
     if (typeof entry !== "string" || entry.length < 1 || entry.length > maximum) {

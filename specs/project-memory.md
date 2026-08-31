@@ -3866,3 +3866,20 @@ taches et analyse de coherence avant une automatisation sensible.
   type et ne réduit plus une taille annoncée. Sept scénarios ciblés prouvent les
   limites, séquences, champs exacts et l'ordre des contrôles avant le registre et
   l'IA, sans donnée réelle, base, production ou service externe.
+
+## 2026-09-01 - Consultation du répertoire à contrat fermé
+
+- T010B4A1A impose exactement quatre champs à la demande de recherche et neuf
+  champs au résultat minimal déchiffré. Un ajout futur de coordonnée, identifiant
+  technique ou métadonnée est refusé au lieu d'être transmis silencieusement.
+- Disponibilité, création et suivi sont validés par le même contrat côté API et
+  navigateur : UUID, dates ISO canoniques, reçu chiffré court, échéance proche,
+  identifiant de requête identique et cohérence élève-classe ou personnel-service.
+- L'interface traite chaque réponse réseau comme inconnue jusqu'à validation et
+  l'API sérialise explicitement les dates. Huit scénarios ciblés, vingt-trois
+  contrôles cryptographiques et le build passent, sans activer le worker VPS,
+  importer un répertoire réel ni modifier la production.
+- La porte de sécurité permanente et les 495 tâches Spec Kit passent. L'audit
+  des dépendances livrées retourne zéro vulnérabilité ; l'audit incluant les
+  outils de développement conserve neuf alertes transitives Vercel/Drizzle dont
+  le seul correctif automatique proposé est une rupture majeure forcée.

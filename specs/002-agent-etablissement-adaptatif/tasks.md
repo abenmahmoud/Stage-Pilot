@@ -131,6 +131,10 @@
   migration privée, enveloppes RSA-OAEP/AES-GCM, API MFA, limites de débit,
   reçu de cinq minutes, interface direction, purge des charges chiffrées et
   recette transactionnelle fictive à zéro résidu sur la preview.
+- [x] T010B4A1A Fermer le contrat d'entrée et de sortie de la consultation :
+  quatre champs d'entrée exacts, état, reçu et résultat minimal validés par le
+  serveur et le navigateur, UUID et dates ISO canoniques, cohérence du profil et
+  refus de tout champ supplémentaire avant affichage.
 - [ ] T010B4A2 Après autorisation VPS explicite, générer la paire de transport,
   installer le worker séparé, configurer uniquement la clé publique et le secret
   de reçu sur Vercel preview, puis valider les cas unique, absent, ambigu, panne,

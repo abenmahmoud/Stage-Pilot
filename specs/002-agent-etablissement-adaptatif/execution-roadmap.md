@@ -742,6 +742,16 @@ l'autorisation de quota définie par le propriétaire.
   limites sont refusés au lieu d'être tronqués ou ramenés silencieusement dans
   la plage. Le contrôle des secrets précède la limite de débit, le registre et
   l'analyse. T023F est terminée.
+- Lot N5ZZN : contrat exact de consultation du répertoire. **Implémenté sans
+  activer le worker ni lire de donnée réelle** : les quatre champs de recherche
+  et les neuf champs du résultat déchiffré sont fermés. Disponibilité, reçu de
+  création et états de suivi partagent un validateur runtime qui exige UUID,
+  dates ISO canoniques, reçu court, durée de cinq minutes et cohérence entre le
+  type de personne et sa référence de classe ou de service. L'API projette les
+  dates avant validation ; le navigateur lit `unknown` et refuse tout champ
+  technique ou identifiant discordant avant d'afficher un résultat. Huit
+  scénarios ciblés et les vingt-trois contrôles cryptographiques passent.
+  T010B4A1A est terminée ; T010B4A2 reste soumise à autorisation VPS explicite.
 
 ## Prochaine séquence verrouillée
 

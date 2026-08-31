@@ -11,6 +11,10 @@ import {
   openIdentityLookupReceipt,
 } from "../../../../shared/identity-directory-lookup-crypto.mjs";
 import { parseIdentityLookupResult } from "../../../../shared/identity-directory-lookup.js";
+import {
+  isIdentityLookupStatusPayload,
+  type IdentityLookupStatusPayload,
+} from "../../../../shared/identity-directory-lookup-payload-policy.js";
 import { HttpError } from "../../../_shared/auth.js";
 import { requireIdentityDirectoryManager } from "../../../_shared/identity-directory.js";
 import { handleApi, methodNotAllowed } from "../../../_shared/response.js";
@@ -33,6 +37,13 @@ function receiptHeader(req: VercelRequest): string {
 function receiptClaim(value: unknown): string {
   if (typeof value !== "string" || value.length < 3 || value.length > 500) {
     throw new HttpError(401, "Reçu de recherche invalide.");
+  }
+  return value;
+}
+
+function verifiedPayload(value: unknown, requestId: string): IdentityLookupStatusPayload {
+  if (!isIdentityLookupStatusPayload(value, requestId)) {
+    throw new HttpError(503, "L’état de la consultation sécurisée est invalide.");
   }
   return value;
 }
@@ -178,21 +189,26 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           });
         }
       });
-      return { requestId: id, status: "completed", result, expiresAt: lookup.expiresAt };
+      return verifiedPayload({
+        requestId: id,
+        status: "completed",
+        result,
+        expiresAt: lookup.expiresAt.toISOString(),
+      }, id);
     }
 
     if (lookup.status === "not_found") {
-      return { requestId: id, status: "not_found", expiresAt: lookup.expiresAt };
+      return verifiedPayload({ requestId: id, status: "not_found", expiresAt: lookup.expiresAt.toISOString() }, id);
     }
     if (lookup.status === "ambiguous") {
-      return { requestId: id, status: "ambiguous", expiresAt: lookup.expiresAt };
+      return verifiedPayload({ requestId: id, status: "ambiguous", expiresAt: lookup.expiresAt.toISOString() }, id);
     }
     if (lookup.status === "failed") {
-      return { requestId: id, status: "failed", expiresAt: lookup.expiresAt };
+      return verifiedPayload({ requestId: id, status: "failed", expiresAt: lookup.expiresAt.toISOString() }, id);
     }
     if (lookup.status === "expired") {
-      return { requestId: id, status: "expired", expiresAt: lookup.expiresAt };
+      return verifiedPayload({ requestId: id, status: "expired", expiresAt: lookup.expiresAt.toISOString() }, id);
     }
-    return { requestId: id, status: lookup.status, expiresAt: lookup.expiresAt };
+    return verifiedPayload({ requestId: id, status: lookup.status, expiresAt: lookup.expiresAt.toISOString() }, id);
   });
 }

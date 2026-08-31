@@ -14,6 +14,10 @@ import {
   sealIdentityLookupReceipt,
 } from "../../../../shared/identity-directory-lookup-crypto.mjs";
 import { parseIdentityLookupInput } from "../../../../shared/identity-directory-lookup.js";
+import {
+  isIdentityLookupAvailabilityPayload,
+  isIdentityLookupCreationPayload,
+} from "../../../../shared/identity-directory-lookup-payload-policy.js";
 import { HttpError } from "../../../_shared/auth.js";
 import { requireIdentityDirectoryManager } from "../../../_shared/identity-directory.js";
 import { registryInputError } from "../../../_shared/knowledge-registry.js";
@@ -55,12 +59,16 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       } catch {
         configured = false;
       }
-      return {
+      const payload = {
         available: configured && Boolean(activeDirectory),
         configured,
         hasActiveDirectory: Boolean(activeDirectory),
         ttlSeconds: IDENTITY_LOOKUP_TTL_SECONDS,
       };
+      if (!isIdentityLookupAvailabilityPayload(payload)) {
+        throw new HttpError(503, "L’état du canal sécurisé est invalide.");
+      }
+      return payload;
     }
 
     if (!activeDirectory) {
@@ -185,7 +193,16 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       },
       config.receiptKey
     );
-    return { requestId, status: "queued", receipt, expiresAt: expiresAt.toISOString() };
+    const payload = {
+      requestId,
+      status: "queued" as const,
+      receipt,
+      expiresAt: expiresAt.toISOString(),
+    };
+    if (!isIdentityLookupCreationPayload(payload, requestedAt.getTime())) {
+      throw new HttpError(503, "Le reçu de consultation ne peut pas être vérifié.");
+    }
+    return payload;
   });
 }
 

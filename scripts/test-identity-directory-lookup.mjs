@@ -107,6 +107,7 @@ assert.deepEqual(parseIdentityLookupResult(decryptIdentityLookupResult({
   institutionId,
   actorId,
 })), resultValue);
+assert.throws(() => parseIdentityLookupResult({ ...resultValue, personalEmail: "hidden@example.test" }), /invalide/);
 assert.throws(() => decryptIdentityLookupResult({
   envelope: resultEnvelope,
   responseKey: randomBytes(32),
@@ -140,6 +141,13 @@ assert.deepEqual(parseIdentityLookupInput({
   reasonCategory: "identity_verification",
   justification: "Vérification fictive avant traitement du dossier.",
 });
+assert.throws(() => parseIdentityLookupInput({
+  searchType: "phone",
+  query: "06 00 00 00 01",
+  reasonCategory: "identity_verification",
+  justification: "Vérification fictive avant traitement du dossier.",
+  actorId: "hidden",
+}), /invalide/);
 assert.throws(() => parseIdentityLookupInput({
   searchType: "name",
   query: "Camille",

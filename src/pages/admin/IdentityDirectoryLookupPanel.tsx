@@ -1,24 +1,13 @@
 import { useEffect, useState } from "react";
 import { AlertTriangle, Clock3, LoaderCircle, Search, ShieldCheck, UserCheck } from "lucide-react";
 import { apiFetch } from "../../lib/api";
-import type { IdentityLookupResult } from "../../../shared/identity-directory-lookup";
-
-type Availability = {
-  available: boolean;
-  configured: boolean;
-  hasActiveDirectory: boolean;
-  ttlSeconds: number;
-};
-
-type LookupStatus = "queued" | "processing" | "completed" | "not_found" | "ambiguous" | "failed" | "expired";
-
-type LookupResponse = {
-  requestId: string;
-  status: LookupStatus;
-  receipt?: string;
-  expiresAt: string;
-  result?: IdentityLookupResult;
-};
+import {
+  isIdentityLookupAvailabilityPayload,
+  isIdentityLookupCreationPayload,
+  isIdentityLookupStatusPayload,
+  type IdentityLookupAvailabilityPayload,
+  type IdentityLookupStatusPayload,
+} from "../../../shared/identity-directory-lookup-payload-policy";
 
 const PERSON_TYPE = {
   student: "Élève",
@@ -27,20 +16,23 @@ const PERSON_TYPE = {
 } as const;
 
 export default function IdentityDirectoryLookupPanel() {
-  const [availability, setAvailability] = useState<Availability | null>(null);
+  const [availability, setAvailability] = useState<IdentityLookupAvailabilityPayload | null>(null);
   const [searchType, setSearchType] = useState("academic_email");
   const [query, setQuery] = useState("");
   const [reasonCategory, setReasonCategory] = useState("support_case");
   const [justification, setJustification] = useState("");
-  const [request, setRequest] = useState<LookupResponse | null>(null);
+  const [request, setRequest] = useState<IdentityLookupStatusPayload | null>(null);
   const [receipt, setReceipt] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
 
   useEffect(() => {
     let active = true;
-    apiFetch<Availability>("identity/admin/lookups")
+    apiFetch<unknown>("identity/admin/lookups")
       .then((value) => {
+        if (!isIdentityLookupAvailabilityPayload(value)) {
+          throw new Error("L’état du canal sécurisé est invalide.");
+        }
         if (active) setAvailability(value);
       })
       .catch((reason) => {
@@ -57,10 +49,13 @@ export default function IdentityDirectoryLookupPanel() {
     let timer = 0;
     const poll = async () => {
       try {
-        const next = await apiFetch<LookupResponse>(`identity/admin/lookups/${request.requestId}`, {
+        const next = await apiFetch<unknown>(`identity/admin/lookups/${request.requestId}`, {
           headers: { "X-Identity-Lookup-Receipt": receipt },
         });
         if (cancelled) return;
+        if (!isIdentityLookupStatusPayload(next, request.requestId)) {
+          throw new Error("La réponse sécurisée reçue est invalide.");
+        }
         setRequest(next);
         if (["queued", "processing"].includes(next.status)) {
           timer = window.setTimeout(poll, 1200);
@@ -87,13 +82,15 @@ export default function IdentityDirectoryLookupPanel() {
     setRequest(null);
     setReceipt("");
     try {
-      const next = await apiFetch<LookupResponse>("identity/admin/lookups", {
+      const next = await apiFetch<unknown>("identity/admin/lookups", {
         method: "POST",
         body: JSON.stringify({ searchType, query, reasonCategory, justification }),
       });
-      if (!next.receipt) throw new Error("Le reçu sécurisé est absent.");
+      if (!isIdentityLookupCreationPayload(next)) {
+        throw new Error("Le reçu sécurisé est invalide.");
+      }
       setReceipt(next.receipt);
-      setRequest(next);
+      setRequest({ requestId: next.requestId, status: next.status, expiresAt: next.expiresAt });
       setQuery("");
       setJustification("");
     } catch (reason) {
