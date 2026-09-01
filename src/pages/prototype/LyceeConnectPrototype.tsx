@@ -209,7 +209,7 @@ const supportCategories = [
   { value: "email_academique", label: "Email académique" },
   { value: "ordinateur", label: "Ordinateur ou équipement" },
   { value: "logiciel", label: "Logiciel ou accès numérique" },
-  { value: "restauration_bourse", label: "Restauration, bourse ou intendance" },
+  { value: "restauration_bourse", label: "Restauration, bourse, internat ou intendance" },
   { value: "orientation_formation", label: "Orientation ou formation" },
   { value: "vie_scolaire", label: "Vie scolaire" },
   { value: "autre", label: "Rendez-vous ou autre demande" },
@@ -1166,7 +1166,7 @@ function inferSupportCategory(text: string): SupportCategory {
   if (/\b(certificat|attestation|document|pièce|piece|dossier|justificatif|manque)\b/i.test(text)) return "documents_scolarite";
   if (/\b(pc|ordinateur|portable|tablette|chargeur)\b/i.test(text)) return "ordinateur";
   if (/\b(logiciel|application|wifi|réseau|reseau)\b/i.test(text)) return "logiciel";
-  if (/\b(cantine|restauration|bourse|intendance|paiement)\b/i.test(text)) return "restauration_bourse";
+  if (/\b(cantine|restauration|bourse|internat|hébergement scolaire|hebergement scolaire|intendance|paiement)\b/i.test(text)) return "restauration_bourse";
   if (/\b(orientation|formation|spécialité|specialite|parcoursup)\b/i.test(text)) return "orientation_formation";
   if (/\b(absence|retard|vie scolaire|cpe|surveillant)\b/i.test(text)) return "vie_scolaire";
   if (/\b(rendez[- ]?vous|rdv|être reçu|etre recu|rencontrer)\b/i.test(text)) return "autre";

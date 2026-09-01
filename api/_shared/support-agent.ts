@@ -103,7 +103,7 @@ const CATEGORY_LABELS: Record<SupportAgentResult["category"], string> = {
   email_academique: "Email académique",
   ordinateur: "Ordinateur ou équipement",
   logiciel: "Logiciel ou accès numérique",
-  restauration_bourse: "Restauration, bourse ou intendance",
+  restauration_bourse: "Restauration, bourse, internat ou intendance",
   orientation_formation: "Orientation ou formation",
   vie_scolaire: "Vie scolaire",
   autre: "Rendez-vous ou autre demande",
@@ -194,7 +194,7 @@ function inferCategory(text: string): SupportAgentResult["category"] {
   if (/\b(document|pièce|piece|dossier|justificatif|manque)\b/i.test(text)) return "documents_scolarite";
   if (/\b(pc|ordinateur|portable|tablette|chargeur)\b/i.test(text)) return "ordinateur";
   if (/\b(logiciel|application|wifi|réseau|reseau)\b/i.test(text)) return "logiciel";
-  if (/\b(cantine|restauration|bourse|intendance|paiement)\b/i.test(text)) return "restauration_bourse";
+  if (/\b(cantine|restauration|bourse|internat|hébergement scolaire|hebergement scolaire|intendance|paiement)\b/i.test(text)) return "restauration_bourse";
   if (/\b(orientation|formation|spécialité|specialite|parcoursup)\b/i.test(text)) return "orientation_formation";
   if (/\b(absence|retard|vie scolaire|cpe|surveillant)\b/i.test(text)) return "vie_scolaire";
   return "autre";

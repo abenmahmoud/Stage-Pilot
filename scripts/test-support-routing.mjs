@@ -24,7 +24,7 @@ test("keeps the six administrative needs in the single support intake", () => {
   for (const label of [
     "Inscription ou réinscription",
     "Certificat, document ou pièce manquante",
-    "Restauration, bourse ou intendance",
+    "Restauration, bourse, internat ou intendance",
     "Orientation ou formation",
     "Rendez-vous ou autre demande",
   ]) {
@@ -130,6 +130,18 @@ test("routes catering and grants to stewardship", () => {
   });
   assert.equal(route.service, "intendance");
   assert.equal(route.confidence, "high");
+  assert.equal(route.priority, "p3");
+});
+
+test("keeps an unowned boarding request in human administrative triage", () => {
+  const route = routeSupportRequest({
+    category: "restauration_bourse",
+    description: "Je voudrais des informations sur l'internat",
+  });
+  assert.equal(route.service, "administration");
+  assert.equal(route.confidence, "medium");
+  assert.equal(route.reason, "internat_a_qualifier");
+  assert.equal(route.requiredIdentity, "I2");
   assert.equal(route.priority, "p3");
 });
 

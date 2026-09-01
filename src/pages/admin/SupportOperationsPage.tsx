@@ -57,7 +57,7 @@ const CATEGORY_LABELS: Record<string, string> = {
   email_academique: "Messagerie académique",
   ordinateur: "Ordinateur",
   logiciel: "Logiciel",
-  restauration_bourse: "Restauration ou bourse",
+  restauration_bourse: "Restauration, bourse ou internat",
   orientation_formation: "Orientation ou formation",
   vie_scolaire: "Vie scolaire",
   autre: "Autre demande",

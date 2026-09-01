@@ -4490,3 +4490,16 @@ taches et analyse de coherence avant une automatisation sensible.
   été intégré.
 - Les cinq domaines comptent toujours 536 tâches Spec Kit : 435 terminées et
   101 ouvertes.
+
+### Jalon du 1er septembre 2026 - vie scolaire, internat et demande libre
+
+- Le routage existant couvre maintenant explicitement absence, retard,
+  justificatif, restauration, bourse, internat et demande libre dans le même
+  dossier de support.
+- L'internat ne reçoit aucun service local inventé : il rejoint le tri humain de
+  l'administration avec une confiance moyenne et une priorité normale. Les
+  besoins personnels conservent l'exigence d'identité I2.
+- La vie scolaire et l'intendance gardent leurs files spécialisées. Aucun délai,
+  notification, décision ou réponse officielle n'est automatisé par ce lot.
+- Les cinq domaines comptent toujours 536 tâches Spec Kit : 436 terminées et
+  100 ouvertes.

@@ -927,6 +927,14 @@ l'autorisation de quota définie par le propriétaire.
   parallèle, notification réelle ou décision administrative n'est ajoutée.
   T034 est terminée.
 
+- Lot N5ZZZ5 : vie scolaire et besoins libres. **Fermé sans inventer
+  l'organisation locale** : absence, retard et justificatif rejoignent la vie
+  scolaire ; restauration et bourse rejoignent l'intendance. L'internat est
+  reconnu mais reste attribué à l'administration avec une confiance moyenne
+  tant que son responsable n'est pas validé. La demande libre conserve le tri
+  humain. Le dossier, les pièces et le suivi restent ceux du guichet unique.
+  T036 est terminée.
+
 ## Prochaine séquence verrouillée
 
 1. Conserver `BC-2026-000009` comme preuve fictive de recette jusqu'à la décision

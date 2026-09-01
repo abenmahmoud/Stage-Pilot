@@ -105,6 +105,15 @@ export function routeSupportRequest(input: {
       priority: "p3",
     };
   }
+  if (/\b(internat|hebergement scolaire)\b/.test(text)) {
+    return {
+      service: "administration",
+      confidence: "medium",
+      reason: "internat_a_qualifier",
+      requiredIdentity: identity,
+      priority: "p3",
+    };
+  }
   if (
     /\b(ddfpt|pfmp|periode de formation|convention de stage|recherche de stage|entreprise d'accueil|mini[- ]stage|plateau technique|atelier professionnel|voie professionnelle|formation professionnelle|melec|pcepc)\b/.test(text)
   ) {

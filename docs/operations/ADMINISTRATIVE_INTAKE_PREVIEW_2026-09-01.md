@@ -13,6 +13,8 @@ suivants sont compris et présentés :
 - inscription ou réinscription ;
 - certificat, document ou pièce manquante ;
 - bourse ou intendance ;
+- absence, retard ou justificatif ;
+- restauration ou internat ;
 - orientation ou formation ;
 - rendez-vous ;
 - autre demande administrative.
@@ -25,6 +27,8 @@ des pièces jointes.
 
 - inscription, certificat, document et orientation : secrétariat ;
 - bourse et restauration : intendance ;
+- absence, retard et justificatif : vie scolaire ;
+- internat sans responsable local validé : administration, confiance moyenne ;
 - rendez-vous sans destinataire certain : administration, confiance moyenne ;
 - mention explicite de la vie scolaire, de la direction ou du numérique : file
   spécialisée déjà définie par la politique de routage.

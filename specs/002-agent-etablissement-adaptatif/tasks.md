@@ -644,7 +644,11 @@
   matérielle, des lieux, des horaires, des responsabilités et des délais.
 - [ ] T035C Reprendre les codes ENT en troisième priorité après ouverture de
   l'accès administrateur du référent.
-- [ ] T036 Ajouter absence/justificatif, restauration, internat et demande libre.
+- [x] T036 Ajouter absence/justificatif, restauration, internat et demande libre.
+  Absence, retard et justificatif rejoignent la vie scolaire ; restauration et
+  bourse rejoignent l'intendance. L'internat est reconnu mais reste au tri humain
+  de l'administration tant que son responsable local n'est pas validé. La demande
+  libre conserve la file `À classer` du guichet unique.
 - [x] T036A Rédiger le brouillon de compétence `cours-salles-changements` avec
   contrôle d'identité, source datée et interdiction d'inférer une absence.
 - [x] T037 Constituer au moins cinq tests positifs, trois ambigus et trois interdits par compétence.
