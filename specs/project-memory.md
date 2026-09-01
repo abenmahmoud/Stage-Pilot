@@ -5,6 +5,21 @@
 **Depot** : `abenmahmoud/Stage-Pilot`
 **Dernier jalon de code verifie** : branche de preview Vercel
 
+## Jalon du 2 septembre 2026 - nouvelle analyse transversale
+
+- L'analyse Spec Kit a été rejouée après la récupération du suivi, la révocation
+  concurrente et le garde budgétaire IA. Elle compte 563 tâches : 460 terminées
+  et 103 ouvertes, ainsi que 93 migrations uniques.
+- Le dernier jalon applicatif est propre au commit `f466418`, sa preview Vercel
+  est READY et non promue, et la branche Supabase non principale reste
+  ACTIVE_HEALTHY sans données de production.
+- Les ouvertures restantes dépendent d'une validation métier/DPO, de comptes et
+  données autorisés, d'un moteur ou canal externe, d'une recette intégrée, d'un
+  pilote ou d'une opération de production. Aucun petit lot local autonome n'est
+  masqué par un parent ouvert.
+- Claude reste en pause faute de quota et ne sera pas relancé automatiquement.
+  Rapport : `specs/ANALYZE_2026-09-02.md`.
+
 ## Jalon du 2 septembre 2026 - enveloppe quotidienne IA en preview
 
 - Une enveloppe quotidienne atomique commune couvre l'assistant, la rédaction

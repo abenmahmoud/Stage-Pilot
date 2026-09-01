@@ -940,6 +940,11 @@
   production ; aucun parent n'est fermé sur une preuve locale partielle. T052
   reste ouverte jusqu'au pilote, à la fermeture des suites de l'audit et à la convergence
   finale avant généralisation.
+- [x] T052B Réexécuter l'analyse après la récupération du suivi, la révocation
+  concurrente et le garde budgétaire IA. Les 563 tâches sont recomptées et les
+  103 ouvertures sont rapprochées des décisions, données, accès, services,
+  pilotes ou opérations qui les bloquent. Aucun parent n'est fermé sur une
+  preuve partielle ; voir `specs/ANALYZE_2026-09-02.md`.
 
 ## Phase 7 - Portail complet et généralisation contrôlée
 
