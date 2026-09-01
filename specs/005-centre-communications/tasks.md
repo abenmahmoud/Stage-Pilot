@@ -267,6 +267,12 @@
   dans l'autre établissement, les rôles clients n'ont aucun accès et le
   rollback laisse zéro résidu. T022 reste ouvert pour le stockage privé et la
   preuve antivirus du contenu ; aucun webhook ni secret Vercel n'est activé.
+- [x] T022D Créer la fondation privée de quarantaine des contenus entrants. Les
+  objets restent opaques, bornés à 10 Mo et cloisonnés par établissement ; deux
+  buckets privés, une file PGMQ, un cycle antivirus fermé et un audit append-only
+  sont appliqués et prouvés sur la preview avec rollback à zéro. Le webhook, le
+  téléchargement fournisseur, le worker et les interrupteurs restent fermés.
+  T022 demeure ouvert jusqu'au raccordement et aux preuves ClamAV propre/EICAR.
 - [x] T023 Rattacher chaque réponse à la bonne communication.
 - [x] T023A Définir le rattachement strict avant la persistance. La référence
   `In-Reply-To` entrante utilise le même HMAC secret que l'identifiant du message

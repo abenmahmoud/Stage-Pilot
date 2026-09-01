@@ -370,3 +370,24 @@ de preview `xijocumlwivhbmffrnlj` : utilisateur, établissements,
 communications, livraisons, entrants et événements sont tous revenus à zéro.
 Le lanceur Node reste disponible pour un environnement sécurisé possédant une
 vraie `DATABASE_URL` ; les fichiers locaux Vercel la masquent volontairement.
+
+T022D ajoute le socle de contenu sans ouvrir la réception. Chaque corps ou pièce
+jointe possède une référence HMAC cloisonnée, une taille maximale de 10 Mo et un
+chemin privé sans nom d'origine. La base impose le passage `reserved` puis
+`quarantine` avant une promotion `clean` accompagnée de l'empreinte SHA-256, de
+la date du scan et du code exact `clamav_clean`. Les retours en arrière et les
+modifications d'identité sont refusés ; les événements restent append-only.
+
+La migration a été appliquée uniquement à la base Supabase de preview
+`xijocumlwivhbmffrnlj`. Une recette fictive a prouvé le cycle propre, le refus
+d'une promotion sans preuve, le doublon HMAC, le croisement d'établissement, le
+retour d'état, la mutation de l'audit, l'absence de privilèges clients et le
+caractère privé des deux buckets. Son rollback laisse cinq familles de résidus à
+zéro. Les conseillers Supabase ne signalent aucun défaut nouveau : deux avis RLS
+sans politique sont intentionnels pour ces tables exclusivement serveur, et les
+deux index ne sont pas encore utilisés en l'absence de trafic activé.
+
+Ce lot ne télécharge aucun contenu Brevo, ne démarre aucun worker, ne configure
+aucun secret et n'active aucun interrupteur Vercel. T022 reste donc ouvert pour
+le raccordement transactionnel, la validation stricte des résumés machine, la
+politique de conservation et les preuves ClamAV propre/EICAR.

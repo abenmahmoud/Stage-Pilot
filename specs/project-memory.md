@@ -4594,3 +4594,21 @@ taches et analyse de coherence avant une automatisation sensible.
 - T022 reste ouvert pour le stockage privé avec antivirus des contenus entrants.
   Les cinq domaines comptent désormais 542 tâches Spec Kit : 443 terminées et
   99 ouvertes.
+
+### Jalon du 1er septembre 2026 - fondation de quarantaine des messages entrants
+
+- Les corps et pièces jointes entrants disposent maintenant d'un registre
+  opaque, de deux buckets privés et d'une file antivirus privée, sans adresse,
+  objet, texte, nom de fichier original ou jeton fournisseur en base.
+- Le cycle de vie impose une réservation, une quarantaine et une preuve
+  `clamav_clean` avant promotion. L'identité de l'objet est immuable et les
+  événements sont append-only.
+- La migration est appliquée uniquement à la preview. Une recette fictive
+  vérifie preuve de scan, idempotence, cloisonnement, droits clients et rollback,
+  puis laisse cinq compteurs à zéro. Les avis Supabase associés sont uniquement
+  informatifs et cohérents avec un module serveur encore sans trafic.
+- Le webhook, le téléchargement Brevo, le worker ClamAV et les interrupteurs
+  restent fermés. T022 demeure ouverte jusqu'au raccordement, aux preuves
+  propre/EICAR et à la validation de la conservation.
+- Les cinq domaines comptent désormais 543 tâches Spec Kit : 444 terminées et
+  99 ouvertes.

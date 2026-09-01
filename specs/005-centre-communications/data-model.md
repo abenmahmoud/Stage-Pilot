@@ -49,6 +49,32 @@ clé d'idempotence empêche le double traitement.
 Reçus de fournisseurs par identifiant externe haché, éventuellement rattachés à
 une communication. Le contenu extrait reste dans un stockage privé séparé.
 
+### `communication_inbound_objects`
+
+Registre opaque des corps et pièces jointes entrants. Une ligne contient
+uniquement l'établissement, l'entrant parent, le type d'objet, une référence
+HMAC, le type média, la taille, le chemin privé, l'empreinte et l'état du scan.
+Elle ne contient jamais expéditeur, destinataire, objet, corps, nom de fichier
+original ou jeton fournisseur. Le cycle autorisé est fermé : `reserved`,
+`quarantine`, puis `clean`, `blocked`, `scan_error` ou `purged`. Un objet propre
+exige une preuve machine `clamav_clean` et un passage préalable en quarantaine.
+
+### `communication_inbound_object_events`
+
+Audit append-only des réservations, mises en quarantaine, résultats de scan et
+purges. Les événements sont liés à l'objet et à son établissement par une clé
+composite. Le résumé est réservé à des codes et compteurs techniques bornés ;
+aucun contenu utilisateur ni résultat antivirus brut ne doit y être écrit.
+
+### Stockage et file des contenus entrants
+
+Les buckets `communication-inbound-quarantine` et
+`communication-inbound-clean` sont privés et limités à 10 Mo par objet. La file
+PGMQ `communication_inbound_scan` est privée et sans privilège client. Aucun de
+ces composants n'est raccordé au webhook tant que le téléchargement fournisseur,
+le worker ClamAV et la recette propre/EICAR ne sont pas validés. La durée de
+conservation reste à décider avant toute activation réelle.
+
 ### `communication_events`
 
 Audit fonctionnel minimal : type, ressource, acteur, résumé borné et date.

@@ -1987,6 +1987,62 @@ export const communicationInbound = pgTable(
   ]
 );
 
+export const communicationInboundObjects = pgTable(
+  "communication_inbound_objects",
+  {
+    id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+    institutionId: uuid("institution_id")
+      .notNull()
+      .references(() => institutions.id, { onDelete: "restrict" }),
+    inboundId: uuid("inbound_id")
+      .notNull()
+      .references(() => communicationInbound.id, { onDelete: "restrict" }),
+    objectKind: text("object_kind").notNull(),
+    objectRefHash: text("object_ref_hash").notNull(),
+    mediaType: text("media_type").notNull(),
+    sizeBytes: bigint("size_bytes", { mode: "number" }).notNull(),
+    storageBucket: text("storage_bucket").notNull().default("communication-inbound-quarantine"),
+    storagePath: text("storage_path").notNull().unique(),
+    status: text("status").notNull().default("reserved"),
+    scanDetail: text("scan_detail"),
+    sha256: text("sha256"),
+    scannedAt: timestamp("scanned_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    uniqueIndex("communication_inbound_objects_scope_ref_uidx")
+      .on(table.institutionId, table.inboundId, table.objectRefHash),
+    index("communication_inbound_objects_inbound_scope_fk_idx")
+      .on(table.inboundId, table.institutionId, table.createdAt),
+    index("communication_inbound_objects_scope_status_idx")
+      .on(table.institutionId, table.status, table.createdAt),
+  ]
+);
+
+export const communicationInboundObjectEvents = pgTable(
+  "communication_inbound_object_events",
+  {
+    id: bigint("id", { mode: "number" }).primaryKey().generatedAlwaysAsIdentity(),
+    institutionId: uuid("institution_id")
+      .notNull()
+      .references(() => institutions.id, { onDelete: "restrict" }),
+    inboundObjectId: uuid("inbound_object_id")
+      .notNull()
+      .references(() => communicationInboundObjects.id, { onDelete: "restrict" }),
+    eventType: text("event_type").notNull(),
+    actorType: text("actor_type").notNull(),
+    summary: jsonb("summary").notNull().default({}),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    index("communication_inbound_object_events_object_scope_idx")
+      .on(table.inboundObjectId, table.institutionId, table.createdAt),
+    index("communication_inbound_object_events_scope_created_idx")
+      .on(table.institutionId, table.createdAt),
+  ]
+);
+
 export const communicationEvents = pgTable(
   "communication_events",
   {
