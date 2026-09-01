@@ -127,6 +127,19 @@ export async function enforceMagicTokenNetworkGuard(req: VercelRequest): Promise
   if (networkKey) await enforce(SUPPORT_RATE_LIMIT_POLICIES.magicTokenNetworkGuard, networkKey);
 }
 
+export async function enforceSupportAccessRecoveryLimits(input: {
+  institutionId: string; publicCode: string; email: string;
+}): Promise<void> {
+  await enforceSupportRateLimits([
+    { ...SUPPORT_RATE_LIMIT_POLICIES.accessRecoveryPair,
+      keyHash: personalHash(`support-recovery-pair:${input.institutionId}:${input.publicCode}:${input.email}`) },
+    { ...SUPPORT_RATE_LIMIT_POLICIES.accessRecoveryEmail,
+      keyHash: personalHash(`support-recovery-email:${input.institutionId}:${input.email}`) },
+    { ...SUPPORT_RATE_LIMIT_POLICIES.accessRecoveryGlobal,
+      keyHash: personalHash(`support-recovery-global:${input.institutionId}`) },
+  ]);
+}
+
 export async function recordInvalidSupportRequest(deviceKey: string | null): Promise<void> {
   if (deviceKey) await enforce(SUPPORT_RATE_LIMIT_POLICIES.requestInvalidDevice, deviceKey);
 }

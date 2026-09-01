@@ -260,6 +260,15 @@ leur date, leur responsable et leur état de validité.
   entrants et réponses téléphoniques ne sont pas envoyés par ce chemin.
   Cela n'annule ni les emails déjà transmis ni les sessions déjà ouvertes.
 
+- La récupération du suivi accepte le numéro de demande et l'email déjà fourni,
+  sans mot de passe. Elle répond de manière identique qu'un contact correspondant
+  existe ou non. Seul un contact support actif et non ambigu peut recevoir un
+  nouveau lien à usage unique, sans contenu du dossier. Aucun droit ni statut
+  d'identité n'est accordé à cette étape. Les demandes répétées sont limitées et
+  une reprise immédiate ne multiplie pas les envois. Les jetons précédents restent
+  utilisables selon leur durée initiale jusqu'à leur consommation : demander un
+  renvoi n'est pas une preuve permettant de révoquer les accès d'autrui.
+
 - 95 % des demandes confirmées possèdent un accusé de réception et un numéro de suivi.
 - 90 % des demandes courantes sont dirigées vers le bon service après correction éventuelle.
 - 100 % des actions A3 possèdent une validation enregistrée.

@@ -67,6 +67,24 @@ export const SUPPORT_RATE_LIMIT_POLICIES = {
     windowSeconds: 30 * 60,
     message: REQUEST_LIMIT_MESSAGE,
   },
+  accessRecoveryPair: {
+    scope: "request_contact_burst",
+    limit: 3,
+    windowSeconds: 15 * 60,
+    message: "Plusieurs liens ont été demandés. Réessayez dans quelques minutes.",
+  },
+  accessRecoveryEmail: {
+    scope: "request_contact_daily",
+    limit: 12,
+    windowSeconds: 24 * 60 * 60,
+    message: "La limite de renvois est atteinte. Réessayez demain ou contactez le lycée.",
+  },
+  accessRecoveryGlobal: {
+    scope: "magic_token_network",
+    limit: 1_000,
+    windowSeconds: 60 * 60,
+    message: "Le suivi reçoit momentanément trop de trafic. Réessayez plus tard.",
+  },
   requestDeviceDaily: {
     scope: "request_device_daily",
     limit: 20,

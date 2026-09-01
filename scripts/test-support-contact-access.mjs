@@ -10,13 +10,19 @@ import * as pgCore from "drizzle-orm/pg-core";
 import { supportAccessCodeFromToken, supportAccessCodeMatches, supportAccessCodeSecret } from "../shared/support-access-code.mjs";
 import { parseSupportAccessCodeInput } from "../shared/support-access-code-payload-policy.ts";
 import { isSupportMagicAccessPayload } from "../shared/support-magic-access-payload-policy.ts";
+import { buildSupportAccessRecoveryEmail } from "../shared/support-access-recovery-email.mjs";
+import { parseSupportAccessRecoveryInput, isSupportAccessRecoveryPayload, SUPPORT_ACCESS_RECOVERY_COOLDOWN_SECONDS } from "../shared/support-access-recovery-policy.ts";
+import * as retryPolicy from "../shared/support-job-retry.ts";
+import { createSupportJobRetryConfirmation } from "../shared/support-operation-confirmation.ts";
+import { singleSupportAgentRouteValue } from "../shared/support-agent-mutation-input-policy.ts";
+import * as ratePolicy from "../shared/support-rate-limit-policy.ts";
 
 const read = (path) => readFileSync(new URL(`../${path}`, import.meta.url), "utf8");
 const hash = (value) => createHash("sha256").update(value).digest("hex");
 const token = "a".repeat(43);
 const secret = "fictional-access-code-secret-".repeat(3);
 const names = ["supportRequests", "supportContacts", "supportMagicTokens", "supportDeviceSessions",
-  "supportSessionRequests", "supportEvents", "supportMessages", "supportAttachments"];
+  "supportSessionRequests", "supportEvents", "supportMessages", "supportAttachments", "supportQueuedJobs", "supportFailedJobs"];
 const schema = Object.fromEntries(names.map((name) => [name, new Proxy({ name }, {
   get: (target, property) => property === "name" ? target.name : { table: target.name, column: property },
 })]));
@@ -52,11 +58,17 @@ function load(path, imports, extra = {}, exposed = []) {
 
 // Evaluate actual route predicates and transactional writes; no network or real DB.
 // Row-lock requests are observed, not a substitute for concurrent PostgreSQL tests.
-function database(initial) {
+function database(initial, { failQueue = false, failEvent = false } = {}) {
   let rows = structuredClone(initial);
   const trace = [];
   function client(state) {
     return {
+      async execute(value) {
+        assert.match(value.strings.join("?").replace(/\s+/g, " ").trim(), /^select pgmq.send\('support_jobs', \?::jsonb\)$/);
+        if (failQueue) throw new Error("fictitious-queue-failure-with-secret");
+        state.supportQueuedJobs.push(JSON.parse(value.values[0]));
+        return [{ send: state.supportQueuedJobs.length }];
+      },
       select(fields) {
         let table, predicates = [], joins = [], count = Infinity, order;
         const query = {
@@ -91,11 +103,13 @@ function database(initial) {
           onConflictDoNothing() { ignoreConflict = true; return query; },
           then(success, failure) {
             return Promise.resolve().then(() => values.flatMap((value) => {
+              if (failEvent && table.name === "supportEvents") throw new Error("fictitious-event-failure");
               if (ignoreConflict && table.name === "supportSessionRequests" && state[table.name].some(
                 (row) => row.sessionId === value.sessionId && row.requestId === value.requestId
               )) return [];
               trace.push({ kind: "insert", table: table.name });
-              const row = { id: `new-${state[table.name].length}`, revokedAt: null, ...value };
+              const row = { id: `new-${state[table.name].length}`, revokedAt: null, createdAt: new Date(),
+                ...(table.name === "supportMagicTokens" ? { usedAt: null, attemptCount: 0 } : {}), ...value };
               state[table.name].push(row);
               return fields ? [Object.fromEntries(Object.entries(fields).map(([key, column]) => [key, row[column.column]]))] : [];
             })).then(success, failure);
@@ -156,7 +170,8 @@ function fixture() {
   return rows;
 }
 async function exchange(mode, mutate = () => {}, options = {}) {
-  const rows = fixture(); mutate(rows);
+  const rows = options.rows ? structuredClone(options.rows) : fixture(); mutate(rows);
+  const suppliedToken = options.token ?? token;
   const original = structuredClone(rows);
   const storage = database(rows);
   let cookie = null;
@@ -186,8 +201,8 @@ async function exchange(mode, mutate = () => {}, options = {}) {
   const handler = load(mode === "link" ? "api/support/access/[token].ts" : "api/support/access-code.ts", imports).default;
   let status = 200, body;
   try {
-    body = await handler({ method: "POST", query: { token }, body: {
-      publicCode: "BC-2026-000001", code: options.code ?? supportAccessCodeFromToken({ token, secret }),
+    body = await handler({ method: "POST", query: { token: suppliedToken }, body: {
+      publicCode: "BC-2026-000001", code: options.code ?? supportAccessCodeFromToken({ token: suppliedToken, secret }),
     } }, {});
   } catch (error) {
     if (!(error instanceof HttpError)) throw error;
@@ -274,6 +289,7 @@ function deliveryFixture(mutate = () => {}, { reservedAddress = false } = {}) {
     "../../shared/support-test-address.js": { isReservedTestEmail: (value) => reservedAddress && value === "fictitious@example.org" },
     "../../shared/support-email-job-policy.js": {}, "../_shared/institution-context.js": {},
     "../../shared/support-access-code.mjs": { supportAccessCodeFromToken },
+    "../../shared/support-access-recovery-email.mjs": { buildSupportAccessRecoveryEmail },
   }, { process: { env: { SUPPORT_FROM_EMAIL: "support@example.org" } } }, ["deliver"]);
   const job = { job_type: "send_requester_reply", job_id: "job-a", request_id: "request-a", institution_id: "school-a",
     contact_id: "contact-a", message_id: "message-a", access_token: token };
@@ -286,7 +302,7 @@ for (const [label, mutate, editJob] of [
   ["wrong contact usage", (rows) => { rows.supportContacts[0].usageScope = "communications"; }],
   ["no contact binding", () => {}, (job) => { delete job.contact_id; }],
 ]) {
-  for (const kind of ["send_requester_reply", "notify_requester_request_created"]) {
+  for (const kind of ["send_requester_reply", "notify_requester_request_created", "send_requester_access_link"]) {
     test(`Vercel ${kind}: ${label} never falls back to another address`, async () => {
       const item = deliveryFixture(mutate);
       item.job.job_type = kind; editJob?.(item.job);
@@ -382,7 +398,7 @@ function vpsDelivery({ contactAvailable = true, messageAvailable = true, reserve
     sql, process: { env: {} }, senderName: "Test", senderEmail: "support@example.org",
     publicUrl: "https://example.org/prototype", agentUrl: "https://example.org/prototype", agentEmail: "agent@example.org",
     sendEmail: async (value) => { sent.push(value); return "fictitious-provider-id"; },
-    exports: {}, reservedAddress,
+    exports: {}, reservedAddress, buildSupportAccessRecoveryEmail,
   };
   vm.runInNewContext(declarations.map((node) => node.getText(ast)).join("\n")
     + "\nisTestAddress = (value) => reservedAddress && value === 'fictitious@example.org'; exports.deliver = deliver;", context);
@@ -396,7 +412,7 @@ test("VPS real functions emit contact-bound SQL and a scoped outgoing reply", as
   assert.equal(item.sent.length, 1);
   assert.equal(item.queries.length, 5);
 });
-for (const kind of ["notify_requester_request_created", "send_requester_reply"]) {
+for (const kind of ["notify_requester_request_created", "send_requester_reply", "send_requester_access_link"]) {
   test(`VPS ${kind}: unavailable bound contact leaves the job unsent`, async () => {
     const item = vpsDelivery({ contactAvailable: false }); item.job.job_type = kind;
     await assert.rejects(item.deliver(item.job, "school-a"), /requester_contact_unavailable/);
@@ -458,3 +474,266 @@ test("real Drizzle SQL locks the bound contact and old session before inheriting
   assert.match(queries[3].sql, /inner join "support_requests".*"institution_id" = \$2/);
   assert.deepEqual(Array.from(queries[3].params), ["old-session", "school-a"]);
 });
+
+async function recoveryFixture(mutate = () => {}, options = {}) {
+  const rows = fixture();
+  rows.supportContacts[0].normalizedHash = hash("fictitious@example.org");
+  rows.supportMagicTokens[0].createdAt = new Date(Date.now() - 120_000);
+  mutate(rows);
+  const original = structuredClone(rows), storage = database(rows, options), gates = [];
+  let status = 200;
+  const handler = load("api/support/access-recovery.ts", {
+    "node:crypto": { randomUUID: () => "10000000-0000-4000-8000-000000000001" },
+    "drizzle-orm": orm, "../../db/index.js": { db: storage.db }, "../../db/schema.js": schema,
+    "../_shared/auth.js": { HttpError }, "../_shared/response.js": { handleApi: (_res, callback) => callback() },
+    "../_shared/institution-context.js": { requireConfiguredInstitution: async () => ({ id: "school-a" }) },
+    "../_shared/support.js": { personalHash: hash, sha256: hash, opaqueToken: () => "b".repeat(43), SUPPORT_MAGIC_TOKEN_MINUTES: 30 },
+    "../_shared/support-rate-limits.js": {
+      enforceMagicTokenNetworkGuard: async () => { gates.push("network"); },
+      enforceSupportAccessRecoveryLimits: async (input) => {
+        gates.push({ ...input });
+        if (options.rateLimited) throw new HttpError(429, "Fictitious rate limit");
+      },
+    },
+    "../../shared/support-access-recovery-policy.js": { parseSupportAccessRecoveryInput, SUPPORT_ACCESS_RECOVERY_COOLDOWN_SECONDS },
+  }, { process: { env: { SUPPORT_ACCESS_RECOVERY_ENABLED: options.enabled === false ? "false" : "true" } } }).default;
+  const response = { status(value) { status = value; return response; } };
+  const body = options.body ?? { publicCode: "BC-2026-000001", email: "fictitious@example.org" };
+  async function run() {
+    status = 200;
+    let payload;
+    try { payload = await handler({ method: "POST", body }, response); }
+    catch (error) {
+      if (!(error instanceof HttpError)) throw error;
+      status = error.status; payload = { error: error.message };
+    }
+    return { status, payload };
+  }
+  return { storage, original, gates, run, result: await run() };
+}
+test("recovery atomically queues only a fresh bound link, with no session or identity grant", async () => {
+  const item = await recoveryFixture();
+  assert.equal(item.result.status, 202);
+  assert.equal(isSupportAccessRecoveryPayload(item.result.payload), true);
+  assert.deepEqual(item.gates, ["network", { institutionId: "school-a", publicCode: "BC-2026-000001", email: "fictitious@example.org" }]);
+  assert.deepEqual(item.storage.rows.supportDeviceSessions, item.original.supportDeviceSessions);
+  assert.deepEqual(item.storage.rows.supportSessionRequests, item.original.supportSessionRequests);
+  assert.deepEqual(item.storage.rows.supportContacts, item.original.supportContacts);
+  assert.deepEqual(item.storage.rows.supportMagicTokens[0], item.original.supportMagicTokens[0]);
+  assert.equal(item.storage.rows.supportMagicTokens.length, 2);
+  const added = item.storage.rows.supportMagicTokens[1];
+  assert.equal(added.tokenHash, hash("b".repeat(43)));
+  assert.equal(added.contactId, "contact-a");
+  assert.ok(added.expiresAt.getTime() > Date.now() + 29 * 60_000);
+  assert.ok(added.expiresAt.getTime() <= Date.now() + 30 * 60_000);
+  assert.equal(item.storage.rows.supportQueuedJobs.length, 1);
+  assert.equal(item.storage.rows.supportQueuedJobs[0].job_type, "send_requester_access_link");
+  assert.equal(item.storage.rows.supportQueuedJobs[0].contact_id, "contact-a");
+  assert.doesNotMatch(JSON.stringify(item.storage.rows.supportQueuedJobs), /example.org|subject|firstName|message_id/);
+  assert.equal(item.storage.rows.supportEvents[0].eventType, "access.recovery_queued");
+  assert.equal(item.storage.rows.supportEvents[0].actorType, "system");
+  assert.equal(item.storage.trace[0].table, "supportContacts");
+  assert.equal(item.storage.trace[0].kind, "lock");
+});
+for (const [label, mutate, body] of [
+  ["unknown contact", (rows) => { rows.supportContacts = []; }],
+  ["another school", (rows) => { rows.supportRequests[0].institutionId = "school-b"; }],
+  ["wrong dossier", (rows) => { rows.supportContacts[0].requestId = "request-b"; }],
+  ["disabled contact", (rows) => { rows.supportContacts[0].disabledAt = new Date(); }],
+  ["non-support contact", (rows) => { rows.supportContacts[0].usageScope = "communications"; }],
+  ["phone contact", (rows) => { rows.supportContacts[0].channel = "phone"; }],
+  ["ambiguous contacts", (rows) => { rows.supportContacts.push({ ...rows.supportContacts[0], id: "ambiguous-contact" }); }],
+  ["unknown email", () => {}, { publicCode: "BC-2026-000001", email: "other@example.org" }],
+  ["unknown number", () => {}, { publicCode: "BC-2026-000999", email: "fictitious@example.org" }],
+]) {
+  test(`recovery gives the same neutral response for ${label} without writes`, async () => {
+    const item = await recoveryFixture(mutate, { body });
+    assert.equal(item.result.status, 202);
+    assert.equal(isSupportAccessRecoveryPayload(item.result.payload), true);
+    assert.deepEqual(item.storage.rows, item.original);
+  });
+}
+test("recovery's response-loss retry does not queue a second email within the cooldown", async () => {
+  const item = await recoveryFixture();
+  const first = structuredClone(item.storage.rows);
+  assert.equal((await item.run()).status, 202);
+  assert.deepEqual(item.storage.rows, first);
+});
+test("a recently issued link is not revoked or resent even if already consumed", async () => {
+  const item = await recoveryFixture((rows) => {
+    rows.supportMagicTokens[0].createdAt = new Date(); rows.supportMagicTokens[0].usedAt = new Date();
+  });
+  assert.equal(item.result.status, 202);
+  assert.deepEqual(item.storage.rows, item.original);
+});
+for (const failure of ["failQueue", "failEvent"]) {
+  test(`recovery rolls back token, queue and event on ${failure}`, async () => {
+    const item = await recoveryFixture(() => {}, { [failure]: true });
+    assert.equal(item.result.status, 503);
+    assert.deepEqual(item.storage.rows, item.original);
+    assert.doesNotMatch(JSON.stringify(item.result.payload), /secret|fictitious|contact-a|request-a|bbbbbbbb/);
+  });
+}
+test("recovery is disabled by default and rate-limit failure precedes contact lookup", async () => {
+  const disabled = await recoveryFixture(() => {}, { enabled: false });
+  assert.equal(disabled.result.status, 503); assert.equal(disabled.gates.length, 0);
+  assert.equal(disabled.storage.trace.length, 0);
+  const limited = await recoveryFixture(() => {}, { rateLimited: true });
+  assert.equal(limited.result.status, 429); assert.equal(limited.storage.trace.length, 0);
+  assert.deepEqual(limited.storage.rows, limited.original);
+});
+test("recovery inputs and receipts are exact, bounded and never grant access", async () => {
+  assert.deepEqual(parseSupportAccessRecoveryInput({ publicCode: " bc-2026-000001 ", email: " Fictitious@EXAMPLE.ORG " }),
+    { publicCode: "BC-2026-000001", email: "fictitious@example.org" });
+  for (const invalid of [null, [], {}, { publicCode: "BC-2026-000001", email: "a\n@example.org" },
+    { publicCode: "BC-2026-000001", email: "a".repeat(255) }, { publicCode: "BC-2026-000001", email: "bad" },
+    { publicCode: "BC-2026-000001", email: "a@example.org", contactId: "contact-a" }]) {
+    const item = await recoveryFixture(() => {}, { body: invalid === null ? "invalid" : invalid });
+    assert.equal(item.result.status, 400); assert.equal(item.storage.trace.length, 0);
+  }
+  for (const invalid of [null, [], { accepted: false }, { accepted: true, token: "secret" }, { accepted: true, requestId: "request-a" }]) {
+    assert.equal(isSupportAccessRecoveryPayload(invalid), false);
+  }
+});
+test("Vercel sends a recovery email without the person's name, request body or any attachment", async () => {
+  const item = deliveryFixture(); item.job.job_type = "send_requester_access_link"; delete item.job.message_id;
+  await item.deliver(item.job, "school-a");
+  assert.equal(item.sent.length, 1);
+  assert.equal(item.sent[0].to.name, undefined);
+  assert.doesNotMatch(item.sent[0].textContent, /Question fictive|Test Fictif|Reponse fictive/);
+  assert.match(item.sent[0].textContent, /30 minutes/);
+  assert.equal(item.sent[0].attachments, undefined);
+  assert.equal(item.storage.rows.supportMessages[0].deliveryStatus, "queued");
+});
+test("VPS recovery reads no message and sends the same minimal template", async () => {
+  const item = vpsDelivery(); item.job.job_type = "send_requester_access_link"; delete item.job.message_id;
+  await item.deliver(item.job, "school-a");
+  assert.equal(item.sent.length, 1);
+  assert.equal(item.queries.length, 2);
+  assert.equal(item.sent[0].to.name, undefined);
+  assert.match(item.sent[0].subject, /Votre lien de suivi/);
+});
+for (const mode of ["link", "code"]) {
+  test(`recovery -> ${mode} exchange opens the same dossier on a new device exactly once`, async () => {
+    const recovery = await recoveryFixture();
+    const recoveredToken = recovery.storage.rows.supportQueuedJobs[0].access_token;
+    const opened = await exchange(mode, () => {}, { rows: recovery.storage.rows, token: recoveredToken, oldToken: null });
+    assert.equal(opened.status, 200);
+    assert.equal(opened.body.request.publicCode, "BC-2026-000001");
+    assert.equal(opened.storage.rows.supportRequests.length, 3, "no new dossier");
+    const newSession = opened.storage.rows.supportDeviceSessions[1];
+    assert.deepEqual(opened.storage.rows.supportSessionRequests.filter((grant) => grant.sessionId === newSession.id).map((grant) => grant.requestId), ["request-a"]);
+    const replayed = await exchange(mode, () => {}, { rows: opened.storage.rows, token: recoveredToken, oldToken: null });
+    assert.equal(replayed.status, mode === "link" ? 410 : 401);
+    assert.equal(replayed.cookie, null);
+    assert.deepEqual(replayed.storage.rows, replayed.original);
+  });
+}
+test("recovery template validates its link and keeps French accents without including dossier prose", () => {
+  const input = { publicCode: "BC-2026-000001", trackingUrl: `https://example.org/prototype?support_token=${token}&view=requests`, accessCode: "123456" };
+  const email = buildSupportAccessRecoveryEmail(input);
+  assert.match(email.textContent, /accès expire après 30 minutes/);
+  assert.match(email.htmlContent, /&amp;view=requests/);
+  assert.doesNotMatch(buildSupportAccessRecoveryEmail({ ...input, accessCode: null }).textContent, /Code à usage/);
+  for (const trackingUrl of ["javascript:alert(1)", "http://example.org", "https://user:password@example.org", "https://example.org/#secret"]) {
+    assert.throws(() => buildSupportAccessRecoveryEmail({ ...input, trackingUrl }));
+  }
+  for (const accessCode of ["12345", "<123456>", undefined]) assert.throws(() => buildSupportAccessRecoveryEmail({ ...input, accessCode }));
+});
+
+test("real recovery limiter batches hashed pair, email and school quotas without device dependence", async () => {
+  const batches = [];
+  const { enforceSupportAccessRecoveryLimits } = load("api/_shared/support-rate-limits.ts", {
+    "drizzle-orm": orm, "../../db/index.js": { db: {} }, "../../db/schema.js": schema,
+    "./auth.js": { HttpError }, "./institution-context.js": {}, "./assistant-quota-identity.js": {},
+    "../../shared/support-rate-limit-policy.js": ratePolicy,
+    "./support.js": { personalHash: hash, enforceSupportRateLimits: async (attempts) => { batches.push(Array.from(attempts, (x) => ({ ...x }))); } },
+  });
+  const input = { institutionId: "school-a", publicCode: "BC-2026-000001", email: "fictitious@example.org" };
+  await enforceSupportAccessRecoveryLimits(input);
+  assert.equal(batches.length, 1);
+  assert.deepEqual(batches[0].map(({ limit, windowSeconds }) => [limit, windowSeconds]), [[3, 900], [12, 86400], [1000, 3600]]);
+  assert.doesNotMatch(JSON.stringify(batches), /example.org|school-a|BC-2026/);
+  assert.ok(batches[0].every(({ keyHash }) => /^[a-f0-9]{64}$/.test(keyHash)));
+  await enforceSupportAccessRecoveryLimits({ ...input, publicCode: "BC-2026-000002" });
+  assert.notEqual(batches[0][0].keyHash, batches[1][0].keyHash);
+  assert.equal(batches[0][1].keyHash, batches[1][1].keyHash);
+  assert.equal(batches[0][2].keyHash, batches[1][2].keyHash);
+  await enforceSupportAccessRecoveryLimits({ ...input, institutionId: "school-b" });
+  assert.ok(batches[0].every((entry, index) => entry.keyHash !== batches[2][index].keyHash));
+});
+
+async function manualRecoveryRetry(mutate = () => {}, options = {}) {
+  const rows = fixture();
+  const contactId = "10000000-0000-4000-8000-000000000002";
+  rows.supportContacts[0].id = contactId;
+  rows.supportMagicTokens[0].contactId = contactId;
+  rows.supportFailedJobs = [{ id: "10000000-0000-4000-8000-000000000003", jobId: "failed-job",
+    requestId: "request-a", institutionId: "school-a", jobType: "send_requester_access_link",
+    payloadRedacted: { contactId, messageId: null }, retriedAt: null }];
+  mutate(rows);
+  const original = structuredClone(rows), storage = database(rows, options);
+  const handler = load("api/support/agent/operations/[id]/retry.ts", {
+    "node:crypto": { randomUUID: () => "10000000-0000-4000-8000-000000000004", randomBytes: () => ({ toString: () => "c".repeat(43) }) },
+    "drizzle-orm": orm, "../../../../../db/index.js": { db: storage.db }, "../../../../../db/schema.js": schema,
+    "../../../../../shared/support-job-retry.js": retryPolicy,
+    "../../../../../shared/support-operation-confirmation.js": { createSupportJobRetryConfirmation },
+    "../../../../../shared/support-agent-mutation-input-policy.js": { singleSupportAgentRouteValue },
+    "../../../../_shared/auth.js": { HttpError },
+    "../../../../_shared/support-operations.js": { requireSupportOperationsManager: async () => {
+      if (options.denied) throw new HttpError(403, "Denied");
+      return { institutionId: "school-a", user: { id: "fictitious-manager" } };
+    } },
+    "../../../../_shared/support.js": { sha256: hash, SUPPORT_MAGIC_TOKEN_MINUTES: 30 },
+    "../../../../_shared/response.js": { handleApi: (_res, callback) => callback() },
+  }).default;
+  async function run() {
+    try { return { status: 200, body: await handler({ method: "POST", query: { id: rows.supportFailedJobs[0].id } }, {}) }; }
+    catch (error) {
+      if (!(error instanceof HttpError)) throw error;
+      return { status: error.status, body: { error: error.message } };
+    }
+  }
+  return { storage, original, run, result: await run() };
+}
+
+test("manual recovery retry atomically rotates its exact contact link once without needing a message", async () => {
+  const item = await manualRecoveryRetry();
+  assert.equal(item.result.status, 200);
+  assert.equal(item.result.body.operation, "support_job_retry");
+  assert.doesNotMatch(JSON.stringify(item.result.body), /ccccccc|access_token|tokenHash/);
+  assert.ok(item.storage.rows.supportFailedJobs[0].retriedAt);
+  assert.ok(item.storage.rows.supportMagicTokens[0].usedAt);
+  assert.equal(item.storage.rows.supportMagicTokens[1].tokenHash, hash("c".repeat(43)));
+  assert.equal(item.storage.rows.supportQueuedJobs.length, 1);
+  assert.equal(item.storage.rows.supportQueuedJobs[0].message_id, null);
+  assert.equal(item.storage.rows.supportQueuedJobs[0].contact_id, item.storage.rows.supportContacts[0].id);
+  assert.equal(item.storage.rows.supportEvents[0].eventType, "job.retry_requested");
+  const after = structuredClone(item.storage.rows);
+  assert.equal((await item.run()).status, 404);
+  assert.deepEqual(structuredClone(item.storage.rows), after);
+});
+
+for (const [label, mutate, status] of [
+  ["missing bound contact", (rows) => { rows.supportFailedJobs[0].payloadRedacted.contactId = null; }, 409],
+  ["disabled contact", (rows) => { rows.supportContacts[0].disabledAt = new Date(); }, 409],
+  ["contact in another dossier", (rows) => { rows.supportContacts[0].requestId = "request-b"; }, 409],
+  ["non-support contact", (rows) => { rows.supportContacts[0].usageScope = "communications"; }, 409],
+  ["failure in another school", (rows) => { rows.supportFailedJobs[0].institutionId = "school-b"; }, 404],
+  ["request in another school", (rows) => { rows.supportRequests[0].institutionId = "school-b"; }, 404],
+  ["reply missing its message", (rows) => { rows.supportFailedJobs[0].jobType = "send_requester_reply"; }, 409],
+]) {
+  test(`manual retry refuses ${label} without consuming the failure or any link`, async () => {
+    const item = await manualRecoveryRetry(mutate);
+    assert.equal(item.result.status, status);
+    assert.deepEqual(item.storage.rows, item.original);
+  });
+}
+for (const failure of ["failQueue", "failEvent", "denied"]) {
+  test(`manual retry ${failure} rolls back and never exposes secret-bearing errors`, async () => {
+    const item = await manualRecoveryRetry(() => {}, { [failure]: true });
+    assert.equal(item.result.status, failure === "denied" ? 403 : 503);
+    assert.deepEqual(item.storage.rows, item.original);
+    assert.doesNotMatch(JSON.stringify(item.result.body), /fictitious|secret|ccccccc/);
+  });
+}

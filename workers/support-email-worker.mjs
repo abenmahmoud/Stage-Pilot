@@ -2,6 +2,7 @@ import { randomUUID } from "node:crypto";
 import postgres from "postgres";
 import { readBoundedJsonResponse } from "./bounded-download.mjs";
 import { supportAccessCodeFromToken } from "../shared/support-access-code.mjs";
+import { buildSupportAccessRecoveryEmail } from "../shared/support-access-recovery-email.mjs";
 
 const databaseUrl = process.env.DATABASE_URL;
 const brevoApiKey = process.env.BREVO_API_KEY;
@@ -121,7 +122,7 @@ async function loadContext(institutionId, requestId, contactId) {
 
 async function deliver(job, institutionId) {
   if (job.institution_id !== institutionId) throw new Error("institution_mismatch");
-  const requesterJob = job.job_type === "notify_requester_request_created" || job.job_type === "send_requester_reply";
+  const requesterJob = ["notify_requester_request_created", "send_requester_reply", "send_requester_access_link"].includes(job.job_type);
   if (requesterJob && !job.contact_id) throw new Error("requester_contact_unavailable");
   const context = await loadContext(institutionId, job.request_id, job.contact_id);
   if (isTestAddress(context.email)) return "skipped:test_address";
@@ -130,6 +131,18 @@ async function deliver(job, institutionId) {
   }
   const request = context.request;
   const requesterName = `${request.requester_first_name} ${request.requester_last_name}`;
+
+  if (job.job_type === "send_requester_access_link") {
+    return sendEmail({
+      to: { email: context.email },
+      ...buildSupportAccessRecoveryEmail({
+        publicCode: request.public_code, trackingUrl: trackingUrl(job.access_token), accessCode: requesterAccessCode(job),
+      }),
+      idempotencyKey: job.job_id,
+      tags: ["lyceegest-support", "reprise-suivi"],
+      replyTo: { email: requesterReplyAddress(request.public_code), name: senderName },
+    });
+  }
 
   if (job.job_type === "notify_requester_request_created") {
     if (!context.email) return "skipped:no_email";
@@ -265,7 +278,7 @@ async function processRow(row, institutionId) {
             last_error_code, last_error_summary
           ) values (
             ${institutionId}, ${job.job_id}, ${job.request_id}, ${job.job_type},
-            ${transaction.json({ messageId: job.message_id ?? null })}, ${row.read_ct},
+            ${transaction.json({ messageId: job.message_id ?? null, contactId: job.contact_id ?? null })}, ${row.read_ct},
             ${errorCode}, 'Echec apres plusieurs tentatives'
           ) on conflict (institution_id, job_id) do nothing
         `;

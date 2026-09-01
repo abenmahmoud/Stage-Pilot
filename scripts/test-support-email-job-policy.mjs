@@ -23,8 +23,9 @@ test("accepts every supported fictitious email job with a stable job identifier"
     "notify_agent_request_created",
     "notify_agent_message_received",
     "send_requester_reply",
+    "send_requester_access_link",
   ]) {
-    const requesterJob = ["notify_requester_request_created", "send_requester_reply"].includes(jobType);
+    const requesterJob = ["notify_requester_request_created", "send_requester_reply", "send_requester_access_link"].includes(jobType);
     const value = {
       ...base,
       job_type: jobType,
@@ -78,6 +79,15 @@ test("retries four times and isolates the fifth failure", () => {
   );
   for (const invalid of [0, -1, 1.5, Number.NaN, 10_001]) {
     assert.throws(() => supportEmailFailureDisposition(invalid), /invalid_queue_attempt/);
+  }
+});
+test("only a bound recovery job can omit a message, and carries no untrusted prose", () => {
+  const input = { ...base, job_type: "send_requester_access_link", message_id: undefined, body: "discarded" };
+  const parsed = parseSupportEmailQueueJob(input, institutionId);
+  assert.equal(parsed.message_id, undefined);
+  assert.equal(parsed.body, undefined);
+  for (const missing of ["contact_id", "access_token"]) {
+    assert.throws(() => parseSupportEmailQueueJob({ ...input, [missing]: undefined }, institutionId));
   }
 });
 

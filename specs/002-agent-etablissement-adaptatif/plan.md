@@ -244,9 +244,34 @@ internes n'ont pas cette exigence et gardent le filtrage des adresses de test.
 Le message sortant, le décompte des pièces propres et la confirmation d'envoi
 restent dans le dossier du job. Aucun verrou SQL n'est maintenu pendant l'appel
 email ; une révocation ultérieure à la lecture ne peut pas rappeler un envoi.
-Le worker VPS n'est pas déployé par ce lot. Récupération automatique après perte
-du cookie/lien, invalidation des sessions déjà émises et recette concurrente
-PostgreSQL restent des travaux séparés.
+Le worker VPS n'est pas déployé par ce lot. Invalidation des sessions déjà émises
+et recette concurrente PostgreSQL restent des travaux séparés.
+
+La récupération du suivi accepte seulement un numéro public et l'email déjà
+fourni. L'API et l'interface ont chacune un interrupteur fermé par défaut. Les
+compteurs partagés précèdent toute recherche : trois essais par couple dossier
+et email en quinze minutes, douze par email et jour, mille par établissement et
+heure, en plus du garde réseau existant. Les clés sont hachées et distinctes
+des autres usages ; aucune nouvelle table ou portée SQL n'est nécessaire.
+La recherche exige un seul contact support email actif du dossier et du lycée.
+Réponse 202 neutre, même en cas d'absence ou d'ambiguïté, sans session créée.
+
+Sous verrou du contact, l'absence de jeton émis depuis moins d'une minute permet
+de créer un jeton de trente minutes, son job `send_requester_access_link` et
+l'événement dans une transaction unique. Une demande anonyme ne révoque aucun
+ancien lien. Le worker ne transmet que le numéro, lien et code éventuel, jamais
+le contenu du dossier. Les erreurs techniques de ces écritures sont remplacées
+avant journalisation, car les paramètres SQL peuvent contenir le jeton.
+La relance humaine existante conserve son garde MFA et exige le contact exact ;
+elle sait reprendre ce job sans message et confirme uniquement la mise en file.
+
+Le navigateur distingue mise en file acceptée et envoi réel : confirmation
+exacte 202 avant affichage neutre, gestion de quota, absence de faux succès en
+cas d'erreur, formulaire sans conservation locale de l'adresse saisie. Un lien
+expiré ou indisponible affiche le suivi et ouvre la récupération. La fixture
+locale utilise la vraie page et des réponses fictives, sans Auth ou API externe.
+Activation distante, recette PostgreSQL concurrente et audit indépendant restent
+séparés ; le délai de trente minutes commence à la création, pas à la livraison.
 
 - Tests unitaires des règles et schémas de sortie.
 - Tests de chaque scénario positif, ambigu, interdit et expiré de chaque compétence.

@@ -24,6 +24,7 @@ import {
   requireConfiguredInstitution,
 } from "../_shared/institution-context.js";
 import { supportAccessCodeFromToken } from "../../shared/support-access-code.mjs";
+import { buildSupportAccessRecoveryEmail } from "../../shared/support-access-recovery-email.mjs";
 
 type QueueRow = {
   msg_id: number;
@@ -108,7 +109,7 @@ function requesterReplyAddress(publicCode: string): string {
 }
 
 async function deliver(job: SupportEmailQueueJob, institutionId: string): Promise<string> {
-  const requesterJob = job.job_type === "notify_requester_request_created" || job.job_type === "send_requester_reply";
+  const requesterJob = ["notify_requester_request_created", "send_requester_reply", "send_requester_access_link"].includes(job.job_type);
   if (requesterJob && !job.contact_id) throw new Error("requester_contact_unavailable");
   const context = await loadEmailContext(institutionId, job.request_id, job.contact_id);
   if (isReservedTestEmail(context.email)) return "skipped:test_address";
@@ -119,6 +120,22 @@ async function deliver(job: SupportEmailQueueJob, institutionId: string): Promis
   const senderEmail = process.env.SUPPORT_FROM_EMAIL;
   if (!senderEmail) throw new Error("support_from_email_missing");
   const senderName = process.env.SUPPORT_FROM_NAME ?? "Lycée Blaise Cendrars";
+
+  if (job.job_type === "send_requester_access_link") {
+    if (!context.email) throw new Error("requester_contact_unavailable");
+    const result = await sendTransactionalEmail({
+      to: { email: context.email },
+      ...buildSupportAccessRecoveryEmail({
+        publicCode: context.request.publicCode,
+        trackingUrl: trackingUrl(job.access_token),
+        accessCode: requesterAccessCode(job),
+      }),
+      idempotencyKey: job.job_id,
+      tags: ["lyceegest-support", "reprise-suivi"],
+      replyTo: { email: requesterReplyAddress(context.request.publicCode), name: senderName },
+    });
+    return result.messageId;
+  }
 
   if (job.job_type === "notify_requester_request_created") {
     if (!context.email) return "skipped:no_email";

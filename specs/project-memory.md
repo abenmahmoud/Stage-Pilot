@@ -5038,3 +5038,25 @@ taches et analyse de coherence avant une automatisation sensible.
   compilation, trois contrôles d'adresses réservées, cinq de file email et quatre
   contrats responsive passent. Spec Kit : 558 tâches, 456 terminées, 102 ouvertes.
   Aucun taux global de disponibilité n'est déduit de ces comptes.
+
+### Jalon du 2 septembre 2026 Paris - récupérer un lien de suivi
+
+- Numéro du dossier et email déjà fourni permettent de demander un nouveau
+  lien sans compte. Réponse neutre, aucune session avant échange du lien/code,
+  contact support actif exact, compteurs partagés et délai anti-doublon.
+- Jeton, notification et événement sont enregistrés ensemble ou annulés. Un
+  appel anonyme n'invalide aucun ancien lien. Email minimal ; la relance humaine
+  exige le contact d'origine et conserve son garde MFA. Les erreurs des nouvelles
+  transactions ne peuvent pas transmettre les paramètres contenant le jeton.
+- Le suivi explique un lien périmé et ouvre le renvoi. Attente, quota, erreur
+  et reçu invalide ne produisent aucun faux succès. Vérification sur vraie page
+  avec réponses HTTP fictives à 320, 390 et 1 440 px, sans débordement constaté.
+- 92 tests ciblés, six de contrat email, trois d'adresses de test, quatre
+  contrats responsive, barrière de sécurité et compilation passent. Aucun
+  appel fournisseur, compte, donnée réelle ou accès distant à une base.
+- T049C7 terminée localement ; T049C ouverte. Activation serveur/interface
+  fermée par défaut et inchangée à distance. Source worker VPS adaptée seulement.
+  Concurrence PostgreSQL, délai de livraison, recette Auth et contre-revue restent
+  nécessaires. Le délai du jeton commence à sa création, pas à la livraison.
+- Rapport : `docs/security/SUPPORT_ACCESS_RECOVERY_PREVIEW_2026-09-02.md`.
+  Claude reste en pause sans relance automatique ; aucune consommation externe.

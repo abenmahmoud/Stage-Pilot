@@ -1062,6 +1062,19 @@ Claude reste en pause à la demande du propriétaire, sans relance automatique n
 consommation externe. Rapport :
 `docs/security/SUPPORT_CONTACT_ACCESS_PREVIEW_2026-09-01.md`.
 
+Suite T049C7 : récupération du suivi implémentée et vérifiée localement. Numéro
+de dossier et email déjà fourni produisent une réponse neutre, sans nouveau
+dossier ni accès immédiat. Le lien, la notification et l'événement sont liés
+dans une transaction ; les limites partagées et le délai anti-doublon précèdent
+l'envoi. La relance humaine exige toujours le contact d'origine actif.
+Les 92 tests ciblés, la barrière de sécurité, la compilation et les vérifications
+du formulaire sur trois largeurs passent. Les réponses serveur du navigateur
+sont fictives, aucun fournisseur d'email n'est appelé. Les deux interrupteurs
+restent fermés à distance ; activation, concurrence PostgreSQL, recette réseau
+et contre-revue indépendante ne sont pas déclarées réalisées. Claude reste en
+pause sans relance automatique. Voir
+`docs/security/SUPPORT_ACCESS_RECOVERY_PREVIEW_2026-09-02.md`.
+
 ## Portes de validation humaine
 
 - Import de listes, emplois du temps ou pièces réelles.

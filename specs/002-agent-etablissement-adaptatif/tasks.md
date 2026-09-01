@@ -903,6 +903,14 @@
   réel : 52 contrôles locaux, barrière de sécurité et compilation passent.
   La récupération automatique d'un lien perdu et la révocation des
   sessions déjà ouvertes restent distinctes ; aucun déploiement VPS.
+- [x] T049C7 Ajouter la récupération du suivi par numéro de dossier et email
+  déjà enregistré : réponse publique neutre, limites partagées, contact exact,
+  jeton et notification durables dans une transaction, reprise sans doublon,
+  échec visible et parcours mobile. Ne pas ouvrir de session avant preuve par
+  lien/code. 92 tests ciblés, compilation et barrière de sécurité passent ;
+  parcours réel vérifié avec HTTP fictif à 320, 390 et 1 440 px. Activation
+  distante, recette PostgreSQL concurrente et audit externe restent séparés,
+  sans email réel. Voir le rapport SUPPORT_ACCESS_RECOVERY_PREVIEW_2026-09-02.
 - [ ] T050 Ouvrir un pilote limité avec agents nommés et canal de retour.
 - [ ] T051 Mesurer deux semaines : classement, délai, transferts, corrections, coût et incidents.
 - [ ] T052 Corriger les écarts puis exécuter `/speckit.analyze` et `/speckit.converge` avant généralisation.

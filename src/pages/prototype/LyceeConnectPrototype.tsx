@@ -57,6 +57,7 @@ import {
 import { supabase } from "../../lib/supabase-browser";
 import { apiFetch } from "../../lib/api";
 import { PublicContentMarkdown } from "../../components/PublicContentMarkdown";
+import { SupportAccessRecovery } from "./SupportAccessRecovery";
 import {
   clearPendingRequesterUpload,
   clearPendingRequesterUploadByAttachmentId,
@@ -162,6 +163,8 @@ type RequesterProfile = "eleve" | "parent" | "professeur" | "personnel" | "autre
 const SUPPORT_API_ENABLED = import.meta.env.VITE_SUPPORT_API_ENABLED === "true";
 const SUPPORT_ACCESS_CODE_ENABLED =
   SUPPORT_API_ENABLED && import.meta.env.VITE_SUPPORT_ACCESS_CODE_ENABLED === "true";
+const SUPPORT_ACCESS_RECOVERY_ENABLED =
+  SUPPORT_API_ENABLED && import.meta.env.VITE_SUPPORT_ACCESS_RECOVERY_ENABLED === "true";
 const AI_ASSISTANT_ENABLED = import.meta.env.VITE_AI_ASSISTANT_ENABLED !== "false";
 const LYCEEGEST_URL = "/login";
 const ENT_URL = "https://ent.iledefrance.fr/auth/login";
@@ -581,6 +584,7 @@ export default function LyceeConnectPrototype() {
   const [helpMode, setHelpMode] = useState<"chat" | "form">("chat");
   const [menuOpen, setMenuOpen] = useState(false);
   const [ticketCreated, setTicketCreated] = useState<string | null>(null);
+  const [accessLinkError, setAccessLinkError] = useState<string | null>(null);
   const homeAssistantRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
@@ -601,9 +605,13 @@ export default function LyceeConnectPrototype() {
           throw new Error("La confirmation d'accès reçue est invalide.");
         }
         setTicketCreated(payload.request.publicCode);
+        setAccessLinkError(null);
         setView("requests");
       })
-      .catch(() => undefined);
+      .catch(() => {
+        setAccessLinkError("Ce lien n'a pas pu être ouvert. Il peut être expiré, déjà utilisé ou momentanément indisponible.");
+        setView("requests");
+      });
   }, []);
 
   function changeView(nextView: View) {
@@ -883,7 +891,7 @@ export default function LyceeConnectPrototype() {
             onTrack={() => changeView("requests")}
           />
         )}
-        {view === "requests" && <RequestsView ticketCode={ticketCreated} onBack={() => changeView("home")} />}
+        {view === "requests" && <RequestsView ticketCode={ticketCreated} accessLinkError={accessLinkError} onBack={() => changeView("home")} />}
         {view === "services" && <ServicesView onHelp={() => startHelp()} onCollect={() => changeView("collect")} onBack={() => changeView("home")} />}
         {view === "school" && <SchoolView onBack={() => changeView("home")} onHelp={startHelp} />}
         {view === "news" && <NewsView onBack={() => changeView("home")} />}
@@ -1926,12 +1934,12 @@ function supportDeliveryLabel(value: string): string {
   return labels[value] ?? value;
 }
 
-function RequestsView({ ticketCode, onBack }: { ticketCode: string | null; onBack: () => void }) {
+function RequestsView({ ticketCode, onBack, accessLinkError }: { ticketCode: string | null; onBack: () => void; accessLinkError?: string | null }) {
   if (!SUPPORT_API_ENABLED) return <DemoRequestsView ticketCode={ticketCode} onBack={onBack} />;
-  return <ConnectedRequestsView ticketCode={ticketCode} onBack={onBack} />;
+  return <ConnectedRequestsView ticketCode={ticketCode} onBack={onBack} accessLinkError={accessLinkError} />;
 }
 
-function ConnectedRequestsView({ ticketCode, onBack }: { ticketCode: string | null; onBack: () => void }) {
+function ConnectedRequestsView({ ticketCode, onBack, accessLinkError }: { ticketCode: string | null; onBack: () => void; accessLinkError?: string | null }) {
   const [requests, setRequests] = useState<SupportRequestSummary[]>([]);
   const [selectedCode, setSelectedCode] = useState<string | null>(ticketCode);
   const [accessPublicCode, setAccessPublicCode] = useState(ticketCode ?? "");
@@ -2435,6 +2443,8 @@ function ConnectedRequestsView({ ticketCode, onBack }: { ticketCode: string | nu
   return (
     <div className="lycee-page">
       <PageIntro eyebrow="Suivi" title="Mes demandes" description="Retrouvez les réponses sur cet appareil. Le lien ou le code reçu par email permet de reprendre depuis un autre téléphone ou ordinateur." onBack={onBack} />
+      {accessLinkError ? <div className="lycee-form-error" role="alert"><CircleAlert aria-hidden="true" />{accessLinkError}</div> : null}
+      {SUPPORT_ACCESS_RECOVERY_ENABLED ? <SupportAccessRecovery initialCode={ticketCode ?? ""} initiallyOpen={Boolean(accessLinkError)} /> : null}
       {SUPPORT_ACCESS_CODE_ENABLED ? (
         <form className="lycee-code-access" onSubmit={openRequestWithCode}>
           <div className="lycee-code-access-copy">

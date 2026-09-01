@@ -3,6 +3,7 @@ export const SUPPORT_RETRYABLE_JOB_TYPES = [
   "notify_agent_request_created",
   "notify_agent_message_received",
   "send_requester_reply",
+  "send_requester_access_link",
 ] as const;
 
 export type SupportRetryableJobType = (typeof SUPPORT_RETRYABLE_JOB_TYPES)[number];
@@ -17,7 +18,7 @@ export function isSupportRetryableJobType(value: unknown): value is SupportRetry
 }
 
 export function supportRetryNeedsRequesterAccess(jobType: SupportRetryableJobType): boolean {
-  return ["notify_requester_request_created", "send_requester_reply"].includes(jobType);
+  return ["notify_requester_request_created", "send_requester_reply", "send_requester_access_link"].includes(jobType);
 }
 
 export function retryPayloadId(

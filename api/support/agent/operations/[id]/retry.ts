@@ -58,7 +58,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       throw new HttpError(409, "Cette opération exige un contrôle technique manuel");
     }
     const messageId = retryPayloadId(failure.payloadRedacted, "messageId");
-    if (!messageId) throw new HttpError(409, "Le message d’origine est introuvable");
+    if (!messageId && jobType !== "send_requester_access_link") throw new HttpError(409, "Le message d’origine est introuvable");
 
     const newJobId = randomUUID();
     const correlationId = randomUUID();
@@ -78,6 +78,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       let accessToken: string | null = null;
       if (supportRetryNeedsRequesterAccess(jobType)) {
         const requestedContactId = retryPayloadId(failure.payloadRedacted, "contactId");
+        if (!requestedContactId) throw new HttpError(409, "L'adresse d'origine doit être vérifiée avant une relance.");
         const [contact] = await tx
           .select({ id: supportContacts.id })
           .from(supportContacts)
@@ -85,11 +86,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             and(
               eq(supportContacts.requestId, requestId),
               eq(supportContacts.channel, "email"),
+              eq(supportContacts.usageScope, "support"),
               isNull(supportContacts.disabledAt),
-              ...(requestedContactId ? [eq(supportContacts.id, requestedContactId)] : [])
+              eq(supportContacts.id, requestedContactId)
             )
           )
-          .limit(1);
+          .limit(1)
+          .for("update");
         if (!contact) throw new HttpError(409, "Aucune adresse email active n’est disponible");
         contactId = contact.id;
         accessToken = randomBytes(32).toString("base64url");
@@ -141,6 +144,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         .returning({ createdAt: supportEvents.createdAt });
       if (!event) throw new HttpError(500, "La relance n'a pas pu être confirmée");
       return event.createdAt;
+    }).catch((error: unknown) => {
+      if (error instanceof HttpError) throw error;
+      // Queue failures may contain token-bearing SQL parameters.
+      throw new HttpError(503, "La relance est momentanément indisponible.");
     });
 
     return createSupportJobRetryConfirmation({

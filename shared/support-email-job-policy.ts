@@ -1,5 +1,6 @@
 import {
   isSupportRetryableJobType,
+  supportRetryNeedsRequesterAccess,
   type SupportRetryableJobType,
 } from "./support-job-retry.js";
 
@@ -63,8 +64,8 @@ export function parseSupportEmailQueueJob(
     throw new Error("invalid_queue_payload");
   }
 
-  const requesterJob = ["notify_requester_request_created", "send_requester_reply"].includes(input.job_type);
-  if (!messageId || (requesterJob && (!contactId || !accessToken))) {
+  const requesterJob = supportRetryNeedsRequesterAccess(input.job_type);
+  if ((!messageId && input.job_type !== "send_requester_access_link") || (requesterJob && (!contactId || !accessToken))) {
     throw new Error("invalid_queue_payload");
   }
 
@@ -73,7 +74,7 @@ export function parseSupportEmailQueueJob(
     job_type: input.job_type,
     institution_id: institutionId,
     request_id: requestId,
-    message_id: messageId,
+    ...(messageId ? { message_id: messageId } : {}),
     ...(contactId ? { contact_id: contactId } : {}),
     ...(typeof accessToken === "string" ? { access_token: accessToken } : {}),
   };

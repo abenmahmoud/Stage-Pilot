@@ -538,6 +538,13 @@
 .lycee-code-access-fields button svg { width: 15px; }
 .lycee-code-access-fields button:disabled { cursor: not-allowed; opacity: .55; }
 .lycee-code-access > .lycee-form-error { grid-column: 1 / -1; }
+.lycee-access-recovery { margin: 0 0 18px; padding: 12px 0; border-block: 1px solid #d3e2df; }
+.lycee-access-recovery > summary { display: flex; align-items: center; gap: 8px; min-height: 40px; width: fit-content; max-width: 100%; cursor: pointer; color: var(--lc-green); font-size: 13px; font-weight: 700; }
+.lycee-access-recovery > summary:focus-visible { outline: 3px solid #2475d6; outline-offset: 3px; }
+.lycee-access-recovery > summary svg, .lycee-recovery-result svg { width: 18px; height: 18px; flex: 0 0 18px; }
+.lycee-access-recovery > form { margin-top: 12px; grid-template-columns: minmax(150px, 1fr) minmax(180px, 1.4fr) auto; }
+.lycee-recovery-result { display: flex; gap: 8px; margin-top: 12px; color: #17614c; font-size: 13px; line-height: 1.5; overflow-wrap: anywhere; }
+@media (max-width: 640px) { .lycee-access-recovery > form { grid-template-columns: minmax(0, 1fr); } }
 .lycee-shared-device-action { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin: -10px 0 18px; padding: 11px 14px; border: 1px solid #cdd9e6; border-radius: 8px; background: #f7fafc; }
 .lycee-shared-device-action > span { min-width: 0; display: flex; align-items: center; gap: 10px; }
 .lycee-shared-device-action > span > svg { width: 19px; flex: 0 0 19px; color: var(--lc-green); }
