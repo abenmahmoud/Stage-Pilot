@@ -7,10 +7,12 @@ import {
 } from "../../shared/support-rate-limit-policy.js";
 import {
   enforceSupportRateLimit,
+  enforceSupportRateLimits,
   personalHash,
   readSupportSessionToken,
   requestIpHash,
   sha256,
+  type SupportRateLimitAttempt,
   type SupportRequestInput,
 } from "./support.js";
 
@@ -91,18 +93,24 @@ export async function enforceSupportRequestCreationLimits(input: {
   deviceKey: string | null;
 }): Promise<void> {
   const contacts = contactRateKeys(input.parsed);
+  const attempts: SupportRateLimitAttempt[] = [];
   if (input.deviceKey) {
-    await enforce(SUPPORT_RATE_LIMIT_POLICIES.requestDeviceBurst, input.deviceKey);
-    await enforce(SUPPORT_RATE_LIMIT_POLICIES.requestDeviceDaily, input.deviceKey);
+    attempts.push(
+      { ...SUPPORT_RATE_LIMIT_POLICIES.requestDeviceBurst, keyHash: input.deviceKey },
+      { ...SUPPORT_RATE_LIMIT_POLICIES.requestDeviceDaily, keyHash: input.deviceKey }
+    );
   }
   for (const contactKey of contacts) {
-    await enforce(SUPPORT_RATE_LIMIT_POLICIES.requestContactBurst, contactKey);
-    await enforce(SUPPORT_RATE_LIMIT_POLICIES.requestContactDaily, contactKey);
+    attempts.push(
+      { ...SUPPORT_RATE_LIMIT_POLICIES.requestContactBurst, keyHash: contactKey },
+      { ...SUPPORT_RATE_LIMIT_POLICIES.requestContactDaily, keyHash: contactKey }
+    );
   }
-  await enforce(
-    SUPPORT_RATE_LIMIT_POLICIES.requestRepeatedBehavior,
-    repeatedRequestKey(input.parsed, input.deviceKey, contacts)
-  );
+  attempts.push({
+    ...SUPPORT_RATE_LIMIT_POLICIES.requestRepeatedBehavior,
+    keyHash: repeatedRequestKey(input.parsed, input.deviceKey, contacts),
+  });
+  await enforceSupportRateLimits(attempts);
 }
 
 export async function enforceAttachmentReservationRateLimit(sessionId: string): Promise<void> {

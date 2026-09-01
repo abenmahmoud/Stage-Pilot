@@ -46,10 +46,27 @@ test("uses device and contact limits before the high shared-network guard", () =
 test("keeps counters atomic, shared and bounded instead of server-memory based", () => {
   assert.match(sharedSupport, /insert into public\.support_rate_limits/);
   assert.match(sharedSupport, /on conflict \(scope, key_hash\) do update/);
-  assert.match(sharedSupport, /request_count < \$\{input\.limit\}/);
+  assert.match(sharedSupport, /from unnest\(/);
+  assert.match(sharedSupport, /request_count < \([\s\S]*candidate\.max_count/);
+  assert.match(sharedSupport, /duplicate_rate_limit_attempt/);
   assert.match(sharedSupport, /where expires_at < now\(\) - interval '1 day'/);
   assert.match(sharedSupport, /limit 100/);
   assert.doesNotMatch(sharedSupport, /new Map|setInterval/);
+});
+
+test("batches all request-creation dimensions into one atomic database call", () => {
+  const start = sharedLimits.indexOf("export async function enforceSupportRequestCreationLimits");
+  const end = sharedLimits.indexOf("export async function enforceAttachmentReservationRateLimit");
+  const creationLimits = sharedLimits.slice(start, end);
+  assert.ok(start >= 0 && end > start);
+  assert.match(creationLimits, /const attempts: SupportRateLimitAttempt\[\] = \[\]/);
+  assert.match(creationLimits, /requestDeviceBurst/);
+  assert.match(creationLimits, /requestDeviceDaily/);
+  assert.match(creationLimits, /requestContactBurst/);
+  assert.match(creationLimits, /requestContactDaily/);
+  assert.match(creationLimits, /requestRepeatedBehavior/);
+  assert.equal((creationLimits.match(/await enforceSupportRateLimits\(attempts\)/g) ?? []).length, 1);
+  assert.doesNotMatch(creationLimits, /await enforce\(/);
 });
 
 test("never stores clear device, contact, account or network identifiers", () => {

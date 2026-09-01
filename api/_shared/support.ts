@@ -288,13 +288,15 @@ export function requestIpHash(req: VercelRequest): string | null {
   return value ? personalHash(value) : null;
 }
 
-export async function enforceSupportRateLimit(input: {
+export type SupportRateLimitAttempt = {
   scope: SupportRateLimitScope;
   keyHash: string;
   limit: number;
   windowSeconds: number;
   message?: string;
-}): Promise<void> {
+};
+
+function validateSupportRateLimitAttempt(input: SupportRateLimitAttempt): void {
   if (!/^[a-f0-9]{64}$/.test(input.keyHash)) throw new Error("invalid_rate_limit_key");
   if (!Number.isInteger(input.limit) || input.limit < 1 || input.limit > 100_000) {
     throw new Error("invalid_rate_limit_limit");
@@ -302,7 +304,26 @@ export async function enforceSupportRateLimit(input: {
   if (!Number.isInteger(input.windowSeconds) || input.windowSeconds < 1 || input.windowSeconds > 604_800) {
     throw new Error("invalid_rate_limit_window");
   }
-  const result = await db.execute(sql<{ request_count: number }>`
+}
+
+export async function enforceSupportRateLimits(
+  inputs: readonly SupportRateLimitAttempt[]
+): Promise<void> {
+  if (inputs.length < 1 || inputs.length > 10) throw new Error("invalid_rate_limit_batch_size");
+
+  const uniqueAttempts = new Set<string>();
+  for (const input of inputs) {
+    validateSupportRateLimitAttempt(input);
+    const attemptKey = `${input.scope}:${input.keyHash}`;
+    if (uniqueAttempts.has(attemptKey)) throw new Error("duplicate_rate_limit_attempt");
+    uniqueAttempts.add(attemptKey);
+  }
+
+  const scopes = inputs.map((input) => input.scope);
+  const keyHashes = inputs.map((input) => input.keyHash);
+  const limits = inputs.map((input) => input.limit);
+  const windows = inputs.map((input) => input.windowSeconds);
+  const result = await db.execute(sql<{ scope: SupportRateLimitScope; key_hash: string }>`
     with expired as (
       delete from public.support_rate_limits
       where (scope, key_hash) in (
@@ -312,38 +333,75 @@ export async function enforceSupportRateLimit(input: {
         order by expires_at
         limit 100
       )
+    ),
+    input_rows(scope, key_hash, max_count, window_seconds) as (
+      select *
+      from unnest(
+        ${scopes}::text[],
+        ${keyHashes}::text[],
+        ${limits}::integer[],
+        ${windows}::integer[]
+      )
+    ),
+    upserted as (
+      insert into public.support_rate_limits (
+        scope, key_hash, window_started_at, request_count, expires_at
+      )
+      select
+        scope,
+        key_hash,
+        now(),
+        1,
+        now() + (window_seconds * interval '1 second')
+      from input_rows
+      on conflict (scope, key_hash) do update
+      set
+        window_started_at = case
+          when public.support_rate_limits.expires_at <= now() then now()
+          else public.support_rate_limits.window_started_at
+        end,
+        request_count = case
+          when public.support_rate_limits.expires_at <= now() then 1
+          else public.support_rate_limits.request_count + 1
+        end,
+        expires_at = case
+          when public.support_rate_limits.expires_at <= now()
+            then now() + ((
+              select candidate.window_seconds
+              from input_rows candidate
+              where candidate.scope = excluded.scope
+                and candidate.key_hash = excluded.key_hash
+            ) * interval '1 second')
+          else public.support_rate_limits.expires_at
+        end
+      where public.support_rate_limits.expires_at <= now()
+         or public.support_rate_limits.request_count < (
+           select candidate.max_count
+           from input_rows candidate
+           where candidate.scope = excluded.scope
+             and candidate.key_hash = excluded.key_hash
+         )
+      returning scope, key_hash
     )
-    insert into public.support_rate_limits (
-      scope, key_hash, window_started_at, request_count, expires_at
-    ) values (
-      ${input.scope}, ${input.keyHash}, now(), 1,
-      now() + (${input.windowSeconds} * interval '1 second')
-    )
-    on conflict (scope, key_hash) do update
-    set
-      window_started_at = case
-        when public.support_rate_limits.expires_at <= now() then now()
-        else public.support_rate_limits.window_started_at
-      end,
-      request_count = case
-        when public.support_rate_limits.expires_at <= now() then 1
-        else public.support_rate_limits.request_count + 1
-      end,
-      expires_at = case
-        when public.support_rate_limits.expires_at <= now()
-          then now() + (${input.windowSeconds} * interval '1 second')
-        else public.support_rate_limits.expires_at
-      end
-    where public.support_rate_limits.expires_at <= now()
-       or public.support_rate_limits.request_count < ${input.limit}
-    returning request_count
+    select scope, key_hash
+    from upserted
   `);
-  if (Array.from(result as unknown as Array<{ request_count: number }>).length === 0) {
+  const allowed = new Set(
+    Array.from(result as unknown as Array<{ scope: SupportRateLimitScope; key_hash: string }>).map(
+      (row) => `${row.scope}:${row.key_hash}`
+    )
+  );
+  const denied = inputs.find((input) => !allowed.has(`${input.scope}:${input.keyHash}`));
+  if (denied) {
     throw new HttpError(
       429,
-      input.message ?? "Trop de demandes envoyées. Réessayez dans quelques minutes."
+      denied.message ?? "Trop de demandes envoyées. Réessayez dans quelques minutes."
     );
   }
+}
+
+export async function enforceSupportRateLimit(input: SupportRateLimitAttempt): Promise<void> {
+  await enforceSupportRateLimits([input]);
 }
 
 function parseCookieHeader(header: string | undefined): Record<string, string> {
