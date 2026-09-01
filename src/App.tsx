@@ -3,7 +3,7 @@ import { Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { AuthProvider } from "./components/AuthProvider";
 import { useAuth } from "./lib/auth-context";
 import { ROLE_HOME } from "./lib/types";
-import { AGENT_MFA_ENFORCED, isAgentRole } from "./lib/auth-policy";
+import { isAgentRole } from "./lib/auth-policy";
 import {
   ADMINISTRATION_ROLES,
   CONTENT_MANAGER_ROLES,
@@ -49,7 +49,7 @@ function PageFallback() {
 }
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
-  const { user, loading, assuranceLevel, nextAssuranceLevel } = useAuth();
+  const { user, loading, assuranceLevel } = useAuth();
   const location = useLocation();
   if (loading)
     return (
@@ -69,7 +69,6 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
   }
   if (
     isAgentRole(user.role) &&
-    (AGENT_MFA_ENFORCED || nextAssuranceLevel === "aal2") &&
     assuranceLevel !== "aal2"
   ) {
     const returnTo = `${location.pathname}${location.search}`;

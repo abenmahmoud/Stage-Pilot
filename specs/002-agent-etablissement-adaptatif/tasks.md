@@ -19,8 +19,9 @@
   automatique pour chaque agent ayant déjà activé son second facteur, dans
   l’interface, les API et les politiques RLS de preview.
 - [ ] T007B Créer au moins deux comptes nominatifs direction/administration,
-  tester la procédure de récupération, puis activer l’obligation générale MFA
-  dans l’interface et les API.
+  tester la procédure de récupération, puis valider le déploiement de
+  l'obligation MFA en production. La preview l'impose déjà dans son code ;
+  cela ne remplace pas l'enrôlement et la recette des comptes réels.
 
 ## Phase 1 - Socle de compétences
 
@@ -868,6 +869,11 @@
   absent, expiré ou modifié n'empêche pas le dépôt et ne confère aucun droit.
   Treize régressions locales et rendu isolé à 320 et 1 440 px vérifiés ; la
   contre-revue externe de ce correctif attend une autorisation distincte.
+- [x] T049C2 Exiger AAL2 pour les rôles agents sans option de désactivation,
+  imposer les adhésions actives en base sans repli vers les métadonnées et
+  borner les chemins de retour après connexion. Vérifier les vrais gardes
+  serveur et React avec dépendances fictives, ainsi que l'accès à l'enrôlement.
+  La recette Auth distante, les comptes nominatifs et la revue externe restent ouverts.
 - [ ] T050 Ouvrir un pilote limité avec agents nommés et canal de retour.
 - [ ] T051 Mesurer deux semaines : classement, délai, transferts, corrections, coût et incidents.
 - [ ] T052 Corriger les écarts puis exécuter `/speckit.analyze` et `/speckit.converge` avant généralisation.

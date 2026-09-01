@@ -186,6 +186,15 @@ pièces jointes. Les anciens dossiers restent non vérifiés, sans migration.
 
 ### Contrôles transversaux
 
+Les API utilisant `requireRole` exigent AAL2 pour `superadmin`, `proviseur`,
+`administration` et `agent`, avant accès aux données. Le périmètre support est
+ensuite relu dans l'adhésion active de l'établissement à chaque requête. Aucun
+repli sur les services du profil, même en cas de panne ou de variable absente.
+Le garde React impose la même étape tout en laissant `/security` accessible.
+Les retours de connexion utilisent une validation commune avec le parseur URL
+du navigateur : origine locale, taille bornée, refus des chemins réseau,
+antislashs et caractères de contrôle, avant et après normalisation.
+
 - Tests unitaires des règles et schémas de sortie.
 - Tests de chaque scénario positif, ambigu, interdit et expiré de chaque compétence.
 - Tests d'autorisation croisée élève/parent/personnel/service/établissement.

@@ -6,6 +6,20 @@ Chaque membre de la direction ou de l’administration utilise son propre compte
 Après le mot de passe, un code temporaire généré sur son téléphone protège
 l’accès aux demandes, aux pièces jointes et aux données scolaires.
 
+## Renforcement preview du 1er septembre 2026
+
+Le code de preview exige désormais AAL2 pour les quatre rôles agents, y compris
+sans facteur encore enrôlé. `REQUIRE_AGENT_MFA` et `VITE_REQUIRE_AGENT_MFA` ne
+désactivent plus cette protection. La page `/security` reste accessible après
+connexion pour l'enrôlement, et son retour mène à l'accueil tant que la session
+n'est pas renforcée. Les visiteurs, élèves et professeurs hors rôle agent
+ne sont pas soumis à cette obligation.
+
+Les étapes ci-dessous décrivent le déploiement historique. En production, les
+deux comptes autorisés, l'enrôlement et la récupération doivent toujours être
+validés avant toute promotion. Ne pas utiliser une variable désactivant la
+protection comme accès de secours. Aucun compte ou facteur n'a été créé ici.
+
 ## État de la preview au 26 août 2026
 
 - Un compte individuel `administration` existe dans la base de preview.
@@ -24,9 +38,9 @@ l’accès aux demandes, aux pièces jointes et aux données scolaires.
 5. Tester les pages agent, les pièces jointes et une réponse à une demande fictive.
 6. Simuler un téléphone perdu sur un compte de test et faire retirer son facteur
    par un administrateur Supabase après vérification d’identité.
-7. Quand les deux comptes sont validés, définir ensemble
-   `VITE_REQUIRE_AGENT_MFA=true` et `REQUIRE_AGENT_MFA=true` sur l’environnement
-   concerné, puis redéployer.
+7. Quand les deux comptes sont validés, vérifier les adhésions actives et obtenir
+   l'autorisation de promouvoir la version protégée. Les anciennes variables
+   MFA ne commandent plus cette obligation.
 8. Vérifier qu’un agent sans second facteur est dirigé vers `/security` et que
    les API refusent une session `aal1`.
 

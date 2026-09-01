@@ -1,7 +1,13 @@
 # Persistance des comptes et périmètres agents
 
 **Décision technique** : 27 août 2026  
-**État** : migration appliquée et mode base actif sur la preview isolée
+**État historique** : migration appliquée et mode base actif sur la preview isolée
+
+**Renforcement du 1er septembre 2026** : le code n'accepte désormais que la base
+pour les périmètres agents. Une valeur absente vaut `database` ; l'ancienne
+valeur `metadata` échoue explicitement. AAL2 est obligatoire pour les rôles agents,
+indépendamment des anciennes variables. Aucune variable distante ni compte
+n'a été modifié pour ce lot. La recette Auth du déploiement courant reste ouverte.
 
 ## Objectif
 
@@ -14,8 +20,7 @@ ni aucune adresse personnelle n'est ajouté dans Git.
 - Chaque agent possède un compte individuel et une seule adhésion par
   établissement.
 - Une adhésion doit être `active` et l'établissement `pilot` ou `active`.
-- Les services autorisés viennent uniquement de `institution_memberships` quand
-  le mode base de données est activé.
+- Les services autorisés viennent uniquement de `institution_memberships`.
 - Le superadministrateur et la direction exigent une adhésion de type `admin`.
 - Un rôle `auditor` n'obtient aucun accès aux API de traitement actuelles.
 - Les tables ne sont jamais lisibles directement par `anon` ou `authenticated` ;
@@ -23,7 +28,7 @@ ni aucune adresse personnelle n'est ajouté dans Git.
 - `mfa_verified_at` est une trace d'audit. L'autorisation MFA dépend toujours du
   niveau AAL courant fourni par Supabase Auth.
 - Une erreur de base ou une adhésion absente refuse l'accès. Il n'existe aucun
-  repli silencieux vers les métadonnées lorsque le mode base est actif.
+  repli vers les métadonnées, quelle que soit la configuration.
 
 ## Activation progressive
 

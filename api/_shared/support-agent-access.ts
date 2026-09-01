@@ -8,7 +8,6 @@ import {
   canAccessSupportService,
   canTransferSupportRequest,
   resolvePersistedSupportAgentAccess,
-  resolveSupportAgentAccess,
   type SupportAgentAccess,
 } from "../../shared/support-agent-access.js";
 import { requireConfiguredInstitution } from "./institution-context.js";
@@ -24,15 +23,13 @@ export async function requireSupportAgent(
   req: VercelRequest
 ): Promise<SupportAgentContext> {
   const user = await requireRole(req, SUPPORT_AGENT_ROLES);
-  const membershipSource = (process.env.SUPPORT_MEMBERSHIP_SOURCE ?? "metadata")
+  const membershipSource = (process.env.SUPPORT_MEMBERSHIP_SOURCE ?? "database")
     .trim()
     .toLowerCase();
   const institution = await requireConfiguredInstitution();
 
   let access: SupportAgentAccess | null;
-  if (membershipSource === "metadata") {
-    access = resolveSupportAgentAccess(user.role, user.appMetadata);
-  } else if (membershipSource === "database") {
+  if (membershipSource === "database") {
     try {
       const [membership] = await db
         .select({

@@ -214,6 +214,14 @@ leur date, leur responsable et leur état de validité.
   Un résumé absent, ancien, modifié ou sans preuve reste non vérifié ; la demande
   et les messages originaux restent enregistrables. Aucun nouvel appel IA n'est
   nécessaire à la création du dossier. Les autorisations d'outils restent distinctes.
+- L'accès aux API agents exige AAL2 même sans second facteur encore enrôlé ou
+  avec une ancienne variable MFA désactivée. L'interface dirige vers `/security`
+  sans ouvrir les dossiers. L'adhésion active de l'établissement est obligatoire :
+  une configuration absente utilise la base, `metadata` et les valeurs inconnues
+  sont refusées. Ni rôle global ni panne de base ne permettent un repli vers les
+  services du profil. L'enrôlement et le parcours public restent accessibles.
+  Les chemins de retour après connexion ou MFA restent dans l'application,
+  y compris après normalisation par le navigateur.
 - Une demande urgente classée I0 reste recevable et peut recevoir une consigne
   d'aide sans identité scolaire. Ce droit n'autorise aucune consultation de
   données privées. Les demandes I0-I2 et formulaires vierges ne deviennent pas

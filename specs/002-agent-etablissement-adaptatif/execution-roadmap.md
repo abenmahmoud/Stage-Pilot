@@ -1003,6 +1003,15 @@ et testée localement. L'agent distingue origine signée et texte transmis ; un
 authentifiée distante reste à faire. Voir
 `docs/operations/SUPPORT_NORMALIZATION_PROVENANCE_PREVIEW_2026-09-01.md`.
 
+Suite T049C2 : le code impose désormais AAL2 et les adhésions actives en base
+sans option de repli. L'enrôlement reste accessible, et les retours de connexion
+restent locaux. Treize tests ciblés et la barrière de sécurité couvrent le lot
+localement. Aucune promotion ni compte réel ; T007B et la recette Auth distante
+restent ouverts. Voir `docs/security/AGENT_ACCESS_FAIL_CLOSED_PREVIEW_2026-09-01.md`.
+La publication des documents personnels attend encore un lien fiable entre le
+destinataire, son identité scolaire et le bénéficiaire ; le statut manuel actuel
+du dossier ne fournit pas cette preuve.
+
 1. Conserver `BC-2026-000009` comme preuve fictive de recette jusqu'à la décision
    de nettoyage du pilote ; le dossier historique `BC-2026-000008` n'est pas
    déplacé silencieusement.

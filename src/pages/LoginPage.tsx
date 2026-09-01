@@ -2,6 +2,7 @@ import { useEffect, useState, type FormEvent } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "../lib/auth-context";
 import { ROLE_HOME } from "../lib/types";
+import { safeAuthReturnPath } from "../../shared/auth-return-path";
 import {
   GraduationCap,
   Eye,
@@ -41,10 +42,7 @@ export default function LoginPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const requestedReturn = searchParams.get("returnTo");
-  const returnTo =
-    requestedReturn?.startsWith("/") && !requestedReturn.startsWith("//")
-      ? requestedReturn
-      : null;
+  const returnTo = safeAuthReturnPath(requestedReturn);
   const staffRequested =
     searchParams.get("mode") === "staff" ||
     requestedReturn?.startsWith("/admin") ||

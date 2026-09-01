@@ -4908,3 +4908,28 @@ taches et analyse de coherence avant une automatisation sensible.
   distinct reçu pour ce passage. Brief versionné ; aucune consommation externe.
 - Aucune migration, activation, donnée réelle, notification ou production.
   553 tâches : 451 terminées et 102 ouvertes, sans taux opérationnel annoncé.
+
+### Jalon du 1er septembre 2026 - accès agents fermé par défaut
+
+- AAL2 est imposé aux quatre rôles agents dans le garde API et l'interface,
+  même avec une ancienne variable à faux ou sans facteur encore enrôlé. La
+  page de sécurité reste accessible ; les parcours publics et rôles non agents
+  conservent leurs règles. Aucune configuration distante ni compte modifié.
+- Les périmètres viennent toujours des adhésions actives en base. Une variable
+  absente prend ce mode ; `metadata` ou une valeur inconnue sont refusés. Panne,
+  révocation et rôle global ne créent aucun droit de repli.
+- Connexion et MFA partagent une validation de retour local, contre les chemins
+  réseau, antislashs, contrôles et normalisations produisant une double barre.
+  La confirmation MFA ne promet plus à elle seule l'accès aux dossiers.
+- Treize tests des gardes réels avec dépendances fictives passent, ainsi que
+  compilation, tests adversariaux, contrats responsive et barrière de sécurité.
+  La page réelle est vérifiée dans une fixture locale avec Auth remplacée,
+  aux largeurs 320 et 1 440 px. Aucun secret, code ou facteur réel utilisé.
+- T049C2 est terminée localement. T049C, T007B, la recette Auth/MFA distante
+  et les contre-revues externes restent ouvertes. Aucun nouveau passage Claude
+  ni consommation fournisseur ; ne pas élargir l'accord attendu du lot précédent.
+- Documents personnels : le dossier ne lie pas encore une session de suivi
+  à une identité scolaire et une relation parent-enfant. Ne pas assimiler son
+  statut manuel à cette preuve, ni ouvrir la publication sur ce seul statut.
+- 554 tâches : 452 terminées et 102 ouvertes. Ce total ne mesure pas un taux de
+  disponibilité du service. Production, données réelles et notifications inchangées.

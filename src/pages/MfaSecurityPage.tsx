@@ -12,18 +12,13 @@ import {
 import { useAuth } from "../lib/auth-context";
 import { isAgentRole } from "../lib/auth-policy";
 import { supabase } from "../lib/supabase-browser";
+import { safeAuthReturnPath } from "../../shared/auth-return-path";
 
 type Enrollment = {
   factorId: string;
   qrCode: string;
   secret: string;
 };
-
-function safeReturnTo(value: string | null): string {
-  return value?.startsWith("/") && !value.startsWith("//")
-    ? value
-    : "/prototype?view=agent";
-}
 
 function friendlyError(error: unknown): string {
   const message = error instanceof Error ? error.message.toLowerCase() : "";
@@ -38,7 +33,7 @@ export default function MfaSecurityPage() {
     useAuth();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const returnTo = safeReturnTo(searchParams.get("returnTo"));
+  const returnTo = safeAuthReturnPath(searchParams.get("returnTo")) ?? "/prototype?view=agent";
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [verifiedFactorId, setVerifiedFactorId] = useState<string | null>(null);
@@ -161,7 +156,7 @@ export default function MfaSecurityPage() {
     <main className="min-h-screen bg-slate-50 text-slate-950">
       <header className="border-b border-slate-200 bg-white">
         <div className="mx-auto flex max-w-5xl items-center justify-between gap-4 px-5 py-4 sm:px-8">
-          <Link to={returnTo} className="inline-flex items-center gap-2 text-sm font-semibold text-slate-600 hover:text-slate-950">
+          <Link to={isVerifiedNow ? returnTo : "/"} className="inline-flex items-center gap-2 text-sm font-semibold text-slate-600 hover:text-slate-950">
             <ArrowLeft className="h-4 w-4" /> Retour
           </Link>
           <div className="flex items-center gap-2 text-sm font-bold text-primary-500">
@@ -180,7 +175,7 @@ export default function MfaSecurityPage() {
             Protéger l’espace de traitement des demandes
           </h1>
           <p className="mt-4 max-w-2xl text-base leading-7 text-slate-600">
-            Après votre mot de passe, un code temporaire affiché sur votre téléphone confirme que c’est bien vous.
+            Après votre connexion, un code temporaire affiché sur votre téléphone protège l’accès aux dossiers.
           </p>
 
           {error ? (
@@ -199,7 +194,7 @@ export default function MfaSecurityPage() {
                 <BadgeCheck className="h-5 w-5" /> Double vérification confirmée
               </div>
               <p className="mt-2 text-sm leading-6 text-slate-600">
-                Cette session peut accéder aux dossiers sensibles. La vérification sera redemandée lors d’une prochaine connexion.
+                La double vérification est active pour cette session. L’accès aux dossiers dépend aussi des autorisations accordées par le lycée.
               </p>
               <button
                 type="button"
