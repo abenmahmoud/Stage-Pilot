@@ -68,6 +68,8 @@ test("groups durable creation evidence without dropping a persistence boundary",
     route,
     /with inserted_magic_token as \([\s\S]*insert into public\.support_magic_tokens[\s\S]*from inserted_magic_token/
   );
+  assert.match(route, /const accessTokenExpiresAt = new Date\([\s\S]*\)\.toISOString\(\)/);
+  assert.match(route, /\$\{accessTokenExpiresAt\}::timestamptz/);
   assert.match(route, /jsonb_build_object\([\s\S]*'assistantRoutingAttached'/);
   assert.doesNotMatch(route, /tx\.insert\(supportMagicTokens\)/);
 });

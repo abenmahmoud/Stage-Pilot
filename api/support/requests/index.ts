@@ -126,6 +126,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       const requesterJobId = randomUUID();
       const agentJobId = randomUUID();
       const rawAccessToken = opaqueToken();
+      const accessTokenExpiresAt = new Date(
+        Date.now() + SUPPORT_MAGIC_TOKEN_MINUTES * 60 * 1000
+      ).toISOString();
 
       const result = await db.transaction(async (tx) => {
         const session = await getOrCreateDeviceSession(tx, req);
@@ -368,7 +371,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
                 ${emailContact.id}::uuid,
                 ${sha256(rawAccessToken)}::text,
                 'support_access',
-                ${new Date(Date.now() + SUPPORT_MAGIC_TOKEN_MINUTES * 60 * 1000)}::timestamptz
+                ${accessTokenExpiresAt}::timestamptz
               )
               returning id
             )
