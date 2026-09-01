@@ -725,7 +725,7 @@
   L’exécution humaine et T046 restent distinctes et ouvertes.
 - [x] T046C Refuser une matrice Markdown de plus de 100 Ko avant sa lecture dans
   le navigateur, tout en conservant l'import strictement local.
-- [ ] T047 Tester 200 créations simultanées, reprise worker et idempotence des notifications.
+- [x] T047 Tester 200 créations simultanées, reprise worker et idempotence des notifications.
 - [x] T047A Exécuter sur la preview le test nettoyable de 200 transactions de
   création avec concurrence 20 : 200 dossiers, messages, sessions et travaux,
   128,6 créations/s, puis zéro donnée ou file temporaire restante. La reprise
@@ -739,7 +739,13 @@
   préchauffage 20, concurrence 20, 200 créations et 200 rejeux exacts : statuts
   201 puis 200, p95 création 790 ms, p95 rejeu 852 ms, 200 dossiers et 400
   travaux de notification, aucun envoi fournisseur, puis zéro résidu après
-  nettoyage. T047 reste ouverte uniquement pour l’interruption d’un worker réel.
+  nettoyage.
+- [x] T047D Interrompre un consommateur après la prise réelle d'un travail
+  synthétique dans `support_jobs`, puis confirmer sur une seconde connexion la
+  reprise du même `msg_id` après expiration du bail : `read_ct` passe de 1 à 2,
+  aucun dossier ni fournisseur n'est sollicité et la suppression ciblée laisse
+  la file et l'archive sans résidu. Cette preuve de bail complète la politique
+  du worker T047B et l'idempotence HTTP T047C, sans simuler un appel Brevo.
 - [ ] T048 Vérifier mobile 320 px, ordinateur, clavier, lecteur d'écran et installation PWA.
 - [x] T048A Vérifier le portail de preview à 320, 390, 768 et 1 440 px sans
   débordement ni contrôle hors écran, manifeste et service worker actifs,

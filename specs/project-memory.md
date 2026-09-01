@@ -4110,3 +4110,20 @@ taches et analyse de coherence avant une automatisation sensible.
   orpheline, compteur synthétique, travail en file ou travail archivé isolé.
 - T047 reste ouverte uniquement pour une interruption réelle du worker. Les cinq
   domaines comptent désormais 510 tâches Spec Kit.
+
+## 2026-09-01 - Reprise réelle du bail de la file support
+
+- La file PGMQ `support_jobs` de la preview est vide avant la recette. Un travail
+  sonde `worker_recovery_probe`, sans dossier, contact ni fournisseur, est créé
+  avec le marqueur fictif `7a91c84d2f0e6b35`.
+- Un premier consommateur prend le message `3219` avec un bail de trois secondes
+  et `read_ct = 1`, puis sa connexion se termine sans suppression ni archivage.
+  Après 4,5 secondes, une seconde connexion reprend exactement le message `3219`
+  avec `read_ct = 2` et un nouveau bail actif.
+- La suppression ciblée est confirmée dans une transaction séparée : zéro ligne
+  portant le marqueur dans la file, zéro archive et zéro ligne totale dans la
+  file. Aucun appel Brevo, email, dossier ou donnée réelle n'est impliqué.
+- T047 est désormais fermée par la combinaison de la politique de worker T047B,
+  de la charge et de l'idempotence T047C, et de cette preuve de bail T047D. La
+  recette transversale T038 du guichet est également fermée. Les cinq domaines
+  comptent 511 tâches Spec Kit : 410 terminées et 101 ouvertes.

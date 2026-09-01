@@ -512,7 +512,10 @@ l'autorisation de quota définie par le propriétaire.
   travail, les références requises et le jeton temporaire sont contrôlés. Un
   message invalide rejoint l’archive PGMQ ; les échecs valides sont retentés
   quatre fois puis isolés au cinquième. Le `job_id` validé reste la clé Brevo.
-  L’interruption d’un worker réel reste à éprouver.
+  Une prise réelle puis une interruption sont éprouvées par un travail sonde :
+  un second consommateur reprend le même message après expiration du bail avec
+  `read_ct = 2`, puis le nettoyage laisse la file et l'archive à zéro. Aucun
+  appel fournisseur n'est simulé dans cette preuve.
 - Lot N5ZL2 : charge HTTP soutenue du guichet. **Validée sur une preview
   immuable, avec données fictives et sans fournisseur externe** : les fonctions
   Vercel et la base Supabase de preview sont alignées à Paris ; les dimensions
@@ -533,8 +536,8 @@ l'autorisation de quota définie par le propriétaire.
   **Partiellement validé en preview** : 200 transactions concurrentes sans perte
   ni reste après nettoyage, barrière de sécurité complète, build réussi, PWA active,
   Lighthouse accessibilité et navigation agentique à 100, aucun débordement de
-  320 à 1 440 px. Restent la reprise des workers, les écrans agents
-  authentifiés au lecteur d'écran et la restauration.
+  320 à 1 440 px. Restent les écrans agents authentifiés au lecteur d'écran et
+  la restauration distante autorisée.
 
 - Lot N5ZG : paquet fictif de restauration chiffré. **Validé localement** : un
   extrait binaire de base et un objet Storage fictif sont chiffrés séparément,

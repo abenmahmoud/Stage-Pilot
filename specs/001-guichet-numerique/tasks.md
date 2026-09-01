@@ -334,7 +334,11 @@ voir sa réponse dans le dossier. L'agent traite tout depuis une seule file.
 - [x] **T037F** Exclure les contacts desactives des reponses, reserver les
   journaux globaux a un administrateur MFA et exiger `aal2` pour confirmer une
   identite scolaire depuis une source officielle.
-- [ ] **T038** Exécuter tests mobile, desktop, clavier, charge et sécurité.
+- [x] **T038** Exécuter tests mobile, desktop, clavier, charge et sécurité. Les
+  recettes responsive publiques, la navigation clavier du shell agent, la
+  charge HTTP 200 créations + 200 rejeux et la barrière de sécurité complète
+  sont toutes prouvées en preview. Le lecteur d'écran authentifié reste suivi
+  séparément par T048 de la spécification 002.
 - [x] **T038A** Relire les textes du parcours demandeur et agent, remplacer les
   codes internes par des libellés français et vérifier les principaux écrans.
 - [x] **T038B** Vérifier le nouveau parcours d'aide sur ordinateur et téléphone,
