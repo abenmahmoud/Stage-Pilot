@@ -16,6 +16,7 @@ import {
 import { enforceAgentWriteRateLimit } from "../../../../_shared/support-rate-limits.js";
 import { readBoundedBlobBytes } from "../../../../../shared/bounded-blob.js";
 import { singleSupportAgentRouteValue } from "../../../../../shared/support-agent-mutation-input-policy.js";
+import { isSupportAttachmentConfirmationPayload } from "../../../../../shared/support-public-mutation-payload-policy.js";
 
 const MAX_FILE_BYTES = 10 * 1024 * 1024;
 
@@ -33,6 +34,18 @@ function detectMime(bytes: Buffer, declaredMime: string): string | null {
   }
   if (declaredMime === "text/plain" && !bytes.includes(0)) return "text/plain";
   return null;
+}
+
+function attachmentConfirmationPayload(
+  attachmentId: string,
+  scanStatus: string,
+  duplicate: boolean
+) {
+  const payload = { attachment: { id: attachmentId, scanStatus }, duplicate };
+  if (!isSupportAttachmentConfirmationPayload(payload, attachmentId)) {
+    throw new HttpError(503, "La confirmation du fichier est invalide");
+  }
+  return payload;
 }
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
@@ -69,7 +82,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (!attachment) throw new HttpError(404, "Pièce jointe introuvable");
     assertSupportRequestAccess(access, attachment.assignedTeam);
     if (attachment.scanStatus !== "awaiting_upload") {
-      return { attachment: { id: attachment.id, scanStatus: attachment.scanStatus }, duplicate: true };
+      if (attachment.scanStatus !== "quarantine" && attachment.scanStatus !== "clean") {
+        throw new HttpError(422, "Le contenu du fichier n'est pas accepté");
+      }
+      return attachmentConfirmationPayload(attachment.id, attachment.scanStatus, true);
     }
 
     const { data: file, error: downloadError } = await supabaseAdmin.storage
@@ -146,14 +162,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     });
 
     if (confirmation.duplicate) {
-      return {
-        attachment: { id: attachment.id, scanStatus: confirmation.scanStatus },
-        duplicate: true,
-      };
+      if (confirmation.scanStatus !== "quarantine" && confirmation.scanStatus !== "clean") {
+        throw new HttpError(422, "Le contenu du fichier n'est pas accepté");
+      }
+      return attachmentConfirmationPayload(attachment.id, confirmation.scanStatus, true);
     }
     if (!accepted) throw new HttpError(422, "Le contenu du fichier n'est pas accepté");
     res.status(202);
-    return { attachment: { id: attachment.id, scanStatus }, duplicate: false };
+    return attachmentConfirmationPayload(attachment.id, scanStatus, false);
   });
 }
 

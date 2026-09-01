@@ -441,6 +441,10 @@
   lié à la clôture, pièces uniques, modèle sécurisé et traduction signée à
   champs exacts. Refuser toute commande invalide avant la première lecture du
   dossier sans modifier les règles métier ou l'idempotence existantes.
+- [x] T027B24 Fermer la confirmation d'une pièce agent sur le contrat exact du
+  navigateur : identifiant lié, état `quarantine` ou `clean` seulement et
+  booléen de rejeu. Transformer tout état bloqué, en erreur ou en retrait en
+  refus explicite au lieu d'annoncer une réussite ambiguë.
 - [ ] T027B2 Ajouter les relances internes et l'escalade après validation des
   délais propres à chaque service et des responsables à notifier.
 - [ ] T027C Créer les adhésions de service puis appliquer le périmètre dans les

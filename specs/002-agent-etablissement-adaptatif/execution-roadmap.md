@@ -790,6 +790,11 @@ l'autorisation de quota définie par le propriétaire.
   principale. Archives chiffrées, chemins ambigus, doublons, macros, objets
   embarqués et contenus actifs sont bloqués. Neuf contrôles ciblés et le build
   passent. T019B2 est terminée.
+- Lot N5ZZT : confirmation de pièce agent. **Fermée sans fichier réel ni action
+  externe** : chaque réponse serveur passe par le contrat exact déjà vérifié par
+  le navigateur. Seuls les états quarantaine ou propre peuvent confirmer un
+  dépôt ou son rejeu ; les états bloqué, erreur et retrait retournent un refus
+  explicite. Six contrôles ciblés et le build passent. T027B24 est terminée.
 
 ## Prochaine séquence verrouillée
 

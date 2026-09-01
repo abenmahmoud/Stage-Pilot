@@ -3999,3 +3999,16 @@ taches et analyse de coherence avant une automatisation sensible.
   fichier réel, base distante, production, DNS, VPS, ENT, PRONOTE ou webmail.
 - La porte de sécurité complète et l'intégrité des 503 tâches Spec Kit passent.
   Les audits de l'application et du worker retournent chacun zéro vulnérabilité.
+
+## 2026-09-01 - Confirmation des pièces agent sans réussite ambiguë
+
+- T027B24 aligne la route agent sur le contrat exact déjà partagé avec le
+  navigateur : identifiant attendu, état quarantaine ou propre et booléen de
+  rejeu, sans champ interne supplémentaire.
+- Une pièce bloquée, en erreur d'analyse ou en retrait ne peut plus être renvoyée
+  comme une confirmation réussie ; la route répond par un refus explicite avant
+  que l'interface ne mette à jour sa sélection.
+- Six contrôles ciblés et le build passent sans fichier réel, base distante,
+  production, DNS, VPS, ENT, PRONOTE, webmail ou envoi externe.
+- La porte de sécurité complète, l'intégrité des 504 tâches Spec Kit et l'audit
+  des dépendances passent ; ce dernier retourne zéro vulnérabilité.

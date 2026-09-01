@@ -55,6 +55,23 @@ test("confirms a concurrent upload only once", () => {
   assert.match(confirmationRoute, /return \{ scanStatus: current\.scanStatus, duplicate: true \}/);
 });
 
+test("returns only the exact browser confirmation for accepted scan states", () => {
+  assert.match(confirmationRoute, /isSupportAttachmentConfirmationPayload\(payload, attachmentId\)/);
+  assert.match(confirmationRoute, /throw new HttpError\(503, "La confirmation du fichier est invalide"\)/);
+  assert.match(
+    confirmationRoute,
+    /attachment\.scanStatus !== "quarantine" && attachment\.scanStatus !== "clean"[\s\S]*throw new HttpError\(422/
+  );
+  assert.match(
+    confirmationRoute,
+    /confirmation\.scanStatus !== "quarantine" && confirmation\.scanStatus !== "clean"[\s\S]*throw new HttpError\(422/
+  );
+  assert.equal(
+    confirmationRoute.match(/return attachmentConfirmationPayload\(/g)?.length,
+    3
+  );
+});
+
 test("the browser keeps one key through lost responses and partial batches", () => {
   const upload = page.slice(
     page.indexOf("type AgentUploadSubmission"),
