@@ -37,6 +37,22 @@ La direction doit se connecter, créer un brouillon fictif, le soumettre puis le
 publier. Cette étape confirme le rôle réel du compte et le parcours complet sans
 introduire nous-mêmes de contenu présenté comme officiel.
 
+## Complément du 1er septembre 2026 - contrats d'administration
+
+- La bibliothèque, la fiche éditable et l'historique sont plafonnés dès les
+  requêtes puis projetés sur des champs strictement nécessaires.
+- Le navigateur refuse une réponse contenant un acteur, un chemin de stockage,
+  un champ inconnu, un doublon, une URL signée étrangère ou un ordre incohérent.
+- Création, modification, validation, publication, archivage, duplication,
+  restauration et vérification de source renvoient un reçu minimal lié à
+  l'identifiant, l'action, l'état et la version attendus.
+- Sept tests adverses et vingt-six tests historiques liés aux contenus passent
+  sans donnée réelle, base distante, upload, publication ou envoi externe.
+- La barrière de sécurité complète, l'intégrité des 516 tâches Spec Kit, le
+  build et `npm audit --omit=dev` passent ; aucune vulnérabilité n'est détectée.
+- Les réservations et confirmations de fichiers, les modèles, l'assistance IA
+  et la reprise de l'ancien site feront l'objet du sous-lot de contrats suivant.
+
 ## Liens preview
 
 - Portail : https://lyceegest-git-codex-lycee-connect-prototype-safe-scol.vercel.app/prototype

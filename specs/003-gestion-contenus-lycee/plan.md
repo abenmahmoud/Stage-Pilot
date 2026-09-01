@@ -34,6 +34,9 @@
 - Rôles tirés de `app_metadata`, jamais de métadonnées modifiables par l'usager.
 - Aucune suppression physique dans les routes V1.
 - Validation stricte des longueurs, types, slugs, statuts et dates.
+- Les réponses d'administration sont projetées aux seuls champs de l'écran et
+  validées avant tout remplacement d'état ou message de réussite ; acteurs,
+  chemins privés et métadonnées SQL restent côté serveur.
 - Fichiers privés, types et tailles limités, noms de stockage aléatoires.
 - Contenu Markdown rendu sans HTML brut afin d'éviter les scripts injectés.
 - Liens publics signés et courts ; un brouillon ne reçoit aucun lien public.

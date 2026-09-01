@@ -10,6 +10,11 @@ import {
   siteContentVersions,
 } from "../../../db/schema.js";
 import { parseSiteContentInput } from "../../../shared/site-content.js";
+import {
+  SITE_CONTENT_ADMIN_PAYLOAD_LIMITS,
+  projectSiteContentAdminListPayload,
+  projectSiteContentAdminMutationPayload,
+} from "../../../shared/site-content-admin-payload.js";
 import { HttpError } from "../../_shared/auth.js";
 import { contentSnapshot, inputError, requireSiteEditor } from "../../_shared/site-content.js";
 import { handleApi, methodNotAllowed } from "../../_shared/response.js";
@@ -30,11 +35,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return handleApi(res, async () => {
       await requireSiteEditor(req);
       const [items, templates, assets] = await Promise.all([
-        db.select().from(siteContentItems).orderBy(desc(siteContentItems.updatedAt)).limit(250),
-        db.select().from(siteContentTemplates).orderBy(desc(siteContentTemplates.active), siteContentTemplates.name),
-        db.select().from(siteContentAssets).orderBy(desc(siteContentAssets.createdAt)).limit(250),
+        db.select().from(siteContentItems).orderBy(desc(siteContentItems.updatedAt)).limit(SITE_CONTENT_ADMIN_PAYLOAD_LIMITS.items),
+        db.select().from(siteContentTemplates).orderBy(desc(siteContentTemplates.active), siteContentTemplates.name).limit(SITE_CONTENT_ADMIN_PAYLOAD_LIMITS.templates),
+        db.select().from(siteContentAssets).orderBy(desc(siteContentAssets.createdAt)).limit(SITE_CONTENT_ADMIN_PAYLOAD_LIMITS.assets),
       ]);
-      return { items, templates, assets };
+      return projectSiteContentAdminListPayload({ items, templates, assets });
     });
   }
 
@@ -94,7 +99,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           actorId: user.id,
           summary: { version: 1, status: "brouillon" },
         });
-        return { item };
+        return projectSiteContentAdminMutationPayload(item, "create");
       });
     });
   }

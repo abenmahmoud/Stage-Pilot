@@ -8,6 +8,13 @@ import { apiFetch } from "../../lib/api";
 import { useAuth } from "../../lib/auth-context";
 import { supabase } from "../../lib/supabase-browser";
 import { PublicContentMarkdown } from "../../components/PublicContentMarkdown";
+import {
+  parseSiteContentAdminDetailPayload,
+  parseSiteContentAdminListPayload,
+  parseSiteContentAdminMutationPayload,
+  type SiteContentAdminSummary,
+  type SiteContentMutationAction,
+} from "../../../shared/site-content-admin-payload";
 
 type ContentType = "article" | "alerte" | "page" | "document";
 type ContentStatus = "brouillon" | "a_valider" | "publie" | "archive";
@@ -15,16 +22,7 @@ type Audience = "tous" | "eleves" | "parents" | "personnels" | "professeurs";
 type Tab = "contenus" | "documents" | "modeles";
 type ReviewFilter = "all" | "pending" | "ready";
 
-type Item = {
-  id: string; contentType: ContentType; slug: string; title: string; summary: string;
-  bodyMarkdown: string; category: string; audience: Audience; status: ContentStatus;
-  templateId: string | null; featured: boolean; metaTitle: string | null;
-  metaDescription: string | null; publishAt: string | null; expiresAt: string | null;
-  publishedAt: string | null; version: number; publishedVersion: number | null; updatedAt: string;
-  sourceSystem: string | null; sourceUrl: string | null; sourceUpdatedAt: string | null;
-  sourceDisposition: "durable" | "archive" | "a_confirmer" | null;
-  needsReview: boolean; importedAt: string | null; reviewedAt: string | null;
-};
+type Item = SiteContentAdminSummary;
 
 type Asset = {
   id: string; originalName: string; mimeType: string; sizeBytes: number;
@@ -159,7 +157,9 @@ export default function ContentManagerPage() {
   async function load(selectId?: string) {
     setLoading(true);
     try {
-      const data = await apiFetch<{ items: Item[]; templates: Template[]; assets: Asset[] }>("content/admin");
+      const response = await apiFetch<unknown>("content/admin");
+      const data = parseSiteContentAdminListPayload(response);
+      if (!data) throw new Error("La bibliothèque de contenus a renvoyé une réponse invalide");
       setItems(data.items); setTemplates(data.templates); setAssets(data.assets.filter((asset) => asset.status === "ready"));
       if (selectId) await openItem(selectId);
     } catch (reason) { setError(reason instanceof Error ? reason.message : "Chargement impossible"); }
@@ -169,7 +169,13 @@ export default function ContentManagerPage() {
   async function openItem(id: string) {
     setBusy(true); setError("");
     try {
-      const data = await apiFetch<{ item: Item; assets: Asset[]; versions: Version[] }>(`content/admin/${id}`);
+      const response = await apiFetch<unknown>(`content/admin/${id}`);
+      const env = import.meta.env as Record<string, string | undefined>;
+      const data = parseSiteContentAdminDetailPayload(response, {
+        itemId: id,
+        configuredOrigin: env.VITE_SUPABASE_URL ?? env.NEXT_PUBLIC_SUPABASE_URL,
+      });
+      if (!data) throw new Error("Le contenu demandé a renvoyé une réponse invalide");
       const item = data.item;
       setAssets((current) => {
         const linkedIds = new Set(data.assets.map((asset) => asset.id));
@@ -268,10 +274,13 @@ export default function ContentManagerPage() {
   async function save() {
     setBusy(true); setError(""); setNotice("");
     try {
-      const result = await apiFetch<{ item: Item }>(draft.id ? `content/admin/${draft.id}` : "content/admin", {
+      const action: SiteContentMutationAction = draft.id ? "update" : "create";
+      const response = await apiFetch<unknown>(draft.id ? `content/admin/${draft.id}` : "content/admin", {
         method: draft.id ? "PATCH" : "POST", body: JSON.stringify(payload()),
       });
-      setNotice("Brouillon enregistré. La version précédente est conservée."); await load(result.item.id);
+      const result = parseSiteContentAdminMutationPayload(response, { action, itemId: draft.id ?? undefined });
+      if (!result) throw new Error("L’enregistrement a renvoyé une réponse invalide");
+      setNotice("Brouillon enregistré. La version précédente est conservée."); await load(result.itemId);
     } catch (reason) { setError(reason instanceof Error ? reason.message : "Enregistrement impossible"); }
     finally { setBusy(false); }
   }
@@ -282,9 +291,11 @@ export default function ContentManagerPage() {
     if (question && !window.confirm(question)) return;
     setBusy(true); setError("");
     try {
-      const result = await apiFetch<{ item: Item }>(`content/admin/${draft.id}/action`, { method: "POST", body: JSON.stringify({ action, version }) });
+      const response = await apiFetch<unknown>(`content/admin/${draft.id}/action`, { method: "POST", body: JSON.stringify({ action, version }) });
+      const result = parseSiteContentAdminMutationPayload(response, { action, itemId: draft.id });
+      if (!result) throw new Error("L’action a renvoyé une réponse invalide");
       setNotice(action === "publish" ? "Contenu publié." : action === "submit_review" ? "Contenu envoyé à la direction pour validation." : action === "verify_source" ? "Reprise vérifiée. Le contenu peut maintenant être publié." : "Action terminée.");
-      await load(result.item.id);
+      await load(result.itemId);
     } catch (reason) { setError(reason instanceof Error ? reason.message : "Action impossible"); }
     finally { setBusy(false); }
   }

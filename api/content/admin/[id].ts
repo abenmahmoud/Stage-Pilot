@@ -9,6 +9,11 @@ import {
   siteContentVersions,
 } from "../../../db/schema.js";
 import { parseSiteContentInput } from "../../../shared/site-content.js";
+import {
+  SITE_CONTENT_ADMIN_PAYLOAD_LIMITS,
+  projectSiteContentAdminDetailPayload,
+  projectSiteContentAdminMutationPayload,
+} from "../../../shared/site-content-admin-payload.js";
 import { HttpError } from "../../_shared/auth.js";
 import {
   contentSnapshot,
@@ -44,7 +49,8 @@ async function linkedAssets(contentId: string) {
     .from(siteContentAssetLinks)
     .innerJoin(siteContentAssets, eq(siteContentAssets.id, siteContentAssetLinks.assetId))
     .where(eq(siteContentAssetLinks.contentId, contentId))
-    .orderBy(siteContentAssetLinks.position);
+    .orderBy(siteContentAssetLinks.position)
+    .limit(SITE_CONTENT_ADMIN_PAYLOAD_LIMITS.linkedAssets);
   return Promise.all(
     rows.map(async ({ storagePath, ...asset }) => ({
       ...asset,
@@ -82,9 +88,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           })
           .from(siteContentVersions)
           .where(eq(siteContentVersions.contentId, id))
-          .orderBy(desc(siteContentVersions.version)),
+          .orderBy(desc(siteContentVersions.version))
+          .limit(SITE_CONTENT_ADMIN_PAYLOAD_LIMITS.versions),
       ]);
-      return { item, assets, versions };
+      const configuredOrigin = process.env.NEXT_PUBLIC_SUPABASE_URL ?? process.env.VITE_SUPABASE_URL;
+      return projectSiteContentAdminDetailPayload({ item, assets, versions }, configuredOrigin);
     });
   }
 
@@ -157,7 +165,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           actorId: user.id,
           summary: { version, status },
         });
-        return { item };
+        return projectSiteContentAdminMutationPayload(item, "update", id);
       });
     });
   }

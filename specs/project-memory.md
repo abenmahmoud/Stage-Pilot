@@ -4193,3 +4193,20 @@ taches et analyse de coherence avant une automatisation sensible.
   build passent sans donnée réelle, base distante, publication ou retrait réel.
 - Les cinq domaines comptent désormais 515 tâches Spec Kit : 414 terminées et
   101 ouvertes.
+
+## 2026-09-01 - Contrats principaux de l'éditeur de contenus fermés
+
+- T007A remplace les lignes SQL renvoyées par la bibliothèque, le détail et les
+  actions éditoriales par des projections minimales à champs exacts.
+- La liste contient uniquement les résumés utiles, les modèles éditoriaux et la
+  bibliothèque de médias sans chemin privé. Le détail conserve le brouillon,
+  les liaisons de médias signées et cent versions au maximum, sans acteur.
+- Le navigateur valide UUID, dates ISO, limites, ordre, doublons, origine des
+  liens signés et cohérences de mutation avant de modifier son état ou afficher
+  un succès. Les huit actions sont liées à leur cible et à leur état attendu.
+- Sept tests adverses et vingt-six tests historiques passent sans donnée réelle,
+  base distante, upload ou publication. La barrière complète, le build et
+  l'audit des dépendances passent sans vulnérabilité détectée. Les contrats des
+  fichiers, modèles, suggestions IA et imports hérités restent le sous-lot suivant.
+- Les cinq domaines comptent désormais 516 tâches Spec Kit : 415 terminées et
+  101 ouvertes.

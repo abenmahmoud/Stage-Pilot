@@ -10,6 +10,7 @@ import {
   siteContentVersions,
 } from "../../../../db/schema.js";
 import { parseSiteContentInput } from "../../../../shared/site-content.js";
+import { projectSiteContentAdminMutationPayload } from "../../../../shared/site-content-admin-payload.js";
 import {
   siteContentActionAccess,
   siteContentStatusAllowsAction,
@@ -86,7 +87,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         actorId: user.id,
         summary: { sourceSystem: current.sourceSystem, sourceUpdatedAt: current.sourceUpdatedAt },
       });
-      return { item };
+      return projectSiteContentAdminMutationPayload(item, action, id);
     }
 
     if (action === "submit_review") {
@@ -102,7 +103,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         actorId: user.id,
         summary: { version: current.version },
       });
-      return { item };
+      return projectSiteContentAdminMutationPayload(item, action, id);
     }
 
     if (action === "publish") {
@@ -137,7 +138,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         actorId: user.id,
         summary: { version: current.version, publishAt: current.publishAt, expiresAt: current.expiresAt },
       });
-      return { item };
+      return projectSiteContentAdminMutationPayload(item, action, id);
     }
 
     if (action === "archive") {
@@ -153,7 +154,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         actorId: user.id,
         summary: { publishedVersion: current.publishedVersion },
       });
-      return { item };
+      return projectSiteContentAdminMutationPayload(item, action, id);
     }
 
     const links = await contentLinks(id);
@@ -211,7 +212,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           actorId: user.id,
           summary: { sourceId: id },
         });
-        return { item };
+        return projectSiteContentAdminMutationPayload(item, action, id);
       });
     }
 
@@ -286,7 +287,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         actorId: user.id,
         summary: { restoredVersion: requestedVersion, version: nextVersion },
       });
-      return { item };
+      return projectSiteContentAdminMutationPayload(item, action, id);
     });
   });
 }

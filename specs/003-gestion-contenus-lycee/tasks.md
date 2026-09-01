@@ -12,6 +12,9 @@
 - [x] T005 Ajouter modèles initiaux sans contenu annuel non validé.
 - [x] T006 Construire les validateurs partagés.
 - [x] T007 Construire les API internes liste, création, modification et détail.
+- [x] T007A Fermer les réponses internes de liste, détail et actions avec des
+  projections minimales côté serveur et des contrats runtime exacts côté
+  navigateur, liés au contenu, à l'action et à l'état attendus.
 - [x] T008 Construire publication, archivage, duplication et restauration.
 - [x] T009 Construire dépôt signé et confirmation des images/documents.
 - [x] T010 Construire l'API publique des contenus publiés valides.
