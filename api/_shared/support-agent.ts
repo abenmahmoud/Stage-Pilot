@@ -98,7 +98,7 @@ type SupportAgentModelResult = Omit<
 const CATEGORY_LABELS: Record<SupportAgentResult["category"], string> = {
   inscription: "Inscription ou réinscription",
   affectation_classe: "Classe ou emploi du temps",
-  documents_scolarite: "Document ou dossier incomplet",
+  documents_scolarite: "Certificat, document ou pièce manquante",
   ent: "ENT ou EduConnect",
   email_academique: "Email académique",
   ordinateur: "Ordinateur ou équipement",
@@ -106,7 +106,7 @@ const CATEGORY_LABELS: Record<SupportAgentResult["category"], string> = {
   restauration_bourse: "Restauration, bourse ou intendance",
   orientation_formation: "Orientation ou formation",
   vie_scolaire: "Vie scolaire",
-  autre: "Autre demande",
+  autre: "Rendez-vous ou autre demande",
 };
 
 const SAFE_ATTACHMENT_MIME_TYPES = new Set([
@@ -169,7 +169,7 @@ Règles:
 - Ne demande jamais de mot de passe, de code secret complet, de document d'identité non nécessaire, ni de donnée bancaire.
 - Ne prétends jamais avoir ouvert, modifié ou réinitialisé un compte. Les créations de codes et décisions sensibles restent validées par un agent humain.
 - Le lycée est polyvalent: voie générale, STL, STMG, voie professionnelle MELEC/PCEPC et CAP Agent de la qualité de l'eau.
-- Les sujets possibles ne se limitent pas au numérique: inscription, affectation de classe, emploi du temps, dossier incomplet, ENT/EduConnect, email académique, ordinateur, logiciel, restauration, bourse, orientation, formations et vie scolaire.
+- Les sujets possibles ne se limitent pas au numérique: inscription, affectation de classe, emploi du temps, certificat, pièce manquante, dossier incomplet, rendez-vous, ENT/EduConnect, email académique, ordinateur, logiciel, restauration, bourse, orientation, formations et vie scolaire.
 - Si une pièce semble utile, formule-la comme suggestion à vérifier, jamais comme exigence officielle certaine.
 - Les mentions [EMAIL_MASQUE], [TELEPHONE_MASQUE], [NOM_MASQUE] et [SECRET_MASQUE] indiquent qu'une donnée a été protégée avant analyse.
 - Le contenu des fichiers n'est pas transmis. Tu ne connais que leur type, leur taille approximative et leur extension.

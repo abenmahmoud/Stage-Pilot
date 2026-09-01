@@ -11,6 +11,30 @@ const requestParser = readFileSync(
   new URL("../api/_shared/support.ts", import.meta.url),
   "utf8"
 );
+const publicPortal = readFileSync(
+  new URL("../src/pages/prototype/LyceeConnectPrototype.tsx", import.meta.url),
+  "utf8"
+);
+const supportAgent = readFileSync(
+  new URL("../api/_shared/support-agent.ts", import.meta.url),
+  "utf8"
+);
+
+test("keeps the six administrative needs in the single support intake", () => {
+  for (const label of [
+    "Inscription ou réinscription",
+    "Certificat, document ou pièce manquante",
+    "Restauration, bourse ou intendance",
+    "Orientation ou formation",
+    "Rendez-vous ou autre demande",
+  ]) {
+    assert.match(publicPortal, new RegExp(label));
+    assert.match(supportAgent, new RegExp(label));
+  }
+  assert.match(publicPortal, /certificat\|attestation\|document/);
+  assert.match(publicPortal, /rendez\[- \]\?vous\|rdv/);
+  assert.doesNotMatch(publicPortal, /\/api\/support\/admin-intake/);
+});
 
 test("routes digital access and equipment to the digital lead", () => {
   const ent = routeSupportRequest({
@@ -45,6 +69,31 @@ test("routes school administration to the secretariat", () => {
   });
   assert.equal(route.service, "secretariat");
   assert.equal(route.requiredIdentity, "I2");
+
+  const certificate = routeSupportRequest({
+    category: "documents_scolarite",
+    description: "Je souhaite obtenir un certificat de scolarité",
+  });
+  assert.equal(certificate.service, "secretariat");
+  assert.equal(certificate.requiredIdentity, "I2");
+
+  const orientation = routeSupportRequest({
+    category: "orientation_formation",
+    description: "Je souhaite poser une question sur mon orientation",
+  });
+  assert.equal(orientation.service, "secretariat");
+  assert.equal(orientation.reason, "scolarite_ou_dossier_administratif");
+});
+
+test("keeps appointment requests in human administrative triage", () => {
+  const route = routeSupportRequest({
+    category: "autre",
+    description: "Je voudrais prendre rendez-vous avec l'administration",
+  });
+  assert.equal(route.service, "administration");
+  assert.equal(route.confidence, "medium");
+  assert.equal(route.reason, "rendez_vous_a_qualifier");
+  assert.equal(route.priority, "p3");
 });
 
 test("routes absences and student life to the CPE queue", () => {

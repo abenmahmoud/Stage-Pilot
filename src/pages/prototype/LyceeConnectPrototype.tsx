@@ -204,7 +204,7 @@ function forgetSupportAssistantDevice(): void {
 const supportCategories = [
   { value: "inscription", label: "Inscription ou réinscription" },
   { value: "affectation_classe", label: "Classe ou emploi du temps" },
-  { value: "documents_scolarite", label: "Document ou dossier incomplet" },
+  { value: "documents_scolarite", label: "Certificat, document ou pièce manquante" },
   { value: "ent", label: "ENT ou EduConnect" },
   { value: "email_academique", label: "Email académique" },
   { value: "ordinateur", label: "Ordinateur ou équipement" },
@@ -212,7 +212,7 @@ const supportCategories = [
   { value: "restauration_bourse", label: "Restauration, bourse ou intendance" },
   { value: "orientation_formation", label: "Orientation ou formation" },
   { value: "vie_scolaire", label: "Vie scolaire" },
-  { value: "autre", label: "Autre demande" },
+  { value: "autre", label: "Rendez-vous ou autre demande" },
 ] as const;
 
 type SupportCategory = (typeof supportCategories)[number]["value"];
@@ -1163,12 +1163,13 @@ function inferSupportCategory(text: string): SupportCategory {
   if (/\b(ent|educonnect|connexion|connecter|identifiant|code)\b/i.test(text)) return "ent";
   if (/\b(email|mail|webmail|zimbra|académique|academique)\b/i.test(text)) return "email_academique";
   if (/\b(classe|affectation|emploi du temps|edt|prochain cours|mon cours|quelle salle|dans quelle salle|changement de salle)\b/i.test(text)) return "affectation_classe";
-  if (/\b(document|pièce|piece|dossier|justificatif|manque)\b/i.test(text)) return "documents_scolarite";
+  if (/\b(certificat|attestation|document|pièce|piece|dossier|justificatif|manque)\b/i.test(text)) return "documents_scolarite";
   if (/\b(pc|ordinateur|portable|tablette|chargeur)\b/i.test(text)) return "ordinateur";
   if (/\b(logiciel|application|wifi|réseau|reseau)\b/i.test(text)) return "logiciel";
   if (/\b(cantine|restauration|bourse|intendance|paiement)\b/i.test(text)) return "restauration_bourse";
   if (/\b(orientation|formation|spécialité|specialite|parcoursup)\b/i.test(text)) return "orientation_formation";
   if (/\b(absence|retard|vie scolaire|cpe|surveillant)\b/i.test(text)) return "vie_scolaire";
+  if (/\b(rendez[- ]?vous|rdv|être reçu|etre recu|rencontrer)\b/i.test(text)) return "autre";
   return "autre";
 }
 

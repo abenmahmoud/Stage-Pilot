@@ -145,6 +145,17 @@ export function routeSupportRequest(input: {
       priority: /\bincident grave\b/.test(text) ? "p2" : "p3",
     };
   }
+  if (
+    /\b(rendez[- ]?vous|rdv|prendre rendez[- ]?vous|etre recu|rencontrer (le|la|un|une) (secretariat|administration|cpe|proviseur))\b/.test(text)
+  ) {
+    return {
+      service: "administration",
+      confidence: "medium",
+      reason: "rendez_vous_a_qualifier",
+      requiredIdentity: identity,
+      priority: "p3",
+    };
+  }
 
   const categoryService = CATEGORY_SERVICES[input.category];
   return {

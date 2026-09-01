@@ -4475,3 +4475,18 @@ taches et analyse de coherence avant une automatisation sensible.
   Aucun appel distant, aucune correction et aucune publication ne sont exécutés.
 - Les cinq domaines comptent désormais 536 tâches Spec Kit : 434 terminées et
   102 ouvertes.
+
+### Jalon du 1er septembre 2026 - démarches administratives dans le guichet unique
+
+- Inscription, pièce manquante, certificat de scolarité, bourse, orientation et
+  rendez-vous utilisent désormais le parcours public déjà sécurisé : conversation
+  libre ou formulaire, contact, numéro de dossier, pièces privées et suivi.
+- Les catégories certaines rejoignent secrétariat ou intendance. Un rendez-vous
+  générique est attribué à l'administration avec une confiance moyenne afin de
+  laisser un humain choisir le destinataire ; aucune priorité urgente n'est
+  inventée.
+- Aucun second endpoint, système de suivi, email réel ou donnée réelle n'est
+  ajouté. Le premier jet externe qui dupliquait la création des demandes n'a pas
+  été intégré.
+- Les cinq domaines comptent toujours 536 tâches Spec Kit : 435 terminées et
+  101 ouvertes.

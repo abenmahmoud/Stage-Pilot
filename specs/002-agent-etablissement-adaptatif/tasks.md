@@ -632,7 +632,11 @@
 - [ ] T031 Faire valider et publier `administration-scolarite` avec les procédures locales.
 - [ ] T032 Faire valider et publier `referent-numerique` avec l'annuaire d'escalade.
 - [ ] T033 Faire valider et publier `coordination-etablissement` avec les règles d'urgence.
-- [ ] T034 Ajouter inscription, pièces manquantes, certificat, bourse, orientation et rendez-vous.
+- [x] T034 Ajouter inscription, pièces manquantes, certificat, bourse, orientation et rendez-vous.
+  Les six besoins sont désormais reconnus dans la conversation et visibles dans
+  le formulaire classique. Ils réutilisent le dossier, les pièces privées, le
+  suivi sur appareil et les files existantes ; un rendez-vous générique reste
+  confié au tri humain de l'administration sans créer un second guichet.
 - [ ] T035 Ajouter ENT, PRONOTE, messagerie académique, équipement et réseau.
 - [x] T035A Créer le brouillon `pc-portable`, le pré-triage déterministe et ses
   tests sans inventer de procédure locale de réparation.

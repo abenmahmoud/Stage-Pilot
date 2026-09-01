@@ -918,6 +918,15 @@ l'autorisation de quota définie par le propriétaire.
   de secret et l'existence de chaque commande locale. T057D est terminée ; T057
   reste ouverte pour l'exploitation externe validée.
 
+- Lot N5ZZZ4 : accueil des démarches administratives de rentrée. **Fermé dans le
+  guichet unique existant** : inscription, pièce manquante, certificat, bourse,
+  orientation et rendez-vous sont reconnus par la conversation et présentés
+  dans le formulaire classique. Chaque envoi conserve le même numéro, la même
+  conversation, les mêmes pièces privées et le même suivi. Un rendez-vous sans
+  destinataire certain rejoint le tri humain de l'administration ; aucune route
+  parallèle, notification réelle ou décision administrative n'est ajoutée.
+  T034 est terminée.
+
 ## Prochaine séquence verrouillée
 
 1. Conserver `BC-2026-000009` comme preuve fictive de recette jusqu'à la décision
