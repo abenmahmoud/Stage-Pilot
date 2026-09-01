@@ -58,6 +58,10 @@ Elle ne contient jamais expéditeur, destinataire, objet, corps, nom de fichier
 original ou jeton fournisseur. Le cycle autorisé est fermé : `reserved`,
 `quarantine`, puis `clean`, `blocked`, `scan_error` ou `purged`. Un objet propre
 exige une preuve machine `clamav_clean` et un passage préalable en quarantaine.
+La réservation verrouille l'entrant parent avant de compter les objets déjà
+présents : un entrant ne peut dépasser vingt-et-un objets ni 26 Mo, y compris
+si plusieurs traitements arrivent en parallèle. Une référence déjà connue est
+un rejeu seulement si type, média et taille correspondent exactement.
 
 ### `communication_inbound_object_events`
 
@@ -79,7 +83,10 @@ Les buckets `communication-inbound-quarantine` et
 PGMQ `communication_inbound_scan` est privée et sans privilège client. Aucun de
 ces composants n'est raccordé au webhook tant que le téléchargement fournisseur,
 le worker ClamAV et la recette propre/EICAR ne sont pas validés. La durée de
-conservation reste à décider avant toute activation réelle.
+conservation reste à décider avant toute activation réelle. La file ne reçoit
+que la version de contrat, le type de travail et les trois identifiants opaques
+établissement/entrant/objet. Elle ne reçoit ni chemin, jeton, coordonnées, nom
+de fichier ou contenu. État, événement et mise en file partagent la transaction.
 
 ### `communication_events`
 

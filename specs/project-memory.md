@@ -4643,3 +4643,22 @@ taches et analyse de coherence avant une automatisation sensible.
 - Le webhook, Brevo, ClamAV, les fichiers réels, les secrets et la production
   restent fermés. Les cinq domaines comptent désormais 545 tâches Spec Kit :
   446 terminées et 99 ouvertes.
+
+### Jalon du 1er septembre 2026 - réservation transactionnelle des entrants
+
+- Le serveur sait désormais réserver les corps et pièces jointes opaques avant
+  téléchargement, sans conserver un jeton Brevo, un nom de fichier, une adresse
+  ou un contenu utilisateur.
+- L'entrant parent est verrouillé pendant le calcul des plafonds cumulatifs :
+  vingt-et-un objets, 10 Mo par objet et 26 Mo au total. Ce contrôle ferme aussi
+  les dépassements produits par plusieurs réservations concurrentes.
+- Une confirmation exacte réalise dans une seule transaction le passage en
+  quarantaine, l'événement append-only et une tâche PGMQ minimale. Le rejeu ne
+  crée pas une seconde tâche et une panne forcée annule l'ensemble.
+- La recette fictive passe sur la preview `xijocumlwivhbmffrnlj` et laisse cinq
+  résidus nuls. Claude Fable 5 a été lancé une fois en lecture seule mais a
+  atteint son plafond d'environ 1,04 dollar sans rapport final ; aucune relance
+  n'a été faite.
+- Le webhook, le téléchargement Brevo, ClamAV, les données réelles et la
+  production restent fermés. Les cinq domaines comptent désormais 546 tâches
+  Spec Kit : 447 terminées et 99 ouvertes.

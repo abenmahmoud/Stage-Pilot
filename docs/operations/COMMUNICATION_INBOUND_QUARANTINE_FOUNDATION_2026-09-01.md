@@ -56,10 +56,25 @@ l'erreur attendue. Elle passe sur la preview et revient encore à cinq résidus
 nuls. Les migrations `160000`, `161000` et `170000` forment une chaîne additive
 ordonnée et ne doivent pas être appliquées isolément.
 
+## Réservation transactionnelle
+
+Le pont serveur réserve maintenant les objets sans conserver le jeton Brevo ni
+activer la route. Il verrouille l'entrant parent, recoupe les réservations déjà
+présentes et impose les plafonds cumulatifs de vingt-et-un objets et 26 Mo. Une
+référence déjà connue n'est réutilisée que si type d'objet, type média, taille et
+chemin privé correspondent.
+
+Après une écriture privée réalisée par un futur téléchargeur, la confirmation
+exacte enregistre ensemble l'état `quarantine`, l'événement machine et une tâche
+PGMQ ne contenant que trois identifiants opaques. Un rejeu identique n'ajoute ni
+événement ni tâche. La recette
+`supabase/tests/communication_inbound_object_reservation_security.test.sql`
+prouve le rejeu, une panne forcée et le rollback à cinq résidus nuls sur la base
+de preview.
+
 ## Frontières encore fermées
 
-- récupération bornée du contenu depuis Brevo ;
-- transaction de réservation, stockage et mise en file ;
+- récupération bornée du contenu depuis Brevo et écriture dans le bucket réservé ;
 - worker ClamAV autorisé et supervision ;
 - preuves avec fichier propre et signature EICAR ;
 - politique de conservation et purge validée ;

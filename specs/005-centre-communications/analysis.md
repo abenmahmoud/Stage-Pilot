@@ -421,3 +421,21 @@ de quarantaine ou d'erreur. La recette vérifie maintenant les erreurs et
 contraintes exactes. Elle passe sur `xijocumlwivhbmffrnlj` et son rollback laisse
 les cinq familles de résidus à zéro. Aucun webhook, fichier réel, secret,
 téléchargement fournisseur, worker ni environnement de production n'est ouvert.
+
+T022G fournit ensuite le pont serveur sans le brancher à la route réelle. Les
+descripteurs n'acceptent que quatre champs opaques, onze types média fermés,
+10 Mo par objet, vingt-et-un objets et 26 Mo par entrant. La transaction
+verrouille l'entrant parent avant de relire le registre ; ce verrou ferme le
+dépassement cumulatif qui restait possible avec deux réservations concurrentes.
+Un rejeu exact réutilise l'objet et son chemin déterministe, tandis qu'une même
+référence avec type, média ou taille différente est refusée.
+
+La confirmation de stockage recoupe établissement, entrant, objet, média,
+taille entière et SHA-256. Le passage en quarantaine, l'événement machine et la
+tâche PGMQ minimale sont atomiques ; un rejeu ne crée pas une seconde tâche. La
+recette SQL exécutée sur `xijocumlwivhbmffrnlj` force aussi une panne après mise
+en file, confirme le rollback puis revient à cinq résidus nuls. Une revue Claude
+Fable 5 autorisée et bornée a atteint son plafond après environ 1,04 dollar sans
+produire de rapport final exploitable ; elle n'a pas été relancée. Le contrôle
+Codex, les tests et la compilation ont détecté puis fermé le risque cumulatif.
+Le téléchargement Brevo, le contenu réel, ClamAV et le webhook restent fermés.

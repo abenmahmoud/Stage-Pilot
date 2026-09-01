@@ -284,6 +284,13 @@
   d'un événement verrouille l'objet parent et les événements terminaux ne
   peuvent pas être dupliqués. Les tailles machine sont entières et la recette
   vérifie la cause exacte de chaque refus avec cinq résidus nuls sur la preview.
+- [x] T022G Ajouter le pont transactionnel de réservation sans ouvrir le
+  webhook. Le serveur verrouille l'entrant parent, impose au total vingt-et-un
+  objets et 26 Mo, réutilise une réservation identique et refuse tout conflit.
+  La confirmation exacte place l'objet en quarantaine, ajoute son événement et
+  crée une seule tâche PGMQ minimale dans la même transaction. Une recette
+  fictive prouve rejeu, rollback et cinq résidus nuls sur la preview. Le jeton
+  Brevo, le téléchargement, le worker et les interrupteurs restent fermés.
 - [x] T023 Rattacher chaque réponse à la bonne communication.
 - [x] T023A Définir le rattachement strict avant la persistance. La référence
   `In-Reply-To` entrante utilise le même HMAC secret que l'identifiant du message
