@@ -6,10 +6,11 @@
 
 ## Point vérifié du 1er septembre 2026
 
-- La preview `9d9868b` est publiée et vérifiée. Le worker des communications
+- La preview `6673aa2` est publiée et vérifiée. Le worker des communications
   entrantes, la reprise après panne et le dépôt propre sont préparés, pas activés.
-- La prochaine revue Claude de ce worker attend une autorisation distincte à
-  3 USD. Les quotas des missions terminées ne sont pas réutilisés implicitement.
+- La revue Claude de ce worker est terminée et arbitrée : 2,035675 USD sur
+  5 autorisés, une exécution sans relance. Vingt-trois tests locaux couvrent
+  désormais reprise et composition. Aucun quota n'est reconduit implicitement.
 - La recette intégrée nécessite encore un moteur ClamAV qualifié et la
   connexion PostgreSQL de preview. Les preuves locales ou SQL seules ne la
   remplacent pas ; aucun service distant n'est démarré sans accord.

@@ -1,8 +1,11 @@
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
-import { spawnSync } from "node:child_process";
+import { spawn, spawnSync } from "node:child_process";
+import { existsSync } from "node:fs";
+import { dirname } from "node:path";
 import test from "node:test";
 import { createCommunicationInboundScanRepository } from "../workers/communication-inbound-scan-repository.mjs";
+import { createCommunicationInboundScanner } from "../workers/communication-inbound-scanner.mjs";
 import {
   createCommunicationInboundScanProcessor,
   CommunicationInboundWorkerError,
@@ -209,6 +212,16 @@ test("refuses stale leases and archives malformed or cross-institution jobs with
   }
 });
 
+test("archives an out-of-contract job for a reserved object without changing or scanning it", async () => {
+  const h = fixture(); h.state.object.status = "reserved";
+  const original = structuredClone(h.state.object);
+  assert.deepEqual(await h.process(h.lease()), { status: "archived" });
+  assert.deepEqual(h.state.object, original);
+  assert.equal(h.state.archived, true);
+  assert.equal(h.state.events.length, 0);
+  assert.deepEqual(h.calls, { download: 0, scan: 0, store: 0, storedCopies: 0 });
+});
+
 test("never recreates terminal objects when another job is delivered", async () => {
   for (const status of ["clean", "blocked", "purged"]) {
     const h = fixture(); h.state.object.status = status;
@@ -284,6 +297,75 @@ test("does not return private storage bytes when size, digest or media differs",
   }
 });
 
+test("composes the real transfer and scanner adapters with crash recovery using only fictional services", async () => {
+  for (const failure of ["database", "scanner"]) {
+    const objects = new Map();
+    const children = [];
+    const directories = [];
+    let writes = 0;
+    let scanUnavailable = failure === "scanner";
+    const options = { supabaseUrl: "https://fictional-inbound.supabase.co",
+      serviceRoleKey: "synthetic-storage-key-" + "x".repeat(40),
+      fetchImpl: async (url, init) => {
+        const expectedPrefix = "https://fictional-inbound.supabase.co/storage/v1/object/";
+        assert.ok(url.startsWith(expectedPrefix));
+        assert.equal(init.redirect, "error");
+        const clean = url === expectedPrefix + "communication-inbound-clean/" + path;
+        assert.ok(clean || url === expectedPrefix + "communication-inbound-quarantine/" + path);
+        if (init.method === "POST") {
+          assert.ok(clean);
+          assert.equal(init.headers["x-upsert"], "false");
+          if (objects.has(path)) return new Response(null, { status: 409 });
+          objects.set(path, Buffer.from(await init.body.arrayBuffer()));
+          writes += 1;
+          return new Response(null, { status: 201 });
+        }
+        assert.equal(init.method, "GET");
+        const body = clean ? objects.get(path) : bytes;
+        return new Response(body, { headers: { "content-type": "text/plain",
+          "content-length": String(body.length) } });
+      } };
+    const scan = createCommunicationInboundScanner({ executable: process.execPath, endpoint: { port: 3310 },
+      spawnImpl(executable, args, childOptions) {
+        directories.push(dirname(args[1]));
+        // Native pipes and process, but no real antivirus or external network.
+        const program = `const chunks = [];
+          process.stdin.on('data', chunk => chunks.push(chunk));
+          process.stdin.on('end', () => {
+            const sha = require('node:crypto').createHash('sha256').update(Buffer.concat(chunks)).digest('hex');
+            if (${scanUnavailable} || sha !== ${JSON.stringify(confirmation.sha256)}) {
+              process.stderr.write('synthetic scanner unavailable'); process.exitCode = 2;
+            } else process.stdout.write('stream: OK\\n');
+          });`;
+        const child = spawn(executable, ["-e", program], childOptions);
+        children.push(child);
+        return child;
+      } });
+    const h = fixture({ download: createCommunicationInboundQuarantineReader(options), scan,
+      storeClean: createCommunicationInboundCleanStore(options) });
+    if (failure === "database") {
+      h.inject("event");
+      await assert.rejects(h.process(h.lease()), { code: "processing_unavailable" });
+      assert.equal(h.state.object.status, "quarantine");
+      assert.equal(objects.size, 1);
+    } else {
+      assert.equal((await h.process(h.lease())).status, "retry");
+      assert.equal(h.state.object.status, "scan_error");
+      assert.equal(objects.size, 0);
+      scanUnavailable = false;
+    }
+    assert.ok(h.state.job);
+    assert.equal(h.state.events.some(event => event.type === "object.clean"), false);
+    assert.equal((await h.process(h.lease(2))).status, "clean");
+    assert.equal(writes, 1);
+    assert.deepEqual(objects.get(path), bytes);
+    assert.equal(h.state.job, null);
+    assert.equal(h.state.events.filter(event => event.type === "object.clean").length, 1);
+    assert.ok(children.every(child => child.exitCode !== null || child.signalCode !== null));
+    assert.ok(directories.every(directory => !existsSync(directory)));
+  }
+});
+
 test("bounds batches, waits for every active processor and returns only counters", async () => {
   let next = 0, active = 0, maxActive = 0;
   const result = await runCommunicationInboundScanBatch({ limit: 20, concurrency: 4,
@@ -321,6 +403,21 @@ test("requires explicit preview flags and rejects foreign or malformed configura
   assert.deepEqual(verifyCommunicationInboundWorkerConfiguration({ ...env,
     DATABASE_URL: "postgresql://postgres.xijocumlwivhbmffrnlj:synthetic-password@aws-0-eu-west-3.pooler.supabase.com:6543/postgres",
   }, ["--preview-only"]), { limit: 10, concurrency: 2 });
+});
+
+test("accepts only canonical decimal strings for configured batch and concurrency limits", () => {
+  const env = { COMMUNICATION_INBOUND_SCAN_ENABLED: "true", COMMUNICATION_INBOUND_CLAMAV_VERIFIED: "true",
+    DATABASE_URL: "postgresql://postgres:synthetic-password@db.xijocumlwivhbmffrnlj.supabase.co/postgres",
+    VITE_SUPABASE_URL: "https://xijocumlwivhbmffrnlj.supabase.co" };
+  for (const field of ["COMMUNICATION_INBOUND_SCAN_BATCH_SIZE", "COMMUNICATION_INBOUND_SCAN_CONCURRENCY"]) {
+    for (const value of ["0x2", "1e0", " 2", "2 ", "+2", "2.0", "02", "0", "", null, true, 2]) {
+      assert.throws(() => verifyCommunicationInboundWorkerConfiguration({ ...env, [field]: value }, ["--preview-only"]),
+        { message: "inbound_scan_preview_configuration_invalid" }, `${field} refuses ${JSON.stringify(value)}`);
+    }
+  }
+  assert.deepEqual(verifyCommunicationInboundWorkerConfiguration({ ...env,
+    COMMUNICATION_INBOUND_SCAN_BATCH_SIZE: "20", COMMUNICATION_INBOUND_SCAN_CONCURRENCY: "4",
+  }, ["--preview-only"]), { limit: 20, concurrency: 4 });
 });
 
 function repositoryFixture(overrides = {}) {

@@ -19,8 +19,10 @@ export function verifyCommunicationInboundWorkerConfiguration(env, args) {
   if (env.VITE_SUPABASE_URL !== `https://${COMMUNICATION_INBOUND_PREVIEW_PROJECT}.supabase.co`) {
     throw new Error("inbound_scan_preview_configuration_invalid");
   }
-  const limit = Number(env.COMMUNICATION_INBOUND_SCAN_BATCH_SIZE ?? 10);
-  const concurrency = Number(env.COMMUNICATION_INBOUND_SCAN_CONCURRENCY ?? 2);
+  const decimal = (value, fallback) => value === undefined ? fallback
+    : (typeof value === "string" && /^[1-9][0-9]?$/u.test(value) ? Number(value) : NaN);
+  const limit = decimal(env.COMMUNICATION_INBOUND_SCAN_BATCH_SIZE, 10);
+  const concurrency = decimal(env.COMMUNICATION_INBOUND_SCAN_CONCURRENCY, 2);
   if (!Number.isInteger(limit) || limit < 1 || limit > 20
     || !Number.isInteger(concurrency) || concurrency < 1 || concurrency > 4) {
     throw new Error("inbound_scan_preview_configuration_invalid");

@@ -5,6 +5,30 @@
 **Depot** : `abenmahmoud/Stage-Pilot`
 **Dernier jalon de code verifie** : branche de preview Vercel
 
+## Jalon du 1er septembre 2026 - revue du worker terminee
+
+- Le proprietaire a repondu a la demande de mission Fable 5 et fixe un plafond
+  de 5 USD. Une seule execution, neuf fichiers techniques, sans outils,
+  secrets, donnees personnelles ni production, s'est terminee pour 2,035675 USD
+  declares par le CLI. Cet accord remplace l'attente decrite dans les jalons
+  precedents et cette execution l'a consomme ; aucune relance autorisee.
+- Le risque de job trop precoce n'est pas confirme : le producteur met deja
+  en quarantaine et en file dans une meme transaction. Des assertions ajoutent
+  cette preuve au harnais. La piste TLS n'explique pas un refus d'URL qui
+  precede le reseau ; la verification du certificat reste obligatoire.
+- La configuration accepte desormais uniquement des limites decimales
+  canoniques. Regression reproduite avant correction, aucune faille permettant
+  de depasser les anciennes bornes n'etait demontree.
+- Un test supplementaire compose les vrais adaptateurs avec un stockage
+  simule et un processus antivirus fictif. Les reprises scanner et rollback
+  conservent la tache et produisent une seule copie et une seule preuve finale.
+  Les 23 tests du worker passent ; les suites transversales sont conservees.
+- Le commit `6673aa2` est confirme `READY` sur Vercel, deploiement
+  `dpl_DyF1BvEJdL7qrGdpgMPkJ2zEynro`, cible non production. T022K reste
+  ouverte pour la recette du service reel non active, plus pour l'accord Claude.
+- Compte rendu courant :
+  `docs/audits/CLAUDE_INBOUND_SCAN_WORKER_ADJUDICATION_2026-09-01.md`.
+
 ## Jalon du 1er septembre 2026 - destination des recettes entrantes
 
 - Le script de rejeu ne prouve plus sa destination par une simple présence de

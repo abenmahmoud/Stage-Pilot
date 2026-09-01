@@ -89,6 +89,8 @@ function harness() {
         const compiled = dialect.sqlToQuery(query);
         if (compiled.sql === "set local lock_timeout = '5s'") return [];
         assert.match(compiled.sql, /pgmq.send/);
+        assert.equal(h.state.objects[0].status, "quarantine", "enqueue only after quarantine in this transaction");
+        assert.equal(h.state.events.at(-1).eventType, "object.quarantined");
         assert.deepEqual(compiled.params, [scope.institutionId, scope.inboundId, h.state.objects[0].id]);
         h.state.queue.push(compiled.params);
         h.calls.push("queue");
@@ -112,6 +114,7 @@ function harness() {
   h.store = async ({ confirmation, bytes }) => {
     assert.equal(h.locked, true);
     assert.equal(h.state.objects.length, 1);
+    assert.equal(h.state.queue.length, 0, "reservation and upload must not enqueue an early scan");
     assert.ok(h.calls.indexOf("commit", h.calls.indexOf("reserve")) >= 0);
     assert.equal(digest(bytes), confirmation.sha256);
     h.stores += 1;

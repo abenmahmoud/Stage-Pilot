@@ -2,8 +2,8 @@
 
 ## Statut
 
-Code préparé, non activé. `005/T022K` reste ouverte pour la revue externe du
-nouveau worker et son exécution intégrée avec le vrai ClamAV et PostgreSQL.
+Code préparé et revue externe arbitrée, non activé. `005/T022K` reste ouverte
+pour son exécution intégrée avec le vrai ClamAV et PostgreSQL.
 Production, VPS, Webmail, DNS, secrets et interrupteurs inchangés. Le programme
 n'est ni une route HTTP, ni un Cron, ni un service installé.
 
@@ -58,6 +58,8 @@ cible et fournir, via le gestionnaire de secrets, les paramètres suivants :
   127.0.0.1. Le scanner n'hérite pas des secrets de ces services.
 - Facultatif : lot de 1 à 20 (`COMMUNICATION_INBOUND_SCAN_BATCH_SIZE`, défaut
   10), simultanéité de 1 à 4 (`COMMUNICATION_INBOUND_SCAN_CONCURRENCY`, défaut 2).
+  Valeurs décimales canoniques seulement, sans notation scientifique,
+  hexadécimale, espaces, signe ou zéros initiaux.
 
 Ces bornes sont locales au processus. Elles ne constituent pas un limiteur
 distribué. Le programme attend toutes les opérations engagées, affiche
@@ -72,9 +74,12 @@ mécanisme de supervision n'est activé par cette commande.
   suffit jamais ; TLS est imposé, le port ne dépend pas de PGPORT et le client
   de recette est fermé en fin d'exécution. Aucun réseau n'est utilisé dans
   ces tests. Ce durcissement concerne les outils d'opérateur, pas une route publique.
-- `npm run test:communication-inbound-scan-worker` : vingt tests locaux,
+- `npm run test:communication-inbound-scan-worker` : vingt-trois tests locaux,
   interruptions, rejeux, baux périmés, substitutions, épuisement, portée SQL,
   stockage simulé, refus de configuration et admission bornée.
+  La composition des vrais adaptateurs avec processus antivirus fictif et
+  stockage simulé prouve aussi la reprise, sans deuxième dépôt ni preuve finale
+  en double. Le harnais d'ingestion refuse un enfilement avant quarantaine.
 - `npm run test:communication-inbound-scanner` : dix-huit tests avec processus
   Node fictifs, pas un vrai moteur ClamAV.
 - `supabase/tests/communication_inbound_scan_worker.test.sql` : exécuté via le
@@ -98,16 +103,19 @@ logiciel n'a été installé pour contourner ces prérequis.
 
 ## Reste avant activation
 
-Revue Claude du lot, connexion directe de test utilisable, qualification du
+Connexion directe de test utilisable, qualification du
 ClamAV réel (signatures, EICAR, propre, chiffré, limites, erreur et reprise),
 preuve intégrée du transfert, dimensionnement global et supervision, traitement
 opérateur des archives, conservation et purge approuvées. Le statut `clean`
 ne crée aucun lien public ni droit utilisateur ; l'accès doit encore passer
 par les contrôles du demandeur et de l'établissement.
 
-La mission Claude de ce lot a été proposée pour 3 USD, sans réponse au moment
-de ce jalon. Aucun coût externe supplémentaire engagé. Le résultat de la
-mission précédente concernait l'adaptateur, pas le worker présent.
+La mission Claude de ce lot a été autorisée à 5 USD et terminée pour
+2,035675 USD déclarés par le CLI. Aucune relance : la revue de l'adaptateur
+était une mission différente. Les constats confirmés, écartés et non vérifiés
+sont dans `docs/audits/CLAUDE_INBOUND_SCAN_WORKER_ADJUDICATION_2026-09-01.md`.
+La confiance du certificat de la future connexion doit être vérifiée sans
+désactiver TLS ; le refus actuel des paramètres précède toute connexion.
 
 Référence de file vérifiée le 1er septembre 2026 :
 [API PGMQ de Supabase](https://supabase.com/docs/guides/queues/pgmq).

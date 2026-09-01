@@ -518,7 +518,7 @@ relecture. État, événement et acquittement partagent une transaction. Les
 essai, ou dès une erreur permanente, le message est archivé et le fichier
 reste privé. Les RFC822 ne sont pas libérés sans extraction interne validée.
 
-Les vingt tests locaux couvrent les adaptateurs assemblés avec substituts,
+Les vingt-trois tests locaux couvrent les adaptateurs assemblés avec substituts,
 les reprises, reçus incohérents, épuisement des tentatives, états terminaux,
 SQL paramétré et périmétré, bornes d'exécution et refus de configuration. Ils
 ne prouvent ni le véritable moteur, ni un redémarrage physique PostgreSQL.
@@ -539,10 +539,11 @@ types mensongers sans lancer de processus. Ce contrôle n'est pas un analyseur
 universel des formats ou des fichiers polyglottes.
 
 La suite communications, la barrière de sécurité preview, le build et l'audit
-des dépendances d'exécution passent. Une nouvelle mission Claude a été proposée
-avec un plafond distinct de 3 USD ; aucun appel supplémentaire n'est lancé
-sans réponse. T022K reste ouverte pour cette revue et la recette intégrée du
-programme avec la vraie connexion et ClamAV. Voir la procédure d'exploitation
+des dépendances d'exécution passent. La nouvelle mission Claude a été autorisée
+avec un plafond distinct de 5 USD et s'est terminée pour 2,035675 USD, sans
+relance. Ses constats sont arbitrés dans le compte rendu du worker. T022K
+reste ouverte pour la recette intégrée du programme avec la vraie connexion
+et ClamAV. Voir la procédure d'exploitation
 `docs/operations/COMMUNICATION_INBOUND_SCAN_WORKER_PREVIEW_2026-09-01.md`.
 
 La relecture des outils de recette a trouvé une vérification insuffisante de
@@ -563,3 +564,14 @@ du `finally`. Aucune fausse conclusion de vulnérabilité supplémentaire n'en e
 tirée. La configuration locale de preview reste non acceptée et ClamAV n'est
 pas disponible parmi les exécutables vérifiés ; les recettes intégrées restent
 ouvertes.
+
+La revue du worker ne confirme pas la perte conditionnelle de tâche proposée :
+le producteur, lu ensuite par Codex, confirme la quarantaine et enfile dans une
+seule transaction. Le harnais d'ingestion affirme désormais cet ordre exact.
+Une seconde piste, la CA, reste un prérequis à vérifier mais ne peut expliquer
+le refus local d'URL avant connexion. Aucun relâchement TLS n'est retenu.
+La notation numérique ambiguë est reproduite puis fermée sans modifier les
+bornes de charge. Un test de composition utilise les vrais adaptateurs de
+transfert et scanner, un stockage simulé et des processus Node fictifs ; les
+pannes scanner et transactionnelle se reprennent sans deuxième dépôt ni preuve
+terminale en double. Aucun de ces tests ne remplace ClamAV réel.

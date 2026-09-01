@@ -126,6 +126,12 @@ reste limité à la preview, sans boucle permanente ni activation automatique.
 Les emails RFC822 restent en attente de revue tant que leurs pièces internes
 ne passent pas une extraction bornée et le contrôle Office par objet.
 
+Le producteur ne met en file qu'après le dépôt vérifié et dans la transaction
+de confirmation `quarantine` ; aucun scan n'est programmé lors de la simple
+réservation. Un job `reserved` injecté hors contrat reste archivé sans
+transfert ni modification d'objet. Les limites opérateur du worker utilisent
+des chaînes décimales canoniques, bornées à 20 tâches et 4 traitements.
+
 ## Interface simplifiée
 
 L'écran principal propose trois commandes visibles :

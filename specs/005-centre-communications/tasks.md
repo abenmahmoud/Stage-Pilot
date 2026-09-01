@@ -322,10 +322,12 @@
   cinq essais maximum et aucune suppression. Prouver les interruptions,
   substitutions, rejeux et accès croisés ; garder ouverte la recette intégrée
   sur la preview tant que le vrai antivirus et la connexion ne sont pas prêts.
-  Code, vingt tests locaux et recette SQL sous rollback vérifiés (six résidus
+  Code, vingt-trois tests locaux et recette SQL sous rollback vérifiés (six résidus
   nuls). Les signatures ZIP ordinaires masquées sont refusées avant scan.
-  Revue Claude de ce worker en attente d'accord courant ; ni recette complète
+  Revue Claude de ce worker arbitrée, 2,035675 USD sur 5 autorisés ; ni recette complète
   du programme avec ClamAV réel, ni activation, ni supervision validées.
+  Limites décimales strictes et test de composition ajoutés ; l'enfilement
+  après quarantaine est confirmé dans le producteur, sans contournement TLS.
 - [x] T023 Rattacher chaque réponse à la bonne communication.
 - [x] T023A Définir le rattachement strict avant la persistance. La référence
   `In-Reply-To` entrante utilise le même HMAC secret que l'identifiant du message
