@@ -140,36 +140,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
               requestIdempotencyHash: idempotencyHash,
             })
           : null;
-        const [existing] = await tx
-          .select({
-            id: supportRequests.id,
-            publicCode: supportRequests.publicCode,
-            status: supportRequests.status,
-            createdAt: supportRequests.createdAt,
-          })
-          .from(supportRequests)
-          .where(and(
-            eq(supportRequests.institutionId, institution.id),
-            eq(supportRequests.idempotencyKeyHash, idempotencyHash)
-          ))
-          .limit(1);
-
-        if (existing) {
-          await tx
-            .insert(supportSessionRequests)
-            .values({ sessionId: session.id, requestId: existing.id })
-            .onConflictDoNothing();
-          const agentAction = createRequestAction
-            ? await completeSupportCreateRequestAction({
-                tx,
-                action: createRequestAction,
-                request: existing,
-                duplicate: true,
-              })
-            : null;
-          return { ...existing, sessionToken: session.rawToken, duplicate: true, agentAction };
-        }
-
         const contactHashes = [input.email, input.phone]
           .filter((value): value is string => Boolean(value))
           .map((value) => personalHash(value));

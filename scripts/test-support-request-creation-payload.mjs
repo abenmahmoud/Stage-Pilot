@@ -3,6 +3,7 @@ import test from "node:test";
 import { readFileSync } from "node:fs";
 
 const page = readFileSync(new URL("../src/pages/prototype/LyceeConnectPrototype.tsx", import.meta.url), "utf8");
+const route = readFileSync(new URL("../api/support/requests/index.ts", import.meta.url), "utf8");
 
 test("validates creation before remembering or displaying the dossier", () => {
   const submit = page.indexOf("async function submitRequest");
@@ -33,4 +34,16 @@ test("requires a complete, linked persistence confirmation", () => {
 test("rejects implausible future persistence timestamps", () => {
   assert.match(page, /createdTime <= Date\.now\(\) \+ \(5 \* 60_000\)/);
   assert.match(page, /confirmedTime <= Date\.now\(\) \+ \(5 \* 60_000\)/);
+});
+
+test("uses the unique insertion as the first idempotency decision", () => {
+  const transaction = route.indexOf("const result = await db.transaction");
+  const duplicateLookup = route.indexOf("const [duplicateCandidate]", transaction);
+  const insertion = route.indexOf("const [created]", duplicateLookup);
+  const racedLookup = route.indexOf("const [racedRequest]", insertion);
+  const recovery = route.indexOf("duplicate: true", racedLookup);
+  assert.ok(transaction >= 0 && transaction < duplicateLookup && duplicateLookup < insertion);
+  assert.ok(insertion < racedLookup && racedLookup < recovery);
+  assert.doesNotMatch(route.slice(transaction), /const \[existing\] = await tx/);
+  assert.match(route, /onConflictDoNothing\(\{[\s\S]*supportRequests\.idempotencyKeyHash/);
 });
