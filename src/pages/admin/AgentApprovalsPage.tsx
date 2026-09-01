@@ -13,48 +13,17 @@ import {
   XCircle,
 } from "lucide-react";
 import { apiFetch } from "../../lib/api";
+import {
+  isAgentApprovalDecisionPayload,
+  isAgentApprovalsPayload,
+  type AgentApprovalsPayload,
+  type AgentApprovalStatus,
+} from "../../../shared/agent-approval-payload-policy";
 
 type ApprovalView = "pending" | "history" | "all";
-type ApprovalStatus = "pending" | "approved" | "rejected" | "expired" | "cancelled";
-
-type ApprovalItem = {
-  id: string;
-  serviceCode: string;
-  serviceLabel: string;
-  toolLabel: string;
-  skillName: string;
-  skillVersion: string;
-  status: ApprovalStatus;
-  requestedFromRole: string;
-  requestedAt: string;
-  decidedAt: string | null;
-  expiresAt: string;
-  decisionReason: string | null;
-  requestedByMe: boolean;
-  canDecide: boolean;
-  details: Array<{ label: string; value: string }>;
-};
-
-type ApprovalsPayload = {
-  generatedAt: string;
-  reviewer: {
-    role: string;
-    services: Array<{ code: string; label: string }>;
-    canViewAll: boolean;
-  };
-  summary: {
-    pending: number;
-    actionable: number;
-    decided: number;
-    expired: number;
-  };
-  items: ApprovalItem[];
-  truncated: boolean;
-};
-
 type DecisionMode = "approved" | "rejected" | null;
 
-const STATUS_LABELS: Record<ApprovalStatus, string> = {
+const STATUS_LABELS: Record<AgentApprovalStatus, string> = {
   pending: "En attente",
   approved: "Validée",
   rejected: "Refusée",
@@ -62,7 +31,7 @@ const STATUS_LABELS: Record<ApprovalStatus, string> = {
   cancelled: "Annulée",
 };
 
-const STATUS_STYLES: Record<ApprovalStatus, string> = {
+const STATUS_STYLES: Record<AgentApprovalStatus, string> = {
   pending: "bg-amber-50 text-amber-800 ring-amber-200",
   approved: "bg-emerald-50 text-emerald-800 ring-emerald-200",
   rejected: "bg-red-50 text-red-800 ring-red-200",
@@ -89,7 +58,7 @@ function expiryLabel(value: string): string {
   return `Expire dans ${hours} h`;
 }
 
-function StatusPill({ status }: { status: ApprovalStatus }) {
+function StatusPill({ status }: { status: AgentApprovalStatus }) {
   return (
     <span
       className={`inline-flex shrink-0 items-center rounded-full px-2.5 py-1 text-xs font-semibold ring-1 ring-inset ${STATUS_STYLES[status]}`}
@@ -101,7 +70,7 @@ function StatusPill({ status }: { status: ApprovalStatus }) {
 
 export default function AgentApprovalsPage() {
   const [view, setView] = useState<ApprovalView>("pending");
-  const [payload, setPayload] = useState<ApprovalsPayload | null>(null);
+  const [payload, setPayload] = useState<AgentApprovalsPayload | null>(null);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [deciding, setDeciding] = useState(false);
@@ -119,7 +88,10 @@ export default function AgentApprovalsPage() {
     setLoading(true);
     setError("");
     try {
-      const next = await apiFetch<ApprovalsPayload>(`support/agent/approvals?view=${nextView}`);
+      const next = await apiFetch<unknown>(`support/agent/approvals?view=${nextView}`);
+      if (!isAgentApprovalsPayload(next)) {
+        throw new Error("Réponse invalide du service de validations.");
+      }
       setPayload(next);
       setSelectedId((current) =>
         next.items.some((item) => item.id === current) ? current : next.items[0]?.id ?? null
@@ -145,13 +117,19 @@ export default function AgentApprovalsPage() {
     setError("");
     setNotice("");
     try {
-      await apiFetch(`support/agent/approvals/${selected.id}/decision`, {
+      const confirmation = await apiFetch<unknown>(`support/agent/approvals/${selected.id}/decision`, {
         method: "POST",
         body: JSON.stringify({
           decision: decisionMode,
           reason: reason.trim() || null,
         }),
       });
+      if (!isAgentApprovalDecisionPayload(confirmation, {
+        approvalId: selected.id,
+        status: decisionMode,
+      })) {
+        throw new Error("La confirmation de validation est invalide.");
+      }
       setNotice(
         decisionMode === "approved"
           ? "La validation a été enregistrée. L’action n’est pas encore annoncée comme réalisée."

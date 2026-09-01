@@ -2,6 +2,7 @@ import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { sql } from "drizzle-orm";
 import { db } from "../../../../../db/index.js";
 import { parseAgentApprovalDecision } from "../../../../../shared/agent-approval-input.js";
+import { isAgentApprovalDecisionPayload } from "../../../../../shared/agent-approval-payload-policy.js";
 import {
   agentApprovalRouteId,
   requireAgentApprovalReviewer,
@@ -34,6 +35,16 @@ function isPolicyConflict(error: unknown): boolean {
       "code" in error &&
       (error as { code?: string }).code === "P0001"
   );
+}
+
+function decisionPayload(
+  value: unknown,
+  expected: { approvalId: string; status: "approved" | "rejected" }
+) {
+  if (!isAgentApprovalDecisionPayload(value, expected)) {
+    throw new HttpError(503, "Confirmation de validation invalide.");
+  }
+  return value;
 }
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
@@ -73,12 +84,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (decision.result_status === "expired") {
       throw new HttpError(409, "Cette validation vient d’expirer et a été fermée.");
     }
-    return {
+    return decisionPayload({
       approvalId: decision.result_approval_id,
-      actionId: decision.result_action_id,
       status: decision.result_status,
-      decidedAt: decision.result_decided_at,
-    };
+      decidedAt: new Date(decision.result_decided_at).toISOString(),
+    }, { approvalId, status: input.decision });
   });
 }
 

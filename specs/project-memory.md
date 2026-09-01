@@ -4047,3 +4047,18 @@ taches et analyse de coherence avant une automatisation sensible.
 - Après ces corrections, la porte de sécurité complète, l'intégrité des 506
   tâches Spec Kit et l'audit des dépendances repassent ; ce dernier retourne
   zéro vulnérabilité.
+
+## 2026-09-01 - Boîte de validation agent à contrat fermé
+
+- T018C partage entre les deux API et l'écran agent un contrat runtime exact
+  pour la liste et la décision. La liste est détectée à deux cent une lignes,
+  tronquée explicitement à deux cents et refuse champs internes, doublons,
+  services ou labels incohérents, dates non canoniques et détails excessifs.
+- Les états restent cohérents avec la date et le motif de décision. Une réponse
+  de décision doit reprendre l'UUID sélectionné et le statut demandé avant que
+  l'interface affiche une réussite ou recharge la boîte ; l'identifiant interne
+  de l'action n'est plus exposé au navigateur.
+- Seize contrôles ciblés et le build passent sans décision réelle, base distante,
+  production, DNS, VPS, ENT, PRONOTE, webmail ou action externe.
+- La porte de sécurité complète, l'intégrité des 507 tâches Spec Kit et l'audit
+  des dépendances passent ; ce dernier retourne zéro vulnérabilité.

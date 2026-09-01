@@ -809,6 +809,13 @@ l'autorisation de quota définie par le propriétaire.
   éléments sont refusés. Un verrou transactionnel protège le plafond contre les
   créations concurrentes. Huit contrôles ciblés et le build passent. T027B25
   est terminée.
+- Lot N5ZZW : boîte de validation agent. **Fermée sans décision réelle ni action
+  externe** : serveur et navigateur contrôlent les champs exacts, services,
+  labels, UUID, dates, états, détails, compteurs, doublons et plafond de deux
+  cents lignes. Une confirmation doit correspondre à la validation et au statut
+  demandés avant tout message de réussite ; l'identifiant interne de l'action
+  n'est plus renvoyé. Seize contrôles ciblés et le build passent. T018C est
+  terminée.
 
 ## Prochaine séquence verrouillée
 

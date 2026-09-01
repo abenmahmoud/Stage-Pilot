@@ -243,6 +243,10 @@
   validations périmées du seul périmètre autorisé sont fermées sous verrous et
   auditées comme action système. Les futurs adaptateurs restent dans T028 et
   doivent consommer la validation avant toute exécution.
+- [x] T018C Fermer les réponses de la boîte de validation sur des schémas runtime
+  partagés : au plus deux cents éléments uniques et cohérents avec le service du
+  relecteur, champs et dates exacts, détails bornés, puis confirmation de décision
+  liée à l'identifiant et au statut demandés avant toute annonce de réussite.
 - [x] T019 Mettre les pièces dans un stockage privé avec antivirus, type, taille
   et URL temporaire. La recette de convergence confirme le bucket privé de 50 Mo,
   les formats bornés, la file ClamAV, le lien manager de 60 secondes, la RLS

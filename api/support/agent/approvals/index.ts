@@ -13,6 +13,10 @@ import {
   presentAgentActionInput,
 } from "../../../../shared/agent-approval-input.js";
 import {
+  AGENT_APPROVAL_ITEM_LIMIT,
+  isAgentApprovalsPayload,
+} from "../../../../shared/agent-approval-payload-policy.js";
+import {
   supportServiceLabel,
   type SupportService,
 } from "../../../../shared/support-agent-access.js";
@@ -50,6 +54,13 @@ function toolLabel(toolKey: string): string {
     "schedule.activate": "Activer un emploi du temps",
   };
   return labels[toolKey] ?? "Action préparée par l’agent";
+}
+
+function approvalsPayload(value: unknown) {
+  if (!isAgentApprovalsPayload(value)) {
+    throw new HttpError(503, "Liste des validations invalide.");
+  }
+  return value;
 }
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
@@ -95,9 +106,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       .innerJoin(agentSkills, eq(agentSkillVersions.skillId, agentSkills.id))
       .where(scope)
       .orderBy(desc(agentApprovals.requestedAt))
-      .limit(200);
+      .limit(AGENT_APPROVAL_ITEM_LIMIT + 1);
 
-    const allItems = rows.map((row) => {
+    const truncated = rows.length > AGENT_APPROVAL_ITEM_LIMIT;
+    const visibleRows = rows.slice(0, AGENT_APPROVAL_ITEM_LIMIT);
+
+    const allItems = visibleRows.map((row) => {
       const serviceCode = row.serviceCode as SupportService;
       const effectiveStatus = approvalIsExpired(row.approvalStatus, row.expiresAt, now)
         ? "expired"
@@ -111,9 +125,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         skillVersion: row.skillVersion,
         status: effectiveStatus,
         requestedFromRole: roleLabel(row.requestedFromRole),
-        requestedAt: row.requestedAt,
-        decidedAt: row.decidedAt,
-        expiresAt: row.expiresAt,
+        requestedAt: row.requestedAt.toISOString(),
+        decidedAt: row.decidedAt?.toISOString() ?? null,
+        expiresAt: row.expiresAt.toISOString(),
         decisionReason: row.decisionReason,
         requestedByMe: row.requestedByUserId === context.user.id,
         canDecide: canDecideAgentApproval({
@@ -137,8 +151,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return item.status !== "pending";
     });
 
-    return {
-      generatedAt: now,
+    return approvalsPayload({
+      generatedAt: now.toISOString(),
       reviewer: {
         role: roleLabel(context.decisionRole),
         services: context.access.serviceCodes.map((service) => ({
@@ -156,7 +170,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         expired: allItems.filter((item) => item.status === "expired").length,
       },
       items,
-      truncated: rows.length === 200,
-    };
+      truncated,
+    });
   });
 }
