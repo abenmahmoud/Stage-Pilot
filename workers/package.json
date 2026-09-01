@@ -3,9 +3,10 @@
   "private": true,
   "type": "module",
   "dependencies": {
-    "@xmldom/xmldom": "0.8.15",
     "@supabase/supabase-js": "2.105.4",
+    "@xmldom/xmldom": "0.8.15",
     "mammoth": "1.12.2",
+    "pdf-lib": "1.17.1",
     "pdfjs-dist": "5.4.624",
     "postgres": "3.4.9",
     "ws": "8.21.3",

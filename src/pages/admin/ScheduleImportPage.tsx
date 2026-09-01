@@ -20,6 +20,7 @@ import {
   parseSchedulePageListPayload,
   parseSchedulePageMutationPayload,
   parseSchedulePrivateFilePayload,
+  parseSchedulePrivatePagePayload,
   type ScheduleImportPayload as ScheduleImport,
   type ScheduleImportStatus as ScheduleStatus,
   type SchedulePageMappingPayload as SchedulePageMapping,
@@ -110,6 +111,7 @@ export default function ScheduleImportPage() {
   const [pageDrafts, setPageDrafts] = useState<Record<number, string>>({});
   const [pageLoading, setPageLoading] = useState(false);
   const [pageBusy, setPageBusy] = useState<number | null>(null);
+  const [pageOpening, setPageOpening] = useState<number | null>(null);
 
   async function load() {
     setLoading(true);
@@ -191,6 +193,37 @@ export default function ScheduleImportPage() {
     } catch (reason) {
       popup?.close();
       setError(reason instanceof Error ? reason.message : "Ouverture du PDF impossible.");
+    }
+  }
+
+  async function openPrivatePage(mapping: SchedulePageMapping) {
+    if (!selectedImportId || mapping.reviewStatus !== "verified") return;
+    const popup = window.open("about:blank", "_blank");
+    if (popup) {
+      popup.opener = null;
+      popup.document.title = `Page ${mapping.pageNumber}`;
+      popup.document.body.textContent = "Ouverture de la page privée...";
+    }
+    setPageOpening(mapping.pageNumber);
+    setError("");
+    try {
+      const response = await apiFetch<unknown>(
+        `schedule/admin/imports/${selectedImportId}/pages/${mapping.id}/file`
+      );
+      const result = parseSchedulePrivatePagePayload(
+        response,
+        SUPABASE_ORIGIN,
+        selectedImportId,
+        mapping.pageNumber
+      );
+      if (!result) throw new Error("Le lien de page privée reçu est invalide.");
+      if (popup) popup.location.href = result.url;
+      else window.open(result.url, "_blank", "noopener,noreferrer");
+    } catch (reason) {
+      popup?.close();
+      setError(reason instanceof Error ? reason.message : "Ouverture de la page impossible.");
+    } finally {
+      setPageOpening(null);
     }
   }
 
@@ -679,6 +712,20 @@ export default function ScheduleImportPage() {
                       <span className="inline-flex items-center gap-1 text-xs font-semibold text-emerald-700">
                         <BadgeCheck className="h-4 w-4" /> Vérifiée
                       </span>
+                    ) : null}
+                    {mapping?.reviewStatus === "verified" ? (
+                      <button
+                        type="button"
+                        onClick={() => void openPrivatePage(mapping)}
+                        disabled={pageOpening === pageNumber}
+                        title={`Ouvrir uniquement la page ${pageNumber}`}
+                        className="inline-flex min-h-9 items-center gap-1.5 rounded-md border border-slate-300 px-2.5 text-xs font-semibold text-slate-700 disabled:opacity-40"
+                      >
+                        {pageOpening === pageNumber
+                          ? <LoaderCircle className="h-3.5 w-3.5 animate-spin" />
+                          : <ExternalLink className="h-3.5 w-3.5" />}
+                        Ouvrir la page
+                      </button>
                     ) : null}
                     <button
                       type="button"

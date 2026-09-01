@@ -704,6 +704,14 @@
   approuver une indexation complète, activer atomiquement une version et
   restaurer une version remplacée, avec justification et audit. Le lien agent
   limité à une page et le retrait restent séparés.
+- [x] T042C2D2 Préparer le lien direction limité à une page PDF dérivée : le
+  worker ne découpe qu'après antivirus et validation, retire les annotations et
+  actions, borne chaque page et le total, puis inscrit des objets privés opaques
+  et immuables. L'API exige MFA, page vérifiée, établissement et version exacts,
+  signe 60 secondes et audite l'ouverture ; le navigateur lie le contrat à la
+  version et au numéro de page avant navigation. Les tests et le build passent
+  sans donnée réelle. La migration de preview et la recette du worker restent
+  dans T042C2C ; le retrait selon conservation reste dans T042C2D.
 - [ ] T042D Construire le modèle de lecture privé des créneaux, groupes, salles et
   périodes de validité, avec versions et possibilité de retour arrière.
 - [x] T042D1 Implémenter et tester sur données fictives la politique de lecture :

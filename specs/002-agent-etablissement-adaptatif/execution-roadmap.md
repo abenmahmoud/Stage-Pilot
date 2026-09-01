@@ -504,6 +504,15 @@ l'autorisation de quota définie par le propriétaire.
   reste limité à 60 secondes, à l'origine Supabase configurée et au coffre
   privé. Sept tests adverses, le build et la barrière de sécurité complète
   passent. Le worker antivirus réel reste séparé dans T042C2C.
+- Lot N5ZI3 : copie privée mono-page. **Implémentée et vérifiée localement sans
+  donnée réelle** : après antivirus et comptage stable, le worker découpe le PDF
+  avec une bibliothèque épinglée, retire actions et annotations, borne taille
+  unitaire et totale, puis prépare une copie opaque par page. La migration ajoute
+  RLS forcée, immutabilité après traitement et recompte SQL avant promotion. La
+  direction sous MFA peut demander seulement une page vérifiée par un lien de
+  60 secondes ; le navigateur contrôle origine, version et numéro avant de
+  naviguer. La migration de preview et la recette VPS restent ouvertes dans
+  T042C2C, car les transports Supabase étaient indisponibles pendant ce lot.
 - Lot N5ZJ : périmètre d'emploi du temps issu de l'identité. **Implémenté côté
   serveur et non exposé** : le résolveur exige un compte authentifié, une identité
   scolaire non révoquée et son annuaire actif. Il calcule les références valides

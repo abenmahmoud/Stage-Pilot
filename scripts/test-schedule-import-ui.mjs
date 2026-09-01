@@ -12,6 +12,8 @@ const checks = [
   ["les colonnes ne s'activent qu'a partir du petit ecran", source.includes("sm:grid-cols-[52px_minmax(0,1fr)_auto]")],
   ["les actions peuvent revenir a la ligne", /className="[^"]*\bflex\b[^"]*\bflex-wrap\b/.test(source)],
   ["le PDF prive est ouvert par un lien temporaire", source.includes("Ouvrir le PDF (60 s)")],
+  ["une page verifiee possede son lien limite", source.includes("Ouvrir la page")],
+  ["le lien de page est valide avant navigation", source.includes("parseSchedulePrivatePagePayload")],
   ["l'activation demande une confirmation explicite", source.includes('"ACTIVER"')],
   ["le retour arriere demande une confirmation explicite", source.includes('"RESTAURER"')],
   ["la direction choisit la date de recontrole", source.includes("À recontrôler avant le")],

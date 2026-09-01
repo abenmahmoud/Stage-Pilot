@@ -11,6 +11,14 @@ import {
   inspectSchedulePdf,
   ScheduleDocumentInspectionError,
 } from "./schedule-document-inspector.mjs";
+import {
+  extractSchedulePageAssets,
+  SchedulePageAssetError,
+} from "./schedule-page-assets.mjs";
+import {
+  SCHEDULE_PAGE_ASSET_BUCKET,
+  schedulePageAssetStoragePath,
+} from "../shared/schedule-page-asset.mjs";
 
 const execFileAsync = promisify(execFile);
 const databaseUrl = process.env.DATABASE_URL;
@@ -83,21 +91,76 @@ async function downloadSource(source) {
   }
 }
 
-async function persistReview(source, result, msgId) {
+async function createPrivatePageAssets(source, bytes, pageCount) {
+  const assets = [];
+  for await (const asset of extractSchedulePageAssets(bytes, pageCount)) {
+    const storagePath = schedulePageAssetStoragePath(
+      source.institution_id,
+      source.id,
+      asset.pageNumber
+    );
+    const { error } = await storage
+      .from(SCHEDULE_PAGE_ASSET_BUCKET)
+      .upload(storagePath, asset.bytes, {
+        cacheControl: "0",
+        contentType: "application/pdf",
+        upsert: true,
+      });
+    if (error) throw new Error("schedule_page_asset_upload_failed");
+    assets.push({
+      institution_id: source.institution_id,
+      source_version_id: source.id,
+      page_number: asset.pageNumber,
+      storage_bucket: SCHEDULE_PAGE_ASSET_BUCKET,
+      storage_path: storagePath,
+      mime_type: "application/pdf",
+      size_bytes: asset.sizeBytes,
+      checksum: asset.checksum,
+    });
+  }
+  if (assets.length !== pageCount) throw new Error("schedule_page_asset_count_mismatch");
+  return assets;
+}
+
+async function persistReview(source, result, pageAssets, msgId) {
   await sql.begin(async (transaction) => {
     await transaction`
+      insert into public.schedule_page_assets ${transaction(
+        pageAssets,
+        "institution_id",
+        "source_version_id",
+        "page_number",
+        "storage_bucket",
+        "storage_path",
+        "mime_type",
+        "size_bytes",
+        "checksum"
+      )}
+      on conflict (source_version_id, page_number) do update set
+        storage_bucket = excluded.storage_bucket,
+        storage_path = excluded.storage_path,
+        mime_type = excluded.mime_type,
+        size_bytes = excluded.size_bytes,
+        checksum = excluded.checksum
+    `;
+    const updated = await transaction`
       update public.schedule_source_versions
       set status = 'review', checksum = ${result.checksum}, page_count = ${result.pageCount},
           validation_summary = ${transaction.json({
             securityScan: "clean",
             pageCountVerified: true,
             pageCountMethod: result.method,
+            pageAssetsVerified: true,
+            pageAssetCount: pageAssets.length,
             humanMapping: "pending",
             activation: "blocked",
             realDataAllowedInModel: false,
           })}
       where id = ${source.id} and institution_id = ${source.institution_id}
+        and status = 'processing'
+      returning id
     `;
+    if (!updated.length) throw new Error("schedule_source_state_changed");
     await transaction`
       insert into public.schedule_audit (
         institution_id, source_version_id, action, actor_id, summary
@@ -214,15 +277,19 @@ async function processMessage(row) {
       where id = ${loaded.source.id} and status = 'quarantined'
     `;
     const result = await inspectSchedulePdf(bytes);
-    await persistReview(loaded.source, result, row.msg_id);
+    const pageAssets = await createPrivatePageAssets(loaded.source, bytes, result.pageCount);
+    await persistReview(loaded.source, result, pageAssets, row.msg_id);
     return "review";
   } catch (error) {
-    const code = error instanceof ScheduleDocumentInspectionError
+    const code = error instanceof ScheduleDocumentInspectionError || error instanceof SchedulePageAssetError
       ? error.code
       : error instanceof Error
         ? error.message.slice(0, 120)
         : "unknown_error";
-    if (loaded?.source && error instanceof ScheduleDocumentInspectionError) {
+    if (
+      loaded?.source
+      && (error instanceof ScheduleDocumentInspectionError || error instanceof SchedulePageAssetError)
+    ) {
       await rejectSource(loaded.source, row.msg_id, code);
       return "rejected";
     }

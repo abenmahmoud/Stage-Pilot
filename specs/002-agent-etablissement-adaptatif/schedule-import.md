@@ -107,3 +107,26 @@ poste local.
 - Ce contrat prépare le flux en preview mais n'autorise ni import réel ni
   activation réelle avant la recette du worker et la validation des comptes
   nominatifs.
+
+## Préparation des pages privées du 1er septembre 2026
+
+- Après un résultat ClamAV propre et un comptage PDF stable, le worker prépare
+  un PDF distinct par page. Il ne transmet aucun contenu à un fournisseur d'IA.
+- Le découpage est borné à 500 pages, 12 Mo par page et 100 Mo au total. Les
+  annotations et actions supplémentaires sont retirées des copies destinées à
+  la consultation rapide.
+- Les objets utilisent uniquement établissement, version et numéro de page dans
+  un chemin déterministe. La table `schedule_page_assets` est privée, sous RLS
+  forcée, sans droit client et verrouillée après la phase `processing`.
+- La promotion PostgreSQL recompte les objets privés et refuse l'approbation si
+  une seule page manque, même si le résumé du worker annonce le contraire.
+- La route de lecture exige un compte direction sous MFA, une page indexée et
+  vérifiée, le même établissement et une version encore consultable. Elle ne
+  signe que la copie mono-page pendant 60 secondes et journalise l'action.
+- Le navigateur refuse un lien dont l'origine, le coffre, la version ou le
+  numéro de page ne correspond pas exactement à la demande, avant navigation.
+
+Le code, les tests fictifs, le build et les audits de dépendances sont validés
+localement. La migration n'est pas encore appliquée à la preview et le worker
+n'est pas installé : le CLI et le connecteur Supabase étaient injoignables lors
+de cette passe. Aucun PDF réel ni objet de stockage n'a été créé.

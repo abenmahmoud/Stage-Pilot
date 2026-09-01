@@ -481,3 +481,26 @@ export function parseSchedulePrivateFilePayload(
   ) return null;
   return { url: url.toString(), expiresInSeconds: SCHEDULE_SIGNED_URL_SECONDS };
 }
+
+export function parseSchedulePrivatePagePayload(
+  value: unknown,
+  expectedOrigin: string,
+  expectedSourceId: string,
+  expectedPageNumber: number
+): { url: string; expiresInSeconds: number } | null {
+  if (
+    !UUID_PATTERN.test(expectedSourceId)
+    || !Number.isInteger(expectedPageNumber)
+    || expectedPageNumber < 1
+    || expectedPageNumber > 500
+  ) return null;
+  const parsed = parseSchedulePrivateFilePayload(value, expectedOrigin);
+  if (!parsed) return null;
+  const url = new URL(parsed.url);
+  const page = String(expectedPageNumber).padStart(4, "0");
+  const expectedPath = new RegExp(
+    `^/storage/v1/object/sign/${SCHEDULE_IMPORT_BUCKET}/page-assets/${UUID_FRAGMENT}/${expectedSourceId}/${page}\\.pdf$`,
+    "i"
+  );
+  return expectedPath.test(url.pathname) ? parsed : null;
+}

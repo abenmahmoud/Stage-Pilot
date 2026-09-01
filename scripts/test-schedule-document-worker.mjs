@@ -53,8 +53,11 @@ test("worker scans before inspection and never calls an AI provider", async () =
   ]);
   assert.match(worker, /clamdscan/);
   assert.ok(worker.indexOf("await clamScan") < worker.indexOf("await inspectSchedulePdf"));
+  assert.ok(worker.indexOf("await inspectSchedulePdf") < worker.indexOf("await createPrivatePageAssets"));
   assert.match(worker, /status = 'review'/);
   assert.match(worker, /page_count = \$\{result\.pageCount\}/);
+  assert.match(worker, /pageAssetsVerified: true/);
+  assert.match(worker, /insert into public\.schedule_page_assets/);
   assert.match(worker, /pgmq\.delete\('schedule_document_scan'/);
   assert.match(worker, /pgmq\.archive\('schedule_document_scan'/);
   assert.match(worker, /objectDeleted: true/);

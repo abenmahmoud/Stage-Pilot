@@ -9,6 +9,7 @@ import {
   parseSchedulePageListPayload,
   parseSchedulePageMutationPayload,
   parseSchedulePrivateFilePayload,
+  parseSchedulePrivatePagePayload,
   projectScheduleImportPayload,
   projectSchedulePageMappingPayload,
   projectSchedulePageSourcePayload,
@@ -200,6 +201,28 @@ test("accepts only a short signed URL from the configured private bucket", () =>
   ]) assert.equal(parseSchedulePrivateFilePayload(payload, SUPABASE_ORIGIN), null);
 });
 
+test("binds a private page URL to the expected source and page", () => {
+  const token = "header.payload.signature-with-safe-ascii";
+  const valid = {
+    url: `${SUPABASE_ORIGIN}/storage/v1/object/sign/${SCHEDULE_IMPORT_BUCKET}/page-assets/${INSTITUTION_ID}/${SOURCE_ID}/0001.pdf?token=${token}`,
+    expiresInSeconds: 60,
+  };
+  assert.deepEqual(
+    parseSchedulePrivatePagePayload(valid, SUPABASE_ORIGIN, SOURCE_ID, 1),
+    valid
+  );
+  for (const payload of [
+    { ...valid, url: valid.url.replace("/0001.pdf", "/0002.pdf") },
+    { ...valid, url: valid.url.replace(SOURCE_ID, FILE_ID) },
+    { ...valid, url: valid.url.replace("/page-assets/", "/") },
+  ]) {
+    assert.equal(
+      parseSchedulePrivatePagePayload(payload, SUPABASE_ORIGIN, SOURCE_ID, 1),
+      null
+    );
+  }
+});
+
 test("server projections remove storage and actor fields", () => {
   const projected = projectScheduleImportPayload({
     ...scheduleImport(),
@@ -246,6 +269,10 @@ test("validates every browser response before storage or visible success", async
     "../api/schedule/admin/imports/[id]/pages/index.ts",
     "../api/schedule/admin/imports/[id]/pages/[pageId]/verify.ts",
   ].map((path) => readFile(new URL(path, import.meta.url), "utf8")));
+  const pageFileRoute = await readFile(
+    new URL("../api/schedule/admin/imports/[id]/pages/[pageId]/file.ts", import.meta.url),
+    "utf8"
+  );
 
   const listRead = page.indexOf('apiFetch<unknown>("schedule/admin/imports")');
   const listValidation = page.indexOf("parseScheduleImportListPayload(response)", listRead);
@@ -262,6 +289,11 @@ test("validates every browser response before storage or visible success", async
   const popupNavigation = page.indexOf("popup.location.href", fileValidation);
   assert.ok(fileRead >= 0 && fileValidation > fileRead && popupNavigation > fileValidation);
 
+  const pageRead = page.indexOf("`schedule/admin/imports/${selectedImportId}/pages/${mapping.id}/file`");
+  const pageValidation = page.indexOf("parseSchedulePrivatePagePayload", pageRead);
+  const pageNavigation = page.indexOf("popup.location.href", pageValidation);
+  assert.ok(pageRead >= 0 && pageValidation > pageRead && pageNavigation > pageValidation);
+
   const promotionRead = page.indexOf("const response = await apiFetch<unknown>(`schedule/admin/imports/${target.id}/${action}`");
   const promotionValidation = page.indexOf("parseScheduleImportMutationPayload", promotionRead);
   const successNotice = page.indexOf("setNotice(", promotionValidation);
@@ -271,4 +303,6 @@ test("validates every browser response before storage or visible success", async
   for (const route of routes.slice(5)) assert.match(route, /projectSchedulePage(?:Mapping|Source)Payload/);
   assert.doesNotMatch(routes[0], /validationSummary:\s*scheduleSourceVersions\.validationSummary/);
   assert.doesNotMatch(page, /apiFetch<\{\s*imports:\s*ScheduleImport/);
+  assert.match(pageFileRoute, /requireScheduleManager\(req\)/);
+  assert.match(pageFileRoute, /schedulePageIndexes\.reviewStatus, "verified"/);
 });

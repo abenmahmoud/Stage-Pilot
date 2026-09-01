@@ -5,6 +5,27 @@
 **Depot** : `abenmahmoud/Stage-Pilot`
 **Dernier jalon de code verifie** : branche de preview Vercel
 
+## Jalon du 1er septembre 2026 - pages d'emploi du temps limitées
+
+- Le worker prépare maintenant une copie PDF privée par page uniquement après
+  antivirus propre et comptage stable. Il retire annotations et actions, limite
+  le document à 500 pages, chaque copie à 12 Mo et l'ensemble à 100 Mo.
+- La migration ajoute `schedule_page_assets`, sous RLS forcée et sans droit
+  client. Les chemins sont liés à l'établissement, la version et la page ; les
+  objets deviennent immuables après traitement et PostgreSQL recompte toutes les
+  copies avant une promotion.
+- La route direction sous MFA ne signe qu'une page vérifiée pendant 60 secondes,
+  avec audit minimal. Le navigateur refuse une origine, une version ou un numéro
+  de page substitué avant toute navigation.
+- Quarante-deux contrôles ciblés et globaux, le build et les audits npm racine et
+  workers passent. La tentative Claude Sonnet n'a pas atteint l'API à cause d'un
+  certificat réseau auto-signé ; aucun rapport externe n'est donc compté.
+- Le CLI et le connecteur Supabase étaient injoignables. La migration de preview,
+  l'installation du worker et toute donnée réelle restent volontairement hors de
+  ce jalon local.
+- `002/T042C2D2` est terminée localement. `T042C2C` et `T042C2D` restent ouvertes.
+- Les cinq domaines comptent 531 tâches Spec Kit : 429 terminées et 102 ouvertes.
+
 ## Jalon du 1er septembre 2026 - code email local fermé par défaut
 
 - Le suivi peut désormais combiner le numéro public du dossier et un code email

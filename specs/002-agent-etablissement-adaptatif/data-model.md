@@ -227,6 +227,23 @@ Relie une version de compétence à une ou plusieurs sources. La publication éc
 | `review_status` | enum | `draft`, `verified`, `rejected` |
 | `reviewed_by/at` | uuid/timestamptz | Obligatoires hors brouillon |
 
+### `schedule_page_assets`
+
+| Champ | Type | Règle |
+|---|---|---|
+| `id` | uuid | Clé primaire |
+| `institution_id` | uuid | Même établissement que la version source |
+| `source_version_id` | uuid | Version PDF immuable |
+| `page_number` | integer | Une copie privée unique de 1 à 500 |
+| `storage_bucket/path` | text | Coffre privé et chemin opaque déterministe |
+| `size_bytes` | bigint | De 1 octet à 12 Mo |
+| `checksum` | sha256 | Empreinte de la copie mono-page |
+
+Les créations et reprises ne sont permises que pendant `processing`. Une copie
+est immuable après passage en revue ; son retrait reste soumis à la politique de
+conservation validée. L'approbation recompte les copies plutôt que de faire
+confiance au résumé JSON du worker.
+
 ### `schedule_audit`
 
 Le journal conserve la version, la page éventuelle, l'action, le compte agent,

@@ -38,6 +38,10 @@ const fileApi = readFileSync(
   new URL("../api/schedule/admin/imports/[id]/file.ts", import.meta.url),
   "utf8"
 );
+const pageFileApi = readFileSync(
+  new URL("../api/schedule/admin/imports/[id]/pages/[pageId]/file.ts", import.meta.url),
+  "utf8"
+);
 const reviewBoundsMigration = readFileSync(
   new URL("../supabase/migrations/20260829113248_enforce_schedule_page_review_bounds.sql", import.meta.url),
   "utf8"
@@ -48,6 +52,10 @@ const promotionMigration = readFileSync(
 );
 const validationSummaryMigration = readFileSync(
   new URL("../supabase/migrations/20260829114935_harden_schedule_validation_summary.sql", import.meta.url),
+  "utf8"
+);
+const pageAssetMigration = readFileSync(
+  new URL("../supabase/migrations/20260901080000_create_private_schedule_page_assets.sql", import.meta.url),
   "utf8"
 );
 const approveApi = readFileSync(
@@ -147,11 +155,31 @@ test("verifies pages through a distinct audited action", () => {
 
 test("opens only validated private PDFs with a short audited URL", () => {
   assert.match(fileApi, /requireScheduleManager\(req\)/);
-  assert.match(fileApi, /createSignedUrl\(source\.storagePath, SIGNED_URL_SECONDS\)/);
-  assert.match(fileApi, /const SIGNED_URL_SECONDS = 60/);
+  assert.match(fileApi, /createSignedUrl\(source\.storagePath, SCHEDULE_SIGNED_URL_SECONDS\)/);
+  assert.match(fileApi, /SCHEDULE_SIGNED_URL_SECONDS/);
   assert.match(fileApi, /action: "open_page"/);
   assert.match(fileApi, /Cache-Control", "no-store"/);
   assert.doesNotMatch(fileApi, /getPublicUrl|publicUrl/);
+});
+
+test("serves only a generated verified page under direction MFA", () => {
+  assert.match(pageAssetMigration, /schedule_page_assets enable row level security/i);
+  assert.match(pageAssetMigration, /schedule_page_assets force row level security/i);
+  assert.match(
+    pageAssetMigration,
+    /revoke all on table public\.schedule_page_assets from public, anon, authenticated/i
+  );
+  assert.match(pageAssetMigration, /pageAssetsVerified'\) is distinct from 'true'/i);
+  assert.match(pageAssetMigration, /Every schedule page must have a private page asset/i);
+  assert.match(pageAssetMigration, /immutable outside processing/i);
+  assert.match(pageAssetMigration, /storage_path <> expected_path/i);
+  assert.match(pageFileApi, /requireScheduleManager\(req\)/);
+  assert.match(pageFileApi, /schedulePageIndexes\.reviewStatus, "verified"/);
+  assert.match(pageFileApi, /isExpectedSchedulePageAssetPath/);
+  assert.match(pageFileApi, /createSignedUrl\(page\.storagePath, SCHEDULE_SIGNED_URL_SECONDS\)/);
+  assert.match(pageFileApi, /scope: "single_page"/);
+  assert.match(pageFileApi, /Cache-Control", "no-store"/);
+  assert.doesNotMatch(pageFileApi, /scheduleSourceVersions\.storagePath|getPublicUrl|publicUrl/);
 });
 
 test("locks mapping and approval against concurrent edits", () => {

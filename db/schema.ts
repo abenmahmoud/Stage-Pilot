@@ -947,6 +947,37 @@ export const schedulePageIndexes = pgTable(
   ]
 );
 
+export const schedulePageAssets = pgTable(
+  "schedule_page_assets",
+  {
+    id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+    institutionId: uuid("institution_id")
+      .notNull()
+      .references(() => institutions.id, { onDelete: "cascade" }),
+    sourceVersionId: uuid("source_version_id")
+      .notNull()
+      .references(() => scheduleSourceVersions.id, { onDelete: "cascade" }),
+    pageNumber: integer("page_number").notNull(),
+    storageBucket: text("storage_bucket").notNull().default("schedule-ingest"),
+    storagePath: text("storage_path").notNull().unique(),
+    mimeType: text("mime_type").notNull().default("application/pdf"),
+    sizeBytes: bigint("size_bytes", { mode: "number" }).notNull(),
+    checksum: text("checksum").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    uniqueIndex("schedule_page_assets_source_page_uidx").on(
+      table.sourceVersionId,
+      table.pageNumber
+    ),
+    index("schedule_page_assets_source_institution_idx").on(
+      table.sourceVersionId,
+      table.institutionId,
+      table.pageNumber
+    ),
+  ]
+);
+
 export const scheduleAudit = pgTable(
   "schedule_audit",
   {
