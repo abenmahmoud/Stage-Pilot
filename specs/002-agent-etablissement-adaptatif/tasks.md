@@ -449,6 +449,11 @@
   navigateur : identifiant lié, état `quarantine` ou `clean` seulement et
   booléen de rejeu. Transformer tout état bloqué, en erreur ou en retrait en
   refus explicite au lieu d'annoncer une réussite ambiguë.
+- [x] T027B25 Fermer les réponses des modèles partagés sur six champs exacts,
+  projeter uniquement ces colonnes à la lecture et à la création, puis borner la
+  liste à cent identifiants uniques. Refuser côté serveur et navigateur tout
+  champ SQL interne, modèle incomplet, variable inconnue ou doublon, et protéger
+  atomiquement le plafond lors d'une création concurrente.
 - [ ] T027B2 Ajouter les relances internes et l'escalade après validation des
   délais propres à chaque service et des responsables à notifier.
 - [ ] T027C Créer les adhésions de service puis appliquer le périmètre dans les

@@ -801,6 +801,14 @@ l'autorisation de quota définie par le propriétaire.
   chemin de signature Supabase. Les liens d'un autre domaine, publics, non HTTPS
   ou enrichis d'un champ caché sont refusés avant audit ou ouverture. Six
   contrôles ciblés et le build passent. T020B1 est terminée.
+- Lot N5ZZV : modèles de réponse de la console. **Fermés sans donnée réelle,
+  migration ni envoi** : lecture et création projettent seulement identifiant,
+  catégorie, nom, corps, variables autorisées et origine intégrée. Le serveur et
+  le navigateur partagent le même contrat exact ; les champs SQL internes,
+  modèles incomplets, variables inconnues, doublons et listes de plus de cent
+  éléments sont refusés. Un verrou transactionnel protège le plafond contre les
+  créations concurrentes. Huit contrôles ciblés et le build passent. T027B25
+  est terminée.
 
 ## Prochaine séquence verrouillée
 

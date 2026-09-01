@@ -114,6 +114,10 @@ import { isValidSupportAssistantPayload } from "../../../shared/support-assistan
 import { isSupportMagicAccessPayload } from "../../../shared/support-magic-access-payload-policy";
 import { isSupportAttachmentLinkPayload } from "../../../shared/support-attachment-link-payload-policy";
 import {
+  isSupportTemplateCreatePayload,
+  isSupportTemplateListPayload,
+} from "../../../shared/support-template-payload-policy";
+import {
   isSupportAttachmentConfirmationPayload,
   isSupportSessionClearPayload,
   verifySupportAttachmentRemovalMutationPayload,
@@ -3036,30 +3040,6 @@ async function fetchAgentRequestDetail(code: string): Promise<AgentRequestDetail
     throw new Error("Réponse invalide du détail de la demande");
   }
   return payload;
-}
-
-function isSupportReplyTemplate(value: unknown): value is SupportReplyTemplate {
-  if (!isRecord(value)) return false;
-  const allowedVariables = ["prenom", "numero", "objet"];
-  return typeof value.id === "string" && value.id.length > 0 && value.id.length <= 200
-    && typeof value.category === "string" && value.category.length > 0 && value.category.length <= 60
-    && typeof value.name === "string" && value.name.length > 0 && value.name.length <= 80
-    && typeof value.bodyText === "string" && value.bodyText.length > 0 && value.bodyText.length <= 5_000
-    && Array.isArray(value.allowedVariables)
-    && value.allowedVariables.length <= allowedVariables.length
-    && value.allowedVariables.every((item) => typeof item === "string" && allowedVariables.includes(item))
-    && new Set(value.allowedVariables).size === value.allowedVariables.length
-    && (value.builtIn === undefined || typeof value.builtIn === "boolean");
-}
-
-function isSupportTemplateListPayload(value: unknown): value is { templates: SupportReplyTemplate[] } {
-  return isRecord(value)
-    && Array.isArray(value.templates)
-    && value.templates.every(isSupportReplyTemplate);
-}
-
-function isSupportTemplateCreatePayload(value: unknown): value is { template: SupportReplyTemplate } {
-  return isRecord(value) && isSupportReplyTemplate(value.template);
 }
 
 function isAllowedSupportAttachmentPayload(value: unknown): value is { url: string; expiresIn: number } {

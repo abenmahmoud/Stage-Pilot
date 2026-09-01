@@ -4025,3 +4025,25 @@ taches et analyse de coherence avant une automatisation sensible.
   fichier réel, base distante, production, DNS, VPS, ENT, PRONOTE ou webmail.
 - La porte de sécurité complète, l'intégrité des 505 tâches Spec Kit et l'audit
   des dépendances passent ; ce dernier retourne zéro vulnérabilité.
+
+## 2026-09-01 - Modèles de réponse à contrat fermé
+
+- T027B25 réduit chaque modèle partagé aux six champs nécessaires : identifiant,
+  catégorie, nom, corps, variables autorisées et origine intégrée. Les lectures
+  et créations SQL projettent uniquement les cinq colonnes persistées utiles.
+- Le serveur et le navigateur utilisent le même validateur à champs exacts. Un
+  champ interne, un modèle incomplet, une variable inconnue, un identifiant en
+  double ou une liste de plus de cent modèles est refusé avant affichage. La
+  création compte les modèles actifs sous verrou transactionnel pour ne pas
+  dépasser silencieusement ce plafond lors de requêtes concurrentes.
+- Huit contrôles ciblés et le build passent sans donnée réelle, base distante,
+  production, DNS, VPS, ENT, PRONOTE, webmail ou envoi externe.
+- L'audit Claude Code Sonnet ciblé, unique et en lecture seule n'a trouvé aucun
+  P0 ni P1. Ses deux P2 sont corrigés : la capacité sauvegardée est dérivée du
+  catalogue intégré et la projection des lignes SQL est maintenant une fonction
+  runtime testée, au lieu d'une preuve uniquement textuelle. Son alerte non
+  vérifiée sur le statut est également fermée en validant avant de poser `201` ;
+  le type partagé exige désormais explicitement `builtIn`.
+- Après ces corrections, la porte de sécurité complète, l'intégrité des 506
+  tâches Spec Kit et l'audit des dépendances repassent ; ce dernier retourne
+  zéro vulnérabilité.

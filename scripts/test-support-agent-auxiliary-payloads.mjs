@@ -10,18 +10,23 @@ const attachmentLinkPolicy = readFileSync(
   new URL("../shared/support-attachment-link-payload-policy.ts", import.meta.url),
   "utf8"
 );
+const templatePolicy = readFileSync(
+  new URL("../shared/support-template-payload-policy.ts", import.meta.url),
+  "utf8"
+);
 
 test("validates every template returned by list and create routes", () => {
-  assert.match(source, /value\.templates\.every\(isSupportReplyTemplate\)/);
-  assert.match(source, /isSupportReplyTemplate\(value\.template\)/);
-  assert.match(source, /new Set\(value\.allowedVariables\)\.size === value\.allowedVariables\.length/);
+  assert.match(source, /isSupportTemplateListPayload\(payload\)/);
+  assert.match(source, /isSupportTemplateCreatePayload\(payload\)/);
+  assert.match(templatePolicy, /value\.templates\.every\(isSupportReplyTemplatePayload\)/);
+  assert.match(templatePolicy, /new Set\(value\.allowedVariables\)\.size !== value\.allowedVariables\.length/);
   assert.doesNotMatch(source, /payload\.templates as SupportReplyTemplate\[]/);
 });
 
 test("accepts only known bounded template variables", () => {
-  assert.match(source, /const allowedVariables = \["prenom", "numero", "objet"\]/);
-  assert.match(source, /value\.bodyText\.length <= 5_000/);
-  assert.match(source, /value\.allowedVariables\.length <= allowedVariables\.length/);
+  assert.match(templatePolicy, /new Set\(\["prenom", "numero", "objet"\]\)/);
+  assert.match(templatePolicy, /value\.bodyText\.length > 5_000/);
+  assert.match(templatePolicy, /value\.allowedVariables\.length > ALLOWED_VARIABLES\.size/);
 });
 
 test("limits attachment links to short-lived signed storage URLs", () => {

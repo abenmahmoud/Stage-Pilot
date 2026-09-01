@@ -4,7 +4,7 @@ export type SupportReplyTemplate = {
   name: string;
   bodyText: string;
   allowedVariables: string[];
-  builtIn?: boolean;
+  builtIn: boolean;
 };
 
 export const SUPPORT_TEMPLATE_VARIABLES = ["prenom", "numero", "objet"] as const;
