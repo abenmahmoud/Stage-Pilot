@@ -336,6 +336,11 @@
   couvrent succès, 200 livraisons, délai, HTTP, réponse trop grande et
   configuration dangereuse. T027 et T032 restent ouverts jusqu'à la recette
   réseau déployée avec un faux Webmail autorisé.
+- [x] T027G Refuser aussi les noms DNS terminés par un point, qui pourraient
+  contourner la détection d'un hôte local, et annuler le flux de toute réponse
+  HTTP rejetée avant de rendre une erreur fermée. Onze tests couvrent le contrat
+  sans conserver ni épuiser un corps fournisseur. T027 reste ouvert pour la
+  recette réseau fictive autorisée.
 - [x] T028 Tester rôles, MFA, contenus internes et API publique.
 - [x] T028A Exiger `aal2` sur toutes les routes privées du centre et vérifier
   les rôles bornés, le cloisonnement établissement, la fermeture du module et

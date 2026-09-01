@@ -153,7 +153,10 @@ test("rejects unsafe endpoint and credential configuration before any request", 
   for (const endpoint of [
     "http://webmail.preview.example.test/api/deliveries",
     "https://127.0.0.1/api/deliveries",
+    "https://localhost./api/deliveries",
     "https://webmail.internal/api/deliveries",
+    "https://webmail.internal./api/deliveries",
+    "https://webmail.preview.example.test./api/deliveries",
     "https://webmail.preview.example.test/",
     "https://user:password@webmail.preview.example.test/api/deliveries",
     "https://webmail.preview.example.test/api/deliveries?target=other",
@@ -201,6 +204,37 @@ test("maps HTTP status without reading or retaining the provider error body", as
   });
   assert.deepEqual(result, { ok: false, failureCode: "provider_unavailable" });
   assert.equal(JSON.stringify(result).includes("internal provider detail"), false);
+});
+
+test("cancels rejected response streams before returning a closed failure", async () => {
+  const cases = [
+    { status: 503, contentType: "text/plain", contentLength: undefined },
+    { status: 200, contentType: "text/plain", contentLength: undefined },
+    { status: 200, contentType: "application/json", contentLength: "25000" },
+  ];
+  for (const current of cases) {
+    let canceled = false;
+    const body = new ReadableStream({
+      start(controller) {
+        controller.enqueue(new TextEncoder().encode("provider detail"));
+      },
+      cancel() {
+        canceled = true;
+      },
+    });
+    const headers = { "content-type": current.contentType };
+    if (current.contentLength) headers["content-length"] = current.contentLength;
+    const result = await runCommunicationWebmailDelivery({
+      item: item(),
+      transport: httpTransport(async () => new Response(body, {
+        status: current.status,
+        headers,
+      })),
+      now,
+    });
+    assert.equal(result.ok, false);
+    assert.equal(canceled, true);
+  }
 });
 
 test("fails closed for an invalid command, response or receipt", async () => {

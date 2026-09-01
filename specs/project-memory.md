@@ -5,6 +5,17 @@
 **Depot** : `abenmahmoud/Stage-Pilot`
 **Dernier jalon de code verifie** : branche de preview Vercel
 
+## Jalon du 1er septembre 2026 - réponses Webmail fermées proprement
+
+- Le transport refuse désormais les noms DNS terminés par un point, y compris
+  les variantes locales qui contournaient les contrôles de suffixe.
+- Le flux d'une réponse HTTP rejetée pour son statut, son type ou sa longueur
+  est annulé avant le retour d'une erreur fermée, sans retenir le texte du
+  fournisseur ni une connexion ouverte.
+- `005/T027G` est terminée. `005/T027` reste ouverte pour la recette réseau
+  fictive sur une preview explicitement autorisée.
+- Les cinq domaines comptent 529 tâches Spec Kit : 427 terminées et 102 ouvertes.
+
 ## Jalon du 1er septembre 2026 - analyse de convergence actualisée
 
 - L'analyse transversale recalcule 528 tâches : 426 terminées et 102 ouvertes.

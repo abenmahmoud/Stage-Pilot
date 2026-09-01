@@ -99,6 +99,7 @@ function validatedHttpEndpoint(value: string | undefined): string {
     endpoint.pathname === "/" ||
     isIP(hostname) !== 0 ||
     !hostname.includes(".") ||
+    hostname.endsWith(".") ||
     hostname === "localhost" ||
     hostname.endsWith(".localhost") ||
     hostname.endsWith(".local") ||
@@ -129,11 +130,20 @@ function validatedResponseLimit(value: number | undefined): number {
   return limit;
 }
 
+function discardResponseBody(response: Response): void {
+  if (!response.body) return;
+  void response.body.cancel().catch(() => undefined);
+}
+
 async function readBoundedJsonResponse(response: Response, maxBytes: number): Promise<unknown> {
   const contentType = response.headers.get("content-type") ?? "";
-  if (!JSON_CONTENT_TYPE_PATTERN.test(contentType)) throw new Error("response_invalid");
+  if (!JSON_CONTENT_TYPE_PATTERN.test(contentType)) {
+    discardResponseBody(response);
+    throw new Error("response_invalid");
+  }
   const declaredLength = response.headers.get("content-length");
   if (declaredLength !== null && (!/^\d+$/.test(declaredLength) || Number(declaredLength) > maxBytes)) {
+    discardResponseBody(response);
     throw new Error("response_invalid");
   }
   if (!response.body) throw new Error("response_invalid");
@@ -196,7 +206,10 @@ export function createCommunicationWebmailHttpTransport(
       redirect: "error",
       signal,
     });
-    if (!response.ok) throw new CommunicationWebmailTransportError(response.status);
+    if (!response.ok) {
+      discardResponseBody(response);
+      throw new CommunicationWebmailTransportError(response.status);
+    }
     return readBoundedJsonResponse(response, maxResponseBytes);
   };
 }

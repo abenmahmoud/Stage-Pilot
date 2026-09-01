@@ -332,3 +332,10 @@ par son parseur strict et la reprise doit confirmer exactement création ou
 idempotence. La réponse de personnalisation d'un modèle est réduite à sa
 projection éditoriale ; établissement et agents ne sont plus renvoyés. T027
 reste ouvert pour la recette réseau fictive, pas pour un autre contrat local.
+
+T027G ferme deux détails du transport HTTP. Un nom DNS avec un point terminal
+ne peut plus contourner la détection des suffixes locaux. Toute réponse refusée
+pour son statut, son type ou sa longueur annoncée voit aussi son flux annulé
+avant le retour d'une erreur fermée, afin de ne pas retenir de ressource sous
+des échecs concurrents. La résolution DNS et la recette réseau restent des
+preuves distinctes à exécuter seulement sur une preview autorisée.
