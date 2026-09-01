@@ -6,6 +6,7 @@ import {
   schedulePageIndexes,
   scheduleSourceVersions,
 } from "../../../../../../../db/schema.js";
+import { projectSchedulePageMappingPayload } from "../../../../../../../shared/schedule-admin-payload.js";
 import { HttpError } from "../../../../../../_shared/auth.js";
 import { handleApi, methodNotAllowed } from "../../../../../../_shared/response.js";
 import { requireScheduleManager } from "../../../../../../_shared/schedule-imports.js";
@@ -90,7 +91,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       });
       return verified;
     });
-    return { mapping };
+    return { mapping: projectSchedulePageMappingPayload(mapping) };
   });
 }
 

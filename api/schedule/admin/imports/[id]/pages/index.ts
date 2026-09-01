@@ -6,6 +6,10 @@ import {
   schedulePageIndexes,
   scheduleSourceVersions,
 } from "../../../../../../db/schema.js";
+import {
+  projectSchedulePageMappingPayload,
+  projectSchedulePageSourcePayload,
+} from "../../../../../../shared/schedule-admin-payload.js";
 import { parseSchedulePageMappingInput } from "../../../../../../shared/schedule-page-input.js";
 import { HttpError } from "../../../../../_shared/auth.js";
 import { registryInputError } from "../../../../../_shared/knowledge-registry.js";
@@ -64,7 +68,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           )
         )
         .orderBy(asc(schedulePageIndexes.pageNumber));
-      return { source, pages };
+      return {
+        source: projectSchedulePageSourcePayload(source),
+        pages: pages.map(projectSchedulePageMappingPayload),
+      };
     });
   }
 
@@ -152,7 +159,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         });
         return saved;
       });
-      return { mapping };
+      return { mapping: projectSchedulePageMappingPayload(mapping) };
     });
   }
 

@@ -486,6 +486,14 @@ l'autorisation de quota définie par le propriétaire.
   établissements et une modification après activation, puis `ROLLBACK` avec
   zéro résidu. La résolution depuis l'identité scolaire et l'appel par l'agent
   restent ouverts dans T042D2.
+- Lot N5ZI2 : contrat fermé de l'administration des emplois du temps.
+  **Implémenté et vérifié localement sans donnée réelle** : les API projettent
+  uniquement les champs utiles ; le navigateur refuse une liste, une
+  réservation, une confirmation, un index, une promotion ou un lien signé qui
+  contient un champ caché, une incohérence ou une valeur substituée. Le lien PDF
+  reste limité à 60 secondes, à l'origine Supabase configurée et au coffre
+  privé. Sept tests adverses, le build et la barrière de sécurité complète
+  passent. Le worker antivirus réel reste séparé dans T042C2C.
 - Lot N5ZJ : périmètre d'emploi du temps issu de l'identité. **Implémenté côté
   serveur et non exposé** : le résolveur exige un compte authentifié, une identité
   scolaire non révoquée et son annuaire actif. Il calcule les références valides

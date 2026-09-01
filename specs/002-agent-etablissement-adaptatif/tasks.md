@@ -665,6 +665,12 @@
   sauvegarde en brouillon, vérification distincte et audit minimal. Une recette
   transactionnelle a bloqué page hors limites, mauvais périmètre et modification
   après approbation, puis confirmé le retour à zéro.
+- [x] T042C2B1 Fermer le contrat des réponses de l'espace Emplois du temps : le
+  serveur ne transmet que les champs nécessaires et le navigateur valide les
+  listes, réservations, confirmations, pages, promotions et liens privés avant
+  tout stockage, navigation ou message de réussite. Les chemins privés,
+  identifiants d'acteurs, sommes de contrôle et résumés techniques restent côté
+  serveur ; sept tests adverses, le build et la barrière de sécurité passent.
 - [ ] T042C2C Installer le worker sur le runtime de preview et exécuter les
   recettes PDF fictif, EICAR, panne antivirus et reprise avant tout PDF réel.
 - [ ] T042C2D Ajouter approbation, activation atomique, retour arrière, lien

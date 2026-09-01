@@ -4127,3 +4127,20 @@ taches et analyse de coherence avant une automatisation sensible.
   de la charge et de l'idempotence T047C, et de cette preuve de bail T047D. La
   recette transversale T038 du guichet est également fermée. Les cinq domaines
   comptent 511 tâches Spec Kit : 410 terminées et 101 ouvertes.
+
+## 2026-09-01 - Contrat fermé des emplois du temps administratifs
+
+- T042C2B1 partage un contrat runtime strict entre les API et l'écran direction
+  pour les listes, réservations de dépôt, confirmations, pages, promotions et
+  liens temporaires. Toute réponse est validée avant un stockage, une navigation
+  vers le PDF ou un message de réussite.
+- Les API projettent seulement les champs nécessaires. Les chemins du coffre,
+  identifiants d'acteurs, sommes de contrôle et résumés de validation ne sont
+  plus transmis au navigateur. Le lien PDF exige HTTPS, l'origine Supabase
+  configurée, le coffre `schedule-ingest`, un seul jeton et une durée de 60
+  secondes.
+- Sept contrôles adverses, le build et la barrière de sécurité complète passent
+  sans fichier réel, base distante, production, DNS, VPS, ENT, PRONOTE, webmail
+  ou envoi externe. Le worker antivirus réel reste ouvert dans T042C2C.
+- Les cinq domaines comptent désormais 512 tâches Spec Kit : 411 terminées et
+  101 ouvertes.

@@ -14,59 +14,23 @@ import {
 import { apiFetch } from "../../lib/api";
 import { uploadPrivateFile } from "../../lib/resumable-upload";
 import {
+  parseScheduleImportListPayload,
+  parseScheduleImportMutationPayload,
+  parseScheduleImportReservationPayload,
+  parseSchedulePageListPayload,
+  parseSchedulePageMutationPayload,
+  parseSchedulePrivateFilePayload,
+  type ScheduleImportPayload as ScheduleImport,
+  type ScheduleImportStatus as ScheduleStatus,
+  type SchedulePageMappingPayload as SchedulePageMapping,
+  type SchedulePageSourcePayload as SchedulePageSource,
+} from "../../../shared/schedule-admin-payload";
+import {
   SCHEDULE_IMPORT_MAX_BYTES,
   SCHEDULE_IMPORT_MIME,
+  parseScheduleImportInput,
   type ScheduleSourceKind,
 } from "../../../shared/schedule-import-input";
-
-type ScheduleStatus =
-  | "reserved"
-  | "uploaded"
-  | "quarantined"
-  | "processing"
-  | "review"
-  | "approved"
-  | "active"
-  | "superseded"
-  | "rejected"
-  | "failed"
-  | "retired";
-
-type ScheduleImport = {
-  id: string;
-  sourceKind: ScheduleSourceKind;
-  schoolYear: string;
-  version: number;
-  title: string;
-  purposeDescription: string;
-  effectiveFrom: string;
-  effectiveUntil: string | null;
-  freshUntil: string | null;
-  originalName: string;
-  sizeBytes: number;
-  pageCount: number | null;
-  status: ScheduleStatus;
-  validationSummary: Record<string, unknown>;
-  uploadedAt: string | null;
-  createdAt: string;
-};
-
-type SchedulePageMapping = {
-  id: string;
-  pageNumber: number;
-  subjectType: "class" | "teacher";
-  subjectRef: string;
-  reviewStatus: "draft" | "verified" | "rejected";
-  reviewedAt: string | null;
-};
-
-type SchedulePageSource = {
-  id: string;
-  sourceKind: ScheduleSourceKind;
-  title: string;
-  pageCount: number | null;
-  status: ScheduleStatus;
-};
 
 const STATUS: Record<ScheduleStatus, { label: string; style: string }> = {
   reserved: { label: "Transfert à terminer", style: "bg-slate-100 text-slate-700" },
@@ -81,6 +45,16 @@ const STATUS: Record<ScheduleStatus, { label: string; style: string }> = {
   failed: { label: "Échec du contrôle", style: "bg-red-100 text-red-800" },
   retired: { label: "Retiré", style: "bg-slate-100 text-slate-500" },
 };
+
+const SUPABASE_ORIGIN = (() => {
+  try {
+    return new URL(
+      import.meta.env.VITE_SUPABASE_URL ?? import.meta.env.NEXT_PUBLIC_SUPABASE_URL
+    ).origin;
+  } catch {
+    return "";
+  }
+})();
 
 function defaultSchoolYear(): string {
   const now = new Date();
@@ -141,7 +115,9 @@ export default function ScheduleImportPage() {
     setLoading(true);
     setError("");
     try {
-      const result = await apiFetch<{ imports: ScheduleImport[] }>("schedule/admin/imports");
+      const response = await apiFetch<unknown>("schedule/admin/imports");
+      const result = parseScheduleImportListPayload(response);
+      if (!result) throw new Error("La liste des emplois du temps reçue est invalide.");
       setImports(result.imports);
       setSelectedImportId((current) => {
         if (current && result.imports.some((item) => item.id === current && item.status === "review")) {
@@ -175,11 +151,13 @@ export default function ScheduleImportPage() {
     }
     let cancelled = false;
     setPageLoading(true);
-    apiFetch<{ source: SchedulePageSource; pages: SchedulePageMapping[] }>(
+    apiFetch<unknown>(
       `schedule/admin/imports/${selectedImportId}/pages`
     )
-      .then((result) => {
+      .then((response) => {
         if (cancelled) return;
+        const result = parseSchedulePageListPayload(response, selectedImportId);
+        if (!result) throw new Error("L'index des pages reçu est invalide.");
         setPageSource(result.source);
         setPages(result.pages);
         setPageDrafts(Object.fromEntries(result.pages.map((page) => [page.pageNumber, page.subjectRef])));
@@ -205,7 +183,9 @@ export default function ScheduleImportPage() {
     }
     setError("");
     try {
-      const result = await apiFetch<{ url: string }>(`schedule/admin/imports/${selectedImportId}/file`);
+      const response = await apiFetch<unknown>(`schedule/admin/imports/${selectedImportId}/file`);
+      const result = parseSchedulePrivateFilePayload(response, SUPABASE_ORIGIN);
+      if (!result) throw new Error("Le lien privé reçu est invalide.");
       if (popup) popup.location.href = result.url;
       else window.open(result.url, "_blank", "noopener,noreferrer");
     } catch (reason) {
@@ -219,13 +199,23 @@ export default function ScheduleImportPage() {
     setPageBusy(pageNumber);
     setError("");
     try {
-      const result = await apiFetch<{ mapping: SchedulePageMapping }>(
+      if (!pageSource) throw new Error("La version à indexer n'est plus disponible.");
+      const subjectRef = normalizeDraftRef(pageDrafts[pageNumber] ?? "");
+      const subjectType = pageSource.sourceKind === "classes" ? "class" : "teacher";
+      const response = await apiFetch<unknown>(
         `schedule/admin/imports/${selectedImportId}/pages`,
         {
           method: "POST",
-          body: JSON.stringify({ pageNumber, subjectRef: pageDrafts[pageNumber] ?? "" }),
+          body: JSON.stringify({ pageNumber, subjectRef }),
         }
       );
+      const result = parseSchedulePageMutationPayload(response, {
+        pageNumber,
+        subjectType,
+        subjectRef,
+        reviewStatus: "draft",
+      });
+      if (!result) throw new Error("La confirmation d'indexation reçue est invalide.");
       setPages((current) => [
         ...current.filter((item) => item.pageNumber !== pageNumber),
         result.mapping,
@@ -243,10 +233,18 @@ export default function ScheduleImportPage() {
     setPageBusy(mapping.pageNumber);
     setError("");
     try {
-      const result = await apiFetch<{ mapping: SchedulePageMapping }>(
+      const response = await apiFetch<unknown>(
         `schedule/admin/imports/${selectedImportId}/pages/${mapping.id}/verify`,
         { method: "POST" }
       );
+      const result = parseSchedulePageMutationPayload(response, {
+        id: mapping.id,
+        pageNumber: mapping.pageNumber,
+        subjectType: mapping.subjectType,
+        subjectRef: mapping.subjectRef,
+        reviewStatus: "verified",
+      });
+      if (!result) throw new Error("La confirmation de vérification reçue est invalide.");
       setPages((current) => current.map((item) => item.id === mapping.id ? result.mapping : item));
     } catch (reason) {
       setError(reason instanceof Error ? reason.message : "Validation impossible.");
@@ -267,7 +265,7 @@ export default function ScheduleImportPage() {
     setError("");
     setNotice("");
     try {
-      await apiFetch(`schedule/admin/imports/${target.id}/${action}`, {
+      const response = await apiFetch<unknown>(`schedule/admin/imports/${target.id}/${action}`, {
         method: "POST",
         body: JSON.stringify({
           justification: actionJustification,
@@ -275,6 +273,13 @@ export default function ScheduleImportPage() {
           ...(action === "rollback" ? { confirmation: "RESTAURER" } : {}),
         }),
       });
+      const expectedStatus = action === "approve" ? "approved" : "active";
+      const result = parseScheduleImportMutationPayload(response, {
+        id: target.id,
+        freshStatus: expectedStatus,
+        duplicateStatuses: [expectedStatus],
+      });
+      if (!result) throw new Error("La confirmation de l'action reçue est invalide.");
       setNotice(
         action === "approve"
           ? "Version approuvée. Une confirmation distincte reste nécessaire pour l'activer."
@@ -307,33 +312,41 @@ export default function ScheduleImportPage() {
     setNotice("");
     setProgress(0);
     try {
-      const reservation = await apiFetch<{
-        import: ScheduleImport;
-        upload: { bucket: string; path: string; token: string };
-      }>("schedule/admin/imports", {
-        method: "POST",
-        body: JSON.stringify({
-          sourceKind,
-          schoolYear,
-          title,
-          purposeDescription,
-          effectiveFrom,
-          effectiveUntil: effectiveUntil || null,
-          freshUntil,
-          originalName: file.name,
-          mimeType: SCHEDULE_IMPORT_MIME,
-          sizeBytes: file.size,
-        }),
+      const requestedImport = parseScheduleImportInput({
+        sourceKind,
+        schoolYear,
+        title,
+        purposeDescription,
+        effectiveFrom,
+        effectiveUntil: effectiveUntil || null,
+        freshUntil,
+        originalName: file.name,
+        mimeType: SCHEDULE_IMPORT_MIME,
+        sizeBytes: file.size,
       });
+      const reservationResponse = await apiFetch<unknown>("schedule/admin/imports", {
+        method: "POST",
+        body: JSON.stringify(requestedImport),
+      });
+      const reservation = parseScheduleImportReservationPayload(reservationResponse, requestedImport);
+      if (!reservation) throw new Error("La réservation de dépôt reçue est invalide.");
       const pdf = file.type === SCHEDULE_IMPORT_MIME
         ? file
         : new File([file], file.name, { type: SCHEDULE_IMPORT_MIME });
       await uploadPrivateFile(pdf, reservation.upload, setProgress);
-      await apiFetch(`schedule/admin/imports/${reservation.import.id}/confirm`, {
+      const confirmationResponse = await apiFetch<unknown>(`schedule/admin/imports/${reservation.import.id}/confirm`, {
         method: "POST",
       });
+      const confirmation = parseScheduleImportMutationPayload(confirmationResponse, {
+        id: reservation.import.id,
+        freshStatus: "quarantined",
+        duplicateStatuses: ["quarantined", "processing", "review", "approved", "active"],
+      });
+      if (!confirmation) throw new Error("La confirmation du dépôt reçue est invalide.");
       setNotice(
-        "PDF reçu dans l'espace privé. Il reste bloqué jusqu'au contrôle antivirus, à l'indexation des pages et à l'approbation humaine."
+        confirmation.duplicate
+          ? "Ce PDF avait déjà été reçu. Son état actuel a été relu sans créer un second contrôle."
+          : "PDF reçu dans l'espace privé. Il reste bloqué jusqu'au contrôle antivirus, à l'indexation des pages et à l'approbation humaine."
       );
       setFile(null);
       setTitle("");

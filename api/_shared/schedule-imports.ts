@@ -1,8 +1,9 @@
 import { randomUUID } from "node:crypto";
 import type { VercelRequest } from "@vercel/node";
+import { SCHEDULE_IMPORT_BUCKET } from "../../shared/schedule-admin-payload.js";
 import { requireKnowledgeManager } from "./knowledge-registry.js";
 
-export const SCHEDULE_IMPORT_BUCKET = "schedule-ingest";
+export { SCHEDULE_IMPORT_BUCKET };
 
 export async function requireScheduleManager(req: VercelRequest) {
   return requireKnowledgeManager(req, { publish: true });

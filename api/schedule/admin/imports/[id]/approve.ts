@@ -6,6 +6,7 @@ import {
   schedulePageIndexes,
   scheduleSourceVersions,
 } from "../../../../../db/schema.js";
+import { projectScheduleImportPayload } from "../../../../../shared/schedule-admin-payload.js";
 import { parseSchedulePromotionInput } from "../../../../../shared/schedule-promotion-input.js";
 import { HttpError } from "../../../../_shared/auth.js";
 import { registryInputError } from "../../../../_shared/knowledge-registry.js";
@@ -109,7 +110,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       });
       return { source: approved, duplicate: false };
     });
-    return { import: result.source, duplicate: result.duplicate };
+    return { import: projectScheduleImportPayload(result.source), duplicate: result.duplicate };
   });
 }
 

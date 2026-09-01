@@ -2,6 +2,7 @@ import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { and, eq, ne, sql } from "drizzle-orm";
 import { db } from "../../../../../db/index.js";
 import { scheduleAudit, scheduleSourceVersions } from "../../../../../db/schema.js";
+import { projectScheduleImportPayload } from "../../../../../shared/schedule-admin-payload.js";
 import { parseSchedulePromotionInput } from "../../../../../shared/schedule-promotion-input.js";
 import { HttpError } from "../../../../_shared/auth.js";
 import { registryInputError } from "../../../../_shared/knowledge-registry.js";
@@ -126,7 +127,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       });
       return { source: restored, duplicate: false };
     });
-    return { import: result.source, duplicate: result.duplicate };
+    return { import: projectScheduleImportPayload(result.source), duplicate: result.duplicate };
   });
 }
 

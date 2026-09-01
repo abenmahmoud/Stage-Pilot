@@ -2,6 +2,7 @@ import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { and, desc, eq, sql } from "drizzle-orm";
 import { db } from "../../../../db/index.js";
 import { scheduleAudit, scheduleSourceVersions } from "../../../../db/schema.js";
+import { projectScheduleImportPayload } from "../../../../shared/schedule-admin-payload.js";
 import { parseScheduleImportInput } from "../../../../shared/schedule-import-input.js";
 import { supabaseAdmin } from "../../../_shared/auth.js";
 import { registryInputError } from "../../../_shared/knowledge-registry.js";
@@ -31,7 +32,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           sizeBytes: scheduleSourceVersions.sizeBytes,
           pageCount: scheduleSourceVersions.pageCount,
           status: scheduleSourceVersions.status,
-          validationSummary: scheduleSourceVersions.validationSummary,
           uploadedAt: scheduleSourceVersions.uploadedAt,
           createdAt: scheduleSourceVersions.createdAt,
         })
@@ -39,7 +39,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         .where(eq(scheduleSourceVersions.institutionId, context.institutionId))
         .orderBy(desc(scheduleSourceVersions.createdAt))
         .limit(100);
-      return { imports };
+      return { imports: imports.map(projectScheduleImportPayload) };
     });
   }
 
@@ -127,7 +127,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       });
 
       return {
-        import: created,
+        import: projectScheduleImportPayload(created),
         upload: {
           bucket: SCHEDULE_IMPORT_BUCKET,
           path: upload.path,

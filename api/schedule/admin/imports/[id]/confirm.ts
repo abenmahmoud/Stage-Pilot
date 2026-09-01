@@ -3,6 +3,7 @@ import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { and, eq, inArray, sql } from "drizzle-orm";
 import { db } from "../../../../../db/index.js";
 import { scheduleAudit, scheduleSourceVersions } from "../../../../../db/schema.js";
+import { projectScheduleImportPayload } from "../../../../../shared/schedule-admin-payload.js";
 import { HttpError, supabaseAdmin } from "../../../../_shared/auth.js";
 import { handleApi, methodNotAllowed } from "../../../../_shared/response.js";
 import { requireScheduleManager } from "../../../../_shared/schedule-imports.js";
@@ -32,7 +33,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       .limit(1);
     if (!source) throw new HttpError(404, "Version introuvable.");
     if (["quarantined", "processing", "review", "approved", "active"].includes(source.status)) {
-      return { import: source, duplicate: true };
+      return { import: projectScheduleImportPayload(source), duplicate: true };
     }
     if (!["reserved", "uploaded"].includes(source.status)) {
       throw new HttpError(409, "Ce dépôt ne peut plus être confirmé.");
@@ -136,7 +137,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     });
     if (!confirmed[0]) throw new HttpError(409, "Ce dépôt a déjà été traité.");
     res.status(202);
-    return { import: confirmed[0], duplicate: false };
+    return { import: projectScheduleImportPayload(confirmed[0]), duplicate: false };
   });
 }
 
