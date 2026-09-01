@@ -52,7 +52,7 @@ const MAX_FILE_BYTES = 10 * 1024 * 1024;
 const REQUEST_FIELDS = new Set([
   "publicCode", "requesterType", "requesterFirstName", "requesterLastName",
   "beneficiaryType", "beneficiaryFirstName", "beneficiaryLastName", "subjectContext",
-  "category", "subject", "description", "status", "priority", "assignedTo",
+  "category", "subcategory", "subject", "description", "status", "priority", "assignedTo",
   "assignedTeam", "slaDueAt", "createdAt", "updatedAt", "identityStatus",
   "identityMethod", "identityVerifiedAt",
 ]);
@@ -135,6 +135,7 @@ export function isValidSupportAgentRequest(value: unknown): boolean {
   const identityMethod = record.identityMethod;
   const identityVerifiedAt = record.identityVerifiedAt;
   if (!hasOnlyKeys(record, REQUEST_FIELDS)
+    || !isNullableText(record.subcategory, 100)
     || !isBoundedText(record.description, 5_000)
     || !isKnownValue(identityStatus, IDENTITY_STATUSES)
     || !(identityMethod === null || isKnownValue(identityMethod, IDENTITY_METHODS))

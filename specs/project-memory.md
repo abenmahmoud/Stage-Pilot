@@ -4527,3 +4527,17 @@ taches et analyse de coherence avant une automatisation sensible.
   rapprochement persistant et les actions de registre Webmail restent dans T035.
 - Les cinq domaines comptent désormais 537 tâches Spec Kit : 438 terminées et
   99 ouvertes.
+
+### Jalon du 1er septembre 2026 - contrôle agent des coordonnées
+
+- Le dossier agent distingue maintenant une demande d'ajout ou de correction
+  d'une demande de retrait d'adresse personnelle.
+- Le contrôle du lien email et la confirmation de l'identité scolaire sont
+  présentés séparément afin de ne jamais confondre contrôle d'une adresse et
+  identité de la personne.
+- L'écran interdit de déclarer le registre Webmail modifié sans preuve renvoyée
+  par ce service externe. Ce lot ne réalise aucune mutation du Webmail.
+- Le contrat de lecture expose uniquement la sous-catégorie bornée utile à ce
+  contrôle. Neuf tests ciblés, le build et l'intégrité Spec Kit passent.
+- Les cinq domaines comptent désormais 538 tâches Spec Kit : 439 terminées et
+  99 ouvertes.

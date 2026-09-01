@@ -934,6 +934,19 @@
 .lycee-agent-identity small { color: var(--lc-muted); font-size: 9px; line-height: 1.35; }
 .lycee-agent-identity select { min-height: 36px; padding: 0 8px; border: 1px solid #cbd5e1; border-radius: 7px; background: #fff; color: var(--lc-ink); font-size: 10px; font-weight: 750; }
 .lycee-agent-identity[data-sensitive="true"] { border-color: #efcf8d; background: #fff9ea; }
+.lycee-agent-contact-review { display: grid; grid-template-columns: 28px minmax(180px,1fr) minmax(260px,1.2fr); align-items: center; gap: 10px; margin-top: 12px; padding: 12px; border: 1px solid #b9d9d2; border-radius: 8px; background: #f1faf7; }
+.lycee-agent-contact-review > svg { width: 20px; color: var(--lc-green); }
+.lycee-agent-contact-review > div { min-width: 0; display: flex; flex-direction: column; gap: 3px; }
+.lycee-agent-contact-review > div small { color: #087c69; font-size: 8px; font-weight: 850; text-transform: uppercase; }
+.lycee-agent-contact-review > div strong { font-size: 11px; }
+.lycee-agent-contact-review > div p { margin: 0; color: var(--lc-muted); font-size: 9px; overflow-wrap: anywhere; }
+.lycee-agent-contact-review dl { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 7px; margin: 0; }
+.lycee-agent-contact-review dl > div { min-width: 0; padding: 8px; border: 1px solid #e0c582; border-radius: 7px; background: #fff9e9; }
+.lycee-agent-contact-review dl > div[data-ready="true"] { border-color: #b9d9d2; background: #fff; }
+.lycee-agent-contact-review dt { color: var(--lc-muted); font-size: 8px; font-weight: 800; text-transform: uppercase; }
+.lycee-agent-contact-review dd { margin: 3px 0 0; color: #40556a; font-size: 9px; font-weight: 750; line-height: 1.35; }
+.lycee-agent-contact-warning { grid-column: 2 / -1; display: flex; align-items: flex-start; gap: 6px; margin: 0; padding-top: 8px; border-top: 1px solid #cce2dd; color: #744b09; font-size: 9px; font-weight: 700; line-height: 1.4; }
+.lycee-agent-contact-warning svg { width: 15px; flex: 0 0 15px; }
 .lycee-agent-duplicate { display: grid; grid-template-columns: 28px minmax(0,1fr) minmax(250px,auto); align-items: center; gap: 9px; margin-top: 12px; padding: 12px; border: 1px solid #efcf8d; border-radius: 8px; background: #fff9ea; }
 .lycee-agent-duplicate > svg { width: 19px; color: #9a5c00; }
 .lycee-agent-duplicate > span { min-width: 0; display: flex; flex-direction: column; gap: 3px; }
@@ -1136,6 +1149,8 @@
   .lycee-followup-actions { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); }
   .lycee-agent-identity { grid-template-columns: 26px minmax(0,1fr); }
   .lycee-agent-identity select { grid-column: 1 / -1; width: 100%; }
+  .lycee-agent-contact-review { grid-template-columns: 26px minmax(0,1fr); }
+  .lycee-agent-contact-review dl, .lycee-agent-contact-warning { grid-column: 1 / -1; }
   .lycee-agent-duplicate { grid-template-columns: 26px minmax(0,1fr); }
   .lycee-agent-duplicate > div { grid-column: 1 / -1; flex-wrap: wrap; justify-content: stretch; }
   .lycee-agent-duplicate button { flex: 1 1 130px; }

@@ -18,6 +18,9 @@ la demande et sans ajouter automatiquement cette adresse à une diffusion.
    adresse.
 5. Un agent rapproche ensuite la demande de la liste officielle avant toute
    validation, correction ou retrait.
+6. Le dossier agent affiche séparément l'action demandée, le contrôle du lien
+   email et la confirmation d'identité. Il rappelle que le registre Webmail ne
+   peut être déclaré modifié qu'après une preuve renvoyée par ce service.
 
 ## Garanties actuelles
 
@@ -25,6 +28,8 @@ la demande et sans ajouter automatiquement cette adresse à une diffusion.
 - email obligatoire dans ce parcours ;
 - téléphone facultatif et rappel autorisé seulement par le choix affiché ;
 - ajout et retrait visibles comme objets distincts dans la file agent ;
+- contrôles email et identité visibles sans confondre contrôle de l'adresse et
+  identité scolaire ;
 - aucune adresse exposée publiquement ou ajoutée automatiquement à une audience.
 
 ## Limite volontaire

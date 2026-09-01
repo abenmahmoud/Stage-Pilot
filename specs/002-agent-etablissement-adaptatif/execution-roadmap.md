@@ -950,6 +950,13 @@ l'autorisation de quota définie par le propriétaire.
   persistant vers le Webmail reste séparément bloqué. T035A de la spécification
   001 est terminée.
 
+- Lot N5ZZZ8 : contrôle agent des coordonnées personnelles. **Fermé sans
+  mutation du Webmail ni donnée réelle** : le dossier distingue ajout/correction
+  et retrait, montre séparément le lien email et l'identité scolaire, puis
+  interdit toute confirmation de mise à jour sans preuve du registre externe.
+  Le contrat de lecture est strict et la sous-catégorie reste bornée. T035A1 de
+  la spécification 001 est terminée.
+
 ## Prochaine séquence verrouillée
 
 1. Conserver `BC-2026-000009` comme preuve fictive de recette jusqu'à la décision

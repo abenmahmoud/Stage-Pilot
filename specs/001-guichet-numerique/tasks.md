@@ -213,6 +213,10 @@ voir sa réponse dans le dossier. L'agent traite tout depuis une seule file.
   l'agent confirme ensuite l'identité. Aucun contact n'est automatiquement
   ajouté à une liste de diffusion ; le rapprochement persistant avec le registre
   Webmail et les actions agent dédiées restent dans T035.
+- [x] **T035A1** Présenter dans le dossier agent l'action de contact demandée,
+  la vérification de l'email et la confirmation d'identité. L'écran interdit de
+  présenter une mise à jour du registre Webmail sans preuve externe ; aucune
+  mutation du registre n'est ajoutée.
 - [x] **T036** Restaurer dans la navigation les formations et informations du lycée.
 - [x] **T036A** Rendre le Webmail prioritaire et garder LyceeGest accessible depuis
   la navigation permanente et le catalogue des services.

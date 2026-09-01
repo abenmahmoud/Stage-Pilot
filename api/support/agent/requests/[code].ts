@@ -608,6 +608,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         beneficiaryLastName: request.beneficiaryLastName,
         subjectContext: request.subjectContext,
         category: request.category,
+        subcategory: request.subcategory,
         subject: request.subject,
         description: request.description,
         status: request.status,

@@ -37,6 +37,7 @@ const validDetail = {
       identityVerifiedBy: null,
     },
     category: "ent",
+    subcategory: null,
     subject: "Accès ENT",
     description: "Le compte ne permet plus de se connecter.",
     status: "en_cours",
@@ -134,6 +135,21 @@ test("accepts one complete bounded agent detail", () => {
       canRemoveDraft: true,
     }],
   }), true);
+});
+
+test("exposes personal-contact guidance without claiming an external update", () => {
+  assert.equal(isValidSupportAgentDetailPayload({
+    ...validDetail,
+    request: { ...validDetail.request, subcategory: "contact_personnel_ajout" },
+  }), true);
+  assert.equal(isValidSupportAgentDetailPayload({
+    ...validDetail,
+    request: { ...validDetail.request, subcategory: "x".repeat(101) },
+  }), false);
+  assert.match(route, /subcategory: request\.subcategory/);
+  assert.match(page, /Ajouter ou corriger l’adresse personnelle/);
+  assert.match(page, /Retirer l’adresse personnelle/);
+  assert.match(page, /Ne confirmez jamais une mise à jour du Webmail/);
 });
 
 test("rejects hidden fields and oversized visible text", () => {
