@@ -13,7 +13,7 @@ export async function handleApi(
   try {
     const data = await fn();
     if (res.headersSent) return;
-    res.status(200).json(data ?? { ok: true });
+    res.status(res.statusCode).json(data ?? { ok: true });
   } catch (err) {
     if (err instanceof HttpError) {
       res.status(err.status).json({ error: err.message });
