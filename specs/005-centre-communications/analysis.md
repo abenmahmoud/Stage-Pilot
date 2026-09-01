@@ -454,3 +454,25 @@ La revue Fable 5 unique a coûté environ 0,70 USD : allocation mémoire et erre
 uniformes corrigées, autres observations contre-vérifiées dans le compte rendu
 `docs/audits/CLAUDE_INBOUND_TRANSFER_ADJUDICATION_2026-09-01.md`. T022 reste
 ouverte pour raccordement, scan, conservation et recette complète autorisée.
+
+T022I fournit l'orchestrateur d'une pièce : contrôle du parent, téléchargement
+borné, réservation dans une transaction distincte, puis dépôt et confirmation
+sous verrou de l'objet. Deux appels par instance sont admis par défaut, quatre
+au maximum ; l'excès est refusé sans file de jetons. L'attente d'un verrou est
+limitée à cinq secondes. Un rejeu conserve son état confirmé, ne redépose rien
+et ne crée pas de scan supplémentaire. Une purge refuse toute recréation.
+
+Seize tests locaux exécutent les fonctions réelles sur un substitut de
+transaction avec injections de panne ; ils ne constituent pas une preuve
+PostgreSQL. La recette SQL de réservation existante a été répétée par le
+connecteur de preview et laisse cinq résidus nuls. La nouvelle recette directe
+`recipe:preview-communication-inbound-ingestion` refuse cependant les paramètres
+locaux non utilisables avant toute connexion. Son exécution complète reste
+ouverte : elle utilise des savepoints sous rollback global, pas une preuve de
+reprise après redémarrage physique du serveur.
+
+Claude Fable 5 a relu les quatre fichiers du raccordement une fois pour environ
+0,71 USD. Les erreurs, le compare-and-set du harnais et le rattrapage d'un objet
+propre sont corrigés. L'encodage du jeton et les bornes de la référence étaient
+déjà présents. Le compte rendu distingue constats confirmés et limites restantes.
+Ni la route entrante ni le worker ne sont activés. T022I reste donc ouverte.

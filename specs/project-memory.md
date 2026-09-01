@@ -4682,3 +4682,20 @@ taches et analyse de coherence avant une automatisation sensible.
   Raccordement, limitation de concurrence, antivirus et conservation restent à
   compléter. Les cinq domaines comptent désormais 547 tâches Spec Kit : 448
   terminées et 99 ouvertes ; ce compte n'est pas un taux de service opérationnel.
+
+### Avancement du 1er septembre 2026 - raccordement entrant et revue Fable
+
+- Le nouveau raccordement interne enchaîne contrôle du parent, téléchargement,
+  réservation persistante, dépôt relu sous verrou et confirmation avec mise en
+  file atomique. Un rejeu conserve l'état confirmé ; une purge interdit la recréation.
+- Seize tests locaux passent, avec pannes injectées, conflits, erreurs fermées,
+  acquittement perdu, borne d'admission et absence de fuite des paramètres de recette.
+- Fable 5 a effectué une revue ciblée autorisée pour environ 0,71 USD. Les
+  corrections sont documentées et contre-vérifiées ; aucune relance automatique.
+- La recette SQL de réservation existante passe par le connecteur de preview
+  avec cinq résidus nuls. La nouvelle recette directe de l'orchestrateur est
+  préparée, mais les fichiers locaux n'offrent pas de connexion PostgreSQL
+  utilisable. Elle n'a pas tourné ; T022I reste ouverte.
+- Aucun webhook, scan, service réel ou secret activé. La borne par instance ne
+  remplace pas un contrôle distribué. Les cinq domaines comptent 548 tâches :
+  448 terminées et 100 ouvertes, sans pourcentage de fonctionnement annoncé.

@@ -75,9 +75,9 @@ de preview.
 ## Transport privé borné
 
 Le téléchargeur et le dépôt privé sont maintenant implémentés et testés
-séparément. L'orchestrateur devra mesurer les octets Brevo avant de réserver la
-taille immuable, puis déposer, relire et confirmer. La taille du webhook est
-une estimation. Le raccordement n'est pas encore effectué.
+séparément. L'orchestrateur mesure les octets Brevo avant de réserver la
+taille immuable, puis dépose, relit et confirme. La taille du webhook est
+une estimation. Ce raccordement interne n'est pas activé dans le webhook.
 
 Le transport limite chaque objet à 10 Mio, refuse les redirections, interrompt
 les échanges bloqués et ne conserve aucun jeton fournisseur. Le dépôt utilise
@@ -89,7 +89,7 @@ La recette `test:communication-inbound-transfer` couvre dix-neuf scénarios
 fictifs, dont vingt rejeux simultanés, la substitution à taille égale et un
 échange HTTP natif limité à `127.0.0.1`. Elle ne prouve ni le service Brevo réel,
 ni un scan ClamAV, ni la capacité globale pour deux cents téléchargements.
-L'orchestrateur devra borner sa concurrence et effacer ses tampons après usage.
+L'orchestrateur borne sa concurrence par instance et efface ses tampons après usage.
 L'effacement des copies internes n'est pas une garantie d'effacement de toutes
 les copies détenues par le runtime, le transport ou l'appelant.
 
@@ -99,9 +99,38 @@ Sources du contrat : [pièces entrantes Brevo](https://developers.brevo.com/refe
 Le dépôt standard est utilisé pour ce petit plafond ; une charge réelle et les
 grandes pièces nécessitent encore une recette sur l'environnement autorisé.
 
+## Raccordement interne en attente de recette complète
+
+`createCommunicationInboundAttachmentIngestor` utilise des transactions
+distinctes pour garder la réservation après une panne de stockage. Le dépôt
+est relu sous verrou de l'objet avant confirmation et mise en file atomiques.
+Les rejouements après quarantaine, résultat propre, blocage ou erreur de scan
+conservent l'état existant ; une empreinte différente ou une purge sont refusées.
+Le code ne prétend jamais avoir exécuté l'antivirus.
+
+La fabrique doit être conservée au niveau de l'instance serveur, pas recréée
+pour chaque requête. Deux opérations par défaut, quatre maximum, sont admises
+sans attente en mémoire. Cette borne n'est ni une file durable ni une limite
+distribuée. Le futur raccordement à la route doit encore dimensionner les lots,
+les délais, les réessais fournisseur et le contrôle global du trafic.
+
+Les seize tests locaux couvrent reprise après échec de stockage, annulation de
+la confirmation et de la file, acquittement de commit perdu, états confirmés,
+retrait, conflits de preuve et admission. Les erreurs distinguent transfert,
+stockage, contenu, conflit et indisponibilité des verrous sans texte distant.
+Une revue Fable unique a été contre-vérifiée par Codex.
+
+La recette directe PostgreSQL est prête :
+`npm run recipe:preview-communication-inbound-ingestion`. Elle exige une
+connexion au projet de preview déjà autorisé, utilise seulement des fixtures,
+des savepoints et un rollback global, puis contrôle cinq résidus nuls. Les
+fichiers locaux actuels ne fournissent pas de connexion utilisable ; la recette
+ne s'est donc pas exécutée. La recette SQL de réservation antérieure passe via
+le connecteur avec cinq compteurs à zéro, mais ne remplace pas cette preuve.
+
 ## Frontières encore fermées
 
-- raccordement du transport à la réservation et à la confirmation transactionnelles ;
+- recette complète du raccordement transactionnel sur PostgreSQL ;
 - recette de transport sur les services de preview explicitement autorisés ;
 - worker ClamAV autorisé et supervision ;
 - preuves avec fichier propre et signature EICAR ;

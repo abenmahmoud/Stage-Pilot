@@ -84,6 +84,15 @@ premier fichier. Ce transfert n'est pas une preuve antivirus et ne peut rendre
 un objet propre. Aucun raccordement réel avant la recette ClamAV et la décision
 de conservation.
 
+L'ingestion d'une pièce vérifie d'abord l'existence de l'entrant dans son
+établissement, mesure le téléchargement, puis valide une réservation dans une
+transaction distincte. Le dépôt et sa confirmation s'exécutent sous verrou de
+l'objet : une panne conserve ainsi la référence réservée pour la reprise.
+Le rejeu d'un objet déjà confirmé ne redépose rien et ne relance pas son scan ;
+son empreinte doit correspondre. Un objet purgé n'est jamais recréé. Une borne
+d'admission par instance refuse immédiatement l'excès sans retenir une file de
+jetons en mémoire ; elle ne remplace pas la limitation distribuée de la route.
+
 ## Interface simplifiée
 
 L'écran principal propose trois commandes visibles :

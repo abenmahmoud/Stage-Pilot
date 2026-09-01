@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
 import { and, eq, sql } from "drizzle-orm";
-import { db } from "../../db/index.js";
+import type { db } from "../../db/index.js";
 import {
   communicationInbound,
   communicationInboundObjectEvents,
@@ -11,10 +11,18 @@ import {
   communicationInboundObjectStoragePath,
   parseCommunicationInboundObjectDescriptors,
   parseCommunicationInboundQuarantineConfirmation,
+  type CommunicationInboundQuarantineConfirmation,
   type CommunicationInboundObjectDescriptor,
 } from "../../shared/communication-inbound-content-policy.js";
 
-type CommunicationTransaction = Parameters<Parameters<typeof db.transaction>[0]>[0];
+export type CommunicationTransaction = Parameters<Parameters<typeof db.transaction>[0]>[0];
+
+export type CommunicationInboundIngestionReceipt = {
+  accepted: true;
+  objectId: string;
+  status: "quarantine" | "clean" | "blocked" | "scan_error";
+  duplicate: boolean;
+};
 
 export type CommunicationInboundObjectReservation = {
   id: string;
@@ -188,8 +196,12 @@ export async function reserveCommunicationInboundObjects(input: {
       .limit(1);
     if (
       !existing
-      || existing.storageBucket !== "communication-inbound-quarantine"
+      || (existing.storageBucket !== "communication-inbound-quarantine"
+        && existing.storageBucket !== "communication-inbound-clean")
       || !sameReservation(existing, descriptor)
+      || existing.storagePath !== communicationInboundObjectStoragePath(
+        input.institutionId, input.inboundId, existing.id
+      )
     ) {
       throw new Error("communication_inbound_object_reservation_conflict");
     }
@@ -198,7 +210,7 @@ export async function reserveCommunicationInboundObjects(input: {
       objectKind: descriptor.objectKind,
       mediaType: descriptor.mediaType,
       sizeBytes: descriptor.sizeBytes,
-      storageBucket: "communication-inbound-quarantine",
+      storageBucket: existing.storageBucket,
       storagePath: existing.storagePath,
       status: existing.status,
       duplicate: true,
@@ -293,4 +305,58 @@ export async function confirmCommunicationInboundObjectQuarantine(input: {
     status: "quarantine",
     duplicate: false,
   };
+}
+
+export async function storeAndConfirmCommunicationInboundObject(input: {
+  tx: CommunicationTransaction;
+  confirmation: unknown;
+  store: (confirmation: CommunicationInboundQuarantineConfirmation) => Promise<unknown>;
+}): Promise<CommunicationInboundIngestionReceipt> {
+  const confirmation = { ...parseCommunicationInboundQuarantineConfirmation(input.confirmation) };
+  const [current] = await input.tx
+    .select({
+      id: communicationInboundObjects.id,
+      mediaType: communicationInboundObjects.mediaType,
+      sizeBytes: communicationInboundObjects.sizeBytes,
+      storagePath: communicationInboundObjects.storagePath,
+      storageBucket: communicationInboundObjects.storageBucket,
+      status: communicationInboundObjects.status,
+      sha256: communicationInboundObjects.sha256,
+    })
+    .from(communicationInboundObjects)
+    .where(and(
+      eq(communicationInboundObjects.id, confirmation.objectId),
+      eq(communicationInboundObjects.institutionId, confirmation.institutionId),
+      eq(communicationInboundObjects.inboundId, confirmation.inboundId)
+    ))
+    .limit(1)
+    .for("update");
+  if (!current
+    || current.mediaType !== confirmation.mediaType
+    || Number(current.sizeBytes) !== confirmation.sizeBytes
+    || current.storagePath !== communicationInboundObjectStoragePath(
+      confirmation.institutionId, confirmation.inboundId, confirmation.objectId
+    )) throw new Error("communication_inbound_object_quarantine_conflict");
+  if (current.status === "purged") throw new Error("communication_inbound_object_retired");
+  if (current.status !== "reserved") {
+    if (!["quarantine", "clean", "blocked", "scan_error"].includes(current.status)
+      || current.sha256 !== confirmation.sha256
+      || (current.status === "clean"
+        ? current.storageBucket !== "communication-inbound-clean"
+        : current.storageBucket !== "communication-inbound-quarantine")) {
+      throw new Error("communication_inbound_object_quarantine_conflict");
+    }
+    return { accepted: true, objectId: current.id,
+      status: current.status as CommunicationInboundIngestionReceipt["status"], duplicate: true };
+  }
+  if (current.storageBucket !== "communication-inbound-quarantine" || current.sha256 !== null) {
+    throw new Error("communication_inbound_object_quarantine_conflict");
+  }
+  // Keep the row locked through private storage verification and the atomic queue write.
+  const stored = parseCommunicationInboundQuarantineConfirmation(await input.store({ ...confirmation }));
+  if (Object.keys(confirmation).some((field) => {
+    const key = field as keyof CommunicationInboundQuarantineConfirmation;
+    return stored[key] !== confirmation[key];
+  })) throw new Error("communication_inbound_object_storage_receipt_conflict");
+  return confirmCommunicationInboundObjectQuarantine({ tx: input.tx, confirmation });
 }

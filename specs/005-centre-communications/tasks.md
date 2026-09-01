@@ -296,6 +296,13 @@
   aucun jeton fournisseur, déposer sans écrasement et vérifier par relecture
   l'empreinte de chaque fichier. Prouver avec des échanges fictifs les pannes,
   rejeux et substitutions avant de raccorder le webhook ou le worker.
+- [ ] T022I Relier téléchargement, réservation durable, dépôt vérifié et mise
+  en file antivirus. Verrouiller l'objet pendant la confirmation, préserver
+  les états déjà traités, refuser les reprises incohérentes, borner les appels
+  simultanés par instance et prouver la reprise après panne sans activer la route.
+  Code et seize tests locaux livrés ; revue Fable arbitrée. La recette directe
+  du nouvel orchestrateur sur PostgreSQL reste bloquée par la configuration
+  locale de preview non utilisable : la tâche n'est pas déclarée terminée.
 - [x] T023 Rattacher chaque réponse à la bonne communication.
 - [x] T023A Définir le rattachement strict avant la persistance. La référence
   `In-Reply-To` entrante utilise le même HMAC secret que l'identifiant du message
