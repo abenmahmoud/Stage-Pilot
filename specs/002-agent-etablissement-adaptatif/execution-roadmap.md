@@ -4,6 +4,21 @@
 **Périmètre** : feature `002-agent-etablissement-adaptatif` et dépendance `001`  
 **Principe** : avancer vite en preview, valider avant données réelles et production
 
+## Point vérifié du 1er septembre 2026
+
+- La preview `9d9868b` est publiée et vérifiée. Le worker des communications
+  entrantes, la reprise après panne et le dépôt propre sont préparés, pas activés.
+- La prochaine revue Claude de ce worker attend une autorisation distincte à
+  3 USD. Les quotas des missions terminées ne sont pas réutilisés implicitement.
+- La recette intégrée nécessite encore un moteur ClamAV qualifié et la
+  connexion PostgreSQL de preview. Les preuves locales ou SQL seules ne la
+  remplacent pas ; aucun service distant n'est démarré sans accord.
+- La synthèse actuelle compte 449 tâches terminées et 101 ouvertes, sans
+  pourcentage global. L'analyse transversale distingue pipeline des
+  connaissances terminé, éditeur livré et antivirus éditorial encore ouvert.
+- Les décisions Direction/DPO, les comptes individuels, les canaux email,
+  l'import réel et la bascule restent séparés. Voir `specs/ANALYZE_2026-08-30.md`.
+
 ## Mode de recette décidé
 
 - Les lots continuent à recevoir leurs contrôles automatiques, builds et tests de

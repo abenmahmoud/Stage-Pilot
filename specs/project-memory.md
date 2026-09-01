@@ -5,6 +5,20 @@
 **Depot** : `abenmahmoud/Stage-Pilot`
 **Dernier jalon de code verifie** : branche de preview Vercel
 
+## Point de convergence du 1er septembre 2026
+
+- Le dépôt est propre au commit de code `9d9868b`, poussé sur la seule branche
+  de preview. Vercel confirme `dpl_Fsu8kMZznGR38a2TVuVrYifB2hyX` en `READY`,
+  cible non production ; accueil vérifié à 390 et 1 440 px sans débordement ni
+  image cassée. Aucun traitement entrant n'est activé par ce déploiement.
+- L'analyse et la feuille de route sont rapprochées des 550 tâches actuelles :
+  449 terminées, 101 ouvertes. Deux formulations anciennes sont corrigées :
+  `002/T014C` est bien terminée pour les connaissances, mais l'éditeur livré
+  ne ferme pas `003/T009C`, dont la recette antivirus reste nécessaire.
+- La mission Claude proposée pour le nouveau worker attend toujours une
+  réponse. Aucun appel externe, activation de service, import réel ou changement
+  de production n'a eu lieu pendant ce rapprochement documentaire.
+
 ## Jalon du 1er septembre 2026 - worker entrant avec reprise
 
 - Le worker relie lecture privée, antivirus, dépôt propre vérifié et validation

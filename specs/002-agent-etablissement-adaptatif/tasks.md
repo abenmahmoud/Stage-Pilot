@@ -845,7 +845,7 @@
 - [ ] T051 Mesurer deux semaines : classement, délai, transferts, corrections, coût et incidents.
 - [ ] T052 Corriger les écarts puis exécuter `/speckit.analyze` et `/speckit.converge` avant généralisation.
 - [x] T052A Réexécuter l'analyse transversale après les lots de restauration,
-  transport Webmail, responsive et diagnostic public. Les 102 tâches ouvertes
+  transport Webmail, responsive et diagnostic public. Les 101 tâches ouvertes
   sont rapprochées de leurs dépendances humaines, externes, réelles ou de
   production ; aucun parent n'est fermé sur une preuve locale partielle. T052
   reste ouverte jusqu'au pilote, à l'audit externe autorisé et à la convergence
@@ -867,8 +867,10 @@
   humaines.
 - [x] T055 Finaliser l'éditeur d'actualités et documents : modèles, dates,
   prévisualisation mobile, programmation, retrait et historique. La
-  spécification 003 est entièrement validée ; les contrats éditoriaux, droits,
+  partie éditeur de la spécification 003 est validée ; les contrats éditoriaux, droits,
   brouillons non enregistrés, médias privés et flux public restent testés.
+  `003/T009C` reste ouverte pour la recette antivirus éditoriale intégrée ;
+  cette tâche ne déclare pas l'ensemble de la spécification 003 terminé.
 - [ ] T056 Construire les tableaux de bord secrétariat, CPE, intendance, direction
   et numérique avec comptes individuels et périmètres séparés.
 - [x] T056A Ajouter en preview la vue superadministrateur de la charge ouverte,
