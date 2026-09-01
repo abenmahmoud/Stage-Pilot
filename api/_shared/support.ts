@@ -321,8 +321,10 @@ export async function enforceSupportRateLimits(
 
   const scopes = inputs.map((input) => input.scope);
   const keyHashes = inputs.map((input) => input.keyHash);
-  const limits = inputs.map((input) => input.limit);
-  const windows = inputs.map((input) => input.windowSeconds);
+  // postgres-js serializes array parameters as text; numeric elements must be
+  // normalized before PostgreSQL applies the explicit integer[] cast.
+  const limits = inputs.map((input) => String(input.limit));
+  const windows = inputs.map((input) => String(input.windowSeconds));
   const result = await db.execute(sql<{ scope: SupportRateLimitScope; key_hash: string }>`
     with expired as (
       delete from public.support_rate_limits

@@ -49,6 +49,8 @@ test("keeps counters atomic, shared and bounded instead of server-memory based",
   assert.match(sharedSupport, /from unnest\(/);
   assert.match(sharedSupport, /request_count < \([\s\S]*candidate\.max_count/);
   assert.match(sharedSupport, /duplicate_rate_limit_attempt/);
+  assert.match(sharedSupport, /String\(input\.limit\)/);
+  assert.match(sharedSupport, /String\(input\.windowSeconds\)/);
   assert.match(sharedSupport, /where expires_at < now\(\) - interval '1 day'/);
   assert.match(sharedSupport, /limit 100/);
   assert.doesNotMatch(sharedSupport, /new Map|setInterval/);
