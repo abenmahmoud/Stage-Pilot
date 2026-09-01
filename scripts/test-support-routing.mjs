@@ -36,6 +36,16 @@ test("keeps the six administrative needs in the single support intake", () => {
   assert.doesNotMatch(publicPortal, /\/api\/support\/admin-intake/);
 });
 
+test("keeps personal contact collection inside the verified support workflow", () => {
+  assert.match(publicPortal, /"collect"/);
+  assert.match(publicPortal, /Gérer mes coordonnées personnelles/);
+  assert.match(publicPortal, /Adresse email personnelle/);
+  assert.match(publicPortal, /initialContactCollection && !email/);
+  assert.match(publicPortal, /CONTACT_REMOVAL_DESCRIPTION/);
+  assert.match(publicPortal, /Un agent rapproche ensuite la demande de la liste officielle/);
+  assert.doesNotMatch(publicPortal, /\/api\/contacts\/collect/);
+});
+
 test("routes digital access and equipment to the digital lead", () => {
   const ent = routeSupportRequest({
     category: "ent",

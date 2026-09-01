@@ -4515,3 +4515,15 @@ taches et analyse de coherence avant une automatisation sensible.
   validation ou autorisation distincte ; fermer le guichet T035 ne les active pas.
 - Les cinq domaines comptent toujours 536 tâches Spec Kit : 437 terminées et
   99 ouvertes.
+
+### Jalon du 1er septembre 2026 - collecte des coordonnées sans perte
+
+- Le portail possède maintenant un écran public distinct pour ajouter, corriger
+  ou demander le retrait d'un email personnel.
+- Le parcours n'invente pas une seconde base : il crée un dossier de support,
+  exige l'email, utilise le lien sécurisé existant pour vérifier l'adresse et
+  laisse la confirmation d'identité à un agent.
+- Aucune adresse n'est automatiquement ajoutée à une liste de diffusion. Le
+  rapprochement persistant et les actions de registre Webmail restent dans T035.
+- Les cinq domaines comptent désormais 537 tâches Spec Kit : 438 terminées et
+  99 ouvertes.

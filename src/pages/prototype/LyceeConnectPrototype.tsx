@@ -153,7 +153,7 @@ import {
 } from "./public-content-client";
 import "./lycee-connect.css";
 
-type View = "home" | "services" | "help" | "requests" | "school" | "news" | "agent" | "trust";
+type View = "home" | "services" | "help" | "collect" | "requests" | "school" | "news" | "agent" | "trust";
 type RequesterProfile = "eleve" | "parent" | "professeur" | "personnel" | "autre" | "";
 
 const SUPPORT_API_ENABLED = import.meta.env.VITE_SUPPORT_API_ENABLED === "true";
@@ -180,6 +180,10 @@ const SUPPORT_FILE_TYPES = [
 ];
 
 const SUPPORT_ASSISTANT_DEVICE_KEY = "bc_support_assistant_session";
+const CONTACT_COLLECTION_DESCRIPTION =
+  "Je souhaite faire vérifier et ajouter ou mettre à jour mes coordonnées personnelles dans la liste de contact du lycée.";
+const CONTACT_REMOVAL_DESCRIPTION =
+  "Je demande le retrait de mes coordonnées personnelles de la liste de contact du lycée.";
 
 function supportAssistantSessionId(): string {
   try {
@@ -494,6 +498,14 @@ const services = [
     tone: "blue",
     prompt: "J’ai une question sur ma classe, mon emploi du temps ou la rentrée.",
   },
+  {
+    title: "Coordonnées personnelles",
+    detail: "Ajouter, corriger ou retirer un email personnel",
+    icon: UserRound,
+    tone: "green",
+    prompt: "",
+    contactCollection: true,
+  },
 ];
 
 const specialties = [
@@ -558,7 +570,7 @@ const specialties = [
 export default function LyceeConnectPrototype() {
   const [view, setView] = useState<View>(() => {
     const requested = new URLSearchParams(window.location.search).get("view");
-    return ["home", "services", "help", "requests", "school", "news", "agent", "trust"].includes(requested ?? "")
+    return ["home", "services", "help", "collect", "requests", "school", "news", "agent", "trust"].includes(requested ?? "")
       ? requested as View
       : "home";
   });
@@ -783,7 +795,7 @@ export default function LyceeConnectPrototype() {
             </div>
             <div className="lycee-service-grid">
               {services.map((service) => (
-                <button type="button" data-tone={service.tone} key={service.title} onClick={() => startHelp(service.prompt)}>
+                <button type="button" data-tone={service.tone} key={service.title} onClick={() => service.contactCollection ? changeView("collect") : startHelp(service.prompt)}>
                   <span className="lycee-service-icon"><service.icon aria-hidden="true" /></span>
                   <span className="lycee-service-copy">
                     <strong>{service.title}</strong>
@@ -852,13 +864,24 @@ export default function LyceeConnectPrototype() {
           <HelpDeskView
             initialMessage={message}
             initialClassicForm={helpMode === "form"}
+            initialContactCollection={false}
+            onBack={() => changeView("home")}
+            onTicketCreated={setTicketCreated}
+            onTrack={() => changeView("requests")}
+          />
+        )}
+        {view === "collect" && (
+          <HelpDeskView
+            initialMessage=""
+            initialClassicForm
+            initialContactCollection
             onBack={() => changeView("home")}
             onTicketCreated={setTicketCreated}
             onTrack={() => changeView("requests")}
           />
         )}
         {view === "requests" && <RequestsView ticketCode={ticketCreated} onBack={() => changeView("home")} />}
-        {view === "services" && <ServicesView onHelp={() => startHelp()} onBack={() => changeView("home")} />}
+        {view === "services" && <ServicesView onHelp={() => startHelp()} onCollect={() => changeView("collect")} onBack={() => changeView("home")} />}
         {view === "school" && <SchoolView onBack={() => changeView("home")} onHelp={startHelp} />}
         {view === "news" && <NewsView onBack={() => changeView("home")} />}
         {view === "agent" && <AgentView onBack={() => changeView("home")} />}
@@ -1229,12 +1252,14 @@ function localAssistantFallback(messages: AssistantChatMessage[], files: File[])
 function HelpDeskView({
   initialMessage,
   initialClassicForm,
+  initialContactCollection,
   onBack,
   onTicketCreated,
   onTrack,
 }: {
   initialMessage: string;
   initialClassicForm: boolean;
+  initialContactCollection: boolean;
   onBack: () => void;
   onTicketCreated: (code: string) => void;
   onTrack: () => void;
@@ -1258,8 +1283,11 @@ function HelpDeskView({
   const [showDetails, setShowDetails] = useState(initialClassicForm);
   const [classicForm, setClassicForm] = useState(initialClassicForm);
   const [profile, setProfile] = useState<RequesterProfile>("");
-  const [category, setCategory] = useState<SupportCategory>(() => inferSupportCategory(initialMessage));
-  const [classicDescription, setClassicDescription] = useState(initialMessage);
+  const [category, setCategory] = useState<SupportCategory>(() =>
+    initialContactCollection ? "email_academique" : inferSupportCategory(initialMessage)
+  );
+  const [classicDescription, setClassicDescription] = useState(initialContactCollection ? "" : initialMessage);
+  const [contactCollectionAction, setContactCollectionAction] = useState<"add_or_update" | "remove">("add_or_update");
   const [ticketCode, setTicketCode] = useState<string | null>(null);
   const [ticketCopyStatus, setTicketCopyStatus] = useState<"idle" | "copied" | "selected">("idle");
   const [confirmationChannel, setConfirmationChannel] = useState<"email" | "phone">("email");
@@ -1268,7 +1296,10 @@ function HelpDeskView({
   const [attachmentWarning, setAttachmentWarning] = useState<string | null>(null);
   const [draftNotice, setDraftNotice] = useState<string | null>(null);
   const [files, setFiles] = useState<File[]>([]);
-  const [formValues, setFormValues] = useState<SupportDraftFormValues>(defaultSupportFormValues);
+  const [formValues, setFormValues] = useState<SupportDraftFormValues>(() => ({
+    ...defaultSupportFormValues(),
+    fallbackAllowed: initialContactCollection ? false : defaultSupportFormValues().fallbackAllowed,
+  }));
   const fileInputRef = useRef<HTMLInputElement>(null);
   const caseFormRef = useRef<HTMLFormElement>(null);
   const ticketCodeRef = useRef<HTMLElement>(null);
@@ -1288,7 +1319,7 @@ function HelpDeskView({
 
   useEffect(() => {
     let active = true;
-    if (initialMessage.trim() || initialClassicForm) {
+    if (initialMessage.trim() || initialClassicForm || initialContactCollection) {
       setDraftReady(true);
       return () => { active = false; };
     }
@@ -1315,7 +1346,7 @@ function HelpDeskView({
   }, []);
 
   useEffect(() => {
-    if (!draftReady || ticketCode || submitting) return;
+    if (!draftReady || ticketCode || submitting || initialContactCollection) return;
     const hasDraft =
       chatMessages.some((message) => message.role === "requester") ||
       classicDescription.trim().length > 0 ||
@@ -1441,16 +1472,20 @@ function HelpDeskView({
     setInsight(null);
     setAssistantRoutingReceipt(null);
     setAssistantRequestActionExpected(false);
-    setShowDetails(false);
-    setClassicForm(false);
+    setShowDetails(initialContactCollection);
+    setClassicForm(initialContactCollection);
     setProfile("");
-    setCategory("autre");
+    setCategory(initialContactCollection ? "email_academique" : "autre");
     setClassicDescription("");
+    setContactCollectionAction("add_or_update");
     setFiles([]);
     setSubmitError(null);
     setAttachmentWarning(null);
     setDraftNotice(null);
-    setFormValues(defaultSupportFormValues());
+    setFormValues({
+      ...defaultSupportFormValues(),
+      fallbackAllowed: initialContactCollection ? false : defaultSupportFormValues().fallbackAllowed,
+    });
     setRequestKey(crypto.randomUUID());
     void clearSupportDeviceDraft();
   }
@@ -1484,7 +1519,12 @@ function HelpDeskView({
 
   async function submitRequest(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    const description = (classicForm ? classicDescription : conversationDescription).trim();
+    const contactCollectionPurpose = contactCollectionAction === "remove"
+      ? CONTACT_REMOVAL_DESCRIPTION
+      : CONTACT_COLLECTION_DESCRIPTION;
+    const description = initialContactCollection
+      ? [contactCollectionPurpose, classicDescription.trim()].filter(Boolean).join("\n\n")
+      : (classicForm ? classicDescription : conversationDescription).trim();
     if (!profile || !description) {
       setSubmitError("Indiquez votre profil et expliquez votre demande avant de continuer.");
       return;
@@ -1492,6 +1532,10 @@ function HelpDeskView({
     const form = new FormData(event.currentTarget);
     const email = String(form.get("email") ?? "").trim();
     const phone = String(form.get("phone") ?? "").trim();
+    if (initialContactCollection && !email) {
+      setSubmitError("Indiquez l’adresse email personnelle à vérifier ou à retirer.");
+      return;
+    }
     if (!email && !phone) {
       setSubmitError("Indiquez un email ou un téléphone pour recevoir la réponse.");
       return;
@@ -1525,7 +1569,11 @@ function HelpDeskView({
             subjectArea: form.get("subjectArea"),
             schoolTrack: form.get("schoolTrack"),
             category,
-            subject: selectedCategory?.label ?? "Demande au lycée",
+            subject: initialContactCollection
+              ? contactCollectionAction === "remove"
+                ? "Retrait de coordonnées personnelles"
+                : "Coordonnées personnelles à valider"
+              : selectedCategory?.label ?? "Demande au lycée",
             description: summarizeSupportDescription(description),
             conversation: prepareSupportSubmissionConversation(
               chatMessages.map(({ role, content }) => ({ role, content })),
@@ -1552,6 +1600,11 @@ function HelpDeskView({
       }
       const publicCode = payload.request.publicCode;
       const persistedCreatedAt = payload.request.createdAt;
+      const persistedSubject = initialContactCollection
+        ? contactCollectionAction === "remove"
+          ? "Retrait de coordonnées personnelles"
+          : "Coordonnées personnelles à valider"
+        : selectedCategory?.label ?? "Demande au lycée";
 
       if (files.length > 0) {
         const uploads = await uploadRequesterFiles(publicCode, files);
@@ -1566,7 +1619,7 @@ function HelpDeskView({
         clearSupportDeviceDraft(),
         rememberSupportRequests([{
           publicCode,
-          subject: selectedCategory?.label ?? "Demande au lycée",
+          subject: persistedSubject,
           category,
           status: "nouveau",
           priority: "p3",
@@ -1637,13 +1690,17 @@ function HelpDeskView({
   return (
     <div className="lycee-page">
       <PageIntro
-        eyebrow="Assistant du lycée"
-        title="Dites simplement ce qu’il vous faut"
-        description="Écrivez avec vos mots, dans la langue qui vous convient. Vous pourrez enregistrer la demande et suivre la réponse."
+        eyebrow={initialContactCollection ? "Contacts du lycée" : "Assistant du lycée"}
+        title={initialContactCollection ? "Gérer mes coordonnées personnelles" : "Dites simplement ce qu’il vous faut"}
+        description={initialContactCollection
+          ? "Ajoutez, corrigez ou demandez le retrait d’une adresse personnelle. Un lien vérifie l’email, puis un agent confirme la personne concernée."
+          : "Écrivez avec vos mots, dans la langue qui vous convient. Vous pourrez enregistrer la demande et suivre la réponse."}
         onBack={onBack}
       />
 
-      <div className="lycee-guided-chat">
+      <div className={`lycee-guided-chat${initialContactCollection ? " is-contact-collection" : ""}`}>
+        {!initialContactCollection ? (
+          <>
         <div className="lycee-guided-chat-head"><span><Bot aria-hidden="true" /></span><div><strong>Assistant Blaise</strong><small>Comprend, reformule et transmet au bon agent</small></div><em><span /> Disponible</em></div>
         <div className="lycee-guided-thread" ref={threadRef} aria-live="polite">
           {chatMessages.map((message) => (
@@ -1669,8 +1726,12 @@ function HelpDeskView({
           ))}
           {assistantBusy ? <div data-speaker="assistant" className="is-thinking"><span><Bot aria-hidden="true" /></span><p><i /><i /><i /><b>J’analyse votre demande…</b></p></div> : null}
         </div>
+          </>
+        ) : null}
 
         <div className="lycee-chat-workspace">
+          {!initialContactCollection ? (
+            <>
           <div className="lycee-language-help"><Languages aria-hidden="true" /><span><strong>Le français est difficile ?</strong><small>Écrivez dans votre langue ou avec des mots simples. L’assistant vous aide sans vous juger.</small></span></div>
           {draftNotice ? <div className="lycee-contact-guidance lycee-draft-guidance" role="status"><CheckCircle2 aria-hidden="true" /><span><strong>Brouillon récupéré</strong><small>{draftNotice}</small></span><button type="button" onClick={restartConversation}><Trash2 aria-hidden="true" /> Effacer</button></div> : null}
           {insight ? (
@@ -1714,32 +1775,35 @@ function HelpDeskView({
             </div>
           ) : null}
 
+            </>
+          ) : null}
           {showDetails ? (
             <form ref={caseFormRef} className="lycee-case-form" onSubmit={submitRequest}>
-              <div className="lycee-case-form-head"><span><ShieldCheck aria-hidden="true" /></span><div><h2>{classicForm ? "Formulaire classique" : "Une dernière étape"}</h2><p>{classicForm ? "Tous les champs sont visibles pour ceux qui préfèrent écrire leur demande directement." : "Vos coordonnées permettent au lycée de vous répondre et de retrouver la bonne personne."}</p></div><button type="button" aria-label="Fermer" onClick={() => { setShowDetails(false); setClassicForm(false); }}>Fermer</button></div>
+              <div className="lycee-case-form-head"><span><ShieldCheck aria-hidden="true" /></span><div><h2>{initialContactCollection ? "Coordonnées à vérifier" : classicForm ? "Formulaire classique" : "Une dernière étape"}</h2><p>{initialContactCollection ? "L’adresse reste inutilisable pour une diffusion tant que le lien email et l’identité n’ont pas été confirmés." : classicForm ? "Tous les champs sont visibles pour ceux qui préfèrent écrire leur demande directement." : "Vos coordonnées permettent au lycée de vous répondre et de retrouver la bonne personne."}</p></div>{!initialContactCollection ? <button type="button" aria-label="Fermer" onClick={() => { setShowDetails(false); setClassicForm(false); }}>Fermer</button> : null}</div>
               <div className="lycee-fields-grid">
+                {initialContactCollection ? <label className="is-wide"><span>Action demandée</span><select name="contactCollectionAction" value={contactCollectionAction} onChange={(event) => setContactCollectionAction(event.target.value as "add_or_update" | "remove")}><option value="add_or_update">Ajouter ou modifier mon email</option><option value="remove">Retirer mon email</option></select></label> : null}
                 <label><span>Vous êtes</span><select id="lycee-requester-profile" name="requesterProfile" value={profile} onChange={(event) => setProfile(event.target.value as RequesterProfile)} required><option value="">Sélectionner</option><option value="eleve">Élève</option><option value="parent">Parent</option><option value="professeur">Professeur</option><option value="personnel">Personnel</option><option value="autre">Autre</option></select></label>
-                {classicForm ? <label><span>Votre demande concerne</span><select id="lycee-support-category" name="supportCategory" value={category} onChange={(event) => setCategory(event.target.value as SupportCategory)}>{supportCategories.map((item) => <option value={item.value} key={item.value}>{item.label}</option>)}</select></label> : null}
+                {classicForm && !initialContactCollection ? <label><span>Votre demande concerne</span><select id="lycee-support-category" name="supportCategory" value={category} onChange={(event) => setCategory(event.target.value as SupportCategory)}>{supportCategories.map((item) => <option value={item.value} key={item.value}>{item.label}</option>)}</select></label> : null}
                 <label><span>Votre prénom</span><input name="requesterFirstName" type="text" autoComplete="given-name" placeholder="Prénom" value={formValues.requesterFirstName} onChange={(event) => updateFormValue("requesterFirstName", event.target.value)} required /></label>
                 <label><span>Votre nom</span><input name="requesterLastName" type="text" autoComplete="family-name" placeholder="Nom" value={formValues.requesterLastName} onChange={(event) => updateFormValue("requesterLastName", event.target.value)} required /></label>
                 {profile === "parent" ? <><label><span>Prénom de l’élève</span><input name="beneficiaryFirstName" type="text" autoComplete="off" value={formValues.beneficiaryFirstName} onChange={(event) => updateFormValue("beneficiaryFirstName", event.target.value)} required /></label><label><span>Nom de l’élève</span><input name="beneficiaryLastName" type="text" autoComplete="off" value={formValues.beneficiaryLastName} onChange={(event) => updateFormValue("beneficiaryLastName", event.target.value)} required /></label></> : null}
                 {profile === "eleve" || profile === "parent" ? <label><span>Classe, si connue</span><input name="className" type="text" autoComplete="off" placeholder="Ex. 2GT4" value={formValues.className} onChange={(event) => updateFormValue("className", event.target.value)} /></label> : null}
                 {profile === "professeur" || profile === "personnel" ? <label><span>Matière ou service</span><input name="subjectArea" type="text" autoComplete="organization-title" placeholder="Ex. Mathématiques, intendance" value={formValues.subjectArea} onChange={(event) => updateFormValue("subjectArea", event.target.value)} /></label> : null}
                 {profile === "professeur" ? <label><span>Voie</span><select name="schoolTrack" value={formValues.schoolTrack} onChange={(event) => updateFormValue("schoolTrack", event.target.value)}><option value="">Non précisée</option><option value="general">Générale et technologique</option><option value="professionnel">Professionnelle</option><option value="les_deux">Les deux</option></select></label> : null}
-                <div className="lycee-contact-requirement is-wide"><strong>Comment le lycée peut-il vous répondre ?</strong><span>Indiquez au moins une adresse email ou un numéro de téléphone.</span></div>
-                <label><span>Adresse email recommandée</span><input name="email" type="email" autoComplete="email" placeholder="nom@exemple.fr" value={formValues.email} onChange={(event) => updateFormValue("email", event.target.value)} /><small>Pour garder une trace et retrouver la demande sur un autre appareil.</small></label>
+                <div className="lycee-contact-requirement is-wide"><strong>Comment le lycée peut-il vous répondre ?</strong><span>{initialContactCollection ? "L’adresse email est obligatoire. Le téléphone reste facultatif." : "Indiquez au moins une adresse email ou un numéro de téléphone."}</span></div>
+                <label><span>{initialContactCollection ? "Adresse email personnelle" : "Adresse email recommandée"}</span><input name="email" type="email" autoComplete="email" placeholder="nom@exemple.fr" value={formValues.email} onChange={(event) => updateFormValue("email", event.target.value)} required={initialContactCollection} /><small>{initialContactCollection ? "Un lien sécurisé vérifiera cette adresse avant toute validation." : "Pour garder une trace et retrouver la demande sur un autre appareil."}</small></label>
                 <label><span>Téléphone</span><input name="phone" type="tel" autoComplete="tel" placeholder="06 00 00 00 00" value={formValues.phone} onChange={(event) => updateFormValue("phone", event.target.value)} /><small>Pour un rappel si l’email ne suffit pas.</small></label>
                 <label><span>Moyen de contact principal</span><select name="preferredChannel" value={formValues.preferredChannel} onChange={(event) => updateFormValue("preferredChannel", event.target.value as "email" | "phone")}><option value="email">Email, recommandé</option><option value="phone">Téléphone</option></select></label>
                 <label><span>Langue de la réponse du lycée</span><select name="languagePreference" value={formValues.languagePreference} onChange={(event) => updateFormValue("languagePreference", event.target.value)}><option value="francais_simple">Français simple</option><option value="francais">Français</option><option value="arabe">Arabe</option><option value="anglais">Anglais</option><option value="espagnol">Espagnol</option><option value="portugais">Portugais</option><option value="turc">Turc</option><option value="autre">Autre langue, précisée dans le message</option></select></label>
-                <label className="lycee-fallback-choice"><input name="fallbackAllowed" type="checkbox" checked={formValues.fallbackAllowed} onChange={(event) => updateFormValue("fallbackAllowed", event.target.checked)} /><span>Utiliser l’autre moyen de contact si nécessaire</span></label>
+                <label className="lycee-fallback-choice"><input name="fallbackAllowed" type="checkbox" checked={formValues.fallbackAllowed} onChange={(event) => updateFormValue("fallbackAllowed", event.target.checked)} /><span>{initialContactCollection ? "J’autorise le lycée à utiliser le téléphone indiqué pour me rappeler au sujet de cette demande" : "Utiliser l’autre moyen de contact si nécessaire"}</span></label>
                 <label className="lycee-fallback-choice"><input name="communicationSupport" type="checkbox" checked={formValues.communicationSupport} onChange={(event) => updateFormValue("communicationSupport", event.target.checked)} /><span>J’ai besoin d’un rappel pour mieux comprendre la réponse</span></label>
-                {classicForm ? <label className="is-wide"><span>Votre demande</span><textarea id="lycee-classic-description" name="classicDescription" value={classicDescription} onChange={(event) => setClassicDescription(event.target.value)} rows={5} maxLength={5000} placeholder="Expliquez ce dont vous avez besoin." required /></label> : null}
+                {classicForm ? <label className="is-wide"><span>{initialContactCollection ? "Précision facultative" : "Votre demande"}</span><textarea id="lycee-classic-description" name="classicDescription" value={classicDescription} onChange={(event) => setClassicDescription(event.target.value)} rows={initialContactCollection ? 3 : 5} maxLength={5000} placeholder={initialContactCollection ? "Ex. changement de matière ou de service" : "Expliquez ce dont vous avez besoin."} required={!initialContactCollection} /></label> : null}
                 {classicForm ? <div className="lycee-classic-files is-wide"><button type="button" onClick={() => fileInputRef.current?.click()} disabled={files.length >= MAX_SUPPORT_FILES}><Paperclip aria-hidden="true" /> Joindre un document</button><small>PDF, image, Word ou Excel, jusqu’à 10 Mo.</small>{files.map((file, index) => <div key={`${file.name}-${file.lastModified}`}><FileText aria-hidden="true" /><span>{file.name}</span><button type="button" onClick={() => setFiles((current) => current.filter((_, fileIndex) => fileIndex !== index))}>Retirer</button></div>)}</div> : null}
                 <label className="lycee-honeypot" aria-hidden="true"><span>Site web</span><input name="website" type="text" tabIndex={-1} autoComplete="off" /></label>
               </div>
               <div className="lycee-contact-guidance"><Smartphone aria-hidden="true" /><span><strong>Deux moyens pour ne pas perdre la demande</strong><small>Le suivi sur cet appareil est toujours actif. L’email ajoute une copie durable et un accès depuis un autre téléphone ou ordinateur.</small></span></div>
-              <div className="lycee-ai-summary"><WandSparkles aria-hidden="true" /><span><strong>{selectedCategory?.label}</strong><small>Conversation et pièces jointes conservées dans le même dossier</small></span></div>
-              <div className="lycee-case-security"><BadgeCheck aria-hidden="true" /><span><strong>Vérification adaptée à la demande</strong><small>Le lien reçu par email vérifie votre adresse. Pour un code ENT ou une messagerie académique, un agent confirme aussi votre identité dans la liste officielle du lycée.</small></span></div>
+              <div className="lycee-ai-summary"><WandSparkles aria-hidden="true" /><span><strong>{initialContactCollection ? contactCollectionAction === "remove" ? "Retrait à confirmer" : "Adresse à vérifier" : selectedCategory?.label}</strong><small>{initialContactCollection ? "La demande reste dans la file jusqu’à la décision d’un agent" : "Conversation et pièces jointes conservées dans le même dossier"}</small></span></div>
+              <div className="lycee-case-security"><BadgeCheck aria-hidden="true" /><span><strong>Vérification adaptée à la demande</strong><small>{initialContactCollection ? "Le lien reçu confirme seulement l’adresse. Un agent rapproche ensuite la demande de la liste officielle avant ajout, correction ou retrait." : "Le lien reçu par email vérifie votre adresse. Pour un code ENT, PRONOTE ou une messagerie académique, un agent confirme aussi votre identité dans la liste officielle du lycée."}</small></span></div>
               {submitError ? <div className="lycee-form-error" role="alert"><CircleAlert aria-hidden="true" />{submitError}</div> : null}
               <button className="lycee-primary-action lycee-submit-request" type="submit" disabled={submitting || (!classicForm && !conversationDescription)}>{submitting ? "Enregistrement…" : "Envoyer au lycée"} <Send aria-hidden="true" /></button>
             </form>
@@ -2492,7 +2556,7 @@ function DemoRequestsView({ ticketCode, onBack }: { ticketCode: string | null; o
   );
 }
 
-function ServicesView({ onHelp, onBack }: { onHelp: () => void; onBack: () => void }) {
+function ServicesView({ onHelp, onCollect, onBack }: { onHelp: () => void; onCollect: () => void; onBack: () => void }) {
   const serviceGroups = [
     { title: "Assistance du lycée", description: "Une conversation libre pour toute question de rentrée, de scolarité ou d’accès", icon: LifeBuoy, color: "coral", progress: "Conversation suivie", action: "Demander de l’aide", help: true },
     { title: "Webmail du lycée", description: "Messagerie, contacts et diffusion lorsque Créteil est perturbé", icon: Mail, color: "green", progress: "Communication disponible", action: "Ouvrir le Webmail", href: WEBMAIL_URL, external: true },
@@ -2500,6 +2564,7 @@ function ServicesView({ onHelp, onBack }: { onHelp: () => void; onBack: () => vo
     { title: "Accès ENT et EduConnect", description: "Connexion directe ou demande d’aide pour retrouver son accès", icon: KeyRound, color: "blue", progress: "Service de rentrée", action: "Accéder à l’ENT", href: ENT_URL, external: true },
     { title: "PRONOTE via l’ENT", description: "Notes, emploi du temps et vie scolaire selon les services activés par le lycée", icon: GraduationCap, color: "green", progress: "Accès officiel du lycée", action: "Ouvrir l’ENT", href: ENT_URL, external: true },
     { title: "Scolarité Services", description: "Bourses, inscriptions et démarches proposées aux familles", icon: FileText, color: "coral", progress: "Service national", action: "Comprendre et accéder", href: SCOLARITE_SERVICES_URL, external: true },
+    { title: "Coordonnées personnelles", description: "Ajouter, corriger ou demander le retrait d’un email personnel", icon: UserRound, color: "gold", progress: "Email vérifié puis validation humaine", action: "Gérer mes coordonnées", collect: true },
     { title: "LyceeGest", description: "Stages, Grand Oral et outils de gestion du lycée", icon: BarChart3, color: "blue", progress: "Application complète", action: "Ouvrir LyceeGest", href: LYCEEGEST_URL },
     { title: "Stages de seconde", description: "Convention, entreprise, livret et suivi du stage", icon: BriefcaseBusiness, color: "gold", progress: "Module LyceeGest", action: "Ouvrir Stages", href: "/stages" },
     { title: "Grand Oral", description: "Questions, validations des professeurs et fiche officielle", icon: Mic2, color: "green", progress: "Module LyceeGest", action: "Ouvrir Grand Oral", href: "/grand-oral" },
@@ -2512,7 +2577,7 @@ function ServicesView({ onHelp, onBack }: { onHelp: () => void; onBack: () => vo
           <article data-tone={service.color} key={service.title}>
             <span className="lycee-catalog-icon"><service.icon aria-hidden="true" /></span>
             <div><h2>{service.title}</h2><p>{service.description}</p><small>{service.progress}</small></div>
-            {service.help ? <button type="button" onClick={onHelp}>{service.action}<ChevronRight aria-hidden="true" /></button> : <a href={service.href} target={service.external ? "_blank" : undefined} rel={service.external ? "noreferrer" : undefined}>{service.action}{service.external ? <ExternalLink aria-hidden="true" /> : <ChevronRight aria-hidden="true" />}</a>}
+            {service.help ? <button type="button" onClick={onHelp}>{service.action}<ChevronRight aria-hidden="true" /></button> : service.collect ? <button type="button" onClick={onCollect}>{service.action}<ChevronRight aria-hidden="true" /></button> : <a href={service.href} target={service.external ? "_blank" : undefined} rel={service.external ? "noreferrer" : undefined}>{service.action}{service.external ? <ExternalLink aria-hidden="true" /> : <ChevronRight aria-hidden="true" />}</a>}
           </article>
         ))}
       </div>

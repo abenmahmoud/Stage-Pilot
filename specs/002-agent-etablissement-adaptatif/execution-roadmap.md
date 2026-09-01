@@ -942,6 +942,14 @@ l'autorisation de quota définie par le propriétaire.
   exécutée. Les procédures locales et connecteurs officiels restent séparément
   bloqués par T032, T035B, T035C et T043. T035 est terminée.
 
+- Lot N5ZZZ7 : collecte prudente des coordonnées personnelles. **Preview
+  fonctionnelle sans second registre** : un écran public distinct permet de
+  demander l'ajout, la correction ou le retrait d'un email personnel. La demande
+  réutilise le dossier, le suivi appareil, le lien email et la confirmation
+  d'identité par l'agent. Aucune liste de diffusion n'est modifiée ; le pont
+  persistant vers le Webmail reste séparément bloqué. T035A de la spécification
+  001 est terminée.
+
 ## Prochaine séquence verrouillée
 
 1. Conserver `BC-2026-000009` comme preuve fictive de recette jusqu'à la décision
