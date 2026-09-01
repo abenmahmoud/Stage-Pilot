@@ -52,6 +52,12 @@
   superadmin et proviseur sous MFA peuvent valider la version courante après
   résolution des questions ; la transaction verrouille le dossier, aligne les
   deux états et journalise uniquement version et visibilité.
+- [x] T010F Rendre les trois étapes de l'espace Direction fidèles à l'état réel :
+  dépôt, relecture et publication avancent sans état visuel figé. Une page
+  publiée reste explicitement « diffusion fermée » tant qu'aucune preuve d'envoi
+  n'existe ; les visibilités interne, publique et ciblée restent distinctes, et
+  les communications archivées ou annulées n'exposent aucune fausse étape
+  courante. Les six états sont testés sans contact ni envoi réel.
 - [ ] T011 Extraire localement le texte des PDF et DOCX autorisés.
 - [x] T011A Ajouter l'extracteur local borné PDF/DOCX. Il réutilise le moteur
   PDF.js/Mammoth et les précontrôles d'archives existants, ne contacte aucune IA

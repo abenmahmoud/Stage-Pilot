@@ -4565,3 +4565,17 @@ taches et analyse de coherence avant une automatisation sensible.
   avec un lecteur d'écran et des comptes nominatifs reste ouverte dans T048.
 - Les cinq domaines comptent désormais 540 tâches Spec Kit : 441 terminées et
   99 ouvertes.
+
+### Jalon du 1er septembre 2026 - parcours Direction fidèle
+
+- Les étapes du centre de communications suivent désormais l'état du message au
+  lieu de rester visuellement bloquées sur le dépôt.
+- Une page publiée n'est jamais présentée comme un email envoyé : l'interface
+  conserve explicitement « diffusion fermée » sans reçu de livraison.
+- Les états brouillon, relecture, validé, publié, archivé et annulé sont couverts
+  par une politique pure et huit tests sans contact ni envoi réel.
+- Une revue Claude Fable 5 en lecture seule, plafonnée à 3 USD, a consommé
+  2,85 USD. Ses quatre constats fonctionnels sur la visibilité ciblée et les
+  libellés ont été confirmés puis corrigés ; aucun défaut bloquant n'a été trouvé.
+- Les cinq domaines comptent désormais 541 tâches Spec Kit : 442 terminées et
+  99 ouvertes.

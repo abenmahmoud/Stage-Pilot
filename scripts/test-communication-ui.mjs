@@ -30,14 +30,22 @@ test("protects the route with the existing content manager roles", () => {
 });
 
 test("opens deposit and human review while keeping publication separately gated", () => {
-  assert.match(page, /1<\/span>[\s\S]*Déposer/);
-  assert.match(page, /2<\/span>[\s\S]*Vérifier[\s\S]*Relecture humaine/);
-  assert.match(page, /3<\/span>[\s\S]*Publier et informer[\s\S]*COMMUNICATION_PUBLICATION_UI_ENABLED/);
+  assert.match(page, /buildCommunicationWorkflow/);
+  assert.match(page, /COMMUNICATION_PUBLICATION_UI_ENABLED/);
+  assert.match(page, /workflowSteps\.map/);
   assert.match(page, /sourceType: "direct_text"/);
   assert.match(page, /communications\/admin\/\$\{selectedDetail\.id\}\/review/);
   assert.match(page, /confirmation: "VERIFIER"/);
   assert.match(page, /communications\/admin\/\$\{selectedDetail\.id\}\/publish/);
   assert.doesNotMatch(page, /communication-send|audienceRef/);
+});
+
+test("names internal, public and targeted visibility without merging them", () => {
+  assert.match(page, /const VISIBILITY_LABELS/);
+  assert.match(page, /internal: "Interne"/);
+  assert.match(page, /public: "Site public"/);
+  assert.match(page, /targeted: "Ciblée"/);
+  assert.match(page, /VISIBILITY_LABELS\[selected\.visibility\]/);
 });
 
 test("provides bounded responsive fields without recipient inputs", () => {
@@ -97,7 +105,8 @@ test("renders a safe local preview without opening delivery", () => {
 
 test("keeps communication controls understandable on touch and assistive technology", () => {
   assert.match(page, /aria-busy=\{loading\}/);
-  assert.match(page, /aria-current="step"/);
+  assert.match(page, /aria-current=\{step\.state === "current" \? "step" : undefined\}/);
+  assert.match(page, /data-state=\{step\.state\}/);
   assert.match(page, /id="communications-list-count" role="status" aria-live="polite"/);
   assert.match(page, /aria-describedby="communications-list-count"/);
   assert.match(page, /Chargement des communications/);
@@ -109,6 +118,5 @@ test("keeps communication controls understandable on touch and assistive technol
   assert.match(page, /aria-labelledby="communication-template-editor-title"/);
   assert.match(page, /<ul className="mt-5 divide-y[\s\S]+documents\.map[\s\S]+<li key=\{document\.id\}/);
   assert.match(page, /min-h-10[\s\S]+Écrire/);
-  assert.match(page, /<small className="text-white">Saisie privée<\/small>/);
-  assert.match(page, /text-slate-600[\s\S]+Publier et informer[\s\S]+text-slate-500/);
+  assert.match(page, /step\.state === "complete" \? <Check/);
 });

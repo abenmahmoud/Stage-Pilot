@@ -339,3 +339,20 @@ pour son statut, son type ou sa longueur annoncée voit aussi son flux annulé
 avant le retour d'une erreur fermée, afin de ne pas retenir de ressource sous
 des échecs concurrents. La résolution DNS et la recette réseau restent des
 preuves distinctes à exécuter seulement sur une preview autorisée.
+
+T010F corrige un écart d'usage dans l'espace Direction : l'indicateur de parcours
+ne reste plus toujours sur « Déposer ». Il dérive uniquement de l'état privé déjà
+validé et distingue dépôt, relecture, validation, publication et arrêt. Une
+publication web ne vaut jamais preuve de diffusion : l'étape finale reste en
+cours avec le libellé « Page publiée · diffusion fermée » jusqu'au futur reçu
+interapplications. Les états archivés et annulés n'annoncent aucune action
+courante. Cette règle est pure, testée sur les six états et n'ouvre aucun
+interrupteur, contact, audience ou transport.
+
+La revue indépendante Claude Fable 5 du même lot, bornée à huit fichiers et en
+lecture seule, a confirmé l'absence de défaut bloquant puis détecté un angle mort
+sur `targeted`. Une communication ciblée ne peut désormais plus être appelée
+« Interne » ni « Prête à publier » ; les brouillons internes n'annoncent plus une
+activation future. Les trois visibilités et les six états sont testés ensemble.
+La cible tactile reste contrôlée, tandis qu'une assertion de couleur purement
+cosmétique a été retirée. Le rapport n'a reçu aucun secret ni donnée réelle.

@@ -40,6 +40,10 @@ import {
   safeCommunicationPreviewHref,
 } from "../../../shared/communication-email-preview";
 import {
+  buildCommunicationWorkflow,
+  type CommunicationWorkflowStepState,
+} from "../../../shared/communication-workflow";
+import {
   parseCommunicationDocumentConfirmationPayload,
   parseCommunicationDocumentListPayload,
   parseCommunicationDocumentReservationPayload,
@@ -85,6 +89,12 @@ const STATUS_LABELS: Record<string, string> = {
   published: "Publié",
   archived: "Archivé",
   cancelled: "Annulé",
+};
+
+const VISIBILITY_LABELS: Record<string, string> = {
+  internal: "Interne",
+  public: "Site public",
+  targeted: "Ciblée",
 };
 
 const DOCUMENT_STATUS_LABELS: Record<string, string> = {
@@ -255,6 +265,20 @@ const FACT_LABELS: Array<{ key: keyof StructuredFacts; label: string }> = [
   { key: "actions", label: "Actions" },
 ];
 
+const WORKFLOW_STEP_CLASS: Record<CommunicationWorkflowStepState, string> = {
+  current: "bg-emerald-700 text-white",
+  complete: "bg-emerald-50 text-emerald-950",
+  pending: "bg-white text-slate-700",
+  stopped: "bg-slate-50 text-slate-500",
+};
+
+const WORKFLOW_NUMBER_CLASS: Record<CommunicationWorkflowStepState, string> = {
+  current: "bg-white text-emerald-800",
+  complete: "border border-emerald-700 bg-white text-emerald-800",
+  pending: "border border-slate-400 bg-white text-slate-700",
+  stopped: "border border-slate-300 bg-white text-slate-500",
+};
+
 export default function CommunicationsPage() {
   const { user } = useAuth();
   const [rows, setRows] = useState<CommunicationRow[]>([]);
@@ -365,6 +389,13 @@ export default function CommunicationsPage() {
     () => rows.find((row) => row.id === selectedId) ?? null,
     [rows, selectedId]
   );
+  const workflowSteps = useMemo(() => buildCommunicationWorkflow(
+    selectedDetail?.status ?? selected?.status ?? "draft",
+    (selectedDetail?.status ?? selected?.status) === "draft"
+      ? reviewVisibility
+      : selectedDetail?.visibility ?? selected?.visibility ?? "internal",
+    COMMUNICATION_PUBLICATION_UI_ENABLED
+  ), [reviewVisibility, selected, selectedDetail]);
   const filteredRows = useMemo(() => {
     const query = searchQuery.trim().toLocaleLowerCase("fr-FR");
     return rows.filter((row) => {
@@ -710,18 +741,22 @@ export default function CommunicationsPage() {
       </header>
 
       <ol className="grid gap-px overflow-hidden rounded-md border border-slate-200 bg-slate-200 sm:grid-cols-3" aria-label="Étapes de préparation">
-        <li className="flex min-h-16 items-center gap-3 bg-emerald-700 px-4 py-3 text-white" aria-current="step">
-          <span className="flex h-7 w-7 items-center justify-center rounded-full bg-white text-sm font-bold text-emerald-800">1</span>
-          <span><strong className="block text-sm">Déposer</strong><small className="text-white">Saisie privée</small></span>
-        </li>
-        <li className="flex min-h-16 items-center gap-3 bg-white px-4 py-3 text-slate-700">
-          <span className="flex h-7 w-7 items-center justify-center rounded-full border border-emerald-700 text-sm font-bold text-emerald-800">2</span>
-          <span><strong className="block text-sm">Vérifier</strong><small className="text-slate-500">Relecture humaine</small></span>
-        </li>
-        <li className="flex min-h-16 items-center gap-3 bg-white px-4 py-3 text-slate-600">
-          <span className="flex h-7 w-7 items-center justify-center rounded-full border border-slate-400 text-sm font-bold">3</span>
-          <span><strong className="block text-sm">Publier et informer</strong><small className="text-slate-500">{COMMUNICATION_PUBLICATION_UI_ENABLED ? "Après validation" : "Activation requise"}</small></span>
-        </li>
+        {workflowSteps.map((step) => (
+          <li
+            key={step.id}
+            className={`flex min-h-16 items-center gap-3 px-4 py-3 ${WORKFLOW_STEP_CLASS[step.state]}`}
+            aria-current={step.state === "current" ? "step" : undefined}
+            data-state={step.state}
+          >
+            <span aria-hidden="true" className={`flex h-7 w-7 items-center justify-center rounded-full text-sm font-bold ${WORKFLOW_NUMBER_CLASS[step.state]}`}>
+              {step.state === "complete" ? <Check className="h-4 w-4" /> : step.number}
+            </span>
+            <span>
+              <strong className="block text-sm">{step.title}</strong>
+              <small className={step.state === "current" ? "text-white" : "text-slate-600"}>{step.description}</small>
+            </span>
+          </li>
+        ))}
       </ol>
 
       {error ? <p role="alert" className="border border-red-200 bg-red-50 p-3 text-sm text-red-800">{error}</p> : null}
@@ -894,16 +929,16 @@ export default function CommunicationsPage() {
                 <p className="text-xs font-semibold uppercase text-emerald-700">{STATUS_LABELS[selected.status] ?? selected.status}</p>
                 <h2 id="selected-communication-title" className="mt-1 break-words text-xl font-bold text-slate-950">{selected.title}</h2>
               </div>
-              <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-semibold ${selected.visibility === "public" ? "bg-emerald-50 text-emerald-800" : "bg-slate-100 text-slate-600"}`}>
-                {selected.visibility === "public" ? <ExternalLink className="h-3.5 w-3.5" /> : <LockKeyhole className="h-3.5 w-3.5" />}
-                {selected.visibility === "public" ? "Site public" : "Interne"}
+              <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-semibold ${selected.visibility === "public" ? "bg-emerald-50 text-emerald-800" : selected.visibility === "targeted" ? "bg-blue-50 text-blue-800" : "bg-slate-100 text-slate-600"}`}>
+                {selected.visibility === "public" ? <ExternalLink className="h-3.5 w-3.5" /> : selected.visibility === "targeted" ? <Mail className="h-3.5 w-3.5" /> : <LockKeyhole className="h-3.5 w-3.5" />}
+                {VISIBILITY_LABELS[selected.visibility] ?? selected.visibility}
               </span>
             </div>
             {selected.summary ? <p className="mt-4 whitespace-pre-line text-sm leading-6 text-slate-700">{selected.summary}</p> : null}
             <dl className="mt-6 grid gap-3 border-y border-slate-200 py-4 text-sm sm:grid-cols-2 xl:grid-cols-4">
               <div><dt className="text-slate-500">Catégorie</dt><dd className="mt-1 font-semibold text-slate-950">{CATEGORY_OPTIONS.find((item) => item.value === selected.category)?.label ?? selected.category}</dd></div>
               <div><dt className="text-slate-500">Modèle</dt><dd className="mt-1 font-semibold text-slate-950">{templates.find((item) => item.templateKey === selected.templateKey)?.label ?? "Sans modèle"}</dd></div>
-              <div><dt className="text-slate-500">Visibilité</dt><dd className="mt-1 font-semibold text-slate-950">{selected.visibility === "public" ? "Site public" : "Interne"}</dd></div>
+              <div><dt className="text-slate-500">Visibilité</dt><dd className="mt-1 font-semibold text-slate-950">{VISIBILITY_LABELS[selected.visibility] ?? selected.visibility}</dd></div>
               <div><dt className="text-slate-500">Version</dt><dd className="mt-1 font-semibold text-slate-950">{selected.currentVersion}</dd></div>
             </dl>
             {detailLoading ? <div className="flex min-h-28 items-center justify-center"><LoaderCircle className="h-6 w-6 animate-spin text-emerald-700" /></div> : null}
