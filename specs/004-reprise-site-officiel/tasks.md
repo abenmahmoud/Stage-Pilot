@@ -45,6 +45,12 @@
   adresses, ne déborde pas à 320 px ni à 1440 px, ne remonte aucune image cassée
   sur l'accueil et aucune erreur navigateur. La relecture éditoriale et les trois
   fichiers refusés restent à terminer.
+- [x] T017A Générer une relecture éditoriale déterministe des 28 contenus sans
+  corriger ni publier les brouillons. Le rapport versionné détecte deux
+  bloquants, vingt corrections importantes et trente-et-une validations
+  humaines, lie chaque constat à une adresse et reste synchronisé avec
+  l'inventaire par test. T017 reste ouverte pour les décisions des services et
+  les trois médias refusés.
 
 ## Bascule
 

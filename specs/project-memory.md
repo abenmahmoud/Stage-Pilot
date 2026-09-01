@@ -5,6 +5,22 @@
 **Depot** : `abenmahmoud/Stage-Pilot`
 **Dernier jalon de code verifie** : branche de preview Vercel
 
+## Jalon du 1er septembre 2026 - relecture éditoriale reproductible
+
+- Un contrôle local analyse les 28 contenus WordPress inventoriés sans toucher
+  aux brouillons de preview et génère
+  `content/legacy-site/editorial-review.md`.
+- Le rapport signale deux bloquants : la page Contact vide et une image locale
+  non récupérable dans la page des clubs. Il isole aussi vingt corrections de
+  conversion, français, accessibilité ou adresse et trente-et-une validations
+  humaines de contenu ou d'archivage.
+- Le test relit les 28 entrées, borne les preuves, refuse les slugs dupliqués et
+  vérifie que le rapport commité correspond exactement à l'inventaire. Le build
+  passe sans import, publication ou donnée privée.
+- `004/T017A` est terminée. T017 reste ouverte pour les décisions des services
+  et les trois médias refusés. Les cinq domaines comptent 533 tâches Spec Kit :
+  431 terminées et 102 ouvertes.
+
 ## Jalon du 1er septembre 2026 - retrait logique des emplois du temps
 
 - Une route direction sous MFA retire uniquement une version non active après

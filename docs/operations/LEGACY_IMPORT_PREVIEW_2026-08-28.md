@@ -75,6 +75,12 @@ Après déploiement du commit `48547bd`, la recette en ligne confirme :
 
 ## Prochaine recette
 
+Le rapport `content/legacy-site/editorial-review.md` transforme désormais la
+relecture générale en constats adressables par contenu. Il signale notamment la
+page Contact vide, l'image locale non récupérable des clubs, trois appels à
+l'action concaténés, une adresse publique opaque et les décisions de fraîcheur
+ou d'archivage encore humaines. Il ne modifie aucun brouillon.
+
 1. Corriger ou remplacer les trois fichiers refusés.
 2. Relire les 15 contenus durables, archiver les 7 anciennes actualités et
    décider du sort des 6 contenus à confirmer.

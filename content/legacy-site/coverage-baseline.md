@@ -11,6 +11,11 @@ prévue dans LyceeGest. Elle prouve la reprise technique et la conservation des
 adresses, pas la qualité éditoriale. Les 28 contenus restent des brouillons à
 relire et aucun ne peut être publié automatiquement.
 
+Le contrôle reproductible [editorial-review.md](editorial-review.md) complète
+cette matrice. Il analyse les 28 textes sans les modifier et donne l'ordre des
+corrections : deux bloquants, vingt corrections importantes et trente-et-une
+validations humaines sur l'inventaire du 28 août 2026.
+
 | Slug inventorié | Titre | Classement | Brouillon preview | Destination prévue | Médias | Validation restante |
 | --- | --- | --- | --- | --- | --- | --- |
 | `accueil-historique` | Accueil | à confirmer | Oui | `/prototype` ; source conservée dans `/site/accueil-historique` | Sans écart bloquant connu | Direction requise |
