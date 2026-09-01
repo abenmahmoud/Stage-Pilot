@@ -303,6 +303,14 @@
   Code et seize tests locaux livrés ; revue Fable arbitrée. La recette directe
   du nouvel orchestrateur sur PostgreSQL reste bloquée par la configuration
   locale de preview non utilisable : la tâche n'est pas déclarée terminée.
+- [x] T022J Préparer l'adaptateur ClamAV borné et isolé : empreinte exacte,
+  configuration locale figée, entrée standard sans nom utilisateur, délai et
+  sorties limités, fichiers Office contrôlés, erreurs fermées. Tester le
+  processus réel avec un exécutable fictif ; la recette ClamAV propre/EICAR et
+  son déploiement restent des prérequis distincts au raccordement.
+  Code et dix-sept tests locaux vérifiés ; revue Fable arbitrée et régressions
+  reproduites puis corrigées. Aucun scanner réel ni worker activé : T022 reste
+  ouverte pour le service complet et ses preuves antivirus réelles.
 - [x] T023 Rattacher chaque réponse à la bonne communication.
 - [x] T023A Définir le rattachement strict avant la persistance. La référence
   `In-Reply-To` entrante utilise le même HMAC secret que l'identifiant du message

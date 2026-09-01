@@ -128,6 +128,57 @@ fichiers locaux actuels ne fournissent pas de connexion utilisable ; la recette
 ne s'est donc pas exécutée. La recette SQL de réservation antérieure passe via
 le connecteur avec cinq compteurs à zéro, mais ne remplace pas cette preuve.
 
+## Adaptateur antivirus préparé, non activé
+
+`workers/communication-inbound-scanner.mjs` vérifie une confirmation exacte
+(établissement, entrant, objet, type, taille, SHA-256) et transmet une copie
+bornée à `clamdscan` par entrée standard. Il ne stocke pas le contenu sur
+disque, ne transmet aucun nom utilisateur et n'hérite pas des secrets de
+l'application. Deux scans par instance par défaut, quatre au maximum, sans
+file d'attente en mémoire. Le délai du processus est de 60 secondes par défaut,
+120 secondes au maximum ; ses sorties cumulées sont limitées à 16 Kio.
+
+Seuls un socket local explicite ou `127.0.0.1` sont admis. La configuration
+temporaire privée fixe `StreamMaxLength` à 10 Mio plus un octet : le client ne
+doit pas tronquer un fichier admis. Elle ne change pas la configuration du
+démon. Ni shell, ni option de suppression/déplacement, ni journal brut. La copie
+interne est remise à zéro et la configuration temporaire retirée ; cela ne
+garantit pas l'effacement des copies du système ou du démon.
+
+Un code zéro seul ne suffit pas : le résultat propre exige une réponse exacte
+`stream: OK`, une entrée entièrement écrite, aucun signal et aucune sortie
+d'erreur. Un résultat de détection retourne seulement un motif fermé. Toute
+autre situation bloque la suite. Les trois formats Office passent ensuite la
+politique d'archives existante, étendue au PPTX. Le reçu retourné n'est jamais
+une autorisation d'accès : le futur worker doit contrôler l'empreinte lors du
+transfert et enregistrer état/preuve/événement sous verrou avant consultation.
+
+Vérification locale : `npm run test:communication-inbound-scanner`, dix-sept tests
+sur de vrais processus Node fictifs. Aucun véritable moteur ClamAV/EICAR n'a
+tourné et aucun scanner n'a été installé. Ces tests ne prouvent pas la capacité
+du service antivirus en charge. L'arrêt du client ne garantit pas l'arrêt
+immédiat d'un scan déjà pris en charge par le démon.
+
+La revue Fable 5 a coûté environ 1,84 USD sur les 3 USD autorisés. Les
+accesseurs internes ne peuvent plus substituer les champs de confirmation ou
+le tampon entre contrôle et usage ; deux régressions ont été reproduites puis
+corrigées. Le compte rendu versionné conserve l'arbitrage et les limites.
+Le contrôle Office porte sur l'objet DOCX/XLSX/PPTX, pas sur ses éventuels
+contenants email. Les pièces internes d'un `message/rfc822` nécessitent encore
+une extraction bornée vers des objets contrôlés individuellement.
+
+Avant le raccordement, faire valider sur l'environnement autorisé : version du
+moteur, fraîcheur des signatures, parsers documents/images/emails/archives
+actifs, limites de flux et d'analyse cohérentes, `AlertExceedsMax` et
+`AlertEncrypted` actifs. Prouver propre, EICAR, document chiffré, dépassement
+d'analyse, panne et reprise. Un dépassement ou une pièce non analysable ne
+doit pas être libéré comme propre. Aucun de ces réglages n'a été modifié ici.
+
+Références vérifiées le 1er septembre 2026 :
+[interface clamdscan](https://raw.githubusercontent.com/Cisco-Talos/clamav/main/docs/man/clamdscan.1.in),
+[borne du flux client](https://raw.githubusercontent.com/Cisco-Talos/clamav/main/common/clamdcom.c),
+[options du démon](https://raw.githubusercontent.com/Cisco-Talos/clamav/main/etc/clamd.conf.sample).
+
 ## Frontières encore fermées
 
 - recette complète du raccordement transactionnel sur PostgreSQL ;

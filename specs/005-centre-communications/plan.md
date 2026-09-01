@@ -93,6 +93,24 @@ son empreinte doit correspondre. Un objet purgé n'est jamais recréé. Une born
 d'admission par instance refuse immédiatement l'excès sans retenir une file de
 jetons en mémoire ; elle ne remplace pas la limitation distribuée de la route.
 
+## Adaptateur antivirus entrant
+
+L'adaptateur transmet uniquement une copie bornée du contenu à `clamdscan`
+par entrée standard, après contrôle taille/SHA-256. Aucun nom utilisateur,
+jeton fournisseur ou secret applicatif n'est transmis au processus. Une
+configuration temporaire privée fixe la connexion à un socket local ou à
+`127.0.0.1` et une limite de flux supérieure aux 10 Mo acceptés, pour éviter
+la troncature silencieuse du client. Le contenu n'est pas écrit sur disque.
+Le processus est sans shell, limité en durée, sorties et concurrence ; toute
+sortie ambiguë ou panne empêche le verdict propre. Les fichiers Office passent
+aussi la politique d'archives existante avant retour du résultat.
+
+Ce module ne modifie ni base, ni stockage, ni file. Son résultat doit encore
+être recoupé sous verrou par le futur worker. Le déploiement exige une recette
+avec le vrai ClamAV et ses signatures à jour, les limites du démon contrôlées,
+et des preuves fichier propre/EICAR/limites. Un exécutable fictif teste le
+pilotage du processus, pas l'efficacité de l'antivirus.
+
 ## Interface simplifiée
 
 L'écran principal propose trois commandes visibles :

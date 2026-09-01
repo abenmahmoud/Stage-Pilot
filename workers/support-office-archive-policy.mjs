@@ -9,6 +9,14 @@ const OFFICE_MANIFEST_MAX_BYTES = 256 * 1024;
 
 const OFFICE_RULES = [
   {
+    kind: "pptx",
+    extension: ".pptx",
+    mimeType: "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+    mainEntry: "ppt/presentation.xml",
+    mainContentType: "application/vnd.openxmlformats-officedocument.presentationml.presentation.main+xml",
+    requiredEntries: new Set(["[Content_Types].xml", "_rels/.rels", "ppt/presentation.xml"]),
+  },
+  {
     kind: "docx",
     extension: ".docx",
     mimeType: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",

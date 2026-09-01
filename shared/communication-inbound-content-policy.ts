@@ -164,21 +164,29 @@ export function parseCommunicationInboundQuarantineConfirmation(
   if (!isRecord(value) || !hasExactFields(value, CONFIRMATION_FIELDS)) {
     throw new CommunicationInboundContentPolicyError("quarantine_confirmation_invalid");
   }
+  const confirmation = {
+    institutionId: value.institutionId,
+    inboundId: value.inboundId,
+    objectId: value.objectId,
+    mediaType: value.mediaType,
+    sizeBytes: value.sizeBytes,
+    sha256: value.sha256,
+  };
   for (const field of ["institutionId", "inboundId", "objectId"] as const) {
-    if (typeof value[field] !== "string" || !UUID_PATTERN.test(value[field])) {
+    if (typeof confirmation[field] !== "string" || !UUID_PATTERN.test(confirmation[field])) {
       throw new CommunicationInboundContentPolicyError(`${field}_invalid`);
     }
   }
-  if (typeof value.mediaType !== "string" || !MEDIA_TYPES.has(value.mediaType)) {
+  if (typeof confirmation.mediaType !== "string" || !MEDIA_TYPES.has(confirmation.mediaType)) {
     throw new CommunicationInboundContentPolicyError("media_type_invalid");
   }
-  if (!validSize(value.sizeBytes)) {
+  if (!validSize(confirmation.sizeBytes)) {
     throw new CommunicationInboundContentPolicyError("object_size_invalid");
   }
-  if (typeof value.sha256 !== "string" || !HASH_PATTERN.test(value.sha256)) {
+  if (typeof confirmation.sha256 !== "string" || !HASH_PATTERN.test(confirmation.sha256)) {
     throw new CommunicationInboundContentPolicyError("sha256_invalid");
   }
-  return value as CommunicationInboundQuarantineConfirmation;
+  return confirmation as CommunicationInboundQuarantineConfirmation;
 }
 
 export function communicationInboundObjectStoragePath(

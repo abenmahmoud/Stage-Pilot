@@ -4699,3 +4699,29 @@ taches et analyse de coherence avant une automatisation sensible.
 - Aucun webhook, scan, service réel ou secret activé. La borne par instance ne
   remplace pas un contrôle distribué. Les cinq domaines comptent 548 tâches :
   448 terminées et 100 ouvertes, sans pourcentage de fonctionnement annoncé.
+
+### Avancement du 1er septembre 2026 - adaptateur antivirus isolé
+
+- Adaptateur ClamAV préparé, non raccordé : contrôle de l'empreinte et des
+  limites, contenu transmis par entrée standard, configuration temporaire
+  locale, aucune donnée utilisateur écrite sur disque par l'adaptateur.
+- Une limite client fixée au-dessus de 10 Mio évite la troncature silencieuse
+  du flux. Processus sans shell, secrets non hérités, sorties limitées, délai
+  et concurrence bornés, résultat ambigu refusé. Aucun accès base ou stockage.
+- Dix-sept tests passent avec des processus fictifs natifs, dont 10 Mio complets,
+  arrêt, absence de binaire, timeout, sorties excessives, mutation, reprise de
+  capacité et DOCX/XLSX/PPTX. Les contrôles Office partagés restent compatibles.
+- ClamAV n'est pas disponible dans l'environnement vérifié ; aucune recette
+  antivirus réelle, aucun EICAR, aucune activation de worker. La configuration du démon, les signatures
+  et la recette propre/EICAR/limites restent à vérifier avant raccordement.
+- La revue Fable autorisée a coûté 1,843302 USD sur les 3 USD maximum, sans
+  outil, sous-agent ou relance. Deux substitutions par accesseurs JavaScript
+  ont été reproduites avant correction puis fermées. Copie indépendante des
+  confirmations, lecture unique de la vue et taille de copie revérifiée.
+- T022J est terminée pour la préparation de cet adaptateur ; T022 et T022I
+  restent ouvertes pour les recettes et le raccordement. Aucun effet sur la
+  production, les données réelles ou les services du lycée. L'audit conserve
+  les limites restantes, notamment les pièces Office imbriquées dans un email.
+- Après corrections : communications, sécurité de preview, compilation et
+  intégrité Spec Kit passent. 549 tâches : 449 terminées et 100 ouvertes ; ces
+  comptes ne mesurent pas le fonctionnement opérationnel du portail.

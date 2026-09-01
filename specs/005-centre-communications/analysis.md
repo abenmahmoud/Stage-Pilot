@@ -476,3 +476,34 @@ Claude Fable 5 a relu les quatre fichiers du raccordement une fois pour environ
 propre sont corrigés. L'encodage du jeton et les bornes de la référence étaient
 déjà présents. Le compte rendu distingue constats confirmés et limites restantes.
 Ni la route entrante ni le worker ne sont activés. T022I reste donc ouverte.
+
+T022J prépare un adaptateur ClamAV importable, sans effets au chargement et
+sans accès à la base, au stockage ou aux variables de services. Le contenu est
+copié, borné et contrôlé par SHA-256 avant transmission à un processus sans
+shell. Sa configuration temporaire ne contient que la connexion locale et une
+limite client supérieure au plafond applicatif ; elle est supprimée après
+fermeture du processus. Cela prévient la troncature silencieuse de l'entrée
+standard par le client ClamAV lorsque sa limite de flux est trop basse.
+
+Dix-sept tests lancent de vrais sous-processus fictifs : flux de 10 Mio complet,
+mutation de l'appelant, métadonnées invalides, interruption, absence du binaire,
+délai, sorties excessives ou ambiguës, concurrence bornée et nettoyage. Les
+archives DOCX/XLSX/PPTX malformées ou contenant des macros sont refusées même
+après un verdict fictif propre. Le contrôle Office partagé a été étendu au
+PPTX ; ses tests existants et les tests du centre de communications passent.
+
+Ce sont des preuves du pilotage et des refus, pas du moteur antivirus. Aucun
+exécutable ClamAV n'est disponible dans l'environnement vérifié et aucun service
+n'a été démarré. Le futur
+déploiement doit vérifier les signatures, les limites et alertes du démon, les
+parsers actifs et des fixtures propres/EICAR. La fermeture du processus local
+n'atteste pas l'annulation instantanée du travail côté démon. La revue Fable
+suivante a été autorisée avec un plafond de 3 USD et a coûté environ 1,84 USD,
+sans outil ni accès à d'autres fichiers. Deux régressions avec des accesseurs
+JavaScript ont été reproduites avant correction : confirmation relue après
+validation et substitution du tampon. La confirmation est désormais une copie
+explicite validée, la vue est lue une fois et la taille réelle de sa copie est
+vérifiée. Ce durcissement interne n'est pas une exploitation HTTP démontrée.
+Le compte rendu `docs/audits/CLAUDE_INBOUND_SCANNER_ADJUDICATION_2026-09-01.md`
+distingue corrections, observations et prérequis. T022J est terminée pour cet
+adaptateur testé ; T022 et T022I restent ouvertes. Rien n'est promu ni publié.
