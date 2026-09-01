@@ -32,6 +32,7 @@ import {
 } from "../../../../../shared/support-concurrency.js";
 import {
   SUPPORT_IDENTITY_VERIFICATION_MESSAGE,
+  supportReplyNeedsIdentityCheck,
   normalizeSupportReplyText,
   supportTranslationTargetLanguage,
 } from "../../../../../shared/support-reply-policy.js";
@@ -88,6 +89,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       .select({
         id: supportRequests.id,
         subject: supportRequests.subject,
+        description: supportRequests.description,
         category: supportRequests.category,
         subjectContext: supportRequests.subjectContext,
         assignedTeam: supportRequests.assignedTeam,
@@ -171,7 +173,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (!supportRevisionMatches(request.updatedAt, expectedRevision)) {
       throw new HttpError(409, "Ce dossier a été modifié par un autre agent. Il vient d’être actualisé.");
     }
-    const identityContext = (request.subjectContext ?? {}) as Record<string, unknown>;
     let translatedReply: { sourceMessage: string; targetLanguage: string } | null = null;
     if (body.translation !== undefined) {
       if (!body.translation || typeof body.translation !== "object" || Array.isArray(body.translation)) {
@@ -211,10 +212,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       }
       translatedReply = { sourceMessage, targetLanguage };
     }
-    if (
-      ["ent", "email_academique"].includes(request.category) &&
-      identityContext.identityStatus !== "identite_confirmee"
-    ) {
+    if (supportReplyNeedsIdentityCheck(request)) {
       if (attachmentIds.length > 0) {
         throw new HttpError(409, "Aucun document ne peut être transmis avant la confirmation d’identité");
       }

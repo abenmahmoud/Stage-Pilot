@@ -854,7 +854,15 @@
   preview : en-têtes navigateur, cache API, source maps, secrets, limites,
   sessions, MFA, périmètres agents, cas adversariaux, communications privées et
   intégrité des migrations. T049 reste ouverte pour la revue DPO, les comptes
-  nominatifs et l'audit externe borné autorisé.
+  nominatifs et les écarts non couverts ou non fermés par l'audit externe ciblé.
+- [x] T049B Exécuter l'audit applicatif externe Fable 5.1 autorisé sur quinze
+  fichiers, arbitrer ses constats et corriger le rejeu intersessions, le verrou
+  de réponse I3 partagé et la validation UUID. Régressions locales et limites
+  documentées dans `docs/audits/FABLE_5_1_APPLICATION_SECURITY_ADJUDICATION_2026-09-01.md`.
+- [ ] T049C Fermer les suites de l'audit avant ouverture élargie : provenance
+  des résumés, quotas non renouvelables et coût global, MFA et adhésions
+  vérifiées sur le déploiement courant, publication de documents personnels
+  avec identité et relation contrôlées, recette réseau de reprise interappareils.
 - [ ] T050 Ouvrir un pilote limité avec agents nommés et canal de retour.
 - [ ] T051 Mesurer deux semaines : classement, délai, transferts, corrections, coût et incidents.
 - [ ] T052 Corriger les écarts puis exécuter `/speckit.analyze` et `/speckit.converge` avant généralisation.
@@ -862,7 +870,7 @@
   transport Webmail, responsive et diagnostic public. Les 101 tâches ouvertes
   sont rapprochées de leurs dépendances humaines, externes, réelles ou de
   production ; aucun parent n'est fermé sur une preuve locale partielle. T052
-  reste ouverte jusqu'au pilote, à l'audit externe autorisé et à la convergence
+  reste ouverte jusqu'au pilote, à la fermeture des suites de l'audit et à la convergence
   finale avant généralisation.
 
 ## Phase 7 - Portail complet et généralisation contrôlée

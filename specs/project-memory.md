@@ -4861,3 +4861,27 @@ taches et analyse de coherence avant une automatisation sensible.
 - Après corrections : communications, sécurité de preview, compilation et
   intégrité Spec Kit passent. 549 tâches : 449 terminées et 100 ouvertes ; ces
   comptes ne mesurent pas le fonctionnement opérationnel du portail.
+
+### Jalon du 1er septembre 2026 - audit applicatif Fable 5.1
+
+- Une exécution autorisée, lecture seule, quinze fichiers au commit `2894150`,
+  modèle effectivement retourné `claude-fable-5-1`. Rapport reçu ; aucune
+  relance après correction. Aucun secret ni donnée personnelle transmis.
+- Estimation recalculée 1,42 USD sous le plafond de 5 USD, auxiliaire Haiku
+  compris. Le coût natif 0,99 USD a une base inconnue pour Fable 5.1 et ne doit
+  pas être présenté comme facture vérifiée. L'autorisation est consommée.
+- Rejeu : une clé anti-doublon ne crée plus de droit d'accès. Seule la session
+  valide déjà liée au dossier peut le retrouver ; refus générique sinon.
+- Réponse, traduction, clôture et interface partagent le verrou I3 ; I4 reste
+  fermé. La collecte urgente I0 reste aidée. Aucun abaissement du verrou ENT.
+  Les UUID de pièces jointes invalides sont refusés avant accès à la base.
+- Dix-huit régressions locales passent avec données fictives. La publication
+  de documents personnels en I2, les quotas renouvelables, la provenance des
+  résumés et les configurations distantes restent explicitement ouverts.
+  La recette Auth/MFA privée n'a pas été exécutée dans ce passage.
+- T049B documente ce lot, T049C ses suites ; T049 reste ouverte. Le compte rendu
+  complet est `docs/audits/FABLE_5_1_APPLICATION_SECURITY_ADJUDICATION_2026-09-01.md`.
+  Aucun changement de production, DNS, VPS, Webmail, ENT ou compte nominatif.
+- Compilation, barrière complète de sécurité, traduction, routage, contrats
+  responsive et intégrité Spec Kit passent. 552 tâches : 450 terminées,
+  102 ouvertes. Ce compte ne mesure pas la disponibilité opérationnelle.

@@ -195,6 +195,22 @@ leur date, leur responsable et leur état de validité.
 
 ## Critères de réussite du pilote
 
+### Précisions de sécurité du 1er septembre 2026
+
+- Une clé anti-doublon ne constitue jamais une preuve d'accès. Le rejeu d'une
+  création ne retrouve le dossier que depuis une session valide déjà autorisée ;
+  sinon il refuse sans révéler le numéro et propose le suivi habituel.
+- Le verrou des réponses sensibles suit le niveau d'identité calculé par le
+  serveur, pas seulement la catégorie ENT. Les dossiers I3 exigent une identité
+  scolaire confirmée ; I4 reste fermé en l'absence de preuve renforcée dédiée.
+  Traduction, pièces jointes et clôture appliquent la même règle.
+  Le verrou historique ENT/messagerie académique n'est jamais abaissé par
+  un niveau de routage plus faible, notamment un mot d'urgence dans le message.
+- Une demande urgente classée I0 reste recevable et peut recevoir une consigne
+  d'aide sans identité scolaire. Ce droit n'autorise aucune consultation de
+  données privées. Les demandes I0-I2 et formulaires vierges ne deviennent pas
+  toutes des demandes I3. Le contrôle des données personnelles reste obligatoire.
+
 - 95 % des demandes confirmées possèdent un accusé de réception et un numéro de suivi.
 - 90 % des demandes courantes sont dirigées vers le bon service après correction éventuelle.
 - 100 % des actions A3 possèdent une validation enregistrée.

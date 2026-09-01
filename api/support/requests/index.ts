@@ -207,16 +207,20 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
               createdAt: supportRequests.createdAt,
             })
             .from(supportRequests)
+            .innerJoin(
+              supportSessionRequests,
+              eq(supportSessionRequests.requestId, supportRequests.id)
+            )
             .where(and(
               eq(supportRequests.institutionId, institution.id),
-              eq(supportRequests.idempotencyKeyHash, idempotencyHash)
+              eq(supportRequests.idempotencyKeyHash, idempotencyHash),
+              eq(supportSessionRequests.sessionId, session.id)
             ))
             .limit(1);
-          if (!racedRequest) throw new Error("Idempotent request could not be recovered");
-          await tx
-            .insert(supportSessionRequests)
-            .values({ sessionId: session.id, requestId: racedRequest.id })
-            .onConflictDoNothing();
+          // Idempotency prevents duplicate writes; it must never grant access.
+          if (!racedRequest) {
+            throw new HttpError(409, "Cet envoi ne peut pas être repris depuis cet appareil. Ouvrez le suivi déjà enregistré ou le lien reçu par email. Si vous ne les retrouvez pas, contactez le lycée.");
+          }
           const agentAction = createRequestAction
             ? await completeSupportCreateRequestAction({
                 tx,

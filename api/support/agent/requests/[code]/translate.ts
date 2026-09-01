@@ -4,6 +4,7 @@ import { db } from "../../../../../db/index.js";
 import { supportRequests } from "../../../../../db/schema.js";
 import {
   SUPPORT_IDENTITY_VERIFICATION_MESSAGE,
+  supportReplyNeedsIdentityCheck,
   normalizeSupportReplyText,
   supportTranslationTargetLanguage,
 } from "../../../../../shared/support-reply-policy.js";
@@ -48,6 +49,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       .select({
         id: supportRequests.id,
         category: supportRequests.category,
+        subject: supportRequests.subject,
+        description: supportRequests.description,
         requesterFirstName: supportRequests.requesterFirstName,
         requesterLastName: supportRequests.requesterLastName,
         beneficiaryFirstName: supportRequests.beneficiaryFirstName,
@@ -69,8 +72,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (!targetLanguage) {
       throw new HttpError(409, "Aucune autre langue fiable n’est disponible pour ce dossier");
     }
-    const sensitiveIdentityPending = ["ent", "email_academique"].includes(request.category)
-      && context.identityStatus !== "identite_confirmee";
+    const sensitiveIdentityPending = supportReplyNeedsIdentityCheck(request);
     if (sensitiveIdentityPending && sourceMessage !== SUPPORT_IDENTITY_VERIFICATION_MESSAGE) {
       throw new HttpError(
         409,

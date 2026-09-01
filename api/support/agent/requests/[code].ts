@@ -35,6 +35,7 @@ import {
 } from "../../../../shared/support-agent-mutation-input-policy.js";
 import { createSupportRequestMutationConfirmation } from "../../../../shared/support-request-mutation-confirmation.js";
 import { SUPPORT_AGENT_DETAIL_LIMITS } from "../../../../shared/support-agent-detail-payload-policy.js";
+import { supportReplyNeedsIdentityCheck } from "../../../../shared/support-reply-policy.js";
 
 const STATUSES = new Set([
   "nouveau",
@@ -59,7 +60,6 @@ const ASSIGNED_TEAMS = new Set([
 ]);
 const IDENTITY_STATUSES = new Set(["non_verifiee", "contact_verifie", "identite_confirmee"]);
 const IDENTITY_METHODS = new Set(["email_magic_link", "phone_callback", "official_roster"]);
-const SENSITIVE_CATEGORIES = new Set(["ent", "email_academique"]);
 
 function publicCode(req: VercelRequest): string {
   const code = singleSupportAgentRouteValue(req.query.code);
@@ -232,9 +232,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         await requireAal2(req);
       }
       if (
-        SENSITIVE_CATEGORIES.has(request.category) &&
         ["resolu", "clos"].includes(nextStatus) &&
-        nextIdentityStatus !== "identite_confirmee"
+        supportReplyNeedsIdentityCheck({
+          ...request,
+          subjectContext: { ...currentContext, identityStatus: nextIdentityStatus },
+        })
       ) {
         throw new HttpError(409, "Confirmez l’identité avec une liste officielle avant de résoudre cette demande sensible");
       }

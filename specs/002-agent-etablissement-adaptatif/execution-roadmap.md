@@ -989,6 +989,13 @@ l'autorisation de quota définie par le propriétaire.
 
 ## Prochaine séquence verrouillée
 
+Point de sécurité du 1er septembre : audit externe Fable 5.1 effectué. T049B
+livre les corrections locales du rejeu, des réponses I3 et des UUID ; T049C
+conserve explicitement les suites bloquant une ouverture élargie. Aucun nouvel
+appel externe n'est autorisé par ce lot. La configuration courante, les quotas,
+les résumés déclarés et l'envoi de documents personnels restent à vérifier ou
+compléter avant toute activation réelle. Voir le compte rendu d'arbitrage.
+
 1. Conserver `BC-2026-000009` comme preuve fictive de recette jusqu'à la décision
    de nettoyage du pilote ; le dossier historique `BC-2026-000008` n'est pas
    déplacé silencieusement.

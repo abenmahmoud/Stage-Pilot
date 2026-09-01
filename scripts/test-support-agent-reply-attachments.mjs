@@ -103,7 +103,8 @@ test("l’interface valide les réponses API et n’attache pas les binaires aux
   assert.match(source.page, /uploadAgentSupportFile/);
   assert.match(source.page, /isAgentSupportUploadReservationPayload\(reservation\)/);
   assert.match(source.page, /isSupportAttachmentConfirmationPayload\(confirmation/);
-  assert.match(source.page, /attachmentIds: selectedAgentAttachmentIds/);
+  assert.match(source.page, /const replyAttachmentIds = requiresSafeTemplate \? \[\] : selectedAgentAttachmentIds/);
+  assert.match(source.page, /attachmentIds: replyAttachmentIds/);
   assert.match(source.page, /Documents à joindre à la réponse/);
   assert.match(source.page, /canRemoveDraft/);
   assert.match(source.page, /Retrait à reprendre/);
