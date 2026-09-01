@@ -1083,11 +1083,14 @@ sessions historiques ouvertes ont été fermées. La désactivation et la suppre
 d'un contact révoquent ses sessions et rendent ses jetons inutilisables, sans
 couper la session ordinaire ni un autre contact du dossier. Un scénario PostgreSQL
 fictif installé passe et laisse zéro résidu ; 99 contrôles ciblés passent. La
-recette à deux connexions est préparée et fermée à la seule preview, mais n'a pas
-pu s'exécuter car l'URL PostgreSQL locale est masquée. La barrière transversale,
-l'intégrité des 92 migrations, les 560 tâches Spec Kit et la compilation passent.
-T049C8 reste donc ouverte pour cette course et la contre-revue externe après la
-pause demandée ; le commit doit encore être confirmé READY sur Vercel. Voir
+course réelle a ensuite été exécutée par deux connexions séparées sur la branche
+Supabase de preview : les deux désactivations aboutissent, la seconde attend le
+verrou du contact, puis session et jeton sont révoqués. Le nettoyage intégré et
+un second contrôle indépendant retournent zéro résidu fictif. La barrière
+transversale, l'intégrité des 93 migrations, les 562 tâches Spec Kit et la
+compilation passent. Le commit de code `17813120` est READY sur Vercel. T049C8
+reste ouverte uniquement pour la contre-revue externe après la pause demandée.
+Voir
 `docs/security/SUPPORT_SESSION_CONTACT_REVOCATION_PREVIEW_2026-09-02.md`.
 
 Suite T049C9 : une enveloppe quotidienne commune réserve désormais un montant

@@ -43,27 +43,36 @@ suppression. Le nettoyage final retourne `remaining_fixture_rows=0`.
 - 7 scénarios de provenance, lecture, migration et sûreté de recette : réussis.
 - 10 scénarios de quota assistant, dont le contact lié actif ou désactivé : réussis.
 - Barrière de sécurité transversale : réussie.
-- Intégrité : 92 migrations uniques et 560 tâches Spec Kit cohérentes.
+- Intégrité actuelle : 93 migrations uniques et 562 tâches Spec Kit cohérentes.
 - Compilation de production : réussie ; l'avertissement historique de taille du
   module XLSX reste présent.
-- Conseiller sécurité Supabase : 62 informations, aucun avertissement ni erreur,
-  niveau inchangé.
+- Conseiller sécurité Supabase : 63 informations, aucun avertissement ni erreur ;
+  l'information ajoutée ensuite vient de la table serveur du garde budgétaire IA.
 - Conseiller performance : 98 informations et 16 avertissements. Le seul nouvel
   élément est l'index de contact encore inutilisé sur une preview sans trafic.
 - Les rôles navigateur conservent leurs droits révoqués sur les tables support.
 - La fonction de déclenchement reste `SECURITY INVOKER`, avec chemin de recherche
   fixé et sans droit d'exécution pour `PUBLIC`, `anon` ou `authenticated`.
 
-## Preuve encore manquante
+## Preuve concurrente
 
 La recette `test-preview-support-session-contact-concurrency.mjs` prépare deux
 transactions concurrentes, une attente bornée et un nettoyage exact. Elle refuse
 toute autre base que la preview, exige une confirmation explicite et contrôle le
-certificat TLS. Elle n'a pas été exécutée : les fichiers locaux contiennent une
-valeur masquée à la place de l'URL PostgreSQL. Aucun contournement ni secret n'a
-été demandé ou affiché.
+certificat TLS. L'URL locale restant masquée, le même scénario a été exécuté par
+deux connexions SQL distinctes et simultanées du connecteur Supabase, uniquement
+sur `xijocumlwivhbmffrnlj`, avec des UUID fixes et une adresse
+`example.invalid` :
 
-T049C8 doit rester ouverte jusqu'à cette course réelle et la contre-revue
-indépendante après la pause de Claude. Le commit de code doit être confirmé READY
-sur Vercel avant présentation. Aucune donnée réelle, production, messagerie, DNS,
-Hostinger ou VPS n'a été modifié.
+- les deux transactions de désactivation aboutissent ;
+- la seconde attend la libération du verrou du contact ;
+- la session liée est révoquée et le jeton lié est consommé ;
+- les quatre lignes fictives sont supprimées par le scénario ;
+- une requête indépendante confirme ensuite `remaining_fixture_rows=0`.
+
+Aucun secret n'a été demandé ou affiché. Le commit de code `17813120` est READY
+sur une preview Vercel protégée ; la production est restée inchangée.
+
+T049C8 reste ouverte uniquement pour la contre-revue indépendante après la pause
+de Claude. Aucune donnée réelle, production, messagerie, DNS, Hostinger ou VPS
+n'a été modifié.

@@ -40,12 +40,14 @@
   avertissements de performance préexistants. Le nouvel index produit une seule
   information d'absence d'usage, attendue sans trafic réel.
 - Les 92 contrôles d'accès existants et sept contrôles de provenance passent.
-  La barrière de sécurité transversale, l'intégrité des 92 migrations et 560
-  tâches Spec Kit, ainsi que la compilation passent. La vraie course à deux
-  connexions reste ouverte : la recette est prête et
-  verrouillée sur la preview, mais l'URL PostgreSQL locale est encore masquée.
-  Claude reste en pause à la demande du propriétaire ; aucune consommation
-  externe, donnée réelle, production, email, VPS ou DNS n'a été touché.
+  La vraie course à deux connexions passe également sur la branche Supabase de
+  preview : la seconde désactivation attend le verrou, puis session et jeton
+  sont révoqués. Le nettoyage intégré et un contrôle indépendant confirment
+  zéro résidu fictif. La barrière de sécurité transversale, l'intégrité des 93
+  migrations et 562 tâches Spec Kit, ainsi que la compilation passent. Le
+  commit de code `17813120` est READY sur Vercel. Claude reste en pause à la
+  demande du propriétaire ; aucune consommation externe, donnée réelle,
+  production, email, VPS ou DNS n'a été touché.
 - Compte rendu :
   `docs/security/SUPPORT_SESSION_CONTACT_REVOCATION_PREVIEW_2026-09-02.md`.
 

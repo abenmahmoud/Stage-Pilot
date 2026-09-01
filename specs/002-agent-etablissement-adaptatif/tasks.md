@@ -918,7 +918,12 @@
   sans session réelle ni modification de production. Liaison, révocation,
   migration `20260901223342`, test PostgreSQL fictif installé et 99 contrôles
   ciblés passent sur la preview avec zéro résidu. La course à deux connexions
-  reste ouverte : sa recette est prête mais l'URL PostgreSQL locale est masquée.
+  passe également sur la branche Supabase de preview ; seule la contre-revue
+  indépendante reste ouverte après la pause de Claude.
+- [x] T049C8A Exécuter une vraie désactivation concurrente du même contact sur
+  deux connexions PostgreSQL de la preview. Les deux transactions aboutissent,
+  la seconde attend le verrou, puis session et jeton sont révoqués. Deux
+  contrôles de nettoyage confirment zéro donnée fictive résiduelle.
 - [x] T049C9 Ajouter une enveloppe monétaire quotidienne atomique et commune aux
   trois routes OpenAI. Réserver avant l'appel, échouer fermé si la configuration
   active est incomplète, ne conserver aucune donnée utilisateur et laisser le
