@@ -7,6 +7,7 @@ import {
 } from "../shared/support-request-confirmation.ts";
 
 const publicCode = "BC-2026-000123";
+const now = Date.parse("2026-08-30T10:00:00.000Z");
 
 test("creates and verifies a bounded persistence confirmation", () => {
   const confirmation = createSupportRequestPersistenceConfirmation({
@@ -21,7 +22,7 @@ test("creates and verifies a bounded persistence confirmation", () => {
     confirmationRef: `support:${publicCode}`,
   });
   assert.deepEqual(
-    verifySupportRequestPersistenceConfirmation({ expectedPublicCode: publicCode, confirmation }),
+    verifySupportRequestPersistenceConfirmation({ expectedPublicCode: publicCode, confirmation, now }),
     confirmation
   );
 });
@@ -38,9 +39,13 @@ test("refuses missing, mismatched and malformed confirmations", () => {
     { ...valid, publicCode: "BC-2026-000124" },
     { ...valid, confirmationRef: "support:other" },
     { ...valid, confirmedAt: "not-a-date" },
+    { ...valid, confirmedAt: "2026-08-30T10:00:00+00:00" },
+    { ...valid, confirmedAt: "2026-08-30T09:54:59.000Z" },
+    { ...valid, confirmedAt: "2026-08-30T10:05:01.000Z" },
+    { ...valid, internalRequestId: "2f9d5406-599d-48e6-a9c0-a59895547246" },
   ]) {
     assert.equal(
-      verifySupportRequestPersistenceConfirmation({ expectedPublicCode: publicCode, confirmation }),
+      verifySupportRequestPersistenceConfirmation({ expectedPublicCode: publicCode, confirmation, now }),
       null
     );
   }

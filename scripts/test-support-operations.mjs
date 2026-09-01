@@ -66,8 +66,10 @@ test("accepts only a current retry confirmation tied to the failed job", () => {
     { ...confirmation, failedJobId: "00a3661c-0845-4f43-aaef-86c1a80e2c61" },
     { ...confirmation, jobId: "not-a-job" },
     { ...confirmation, confirmationRef: "support:job-retry:unknown" },
+    { ...confirmation, confirmedAt: "2026-08-30T10:00:00+00:00" },
     { ...confirmation, confirmedAt: "2026-08-30T09:54:59.000Z" },
     { ...confirmation, confirmedAt: "2026-08-30T10:05:01.000Z" },
+    { ...confirmation, accessToken: "secret" },
   ]) {
     assert.equal(
       verifySupportJobRetryConfirmation({ expectedFailedJobId: failedJobId, confirmation: invalid, now }),

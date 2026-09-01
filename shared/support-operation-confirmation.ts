@@ -9,6 +9,14 @@ export type SupportJobRetryConfirmation = {
 
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const CONFIRMATION_WINDOW_MS = 5 * 60 * 1000;
+const CONFIRMATION_FIELDS = new Set([
+  "status",
+  "operation",
+  "failedJobId",
+  "jobId",
+  "confirmedAt",
+  "confirmationRef",
+]);
 
 function confirmationReference(correlationId: string): string {
   return `support:job-retry:${correlationId}`;
@@ -54,13 +62,16 @@ export function verifySupportJobRetryConfirmation(input: {
   }
 
   const confirmation = input.confirmation as Record<string, unknown>;
+  const keys = Object.keys(confirmation);
   const confirmedAt = typeof confirmation.confirmedAt === "string"
     ? Date.parse(confirmation.confirmedAt)
     : Number.NaN;
   const now = input.now ?? Date.now();
 
   if (
-    confirmation.status !== "queued"
+    keys.length !== CONFIRMATION_FIELDS.size
+    || !keys.every((key) => CONFIRMATION_FIELDS.has(key))
+    || confirmation.status !== "queued"
     || confirmation.operation !== "support_job_retry"
     || confirmation.failedJobId !== input.expectedFailedJobId
     || typeof confirmation.jobId !== "string"
@@ -68,6 +79,7 @@ export function verifySupportJobRetryConfirmation(input: {
     || typeof confirmation.confirmationRef !== "string"
     || !/^support:job-retry:[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(confirmation.confirmationRef)
     || !Number.isFinite(confirmedAt)
+    || confirmation.confirmedAt !== new Date(confirmedAt).toISOString()
     || confirmedAt < now - CONFIRMATION_WINDOW_MS
     || confirmedAt > now + CONFIRMATION_WINDOW_MS
   ) {

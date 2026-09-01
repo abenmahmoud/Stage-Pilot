@@ -4076,3 +4076,15 @@ taches et analyse de coherence avant une automatisation sensible.
 - Quinze contrôles ciblés, le build et la barrière de sécurité complète passent
   sans donnée réelle, base distante, production, DNS, VPS, ENT, PRONOTE, webmail
   ou action externe. Les cinq domaines comptent désormais 508 tâches Spec Kit.
+
+## 2026-09-01 - Dernières confirmations historiques fermées
+
+- T028L aligne la confirmation de création publique et la confirmation de relance
+  technique sur les autres reçus : champs exacts, date ISO canonique et fenêtre
+  de fraîcheur de cinq minutes.
+- La création idempotente régénère déjà sa preuve au moment de la réponse ; cette
+  règle ne modifie donc ni le rejeu ni le parcours visible. Les tests refusent
+  notamment un identifiant interne ou un jeton ajouté au reçu.
+- Vingt et un contrôles ciblés, le build et la barrière de sécurité complète
+  passent sans création, relance, donnée réelle, base distante ou production.
+  Les cinq domaines comptent désormais 509 tâches Spec Kit.

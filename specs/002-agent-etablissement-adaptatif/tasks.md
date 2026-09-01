@@ -568,6 +568,10 @@
   contient sept champs non personnels. La transaction a été annulée, les
   fixtures supprimées, Supabase a confirmé six puis quatre compteurs à zéro, et
   la route ainsi que le déploiement temporaires ont été retirés.
+- [x] T028L Fermer les deux confirmations historiques restantes : création
+  publique d'un dossier et relance technique. Exiger leurs champs exacts, une
+  date ISO canonique et une fraîcheur de cinq minutes ; refuser tout identifiant,
+  jeton ou champ interne ajouté avant d'afficher une réussite.
 - [x] T029 Ajouter formulaire classique et création de demande sans dépendance à l'IA.
 - [x] T030 Ajouter mesure du coût, de la latence, des transferts et des corrections.
 - [x] T030A Mesurer chaque passage de l'assistant public sans contenu personnel :

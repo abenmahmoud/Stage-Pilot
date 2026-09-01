@@ -822,6 +822,12 @@ l'autorisation de quota définie par le propriétaire.
   Une coordonnée, un contenu ou un identifiant interne ajouté à la confirmation
   provoque un refus avant le message de réussite. Quinze contrôles ciblés, le
   build et la barrière de sécurité passent. T027B26 est terminée.
+- Lot N5ZZY : dernières confirmations historiques. **Fermées sans demande,
+  relance, donnée réelle ou action externe** : la persistance initiale et la
+  relance d'un échec acceptent uniquement leurs champs documentés, une date ISO
+  canonique et un reçu vieux de moins de cinq minutes. Un identifiant interne ou
+  un jeton ajouté fait échouer la validation. Vingt et un contrôles ciblés, le
+  build et la barrière de sécurité passent. T028L est terminée.
 
 ## Prochaine séquence verrouillée
 
