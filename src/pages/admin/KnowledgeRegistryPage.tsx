@@ -35,79 +35,20 @@ import {
   type KnowledgeDocumentStatus,
 } from "../../../shared/knowledge-document-admin-payload";
 import {
+  parseKnowledgeRegistryPayload,
+  type KnowledgeRegistryPayload as Registry,
+  type RegistryEvaluationPayload as Evaluation,
+  type RegistrySkillPayload as AgentSkill,
+  type RegistrySourcePayload as KnowledgeSource,
+  type RegistrySourceStatus as SourceStatus,
+  type RegistryVersionPayload as SkillVersion,
+  type RegistryVersionStatus as VersionStatus,
+} from "../../../shared/knowledge-registry-admin-payload";
+import {
   parseSkillScenarioPlan,
   SKILL_SCENARIO_PLAN_MAX_BYTES,
   type SkillScenarioPlanItem,
 } from "../../../shared/skill-scenario-plan";
-
-type SourceStatus = "draft" | "published" | "expired" | "revoked";
-type VersionStatus = "draft" | "review" | "published" | "retired";
-
-type KnowledgeSource = {
-  id: string;
-  title: string;
-  sourceType: string;
-  uri: string;
-  classification: string;
-  serviceCodes: string[];
-  validFrom: string;
-  expiresAt: string | null;
-  status: SourceStatus;
-  checksum: string;
-  updatedAt: string;
-};
-
-type AgentSkill = {
-  id: string;
-  skillKey: string;
-  name: string;
-  domain: string;
-  activeVersionId: string | null;
-  enabled: boolean;
-};
-
-type SkillVersion = {
-  id: string;
-  skillId: string;
-  version: string;
-  status: VersionStatus;
-  definition: { instructions?: string; allowedTools?: string[] };
-  dataClassification: string;
-  reviewDueAt: string;
-  publishedAt: string | null;
-  createdAt: string;
-};
-
-type SourceLink = { skillVersionId: string; sourceId: string };
-type Evaluation = {
-  skillVersionId: string;
-  testCaseKey: string;
-  kind: "positive" | "ambiguous" | "forbidden";
-  result: "pass" | "fail" | "needs_review";
-  evidence: {
-    runner?: "manual" | "deterministic";
-    fixture?: "fictitious";
-    scenario?: string;
-    expected?: string;
-    observed?: string;
-  };
-  runAt: string;
-};
-type Audit = {
-  id: string;
-  resourceType: string;
-  action: string;
-  createdAt: string;
-  summary: Record<string, unknown>;
-};
-type Registry = {
-  sources: KnowledgeSource[];
-  skills: AgentSkill[];
-  versions: SkillVersion[];
-  links: SourceLink[];
-  evaluations: Evaluation[];
-  audit: Audit[];
-};
 
 const EMPTY_REGISTRY: Registry = {
   sources: [], skills: [], versions: [], links: [], evaluations: [], audit: [],
@@ -258,12 +199,14 @@ export default function KnowledgeRegistryPage() {
     setError("");
     try {
       const [nextRegistry, documentResult] = await Promise.all([
-        apiFetch<Registry>("knowledge/admin"),
+        apiFetch<unknown>("knowledge/admin"),
         apiFetch<unknown>("knowledge/admin/documents"),
       ]);
+      const parsedRegistry = parseKnowledgeRegistryPayload(nextRegistry);
       const parsedDocuments = parseKnowledgeDocumentListPayload(documentResult);
+      if (!parsedRegistry) throw new Error("Le registre de l’agent reçu est invalide.");
       if (!parsedDocuments) throw new Error("La liste des documents reçue est invalide.");
-      setRegistry(nextRegistry);
+      setRegistry(parsedRegistry);
       setDocuments(parsedDocuments.documents);
     } catch (reason) {
       setError(reason instanceof Error ? reason.message : "Chargement impossible.");

@@ -860,6 +860,13 @@ l'autorisation de quota définie par le propriétaire.
   canonique et un reçu vieux de moins de cinq minutes. Un identifiant interne ou
   un jeton ajouté fait échouer la validation. Vingt et un contrôles ciblés, le
   build et la barrière de sécurité passent. T028L est terminée.
+- Lot N5ZZZ : lecture privée du registre de connaissances. **Fermée sans donnée
+  réelle ni mutation distante** : les six collections sont plafonnées côté
+  requête, projetées aux seuls champs de l'écran puis validées à nouveau dans le
+  navigateur. Les UUID, dates, listes, doublons, ordres et relations actives sont
+  contrôlés ; propriétaires, empreintes, acteurs et résumés d'audit ne quittent
+  plus le serveur. Sept contrôles ciblés, les règles historiques, le build et la
+  barrière complète passent. T014B3 est terminée.
 
 ## Prochaine séquence verrouillée
 

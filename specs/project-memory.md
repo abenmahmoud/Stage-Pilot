@@ -4163,3 +4163,17 @@ taches et analyse de coherence avant une automatisation sensible.
   production, DNS, VPS, ENT, PRONOTE, webmail ou envoi externe.
 - Les cinq domaines comptent désormais 513 tâches Spec Kit : 412 terminées et
   101 ouvertes.
+
+## 2026-09-01 - Lecture privée du registre de connaissances fermée
+
+- T014B3 borne dès la requête les sources, compétences, versions, liens et tests,
+  puis projette seulement les champs nécessaires à l'écran superadministrateur.
+  Le journal reste volontairement limité aux cent dernières actions.
+- Le navigateur valide les six collections avant de remplacer son état : champs
+  exacts, UUID, dates ISO, ordre, doublons et relations entre compétence, version
+  active publiée, source liée et évaluation.
+- Les établissements, propriétaires, empreintes, acteurs et résumés d'audit ne
+  quittent plus le serveur. Sept contrôles ciblés et les règles historiques du
+  registre passent sans donnée réelle, base distante ou production.
+- Les cinq domaines comptent désormais 514 tâches Spec Kit : 413 terminées et
+  101 ouvertes.

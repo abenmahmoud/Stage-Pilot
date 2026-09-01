@@ -14,6 +14,10 @@ import {
   parseAgentSkillDraftInput,
   parseKnowledgeSourceInput,
 } from "../../../shared/knowledge-registry-input.js";
+import {
+  KNOWLEDGE_REGISTRY_PAYLOAD_LIMITS,
+  projectKnowledgeRegistryPayload,
+} from "../../../shared/knowledge-registry-admin-payload.js";
 import { HttpError } from "../../_shared/auth.js";
 import {
   registryInputError,
@@ -41,34 +45,39 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           .select()
           .from(knowledgeSources)
           .where(eq(knowledgeSources.institutionId, context.institutionId))
-          .orderBy(desc(knowledgeSources.updatedAt)),
+          .orderBy(desc(knowledgeSources.updatedAt))
+          .limit(KNOWLEDGE_REGISTRY_PAYLOAD_LIMITS.sources + 1),
         db
           .select()
           .from(agentSkills)
           .where(eq(agentSkills.institutionId, context.institutionId))
-          .orderBy(asc(agentSkills.name)),
+          .orderBy(asc(agentSkills.name))
+          .limit(KNOWLEDGE_REGISTRY_PAYLOAD_LIMITS.skills + 1),
         db
           .select()
           .from(agentSkillVersions)
           .where(eq(agentSkillVersions.institutionId, context.institutionId))
-          .orderBy(desc(agentSkillVersions.createdAt)),
+          .orderBy(desc(agentSkillVersions.createdAt))
+          .limit(KNOWLEDGE_REGISTRY_PAYLOAD_LIMITS.versions + 1),
         db
           .select()
           .from(skillSourceLinks)
-          .where(eq(skillSourceLinks.institutionId, context.institutionId)),
+          .where(eq(skillSourceLinks.institutionId, context.institutionId))
+          .limit(KNOWLEDGE_REGISTRY_PAYLOAD_LIMITS.links + 1),
         db
           .select()
           .from(agentEvaluations)
           .where(eq(agentEvaluations.institutionId, context.institutionId))
-          .orderBy(desc(agentEvaluations.runAt)),
+          .orderBy(desc(agentEvaluations.runAt))
+          .limit(KNOWLEDGE_REGISTRY_PAYLOAD_LIMITS.evaluations + 1),
         db
           .select()
           .from(agentSkillAudit)
           .where(eq(agentSkillAudit.institutionId, context.institutionId))
           .orderBy(desc(agentSkillAudit.createdAt))
-          .limit(100),
+          .limit(KNOWLEDGE_REGISTRY_PAYLOAD_LIMITS.audit),
       ]);
-      return { sources, skills, versions, links, evaluations, audit };
+      return projectKnowledgeRegistryPayload({ sources, skills, versions, links, evaluations, audit });
     });
   }
 

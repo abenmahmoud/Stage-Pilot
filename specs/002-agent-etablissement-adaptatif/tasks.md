@@ -169,6 +169,12 @@
 - [x] T014B2 Marquer automatiquement les sources expirées, désactiver les
   compétences qui en dépendent ou dont la revue est échue, écrire un audit
   système et protéger la maintenance par `CRON_SECRET`.
+- [x] T014B3 Fermer la lecture privée du registre : plafonds détectés côté
+  serveur, projections minimales et contrats runtime exacts avant affichage.
+  Les propriétaires, empreintes, acteurs et résumés d'audit restent côté
+  serveur ; compétences, versions, sources, liens et évaluations doivent rester
+  cohérents entre eux. Sept tests ciblés, les règles historiques, le build et la
+  barrière de sécurité passent sans donnée réelle ni service de production.
 - [x] T014C Terminer le pipeline des documents confiés à l'agent : antivirus,
   extraction locale bornée, proposition de classement, objet expliqué par le
   superadministrateur, propriétaire, périmètre, validité, revue et publication
