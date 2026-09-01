@@ -4177,3 +4177,19 @@ taches et analyse de coherence avant une automatisation sensible.
   registre passent sans donnée réelle, base distante ou production.
 - Les cinq domaines comptent désormais 514 tâches Spec Kit : 413 terminées et
   101 ouvertes.
+
+## 2026-09-01 - Confirmations du registre liées aux actions attendues
+
+- T014B4 remplace les lignes SQL renvoyées après création, modification,
+  publication, révocation, validation, réactivation, retrait ou test par des
+  reçus minimaux à champs exacts.
+- Chaque reçu reprend uniquement les UUID utiles, la ressource, l'action et
+  l'état attendu. La révocation conserve un compteur agrégé de compétences
+  désactivées ; un test conserve sa clé, son résultat et sa date canonique.
+- L'écran superadministrateur valide le reçu avant tout message de réussite et
+  avant le rechargement du registre. Un champ interne, une substitution d'UUID,
+  une mauvaise action ou un état incohérent provoque un refus sûr.
+- Huit contrôles ciblés, quarante-trois règles historiques du registre et le
+  build passent sans donnée réelle, base distante, publication ou retrait réel.
+- Les cinq domaines comptent désormais 515 tâches Spec Kit : 414 terminées et
+  101 ouvertes.

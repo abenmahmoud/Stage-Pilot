@@ -45,6 +45,13 @@ import {
   type RegistryVersionStatus as VersionStatus,
 } from "../../../shared/knowledge-registry-admin-payload";
 import {
+  parseKnowledgeRegistryCreationPayload,
+  parseKnowledgeRegistryEvaluationMutationPayload,
+  parseKnowledgeRegistrySourceActionPayload,
+  parseKnowledgeRegistryVersionActionPayload,
+  type KnowledgeRegistryVersionAction,
+} from "../../../shared/knowledge-registry-admin-action-payload";
+import {
   parseSkillScenarioPlan,
   SKILL_SCENARIO_PLAN_MAX_BYTES,
   type SkillScenarioPlanItem,
@@ -278,7 +285,7 @@ export default function KnowledgeRegistryPage() {
     event.preventDefault();
     setBusy(true); setError(""); setNotice("");
     try {
-      await apiFetch("knowledge/admin", {
+      const response = await apiFetch<unknown>("knowledge/admin", {
         method: "POST",
         body: JSON.stringify({ resource: "source", input: {
           ...sourceDraft,
@@ -286,6 +293,8 @@ export default function KnowledgeRegistryPage() {
           expiresAt: sourceDraft.expiresAt ? new Date(sourceDraft.expiresAt).toISOString() : null,
         } }),
       });
+      const receipt = parseKnowledgeRegistryCreationPayload(response, { resource: "source" });
+      if (!receipt) throw new Error("La confirmation de création de la source est invalide.");
       setNotice("Source enregistrée en brouillon. La direction doit encore la vérifier.");
       setSourceOpen(false);
       await load();
@@ -298,11 +307,13 @@ export default function KnowledgeRegistryPage() {
     event.preventDefault();
     setBusy(true); setError(""); setNotice("");
     try {
-      await apiFetch("knowledge/admin", {
+      const parentSkillId = versionSkillId;
+      const resource: "skill" | "version" = parentSkillId ? "version" : "skill";
+      const response = await apiFetch<unknown>("knowledge/admin", {
         method: "POST",
         body: JSON.stringify({
-          resource: versionSkillId ? "version" : "skill",
-          skillId: versionSkillId,
+          resource,
+          skillId: parentSkillId,
           input: {
           ...skillDraft,
           allowedTools: skillDraft.allowedTools.split(",").map((value) => value.trim()).filter(Boolean),
@@ -310,7 +321,11 @@ export default function KnowledgeRegistryPage() {
           },
         }),
       });
-      setNotice(versionSkillId ? "Nouvelle version créée en brouillon." : "Compétence créée en brouillon. Elle reste inactive jusqu’à sa validation.");
+      const receipt = resource === "version" && parentSkillId
+        ? parseKnowledgeRegistryCreationPayload(response, { resource: "version", skillId: parentSkillId })
+        : parseKnowledgeRegistryCreationPayload(response, { resource: "skill" });
+      if (!receipt) throw new Error("La confirmation de création de la compétence est invalide.");
+      setNotice(resource === "version" ? "Nouvelle version créée en brouillon." : "Compétence créée en brouillon. Elle reste inactive jusqu’à sa validation.");
       setSkillOpen(false);
       setVersionSkillId(null);
       await load();
@@ -360,7 +375,13 @@ export default function KnowledgeRegistryPage() {
     if (!evaluationVersionId) return;
     setBusy(true); setError(""); setNotice("");
     try {
-      await apiFetch(`knowledge/admin/versions/${evaluationVersionId}/evaluations`, {
+      const expected = {
+        versionId: evaluationVersionId,
+        testCaseKey: evaluationDraft.testCaseKey,
+        kind: evaluationDraft.kind,
+        result: evaluationDraft.result,
+      };
+      const response = await apiFetch<unknown>(`knowledge/admin/versions/${evaluationVersionId}/evaluations`, {
         method: "POST",
         body: JSON.stringify({
           testCaseKey: evaluationDraft.testCaseKey,
@@ -376,6 +397,8 @@ export default function KnowledgeRegistryPage() {
           },
         }),
       });
+      const receipt = parseKnowledgeRegistryEvaluationMutationPayload(response, expected);
+      if (!receipt) throw new Error("La confirmation du test enregistré est invalide.");
       setNotice("Test horodaté et ajouté au procès-verbal de cette version.");
       setEvaluationDraft(evaluationDefaults());
       await load();
@@ -384,12 +407,14 @@ export default function KnowledgeRegistryPage() {
     } finally { setBusy(false); }
   }
 
-  async function versionAction(id: string, action: string) {
+  async function versionAction(id: string, action: KnowledgeRegistryVersionAction) {
     setBusy(true); setError(""); setNotice("");
     try {
-      await apiFetch(`knowledge/admin/versions/${id}/action`, {
+      const response = await apiFetch<unknown>(`knowledge/admin/versions/${id}/action`, {
         method: "POST", body: JSON.stringify({ action }),
       });
+      const receipt = parseKnowledgeRegistryVersionActionPayload(response, { versionId: id, action });
+      if (!receipt) throw new Error("La confirmation de l’action sur la version est invalide.");
       setNotice(action === "publish" ? "Compétence publiée et activée." : action === "rollback" ? "Version réactivée." : "Action enregistrée.");
       await load();
     } catch (reason) { setError(reason instanceof Error ? reason.message : "Action impossible."); }
@@ -399,9 +424,11 @@ export default function KnowledgeRegistryPage() {
   async function sourceAction(id: string, action: "publish" | "revoke") {
     setBusy(true); setError(""); setNotice("");
     try {
-      await apiFetch(`knowledge/admin/sources/${id}/action`, {
+      const response = await apiFetch<unknown>(`knowledge/admin/sources/${id}/action`, {
         method: "POST", body: JSON.stringify({ action }),
       });
+      const receipt = parseKnowledgeRegistrySourceActionPayload(response, { sourceId: id, action });
+      if (!receipt) throw new Error("La confirmation de l’action sur la source est invalide.");
       setNotice(action === "publish" ? "Source validée." : "Source révoquée. Les compétences dépendantes sont désactivées.");
       await load();
     } catch (reason) { setError(reason instanceof Error ? reason.message : "Action impossible."); }

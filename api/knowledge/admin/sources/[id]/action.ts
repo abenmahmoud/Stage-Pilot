@@ -8,6 +8,7 @@ import {
   knowledgeSources,
   skillSourceLinks,
 } from "../../../../../db/schema.js";
+import { projectKnowledgeRegistrySourceActionPayload } from "../../../../../shared/knowledge-registry-admin-action-payload.js";
 import { HttpError } from "../../../../_shared/auth.js";
 import { requireKnowledgeManager } from "../../../../_shared/knowledge-registry.js";
 import { handleApi, methodNotAllowed } from "../../../../_shared/response.js";
@@ -67,7 +68,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         actorId: context.user.id,
         summary: { checksum: source.checksum, expiresAt: source.expiresAt },
       });
-      return { source: published };
+      return projectKnowledgeRegistrySourceActionPayload({
+        source: published,
+        action: "publish",
+        disabledSkillCount: 0,
+      });
     }
 
     if (source.status === "revoked") throw new HttpError(409, "Cette source est déjà révoquée.");
@@ -108,7 +113,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         actorId: context.user.id,
         summary: { disabledSkillCount: affected.length },
       });
-      return { source: revoked, disabledSkillCount: affected.length };
+      return projectKnowledgeRegistrySourceActionPayload({
+        source: revoked,
+        action: "revoke",
+        disabledSkillCount: affected.length,
+      });
     });
   });
 }

@@ -175,6 +175,12 @@
   serveur ; compétences, versions, sources, liens et évaluations doivent rester
   cohérents entre eux. Sept tests ciblés, les règles historiques, le build et la
   barrière de sécurité passent sans donnée réelle ni service de production.
+- [x] T014B4 Fermer les confirmations de mutation du registre : création de
+  source, compétence ou version, modification du brouillon, publication,
+  révocation, validation, réactivation, retrait et test exécuté retournent des
+  reçus minimaux liés à l'identifiant, l'action et l'état attendus. Le navigateur
+  valide chaque reçu avant toute réussite visible. Huit tests ciblés, les règles
+  historiques, le build et la barrière de sécurité passent sans mutation réelle.
 - [x] T014C Terminer le pipeline des documents confiés à l'agent : antivirus,
   extraction locale bornée, proposition de classement, objet expliqué par le
   superadministrateur, propriétaire, périmètre, validité, revue et publication

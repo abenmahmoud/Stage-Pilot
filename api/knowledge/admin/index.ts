@@ -18,6 +18,7 @@ import {
   KNOWLEDGE_REGISTRY_PAYLOAD_LIMITS,
   projectKnowledgeRegistryPayload,
 } from "../../../shared/knowledge-registry-admin-payload.js";
+import { projectKnowledgeRegistryCreationPayload } from "../../../shared/knowledge-registry-admin-action-payload.js";
 import { HttpError } from "../../_shared/auth.js";
 import {
   registryInputError,
@@ -111,7 +112,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           actorId: context.user.id,
           summary: { classification: source.classification, sourceType: source.sourceType },
         });
-        return { source };
+        return projectKnowledgeRegistryCreationPayload({ resource: "source", source });
       }
 
       if (resource === "skill") {
@@ -195,7 +196,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             actorId: context.user.id,
             summary: { version: input.version, status: "draft" },
           });
-          return { skill, version };
+          return projectKnowledgeRegistryCreationPayload({ resource: "skill", skill, version });
         });
       }
 
@@ -286,7 +287,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             actorId: context.user.id,
             summary: { skillId, version: input.version, status: "draft" },
           });
-          return { skill, version };
+          return projectKnowledgeRegistryCreationPayload({ resource: "version", skill, version });
         });
       }
 

@@ -16,6 +16,7 @@ import {
   type SkillEvaluation,
   type SkillVersion,
 } from "../../../../../shared/skill-registry-policy.js";
+import { projectKnowledgeRegistryVersionActionPayload } from "../../../../../shared/knowledge-registry-admin-action-payload.js";
 import { HttpError } from "../../../../_shared/auth.js";
 import { requireKnowledgeManager } from "../../../../_shared/knowledge-registry.js";
 import { handleApi, methodNotAllowed } from "../../../../_shared/response.js";
@@ -127,7 +128,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           actorId: context.user.id,
           summary: { version: current.version.version, evaluationProtocol: "evidence_required" },
         });
-        return { version };
+        return projectKnowledgeRegistryVersionActionPayload({
+          skill: current.skill,
+          version,
+          action: "submit_review",
+        });
       });
     }
 
@@ -234,7 +239,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           actorId: context.user.id,
           summary: { version: current.version.version, sourceCount: sourceIds.length },
         });
-        return { skill, version };
+        return projectKnowledgeRegistryVersionActionPayload({ skill, version, action: "publish" });
       });
     }
 
@@ -261,7 +266,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         actorId: context.user.id,
         summary: { version: current.version.version },
       });
-      return { skill };
+      return projectKnowledgeRegistryVersionActionPayload({
+        skill,
+        version: current.version,
+        action: "rollback",
+      });
     }
 
     if (current.version.status === "retired") {
@@ -289,7 +298,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         actorId: context.user.id,
         summary: { version: current.version.version },
       });
-      return { skill, version };
+      return projectKnowledgeRegistryVersionActionPayload({ skill, version, action: "retire" });
     });
   });
 }

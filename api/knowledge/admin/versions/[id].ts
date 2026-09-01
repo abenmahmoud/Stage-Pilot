@@ -10,6 +10,7 @@ import {
   knowledgeSources,
   skillSourceLinks,
 } from "../../../../db/schema.js";
+import { projectKnowledgeRegistryVersionUpdatePayload } from "../../../../shared/knowledge-registry-admin-action-payload.js";
 import { parseAgentSkillDraftInput } from "../../../../shared/knowledge-registry-input.js";
 import { HttpError } from "../../../_shared/auth.js";
 import {
@@ -108,7 +109,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         actorId: context.user.id,
         summary: { version: input.version },
       });
-      return { skill, version };
+      return projectKnowledgeRegistryVersionUpdatePayload(skill, version);
     });
   });
 }

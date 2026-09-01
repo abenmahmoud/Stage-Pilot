@@ -6,6 +6,7 @@ import {
   agentSkillAudit,
   agentSkillVersions,
 } from "../../../../../db/schema.js";
+import { projectKnowledgeRegistryEvaluationMutationPayload } from "../../../../../shared/knowledge-registry-admin-action-payload.js";
 import { parseAgentSkillEvaluationInput } from "../../../../../shared/knowledge-registry-input.js";
 import { HttpError } from "../../../../_shared/auth.js";
 import {
@@ -85,7 +86,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           runner: input.evidence.runner,
         },
       });
-      return { evaluation };
+      return projectKnowledgeRegistryEvaluationMutationPayload(evaluation);
     });
   });
 }

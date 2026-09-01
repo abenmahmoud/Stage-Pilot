@@ -867,6 +867,13 @@ l'autorisation de quota définie par le propriétaire.
   contrôlés ; propriétaires, empreintes, acteurs et résumés d'audit ne quittent
   plus le serveur. Sept contrôles ciblés, les règles historiques, le build et la
   barrière complète passent. T014B3 est terminée.
+- Lot N5ZZZ2 : confirmations du registre de connaissances. **Fermées sans donnée
+  réelle ni action distante** : les cinq routes de mutation ne renvoient plus
+  leurs lignes SQL. Créations, modification, actions de source ou de version et
+  tests utilisent des reçus exacts liés aux UUID, à l'action et à l'état attendu.
+  Une propriété interne, une substitution ou une incohérence bloque le message
+  de réussite dans l'écran. Huit contrôles ciblés, les règles historiques, le
+  build et la barrière complète passent. T014B4 est terminée.
 
 ## Prochaine séquence verrouillée
 
