@@ -9,6 +9,11 @@ import {
   siteContentItems,
   siteContentVersions,
 } from "../../../../db/schema.js";
+import {
+  parseLegacyEditorialCorrectionCommand,
+  type LegacyEditorialCorrectionCommand,
+} from "../../../../shared/legacy-editorial-action.js";
+import { applyLegacyPreviewEditorialCorrections } from "../../../../shared/legacy-editorial-corrections.js";
 import { parseSiteContentInput } from "../../../../shared/site-content.js";
 import { projectSiteContentAdminMutationPayload } from "../../../../shared/site-content-admin-payload.js";
 import {
@@ -16,7 +21,7 @@ import {
   siteContentStatusAllowsAction,
   type SiteContentAction,
 } from "../../../../shared/site-content-policy.js";
-import { HttpError } from "../../../_shared/auth.js";
+import { HttpError, requireAal2 } from "../../../_shared/auth.js";
 import {
   contentSnapshot,
   inputError,
@@ -24,6 +29,9 @@ import {
   requireSitePublisher,
 } from "../../../_shared/site-content.js";
 import { handleApi, methodNotAllowed } from "../../../_shared/response.js";
+
+const legacyEditorialCorrectionsEnabled =
+  process.env.LEGACY_EDITORIAL_CORRECTIONS_ENABLED === "true";
 
 function routeId(req: VercelRequest): string {
   const value = Array.isArray(req.query.id) ? req.query.id[0] : req.query.id;
@@ -33,7 +41,7 @@ function routeId(req: VercelRequest): string {
 
 function requestedAction(body: unknown): SiteContentAction {
   const value = body && typeof body === "object" ? (body as Record<string, unknown>).action : null;
-  if (!["submit_review", "publish", "archive", "duplicate", "restore", "verify_source"].includes(String(value))) {
+  if (!["submit_review", "publish", "archive", "duplicate", "restore", "verify_source", "apply_editorial_corrections"].includes(String(value))) {
     throw new HttpError(400, "Action invalide");
   }
   return value as SiteContentAction;
@@ -61,11 +69,121 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const user = siteContentActionAccess(action) === "publisher"
       ? await requireSitePublisher(req)
       : await requireSiteEditor(req);
+    let correctionCommand: LegacyEditorialCorrectionCommand | null = null;
+    if (action === "apply_editorial_corrections") {
+      if (!legacyEditorialCorrectionsEnabled) {
+        throw new HttpError(404, "Action indisponible");
+      }
+      await requireAal2(req);
+      try {
+        correctionCommand = parseLegacyEditorialCorrectionCommand(req.body);
+      } catch (error) {
+        inputError(error);
+      }
+    }
     const id = routeId(req);
     const [current] = await db.select().from(siteContentItems).where(eq(siteContentItems.id, id)).limit(1);
     if (!current) throw new HttpError(404, "Contenu introuvable");
     if (!siteContentStatusAllowsAction(current.status, action)) {
       throw new HttpError(409, action === "publish" ? "Restaurez d’abord ce contenu" : "Ce contenu est archivé");
+    }
+
+    if (action === "apply_editorial_corrections") {
+      if (!correctionCommand) throw new HttpError(400, "Commande de correction manquante");
+      const command = correctionCommand;
+      if (
+        current.sourceSystem !== "wordpress"
+        || !current.importKey
+        || current.status !== "brouillon"
+        || !current.needsReview
+      ) {
+        throw new HttpError(409, "Seul un brouillon WordPress encore à vérifier peut être corrigé");
+      }
+      if (current.version !== command.expectedVersion) {
+        throw new HttpError(409, "Ce brouillon a changé. Rechargez-le avant de recommencer.");
+      }
+      const editorial = applyLegacyPreviewEditorialCorrections({
+        title: current.title,
+        summary: current.summary,
+        bodyMarkdown: current.bodyMarkdown,
+      });
+      if (editorial.corrections.length === 0) {
+        throw new HttpError(409, "Aucune correction sûre n’est disponible pour ce brouillon");
+      }
+      const links = await contentLinks(id);
+      let correctedInput: ReturnType<typeof parseSiteContentInput>;
+      try {
+        correctedInput = parseSiteContentInput({
+          contentType: current.contentType,
+          slug: current.slug,
+          title: editorial.draft.title,
+          summary: editorial.draft.summary,
+          bodyMarkdown: editorial.draft.bodyMarkdown,
+          category: current.category,
+          audience: current.audience,
+          templateId: current.templateId,
+          featured: current.featured,
+          metaTitle: current.metaTitle === current.title ? editorial.draft.title : current.metaTitle,
+          metaDescription: current.metaDescription,
+          publishAt: current.publishAt,
+          expiresAt: current.expiresAt,
+          assets: links.map(({ status: _status, ...asset }) => asset),
+        });
+      } catch (error) {
+        inputError(error);
+      }
+      const nextVersion = command.expectedVersion + 1;
+      const importKey = current.importKey;
+      return db.transaction(async (tx) => {
+        const [item] = await tx
+          .update(siteContentItems)
+          .set({
+            title: correctedInput.title,
+            summary: correctedInput.summary,
+            bodyMarkdown: correctedInput.bodyMarkdown,
+            metaTitle: correctedInput.metaTitle,
+            status: "brouillon",
+            needsReview: true,
+            reviewedAt: null,
+            reviewedBy: null,
+            version: nextVersion,
+            updatedBy: user.id,
+          })
+          .where(and(
+            eq(siteContentItems.id, id),
+            eq(siteContentItems.version, command.expectedVersion),
+            eq(siteContentItems.status, "brouillon"),
+            eq(siteContentItems.needsReview, true),
+            eq(siteContentItems.sourceSystem, "wordpress"),
+            eq(siteContentItems.importKey, importKey),
+          ))
+          .returning();
+        if (!item) {
+          throw new HttpError(409, "Ce brouillon a changé. Rechargez-le avant de recommencer.");
+        }
+        await tx.insert(siteContentVersions).values({
+          contentId: id,
+          version: nextVersion,
+          snapshot: contentSnapshot(correctedInput, "brouillon", nextVersion),
+          createdBy: user.id,
+        });
+        await tx.insert(siteContentAudit).values({
+          resourceType: "content",
+          resourceId: id,
+          action: "apply_editorial_corrections",
+          actorId: user.id,
+          summary: {
+            previousVersion: command.expectedVersion,
+            version: nextVersion,
+            correctionCount: editorial.corrections.reduce(
+              (total, correction) => total + correction.occurrences,
+              0,
+            ),
+            corrections: editorial.corrections,
+          },
+        });
+        return projectSiteContentAdminMutationPayload(item, action, id);
+      });
     }
 
     if (action === "verify_source") {

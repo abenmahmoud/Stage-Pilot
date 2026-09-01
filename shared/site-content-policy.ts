@@ -4,13 +4,14 @@ export type SiteContentAction =
   | "archive"
   | "duplicate"
   | "restore"
-  | "verify_source";
+  | "verify_source"
+  | "apply_editorial_corrections";
 
 export const SITE_EDITOR_ROLES = ["superadmin", "administration", "proviseur"];
 export const SITE_PUBLISHER_ROLES = ["superadmin", "proviseur"];
 
 export function siteContentActionAccess(action: SiteContentAction): "editor" | "publisher" {
-  return ["publish", "archive", "restore", "verify_source"].includes(action)
+  return ["publish", "archive", "restore", "verify_source", "apply_editorial_corrections"].includes(action)
     ? "publisher"
     : "editor";
 }

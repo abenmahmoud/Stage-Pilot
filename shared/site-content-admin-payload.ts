@@ -29,6 +29,7 @@ const CONTENT_ACTIONS = [
   "duplicate",
   "restore",
   "verify_source",
+  "apply_editorial_corrections",
 ] as const;
 const MUTATION_ACTIONS = ["create", "update", ...CONTENT_ACTIONS] as const;
 const ALLOWED_MIME_TYPES = [
@@ -454,6 +455,7 @@ export function parseSiteContentAdminMutationPayload(
   if (action === "archive" && status !== "archive") return null;
   if (action === "restore" && status !== "brouillon") return null;
   if (action === "verify_source" && row.needsReview) return null;
+  if (action === "apply_editorial_corrections" && (status !== "brouillon" || !row.needsReview)) return null;
   return { resource: "content", itemId, action, status, version, needsReview: row.needsReview };
 }
 

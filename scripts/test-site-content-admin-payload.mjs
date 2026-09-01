@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
+import "./test-legacy-editorial-apply-action.mjs";
 import {
   SITE_CONTENT_ADMIN_PAYLOAD_LIMITS,
   parseSiteContentAdminDetailPayload,
@@ -176,6 +177,7 @@ test("binds every mutation receipt to its action and target", () => {
     ["duplicate", { id: COPY_ID, status: "brouillon", version: 1, needsReview: false }, ITEM_ID],
     ["restore", { id: ITEM_ID, status: "brouillon", version: 4, needsReview: true }, ITEM_ID],
     ["verify_source", { id: ITEM_ID, status: "brouillon", version: 3, needsReview: false }, ITEM_ID],
+    ["apply_editorial_corrections", { id: ITEM_ID, status: "brouillon", version: 4, needsReview: true }, ITEM_ID],
   ];
   for (const [action, item, expectedItemId] of matrix) {
     const payload = projectSiteContentAdminMutationPayload(
@@ -226,7 +228,7 @@ test("validates server replies before replacing editor state", async () => {
   assert.match(indexRoute, /projectSiteContentAdminMutationPayload\(item, "create"\)/);
   assert.match(detailRoute, /projectSiteContentAdminDetailPayload/);
   assert.match(detailRoute, /projectSiteContentAdminMutationPayload\(item, "update", id\)/);
-  assert.equal(actionRoute.match(/projectSiteContentAdminMutationPayload\(item, action, id\)/g)?.length, 6);
+  assert.equal(actionRoute.match(/projectSiteContentAdminMutationPayload\(item, action, id\)/g)?.length, 7);
   assert.match(detailRoute, /limit\(SITE_CONTENT_ADMIN_PAYLOAD_LIMITS\.linkedAssets\)/);
   assert.match(detailRoute, /limit\(SITE_CONTENT_ADMIN_PAYLOAD_LIMITS\.versions\)/);
   assert.doesNotMatch(page, /apiFetch<\{ item: Item/);

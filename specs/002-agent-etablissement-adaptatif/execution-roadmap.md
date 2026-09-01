@@ -588,6 +588,13 @@ l'autorisation de quota définie par le propriétaire.
   restent des brouillons réversibles. L'éditeur T055 est fermé sur les preuves
   de la spécification 003. T053 et T054 demeurent ouvertes pour propriétaires,
   dates de vérification, relecture et publication humaines.
+- Lot N7A1 : correction contrôlée des brouillons historiques. **Préparée mais
+  non activée** : la direction pourra appliquer les seules règles déterministes
+  déjà testées aux brouillons WordPress présents. L'action exige AAL2, une
+  confirmation exacte et la version encore courante ; elle crée un instantané,
+  conserve `brouillon` et `needs_review`, et n'a aucun pouvoir de publication.
+  L'audit ne contient aucun texte. La migration et les deux interrupteurs restent
+  inactifs jusqu'à une décision explicite sur la preview.
 - Lot N5ZN : documents dans les réponses agent. **Implémenté et vérifié sur la
   preview** : un agent autorisé dépose au plus cinq documents dans la quarantaine
   privée existante. Signature, taille et type sont contrôlés avant ClamAV. Un

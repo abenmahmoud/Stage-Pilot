@@ -4462,3 +4462,16 @@ taches et analyse de coherence avant une automatisation sensible.
 - Les cinq domaines comptent 522 tâches Spec Kit : 420 terminées et 102 ouvertes.
 - Le build, la barrière complète, l'intégrité des 82 migrations et l'audit des
   dépendances passent ; `npm audit --omit=dev` trouve zéro vulnérabilité.
+
+### Jalon du 1er septembre 2026 - correction versionnée des brouillons historiques
+
+- Une commande fermée permet de préparer les corrections déterministes sur les
+  brouillons WordPress déjà présents, sans réimport ni écrasement silencieux.
+- L'action est réservée à la direction sous MFA, exige `CORRIGER` et la version
+  courante, puis garde le contenu en brouillon et en relecture obligatoire.
+- Chaque succès crée un instantané et un audit sans texte éditorial ; un conflit,
+  une autre source, un contenu vérifié ou l'absence de correction sont refusés.
+- La migration et les interrupteurs serveur/navigateur sont livrés désactivés.
+  Aucun appel distant, aucune correction et aucune publication ne sont exécutés.
+- Les cinq domaines comptent désormais 536 tâches Spec Kit : 434 terminées et
+  102 ouvertes.

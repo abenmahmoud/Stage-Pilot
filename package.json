@@ -112,6 +112,7 @@
     "test:brevo-response-bounds": "node --experimental-strip-types scripts/test-brevo-response-bounds.mjs",
     "test:support-attachment-confirmation-bounds": "node --experimental-strip-types scripts/test-support-attachment-confirmation-bounds.mjs",
     "test:legacy-admin-import-bounds": "node --experimental-strip-types scripts/test-legacy-admin-import-bounds.mjs",
+    "test:legacy-editorial-apply-action": "node --import ./scripts/ts-test-resolver.mjs --experimental-strip-types scripts/test-legacy-editorial-apply-action.mjs",
     "test:ai-request-body-bounds": "node scripts/test-ai-request-body-bounds.mjs",
     "test:support-agent-request-body-bounds": "node scripts/test-support-agent-request-body-bounds.mjs",
     "test:identity-directory-request-body-bounds": "node scripts/test-identity-directory-request-body-bounds.mjs",

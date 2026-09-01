@@ -57,6 +57,12 @@
   locale cassée. Le brouillon reste en relecture et l'audit conserve seulement
   codes et compteurs. T017 demeure ouverte pour les brouillons déjà présents,
   la page vide, les informations à confirmer et les trois médias.
+- [x] T017C Préparer pour les brouillons WordPress déjà présents une action de
+  correction déterministe, versionnée et atomique. Elle exige direction, MFA,
+  confirmation exacte et version courante, conserve le brouillon en relecture
+  et journalise seulement codes, champs et compteurs. Migration et interrupteurs
+  restent désactivés : aucune correction distante n'est exécutée. T017 demeure
+  ouverte pour la relecture humaine, la page vide et les trois médias refusés.
 
 ## Bascule
 
