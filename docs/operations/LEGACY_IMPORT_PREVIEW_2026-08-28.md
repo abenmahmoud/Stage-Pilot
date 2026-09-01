@@ -81,6 +81,13 @@ page Contact vide, l'image locale non récupérable des clubs, trois appels à
 l'action concaténés, une adresse publique opaque et les décisions de fraîcheur
 ou d'archivage encore humaines. Il ne modifie aucun brouillon.
 
+Le pipeline d'import corrige seulement vingt-et-une occurrences déterministes
+sur six contenus avant création d'un nouveau brouillon. Il ne change ni slug,
+source, classement, date, média associé, état de relecture ou statut de
+publication. Les codes de correction sont journalisés sans recopier le contenu.
+Les brouillons déjà importés ne sont pas réécrits automatiquement : toute
+reprise reste une action distincte, versionnée et validée.
+
 1. Corriger ou remplacer les trois fichiers refusés.
 2. Relire les 15 contenus durables, archiver les 7 anciennes actualités et
    décider du sort des 6 contenus à confirmer.

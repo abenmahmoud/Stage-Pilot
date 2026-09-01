@@ -16,6 +16,14 @@ cette matrice. Il analyse les 28 textes sans les modifier et donne l'ordre des
 corrections : deux bloquants, vingt corrections importantes et trente-et-une
 validations humaines sur l'inventaire du 28 août 2026.
 
+Le prochain import explicite applique en mémoire vingt-et-une corrections
+mécaniques réversibles sur six contenus : typographie, titres, appels à
+l'action, libellés d'itinéraire, adresse brute et image locale cassée.
+L'inventaire source reste inchangé, le brouillon reste `needsReview=true` et
+l'audit ne conserve que les codes et compteurs de correction. Après cette
+passe, un bloquant, huit corrections importantes et trente validations humaines
+restent ouverts.
+
 | Slug inventorié | Titre | Classement | Brouillon preview | Destination prévue | Médias | Validation restante |
 | --- | --- | --- | --- | --- | --- | --- |
 | `accueil-historique` | Accueil | à confirmer | Oui | `/prototype` ; source conservée dans `/site/accueil-historique` | Sans écart bloquant connu | Direction requise |

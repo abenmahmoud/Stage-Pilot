@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { readFileSync } from "node:fs";
+import "./test-legacy-editorial-corrections.mjs";
 import {
   LEGACY_IMPORT_MAX_ROWS,
   parseLegacyStudentImport,

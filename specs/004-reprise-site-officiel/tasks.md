@@ -51,6 +51,12 @@
   humaines, lie chaque constat à une adresse et reste synchronisé avec
   l'inventaire par test. T017 reste ouverte pour les décisions des services et
   les trois médias refusés.
+- [x] T017B Appliquer au prochain import explicite vingt-et-une corrections
+  mécaniques réversibles sur six contenus sans modifier la source : titres,
+  typographie, appels à l'action, liens d'itinéraire, titre d'adresse et image
+  locale cassée. Le brouillon reste en relecture et l'audit conserve seulement
+  codes et compteurs. T017 demeure ouverte pour les brouillons déjà présents,
+  la page vide, les informations à confirmer et les trois médias.
 
 ## Bascule
 

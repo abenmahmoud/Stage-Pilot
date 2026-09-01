@@ -5,6 +5,22 @@
 **Depot** : `abenmahmoud/Stage-Pilot`
 **Dernier jalon de code verifie** : branche de preview Vercel
 
+## Jalon du 1er septembre 2026 - corrections mécaniques WordPress
+
+- Le pipeline du prochain import explicite corrige vingt-et-une occurrences non
+  ambiguës sur six contenus sans modifier l'inventaire : titres, typographie,
+  appels à l'action, liens d'itinéraire, titre d'adresse brute et image locale
+  cassée.
+- Les slugs, sources, dates, classements et médias associés sont intacts. Chaque
+  contenu reste un brouillon `needsReview=true` et l'audit conserve uniquement
+  les codes, champs et compteurs de correction, jamais le texte corrigé.
+- La relecture automatique passe de deux à un bloquant, de vingt à huit
+  corrections importantes et de trente-et-une à trente validations humaines.
+  Les décisions métier, l'adresse opaque, l'année incohérente, la page vide et
+  les médias refusés restent ouverts.
+- `004/T017B` est terminée. Les cinq domaines comptent 535 tâches Spec Kit :
+  433 terminées et 102 ouvertes.
+
 ## Jalon du 1er septembre 2026 - runbook d'incident transversal
 
 - Une procédure unique relie désormais santé, file d'échec, journaux, reprise

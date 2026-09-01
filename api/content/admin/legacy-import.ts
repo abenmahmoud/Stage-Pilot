@@ -15,6 +15,7 @@ import {
   isPostgresUniqueViolation,
   readLimitedResponseBytes,
 } from "../../../shared/legacy-import.js";
+import { applyLegacyPreviewEditorialCorrections } from "../../../shared/legacy-editorial-corrections.js";
 import { matchesSiteContentFileSignature } from "../../../shared/site-content-file-signature.js";
 import {
   projectSiteContentLegacyBatchPayload,
@@ -179,6 +180,13 @@ async function importContent(content: LegacyContent, actorId: string) {
   const known = await findImportedContent(content.importKey);
   if (known) return { id: known.id, slug: known.slug, result: "déjà importé" };
 
+  const editorial = applyLegacyPreviewEditorialCorrections({
+    title: content.title,
+    summary: content.summary,
+    bodyMarkdown: content.bodyMarkdown,
+  });
+  const corrected = editorial.draft;
+
   let finalSlug = content.slug.slice(0, 140);
   const [slugOwner] = await db.select({ importKey: siteContentItems.importKey }).from(siteContentItems)
     .where(eq(siteContentItems.slug, finalSlug)).limit(1);
@@ -210,15 +218,15 @@ async function importContent(content: LegacyContent, actorId: string) {
   const snapshot = {
     contentType: content.contentType,
     slug: finalSlug,
-    title: content.title,
-    summary: content.summary,
-    bodyMarkdown: content.bodyMarkdown,
+    title: corrected.title,
+    summary: corrected.summary,
+    bodyMarkdown: corrected.bodyMarkdown,
     category: content.category,
     audience: "tous",
     templateId: null,
     featured: false,
-    metaTitle: content.title,
-    metaDescription: content.summary.slice(0, 320) || null,
+    metaTitle: corrected.title,
+    metaDescription: corrected.summary.slice(0, 320) || null,
     publishAt: null,
     expiresAt: null,
     status: "brouillon",
@@ -231,15 +239,15 @@ async function importContent(content: LegacyContent, actorId: string) {
       const [created] = await tx.insert(siteContentItems).values({
         contentType: content.contentType,
         slug: finalSlug,
-        title: content.title,
-        summary: content.summary,
-        bodyMarkdown: content.bodyMarkdown,
+        title: corrected.title,
+        summary: corrected.summary,
+        bodyMarkdown: corrected.bodyMarkdown,
         category: content.category,
         audience: "tous",
         status: "brouillon",
         featured: false,
-        metaTitle: content.title,
-        metaDescription: content.summary.slice(0, 320) || null,
+        metaTitle: corrected.title,
+        metaDescription: corrected.summary.slice(0, 320) || null,
         sourceSystem: "wordpress",
         sourceUrl: content.sourceUrl,
         sourceUpdatedAt: content.sourceModifiedAt ? new Date(content.sourceModifiedAt) : null,
@@ -259,7 +267,11 @@ async function importContent(content: LegacyContent, actorId: string) {
         resourceId: created.id,
         action: "legacy_import",
         actorId,
-        summary: { importKey: content.importKey, sourceUrl: content.sourceUrl },
+        summary: {
+          importKey: content.importKey,
+          sourceUrl: content.sourceUrl,
+          editorialCorrections: editorial.corrections,
+        },
       });
       return { id: created.id, slug: finalSlug, result: "importé" };
     });
