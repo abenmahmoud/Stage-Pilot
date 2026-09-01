@@ -31,6 +31,11 @@
 - [x] T009C1 Installer sur la preview le bucket privé, la file, les états, la
   confirmation SHA-256, le worker versionné et le parcours navigateur qui
   n'attache que `ready`, sans activer le VPS ni toucher aux médias historiques.
+- [x] T009C2 Ajouter dans l'espace éditorial une supervision privée, agrégée et
+  strictement validée : fichiers à contrôler, attente supérieure à quinze
+  minutes, blocages, erreurs, dernier reçu antivirus et fonds WordPress non
+  rescanné. Une panne de cette lecture n'interrompt pas l'édition et aucun nom,
+  chemin privé, acteur ou contenu de fichier n'est transmis au navigateur.
 - [x] T010 Construire l'API publique des contenus publiés valides.
 - [x] T010A Valider dans le navigateur chaque contenu, média signé et curseur
   public avant rendu ou pagination, avec refus des origines externes injectées.

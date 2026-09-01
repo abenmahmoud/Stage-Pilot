@@ -16,6 +16,9 @@
   message est archivé.
 - Le navigateur n'attache jamais un média `quarantine`. Il attend de façon
   bornée puis permet de reprendre le média dans « Fichiers vérifiés ».
+- La route privée `GET /api/content/admin/operations` expose uniquement des
+  compteurs cohérents et des dates techniques. L'éditeur affiche les attentes
+  anormales, blocages et erreurs sans nom, chemin, acteur ou contenu de fichier.
 
 ## Preuves sur la preview
 
@@ -27,6 +30,10 @@ La migration `20260901073000` est appliquée uniquement à la référence Supaba
   n'a été supprimé ou modifié.
 - Le bucket de quarantaine est privé avec une limite de `10485760` octets.
 - La file existe et contenait zéro message après installation.
+- La recette de supervision compte 78 médias `ready`, dont 78 médias WordPress
+  sans reçu ClamAV, zéro `pending`, `quarantine`, `blocked` ou `scan_error` et
+  aucun `last_scan_at`. Ce résultat montre explicitement que le worker n'est pas
+  encore actif ; il ne constitue pas une preuve de santé antivirus.
 - La recette fictive
   `docs/operations/recipes/preview-site-content-antivirus-rollback.sql` refuse
   une promotion directe, accepte le cycle prouvé, puis confirme après rollback :

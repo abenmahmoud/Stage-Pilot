@@ -1,9 +1,24 @@
 # Memoire durable - Portail numerique du Lycee Blaise Cendrars
 
-**Derniere mise a jour** : 31 aout 2026
+**Derniere mise a jour** : 1 septembre 2026
 **Branche de travail** : `codex/lycee-connect-prototype`
 **Depot** : `abenmahmoud/Stage-Pilot`
 **Dernier jalon de code verifie** : branche de preview Vercel
+
+## Jalon du 1er septembre 2026 - supervision des fichiers éditoriaux
+
+- L'espace `Contenus du site` lit désormais une santé privée et agrégée des
+  pièces : états, attente supérieure à quinze minutes, erreurs, blocages,
+  dernier contrôle et fonds WordPress non rescanné.
+- La réponse serveur ne contient ni nom, chemin de stockage, acteur, source ou
+  contenu de fichier ; un contrat navigateur exact vérifie les totaux et leurs
+  cohérences avant affichage.
+- Une panne de santé ne bloque pas l'éditeur et aucun état ne prétend que le
+  worker fonctionne : sans pièce en quarantaine, l'interface indique seulement
+  qu'aucun fichier n'attend de contrôle.
+- La requête de preuve sur Supabase preview compte 78 médias WordPress `ready`,
+  78 sans reçu ClamAV, zéro attente, zéro blocage et zéro erreur. Le worker VPS
+  reste désactivé et T009C reste ouverte.
 
 ## Jalon du 30 août 2026 - brouillon depuis transfert autorisé
 

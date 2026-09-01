@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
-  Archive, BadgeCheck, Bold, Bot, Check, Copy, Download, ExternalLink, FileText, Heading2,
-  Image, Italic, Link, List, LoaderCircle, Monitor, Newspaper, Plus, Quote,
-  RotateCcw, Save, Search, Send, Settings2, Smartphone, Sparkles, Upload, X,
+  AlertTriangle, Archive, BadgeCheck, Bold, Bot, Check, Clock3, Copy, Download,
+  ExternalLink, FileText, Heading2, Image, Italic, Link, List, LoaderCircle, Monitor,
+  Newspaper, Plus, Quote, RefreshCw, RotateCcw, Save, Search, Send, Settings2,
+  ShieldCheck, Smartphone, Sparkles, Upload, X,
 } from "lucide-react";
 import { apiFetch } from "../../lib/api";
 import { useAuth } from "../../lib/auth-context";
@@ -24,6 +25,10 @@ import {
   type SiteContentAssistSuggestion,
   type SiteContentLegacyBatchPayload,
 } from "../../../shared/site-content-admin-aux-payload";
+import {
+  parseSiteContentOperationsPayload,
+  type SiteContentOperationsPayload,
+} from "../../../shared/site-content-operations-payload";
 
 type ContentType = "article" | "alerte" | "page" | "document";
 type ContentStatus = "brouillon" | "a_valider" | "publie" | "archive";
@@ -101,6 +106,14 @@ function displayDate(value: string) {
   return new Intl.DateTimeFormat("fr-FR", { dateStyle: "medium" }).format(new Date(value));
 }
 
+function displayDateTime(value: string | null) {
+  if (!value) return "Aucun contrôle enregistré";
+  return new Intl.DateTimeFormat("fr-FR", {
+    dateStyle: "medium",
+    timeStyle: "short",
+  }).format(new Date(value));
+}
+
 function Status({ value }: { value: ContentStatus }) {
   return <span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${STATUS_STYLE[value]}`}>{STATUSES[value]}</span>;
 }
@@ -155,6 +168,9 @@ export default function ContentManagerPage() {
   const [fileAlt, setFileAlt] = useState("");
   const [legacyBusy, setLegacyBusy] = useState(false);
   const [legacyProgress, setLegacyProgress] = useState("");
+  const [fileHealth, setFileHealth] = useState<SiteContentOperationsPayload | null>(null);
+  const [fileHealthLoading, setFileHealthLoading] = useState(true);
+  const [fileHealthError, setFileHealthError] = useState("");
   const textRef = useRef<HTMLTextAreaElement>(null);
 
   async function load(selectId?: string) {
@@ -205,7 +221,22 @@ export default function ContentManagerPage() {
     finally { setBusy(false); }
   }
 
-  useEffect(() => { void load(); }, []);
+  async function loadFileHealth() {
+    setFileHealthLoading(true);
+    setFileHealthError("");
+    try {
+      const response = await apiFetch<unknown>("content/admin/operations");
+      const data = parseSiteContentOperationsPayload(response);
+      if (!data) throw new Error("L’état des contrôles de fichiers est invalide");
+      setFileHealth(data);
+    } catch {
+      setFileHealthError("L’état des contrôles de fichiers est momentanément indisponible.");
+    } finally {
+      setFileHealthLoading(false);
+    }
+  }
+
+  useEffect(() => { void load(); void loadFileHealth(); }, []);
 
   const visible = useMemo(() => {
     const query = search.trim().toLowerCase();
@@ -359,6 +390,7 @@ export default function ContentManagerPage() {
       } else {
         setNotice("Fichier placé en quarantaine. Il pourra être utilisé uniquement après validation du contrôle antivirus.");
       }
+      await loadFileHealth();
     } catch (reason) { setError(reason instanceof Error ? reason.message : "Ajout impossible"); }
     finally { setBusy(false); }
   }
@@ -422,12 +454,74 @@ export default function ContentManagerPage() {
 
   if (loading && !items.length) return <div className="flex min-h-[50vh] items-center justify-center"><LoaderCircle className="h-7 w-7 animate-spin text-emerald-700" /></div>;
 
+  const fileHealthNeedsAttention = Boolean(fileHealth && (
+    fileHealth.summary.scanError > 0
+    || fileHealth.summary.blocked > 0
+    || fileHealth.summary.quarantineOver15m > 0
+  ));
+  const fileHealthWaiting = Boolean(fileHealth && (
+    fileHealth.summary.pending > 0 || fileHealth.summary.quarantine > 0
+  ));
+  const legacyFilesWaiting = Boolean(fileHealth && fileHealth.summary.legacyReadyWithoutScan > 0);
+
   return (
     <div className="mx-auto max-w-[1600px] space-y-5">
       <header className="flex flex-col gap-4 border-b border-slate-200 pb-5 sm:flex-row sm:items-center sm:justify-between">
         <div><p className="flex items-center gap-2 text-sm font-semibold text-emerald-700"><Newspaper className="h-4 w-4" /> Espace agent</p><h1 className="mt-1 text-2xl font-bold text-slate-950">Contenus du site</h1><p className="mt-1 text-sm text-slate-600">Articles, documents, pages et modèles du lycée.</p></div>
         <div className="flex flex-col gap-2 sm:flex-row">{reviewCounts.pending ? <button type="button" onClick={() => { const next = items.find((item) => item.needsReview); if (next && confirmDraftChange()) void openItem(next.id); }} className="inline-flex items-center justify-center gap-2 rounded-md bg-amber-800 px-4 py-2.5 text-sm font-semibold text-white"><BadgeCheck className="h-4 w-4" /> Vérifier la reprise <span className="rounded bg-white/20 px-1.5 py-0.5 text-xs">{reviewCounts.pending}</span></button> : null}{canImportLegacy ? <button type="button" disabled={legacyBusy} onClick={importLegacySite} className="inline-flex items-center justify-center gap-2 rounded-md border border-amber-300 bg-amber-50 px-4 py-2.5 text-sm font-semibold text-amber-900 disabled:opacity-60">{legacyBusy ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />} {legacyProgress || "Reprendre l’ancien site"}</button> : null}<a href="/?view=news" target="_blank" rel="noreferrer" className="inline-flex items-center justify-center gap-2 rounded-md border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-800"><Monitor className="h-4 w-4" /> Voir le site</a></div>
       </header>
+
+      <section className="border-y border-slate-200 bg-white py-4" aria-labelledby="content-file-health-title">
+        <div className="flex flex-col gap-4 px-4 sm:px-5">
+          <div className="flex items-start justify-between gap-4">
+            <div className="flex min-w-0 items-start gap-3">
+              {fileHealthNeedsAttention
+                ? <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-red-700" aria-hidden="true" />
+                : fileHealthWaiting
+                  ? <Clock3 className="mt-0.5 h-5 w-5 shrink-0 text-amber-700" aria-hidden="true" />
+                  : fileHealth && !legacyFilesWaiting
+                    ? <ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-emerald-700" aria-hidden="true" />
+                    : <Clock3 className={`mt-0.5 h-5 w-5 shrink-0 ${legacyFilesWaiting ? "text-amber-700" : "text-slate-500"}`} aria-hidden="true" />}
+              <div>
+                <h2 id="content-file-health-title" className="font-bold text-slate-950">Contrôle des fichiers</h2>
+                <p className="mt-1 text-sm text-slate-600">
+                  {!fileHealth
+                    ? fileHealthLoading
+                      ? "Lecture de l’état des contrôles…"
+                      : "L’état des contrôles n’a pas pu être confirmé."
+                    : fileHealthNeedsAttention
+                    ? "Une intervention technique est nécessaire. Aucun fichier concerné ne peut être publié."
+                    : fileHealthWaiting
+                      ? "Des fichiers attendent la validation du contrôle antivirus."
+                      : legacyFilesWaiting
+                        ? "Aucun nouveau fichier en attente. Le fonds repris de l’ancien site doit encore être rescanné."
+                        : "Aucun fichier en attente."}
+                </p>
+              </div>
+            </div>
+            <button type="button" onClick={() => void loadFileHealth()} disabled={fileHealthLoading} title="Actualiser les contrôles" aria-label="Actualiser les contrôles" className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md border border-slate-300 bg-white text-slate-700 disabled:opacity-50">
+              <RefreshCw className={`h-4 w-4 ${fileHealthLoading ? "animate-spin" : ""}`} aria-hidden="true" />
+            </button>
+          </div>
+
+          {fileHealthError ? <p role="status" className="border-l-4 border-amber-500 bg-amber-50 p-3 text-sm text-amber-900">{fileHealthError} L’édition des contenus reste disponible.</p> : null}
+          {fileHealth ? (
+            <>
+              <div className="grid gap-px overflow-hidden border border-slate-200 bg-slate-200 sm:grid-cols-2 xl:grid-cols-5" role="group" aria-label="État agrégé des fichiers éditoriaux">
+                <div className="bg-white px-4 py-3"><span className="text-xs font-semibold uppercase text-slate-500">À contrôler</span><strong className="mt-1 block text-xl text-slate-950">{fileHealth.summary.pending + fileHealth.summary.quarantine}</strong></div>
+                <div className="bg-white px-4 py-3"><span className="text-xs font-semibold uppercase text-slate-500">Attente anormale</span><strong className="mt-1 block text-xl text-slate-950">{fileHealth.summary.quarantineOver15m}</strong></div>
+                <div className="bg-white px-4 py-3"><span className="text-xs font-semibold uppercase text-slate-500">Bloqués ou en erreur</span><strong className="mt-1 block text-xl text-slate-950">{fileHealth.summary.blocked + fileHealth.summary.scanError}</strong></div>
+                <div className="bg-white px-4 py-3"><span className="text-xs font-semibold uppercase text-slate-500">Prêts</span><strong className="mt-1 block text-xl text-slate-950">{fileHealth.summary.ready}</strong></div>
+                <div className="bg-white px-4 py-3"><span className="text-xs font-semibold uppercase text-slate-500">Ancien site à rescanner</span><strong className="mt-1 block text-xl text-slate-950">{fileHealth.summary.legacyReadyWithoutScan}</strong></div>
+              </div>
+              <div className="flex flex-col gap-1 text-xs leading-5 text-slate-500 sm:flex-row sm:justify-between sm:gap-6">
+                <span>Dernier contrôle confirmé : {displayDateTime(fileHealth.summary.lastScanAt)}</span>
+                {fileHealth.summary.legacyReadyWithoutScan > 0 ? <span>Le fonds repris de l’ancien site n’a pas encore été rescanné.</span> : null}
+              </div>
+            </>
+          ) : null}
+        </div>
+      </section>
 
       <div className="inline-flex max-w-full overflow-x-auto rounded-md border border-slate-200 bg-white p-1" role="tablist">
         {(["contenus", "documents", "modeles"] as const).map((value) => <button key={value} type="button" role="tab" aria-selected={tab === value} onClick={() => { if (tab === value || confirmDraftChange()) setTab(value); }} className={`whitespace-nowrap rounded px-4 py-2 text-sm font-semibold ${tab === value ? "bg-slate-900 text-white" : "text-slate-600 hover:bg-slate-100"}`}>{value === "contenus" ? "Articles et pages" : value === "documents" ? "Documents" : "Modèles"}</button>)}
