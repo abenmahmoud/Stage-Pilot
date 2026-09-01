@@ -383,5 +383,12 @@
   formulaires sont nommés ; les documents utilisent une liste sémantique et les
   commandes compactes atteignent 40 px. T031 reste ouverte pour le navigateur
   authentifié, le clavier complet et le lecteur d'écran réel.
+- [x] T031B Exécuter une recette navigateur locale avec un compte direction, deux
+  communications, une réponse et un échec strictement fictifs. À 1 440 et
+  320 px, le document et l'aperçu email ne débordent pas ; le parcours clavier
+  garde un focus visible, la console ne contient aucune erreur et Axe WCAG A/AA
+  retourne zéro violation et zéro résultat incomplet après correction du
+  contraste des étapes. T031 reste ouverte pour le lecteur d'écran réel et la
+  recette humaine avec une session de preview autorisée.
 - [ ] T032 Déployer en preview et tester avec des contacts fictifs.
 - [ ] T033 Faire valider le pilote avant toute liste réelle ou envoi collectif.

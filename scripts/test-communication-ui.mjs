@@ -109,4 +109,6 @@ test("keeps communication controls understandable on touch and assistive technol
   assert.match(page, /aria-labelledby="communication-template-editor-title"/);
   assert.match(page, /<ul className="mt-5 divide-y[\s\S]+documents\.map[\s\S]+<li key=\{document\.id\}/);
   assert.match(page, /min-h-10[\s\S]+Écrire/);
+  assert.match(page, /<small className="text-white">Saisie privée<\/small>/);
+  assert.match(page, /text-slate-600[\s\S]+Publier et informer[\s\S]+text-slate-500/);
 });

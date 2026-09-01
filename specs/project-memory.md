@@ -5,6 +5,21 @@
 **Depot** : `abenmahmoud/Stage-Pilot`
 **Dernier jalon de code verifie** : branche de preview Vercel
 
+## Jalon du 1er septembre 2026 - recette responsive des communications
+
+- Une fixture locale temporaire a rendu l'écran direction avec deux
+  communications, une réponse et un échec fictifs ; elle a été supprimée après
+  la recette et n'est pas livrée.
+- À 1 440 et 320 px, le document et l'aperçu email conservent leur largeur,
+  aucune boîte ne sort du viewport et le focus clavier reste visible.
+- Axe a d'abord trouvé trois textes d'étape trop pâles. Leur contraste est
+  corrigé puis les passes finales WCAG A/AA retournent zéro violation et zéro
+  résultat incomplet, sans erreur console.
+- T031B est terminée. T031 reste ouverte pour une session de preview autorisée
+  et un lecteur d'écran humain.
+- Les cinq domaines comptent désormais 525 tâches Spec Kit : 423 terminées et
+  102 ouvertes.
+
 ## Jalon du 1er septembre 2026 - transport HTTP LyceeGest vers Webmail
 
 - Le client de livraison possède désormais son transport HTTP serveur réel,

@@ -712,15 +712,15 @@ export default function CommunicationsPage() {
       <ol className="grid gap-px overflow-hidden rounded-md border border-slate-200 bg-slate-200 sm:grid-cols-3" aria-label="Étapes de préparation">
         <li className="flex min-h-16 items-center gap-3 bg-emerald-700 px-4 py-3 text-white" aria-current="step">
           <span className="flex h-7 w-7 items-center justify-center rounded-full bg-white text-sm font-bold text-emerald-800">1</span>
-          <span><strong className="block text-sm">Déposer</strong><small className="text-white/75">Saisie privée</small></span>
+          <span><strong className="block text-sm">Déposer</strong><small className="text-white">Saisie privée</small></span>
         </li>
         <li className="flex min-h-16 items-center gap-3 bg-white px-4 py-3 text-slate-700">
           <span className="flex h-7 w-7 items-center justify-center rounded-full border border-emerald-700 text-sm font-bold text-emerald-800">2</span>
           <span><strong className="block text-sm">Vérifier</strong><small className="text-slate-500">Relecture humaine</small></span>
         </li>
-        <li className="flex min-h-16 items-center gap-3 bg-white px-4 py-3 text-slate-400">
-          <span className="flex h-7 w-7 items-center justify-center rounded-full border border-slate-300 text-sm font-bold">3</span>
-          <span><strong className="block text-sm">Publier et informer</strong><small>{COMMUNICATION_PUBLICATION_UI_ENABLED ? "Après validation" : "Activation requise"}</small></span>
+        <li className="flex min-h-16 items-center gap-3 bg-white px-4 py-3 text-slate-600">
+          <span className="flex h-7 w-7 items-center justify-center rounded-full border border-slate-400 text-sm font-bold">3</span>
+          <span><strong className="block text-sm">Publier et informer</strong><small className="text-slate-500">{COMMUNICATION_PUBLICATION_UI_ENABLED ? "Après validation" : "Activation requise"}</small></span>
         </li>
       </ol>
 

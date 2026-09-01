@@ -1,5 +1,19 @@
 # Analyse de cohérence - Centre de communication
 
+## Recette responsive du 1er septembre 2026
+
+Une fixture locale temporaire a rendu l'écran Communications avec un compte
+direction AAL2 et uniquement des données `example.test`. Elle a été supprimée
+après la recette et n'est pas incluse dans le produit. Les vues à 1 440 et
+320 px, l'aperçu email rempli et la navigation au clavier ne provoquent aucun
+débordement horizontal ni erreur navigateur.
+
+La première passe Axe a détecté un contraste insuffisant dans les étapes de
+préparation. Les libellés `Saisie privée` et `Publier et informer` utilisent
+maintenant des couleurs lisibles. Les deux passes finales Axe WCAG A/AA
+retournent zéro violation et zéro résultat incomplet. Le lecteur d'écran humain
+et la session authentifiée de preview restent nécessaires avant de fermer T031.
+
 ## Transport HTTP sortant du 1er septembre 2026
 
 Le client abstrait possède désormais un transport HTTP serveur concret, mais
