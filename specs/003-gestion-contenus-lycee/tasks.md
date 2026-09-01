@@ -15,14 +15,27 @@
 - [x] T007A Fermer les réponses internes de liste, détail et actions avec des
   projections minimales côté serveur et des contrats runtime exacts côté
   navigateur, liés au contenu, à l'action et à l'état attendus.
+- [x] T007B Fermer les réponses auxiliaires des médias, modèles et imports
+  hérités : projections minimales, validation avant effet navigateur, compteurs
+  d'import agrégés et mise à jour optimiste des modèles.
 - [x] T008 Construire publication, archivage, duplication et restauration.
 - [x] T009 Construire dépôt signé et confirmation des images/documents.
+- [x] T009A Aligner la contrainte d'audit SQL sur réservation, confirmation et
+  rejet de dépôt, puis vérifier ces trois actions sur la preview dans une
+  transaction fictive annulée sans résidu.
+- [x] T009B Télécharger la pièce dans une limite stricte de 10 Mo et vérifier sa
+  signature PDF, image ou OpenXML avant de la promouvoir à l'état `ready`.
+- [ ] T009C Placer les pièces éditoriales conformes en quarantaine, exécuter le
+  worker antivirus et n'autoriser leur liaison ou publication qu'après un reçu
+  `clean` de bout en bout. Bloquant avant pilote public avec fichiers réels.
 - [x] T010 Construire l'API publique des contenus publiés valides.
 - [x] T010A Valider dans le navigateur chaque contenu, média signé et curseur
   public avant rendu ou pagination, avec refus des origines externes injectées.
 - [x] T010B Réutiliser ce même validateur pour les pages publiées affichées dans
   « Vie du lycée », sans second contrat navigateur permissif.
 - [x] T011 Construire l'aide IA de rédaction avec limites et `store: false`.
+- [x] T011A Valider côté serveur et navigateur chaque champ de la proposition IA,
+  ses longueurs, listes, doublons et secrets avant de l'ajouter au brouillon.
 
 ## Phase 3 - Interface
 

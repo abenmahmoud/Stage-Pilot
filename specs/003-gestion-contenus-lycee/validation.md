@@ -51,7 +51,36 @@ introduire nous-mêmes de contenu présenté comme officiel.
 - La barrière de sécurité complète, l'intégrité des 516 tâches Spec Kit, le
   build et `npm audit --omit=dev` passent ; aucune vulnérabilité n'est détectée.
 - Les réservations et confirmations de fichiers, les modèles, l'assistance IA
-  et la reprise de l'ancien site feront l'objet du sous-lot de contrats suivant.
+  et la reprise de l'ancien site sont fermés dans le complément suivant.
+
+## Complément du 1er septembre 2026 - réponses auxiliaires
+
+- Une réservation de fichier est liée au nom, type, taille, titre, description,
+  chemin privé attendu et jeton signé avant tout appel au stockage.
+- La confirmation doit reprendre exactement l'UUID et les métadonnées réservées
+  avec l'état `ready` ; les listes signées refusent toute autre origine.
+- Création et modification d'un modèle renvoient uniquement le modèle projeté.
+  Une mise à jour exige la version encore courante en base et refuse un écran
+  périmé au lieu d'écraser silencieusement une modification.
+- La proposition IA est validée sur sept champs exacts, des listes uniques et
+  des limites éditoriales avant d'entrer dans le brouillon.
+- La reprise WordPress ne renvoie plus les erreurs, références ou identifiants
+  individuels : l'écran reçoit uniquement progression et compteurs agrégés.
+- La migration `20260901060000` est appliquée exclusivement à la branche
+  Supabase preview `xijocumlwivhbmffrnlj`. Les actions `reserve_upload`,
+  `confirm_upload` et `reject_upload` passent dans une transaction fictive ; le
+  rollback est vérifié à zéro résidu.
+- Dix tests adverses, trente-trois tests historiques ciblés, le build et
+  l'intégrité des 81 migrations passent sans fichier, contenu ou email réel.
+- La confirmation télécharge désormais le fichier avec une limite ferme de
+  10 Mo et vérifie sa signature réelle. Dix cas dédiés refusent notamment un
+  exécutable déclaré PDF, un PNG tronqué et une archive déclarée DOCX.
+- Le passage antivirus des médias éditoriaux reste explicitement ouvert en
+  T009C et bloque toute ouverture publique avec fichiers réels. Le contrôle de
+  signature réduit le risque mais ne remplace pas un moteur antivirus.
+- La barrière de sécurité complète, le build, l'intégrité des 521 tâches Spec
+  Kit et `npm audit --omit=dev` passent après ces changements ; l'audit trouve
+  zéro vulnérabilité de production.
 
 ## Liens preview
 

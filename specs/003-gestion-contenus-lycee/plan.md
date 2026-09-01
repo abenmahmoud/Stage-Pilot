@@ -38,9 +38,16 @@
   validées avant tout remplacement d'état ou message de réussite ; acteurs,
   chemins privés et métadonnées SQL restent côté serveur.
 - Fichiers privés, types et tailles limités, noms de stockage aléatoires.
+- La confirmation relit au plus 10 Mo et vérifie la signature binaire avant tout
+  état utilisable. Le pilote avec fichiers réels reste fermé jusqu'à la mise en
+  quarantaine et au reçu `clean` du worker antivirus.
 - Contenu Markdown rendu sans HTML brut afin d'éviter les scripts injectés.
 - Liens publics signés et courts ; un brouillon ne reçoit aucun lien public.
 - IA limitée et isolée de la publication.
+- Les propositions IA suivent le même schéma exact côté fournisseur, serveur et
+  navigateur ; aucune sortie libre n'est appliquée au brouillon.
+- Les modèles utilisent une version attendue pour refuser l'écrasement silencieux
+  d'une modification concurrente.
 
 ## Livraison
 

@@ -15,6 +15,15 @@ import {
   type SiteContentAdminSummary,
   type SiteContentMutationAction,
 } from "../../../shared/site-content-admin-payload";
+import {
+  parseSiteContentAssetConfirmationPayload,
+  parseSiteContentAssetReservationPayload,
+  parseSiteContentAssistPayload,
+  parseSiteContentLegacyBatchPayload,
+  parseSiteContentTemplateMutationPayload,
+  type SiteContentAssistSuggestion,
+  type SiteContentLegacyBatchPayload,
+} from "../../../shared/site-content-admin-aux-payload";
 
 type ContentType = "article" | "alerte" | "page" | "document";
 type ContentStatus = "brouillon" | "a_valider" | "publie" | "archive";
@@ -51,18 +60,8 @@ type Draft = {
   assets: Array<{ assetId: string; assetRole: "couverture" | "illustration" | "document"; publicLabel: string; position: number }>;
 };
 
-type Suggestion = {
-  title: string; summary: string; bodyMarkdown: string; metaTitle: string;
-  metaDescription: string; suggestedTitles: string[]; reviewNotes: string[];
-};
-
-type LegacyBatch = {
-  phase: "media" | "contents";
-  nextOffset: number;
-  total: number;
-  done: boolean;
-  results: Array<{ ok: boolean; error?: string }>;
-};
+type Suggestion = SiteContentAssistSuggestion;
+type LegacyBatch = SiteContentLegacyBatchPayload;
 
 const TYPES: Record<ContentType, string> = { article: "Article", alerte: "Information urgente", page: "Page", document: "Document" };
 const STATUSES: Record<ContentStatus, string> = { brouillon: "Brouillon", a_valider: "À valider", publie: "Publié", archive: "Archivé" };
@@ -312,13 +311,18 @@ export default function ContentManagerPage() {
     if (!file) return;
     setBusy(true); setError("");
     try {
-      const reserve = await apiFetch<{ asset: Asset; upload: { path: string; token: string } }>("content/admin/assets", { method: "POST", body: JSON.stringify({
+      const assetInput = {
         originalName: file.name, mimeType: file.type, sizeBytes: file.size,
         title: fileTitle || file.name.replace(/\.[^.]+$/, ""), altText: file.type.startsWith("image/") ? fileAlt : null,
-      }) });
+      };
+      const reservationResponse = await apiFetch<unknown>("content/admin/assets", { method: "POST", body: JSON.stringify(assetInput) });
+      const reserve = parseSiteContentAssetReservationPayload(reservationResponse, assetInput);
+      if (!reserve) throw new Error("La réservation du fichier a renvoyé une réponse invalide");
       const result = await supabase.storage.from("site-content").uploadToSignedUrl(reserve.upload.path, reserve.upload.token, file, { contentType: file.type });
       if (result.error) throw new Error("Le transfert du fichier a échoué");
-      const confirmed = await apiFetch<{ asset: Asset }>(`content/admin/assets/${reserve.asset.id}/confirm`, { method: "POST" });
+      const confirmationResponse = await apiFetch<unknown>(`content/admin/assets/${reserve.asset.id}/confirm`, { method: "POST" });
+      const confirmed = parseSiteContentAssetConfirmationPayload(confirmationResponse, reserve.asset);
+      if (!confirmed) throw new Error("La confirmation du fichier a renvoyé une réponse invalide");
       setAssets((value) => [confirmed.asset, ...value]);
       setDraft((value) => ({ ...value, assets: [...value.assets, { assetId: confirmed.asset.id,
         assetRole: confirmed.asset.assetKind === "image" ? "illustration" : "document",
@@ -331,10 +335,12 @@ export default function ContentManagerPage() {
   async function askAi() {
     setBusy(true); setSuggestion(null); setError("");
     try {
-      const result = await apiFetch<{ suggestion: Suggestion }>("content/admin/assist", { method: "POST", body: JSON.stringify({
+      const response = await apiFetch<unknown>("content/admin/assist", { method: "POST", body: JSON.stringify({
         action: aiAction, contentType: draft.contentType, title: draft.title, summary: draft.summary,
         bodyMarkdown: draft.bodyMarkdown, instructions: aiInstructions,
       }) });
+      const result = parseSiteContentAssistPayload(response);
+      if (!result) throw new Error("La proposition de rédaction a renvoyé une réponse invalide");
       setSuggestion(result.suggestion);
     } catch (reason) { setError(reason instanceof Error ? reason.message : "L’aide IA ne répond pas"); }
     finally { setBusy(false); }
@@ -359,11 +365,14 @@ export default function ContentManagerPage() {
         while (!done) {
           const label = phase === "media" ? "Médias" : "Pages et actualités";
           setLegacyProgress(`${label} : ${offset} traité(s)…`);
-          const batch = await apiFetch<LegacyBatch>("content/admin/legacy-import", {
+          const request = { phase, offset, limit: phase === "media" ? 4 : 10 } as const;
+          const response = await apiFetch<unknown>("content/admin/legacy-import", {
             method: "POST",
-            body: JSON.stringify({ phase, offset, limit: phase === "media" ? 4 : 10 }),
+            body: JSON.stringify(request),
           });
-          failures += batch.results.filter((result) => !result.ok).length;
+          const batch: LegacyBatch | null = parseSiteContentLegacyBatchPayload(response, request);
+          if (!batch) throw new Error("La reprise a renvoyé une réponse invalide");
+          failures += batch.failureCount;
           offset = batch.nextOffset;
           done = batch.done;
           setLegacyProgress(`${label} : ${Math.min(offset, batch.total)} / ${batch.total}`);
@@ -460,7 +469,10 @@ function Templates({ templates, canPublish, current, setCurrent, onSaved, setErr
     if (!current || !canPublish) return;
     setSaving(true); setError("");
     try {
-      const result = await apiFetch<{ template: Template }>("content/admin/templates", { method: current.id ? "PATCH" : "POST", body: JSON.stringify(current) });
+      const mode = current.id ? "update" : "create";
+      const response = await apiFetch<unknown>("content/admin/templates", { method: current.id ? "PATCH" : "POST", body: JSON.stringify(current) });
+      const result = parseSiteContentTemplateMutationPayload(response, current, mode);
+      if (!result) throw new Error("L’enregistrement du modèle a renvoyé une réponse invalide");
       setCurrent(result.template); setNotice("Modèle enregistré et disponible pour les prochains contenus."); await onSaved();
     } catch (reason) { setError(reason instanceof Error ? reason.message : "Enregistrement impossible"); }
     finally { setSaving(false); }

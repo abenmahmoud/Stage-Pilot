@@ -1,5 +1,5 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { asc, eq, inArray, like } from "drizzle-orm";
+import { count, eq, inArray, like } from "drizzle-orm";
 import legacyInventoryJson from "../../../content/legacy-site/inventory.json" with { type: "json" };
 import { db } from "../../../db/index.js";
 import {
@@ -14,6 +14,10 @@ import {
   isPostgresUniqueViolation,
   readLimitedResponseBytes,
 } from "../../../shared/legacy-import.js";
+import {
+  projectSiteContentLegacyBatchPayload,
+  projectSiteContentLegacyStatusPayload,
+} from "../../../shared/site-content-admin-aux-payload.js";
 import { HttpError, supabaseAdmin } from "../../_shared/auth.js";
 import { requireSiteEditor, SITE_CONTENT_BUCKET } from "../../_shared/site-content.js";
 import { handleApi, methodNotAllowed } from "../../_shared/response.js";
@@ -62,7 +66,7 @@ function limited(value: string | null | undefined, maximum: number, fallback = "
   return (clean || fallback).slice(0, maximum);
 }
 
-function pageInput(body: unknown) {
+function pageInput(body: unknown): { phase: "media" | "contents"; offset: number; limit: number } {
   if (!body || typeof body !== "object") throw new HttpError(400, "Import invalide");
   const input = body as Record<string, unknown>;
   const phase = input.phase === "media" || input.phase === "contents" ? input.phase : null;
@@ -242,16 +246,16 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return handleApi(res, async () => {
       await requireSiteEditor(req);
       const [media, contents] = await Promise.all([
-        db.select({ id: siteContentAssets.id }).from(siteContentAssets)
-          .where(like(siteContentAssets.importKey, "wordpress:media:%")).orderBy(asc(siteContentAssets.createdAt)),
-        db.select({ id: siteContentItems.id }).from(siteContentItems)
-          .where(like(siteContentItems.importKey, "wordpress:%")).orderBy(asc(siteContentItems.createdAt)),
+        db.select({ count: count() }).from(siteContentAssets)
+          .where(like(siteContentAssets.importKey, "wordpress:media:%")),
+        db.select({ count: count() }).from(siteContentItems)
+          .where(like(siteContentItems.importKey, "wordpress:%")),
       ]);
-      return {
+      return projectSiteContentLegacyStatusPayload({
         source: inventory.sourceOrigin,
         declared: { media: inventory.counts.mediaDeclared, accessibleMedia: inventory.media.length, contents: inventory.contents.length },
-        imported: { media: media.length, contents: contents.length },
-      };
+        imported: { media: media[0]?.count ?? 0, contents: contents[0]?.count ?? 0 },
+      });
     });
   }
   if (req.method !== "POST") return methodNotAllowed(res, ["GET", "POST"]);
@@ -259,6 +263,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const user = await requireSiteEditor(req);
     const input = pageInput(req.body);
     const rows = input.phase === "media" ? inventory.media : inventory.contents;
+    if (input.offset > rows.length) throw new HttpError(400, "Pagination d'import invalide");
     const selected = rows.slice(input.offset, input.offset + input.limit);
     const results = [];
     for (const row of selected) {
@@ -272,7 +277,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       }
     }
     const nextOffset = input.offset + selected.length;
-    return { phase: input.phase, offset: input.offset, nextOffset, total: rows.length, done: nextOffset >= rows.length, results };
+    return projectSiteContentLegacyBatchPayload({
+      phase: input.phase,
+      offset: input.offset,
+      limit: input.limit,
+      nextOffset,
+      total: rows.length,
+      results,
+    });
   });
 }
 

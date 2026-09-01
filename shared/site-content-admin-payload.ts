@@ -268,7 +268,7 @@ function parseSummary(value: unknown): SiteContentAdminSummary | null {
     : null;
 }
 
-function parseTemplate(value: unknown): SiteContentAdminTemplate | null {
+export function parseSiteContentAdminTemplate(value: unknown): SiteContentAdminTemplate | null {
   const row = exactRecord(value, [
     "id", "slug", "name", "contentType", "description", "defaultTitle",
     "defaultSummary", "defaultBodyMarkdown", "active", "version",
@@ -292,7 +292,7 @@ function parseTemplate(value: unknown): SiteContentAdminTemplate | null {
     : null;
 }
 
-function parseAsset(value: unknown): SiteContentAdminAsset | null {
+export function parseSiteContentAdminAsset(value: unknown): SiteContentAdminAsset | null {
   const row = exactRecord(value, [
     "id", "originalName", "mimeType", "sizeBytes", "assetKind", "title",
     "altText", "status", "importKey",
@@ -361,7 +361,7 @@ function parseDetail(value: unknown): SiteContentAdminDetail | null {
 function parseLinkedAsset(value: unknown, configuredOrigin: unknown): SiteContentAdminLinkedAsset | null {
   const row = record(value);
   if (!row) return null;
-  const asset = parseAsset(Object.fromEntries(Object.entries(row).filter(([key]) => ![
+  const asset = parseSiteContentAdminAsset(Object.fromEntries(Object.entries(row).filter(([key]) => ![
     "assetRole", "publicLabel", "position", "url",
   ].includes(key))));
   const exact = exactRecord(row, [
@@ -393,8 +393,8 @@ export function parseSiteContentAdminListPayload(value: unknown): SiteContentAdm
     || root.templates.length > SITE_CONTENT_ADMIN_PAYLOAD_LIMITS.templates
     || root.assets.length > SITE_CONTENT_ADMIN_PAYLOAD_LIMITS.assets) return null;
   const items = root.items.map(parseSummary);
-  const templates = root.templates.map(parseTemplate);
-  const assets = root.assets.map(parseAsset);
+  const templates = root.templates.map(parseSiteContentAdminTemplate);
+  const assets = root.assets.map(parseSiteContentAdminAsset);
   if (items.some((item) => !item) || templates.some((template) => !template) || assets.some((asset) => !asset)) return null;
   const parsedItems = items as SiteContentAdminSummary[];
   const parsedTemplates = templates as SiteContentAdminTemplate[];
@@ -480,31 +480,17 @@ export function projectSiteContentAdminListPayload(input: {
         updatedAt: projectedTimestamp(row?.updatedAt),
       };
     }),
-    templates: input.templates.map((value) => {
-      const row = record(value);
-      return {
-        id: row?.id,
-        slug: row?.slug,
-        name: row?.name,
-        contentType: row?.contentType,
-        description: row?.description,
-        defaultTitle: row?.defaultTitle,
-        defaultSummary: row?.defaultSummary,
-        defaultBodyMarkdown: row?.defaultBodyMarkdown,
-        active: row?.active,
-        version: row?.version,
-      };
-    }),
-    assets: input.assets.map(projectAsset),
+    templates: input.templates.map(projectSiteContentAdminTemplate),
+    assets: input.assets.map(projectSiteContentAdminAsset),
   };
   const parsed = parseSiteContentAdminListPayload(payload);
   if (!parsed) throw new Error("Invalid site content admin list projection");
   return parsed;
 }
 
-function projectAsset(value: unknown): Record<string, unknown> {
+export function projectSiteContentAdminAsset(value: unknown): SiteContentAdminAsset {
   const row = record(value);
-  return {
+  const parsed = parseSiteContentAdminAsset({
     id: row?.id,
     originalName: row?.originalName,
     mimeType: row?.mimeType,
@@ -514,7 +500,27 @@ function projectAsset(value: unknown): Record<string, unknown> {
     altText: row?.altText ?? null,
     status: row?.status,
     importKey: row?.importKey ?? null,
-  };
+  });
+  if (!parsed) throw new Error("Invalid site content admin asset projection");
+  return parsed;
+}
+
+export function projectSiteContentAdminTemplate(value: unknown): SiteContentAdminTemplate {
+  const row = record(value);
+  const parsed = parseSiteContentAdminTemplate({
+    id: row?.id,
+    slug: row?.slug,
+    name: row?.name,
+    contentType: row?.contentType,
+    description: row?.description,
+    defaultTitle: row?.defaultTitle,
+    defaultSummary: row?.defaultSummary,
+    defaultBodyMarkdown: row?.defaultBodyMarkdown,
+    active: row?.active,
+    version: row?.version,
+  });
+  if (!parsed) throw new Error("Invalid site content admin template projection");
+  return parsed;
 }
 
 export function projectSiteContentAdminDetailPayload(
@@ -554,7 +560,7 @@ export function projectSiteContentAdminDetailPayload(
     assets: input.assets.map((value) => {
       const linked = record(value);
       return {
-        ...projectAsset(value),
+        ...projectSiteContentAdminAsset(value),
         assetRole: linked?.assetRole,
         publicLabel: linked?.publicLabel,
         position: linked?.position,

@@ -3,6 +3,11 @@ import { asc, desc, eq, ne, and } from "drizzle-orm";
 import { db } from "../../../db/index.js";
 import { siteContentAudit, siteContentTemplates } from "../../../db/schema.js";
 import { parseSiteTemplateInput } from "../../../shared/site-content.js";
+import {
+  SITE_CONTENT_TEMPLATE_LIST_LIMIT,
+  projectSiteContentTemplateListPayload,
+  projectSiteContentTemplateMutationPayload,
+} from "../../../shared/site-content-admin-aux-payload.js";
 import { HttpError } from "../../_shared/auth.js";
 import { inputError, requireSiteEditor, requireSitePublisher } from "../../_shared/site-content.js";
 import { handleApi, methodNotAllowed } from "../../_shared/response.js";
@@ -14,8 +19,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       const templates = await db
         .select()
         .from(siteContentTemplates)
-        .orderBy(desc(siteContentTemplates.active), asc(siteContentTemplates.name));
-      return { templates };
+        .orderBy(desc(siteContentTemplates.active), asc(siteContentTemplates.name))
+        .limit(SITE_CONTENT_TEMPLATE_LIST_LIMIT);
+      return projectSiteContentTemplateListPayload(templates);
     });
   }
 
@@ -47,7 +53,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           actorId: user.id,
           summary: { version: 1 },
         });
-        return { template };
+        return projectSiteContentTemplateMutationPayload(template, req.body, "create");
       }
 
       if (!input.id) throw new HttpError(400, "Modèle manquant");
@@ -57,6 +63,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         .where(eq(siteContentTemplates.id, input.id))
         .limit(1);
       if (!current) throw new HttpError(404, "Modèle introuvable");
+      const expectedVersion = Number((req.body as Record<string, unknown>).version);
+      if (!Number.isSafeInteger(expectedVersion) || expectedVersion !== current.version) {
+        throw new HttpError(409, "Ce modèle a été modifié. Rechargez-le avant de recommencer");
+      }
       const [conflict] = await db
         .select({ id: siteContentTemplates.id })
         .from(siteContentTemplates)
@@ -86,7 +96,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         actorId: user.id,
         summary: { version: template.version, active: template.active },
       });
-      return { template };
+      return projectSiteContentTemplateMutationPayload(template, req.body, "update");
     });
   }
 

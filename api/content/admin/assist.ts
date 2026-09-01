@@ -1,6 +1,7 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { readAiProviderJsonResponse } from "../../../shared/ai-provider-response.js";
 import { parseSiteContentAiInput } from "../../../shared/site-content.js";
+import { projectSiteContentAssistPayload } from "../../../shared/site-content-admin-aux-payload.js";
 import { HttpError } from "../../_shared/auth.js";
 import { requireSiteEditor, inputError, redactEditorialText } from "../../_shared/site-content.js";
 import { enforceSupportRateLimit, personalHash } from "../../_shared/support.js";
@@ -92,7 +93,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       if (!response.ok) throw new HttpError(502, "L’aide à la rédaction ne répond pas pour le moment");
       const text = outputText(await readAiProviderJsonResponse<unknown>(response));
       if (!text) throw new HttpError(502, "La proposition reçue est incomplète");
-      return { suggestion: JSON.parse(text) as unknown };
+      return projectSiteContentAssistPayload({ suggestion: JSON.parse(text) as unknown });
     } catch (error) {
       if (error instanceof HttpError) throw error;
       throw new HttpError(502, "L’aide à la rédaction ne répond pas pour le moment");

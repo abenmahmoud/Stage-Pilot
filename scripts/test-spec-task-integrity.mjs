@@ -41,5 +41,5 @@ for (const directory of specDirectories) {
 }
 
 assert.ok(taskCount >= 350, "a large task loss must fail the integrity check");
-assert.equal(summary.some((entry) => entry.spec === "003-gestion-contenus-lycee" && entry.open === 0), true);
+assert.equal(summary.some((entry) => entry.spec === "003-gestion-contenus-lycee" && entry.open === 1), true);
 console.log(JSON.stringify({ specs: summary.length, tasks: taskCount, summary }));

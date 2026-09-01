@@ -4210,3 +4210,37 @@ taches et analyse de coherence avant une automatisation sensible.
   fichiers, modèles, suggestions IA et imports hérités restent le sous-lot suivant.
 - Les cinq domaines comptent désormais 516 tâches Spec Kit : 415 terminées et
   101 ouvertes.
+
+## 2026-09-01 - Frontière auxiliaire de l'éditeur fermée
+
+- T007B projette et valide les réservations et confirmations de médias, listes
+  signées, modèles et progression de reprise avant tout effet navigateur. Les
+  erreurs et identifiants individuels de l'import hérité restent côté serveur.
+- Les modèles portent une version attendue : une modification concurrente
+  provoque un conflit explicite au lieu d'un dernier enregistrement silencieux.
+- T011A fait repasser la réponse structurée du fournisseur IA par un contrat
+  exact partagé avant de l'afficher ou de l'appliquer au brouillon.
+- T009A corrige la contrainte `site_content_audit_action_check` sur la seule base
+  preview `xijocumlwivhbmffrnlj`. Une sonde fictive accepte réservation,
+  confirmation et rejet, puis son rollback laisse zéro ligne.
+- Dix tests adverses, trente-trois tests historiques ciblés, le build et les 81
+  migrations locales passent sans donnée réelle. Les cinq domaines comptent
+  désormais 519 tâches Spec Kit : 418 terminées et 101 ouvertes.
+
+### Jalon du 1er septembre 2026 - signature réelle des médias éditoriaux
+
+- La confirmation d'un média de l'espace Contenus télécharge le blob avec la
+  primitive bornée commune et refuse toute taille différente ou lecture au-delà
+  de 10 Mo.
+- Les signatures PDF, PNG, JPEG et WebP sont contrôlées. Les documents DOCX et
+  XLSX doivent être des archives OpenXML contenant le manifeste et la famille
+  attendue (`word/` ou `xl/`).
+- Un fichier incohérent est supprimé du bucket, archivé en base et journalisé
+  avec une raison technique bornée ; il ne devient jamais `ready`.
+- Dix tests ciblés passent sans fichier réel ni écriture distante. T009B est
+  terminée ; T009C reste ouverte pour la quarantaine et l'antivirus de bout en
+  bout avant tout pilote public avec fichiers réels.
+- Les cinq domaines comptent désormais 521 tâches Spec Kit : 419 terminées et
+  102 ouvertes.
+- La barrière de sécurité complète, le build, l'intégrité Spec Kit et l'audit
+  des dépendances passent ; `npm audit --omit=dev` retourne zéro vulnérabilité.

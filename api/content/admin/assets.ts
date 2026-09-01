@@ -3,6 +3,11 @@ import { desc, eq } from "drizzle-orm";
 import { db } from "../../../db/index.js";
 import { siteContentAssets, siteContentAudit } from "../../../db/schema.js";
 import { parseSiteAssetInput } from "../../../shared/site-content.js";
+import {
+  SITE_CONTENT_ASSET_LIST_LIMIT,
+  projectSiteContentAssetListPayload,
+  projectSiteContentAssetReservationPayload,
+} from "../../../shared/site-content-admin-aux-payload.js";
 import { supabaseAdmin } from "../../_shared/auth.js";
 import {
   inputError,
@@ -29,8 +34,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         .from(siteContentAssets)
         .where(eq(siteContentAssets.status, "ready"))
         .orderBy(desc(siteContentAssets.createdAt))
-        .limit(200);
-      return { assets: await Promise.all(assets.map(serializeAsset)) };
+        .limit(SITE_CONTENT_ASSET_LIST_LIMIT);
+      const serialized = await Promise.all(assets.map(serializeAsset));
+      const configuredOrigin = process.env.NEXT_PUBLIC_SUPABASE_URL ?? process.env.VITE_SUPABASE_URL;
+      return projectSiteContentAssetListPayload(serialized, configuredOrigin);
     });
   }
 
@@ -65,7 +72,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         actorId: user.id,
         summary: { mimeType: input.mimeType, sizeBytes: input.sizeBytes },
       });
-      return { asset, upload: { path: upload.path, token: upload.token } };
+      return projectSiteContentAssetReservationPayload({ asset, upload, expectedInput: input });
     });
   }
 
