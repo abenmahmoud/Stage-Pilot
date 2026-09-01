@@ -60,10 +60,16 @@ test("accepts only the exact create-request action confirmation bound to the dos
 test("persists the action lifecycle and request in the same transaction", () => {
   const transaction = requestRoute.indexOf("const result = await db.transaction");
   const start = requestRoute.indexOf("startSupportCreateRequestAction", transaction);
-  const existing = requestRoute.indexOf("const [existing]", start);
+  const requestInsert = requestRoute.indexOf("const [created]", start);
+  const replayRecovery = requestRoute.indexOf("const [racedRequest]", requestInsert);
   const completionCount = requestRoute.match(/completeSupportCreateRequestAction\(\{/g)?.length ?? 0;
-  assert.ok(transaction >= 0 && transaction < start && start < existing);
-  assert.equal(completionCount, 3);
+  assert.ok(
+    transaction >= 0
+    && transaction < start
+    && start < requestInsert
+    && requestInsert < replayRecovery
+  );
+  assert.equal(completionCount, 2);
   assert.match(helper, /status: "planned"/);
   assert.match(helper, /status: "running", startedAt: sql`transaction_timestamp\(\)`/);
   assert.match(helper, /status: "succeeded"/);
