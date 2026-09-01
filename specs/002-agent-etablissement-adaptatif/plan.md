@@ -231,6 +231,23 @@ Le périmètre reste interne au serveur. Le suivi par appareil ou lien email ne
 reçoit aucune autorité scolaire nouvelle. La liaison avec le bénéficiaire du
 dossier et la classification de chaque contenu sortant restent à construire.
 
+L'échange de lien ou code verrouille le contact exact avant toute nouvelle
+session. Le contrôle joint le dossier pour vérifier l'établissement, le canal,
+l'usage et la non-désactivation. L'ancienne session est aussi verrouillée avant
+copie de ses seuls droits du même établissement puis révocation. Tout refus
+annule la transaction existante, y compris la consommation du jeton. Les réponses
+publiques gardent leurs erreurs génériques ; aucune vérification scolaire ajoutée.
+
+Les deux sources de worker exigent un identifiant de contact pour toute
+notification au demandeur et revérifient son état courant. Les notifications
+internes n'ont pas cette exigence et gardent le filtrage des adresses de test.
+Le message sortant, le décompte des pièces propres et la confirmation d'envoi
+restent dans le dossier du job. Aucun verrou SQL n'est maintenu pendant l'appel
+email ; une révocation ultérieure à la lecture ne peut pas rappeler un envoi.
+Le worker VPS n'est pas déployé par ce lot. Récupération automatique après perte
+du cookie/lien, invalidation des sessions déjà émises et recette concurrente
+PostgreSQL restent des travaux séparés.
+
 - Tests unitaires des règles et schémas de sortie.
 - Tests de chaque scénario positif, ambigu, interdit et expiré de chaque compétence.
 - Tests d'autorisation croisée élève/parent/personnel/service/établissement.

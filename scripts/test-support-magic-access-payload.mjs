@@ -69,6 +69,8 @@ test("keeps contact verification separate from school identity", () => {
   assert.match(route, /verificationSource: "email_magic_link"/);
   assert.match(session, /identityStatus: "contact_verifie"/);
   assert.doesNotMatch(`${route}\n${session}`, /identityStatus: "identite_confirmee"/);
-  assert.match(session, /eq\(supportContacts\.id, targetContactId\)/);
+  assert.match(session, /eq\(supportContacts\.id, input\.contactId\)/);
+  assert.match(session, /eq\(supportContacts\.id, contact\.id\)/);
+  assert.match(session, /if \(!input\.contactId\) throw unavailable\(\)/);
   assert.match(session, /eq\(supportContacts\.requestId, input\.requestId\)/);
 });

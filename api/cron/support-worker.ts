@@ -1,5 +1,5 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { and, eq, sql } from "drizzle-orm";
+import { and, eq, isNull, sql } from "drizzle-orm";
 import { db } from "../../db/index.js";
 import {
   supportAttachments,
@@ -74,6 +74,8 @@ async function loadEmailContext(
     .where(and(
       eq(supportContacts.requestId, requestId),
       eq(supportContacts.channel, "email"),
+      eq(supportContacts.usageScope, "support"),
+      isNull(supportContacts.disabledAt),
       ...(contactId ? [eq(supportContacts.id, contactId)] : [])
     ))
     .limit(1);
@@ -106,8 +108,13 @@ function requesterReplyAddress(publicCode: string): string {
 }
 
 async function deliver(job: SupportEmailQueueJob, institutionId: string): Promise<string> {
+  const requesterJob = job.job_type === "notify_requester_request_created" || job.job_type === "send_requester_reply";
+  if (requesterJob && !job.contact_id) throw new Error("requester_contact_unavailable");
   const context = await loadEmailContext(institutionId, job.request_id, job.contact_id);
   if (isReservedTestEmail(context.email)) return "skipped:test_address";
+  if (requesterJob && !context.email) {
+    throw new Error("requester_contact_unavailable");
+  }
   const requesterName = `${context.request.requesterFirstName} ${context.request.requesterLastName}`;
   const senderEmail = process.env.SUPPORT_FROM_EMAIL;
   if (!senderEmail) throw new Error("support_from_email_missing");
@@ -152,7 +159,12 @@ async function deliver(job: SupportEmailQueueJob, institutionId: string): Promis
     const [message] = await db
       .select({ bodyText: supportMessages.bodyText, deliveryStatus: supportMessages.deliveryStatus })
       .from(supportMessages)
-      .where(eq(supportMessages.id, job.message_id))
+      .where(and(
+        eq(supportMessages.id, job.message_id),
+        eq(supportMessages.requestId, job.request_id),
+        eq(supportMessages.direction, "outbound"),
+        eq(supportMessages.channel, "email")
+      ))
       .limit(1);
     if (!message) throw new Error("reply_message_not_found");
     if (message.deliveryStatus === "sent" || message.deliveryStatus === "delivered") {
@@ -163,6 +175,7 @@ async function deliver(job: SupportEmailQueueJob, institutionId: string): Promis
       .from(supportAttachments)
       .where(and(
         eq(supportAttachments.messageId, job.message_id),
+        eq(supportAttachments.requestId, job.request_id),
         eq(supportAttachments.direction, "agent"),
         eq(supportAttachments.scanStatus, "clean")
       ));
@@ -189,7 +202,10 @@ async function deliver(job: SupportEmailQueueJob, institutionId: string): Promis
     await db
       .update(supportMessages)
       .set({ provider: "brevo", providerMessageId: result.messageId, deliveryStatus: "sent" })
-      .where(eq(supportMessages.id, job.message_id));
+      .where(and(
+        eq(supportMessages.id, job.message_id),
+        eq(supportMessages.requestId, job.request_id)
+      ));
     return result.messageId;
   }
 

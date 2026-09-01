@@ -896,6 +896,13 @@
   fictives ; trente contrôles SQL sur CTE fictives passent en preview. La
   sélection publique d'enfant, la liaison identité-vers-dossier, la remise de
   documents personnels et la contre-revue externe restent ouvertes.
+- [x] T049C6 Refuser les échanges de lien/code sans contact email support actif
+  exactement lié au dossier. Sérialiser la rotation d'une ancienne session,
+  revérifier la destination des notifications en attente et limiter les réponses
+  au message sortant du bon dossier. Tester les refus et le rollback sans email
+  réel : 52 contrôles locaux, barrière de sécurité et compilation passent.
+  La récupération automatique d'un lien perdu et la révocation des
+  sessions déjà ouvertes restent distinctes ; aucun déploiement VPS.
 - [ ] T050 Ouvrir un pilote limité avec agents nommés et canal de retour.
 - [ ] T051 Mesurer deux semaines : classement, délai, transferts, corrections, coût et incidents.
 - [ ] T052 Corriger les écarts puis exécuter `/speckit.analyze` et `/speckit.converge` avant généralisation.

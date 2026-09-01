@@ -110,6 +110,8 @@ async function loadContext(institutionId, requestId, contactId) {
     from public.support_contacts
     where request_id = ${requestId}
       and channel = 'email'
+      and usage_scope = 'support'
+      and disabled_at is null
       and (${contactId ?? null}::uuid is null or id = ${contactId ?? null}::uuid)
     order by is_primary desc, created_at asc
     limit 1
@@ -119,10 +121,15 @@ async function loadContext(institutionId, requestId, contactId) {
 
 async function deliver(job, institutionId) {
   if (job.institution_id !== institutionId) throw new Error("institution_mismatch");
+  const requesterJob = job.job_type === "notify_requester_request_created" || job.job_type === "send_requester_reply";
+  if (requesterJob && !job.contact_id) throw new Error("requester_contact_unavailable");
   const context = await loadContext(institutionId, job.request_id, job.contact_id);
+  if (isTestAddress(context.email)) return "skipped:test_address";
+  if (requesterJob && !context.email) {
+    throw new Error("requester_contact_unavailable");
+  }
   const request = context.request;
   const requesterName = `${request.requester_first_name} ${request.requester_last_name}`;
-  if (isTestAddress(context.email)) return "skipped:test_address";
 
   if (job.job_type === "notify_requester_request_created") {
     if (!context.email) return "skipped:no_email";
@@ -160,6 +167,8 @@ async function deliver(job, institutionId) {
       select body_text, delivery_status
       from public.support_messages
       where id = ${job.message_id} and request_id = ${job.request_id}
+        and direction = 'outbound'
+        and channel = 'email'
       limit 1
     `;
     if (!message) throw new Error("reply_message_not_found");

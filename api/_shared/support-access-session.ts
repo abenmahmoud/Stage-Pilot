@@ -9,6 +9,7 @@ import {
   supportSessionRequests,
 } from "../../db/schema.js";
 import { SUPPORT_SESSION_DAYS, sha256 } from "./support.js";
+import { HttpError } from "./auth.js";
 
 type SupportTransaction = Parameters<Parameters<typeof db.transaction>[0]>[0];
 type VerificationSource = "email_magic_link" | "email_one_time_code";
@@ -24,6 +25,28 @@ export async function openSupportAccessSession(input: {
   verificationSource: VerificationSource;
   now: Date;
 }): Promise<void> {
+  const unavailable = () => input.verificationSource === "email_one_time_code"
+    ? new HttpError(401, "Le code est incorrect, expiré ou déjà utilisé.")
+    : new HttpError(410, "Ce lien de suivi est expiré ou déjà utilisé");
+  if (!input.contactId) throw unavailable();
+
+  // Keep contact revocation and access issuance ordered within the exchange.
+  const [contact] = await input.tx
+    .select({ id: supportContacts.id })
+    .from(supportContacts)
+    .innerJoin(supportRequests, eq(supportRequests.id, supportContacts.requestId))
+    .where(and(
+      eq(supportContacts.id, input.contactId),
+      eq(supportContacts.requestId, input.requestId),
+      eq(supportRequests.institutionId, input.institutionId),
+      eq(supportContacts.channel, "email"),
+      eq(supportContacts.usageScope, "support"),
+      isNull(supportContacts.disabledAt)
+    ))
+    .limit(1)
+    .for("update", { of: supportContacts });
+  if (!contact) throw unavailable();
+
   const [session] = await input.tx
     .insert(supportDeviceSessions)
     .values({
@@ -44,7 +67,8 @@ export async function openSupportAccessSession(input: {
           isNull(supportDeviceSessions.revokedAt)
         )
       )
-      .limit(1);
+      .limit(1)
+      .for("update");
     if (previousSession) {
       const previousGrants = await input.tx
         .select({ requestId: supportSessionRequests.requestId })
@@ -82,41 +106,24 @@ export async function openSupportAccessSession(input: {
     .values({ sessionId: session.id, requestId: input.requestId })
     .onConflictDoNothing();
 
-  let targetContactId = input.contactId;
-  if (!targetContactId) {
-    const legacyContacts = await input.tx
-      .select({ id: supportContacts.id })
-      .from(supportContacts)
-      .where(
-        and(
-          eq(supportContacts.requestId, input.requestId),
-          eq(supportContacts.channel, "email"),
-          isNull(supportContacts.disabledAt)
-        )
+  const verifiedContacts = await input.tx
+    .update(supportContacts)
+    .set({
+      isVerified: true,
+      verificationSource: input.verificationSource,
+      verifiedAt: input.now,
+    })
+    .where(
+      and(
+        eq(supportContacts.id, contact.id),
+        eq(supportContacts.requestId, input.requestId),
+        eq(supportContacts.channel, "email"),
+        eq(supportContacts.usageScope, "support"),
+        eq(supportContacts.isVerified, false),
+        isNull(supportContacts.disabledAt)
       )
-      .limit(2);
-    if (legacyContacts.length === 1) targetContactId = legacyContacts[0].id;
-  }
-
-  const verifiedContacts = targetContactId
-    ? await input.tx
-        .update(supportContacts)
-        .set({
-          isVerified: true,
-          verificationSource: input.verificationSource,
-          verifiedAt: input.now,
-        })
-        .where(
-          and(
-            eq(supportContacts.id, targetContactId),
-            eq(supportContacts.requestId, input.requestId),
-            eq(supportContacts.channel, "email"),
-            eq(supportContacts.isVerified, false),
-            isNull(supportContacts.disabledAt)
-          )
-        )
-        .returning({ id: supportContacts.id })
-    : [];
+    )
+    .returning({ id: supportContacts.id });
 
   if (verifiedContacts.length > 0) {
     await input.tx.insert(supportEvents).values({

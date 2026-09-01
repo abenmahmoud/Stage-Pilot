@@ -1049,6 +1049,19 @@ demandée séparément. Le propriétaire demande ensuite d'attendre au moins deu
 heures faute de quota Claude ; aucun lancement automatique n'est prévu. Rapport :
 `docs/security/SCHOOL_SCHEDULE_SCOPE_PREVIEW_2026-09-01.md`.
 
+Suite T049C6 : les liens et codes sont liés à un contact support actif avant
+création d'accès ; les refus annulent toutes les écritures de l'échange. La
+rotation verrouille l'ancienne session. Les deux workers revérifient l'adresse
+avant traitement et refusent les réponses d'un autre dossier ou non sortantes.
+Les notifications internes et le filtrage des adresses de test restent présents.
+Cinquante-deux tests locaux couvrent les vrais modules, des doubles transactionnels
+et le SQL généré. Ils ne prouvent pas un envoi ou une concurrence PostgreSQL réels.
+Le worker VPS reste non déployé. T049C demeure ouverte, notamment pour récupération
+automatique d'accès, révocation des sessions émises et liaison identité-dossier.
+Claude reste en pause à la demande du propriétaire, sans relance automatique ni
+consommation externe. Rapport :
+`docs/security/SUPPORT_CONTACT_ACCESS_PREVIEW_2026-09-01.md`.
+
 ## Portes de validation humaine
 
 - Import de listes, emplois du temps ou pièces réelles.

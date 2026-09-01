@@ -5013,3 +5013,28 @@ taches et analyse de coherence avant une automatisation sensible.
 - Compilation, barrière de sécurité, six tests de l'assistant, quatre contrats
   responsive et intégrité Spec Kit passent : 557 tâches, 455 terminées et
   102 ouvertes. Ces comptes ne donnent pas un taux de disponibilité.
+
+### Jalon du 1er septembre UTC - contacts actifs et notifications liées au dossier
+
+- Les vrais chemins lien/code refusent maintenant un contact absent, désactivé,
+  d'un autre dossier ou non destiné au support, avant d'ouvrir une session. Les
+  jetons anciens sans contact lié ne devinent plus une adresse de remplacement.
+  Les refus annulent consommation, session et droits ; la preuve reste I2.
+- Le contact et l'ancienne session sont verrouillés pendant l'échange. Seuls les
+  droits antérieurs du même établissement sont repris, puis la session tourne.
+- Les deux sources de worker revérifient l'adresse liée aux emails en attente.
+  Réponses, pièces comptées et confirmation d'envoi restent dans le bon dossier.
+  Notes internes, messages entrants et réponses téléphone ne sont pas envoyés.
+  Notifications internes et suppression des emails de test sont conservées.
+- Cinquante-deux contrôles locaux passent sur les vrais modules et des doubles,
+  dont un contrôle du SQL réel généré. Aucun appel externe ni requête à une base
+  distante. Cela ne prouve pas la concurrence PostgreSQL ou un envoi réel.
+- Récupération automatique d'un accès perdu, révocation de sessions déjà ouvertes
+  et liaison identité-dossier restent à faire. Aucun déploiement du worker VPS.
+  Rapport : `docs/security/SUPPORT_CONTACT_ACCESS_PREVIEW_2026-09-01.md`.
+- Claude reste en pause pour au moins deux heures suivant le dernier message,
+  sans appel ni reprise automatique. La contre-revue indépendante reste ouverte.
+- T049C6 terminée localement, T049C reste ouverte. Barrière complète de sécurité,
+  compilation, trois contrôles d'adresses réservées, cinq de file email et quatre
+  contrats responsive passent. Spec Kit : 558 tâches, 456 terminées, 102 ouvertes.
+  Aucun taux global de disponibilité n'est déduit de ces comptes.

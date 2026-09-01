@@ -19,7 +19,7 @@ test("the Vercel worker skips test addresses before delivery", async () => {
   const source = await readFile(new URL("../api/cron/support-worker.ts", import.meta.url), "utf8");
   assert.match(source, /if \(isReservedTestEmail\(context\.email\)\) return "skipped:test_address";/);
   assert.ok(
-    source.indexOf("isReservedTestEmail(context.email)") < source.indexOf("notify_requester_request_created"),
+    source.indexOf("isReservedTestEmail(context.email)") < source.indexOf('if (job.job_type === "notify_requester_request_created")'),
     "The test-address guard must run before every delivery branch"
   );
 });

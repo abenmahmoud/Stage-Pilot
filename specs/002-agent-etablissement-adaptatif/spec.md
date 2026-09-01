@@ -248,6 +248,18 @@ leur date, leur responsable et leur état de validité.
   permise. Ce contrôle ne lie pas encore le suivi d'un dossier à cette identité
   et n'autorise pas, à lui seul, la remise d'un document personnel.
 
+- Un lien ou code de suivi exige un contact email `support` actif, lié exactement
+  au dossier et à l'établissement. Un ancien jeton sans contact lié est refusé,
+  sans choisir une autre adresse. Un refus ne consomme pas le jeton, ne crée pas
+  de session et ne révoque pas l'appareil existant. Une erreur de code continue
+  toutefois à compter comme tentative. La preuve reste I2, jamais I3.
+- Chaque notification destinée au demandeur revérifie le contact lié au moment
+  du traitement. Une adresse absente, désactivée ou d'un autre dossier laisse
+  l'envoi en échec traçable, sans destination de remplacement. Une réponse email
+  doit être un message sortant du dossier concerné ; notes internes, messages
+  entrants et réponses téléphoniques ne sont pas envoyés par ce chemin.
+  Cela n'annule ni les emails déjà transmis ni les sessions déjà ouvertes.
+
 - 95 % des demandes confirmées possèdent un accusé de réception et un numéro de suivi.
 - 90 % des demandes courantes sont dirigées vers le bon service après correction éventuelle.
 - 100 % des actions A3 possèdent une validation enregistrée.
