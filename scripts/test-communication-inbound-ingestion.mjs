@@ -309,7 +309,7 @@ test("preview recipe refuses missing or foreign connection settings without expo
     });
     assert.equal(run.error, undefined);
     assert.notEqual(run.status, 0);
-    assert.match(run.stderr, /preview_database_configuration_missing|Unexpected preview database target/);
+    assert.match(run.stderr, /inbound_scan_preview_configuration_invalid/);
     assert.doesNotMatch(run.stderr, /synthetic-private-invalid-uri|synthetic-private-password/);
   }
 });

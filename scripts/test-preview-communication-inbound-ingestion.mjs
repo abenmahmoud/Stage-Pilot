@@ -10,17 +10,13 @@ import { createCommunicationBrevoAttachmentDownloader, createCommunicationInboun
   from "../api/_shared/communication-inbound-transfer.ts";
 import { storeAndConfirmCommunicationInboundObject }
   from "../api/_shared/communication-inbound-object-persistence.ts";
+import { communicationInboundPreviewDatabaseUrl, COMMUNICATION_INBOUND_PREVIEW_PROJECT as PROJECT_REF }
+  from "../workers/communication-inbound-preview-target.mjs";
 
-const PROJECT_REF = "xijocumlwivhbmffrnlj";
-assert.ok(process.argv.includes("--preview-only"));
-let target;
-try { target = new URL(process.env.DATABASE_URL ?? "invalid"); }
-catch { throw new Error("preview_database_configuration_missing"); }
-assert.ok(["postgres:", "postgresql:"].includes(target.protocol));
-assert.ok(target.hostname === `db.${PROJECT_REF}.supabase.co`
-  || (target.hostname.endsWith(".pooler.supabase.com")
-    && decodeURIComponent(target.username) === `postgres.${PROJECT_REF}`), "Unexpected preview database target");
-const client = postgres(target.href, { prepare: false, max: 1, connect_timeout: 10, idle_timeout: 5 });
+assert.deepEqual(process.argv.slice(2), ["--preview-only"]);
+const target = communicationInboundPreviewDatabaseUrl(process.env.DATABASE_URL);
+const client = postgres(target, { prepare: false, max: 1, connect_timeout: 10, idle_timeout: 5,
+  ssl: { rejectUnauthorized: true }, onnotice: () => {} });
 const database = drizzle(client, { schema });
 const { institutions, communicationInbound, communicationInboundObjects, communicationInboundObjectEvents } = schema;
 const institutionId = randomUUID();

@@ -303,6 +303,11 @@
   Code et seize tests locaux livrés ; revue Fable arbitrée. La recette directe
   du nouvel orchestrateur sur PostgreSQL reste bloquée par la configuration
   locale de preview non utilisable : la tâche n'est pas déclarée terminée.
+  Les deux recettes entrantes et le worker utilisent désormais le même contrôle
+  exact de destination, sans recherche textuelle de référence. Quatre tests
+  locaux refusent une référence cachée dans un mot de passe, chemin ou requête,
+  ainsi qu'un pooler étranger, avant création du client. TLS est imposé et les
+  clients dédiés sont fermés ; aucune recette distante supplémentaire exécutée.
 - [x] T022J Préparer l'adaptateur ClamAV borné et isolé : empreinte exacte,
   configuration locale figée, entrée standard sans nom utilisateur, délai et
   sorties limités, fichiers Office contrôlés, erreurs fermées. Tester le

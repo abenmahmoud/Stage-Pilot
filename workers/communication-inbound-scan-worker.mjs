@@ -8,23 +8,15 @@ import {
 import { createCommunicationInboundScanner } from "./communication-inbound-scanner.mjs";
 import { createCommunicationInboundScanProcessor } from "./communication-inbound-scan-core.mjs";
 import { createCommunicationInboundScanRepository } from "./communication-inbound-scan-repository.mjs";
-
-const PREVIEW_PROJECT = "xijocumlwivhbmffrnlj";
+import { communicationInboundPreviewDatabaseUrl, COMMUNICATION_INBOUND_PREVIEW_PROJECT }
+  from "./communication-inbound-preview-target.mjs";
 
 export function verifyCommunicationInboundWorkerConfiguration(env, args) {
   if (args.length !== 1 || args[0] !== "--preview-only"
     || env.COMMUNICATION_INBOUND_SCAN_ENABLED !== "true"
     || env.COMMUNICATION_INBOUND_CLAMAV_VERIFIED !== "true") throw new Error("inbound_scan_disabled");
-  let url, username;
-  try { url = new URL(env.DATABASE_URL); username = decodeURIComponent(url.username); }
-  catch { throw new Error("inbound_scan_preview_configuration_invalid"); }
-  const direct = url.hostname === `db.${PREVIEW_PROJECT}.supabase.co`;
-  const pooler = /^[a-z0-9-]+\.pooler\.supabase\.com$/u.test(url.hostname)
-    && username === `postgres.${PREVIEW_PROJECT}`;
-  if (!["postgres:", "postgresql:"].includes(url.protocol) || (!direct && !pooler)
-    || url.pathname !== "/postgres" || !url.password || !username
-    || url.search || url.hash || (url.port && !["5432", "6543"].includes(url.port))
-    || env.VITE_SUPABASE_URL !== `https://${PREVIEW_PROJECT}.supabase.co`) {
+  communicationInboundPreviewDatabaseUrl(env.DATABASE_URL);
+  if (env.VITE_SUPABASE_URL !== `https://${COMMUNICATION_INBOUND_PREVIEW_PROJECT}.supabase.co`) {
     throw new Error("inbound_scan_preview_configuration_invalid");
   }
   const limit = Number(env.COMMUNICATION_INBOUND_SCAN_BATCH_SIZE ?? 10);
@@ -74,7 +66,7 @@ async function main() {
     serviceRoleKey: process.env.SUPABASE_SERVICE_ROLE_KEY };
   const download = createCommunicationInboundQuarantineReader(storageOptions);
   const storeClean = createCommunicationInboundCleanStore(storageOptions);
-  const sql = postgres(process.env.DATABASE_URL, { prepare: false, max: concurrency + 1,
+  const sql = postgres(communicationInboundPreviewDatabaseUrl(process.env.DATABASE_URL), { prepare: false, max: concurrency + 1,
     connect_timeout: 10, idle_timeout: 20, ssl: { rejectUnauthorized: true }, onnotice: () => {} });
   try {
     const repository = createCommunicationInboundScanRepository(sql);

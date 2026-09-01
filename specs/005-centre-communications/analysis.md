@@ -544,3 +544,22 @@ avec un plafond distinct de 3 USD ; aucun appel supplémentaire n'est lancé
 sans réponse. T022K reste ouverte pour cette revue et la recette intégrée du
 programme avec la vraie connexion et ClamAV. Voir la procédure d'exploitation
 `docs/operations/COMMUNICATION_INBOUND_SCAN_WORKER_PREVIEW_2026-09-01.md`.
+
+La relecture des outils de recette a trouvé une vérification insuffisante de
+destination dans `test-preview-communication-inbound-replay.mjs` : la présence
+de la référence preview quelque part dans l'URL ne prouvait pas son hôte.
+Le problème concerne un script d'opérateur, pas un accès public démontré.
+Un validateur partagé par les deux recettes entrantes et le worker impose
+maintenant hôte, utilisateur de pooler, base, port et absence de paramètres
+additionnels. Le port absent devient explicitement 5432, sans héritage PGPORT.
+Les recettes emploient un client dédié TLS avec certificat vérifié et fermeture
+dans `finally` ; elles ne chargent plus un client global pour ce scénario.
+
+Quatre tests vérifient les refus, l'interprétation de la cible par la véritable
+bibliothèque PostgreSQL sans appel réseau et l'arrêt des deux exécutables sur
+une URL trompeuse avant création de leur client. Les erreurs de fixture initiales
+ont été corrigées : remplacement ancré du chemin final et contrôle multi-ligne
+du `finally`. Aucune fausse conclusion de vulnérabilité supplémentaire n'en est
+tirée. La configuration locale de preview reste non acceptée et ClamAV n'est
+pas disponible parmi les exécutables vérifiés ; les recettes intégrées restent
+ouvertes.

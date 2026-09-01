@@ -60,8 +60,8 @@ test("returns aggregate non-identifying counters and bounds the body", () => {
 });
 
 test("keeps the executable replay recipe preview-only, transactional and residue-free", () => {
-  assert.match(previewRecipe, /EXPECTED_PROJECT_REF = "xijocumlwivhbmffrnlj"/);
-  assert.match(previewRecipe, /process\.argv\.includes\("--preview-only"\)/);
+  assert.match(previewRecipe, /communicationInboundPreviewDatabaseUrl\(process\.env\.DATABASE_URL\)/);
+  assert.match(previewRecipe, /assert\.deepEqual\(process\.argv\.slice\(2\), \["--preview-only"\]\)/);
   assert.match(previewRecipe, /db\.transaction\(async \(tx\)/);
   assert.match(previewRecipe, /throw ROLLBACK_RECIPE/);
   assert.match(previewRecipe, /duplicates: 2/);

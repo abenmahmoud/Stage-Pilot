@@ -5,6 +5,22 @@
 **Depot** : `abenmahmoud/Stage-Pilot`
 **Dernier jalon de code verifie** : branche de preview Vercel
 
+## Jalon du 1er septembre 2026 - destination des recettes entrantes
+
+- Le script de rejeu ne prouve plus sa destination par une simple présence de
+  la référence preview dans l'URL. Les deux recettes et le worker partagent
+  une validation exacte de l'hôte, du pooler, de la base et du port.
+- Les recettes emploient des connexions dédiées avec certificat TLS vérifié,
+  sans paramètres additionnels d'URL ni port hérité, et ferment leur client.
+  Quatre tests locaux prouvent les refus et inspectent les options du vrai
+  client sans ouvrir de réseau. Il s'agit d'une protection des outils de test,
+  pas d'une nouvelle fonctionnalité utilisateur ni d'une faille publique démontrée.
+- La configuration locale de connexion reste refusée et aucun binaire ClamAV
+  n'est trouvé dans le PATH vérifié. Aucun secret n'a été affiché, aucun
+  logiciel installé et aucune recette distante lancée pendant cette correction.
+- Les tâches d'intégration et la revue Claude restent ouvertes. L'autorisation
+  proposée pour une mission Fable 5 à 3 USD n'a toujours pas été reçue.
+
 ## Point de convergence du 1er septembre 2026
 
 - Le dépôt est propre au commit de code `9d9868b`, poussé sur la seule branche

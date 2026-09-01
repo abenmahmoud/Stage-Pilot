@@ -66,6 +66,12 @@ mécanisme de supervision n'est activé par cette commande.
 
 ## Preuves acquises
 
+- `npm run test:communication-inbound-preview-target` : quatre tests ferment
+  les destinations trompeuses des deux recettes entrantes et du worker. Une
+  référence preview placée dans un mot de passe, un chemin ou une requête ne
+  suffit jamais ; TLS est imposé, le port ne dépend pas de PGPORT et le client
+  de recette est fermé en fin d'exécution. Aucun réseau n'est utilisé dans
+  ces tests. Ce durcissement concerne les outils d'opérateur, pas une route publique.
 - `npm run test:communication-inbound-scan-worker` : vingt tests locaux,
   interruptions, rejeux, baux périmés, substitutions, épuisement, portée SQL,
   stockage simulé, refus de configuration et admission bornée.
@@ -84,6 +90,11 @@ mécanisme de supervision n'est activé par cette commande.
 La recette SQL exerce les requêtes et les contraintes serveur. Elle ne lance
 pas le programme JavaScript complet ni un transport de fichiers réel. Les
 tests de panne locale ne simulent pas un redémarrage physique de la base.
+
+Le contrôle de configuration local a été répété après le jalon : il refuse
+encore les paramètres de connexion présents, sans les afficher. `clamdscan`
+et `clamscan` ne sont pas trouvés dans le PATH vérifié. Aucun service ou
+logiciel n'a été installé pour contourner ces prérequis.
 
 ## Reste avant activation
 
