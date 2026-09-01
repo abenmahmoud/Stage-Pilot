@@ -4062,3 +4062,17 @@ taches et analyse de coherence avant une automatisation sensible.
   production, DNS, VPS, ENT, PRONOTE, webmail ou action externe.
 - La porte de sécurité complète, l'intégrité des 507 tâches Spec Kit et l'audit
   des dépendances passent ; ce dernier retourne zéro vulnérabilité.
+
+## 2026-09-01 - Reçus de mutation agent à champs exacts
+
+- T027B26 ferme les quatre confirmations encore permissives : modification du
+  dossier, réponse agent, note interne et rappel. Chacune exige exactement ses
+  champs documentés et refuse toute propriété supplémentaire avant de confirmer
+  la réussite dans l'interface.
+- Les dates doivent être des chaînes ISO canoniques, pas seulement des textes que
+  JavaScript sait interpréter. Les tests adverses couvrent notamment un
+  identifiant interne, une adresse destinataire, un téléphone et un contenu de
+  note ajoutés au reçu.
+- Quinze contrôles ciblés, le build et la barrière de sécurité complète passent
+  sans donnée réelle, base distante, production, DNS, VPS, ENT, PRONOTE, webmail
+  ou action externe. Les cinq domaines comptent désormais 508 tâches Spec Kit.

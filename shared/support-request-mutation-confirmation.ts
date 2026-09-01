@@ -11,6 +11,15 @@ export type SupportRequestMutationConfirmation = {
 const PUBLIC_CODE_PATTERN = /^BC-[0-9]{4}-[0-9]{6}$/;
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const CONFIRMATION_WINDOW_MS = 5 * 60 * 1000;
+const CONFIRMATION_FIELDS = new Set([
+  "status",
+  "operation",
+  "publicCode",
+  "previousRevision",
+  "revision",
+  "confirmedAt",
+  "confirmationRef",
+]);
 
 export function createSupportRequestMutationConfirmation(input: {
   publicCode: string;
@@ -56,6 +65,7 @@ export function verifySupportRequestMutationConfirmation(input: {
   }
 
   const confirmation = input.confirmation as Record<string, unknown>;
+  const keys = Object.keys(confirmation);
   const expectedPreviousRevision = Date.parse(input.expectedPreviousRevision);
   const revision = typeof confirmation.revision === "string"
     ? Date.parse(confirmation.revision)
@@ -66,7 +76,9 @@ export function verifySupportRequestMutationConfirmation(input: {
   const now = input.now ?? Date.now();
 
   if (
-    confirmation.status !== "persisted"
+    keys.length !== CONFIRMATION_FIELDS.size
+    || !keys.every((key) => CONFIRMATION_FIELDS.has(key))
+    || confirmation.status !== "persisted"
     || confirmation.operation !== "support_request_update"
     || confirmation.publicCode !== input.expectedPublicCode
     || !Number.isFinite(expectedPreviousRevision)
@@ -75,6 +87,8 @@ export function verifySupportRequestMutationConfirmation(input: {
     || !/^support:request-update:[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(confirmation.confirmationRef)
     || !Number.isFinite(revision)
     || !Number.isFinite(confirmedAt)
+    || confirmation.revision !== new Date(revision).toISOString()
+    || confirmation.confirmedAt !== new Date(confirmedAt).toISOString()
     || confirmedAt < now - CONFIRMATION_WINDOW_MS
     || confirmedAt > now + CONFIRMATION_WINDOW_MS
     || revision > confirmedAt + CONFIRMATION_WINDOW_MS

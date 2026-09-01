@@ -816,6 +816,12 @@ l'autorisation de quota définie par le propriétaire.
   demandés avant tout message de réussite ; l'identifiant interne de l'action
   n'est plus renvoyé. Seize contrôles ciblés et le build passent. T018C est
   terminée.
+- Lot N5ZZX : reçus exacts des mutations agent. **Fermés sans donnée réelle,
+  migration ni action externe** : modification du dossier, réponse, note interne
+  et rappel n'acceptent que leurs champs documentés et des dates ISO canoniques.
+  Une coordonnée, un contenu ou un identifiant interne ajouté à la confirmation
+  provoque un refus avant le message de réussite. Quinze contrôles ciblés, le
+  build et la barrière de sécurité passent. T027B26 est terminée.
 
 ## Prochaine séquence verrouillée
 

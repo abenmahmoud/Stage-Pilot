@@ -13,6 +13,17 @@ export type SupportAgentReplyConfirmation = {
 const PUBLIC_CODE_PATTERN = /^BC-[0-9]{4}-[0-9]{6}$/;
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const CONFIRMATION_WINDOW_MS = 5 * 60 * 1000;
+const CONFIRMATION_FIELDS = new Set([
+  "status",
+  "operation",
+  "publicCode",
+  "messageId",
+  "channel",
+  "duplicate",
+  "messageCreatedAt",
+  "confirmedAt",
+  "confirmationRef",
+]);
 
 function expectedStatus(channel: "email" | "phone") {
   return channel === "email" ? "queued" : "callback_required";
@@ -66,6 +77,7 @@ export function verifySupportAgentReplyConfirmation(input: {
   }
 
   const confirmation = input.confirmation as Record<string, unknown>;
+  const keys = Object.keys(confirmation);
   const channel = confirmation.channel === "email" || confirmation.channel === "phone"
     ? confirmation.channel
     : null;
@@ -78,7 +90,9 @@ export function verifySupportAgentReplyConfirmation(input: {
   const now = input.now ?? Date.now();
 
   if (
-    !channel
+    keys.length !== CONFIRMATION_FIELDS.size
+    || !keys.every((key) => CONFIRMATION_FIELDS.has(key))
+    || !channel
     || confirmation.status !== expectedStatus(channel)
     || confirmation.operation !== "support_agent_reply"
     || confirmation.publicCode !== input.expectedPublicCode
@@ -89,6 +103,8 @@ export function verifySupportAgentReplyConfirmation(input: {
     || !/^support:agent-reply:[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(confirmation.confirmationRef)
     || !Number.isFinite(messageCreatedAt)
     || !Number.isFinite(confirmedAt)
+    || confirmation.messageCreatedAt !== new Date(messageCreatedAt).toISOString()
+    || confirmation.confirmedAt !== new Date(confirmedAt).toISOString()
     || messageCreatedAt > confirmedAt
     || confirmedAt > now + CONFIRMATION_WINDOW_MS
     || (confirmation.duplicate === false && confirmedAt < now - CONFIRMATION_WINDOW_MS)

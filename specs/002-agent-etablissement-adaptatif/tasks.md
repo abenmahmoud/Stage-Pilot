@@ -458,6 +458,10 @@
   liste à cent identifiants uniques. Refuser côté serveur et navigateur tout
   champ SQL interne, modèle incomplet, variable inconnue ou doublon, et protéger
   atomiquement le plafond lors d'une création concurrente.
+- [x] T027B26 Fermer les reçus de modification, réponse, note interne et rappel
+  sur leurs champs exacts et leurs dates ISO canoniques. Refuser avant tout
+  message de réussite un champ interne, une coordonnée, un contenu ou une date
+  équivalente mais ambiguë ajouté à la confirmation.
 - [ ] T027B2 Ajouter les relances internes et l'escalade après validation des
   délais propres à chaque service et des responsables à notifier.
 - [ ] T027C Créer les adhésions de service puis appliquer le périmètre dans les

@@ -28,6 +28,17 @@ export type SupportCallbackConfirmation = {
 const PUBLIC_CODE_PATTERN = /^BC-[0-9]{4}-[0-9]{6}$/;
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const CONFIRMATION_WINDOW_MS = 5 * 60 * 1000;
+const CONFIRMATION_FIELDS = new Set([
+  "status",
+  "operation",
+  "publicCode",
+  "callbackId",
+  "previousStatus",
+  "callbackStatus",
+  "duplicate",
+  "confirmedAt",
+  "confirmationRef",
+]);
 
 function isCallbackStatus(value: unknown): value is SupportCallbackStatus {
   return typeof value === "string"
@@ -103,6 +114,7 @@ export function verifySupportCallbackConfirmation(input: {
   }
 
   const confirmation = input.confirmation as Record<string, unknown>;
+  const keys = Object.keys(confirmation);
   const operation = confirmation.operation as SupportCallbackConfirmationOperation;
   const previousStatus = confirmation.previousStatus === null || isCallbackStatus(confirmation.previousStatus)
     ? confirmation.previousStatus as SupportCallbackStatus | null
@@ -116,7 +128,9 @@ export function verifySupportCallbackConfirmation(input: {
   const now = input.now ?? Date.now();
 
   if (
-    confirmation.status !== "persisted"
+    keys.length !== CONFIRMATION_FIELDS.size
+    || !keys.every((key) => CONFIRMATION_FIELDS.has(key))
+    || confirmation.status !== "persisted"
     || operation !== input.expectedOperation
     || confirmation.publicCode !== input.expectedPublicCode
     || typeof confirmation.callbackId !== "string"
@@ -129,6 +143,7 @@ export function verifySupportCallbackConfirmation(input: {
     || typeof confirmation.confirmationRef !== "string"
     || !/^support:callback:[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(confirmation.confirmationRef)
     || !Number.isFinite(confirmedAt)
+    || confirmation.confirmedAt !== new Date(confirmedAt).toISOString()
     || confirmedAt > now + CONFIRMATION_WINDOW_MS
     || (confirmation.duplicate === false && confirmedAt < now - CONFIRMATION_WINDOW_MS)
   ) {

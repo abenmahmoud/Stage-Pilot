@@ -51,8 +51,11 @@ test("accepts an old duplicate receipt but rejects false or malformed success", 
     { ...valid, messageId: "not-a-message" },
     { ...valid, duplicate: "false" },
     { ...valid, messageCreatedAt: "2026-08-31T09:00:01.000Z" },
+    { ...valid, messageCreatedAt: "2026-08-31T08:59:59+00:00" },
+    { ...valid, confirmedAt: "2026-08-31T09:00:00Z" },
     { ...valid, confirmedAt: "2026-08-31T08:54:59.000Z" },
     { ...valid, confirmationRef: "support:internal-note:unknown" },
+    { ...valid, bodyText: "contenu interne" },
   ]) {
     assert.equal(
       verifySupportInternalNoteConfirmation({ expectedPublicCode: publicCode, confirmation: candidate, now }),

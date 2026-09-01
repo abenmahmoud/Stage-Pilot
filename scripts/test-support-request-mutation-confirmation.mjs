@@ -47,9 +47,12 @@ test("refuses unbound, stale, future and malformed mutation confirmations", () =
     { ...valid, publicCode: "BC-2026-000124" },
     { ...valid, previousRevision: "2026-08-31T07:59:57.000Z" },
     { ...valid, revision: "not-a-date" },
+    { ...valid, revision: "2026-08-31T07:59:59.500+00:00" },
+    { ...valid, confirmedAt: "2026-08-31T08:00:00Z" },
     { ...valid, confirmedAt: "2026-08-31T07:54:59.000Z" },
     { ...valid, confirmedAt: "2026-08-31T08:05:01.000Z" },
     { ...valid, confirmationRef: "support:request-update:unknown" },
+    { ...valid, internalEventId: correlationId },
   ]) {
     assert.equal(
       verifySupportRequestMutationConfirmation({

@@ -84,8 +84,10 @@ test("accepts an old duplicate but rejects unbound or impossible transitions", (
     { ...valid, previousStatus: "todo" },
     { ...valid, callbackStatus: "in_progress" },
     { ...valid, duplicate: "false" },
+    { ...valid, confirmedAt: "2026-08-31T09:00:00+00:00" },
     { ...valid, confirmedAt: "2026-08-31T08:54:59.000Z" },
     { ...valid, confirmationRef: "support:callback:unknown" },
+    { ...valid, phoneNumber: "+33123456789" },
   ]) {
     assert.equal(
       verifySupportCallbackConfirmation({
