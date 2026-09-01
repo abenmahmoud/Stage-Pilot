@@ -12,9 +12,10 @@ const workers = [
   "identity-directory-worker.mjs",
   "knowledge-document-worker.mjs",
   "schedule-document-worker.mjs",
+  "site-content-file-worker.mjs",
 ];
 
-test("contrôle les cinq workers avant toute copie complète en mémoire", () => {
+test("contrôle les six workers avant toute copie complète en mémoire", () => {
   for (const worker of workers) {
     const source = readFileSync(new URL(`../workers/${worker}`, import.meta.url), "utf8");
     assert.match(source, /boundedBlobToBuffer|readBoundedResponseBytes/);

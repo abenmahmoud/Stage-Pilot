@@ -1107,7 +1107,7 @@ export const siteContentVersions = pgTable("site_content_versions", {
 
 export const siteContentAssets = pgTable("site_content_assets", {
   id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
-  storageBucket: text("storage_bucket").notNull().default("site-content"),
+  storageBucket: text("storage_bucket").notNull().default("site-content-quarantine"),
   storagePath: text("storage_path").notNull().unique(),
   originalName: text("original_name").notNull(),
   mimeType: text("mime_type").notNull(),
@@ -1116,6 +1116,9 @@ export const siteContentAssets = pgTable("site_content_assets", {
   title: text("title").notNull(),
   altText: text("alt_text"),
   status: text("status").notNull().default("pending"),
+  scanDetail: text("scan_detail"),
+  sha256: text("sha256"),
+  scannedAt: timestamp("scanned_at", { withTimezone: true }),
   sourceSystem: text("source_system"),
   sourceUrl: text("source_url"),
   importKey: text("import_key"),

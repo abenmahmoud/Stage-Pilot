@@ -82,6 +82,22 @@ introduire nous-mêmes de contenu présenté comme officiel.
   Kit et `npm audit --omit=dev` passent après ces changements ; l'audit trouve
   zéro vulnérabilité de production.
 
+## Complément du 1er septembre 2026 - socle antivirus éditorial
+
+- La migration `20260901073000` est appliquée uniquement à la base preview
+  `xijocumlwivhbmffrnlj` : bucket privé de quarantaine, file dédiée, états et
+  transitions protégées, empreinte SHA-256 et preuves d'audit bornées.
+- Les 78 médias WordPress déjà présents, dont 47 liés à des brouillons, restent
+  inchangés ; aucun contenu n'était publié au moment du contrôle.
+- Une transaction fictive prouve le refus d'un passage direct à `ready`, puis le
+  cycle `pending -> quarantine -> ready` avec `clamav_clean`. Son rollback laisse
+  zéro média, zéro audit et zéro message de file.
+- Le worker, le service et le timer sont versionnés mais non installés sur le
+  VPS. Aucun fichier réel ni moteur ClamAV distant n'est utilisé ; T009C reste
+  ouverte jusqu'à cette recette explicitement autorisée.
+- Le build, la barrière complète de sécurité, les 82 migrations, l'intégrité des
+  522 tâches et l'audit des dépendances passent ; zéro vulnérabilité est trouvée.
+
 ## Liens preview
 
 - Portail : https://lyceegest-git-codex-lycee-connect-prototype-safe-scol.vercel.app/prototype

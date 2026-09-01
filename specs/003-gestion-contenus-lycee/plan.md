@@ -56,3 +56,6 @@
 3. Tests unitaires des validateurs et du workflow.
 4. Vérification manuelle ordinateur et téléphone.
 5. Publication sur la branche Vercel de preview uniquement.
+6. Activation séparée du worker ClamAV sur le VPS de preview après autorisation
+   précise, puis recette propre/infectée et contrôle rétroactif des médias
+   WordPress avant de fermer T009C.

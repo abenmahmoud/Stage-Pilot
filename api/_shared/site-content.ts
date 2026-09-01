@@ -7,7 +7,8 @@ import {
   SITE_PUBLISHER_ROLES,
 } from "../../shared/site-content-policy.js";
 
-export const SITE_CONTENT_BUCKET = "site-content";
+export const SITE_CONTENT_CLEAN_BUCKET = "site-content";
+export const SITE_CONTENT_QUARANTINE_BUCKET = "site-content-quarantine";
 export async function requireSiteEditor(req: VercelRequest): Promise<AuthUser> {
   return requireRole(req, SITE_EDITOR_ROLES);
 }
@@ -56,7 +57,7 @@ export function storagePathForFile(userId: string, originalName: string): string
 
 export async function signedAssetUrl(path: string, expiresIn = 900): Promise<string | null> {
   const { data, error } = await supabaseAdmin.storage
-    .from(SITE_CONTENT_BUCKET)
+    .from(SITE_CONTENT_CLEAN_BUCKET)
     .createSignedUrl(path, expiresIn);
   return error ? null : data.signedUrl;
 }

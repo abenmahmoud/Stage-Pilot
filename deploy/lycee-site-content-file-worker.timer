@@ -1,0 +1,12 @@
+[Unit]
+Description=Run Lycee site content antivirus worker every minute (preview)
+
+[Timer]
+OnBootSec=45s
+OnUnitActiveSec=60s
+AccuracySec=10s
+Persistent=true
+Unit=lycee-site-content-file-worker.service
+
+[Install]
+WantedBy=timers.target

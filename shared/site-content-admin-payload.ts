@@ -16,7 +16,9 @@ const ISO_PATTERN = /^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}\.[0-
 const SLUG_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 const CONTROL_PATTERN = /[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/;
 
-const ASSET_STATUSES = ["pending", "ready", "archived"] as const;
+const ASSET_STATUSES = [
+  "pending", "quarantine", "ready", "blocked", "scan_error", "archived",
+] as const;
 const ASSET_KINDS = ["image", "document"] as const;
 const SOURCE_SYSTEMS = ["wordpress"] as const;
 const SOURCE_DISPOSITIONS = ["durable", "archive", "a_confirmer"] as const;

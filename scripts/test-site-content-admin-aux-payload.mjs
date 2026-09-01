@@ -115,9 +115,12 @@ test("rejects upload substitution, storage leaks and weak tokens", () => {
   );
 });
 
-test("accepts only the exact ready confirmation for the reserved asset", () => {
+test("accepts only quarantine or ready confirmation for the reserved asset", () => {
+  const quarantined = { asset: asset("quarantine") };
   const confirmed = { asset: asset("ready") };
+  assert.deepEqual(parseSiteContentAssetConfirmationPayload(quarantined, asset()), quarantined);
   assert.deepEqual(parseSiteContentAssetConfirmationPayload(confirmed, asset()), confirmed);
+  assert.deepEqual(parseSiteContentAssetConfirmationPayload(confirmed, quarantined.asset), confirmed);
   assert.deepEqual(projectSiteContentAssetConfirmationPayload(
     { ...asset("ready"), storagePath: PATH, createdBy: ACTOR_ID },
     { ...asset(), storagePath: PATH, createdBy: ACTOR_ID },
@@ -128,6 +131,10 @@ test("accepts only the exact ready confirmation for the reserved asset", () => {
   );
   assert.equal(
     parseSiteContentAssetConfirmationPayload({ asset: { ...asset("ready"), createdBy: ACTOR_ID } }, asset()),
+    null,
+  );
+  assert.equal(
+    parseSiteContentAssetConfirmationPayload({ asset: asset("blocked") }, quarantined.asset),
     null,
   );
 });
@@ -254,7 +261,7 @@ test("validates every auxiliary response before browser side effects", async () 
   const upload = page.indexOf("uploadToSignedUrl", reservationValidation);
   const confirmationRead = page.indexOf("confirmationResponse", upload);
   const confirmationValidation = page.indexOf("parseSiteContentAssetConfirmationPayload", confirmationRead);
-  const assetState = page.indexOf("setAssets", confirmationValidation);
+  const assetState = page.indexOf("attachReadyAsset(confirmed.asset)", confirmationValidation);
   assert.ok(reservationRead >= 0 && reservationValidation > reservationRead && upload > reservationValidation);
   assert.ok(confirmationRead > upload && confirmationValidation > confirmationRead && assetState > confirmationValidation);
 

@@ -28,6 +28,9 @@
 - [ ] T009C Placer les pièces éditoriales conformes en quarantaine, exécuter le
   worker antivirus et n'autoriser leur liaison ou publication qu'après un reçu
   `clean` de bout en bout. Bloquant avant pilote public avec fichiers réels.
+- [x] T009C1 Installer sur la preview le bucket privé, la file, les états, la
+  confirmation SHA-256, le worker versionné et le parcours navigateur qui
+  n'attache que `ready`, sans activer le VPS ni toucher aux médias historiques.
 - [x] T010 Construire l'API publique des contenus publiés valides.
 - [x] T010A Valider dans le navigateur chaque contenu, média signé et curseur
   public avant rendu ou pagination, avec refus des origines externes injectées.

@@ -1,5 +1,6 @@
+import { createHash, randomUUID } from "node:crypto";
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { count, eq, inArray, like } from "drizzle-orm";
+import { and, count, eq, inArray, like, sql } from "drizzle-orm";
 import legacyInventoryJson from "../../../content/legacy-site/inventory.json" with { type: "json" };
 import { db } from "../../../db/index.js";
 import {
@@ -14,12 +15,13 @@ import {
   isPostgresUniqueViolation,
   readLimitedResponseBytes,
 } from "../../../shared/legacy-import.js";
+import { matchesSiteContentFileSignature } from "../../../shared/site-content-file-signature.js";
 import {
   projectSiteContentLegacyBatchPayload,
   projectSiteContentLegacyStatusPayload,
 } from "../../../shared/site-content-admin-aux-payload.js";
 import { HttpError, supabaseAdmin } from "../../_shared/auth.js";
-import { requireSiteEditor, SITE_CONTENT_BUCKET } from "../../_shared/site-content.js";
+import { requireSiteEditor, SITE_CONTENT_QUARANTINE_BUCKET } from "../../_shared/site-content.js";
 import { handleApi, methodNotAllowed } from "../../_shared/response.js";
 
 type LegacyMedia = {
@@ -80,7 +82,7 @@ function pageInput(body: unknown): { phase: "media" | "contents"; offset: number
 }
 
 async function findImportedMedia(importKey: string) {
-  const [known] = await db.select({ id: siteContentAssets.id }).from(siteContentAssets)
+  const [known] = await db.select({ id: siteContentAssets.id, status: siteContentAssets.status }).from(siteContentAssets)
     .where(eq(siteContentAssets.importKey, importKey)).limit(1);
   return known ?? null;
 }
@@ -94,16 +96,23 @@ async function findImportedContent(importKey: string) {
 async function importMedia(media: LegacyMedia, actorId: string) {
   const importKey = `wordpress:media:${media.wordpressId}`;
   const known = await findImportedMedia(importKey);
-  if (known) return { id: known.id, result: "déjà importé" };
+  if (known) {
+    if (known.status === "ready") return { id: known.id, result: "déjà importé" };
+    if (known.status === "quarantine") return { id: known.id, result: "contrôle antivirus en cours" };
+    throw new Error("Le média historique doit être contrôlé manuellement");
+  }
   if (!media.sourceUrl) throw new Error("Adresse du média absente");
 
   const response = await fetch(media.sourceUrl, { headers: { "user-agent": "LyceeGest legacy importer" } });
   if (!response.ok) throw new Error(`Source inaccessible (HTTP ${response.status})`);
   assertLegacyMediaType(media.mimeType, response.headers.get("content-type"));
   const bytes = await readLimitedResponseBytes(response);
+  if (!matchesSiteContentFileSignature(bytes, media.mimeType)) {
+    throw new Error("La signature du média historique est invalide");
+  }
   const originalName = cleanName(media.sourceUrl, media.wordpressId);
   const storagePath = `legacy-wordpress/${media.wordpressId}/${originalName}`;
-  const upload = await supabaseAdmin.storage.from(SITE_CONTENT_BUCKET).upload(storagePath, bytes, {
+  const upload = await supabaseAdmin.storage.from(SITE_CONTENT_QUARANTINE_BUCKET).upload(storagePath, bytes, {
     contentType: media.mimeType,
     cacheControl: "3600",
     upsert: false,
@@ -115,10 +124,13 @@ async function importMedia(media: LegacyMedia, actorId: string) {
   const altText = assetKind === "image"
     ? limited(media.altText || media.caption || media.title, 300, `Illustration historique du lycée ${media.wordpressId}`)
     : null;
+  const digest = createHash("sha256").update(bytes).digest("hex");
+  const jobId = randomUUID();
 
   try {
     return await db.transaction(async (tx) => {
       const [created] = await tx.insert(siteContentAssets).values({
+        storageBucket: SITE_CONTENT_QUARANTINE_BUCKET,
         storagePath,
         originalName,
         mimeType: media.mimeType,
@@ -126,7 +138,9 @@ async function importMedia(media: LegacyMedia, actorId: string) {
         assetKind,
         title,
         altText,
-        status: "ready",
+        status: "quarantine",
+        scanDetail: "awaiting_antivirus",
+        sha256: digest,
         sourceSystem: "wordpress",
         sourceUrl: media.sourceUrl,
         importKey,
@@ -139,7 +153,18 @@ async function importMedia(media: LegacyMedia, actorId: string) {
         actorId,
         summary: { importKey, wordpressId: media.wordpressId },
       });
-      return { id: created.id, result: "importé" };
+      await tx.execute(sql`
+        select pgmq.send(
+          'site_content_file_scan',
+          jsonb_build_object(
+            'job_id', ${jobId}::uuid,
+            'job_type', 'scan_site_content_asset',
+            'asset_id', ${created.id}::uuid,
+            'attempt', 0
+          )
+        )
+      `);
+      return { id: created.id, result: "contrôle antivirus en cours" };
     });
   } catch (error) {
     if (isPostgresUniqueViolation(error)) {
@@ -163,8 +188,14 @@ async function importContent(content: LegacyContent, actorId: string) {
 
   const importKeys = content.referencedMedia.map((wordpressId) => `wordpress:media:${wordpressId}`);
   const importedAssets = importKeys.length
-    ? await db.select().from(siteContentAssets).where(inArray(siteContentAssets.importKey, importKeys))
+    ? await db.select().from(siteContentAssets).where(and(
+        inArray(siteContentAssets.importKey, importKeys),
+        eq(siteContentAssets.status, "ready")
+      ))
     : [];
+  if (importedAssets.length !== importKeys.length) {
+    throw new Error("Les médias associés sont encore en contrôle antivirus");
+  }
   const assetMap = new Map(importedAssets.map((asset) => [asset.importKey, asset]));
   const links = content.referencedMedia.flatMap((wordpressId, position) => {
     const asset = assetMap.get(`wordpress:media:${wordpressId}`);
@@ -247,7 +278,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       await requireSiteEditor(req);
       const [media, contents] = await Promise.all([
         db.select({ count: count() }).from(siteContentAssets)
-          .where(like(siteContentAssets.importKey, "wordpress:media:%")),
+          .where(and(
+            like(siteContentAssets.importKey, "wordpress:media:%"),
+            eq(siteContentAssets.status, "ready")
+          )),
         db.select({ count: count() }).from(siteContentItems)
           .where(like(siteContentItems.importKey, "wordpress:%")),
       ]);

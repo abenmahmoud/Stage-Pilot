@@ -31,7 +31,7 @@ export type SiteContentAssetReservationPayload = {
 };
 
 export type SiteContentAssetConfirmationPayload = {
-  asset: SiteContentAdminAsset & { status: "ready" };
+  asset: SiteContentAdminAsset & { status: "quarantine" | "ready" };
 };
 
 export type SiteContentSignedAsset = SiteContentAdminAsset & {
@@ -184,12 +184,14 @@ export function parseSiteContentAssetConfirmationPayload(
   const root = exactRecord(value, ["asset"]);
   const asset = root ? parseSiteContentAdminAsset(root.asset) : null;
   return expected && root && asset
-    && (expected.status === "pending" || expected.status === "ready")
-    && asset.status === "ready"
+    && (["pending", "quarantine", "ready"] as const).includes(
+      expected.status as "pending" | "quarantine" | "ready"
+    )
+    && (asset.status === "quarantine" || asset.status === "ready")
     && asset.id === expected.id
     && asset.importKey === expected.importKey
     && assetMatchesInput(asset, expected)
-    ? { asset: { ...asset, status: "ready" } }
+    ? { asset: { ...asset, status: asset.status } }
     : null;
 }
 

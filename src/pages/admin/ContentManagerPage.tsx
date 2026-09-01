@@ -93,6 +93,10 @@ function localDate(value: string | null) {
   return Number.isNaN(local.getTime()) ? "" : local.toISOString().slice(0, 16);
 }
 
+function wait(milliseconds: number) {
+  return new Promise((resolve) => window.setTimeout(resolve, milliseconds));
+}
+
 function displayDate(value: string) {
   return new Intl.DateTimeFormat("fr-FR", { dateStyle: "medium" }).format(new Date(value));
 }
@@ -307,6 +311,22 @@ export default function ContentManagerPage() {
     setTimeout(() => { area.focus(); area.setSelectionRange(start + before.length, start + before.length + selected.length); }, 0);
   }
 
+  function attachReadyAsset(asset: Asset) {
+    if (asset.status !== "ready") return;
+    setAssets((value) => value.some((entry) => entry.id === asset.id) ? value : [asset, ...value]);
+    setDraft((value) => value.assets.some((entry) => entry.assetId === asset.id)
+      ? value
+      : {
+          ...value,
+          assets: [...value.assets, {
+            assetId: asset.id,
+            assetRole: asset.assetKind === "image" ? "illustration" : "document",
+            publicLabel: asset.title,
+            position: value.assets.length,
+          }],
+        });
+  }
+
   async function upload() {
     if (!file) return;
     setBusy(true); setError("");
@@ -318,16 +338,27 @@ export default function ContentManagerPage() {
       const reservationResponse = await apiFetch<unknown>("content/admin/assets", { method: "POST", body: JSON.stringify(assetInput) });
       const reserve = parseSiteContentAssetReservationPayload(reservationResponse, assetInput);
       if (!reserve) throw new Error("La réservation du fichier a renvoyé une réponse invalide");
-      const result = await supabase.storage.from("site-content").uploadToSignedUrl(reserve.upload.path, reserve.upload.token, file, { contentType: file.type });
+      const result = await supabase.storage.from("site-content-quarantine").uploadToSignedUrl(reserve.upload.path, reserve.upload.token, file, { contentType: file.type });
       if (result.error) throw new Error("Le transfert du fichier a échoué");
       const confirmationResponse = await apiFetch<unknown>(`content/admin/assets/${reserve.asset.id}/confirm`, { method: "POST" });
-      const confirmed = parseSiteContentAssetConfirmationPayload(confirmationResponse, reserve.asset);
+      let confirmed = parseSiteContentAssetConfirmationPayload(confirmationResponse, reserve.asset);
       if (!confirmed) throw new Error("La confirmation du fichier a renvoyé une réponse invalide");
-      setAssets((value) => [confirmed.asset, ...value]);
-      setDraft((value) => ({ ...value, assets: [...value.assets, { assetId: confirmed.asset.id,
-        assetRole: confirmed.asset.assetKind === "image" ? "illustration" : "document",
-        publicLabel: confirmed.asset.title, position: value.assets.length }] }));
+      const delays = [1_000, 2_000, 4_000, 8_000];
+      for (const delay of delays) {
+        if (confirmed.asset.status === "ready") break;
+        await wait(delay);
+        const pollResponse = await apiFetch<unknown>(`content/admin/assets/${reserve.asset.id}/confirm`, { method: "POST" });
+        const polled = parseSiteContentAssetConfirmationPayload(pollResponse, confirmed.asset);
+        if (!polled) throw new Error("Le contrôle du fichier a renvoyé une réponse invalide");
+        confirmed = polled;
+      }
       setFile(null); setFileTitle(""); setFileAlt(""); setNotice("Fichier ajouté. Enregistrez maintenant le brouillon.");
+      if (confirmed.asset.status === "ready") {
+        attachReadyAsset(confirmed.asset);
+        setNotice("Fichier vérifié et ajouté. Enregistrez maintenant le brouillon.");
+      } else {
+        setNotice("Fichier reçu. Le contrôle antivirus continue en arrière-plan ; il apparaîtra dans les fichiers vérifiés après actualisation.");
+      }
     } catch (reason) { setError(reason instanceof Error ? reason.message : "Ajout impossible"); }
     finally { setBusy(false); }
   }
@@ -422,7 +453,7 @@ export default function ContentManagerPage() {
                   <Field label="Titre"><input value={draft.title} onChange={(event) => setDraft((value) => ({ ...value, title: event.target.value, slug: !value.slug || value.slug === slug(value.title) ? slug(event.target.value) : value.slug }))} maxLength={180} className="field text-lg font-semibold" placeholder="Titre clair et précis" /></Field>
                   <Field label="Résumé"><textarea value={draft.summary} onChange={(event) => setDraft((value) => ({ ...value, summary: event.target.value }))} maxLength={600} rows={3} className="field resize-y leading-6" placeholder="L’essentiel en deux ou trois phrases" /></Field>
                   <div><p className="mb-1.5 text-sm font-semibold text-slate-800">Message</p><div className="flex flex-wrap gap-1 rounded-t-md border border-b-0 border-slate-300 bg-slate-50 p-2"><Tool title="Gras" onClick={() => insert("**", "**")}><Bold /></Tool><Tool title="Italique" onClick={() => insert("_", "_")}><Italic /></Tool><Tool title="Sous-titre" onClick={() => insert("## ", "", "Sous-titre")}><Heading2 /></Tool><Tool title="Liste" onClick={() => insert("- ", "", "élément")}><List /></Tool><Tool title="Citation" onClick={() => insert("> ", "", "information importante")}><Quote /></Tool><Tool title="Lien" onClick={() => insert("[", "](https://)", "texte du lien")}><Link /></Tool></div><textarea ref={textRef} value={draft.bodyMarkdown} onChange={(event) => setDraft((value) => ({ ...value, bodyMarkdown: event.target.value }))} rows={18} className="w-full resize-y rounded-b-md border border-slate-300 px-4 py-3 font-mono text-sm leading-6" placeholder="Écrivez le contenu ici…" /></div>
-                  <div className="border-t border-slate-200 pt-5"><h2 className="font-bold text-slate-900">Fichiers et images</h2><p className="mt-1 text-sm text-slate-500">PDF, Word, Excel, JPG, PNG ou WebP, jusqu’à 10 Mo.</p><div className="mt-4 grid gap-3 sm:grid-cols-2"><Field label="Choisir un fichier" wide><input type="file" accept=".pdf,.docx,.xlsx,.jpg,.jpeg,.png,.webp" onChange={(event) => { const next = event.target.files?.[0] ?? null; setFile(next); setFileTitle(next?.name.replace(/\.[^.]+$/, "") ?? ""); }} className="field bg-white" /></Field><Field label="Titre du fichier"><input value={fileTitle} onChange={(event) => setFileTitle(event.target.value)} className="field" /></Field><Field label="Description de l’image"><input value={fileAlt} onChange={(event) => setFileAlt(event.target.value)} disabled={!file?.type.startsWith("image/")} className="field disabled:bg-slate-100" placeholder="Obligatoire pour une image" /></Field></div><button type="button" disabled={!file || busy} onClick={upload} className="mt-3 inline-flex items-center gap-2 rounded-md border border-slate-300 bg-white px-3 py-2 text-sm font-semibold disabled:opacity-50"><Upload className="h-4 w-4" /> Ajouter au contenu</button><div className="mt-4 space-y-2">{draft.assets.map((entry) => { const asset = assetMap.get(entry.assetId); return <div key={entry.assetId} className="flex items-center gap-3 rounded-md border border-slate-200 p-3"><span className="flex h-9 w-9 items-center justify-center rounded bg-slate-100">{asset?.assetKind === "image" ? <Image className="h-4 w-4" /> : <FileText className="h-4 w-4" />}</span><div className="min-w-0 flex-1"><p className="truncate text-sm font-semibold">{asset?.title ?? entry.publicLabel}</p><p className="text-xs text-slate-500">{asset?.originalName}</p></div><button type="button" title="Retirer" onClick={() => setDraft((value) => ({ ...value, assets: value.assets.filter((link) => link.assetId !== entry.assetId) }))} className="p-2 text-slate-500"><X className="h-4 w-4" /></button></div>; })}</div></div>
+                  <div className="border-t border-slate-200 pt-5"><h2 className="font-bold text-slate-900">Fichiers et images</h2><p className="mt-1 text-sm text-slate-500">PDF, Word, Excel, JPG, PNG ou WebP, jusqu’à 10 Mo. Chaque fichier est contrôlé avant utilisation.</p>{assets.some((asset) => !draft.assets.some((link) => link.assetId === asset.id)) ? <Field label="Fichiers vérifiés"><select defaultValue="" onChange={(event) => { const selected = assets.find((asset) => asset.id === event.target.value); if (selected) attachReadyAsset(selected); event.currentTarget.value = ""; }} className="field bg-white"><option value="">Choisir un fichier déjà contrôlé</option>{assets.filter((asset) => !draft.assets.some((link) => link.assetId === asset.id)).map((asset) => <option key={asset.id} value={asset.id}>{asset.title}</option>)}</select></Field> : null}<div className="mt-4 grid gap-3 sm:grid-cols-2"><Field label="Choisir un fichier" wide><input type="file" accept=".pdf,.docx,.xlsx,.jpg,.jpeg,.png,.webp" onChange={(event) => { const next = event.target.files?.[0] ?? null; setFile(next); setFileTitle(next?.name.replace(/\.[^.]+$/, "") ?? ""); }} className="field bg-white" /></Field><Field label="Titre du fichier"><input value={fileTitle} onChange={(event) => setFileTitle(event.target.value)} className="field" /></Field><Field label="Description de l’image"><input value={fileAlt} onChange={(event) => setFileAlt(event.target.value)} disabled={!file?.type.startsWith("image/")} className="field disabled:bg-slate-100" placeholder="Obligatoire pour une image" /></Field></div><button type="button" disabled={!file || busy} onClick={upload} className="mt-3 inline-flex items-center gap-2 rounded-md border border-slate-300 bg-white px-3 py-2 text-sm font-semibold disabled:opacity-50"><Upload className="h-4 w-4" /> Ajouter au contenu</button><div className="mt-4 space-y-2">{draft.assets.map((entry) => { const asset = assetMap.get(entry.assetId); return <div key={entry.assetId} className="flex items-center gap-3 rounded-md border border-slate-200 p-3"><span className="flex h-9 w-9 items-center justify-center rounded bg-slate-100">{asset?.assetKind === "image" ? <Image className="h-4 w-4" /> : <FileText className="h-4 w-4" />}</span><div className="min-w-0 flex-1"><p className="truncate text-sm font-semibold">{asset?.title ?? entry.publicLabel}</p><p className="text-xs text-slate-500">{asset?.originalName}</p></div><button type="button" title="Retirer" onClick={() => setDraft((value) => ({ ...value, assets: value.assets.filter((link) => link.assetId !== entry.assetId) }))} className="p-2 text-slate-500"><X className="h-4 w-4" /></button></div>; })}</div></div>
                 </div>
 
                 <aside className="space-y-4 border-t border-slate-200 bg-slate-50 p-4 lg:border-l lg:border-t-0"><div><p className="mb-2 text-sm font-bold">Publication</p><Status value={draft.status} /></div>{draft.sourceSystem ? <div className={`rounded-md border p-3 ${draft.needsReview ? "border-amber-300 bg-amber-50" : "border-emerald-200 bg-emerald-50"}`}><div className="flex items-start gap-2"><BadgeCheck className={`mt-0.5 h-4 w-4 shrink-0 ${draft.needsReview ? "text-amber-700" : "text-emerald-700"}`} /><div><strong className="block text-sm">{draft.needsReview ? "Reprise à vérifier" : "Reprise vérifiée"}</strong><p className="mt-1 text-xs text-slate-600">Ancien site{draft.sourceUpdatedAt ? ` · modifié le ${displayDate(draft.sourceUpdatedAt)}` : ""}</p>{draft.sourceUrl ? <a href={draft.sourceUrl} target="_blank" rel="noreferrer" className="mt-2 inline-flex items-center gap-1 text-xs font-semibold text-blue-700">Voir la source <ExternalLink className="h-3.5 w-3.5" /></a> : null}</div></div>{draft.needsReview && canPublish ? <button type="button" onClick={() => act("verify_source")} className="mt-3 flex w-full items-center justify-center gap-2 rounded-md bg-amber-800 px-3 py-2 text-sm font-semibold text-white"><Check className="h-4 w-4" /> Marquer comme vérifié</button> : null}</div> : null}<Select label="Type" value={draft.contentType} onChange={(value) => setDraft((draftValue) => ({ ...draftValue, contentType: value as ContentType }))}>{Object.entries(TYPES).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</Select><Field label="Catégorie"><input value={draft.category} onChange={(event) => setDraft((value) => ({ ...value, category: event.target.value }))} className="field bg-white" /></Field><Select label="Public" value={draft.audience} onChange={(value) => setDraft((draftValue) => ({ ...draftValue, audience: value as Audience }))}><option value="tous">Tout le monde</option><option value="eleves">Élèves</option><option value="parents">Parents</option><option value="professeurs">Professeurs</option><option value="personnels">Personnels</option></Select><Field label="Adresse de la page"><input value={draft.slug} onChange={(event) => setDraft((value) => ({ ...value, slug: slug(event.target.value) }))} className="field bg-white" /></Field><label className="flex gap-3 rounded-md border border-slate-200 bg-white p-3"><input type="checkbox" checked={draft.featured} onChange={(event) => setDraft((value) => ({ ...value, featured: event.target.checked }))} /><span><strong className="block text-sm">Mettre à la une</strong><span className="text-xs text-slate-500">Affiché en priorité.</span></span></label><Field label="Publication prévue"><input type="datetime-local" value={draft.publishAt} onChange={(event) => setDraft((value) => ({ ...value, publishAt: event.target.value }))} className="field bg-white" /></Field><Field label="Retrait automatique"><input type="datetime-local" value={draft.expiresAt} onChange={(event) => setDraft((value) => ({ ...value, expiresAt: event.target.value }))} className="field bg-white" /></Field><details className="border-t pt-4"><summary className="cursor-pointer text-sm font-semibold">Référencement</summary><div className="mt-3 space-y-3"><Field label="Titre de recherche"><input value={draft.metaTitle} onChange={(event) => setDraft((value) => ({ ...value, metaTitle: event.target.value }))} className="field bg-white" /></Field><Field label="Description"><textarea rows={3} value={draft.metaDescription} onChange={(event) => setDraft((value) => ({ ...value, metaDescription: event.target.value }))} className="field bg-white" /></Field></div></details>

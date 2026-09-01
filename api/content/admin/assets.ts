@@ -13,7 +13,7 @@ import {
   inputError,
   requireSiteEditor,
   signedAssetUrl,
-  SITE_CONTENT_BUCKET,
+  SITE_CONTENT_QUARANTINE_BUCKET,
   storagePathForFile,
 } from "../../_shared/site-content.js";
 import { handleApi, methodNotAllowed } from "../../_shared/response.js";
@@ -52,7 +52,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       }
       const storagePath = storagePathForFile(user.id, input.originalName);
       const { data: upload, error: uploadError } = await supabaseAdmin.storage
-        .from(SITE_CONTENT_BUCKET)
+        .from(SITE_CONTENT_QUARANTINE_BUCKET)
         .createSignedUploadUrl(storagePath);
       if (uploadError || !upload) throw new Error("Le dépôt du fichier est momentanément indisponible");
 
@@ -60,7 +60,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         .insert(siteContentAssets)
         .values({
           ...input,
-          storageBucket: SITE_CONTENT_BUCKET,
+          storageBucket: SITE_CONTENT_QUARANTINE_BUCKET,
           storagePath,
           createdBy: user.id,
         })

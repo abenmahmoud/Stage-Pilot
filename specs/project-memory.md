@@ -4244,3 +4244,25 @@ taches et analyse de coherence avant une automatisation sensible.
   102 ouvertes.
 - La barrière de sécurité complète, le build, l'intégrité Spec Kit et l'audit
   des dépendances passent ; `npm audit --omit=dev` retourne zéro vulnérabilité.
+
+### Jalon du 1er septembre 2026 - socle antivirus des médias éditoriaux
+
+- La migration `20260901073000` est appliquée uniquement à la base Supabase de
+  preview `xijocumlwivhbmffrnlj`. Elle ajoute un bucket privé de quarantaine,
+  une file PGMQ, les états de scan, SHA-256, horodatage et transitions fermées.
+- Un nouveau dépôt est confirmé uniquement après taille exacte et signature
+  binaire, passe en `quarantine` avec empreinte, puis rejoint la file dans la
+  même transaction. Le navigateur n'attache jamais cet état au brouillon.
+- Le worker versionné relit au plus 10 Mo, compare l'empreinte, appelle ClamAV,
+  vérifie les archives Office, déplace seulement un fichier propre vers
+  `site-content` et journalise un reçu minimal.
+- Les 78 médias WordPress existants restent inchangés ; 47 sont liés à des
+  brouillons et aucun contenu n'est publié. Leur contrôle rétroactif attend
+  l'activation autorisée du worker.
+- La recette fictive de base refuse une promotion non prouvée, accepte le cycle
+  propre et laisse après rollback zéro média, zéro audit et zéro message.
+- T009C1 est terminée. T009C reste ouverte : service et timer non activés sur le
+  VPS, aucune preuve ClamAV propre/EICAR et aucun backfill réel dans ce lot.
+- Les cinq domaines comptent 522 tâches Spec Kit : 420 terminées et 102 ouvertes.
+- Le build, la barrière complète, l'intégrité des 82 migrations et l'audit des
+  dépendances passent ; `npm audit --omit=dev` trouve zéro vulnérabilité.
