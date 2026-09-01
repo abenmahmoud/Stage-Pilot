@@ -14,6 +14,10 @@ const summaryFixMigration = readFileSync(new URL(
   "../supabase/migrations/20260901161000_fix_communication_inbound_summary_validator.sql",
   import.meta.url
 ), "utf8");
+const auditHardeningMigration = readFileSync(new URL(
+  "../supabase/migrations/20260901170000_close_communication_inbound_audit_gaps.sql",
+  import.meta.url
+), "utf8");
 const recipe = readFileSync(new URL(
   "../supabase/tests/communication_inbound_quarantine_security.test.sql",
   import.meta.url
@@ -42,6 +46,9 @@ test("enforces quarantine, clean proof and an immutable lifecycle", () => {
   assert.match(hardeningMigration, /communication_inbound_object_proof_immutable/);
   assert.match(hardeningMigration, /old\.status = new\.status/);
   assert.match(hardeningMigration, /communication_inbound_object_event_state_mismatch/);
+  assert.match(auditHardeningMigration, /new\.id is distinct from old\.id/);
+  assert.match(auditHardeningMigration, /communication_inbound_object_terminal_proof_immutable/);
+  assert.match(auditHardeningMigration, /old\.sha256 is not null/);
 });
 
 test("accepts only exact bounded machine summaries in the audit", () => {
@@ -51,7 +58,16 @@ test("accepts only exact bounded machine summaries in the audit", () => {
   assert.match(summaryFixMigration, /summary_value = '\{"scan":"pending"\}'::jsonb/);
   assert.match(summaryFixMigration, /summary_value = '\{"antivirus":"clamav_clean"\}'::jsonb/);
   assert.match(hardeningMigration, /communication_inbound_object_events_summary_safe_check/);
+  assert.match(auditHardeningMigration, /trunc\(\(summary_value ->> 'sizeBytes'\)::numeric\)/);
+  assert.match(auditHardeningMigration, /summary_value is null/);
   assert.doesNotMatch(summaryFixMigration, /sender|recipient|subject|download_token|original_name/);
+  assert.doesNotMatch(auditHardeningMigration, /sender|recipient|subject|download_token|original_name/);
+});
+
+test("serializes lifecycle evidence and prevents terminal duplicates", () => {
+  assert.match(auditHardeningMigration, /for update;/);
+  assert.match(auditHardeningMigration, /communication_inbound_object_events_singleton_uidx/);
+  assert.match(auditHardeningMigration, /'object\.reserved',[\s\S]*'object\.clean',[\s\S]*'object\.blocked',[\s\S]*'object\.purged'/);
 });
 
 test("keeps both storage buckets and the scan queue private", () => {
@@ -69,6 +85,7 @@ test("mirrors the private object model in Drizzle", () => {
   assert.match(schema, /storageBucket: text\("storage_bucket"\)\.notNull\(\)\.default\("communication-inbound-quarantine"\)/);
   assert.match(schema, /export const communicationInboundObjectEvents = pgTable/);
   assert.match(schema, /communication_inbound_objects_scope_ref_uidx/);
+  assert.match(schema, /communication_inbound_object_events_singleton_uidx/);
 });
 
 test("keeps the live webhook closed and disconnected from storage", () => {
@@ -85,6 +102,12 @@ test("proves the preview lifecycle, isolation and rollback with fixtures only", 
   assert.match(recipe, /clean_proof_rewrite_blocked/);
   assert.match(recipe, /unsafe_summary_blocked/);
   assert.match(recipe, /state_mismatch_event_blocked/);
+  assert.match(recipe, /identity_rewrite_blocked/);
+  assert.match(recipe, /terminal_proof_rewrite_blocked/);
+  assert.match(recipe, /fractional_size_blocked/);
+  assert.match(recipe, /duplicate_terminal_event_blocked/);
+  assert.match(recipe, /get stacked diagnostics error_constraint = constraint_name/);
+  assert.doesNotMatch(recipe, /exception when others/);
   assert.match(recipe, /communication-inbound-clean/);
   assert.match(recipe, /rollback;[\s\S]*institution_residue[\s\S]*inbound_residue[\s\S]*object_residue[\s\S]*event_residue[\s\S]*queue_residue/);
   assert.doesNotMatch(recipe, /@ac-creteil\.fr|lycee-blaise-cendrars-sevran\.fr/);

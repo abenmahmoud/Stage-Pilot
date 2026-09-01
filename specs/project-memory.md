@@ -4625,3 +4625,21 @@ taches et analyse de coherence avant une automatisation sensible.
 - Aucun webhook, téléchargement Brevo, worker, secret ou interrupteur n'a été
   activé. Les cinq domaines comptent désormais 544 tâches Spec Kit : 445
   terminées et 99 ouvertes.
+
+### Jalon du 1er septembre 2026 - audit indépendant du journal antivirus
+
+- Claude Fable 5 a relu une seule fois, sans outil ni réseau, le diff et les six
+  fichiers critiques du lot pour 0,89 dollar. Aucun secret ni donnée réelle ne
+  lui a été transmis.
+- Le risque `NULL` n'est pas confirmé grâce aux colonnes déjà obligatoires. La
+  migration PostgreSQL incompatible reste suivie de son correctif additif afin
+  de préserver l'historique réellement appliqué sur la preview.
+- Les écarts confirmés sont corrigés : identifiant et empreinte immuables,
+  preuve terminale préservée à la purge, événement sérialisé sous verrou parent,
+  événements terminaux uniques, taille entière et erreurs de recette exactes.
+- La migration `20260901170000` et la recette fictive passent uniquement sur
+  `xijocumlwivhbmffrnlj`. Le rollback laisse cinq résidus nuls ; les conseillers
+  n'ajoutent aucun avis critique lié à ce lot.
+- Le webhook, Brevo, ClamAV, les fichiers réels, les secrets et la production
+  restent fermés. Les cinq domaines comptent désormais 545 tâches Spec Kit :
+  446 terminées et 99 ouvertes.

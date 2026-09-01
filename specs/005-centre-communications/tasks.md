@@ -278,6 +278,12 @@
   événement doit correspondre à l'état réel de l'objet et utiliser un résumé
   machine exact de 1 Ko maximum. La recette de preview refuse contenu libre,
   faux événement et altération de preuve, puis laisse cinq résidus à zéro.
+- [x] T022F Fermer les écarts trouvés par l'audit indépendant du journal
+  antivirus. L'identifiant et l'empreinte deviennent immuables, y compris
+  pendant une transition ; une purge conserve la preuve terminale. L'insertion
+  d'un événement verrouille l'objet parent et les événements terminaux ne
+  peuvent pas être dupliqués. Les tailles machine sont entières et la recette
+  vérifie la cause exacte de chaque refus avec cinq résidus nuls sur la preview.
 - [x] T023 Rattacher chaque réponse à la bonne communication.
 - [x] T023A Définir le rattachement strict avant la persistance. La référence
   `In-Reply-To` entrante utilise le même HMAC secret que l'identifiant du message

@@ -66,8 +66,11 @@ purges. Les événements sont liés à l'objet et à son établissement par une 
 composite. Le résumé est réservé à des codes et compteurs techniques bornés ;
 aucun contenu utilisateur ni résultat antivirus brut ne doit y être écrit. La
 base limite le résumé à 1 Ko, impose un schéma exact par type d'événement et
-vérifie que l'événement correspond à l'état courant de l'objet. Les preuves de
-scan ne peuvent pas être modifiées sans transition d'état autorisée.
+vérifie que l'événement correspond à l'état courant de l'objet. Les tailles
+résumées sont entières. L'identifiant et l'empreinte de contenu ne peuvent plus
+changer après enregistrement ; une purge conserve la preuve terminale. La base
+verrouille l'objet pendant l'insertion d'un événement et refuse les doublons
+pour les états atteints une seule fois : réservation, propre, bloqué et purgé.
 
 ### Stockage et file des contenus entrants
 

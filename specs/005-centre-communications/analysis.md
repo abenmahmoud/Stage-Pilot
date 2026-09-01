@@ -402,3 +402,22 @@ par un comptage compatible et conserve la trace de la correction. Le passage
 final refuse les trois falsifications ajoutées et revient à cinq résidus nuls.
 La validation stricte des résumés est donc fermée ; conservation, raccordement
 et preuves ClamAV propre/EICAR restent ouverts dans T022.
+
+T022F applique les constats vérifiés d'une revue Claude Fable 5 unique, en
+lecture seule et bornée au diff du durcissement. Le contournement par valeur
+`NULL` n'est pas confirmé : événement, acteur et résumé sont déjà obligatoires.
+La migration PostgreSQL incompatible est déjà réparée par la migration additive
+suivante et les deux restent conservées dans l'ordre, car la preview les a
+appliquées. En revanche, l'identifiant modifiable, la réécriture d'une preuve
+pendant une purge, la course entre état et événement, les doublons terminaux,
+les tailles décimales et les exceptions de test trop larges étaient confirmés.
+
+La correction additive rend l'identifiant immuable, fige toute empreinte déjà
+calculée et conserve bucket, code, empreinte et date lors d'une purge. Un verrou
+`FOR UPDATE`, plus fort que le `FOR KEY SHARE` suggéré par la revue, sérialise
+l'événement avec les changements d'état. Un index partiel refuse les doublons
+des quatre états atteints une seule fois, sans interdire les nouvelles tentatives
+de quarantaine ou d'erreur. La recette vérifie maintenant les erreurs et
+contraintes exactes. Elle passe sur `xijocumlwivhbmffrnlj` et son rollback laisse
+les cinq familles de résidus à zéro. Aucun webhook, fichier réel, secret,
+téléchargement fournisseur, worker ni environnement de production n'est ouvert.

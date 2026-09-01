@@ -2040,6 +2040,9 @@ export const communicationInboundObjectEvents = pgTable(
       .on(table.inboundObjectId, table.institutionId, table.createdAt),
     index("communication_inbound_object_events_scope_created_idx")
       .on(table.institutionId, table.createdAt),
+    uniqueIndex("communication_inbound_object_events_singleton_uidx")
+      .on(table.institutionId, table.inboundObjectId, table.eventType)
+      .where(sql`${table.eventType} in ('object.reserved', 'object.clean', 'object.blocked', 'object.purged')`),
   ]
 );
 

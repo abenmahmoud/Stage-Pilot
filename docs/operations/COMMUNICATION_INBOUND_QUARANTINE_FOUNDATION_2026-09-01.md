@@ -47,6 +47,15 @@ un comptage compatible. La recette finale refuse la réécriture d'une preuve
 propre, un résumé contenant du texte libre et un faux événement `clean`, puis
 confirme de nouveau cinq familles de résidus à zéro.
 
+La migration additive `20260901170000` ferme les écarts confirmés par une revue
+indépendante : identifiant et empreinte immuables, preuve terminale conservée
+pendant la purge, verrou d'écriture de l'objet pendant l'ajout d'un événement,
+unicité des événements réservés, propres, bloqués et purgés, et tailles résumées
+entières. La recette contrôle désormais le nom exact de la contrainte ou de
+l'erreur attendue. Elle passe sur la preview et revient encore à cinq résidus
+nuls. Les migrations `160000`, `161000` et `170000` forment une chaîne additive
+ordonnée et ne doivent pas être appliquées isolément.
+
 ## Frontières encore fermées
 
 - récupération bornée du contenu depuis Brevo ;
