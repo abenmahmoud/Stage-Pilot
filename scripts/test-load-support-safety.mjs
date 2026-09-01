@@ -98,6 +98,8 @@ test("requires an explicit external preview supervisor when secrets stay redacte
 test("the supervised client still performs and validates every idempotent replay", () => {
   assert.match(httpClientSource, /LOAD_TEST_HTTP_COUNT", 200, 1, 500/);
   assert.match(httpClientSource, /LOAD_TEST_HTTP_CONCURRENCY", 20, 1, 25/);
+  assert.match(httpClientSource, /Array\.from\(\{ length: concurrency \}/);
+  assert.match(httpClientSource, /warmupRequests: concurrency/);
   assert.match(httpClientSource, /postFixture\(fixture, new Map\(previewCookies\), false\)/);
   assert.match(httpClientSource, /postFixture\(fixture, cookies, true, creations\[index\]\.publicCode\)/);
   assert.match(httpClientSource, /new Set\(creations\.map/);

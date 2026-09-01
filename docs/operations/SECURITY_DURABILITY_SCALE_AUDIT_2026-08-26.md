@@ -126,9 +126,11 @@ periode, depuis la meme connexion du lycee.
 - Les anciennes tables Stages, Grand Oral et documents ont encore plusieurs
   politiques RLS permissives equivalentes. Leur fusion attend des tests de roles
   complets; ce n'est pas un risque de capacite pour 3 000 visites mensuelles.
-- Le test de 200 creations simultanees a deja ete inscrit comme valide dans la
-  specification. Le nouveau script nettoyable n'a pas ete relance sur ce poste,
-  car aucune URL de connexion directe a la base de preview n'y est chargee.
+- Le parcours HTTP nettoyable a ete execute sur la preview isolee le 1er
+  septembre 2026 : 200 creations et 200 rejeux a concurrence 20, p95 creation
+  790 ms apres prechauffage, 400 travaux en file, aucun envoi fournisseur et
+  zero residu apres nettoyage. La preuve detaillee se trouve dans
+  `docs/operations/SUPPORT_HTTP_LOAD_PREVIEW_2026-09-01.md`.
 - Ajouter des seuils d'alerte : age du plus vieux job, nombre de jobs en echec,
   scans bloques, taux d'erreurs API, temps de reponse p95 et taux de rejet Brevo.
 - Les ecrans historiques sont maintenant charges a la demande : l'entree

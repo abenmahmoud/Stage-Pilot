@@ -512,7 +512,18 @@ l'autorisation de quota définie par le propriétaire.
   travail, les références requises et le jeton temporaire sont contrôlés. Un
   message invalide rejoint l’archive PGMQ ; les échecs valides sont retentés
   quatre fois puis isolés au cinquième. Le `job_id` validé reste la clé Brevo.
-  L’interruption d’un worker réel et le p95 HTTP restent à éprouver.
+  L’interruption d’un worker réel reste à éprouver.
+- Lot N5ZL2 : charge HTTP soutenue du guichet. **Validée sur une preview
+  immuable, avec données fictives et sans fournisseur externe** : les fonctions
+  Vercel et la base Supabase de preview sont alignées à Paris ; les dimensions
+  de débit propres à une demande, les preuves de création, le lien appareil, le
+  jeton temporaire et les deux notifications sont regroupés sans retirer leur
+  transaction. Après 20 lectures de préchauffage, 200 créations puis 200 rejeux
+  exacts à concurrence 20 retournent respectivement HTTP 201 et 200. Le p95 est
+  de 790 ms à la création et 852 ms au rejeu ; 200 dossiers et 400 travaux sont
+  présents, aucun envoi fournisseur n’est observé, puis le nettoyage laisse
+  zéro dossier, session orpheline, compteur ou travail isolé. Un passage à froid
+  a dépassé l’objectif et reste un signal d’exploitation à surveiller.
 - Lot N5ZM : navigation clavier du shell agent. **Implémentée et testée par
   contrat local** : lien d’évitement, contenu principal focalisable, navigation
   nommée, menu mobile inerte lorsqu’il est fermé, état annoncé, focus contenu
@@ -520,9 +531,9 @@ l'autorisation de quota définie par le propriétaire.
   lecteur d’écran authentifiée reste nécessaire.
 - Lot N6 : tests de non-régression, build, contrôle mobile et rapport d'écarts.
   **Partiellement validé en preview** : 200 transactions concurrentes sans perte
-  ni reste après nettoyage, 135 contrôles de sécurité, build réussi, PWA active,
+  ni reste après nettoyage, barrière de sécurité complète, build réussi, PWA active,
   Lighthouse accessibilité et navigation agentique à 100, aucun débordement de
-  320 à 1 440 px. Restent le p95 HTTP, la reprise des workers, les écrans agents
+  320 à 1 440 px. Restent la reprise des workers, les écrans agents
   authentifiés au lecteur d'écran et la restauration.
 
 - Lot N5ZG : paquet fictif de restauration chiffré. **Validé localement** : un

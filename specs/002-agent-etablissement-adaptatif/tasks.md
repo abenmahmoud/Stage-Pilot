@@ -734,7 +734,12 @@
   établissement et UUID obligatoires avant lecture ou envoi, quatre nouvelles
   tentatives, cinquième échec isolé, message empoisonné archivé et `job_id`
   conservé comme clé d’idempotence. T047 reste ouverte pour une interruption
-  réelle du worker et la mesure p95 HTTP.
+  réelle du worker.
+- [x] T047C Exécuter sur une preview immuable le parcours HTTP complet avec
+  préchauffage 20, concurrence 20, 200 créations et 200 rejeux exacts : statuts
+  201 puis 200, p95 création 790 ms, p95 rejeu 852 ms, 200 dossiers et 400
+  travaux de notification, aucun envoi fournisseur, puis zéro résidu après
+  nettoyage. T047 reste ouverte uniquement pour l’interruption d’un worker réel.
 - [ ] T048 Vérifier mobile 320 px, ordinateur, clavier, lecteur d'écran et installation PWA.
 - [x] T048A Vérifier le portail de preview à 320, 390, 768 et 1 440 px sans
   débordement ni contrôle hors écran, manifeste et service worker actifs,

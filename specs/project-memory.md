@@ -4088,3 +4088,25 @@ taches et analyse de coherence avant une automatisation sensible.
 - Vingt et un contrôles ciblés, le build et la barrière de sécurité complète
   passent sans création, relance, donnée réelle, base distante ou production.
   Les cinq domaines comptent désormais 509 tâches Spec Kit.
+
+## 2026-09-01 - Charge HTTP soutenue et rejeu idempotent
+
+- T047C valide le parcours HTTP complet sur le déploiement de preview immuable
+  `dpl_DPFPymFiGLx6fD9dXwTb7o2hA2c8`, commit applicatif `a316f67`, fonctions
+  Vercel `cdg1` et base Supabase de preview `eu-west-3`. Aucun service de
+  production, DNS, VPS, ENT, PRONOTE, webmail ou fournisseur d’email n’est touché.
+- La création retire une lecture d’idempotence redondante tout en conservant la
+  contrainte unique comme première décision. Les cinq compteurs propres à la
+  demande, la preuve et le lien appareil, puis le jeton et les deux travaux de
+  notification sont regroupés sans sortir de la transaction.
+- Le client supervisé préchauffe vingt fonctions par des lectures sans écriture,
+  puis exécute 200 créations HTTP 201 et 200 rejeux HTTP 200 à concurrence 20.
+  Le p50/p95/p99/max création est 302/790/839/1 434 ms ; le rejeu est
+  318/852/940/945 ms. Le passage à froid observé à 5 178 ms au p95 ne valide pas
+  l’objectif et reste consigné comme risque de démarrage à froid et de saturation.
+- La base contient exactement 200 dossiers, contacts, messages, jetons, sessions
+  et liaisons, ainsi que 400 travaux, avant nettoyage. Aucun succès fournisseur
+  ni travail archivé n’est présent. Après nettoyage ciblé : zéro dossier, session
+  orpheline, compteur synthétique, travail en file ou travail archivé isolé.
+- T047 reste ouverte uniquement pour une interruption réelle du worker. Les cinq
+  domaines comptent désormais 510 tâches Spec Kit.

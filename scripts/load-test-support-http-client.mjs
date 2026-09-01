@@ -209,11 +209,17 @@ async function postFixture(fixture, cookies, expectedDuplicate, expectedCode = n
 
 const startedAt = new Date().toISOString();
 const previewCookies = await bootstrapPreviewCookies(shareUrl);
-const warmup = await fetch(endpoint, {
-  headers: { accept: "application/json", cookie: cookieHeader(previewCookies) },
-});
-invariant(warmup.ok, `Preview API warmup failed with HTTP ${warmup.status}`);
-await readJsonResponse(warmup);
+await mapConcurrent(
+  Array.from({ length: concurrency }, (_, index) => index),
+  concurrency,
+  async () => {
+    const warmup = await fetch(endpoint, {
+      headers: { accept: "application/json", cookie: cookieHeader(previewCookies) },
+    });
+    invariant(warmup.ok, `Preview API warmup failed with HTTP ${warmup.status}`);
+    await readJsonResponse(warmup);
+  }
+);
 
 const creations = await mapConcurrent(fixtures, concurrency, (fixture) =>
   postFixture(fixture, new Map(previewCookies), false));
@@ -234,6 +240,7 @@ const metrics = {
   finishedAt: new Date().toISOString(),
   count,
   concurrency,
+  warmupRequests: concurrency,
   httpResponses: count * 2,
   creation: {
     p50Ms: percentile(creationLatencies, 50),
