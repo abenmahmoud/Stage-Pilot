@@ -43,7 +43,6 @@ import {
   enforceSupportRequestNetworkGuard,
   recordInvalidSupportRequest,
   supportDeviceRateKey,
-  supportRequestNetworkRateKey,
 } from "../../_shared/support-rate-limits.js";
 import { requireConfiguredInstitution } from "../../_shared/institution-context.js";
 import { SUPPORT_PUBLIC_LIST_LIMITS } from "../../../shared/support-public-list-payload-policy.js";
@@ -87,16 +86,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method === "POST") {
     return handleApi(res, async () => {
       const deviceKey = supportDeviceRateKey(req);
-      const networkKey = supportRequestNetworkRateKey(req);
+      await enforceSupportRequestNetworkGuard(req);
       let input;
       try {
         input = parseSupportRequest(req.body);
       } catch (error) {
-        await enforceSupportRequestNetworkGuard(req);
         await recordInvalidSupportRequest(deviceKey);
         throw error;
       }
-      await enforceSupportRequestCreationLimits({ parsed: input, deviceKey, networkKey });
+      await enforceSupportRequestCreationLimits({ parsed: input, deviceKey });
       const institution = await requireConfiguredInstitution();
       const routingReviewEnabled = supportAssistantRoutingReviewEnabled();
       const createRequestActionEnabled = supportAgentCreateRequestActionEnabled();

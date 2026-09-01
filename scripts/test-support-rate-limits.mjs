@@ -81,14 +81,11 @@ test("never stores clear device, contact, account or network identifiers", () =>
 });
 
 test("counts request traffic, invalid forms and repeated behavior independently", () => {
-  const catchIndex = requestRoute.indexOf("catch (error)");
-  const invalidNetworkIndex = requestRoute.indexOf("enforceSupportRequestNetworkGuard(req)", catchIndex);
-  const invalidDeviceIndex = requestRoute.indexOf("recordInvalidSupportRequest(deviceKey)", catchIndex);
-  assert.ok(catchIndex >= 0 && invalidNetworkIndex > catchIndex && invalidDeviceIndex > invalidNetworkIndex);
-  assert.match(requestRoute, /supportRequestNetworkRateKey\(req\)/);
+  const networkIndex = requestRoute.indexOf("enforceSupportRequestNetworkGuard(req)");
+  const parseIndex = requestRoute.indexOf("parseSupportRequest(req.body)");
+  assert.ok(networkIndex >= 0 && networkIndex < parseIndex);
   assert.match(requestRoute, /recordInvalidSupportRequest\(deviceKey\)/);
-  assert.match(requestRoute, /enforceSupportRequestCreationLimits\(\{ parsed: input, deviceKey, networkKey \}\)/);
-  assert.match(sharedLimits, /requestNetworkGuard/);
+  assert.match(requestRoute, /enforceSupportRequestCreationLimits/);
   assert.match(sharedLimits, /requestDeviceBurst/);
   assert.match(sharedLimits, /requestContactBurst/);
   assert.match(sharedLimits, /requestRepeatedBehavior/);

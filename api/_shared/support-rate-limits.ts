@@ -52,12 +52,8 @@ export async function enforceAssistantRateLimits(
 }
 
 export async function enforceSupportRequestNetworkGuard(req: VercelRequest): Promise<void> {
-  const networkKey = supportRequestNetworkRateKey(req);
+  const networkKey = requestIpHash(req);
   if (networkKey) await enforce(SUPPORT_RATE_LIMIT_POLICIES.requestNetworkGuard, networkKey);
-}
-
-export function supportRequestNetworkRateKey(req: VercelRequest): string | null {
-  return requestIpHash(req);
 }
 
 export async function enforceMagicTokenNetworkGuard(req: VercelRequest): Promise<void> {
@@ -95,16 +91,9 @@ function repeatedRequestKey(
 export async function enforceSupportRequestCreationLimits(input: {
   parsed: SupportRequestInput;
   deviceKey: string | null;
-  networkKey: string | null;
 }): Promise<void> {
   const contacts = contactRateKeys(input.parsed);
   const attempts: SupportRateLimitAttempt[] = [];
-  if (input.networkKey) {
-    attempts.push({
-      ...SUPPORT_RATE_LIMIT_POLICIES.requestNetworkGuard,
-      keyHash: input.networkKey,
-    });
-  }
   if (input.deviceKey) {
     attempts.push(
       { ...SUPPORT_RATE_LIMIT_POLICIES.requestDeviceBurst, keyHash: input.deviceKey },
