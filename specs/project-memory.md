@@ -4541,3 +4541,16 @@ taches et analyse de coherence avant une automatisation sensible.
   contrôle. Neuf tests ciblés, le build et l'intégrité Spec Kit passent.
 - Les cinq domaines comptent désormais 538 tâches Spec Kit : 439 terminées et
   99 ouvertes.
+
+### Jalon du 1er septembre 2026 - destinataires cloisonnés par construction
+
+- Le test de masse du client de communication inspecte maintenant chaque appel
+  de deux cents livraisons fictives au lieu de vérifier uniquement le résultat.
+- Chaque appel transporte un seul jeton, une seule référence opaque unique et
+  aucun champ d'adresse, copie, destinataire, audience ou liste de contacts.
+- Les résultats restent eux aussi sans référence de contact. Aucun Webmail,
+  fournisseur email, donnée réelle ou endpoint distant n'est utilisé.
+- T027H de la spécification 005 est terminée. La preuve réseau entre LyceeGest et
+  l'application Webmail séparée reste nécessaire avant de fermer T027.
+- Les cinq domaines comptent désormais 539 tâches Spec Kit : 440 terminées et
+  99 ouvertes.

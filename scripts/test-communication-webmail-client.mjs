@@ -299,11 +299,31 @@ test("processes 200 deliveries with bounded concurrency and stable ordering", as
   let active = 0;
   let peak = 0;
   const baseTransport = acceptingTransport();
+  const seenContactRefs = new Set();
+  const forbiddenRecipientFields = new Set([
+    "to", "cc", "bcc", "email", "emails", "address", "addresses",
+    "recipient", "recipients", "audience", "members", "contacts",
+  ]);
   const transport = async (input) => {
     active += 1;
     peak = Math.max(peak, active);
     await new Promise((resolve) => setTimeout(resolve, 1));
     try {
+      assert.deepEqual(Object.keys(input).sort(), ["commandToken", "signal"]);
+      const command = verifyCommunicationWebmailDeliveryToken({
+        token: input.commandToken,
+        institutionId,
+        secret: deliverySecret,
+        now,
+      });
+      assert.ok(command);
+      const commandFields = Object.keys(command).map((field) => field.toLowerCase());
+      assert.equal(commandFields.some((field) => forbiddenRecipientFields.has(field)), false);
+      const serializedCommand = JSON.stringify(command);
+      assert.equal(serializedCommand.includes("@"), false);
+      assert.equal(serializedCommand.includes("mailto:"), false);
+      assert.equal(seenContactRefs.has(command.contactRef), false);
+      seenContactRefs.add(command.contactRef);
       return await baseTransport(input);
     } finally {
       active -= 1;
@@ -318,7 +338,14 @@ test("processes 200 deliveries with bounded concurrency and stable ordering", as
   assert.equal(results.length, 200);
   assert.equal(results.every((result) => result.ok), true);
   assert.equal(peak <= 10, true);
+  assert.equal(seenContactRefs.size, 200);
   assert.equal(new Set(results.map((result) => result.decision.providerMessageRef)).size, 200);
+  for (const result of results) {
+    const serializedResult = JSON.stringify(result).toLowerCase();
+    for (const field of forbiddenRecipientFields) {
+      assert.equal(serializedResult.includes(`\"${field}\"`), false);
+    }
+  }
 });
 
 test("rejects unsafe batch and worker bounds", async () => {

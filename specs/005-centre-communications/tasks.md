@@ -341,6 +341,11 @@
   HTTP rejetée avant de rendre une erreur fermée. Onze tests couvrent le contrat
   sans conserver ni épuiser un corps fournisseur. T027 reste ouvert pour la
   recette réseau fictive autorisée.
+- [x] T027H Vérifier sur 200 livraisons fictives que chaque appel transporte un
+  seul jeton de commande, une seule référence opaque unique et aucun champ
+  d'adresse, destinataire, copie, audience ou liste de contacts. Les résultats
+  ne restituent aucune référence de contact. T027 reste ouvert pour la preuve
+  réseau entre LyceeGest et l'application Webmail séparée.
 - [x] T028 Tester rôles, MFA, contenus internes et API publique.
 - [x] T028A Exiger `aal2` sur toutes les routes privées du centre et vérifier
   les rôles bornés, le cloisonnement établissement, la fermeture du module et

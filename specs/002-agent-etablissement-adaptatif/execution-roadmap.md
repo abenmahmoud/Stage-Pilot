@@ -957,6 +957,14 @@ l'autorisation de quota définie par le propriétaire.
   Le contrat de lecture est strict et la sous-catégorie reste bornée. T035A1 de
   la spécification 001 est terminée.
 
+- Lot N5ZZZ9 : isolation des destinataires de communication. **Fermé sans appel
+  Webmail, Brevo ni donnée réelle** : deux cents livraisons fictives traversent
+  le client par des appels individuels contenant un seul jeton et une référence
+  opaque unique. Aucun champ d'adresse, copie, audience ou liste de contacts ne
+  traverse la frontière et aucun résultat ne restitue un contact. T027H de la
+  spécification 005 est terminée ; la recette réseau interapplications reste
+  séparément bloquée.
+
 ## Prochaine séquence verrouillée
 
 1. Conserver `BC-2026-000009` comme preuve fictive de recette jusqu'à la décision
