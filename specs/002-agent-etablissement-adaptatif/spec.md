@@ -239,6 +239,14 @@ leur date, leur responsable et leur état de validité.
   d'aide sans identité scolaire. Ce droit n'autorise aucune consultation de
   données privées. Les demandes I0-I2 et formulaires vierges ne deviennent pas
   toutes des demandes I3. Le contrôle des données personnelles reste obligatoire.
+- Le périmètre d'emploi du temps repose sur une seule identité scolaire active
+  et sa fiche encore valide dans la même version officielle de l'annuaire. Une
+  identité ambiguë ou une fiche absente, périmée ou incohérente ne donne aucun
+  droit. La consultation d'un enfant exige en plus une relation `guardian_of`
+  active et datée, ainsi qu'une fiche élève valide. Les vérifications utilisent
+  une même lecture cohérente ; aucune fusion de versions ou de références n'est
+  permise. Ce contrôle ne lie pas encore le suivi d'un dossier à cette identité
+  et n'autorise pas, à lui seul, la remise d'un document personnel.
 
 - 95 % des demandes confirmées possèdent un accusé de réception et un numéro de suivi.
 - 90 % des demandes courantes sont dirigées vers le bon service après correction éventuelle.

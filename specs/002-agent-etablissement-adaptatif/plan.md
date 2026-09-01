@@ -217,6 +217,20 @@ trafic de l'assistant, pas des euros ni tous les usages IA de l'application.
 La limite monétaire, les nouveaux anonymes et le réglage d'exploitation restent
 des suites distinctes avant ouverture élargie.
 
+Le lecteur de périmètre d'emploi du temps utilise une transaction en lecture
+seule à isolation `repeatable read`. L'identité unique, sa fiche, le lien éventuel
+vers l'enfant et les groupes proviennent de la même version active. Les fiches
+doivent être valides aux dates courantes et cohérentes avec le type d'identité.
+Un enseignant reçoit seulement sa propre référence personnel ; une cible tierce
+doit être un élève lié. Les références d'emploi du temps doivent déjà avoir le
+format canonique attendu : aucune conversion de casse ne donne un droit implicite.
+Les groupes sont lus avec une ligne de dépassement et refusés au-delà de quarante,
+sans autorisation partielle silencieuse. Les dates restent évaluées selon le jour
+UTC déjà utilisé par ce lecteur ; ce lot ne change pas le calendrier du produit.
+Le périmètre reste interne au serveur. Le suivi par appareil ou lien email ne
+reçoit aucune autorité scolaire nouvelle. La liaison avec le bénéficiaire du
+dossier et la classification de chaque contenu sortant restent à construire.
+
 - Tests unitaires des règles et schémas de sortie.
 - Tests de chaque scénario positif, ambigu, interdit et expiré de chaque compétence.
 - Tests d'autorisation croisée élève/parent/personnel/service/établissement.

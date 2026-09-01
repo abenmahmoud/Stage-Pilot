@@ -889,6 +889,13 @@
   restent dans T049C, sans montant décidé automatiquement.
   Neuf tests locaux, 200 appels dans un stockage simulé et recette PostgreSQL
   annulée passent. La charge réseau réelle et le budget restent ouverts.
+- [x] T049C5 Vérifier complètement le périmètre d'emploi du temps avant lecture :
+  identité unique, assurance, fiche actuelle de la bonne version, relation
+  parent-enfant active et fiche élève, sans conversion de référence ni fusion
+  de personnes. Seize scénarios exécutent le vrai lecteur avec dépendances
+  fictives ; trente contrôles SQL sur CTE fictives passent en preview. La
+  sélection publique d'enfant, la liaison identité-vers-dossier, la remise de
+  documents personnels et la contre-revue externe restent ouvertes.
 - [ ] T050 Ouvrir un pilote limité avec agents nommés et canal de retour.
 - [ ] T051 Mesurer deux semaines : classement, délai, transferts, corrections, coût et incidents.
 - [ ] T052 Corriger les écarts puis exécuter `/speckit.analyze` et `/speckit.converge` avant généralisation.

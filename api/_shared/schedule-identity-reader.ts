@@ -16,11 +16,49 @@ import {
 } from "./schedule-reader.js";
 
 const PERSON_REF = /^[A-Za-z0-9][A-Za-z0-9._:-]{2,119}$/;
+const SCHEDULE_REF = /^[A-Z0-9][A-Z0-9._:-]{1,79}$/;
+const MAX_GROUPS = 40;
+const IDENTITY_REQUIRED = "Une identité scolaire et des droits à jour sont nécessaires.";
 
 function trustedPersonRef(value: string): string {
-  const ref = value.normalize("NFKC").trim();
-  if (!PERSON_REF.test(ref)) throw new HttpError(400, "La personne demandée est invalide.");
-  return ref;
+  if (typeof value !== "string" || !PERSON_REF.test(value) || value.trim() !== value) {
+    throw new HttpError(400, "La personne demandée est invalide.");
+  }
+  return value;
+}
+
+function scheduleRef(value: unknown): string {
+  // Do not silently map a directory reference onto a different schedule ID.
+  if (typeof value !== "string" || !SCHEDULE_REF.test(value) || value.trim() !== value) {
+    throw new HttpError(403, IDENTITY_REQUIRED);
+  }
+  return value;
+}
+
+async function readCurrentPerson(
+  reader: Pick<typeof db, "select">,
+  scope: { institutionId: string; importId: string; personRef: string; today: string }
+) {
+  const rows = await reader
+    .select({ personType: identityDirectoryRows.personType, classRef: identityDirectoryRows.classRef })
+    .from(identityDirectoryRows)
+    .innerJoin(identityDirectoryImports, and(
+      eq(identityDirectoryImports.id, identityDirectoryRows.importId),
+      eq(identityDirectoryImports.institutionId, identityDirectoryRows.institutionId)
+    ))
+    .where(and(
+      eq(identityDirectoryRows.institutionId, scope.institutionId),
+      eq(identityDirectoryRows.importId, scope.importId),
+      eq(identityDirectoryRows.recordType, "person"),
+      eq(identityDirectoryRows.personRef, scope.personRef),
+      eq(identityDirectoryRows.validationStatus, "valid"),
+      lte(identityDirectoryRows.validFrom, scope.today),
+      or(isNull(identityDirectoryRows.validUntil), gte(identityDirectoryRows.validUntil, scope.today)),
+      eq(identityDirectoryImports.status, "active")
+    ))
+    .limit(2);
+  if (rows.length !== 1) throw new HttpError(403, IDENTITY_REQUIRED);
+  return rows[0];
 }
 
 export async function resolveVerifiedScheduleScope(
@@ -29,75 +67,91 @@ export async function resolveVerifiedScheduleScope(
 ): Promise<TrustedScheduleScope> {
   const user = await requireUser(req);
   const institution = await requireConfiguredInstitution();
-  const today = new Date().toISOString().slice(0, 10);
+  const now = new Date();
+  const today = now.toISOString().slice(0, 10);
+  const requestedRef = targetPersonRef === undefined ? undefined : trustedPersonRef(targetPersonRef);
 
-  const [identity] = await db
-    .select({
-      id: schoolIdentities.id,
-      personType: schoolIdentities.personType,
-      officialPersonRef: schoolIdentities.officialPersonRef,
-    })
-    .from(schoolIdentities)
-    .innerJoin(identityDirectoryImports, and(
-      eq(identityDirectoryImports.id, schoolIdentities.sourceImportId),
-      eq(identityDirectoryImports.institutionId, schoolIdentities.institutionId)
-    ))
-    .where(and(
-      eq(schoolIdentities.institutionId, institution.id),
-      eq(schoolIdentities.userId, user.id),
-      isNull(schoolIdentities.revokedAt),
-      eq(identityDirectoryImports.status, "active")
-    ))
-    .limit(1);
-  if (!identity) {
-    throw new HttpError(403, "Une identité scolaire confirmée est nécessaire.");
-  }
-
-  const ownRef = trustedPersonRef(identity.officialPersonRef);
-  const targetRef = targetPersonRef ? trustedPersonRef(targetPersonRef) : ownRef;
-  if (targetRef !== ownRef) {
-    const [relationship] = await db
-      .select({ id: schoolRelationships.id })
-      .from(schoolRelationships)
+  return db.transaction(async (tx): Promise<TrustedScheduleScope> => {
+    const identities = await tx
+      .select({
+        id: schoolIdentities.id,
+        sourceImportId: schoolIdentities.sourceImportId,
+        personType: schoolIdentities.personType,
+        officialPersonRef: schoolIdentities.officialPersonRef,
+        assuranceLevel: schoolIdentities.assuranceLevel,
+        verifiedBy: schoolIdentities.verifiedBy,
+        verifiedAt: schoolIdentities.verifiedAt,
+      })
+      .from(schoolIdentities)
       .innerJoin(identityDirectoryImports, and(
-        eq(identityDirectoryImports.id, schoolRelationships.sourceImportId),
-        eq(identityDirectoryImports.institutionId, schoolRelationships.institutionId)
+        eq(identityDirectoryImports.id, schoolIdentities.sourceImportId),
+        eq(identityDirectoryImports.institutionId, schoolIdentities.institutionId)
       ))
       .where(and(
-        eq(schoolRelationships.institutionId, institution.id),
-        eq(schoolRelationships.subjectIdentityId, identity.id),
-        eq(schoolRelationships.objectPersonRef, targetRef),
-        eq(schoolRelationships.relationshipType, "guardian_of"),
-        eq(schoolRelationships.status, "active"),
-        lte(schoolRelationships.validFrom, today),
-        or(isNull(schoolRelationships.validUntil), gte(schoolRelationships.validUntil, today)),
+        eq(schoolIdentities.institutionId, institution.id),
+        eq(schoolIdentities.userId, user.id),
+        isNull(schoolIdentities.revokedAt),
         eq(identityDirectoryImports.status, "active")
       ))
-      .limit(1);
-    if (!relationship) {
-      throw new HttpError(403, "Cette personne n'est pas liée à votre identité scolaire.");
+      .limit(2);
+    const identity = identities[0];
+    if (
+      identities.length !== 1
+      || !["directory_matched", "official_sso"].includes(identity.assuranceLevel)
+      || (identity.assuranceLevel === "directory_matched" && !identity.verifiedBy)
+      || !identity.verifiedAt
+      || !Number.isFinite(identity.verifiedAt.getTime())
+      || identity.verifiedAt > now
+      || !["student", "guardian", "staff"].includes(identity.personType)
+      || !PERSON_REF.test(identity.officialPersonRef)
+      || identity.officialPersonRef.trim() !== identity.officialPersonRef
+    ) {
+      throw new HttpError(403, IDENTITY_REQUIRED);
     }
-  }
 
-  const [personRows, memberships] = await Promise.all([
-    db
-      .select({ classRef: identityDirectoryRows.classRef })
-      .from(identityDirectoryRows)
-      .innerJoin(identityDirectoryImports, and(
-        eq(identityDirectoryImports.id, identityDirectoryRows.importId),
-        eq(identityDirectoryImports.institutionId, identityDirectoryRows.institutionId)
-      ))
-      .where(and(
-        eq(identityDirectoryRows.institutionId, institution.id),
-        eq(identityDirectoryRows.recordType, "person"),
-        eq(identityDirectoryRows.personRef, targetRef),
-        eq(identityDirectoryRows.validationStatus, "valid"),
-        lte(identityDirectoryRows.validFrom, today),
-        or(isNull(identityDirectoryRows.validUntil), gte(identityDirectoryRows.validUntil, today)),
-        eq(identityDirectoryImports.status, "active")
-      ))
-      .limit(2),
-    db
+    const ownRef = identity.officialPersonRef;
+    const targetRef = requestedRef ?? ownRef;
+    const directoryScope = { institutionId: institution.id, importId: identity.sourceImportId, today };
+    const ownPerson = await readCurrentPerson(tx, { ...directoryScope, personRef: ownRef });
+    if (ownPerson.personType !== identity.personType) throw new HttpError(403, IDENTITY_REQUIRED);
+    let targetPerson = ownPerson;
+    if (targetRef !== ownRef) {
+      const [relationship] = await tx
+        .select({ id: schoolRelationships.id })
+        .from(schoolRelationships)
+        .innerJoin(identityDirectoryImports, and(
+          eq(identityDirectoryImports.id, schoolRelationships.sourceImportId),
+          eq(identityDirectoryImports.institutionId, schoolRelationships.institutionId)
+        ))
+        .where(and(
+          eq(schoolRelationships.institutionId, institution.id),
+          eq(schoolRelationships.sourceImportId, identity.sourceImportId),
+          eq(schoolRelationships.subjectIdentityId, identity.id),
+          eq(schoolRelationships.objectPersonRef, targetRef),
+          eq(schoolRelationships.relationshipType, "guardian_of"),
+          eq(schoolRelationships.status, "active"),
+          lte(schoolRelationships.validFrom, today),
+          or(isNull(schoolRelationships.validUntil), gte(schoolRelationships.validUntil, today)),
+          eq(identityDirectoryImports.status, "active")
+        ))
+        .limit(1);
+      if (!relationship) {
+        throw new HttpError(403, IDENTITY_REQUIRED);
+      }
+      targetPerson = await readCurrentPerson(tx, { ...directoryScope, personRef: targetRef });
+      if (targetPerson.personType !== "student") throw new HttpError(403, IDENTITY_REQUIRED);
+    }
+
+    const isOwnStaffSchedule = targetRef === ownRef && identity.personType === "staff";
+    if (isOwnStaffSchedule) {
+      return {
+        institutionId: institution.id, identityLevel: "I3",
+        authorizedClassRefs: [], authorizedGroupRefs: [], authorizedTeacherRefs: [scheduleRef(ownRef)],
+      };
+    }
+    if (targetPerson.personType !== "student") throw new HttpError(403, IDENTITY_REQUIRED);
+
+    const memberships = await tx
       .select({ objectRef: identityDirectoryRows.objectRef })
       .from(identityDirectoryRows)
       .innerJoin(identityDirectoryImports, and(
@@ -106,6 +160,7 @@ export async function resolveVerifiedScheduleScope(
       ))
       .where(and(
         eq(identityDirectoryRows.institutionId, institution.id),
+        eq(identityDirectoryRows.importId, identity.sourceImportId),
         eq(identityDirectoryRows.recordType, "relationship"),
         eq(identityDirectoryRows.subjectPersonRef, targetRef),
         eq(identityDirectoryRows.relationshipType, "member_of"),
@@ -114,22 +169,17 @@ export async function resolveVerifiedScheduleScope(
         or(isNull(identityDirectoryRows.validUntil), gte(identityDirectoryRows.validUntil, today)),
         eq(identityDirectoryImports.status, "active")
       ))
-      .limit(40),
-  ]);
+      .limit(MAX_GROUPS + 1);
+    if (memberships.length > MAX_GROUPS) throw new HttpError(403, IDENTITY_REQUIRED);
 
-  const isOwnStaffSchedule = targetRef === ownRef && identity.personType === "staff";
-
-  return {
-    institutionId: institution.id,
-    identityLevel: "I3",
-    authorizedClassRefs: isOwnStaffSchedule
-      ? []
-      : personRows.flatMap((row) => row.classRef ? [row.classRef] : []),
-    authorizedGroupRefs: isOwnStaffSchedule
-      ? []
-      : memberships.flatMap((row) => row.objectRef ? [row.objectRef] : []),
-    authorizedTeacherRefs: isOwnStaffSchedule ? [ownRef] : [],
-  };
+    return {
+      institutionId: institution.id,
+      identityLevel: "I3",
+      authorizedClassRefs: targetPerson.classRef ? [scheduleRef(targetPerson.classRef)] : [],
+      authorizedGroupRefs: [...new Set(memberships.map((row) => scheduleRef(row.objectRef)))],
+      authorizedTeacherRefs: [],
+    };
+  }, { isolationLevel: "repeatable read", accessMode: "read only" });
 }
 
 export async function readNextCourseForVerifiedIdentity(input: {

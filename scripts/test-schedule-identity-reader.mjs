@@ -26,17 +26,17 @@ test("allows a third-party target only through an active dated relationship", ()
 });
 
 test("derives only valid current class and group references", () => {
-  const institutionFilters = reader.match(/eq\(identityDirectoryRows\.institutionId, institution\.id\)/g) ?? [];
+  const institutionFilters = reader.match(/eq\(identityDirectoryRows\.institutionId, (?:institution\.id|scope\.institutionId)\)/g) ?? [];
   assert.equal(institutionFilters.length, 2);
   assert.match(reader, /eq\(identityDirectoryRows\.validationStatus, "valid"\)/);
   assert.match(reader, /eq\(identityDirectoryRows\.relationshipType, "member_of"\)/);
-  assert.match(reader, /\.limit\(40\)/);
+  assert.match(reader, /\.limit\(MAX_GROUPS \+ 1\)/);
+  assert.match(reader, /memberships\.length > MAX_GROUPS/);
 });
 
 test("keeps teacher scope on the verified staff identity and calls the private reader", () => {
   assert.match(reader, /const isOwnStaffSchedule = targetRef === ownRef && identity\.personType === "staff"/);
-  assert.match(reader, /authorizedClassRefs: isOwnStaffSchedule[\s\S]{0,80}\? \[\]/);
-  assert.match(reader, /authorizedGroupRefs: isOwnStaffSchedule[\s\S]{0,80}\? \[\]/);
-  assert.match(reader, /authorizedTeacherRefs: isOwnStaffSchedule \? \[ownRef\] : \[\]/);
+  assert.match(reader, /if \(isOwnStaffSchedule\)[\s\S]{0,250}authorizedClassRefs: \[\], authorizedGroupRefs: \[\]/);
+  assert.match(reader, /authorizedTeacherRefs: \[scheduleRef\(ownRef\)\]/);
   assert.match(reader, /readNextCourseFromPrivateSchedule/);
 });

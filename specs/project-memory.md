@@ -4985,3 +4985,31 @@ taches et analyse de coherence avant une automatisation sensible.
 - Compilation, barrière de sécurité, treize tests de provenance, quatre contrats
   responsive et intégrité Spec Kit passent : 91 migrations, 556 tâches,
   454 terminées et 102 ouvertes, sans pourcentage opérationnel annoncé.
+
+### Jalon du 1er septembre 2026 - périmètre d'identité des emplois du temps
+
+- Le lecteur existant exige une identité unique, une assurance valide et une
+  fiche courante de la même version active. Le parent et l'enfant doivent avoir
+  chacun leur fiche valide ; seule une relation `guardian_of` active et datée
+  permet la cible élève, jamais une cible personnel tierce.
+- Lecture cohérente en transaction sans écriture, références exactes sans
+  conversion, groupes bornés sans troncature. Les deux enfants fictifs restent
+  séparés ; un personnel reçoit seulement son propre périmètre enseignant.
+- Seize tests exécutent le vrai module avec Auth et stockage simulés. Neuf
+  groupes de scénarios échouaient avant correction. Quatre contrats historiques
+  restent verts ; les nouveaux tests rejoignent la barrière de sécurité.
+- Trente contrôles des cinq requêtes SQL réelles passent sur CTE fictives dans
+  la preview, sans lire les tables physiques ni créer aucune ligne. Cette preuve
+  vérifie syntaxe et prédicats, pas Auth, RLS ou charge réels. Aucune migration.
+- T049C5 terminée, T049C et T042D2D ouvertes. La liaison identité-dossier et la
+  classification des réponses/documents avant remise restent nécessaires. Ne pas
+  présenter le contrôle d'emploi du temps comme une autorisation documentaire.
+- Contre-revue Fable 5.1 demandée séparément, un passage en lecture seule,
+  plafond de 2 USD. Le propriétaire demande ensuite d'attendre au moins deux
+  heures faute de quota Claude ; aucun appel ni lancement automatique. L'accord
+  de cette mission sera reconfirmé à la reprise. Aucun coût externe.
+- Rapport `docs/security/SCHOOL_SCHEDULE_SCOPE_PREVIEW_2026-09-01.md`. Aucun
+  changement de production, données réelles, compte ou notification.
+- Compilation, barrière de sécurité, six tests de l'assistant, quatre contrats
+  responsive et intégrité Spec Kit passent : 557 tâches, 455 terminées et
+  102 ouvertes. Ces comptes ne donnent pas un taux de disponibilité.

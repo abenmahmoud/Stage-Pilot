@@ -1036,6 +1036,19 @@ automatiquement. Rapport :
 3. Faire nommer les responsables et valider les premières sources et procédures
    avant toute compétence active contenant des informations réelles.
 
+Suite T049C5 : le périmètre d'emploi du temps refuse désormais les identités
+ambiguës, fiches absentes ou périmées, personnes de type incohérent et références
+non canoniques. La relation parent-enfant et les fiches sont contrôlées dans une
+lecture cohérente de la même version active. Seize tests dynamiques et trente
+contrôles des requêtes réelles sur CTE fictives passent. Aucune table, personne
+ou donnée d'emploi du temps réelle n'est lue ou modifiée par cette recette.
+Ce lot ne ferme ni T049C ni le sélecteur T042D2D : il ne raccorde pas encore
+l'identité scolaire au suivi d'un dossier ou à la remise d'un document personnel.
+Une contre-revue Fable 5.1, un passage en lecture seule, plafond de 2 USD, a été
+demandée séparément. Le propriétaire demande ensuite d'attendre au moins deux
+heures faute de quota Claude ; aucun lancement automatique n'est prévu. Rapport :
+`docs/security/SCHOOL_SCHEDULE_SCOPE_PREVIEW_2026-09-01.md`.
+
 ## Portes de validation humaine
 
 - Import de listes, emplois du temps ou pièces réelles.
