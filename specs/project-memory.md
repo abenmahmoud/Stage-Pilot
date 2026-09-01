@@ -5,6 +5,21 @@
 **Depot** : `abenmahmoud/Stage-Pilot`
 **Dernier jalon de code verifie** : branche de preview Vercel
 
+## Jalon du 1er septembre 2026 - restauration locale isolée
+
+- Le paquet chiffré DB + Storage fictif peut désormais être restauré dans un
+  parent local explicite, sans accès réseau ni donnée réelle. Le paquet complet
+  est authentifié avant la première écriture.
+- Une cible existante est refusée. Un verrou exclusif, un répertoire temporaire
+  aléatoire, les créations `wx`, la relecture taille + SHA-256 et le renommage
+  final empêchent écrasement, résultat partiel et collision entre catégories.
+- Un échec ne peut nettoyer que le répertoire temporaire directement détenu ;
+  le reçu réussi reste agrégé et ne révèle ni chemin ni contenu restauré.
+- `001/T031B` est terminée. `001/T031` reste ouverte pour la sauvegarde
+  programmée d'une preview autorisée et la restauration du paquet produit.
+- Les cinq domaines comptent désormais 526 tâches Spec Kit : 424 terminées et
+  102 ouvertes.
+
 ## Jalon du 1er septembre 2026 - recette responsive des communications
 
 - Une fixture locale temporaire a rendu l'écran direction avec deux
@@ -15,8 +30,8 @@
 - Axe a d'abord trouvé trois textes d'étape trop pâles. Leur contraste est
   corrigé puis les passes finales WCAG A/AA retournent zéro violation et zéro
   résultat incomplet, sans erreur console.
-- T031B est terminée. T031 reste ouverte pour une session de preview autorisée
-  et un lecteur d'écran humain.
+- `005/T031B` est terminée. `005/T031` reste ouverte pour une session de preview
+  autorisée et un lecteur d'écran humain.
 - Les cinq domaines comptent désormais 525 tâches Spec Kit : 423 terminées et
   102 ouvertes.
 

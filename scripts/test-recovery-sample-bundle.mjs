@@ -1,7 +1,11 @@
 import assert from "node:assert/strict";
-import { randomBytes } from "node:crypto";
+import { createHash, randomBytes } from "node:crypto";
+import { mkdtemp, readFile, readdir, rm } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import {
   createRecoverySampleBundle,
+  restoreRecoverySampleBundleToDirectory,
   verifyRecoverySampleBundle,
 } from "../workers/recovery-sample-bundle.mjs";
 
@@ -178,6 +182,26 @@ assert.throws(
     institutionId,
     backupId,
     createdAt,
+    artifacts: [artifacts[0], { ...artifacts[1], sourcePath: "support-clean/document.pdf:secret" }],
+    config,
+  }),
+  /source_path_invalid/
+);
+assert.throws(
+  () => createRecoverySampleBundle({
+    institutionId,
+    backupId,
+    createdAt,
+    artifacts: [artifacts[0], { ...artifacts[1], sourcePath: "support-clean/NUL.pdf" }],
+    config,
+  }),
+  /source_path_invalid/
+);
+assert.throws(
+  () => createRecoverySampleBundle({
+    institutionId,
+    backupId,
+    createdAt,
     artifacts: [artifacts[0], { ...artifacts[0], sourcePath: "database/second.dump" }],
     config,
   }),
@@ -204,4 +228,108 @@ assert.throws(
   /key_invalid/
 );
 
-console.log("recovery sample bundle: 28/28 checks passed");
+const restoreParent = await mkdtemp(join(tmpdir(), "lyceegest-recovery-test-"));
+try {
+  const restoreName = "restore-safe-fixture";
+  const receipt = await restoreRecoverySampleBundleToDirectory({
+    bundle,
+    expectedInstitutionId: institutionId,
+    expectedBackupId: backupId,
+    config,
+    parentDirectory: restoreParent,
+    restoreName,
+  });
+  const expectedAggregate = createHash("sha256")
+    .update(
+      `database\0${artifacts[0].sourcePath}\0${createHash("sha256").update(databaseBytes).digest("hex")}\0${databaseBytes.length}\n`,
+      "utf8"
+    )
+    .update(
+      `storage\0${artifacts[1].sourcePath}\0${createHash("sha256").update(storageBytes).digest("hex")}\0${storageBytes.length}\n`,
+      "utf8"
+    )
+    .digest("hex");
+
+  assert.equal(receipt.artifactCount, 2);
+  assert.equal(receipt.databaseArtifactCount, 1);
+  assert.equal(receipt.storageArtifactCount, 1);
+  assert.equal(receipt.totalBytes, databaseBytes.length + storageBytes.length);
+  assert.equal(receipt.aggregateSha256, expectedAggregate);
+  assert.doesNotMatch(JSON.stringify(receipt), /support-fixture|support-clean|Document strictement fictif/);
+  assert.deepEqual(
+    await readFile(join(
+      restoreParent,
+      restoreName,
+      "database",
+      "database",
+      "support-fixture.dump"
+    )),
+    databaseBytes
+  );
+  assert.deepEqual(
+    await readFile(join(
+      restoreParent,
+      restoreName,
+      "storage",
+      "support-clean",
+      "fixture",
+      "document-test.pdf"
+    )),
+    storageBytes
+  );
+
+  await assert.rejects(
+    restoreRecoverySampleBundleToDirectory({
+      bundle,
+      expectedInstitutionId: institutionId,
+      expectedBackupId: backupId,
+      config,
+      parentDirectory: restoreParent,
+      restoreName,
+    }),
+    /restore_target_exists/
+  );
+  assert.deepEqual(
+    await readFile(join(
+      restoreParent,
+      restoreName,
+      "database",
+      "database",
+      "support-fixture.dump"
+    )),
+    databaseBytes,
+    "an existing restore must never be overwritten"
+  );
+
+  await assert.rejects(
+    restoreRecoverySampleBundleToDirectory({
+      bundle,
+      expectedInstitutionId: institutionId,
+      expectedBackupId: backupId,
+      config,
+      parentDirectory: restoreParent,
+      restoreName: "../escape",
+    }),
+    /restore_name_invalid/
+  );
+  await assert.rejects(
+    restoreRecoverySampleBundleToDirectory({
+      bundle: tamperedCiphertext,
+      expectedInstitutionId: institutionId,
+      expectedBackupId: backupId,
+      config,
+      parentDirectory: restoreParent,
+      restoreName: "restore-tampered-fixture",
+    }),
+    /authentication_failed/
+  );
+  assert.deepEqual(
+    (await readdir(restoreParent)).sort(),
+    [restoreName],
+    "a rejected bundle must leave no directory or lock behind"
+  );
+} finally {
+  await rm(restoreParent, { recursive: true, force: true, maxRetries: 2 });
+}
+
+console.log("recovery sample bundle: verification and isolated restore checks passed");

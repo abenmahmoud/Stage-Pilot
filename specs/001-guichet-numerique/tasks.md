@@ -181,6 +181,12 @@ voir sa réponse dans le dossier. L'agent traite tout depuis une seule file.
   déchiffrement, contrôle établissement/paquet et restitution intégrale sans
   écriture. T031 reste ouverte jusqu'à la sauvegarde programmée et à une vraie
   restauration en environnement isolé.
+- [x] **T031B** Restaurer réellement ce paquet fictif dans un répertoire local
+  isolé : vérification intégrale avant écriture, verrou exclusif, cible neuve,
+  fichiers créés sans écrasement, relecture SHA-256, publication atomique et
+  nettoyage borné au répertoire temporaire détenu. T031 reste ouverte jusqu'à
+  la sauvegarde chiffrée programmée d'une preview autorisée et à sa recette de
+  restauration avec le paquet ainsi produit.
 - [x] **T032** Finaliser PWA : hors-ligne limité, mise à jour, icônes, installation.
 - [x] **T032A** Forcer la vérification du service worker et charger les navigations
   en ligne sans cache afin qu'un nouveau déploiement ne reste pas masqué par

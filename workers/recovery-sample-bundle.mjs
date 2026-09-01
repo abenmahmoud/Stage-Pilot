@@ -7,6 +7,26 @@ import {
   randomBytes,
   timingSafeEqual,
 } from "node:crypto";
+import {
+  lstat,
+  mkdir,
+  mkdtemp,
+  open,
+  readFile,
+  realpath,
+  rename,
+  rm,
+  stat,
+  unlink,
+  writeFile,
+} from "node:fs/promises";
+import {
+  dirname,
+  isAbsolute,
+  join,
+  relative,
+  resolve,
+} from "node:path";
 
 export const RECOVERY_SAMPLE_SCHEMA_VERSION = 1;
 export const RECOVERY_SAMPLE_MAX_ARTIFACTS = 64;
@@ -92,10 +112,64 @@ function sourcePath(value) {
     throw new Error("recovery_sample_source_path_invalid");
   }
   const segments = value.split("/");
-  if (segments.some((segment) => segment === "" || segment === "." || segment === "..")) {
+  if (segments.some((segment) => (
+    segment === "" ||
+    segment === "." ||
+    segment === ".." ||
+    /[<>:"|?*]/.test(segment) ||
+    /[. ]$/.test(segment) ||
+    /^(?:con|prn|aux|nul|com[1-9]|lpt[1-9])(?:\..*)?$/i.test(segment)
+  ))) {
     throw new Error("recovery_sample_source_path_invalid");
   }
   return value;
+}
+
+function restoreDirectoryName(value) {
+  if (typeof value !== "string" || !/^[A-Za-z0-9][A-Za-z0-9_-]{7,127}$/.test(value)) {
+    throw new Error("recovery_sample_restore_name_invalid");
+  }
+  return value;
+}
+
+function assertInsideDirectory(parentDirectory, candidatePath, code) {
+  const pathFromParent = relative(parentDirectory, candidatePath);
+  if (
+    pathFromParent === "" ||
+    pathFromParent === ".." ||
+    pathFromParent.startsWith(`..${process.platform === "win32" ? "\\" : "/"}`) ||
+    isAbsolute(pathFromParent)
+  ) {
+    throw new Error(code);
+  }
+}
+
+async function pathExists(candidatePath) {
+  try {
+    await lstat(candidatePath);
+    return true;
+  } catch (error) {
+    if (error?.code === "ENOENT") return false;
+    throw error;
+  }
+}
+
+async function removeOwnedTemporaryDirectory(parentDirectory, temporaryDirectory) {
+  if (!temporaryDirectory) return;
+  assertInsideDirectory(
+    parentDirectory,
+    temporaryDirectory,
+    "recovery_sample_temporary_path_invalid"
+  );
+  const pathFromParent = relative(parentDirectory, temporaryDirectory);
+  if (
+    pathFromParent.includes("/") ||
+    pathFromParent.includes("\\") ||
+    !pathFromParent.startsWith(".lyceegest-restore-")
+  ) {
+    throw new Error("recovery_sample_temporary_path_invalid");
+  }
+  await rm(temporaryDirectory, { recursive: true, force: true, maxRetries: 2 });
 }
 
 function mediaType(value) {
@@ -449,4 +523,139 @@ export function verifyRecoverySampleBundle({
     createdAt: bundle.createdAt,
     artifacts: restored,
   };
+}
+
+export async function restoreRecoverySampleBundleToDirectory({
+  bundle,
+  expectedInstitutionId,
+  expectedBackupId,
+  config,
+  parentDirectory,
+  restoreName,
+}) {
+  const normalizedRestoreName = restoreDirectoryName(restoreName);
+  if (
+    typeof parentDirectory !== "string" ||
+    parentDirectory.length < 1 ||
+    parentDirectory.length > 4096 ||
+    /[\u0000-\u001f\u007f]/.test(parentDirectory)
+  ) {
+    throw new Error("recovery_sample_parent_directory_invalid");
+  }
+
+  // The complete bundle is authenticated before the first filesystem write.
+  const restored = verifyRecoverySampleBundle({
+    bundle,
+    expectedInstitutionId,
+    expectedBackupId,
+    config,
+  });
+
+  const resolvedParentDirectory = await realpath(parentDirectory);
+  const parentStats = await stat(resolvedParentDirectory);
+  if (!parentStats.isDirectory()) {
+    throw new Error("recovery_sample_parent_directory_invalid");
+  }
+
+  const targetDirectory = resolve(resolvedParentDirectory, normalizedRestoreName);
+  assertInsideDirectory(
+    resolvedParentDirectory,
+    targetDirectory,
+    "recovery_sample_restore_path_invalid"
+  );
+  const lockPath = join(resolvedParentDirectory, `.${normalizedRestoreName}.restore.lock`);
+  assertInsideDirectory(
+    resolvedParentDirectory,
+    lockPath,
+    "recovery_sample_restore_path_invalid"
+  );
+
+  let lockHandle;
+  let temporaryDirectory;
+  try {
+    try {
+      lockHandle = await open(lockPath, "wx", 0o600);
+    } catch (error) {
+      if (error?.code === "EEXIST") throw new Error("recovery_sample_restore_locked");
+      throw error;
+    }
+
+    if (await pathExists(targetDirectory)) {
+      throw new Error("recovery_sample_restore_target_exists");
+    }
+
+    temporaryDirectory = await mkdtemp(join(resolvedParentDirectory, ".lyceegest-restore-"));
+    assertInsideDirectory(
+      resolvedParentDirectory,
+      temporaryDirectory,
+      "recovery_sample_temporary_path_invalid"
+    );
+
+    const aggregateHash = createHash("sha256");
+    let databaseArtifactCount = 0;
+    let storageArtifactCount = 0;
+    let totalBytes = 0;
+
+    for (const artifact of restored.artifacts) {
+      const destinationPath = resolve(
+        temporaryDirectory,
+        artifact.kind,
+        ...artifact.sourcePath.split("/")
+      );
+      assertInsideDirectory(
+        temporaryDirectory,
+        destinationPath,
+        "recovery_sample_restore_path_invalid"
+      );
+      await mkdir(dirname(destinationPath), { recursive: true, mode: 0o700 });
+      await writeFile(destinationPath, artifact.bytes, { flag: "wx", mode: 0o600 });
+
+      const writtenBytes = await readFile(destinationPath);
+      const writtenChecksum = createHash("sha256").update(writtenBytes).digest("hex");
+      if (writtenBytes.length !== artifact.bytes.length || writtenChecksum !== artifact.sha256) {
+        throw new Error("recovery_sample_restore_verification_failed");
+      }
+
+      totalBytes += writtenBytes.length;
+      if (artifact.kind === "database") databaseArtifactCount += 1;
+      if (artifact.kind === "storage") storageArtifactCount += 1;
+      aggregateHash.update(
+        `${artifact.kind}\0${artifact.sourcePath}\0${artifact.sha256}\0${writtenBytes.length}\n`,
+        "utf8"
+      );
+    }
+
+    if (await pathExists(targetDirectory)) {
+      throw new Error("recovery_sample_restore_target_exists");
+    }
+    await rename(temporaryDirectory, targetDirectory);
+    temporaryDirectory = undefined;
+
+    return {
+      schemaVersion: restored.schemaVersion,
+      institutionId: restored.institutionId,
+      backupId: restored.backupId,
+      createdAt: restored.createdAt,
+      restoreName: normalizedRestoreName,
+      artifactCount: restored.artifacts.length,
+      databaseArtifactCount,
+      storageArtifactCount,
+      totalBytes,
+      aggregateSha256: aggregateHash.digest("hex"),
+    };
+  } finally {
+    try {
+      await removeOwnedTemporaryDirectory(resolvedParentDirectory, temporaryDirectory);
+    } finally {
+      if (lockHandle) {
+        try {
+          await lockHandle.close();
+        } finally {
+          await unlink(lockPath).catch((error) => {
+            if (error?.code !== "ENOENT") throw error;
+          });
+        }
+      }
+    }
+  }
 }
