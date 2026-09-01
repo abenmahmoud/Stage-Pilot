@@ -14,7 +14,7 @@ const agentRoute = await readFile(
 function accessEventBlock(source) {
   const start = source.lastIndexOf('eventType: "attachment.download_link_issued"');
   assert.notEqual(start, -1);
-  return source.slice(start, source.indexOf("return { url:", start));
+  return source.slice(start, source.indexOf("return payload", start));
 }
 
 test("audits requester download links only after scoped access and signing", () => {
@@ -25,11 +25,12 @@ test("audits requester download links only after scoped access and signing", () 
     rateLimit
   );
   const signing = publicRoute.indexOf("createSignedUrl");
+  const validation = publicRoute.indexOf("const payload = attachmentLinkPayload(data.signedUrl)", signing);
   const audit = publicRoute.indexOf('eventType: "attachment.download_link_issued"');
-  const response = publicRoute.indexOf("return { url: data.signedUrl, expiresIn: 60 }");
+  const response = publicRoute.indexOf("return payload", audit);
 
   assert.ok(access >= 0 && access < rateLimit && rateLimit < scopedAttachment);
-  assert.ok(scopedAttachment < signing && signing < audit && audit < response);
+  assert.ok(scopedAttachment < signing && signing < validation && validation < audit && audit < response);
   assert.match(publicRoute, /actorType: "requester"/);
   assert.match(publicRoute, /actorId: access\.sessionId/);
 });
@@ -40,12 +41,13 @@ test("audits agent download links only after institution and service checks", ()
   const institutionScope = agentRoute.lastIndexOf("eq(supportRequests.institutionId, institutionId)");
   const serviceScope = agentRoute.lastIndexOf("assertSupportRequestAccess(access, attachment.assignedTeam)");
   const signing = agentRoute.indexOf("createSignedUrl");
+  const validation = agentRoute.indexOf("const payload = attachmentLinkPayload(data.signedUrl)", signing);
   const audit = agentRoute.lastIndexOf('eventType: "attachment.download_link_issued"');
-  const response = agentRoute.indexOf("return { url: data.signedUrl, expiresIn: 60 }");
+  const response = agentRoute.indexOf("return payload", audit);
 
   assert.ok(agentAccess >= 0 && agentAccess < rateLimit && rateLimit < institutionScope);
   assert.ok(institutionScope < serviceScope && serviceScope < signing);
-  assert.ok(signing < audit && audit < response);
+  assert.ok(signing < validation && validation < audit && audit < response);
   assert.match(agentRoute, /actorType: "agent"/);
   assert.match(agentRoute, /actorId: user\.id/);
 });

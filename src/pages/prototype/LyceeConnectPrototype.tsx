@@ -112,6 +112,7 @@ import { isValidSupportPublicDetailPayload } from "../../../shared/support-publi
 import { isValidSupportPublicListPayload } from "../../../shared/support-public-list-payload-policy";
 import { isValidSupportAssistantPayload } from "../../../shared/support-assistant-payload-policy";
 import { isSupportMagicAccessPayload } from "../../../shared/support-magic-access-payload-policy";
+import { isSupportAttachmentLinkPayload } from "../../../shared/support-attachment-link-payload-policy";
 import {
   isSupportAttachmentConfirmationPayload,
   isSupportSessionClearPayload,
@@ -3062,24 +3063,8 @@ function isSupportTemplateCreatePayload(value: unknown): value is { template: Su
 }
 
 function isAllowedSupportAttachmentPayload(value: unknown): value is { url: string; expiresIn: number } {
-  if (!isRecord(value) || typeof value.url !== "string" || !isPositiveInteger(value.expiresIn) || value.expiresIn > 300) {
-    return false;
-  }
   const configuredUrl = import.meta.env.VITE_SUPABASE_URL ?? import.meta.env.NEXT_PUBLIC_SUPABASE_URL;
-  if (typeof configuredUrl !== "string" || !configuredUrl) return false;
-  try {
-    const target = new URL(value.url);
-    const configured = new URL(configuredUrl);
-    return target.protocol === "https:"
-      && configured.protocol === "https:"
-      && target.origin === configured.origin
-      && target.pathname.startsWith("/storage/v1/object/sign/")
-      && !target.username
-      && !target.password
-      && target.hash === "";
-  } catch {
-    return false;
-  }
+  return isSupportAttachmentLinkPayload(value, configuredUrl);
 }
 
 function AgentView({ onBack }: { onBack: () => void }) {

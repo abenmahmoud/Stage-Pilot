@@ -283,6 +283,10 @@
   contenu ni URL signée. Les limites par session et compte utilisent des clés
   HMAC pseudonymes dans la table serveur privée. T020 reste ouverte pour les
   durées validées, l'activation de la purge et sa recette de restauration.
+- [x] T020B1 Fermer les liens temporaires des pièces sur un contrat partagé :
+  exactement URL et durée, origine HTTPS du stockage configuré, chemin signé
+  Supabase, aucune identité intégrée ni fragment. Valider côté serveur avant
+  audit et côté navigateur avant ouverture, pour le demandeur et l'agent.
 - [x] T021 Ajouter les limites de débit par appareil, compte, contact et
   comportement. Le compteur PostgreSQL atomique est branché sur l'assistant, la
   création, le suivi, les pièces et les écritures agent. Les clés sont hachées,

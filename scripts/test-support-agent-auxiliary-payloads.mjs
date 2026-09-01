@@ -6,6 +6,10 @@ const source = readFileSync(
   new URL("../src/pages/prototype/LyceeConnectPrototype.tsx", import.meta.url),
   "utf8"
 );
+const attachmentLinkPolicy = readFileSync(
+  new URL("../shared/support-attachment-link-payload-policy.ts", import.meta.url),
+  "utf8"
+);
 
 test("validates every template returned by list and create routes", () => {
   assert.match(source, /value\.templates\.every\(isSupportReplyTemplate\)/);
@@ -21,11 +25,12 @@ test("accepts only known bounded template variables", () => {
 });
 
 test("limits attachment links to short-lived signed storage URLs", () => {
-  assert.match(source, /!isPositiveInteger\(value\.expiresIn\)/);
-  assert.match(source, /value\.expiresIn > 300/);
-  assert.match(source, /target\.origin === configured\.origin/);
-  assert.match(source, /target\.pathname\.startsWith\("\/storage\/v1\/object\/sign\/"\)/);
-  assert.match(source, /target\.protocol === "https:"/);
+  assert.match(source, /isSupportAttachmentLinkPayload\(value, configuredUrl\)/);
+  assert.match(attachmentLinkPolicy, /Number\.isSafeInteger\(value\.expiresIn\)/);
+  assert.match(attachmentLinkPolicy, /value\.expiresIn > 300/);
+  assert.match(attachmentLinkPolicy, /target\.origin === configured\.origin/);
+  assert.match(attachmentLinkPolicy, /target\.pathname\.startsWith\("\/storage\/v1\/object\/sign\/"\)/);
+  assert.match(attachmentLinkPolicy, /target\.protocol === "https:"/);
 });
 
 test("validates before navigating and severs the popup opener", () => {

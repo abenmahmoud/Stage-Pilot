@@ -4012,3 +4012,16 @@ taches et analyse de coherence avant une automatisation sensible.
   production, DNS, VPS, ENT, PRONOTE, webmail ou envoi externe.
 - La porte de sécurité complète, l'intégrité des 504 tâches Spec Kit et l'audit
   des dépendances passent ; ce dernier retourne zéro vulnérabilité.
+
+## 2026-09-01 - Liens temporaires des pièces à contrat fermé
+
+- T020B1 partage entre les deux API et le navigateur un contrat réduit à l'URL
+  signée et sa durée, sans chemin interne, nom, jeton séparé ou métadonnée.
+- Le lien doit utiliser HTTPS, l'origine Supabase configurée et le chemin de
+  signature privé ; les identifiants intégrés, fragments, domaines tiers,
+  chemins publics, durées hors limite et champs cachés sont refusés.
+- Le serveur valide avant d'écrire l'audit de délivrance et le navigateur valide
+  encore avant `window.open`. Six contrôles ciblés et le build passent sans
+  fichier réel, base distante, production, DNS, VPS, ENT, PRONOTE ou webmail.
+- La porte de sécurité complète, l'intégrité des 505 tâches Spec Kit et l'audit
+  des dépendances passent ; ce dernier retourne zéro vulnérabilité.

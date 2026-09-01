@@ -13,6 +13,7 @@ import {
 import { createSupportAttachmentRemovalConfirmation } from "../../../shared/support-attachment-removal-confirmation.js";
 import { verifySupportAttachmentRemovalMutationPayload } from "../../../shared/support-public-mutation-payload-policy.js";
 import { singleSupportQueryValue } from "../../../shared/support-public-mutation-input-policy.js";
+import { isSupportAttachmentLinkPayload } from "../../../shared/support-attachment-link-payload-policy.js";
 
 const REMOVABLE_REQUESTER_STATUSES = ["awaiting_upload", "blocked", "scan_error"] as const;
 
@@ -40,6 +41,15 @@ function attachmentRemovalPayload(input: {
     expectedAttachmentId: input.attachmentId,
   })) {
     throw new HttpError(503, "La confirmation du retrait est invalide");
+  }
+  return payload;
+}
+
+function attachmentLinkPayload(url: string) {
+  const payload = { url, expiresIn: 60 };
+  const configuredStorageUrl = process.env.NEXT_PUBLIC_SUPABASE_URL ?? process.env.VITE_SUPABASE_URL;
+  if (!isSupportAttachmentLinkPayload(payload, configuredStorageUrl)) {
+    throw new HttpError(503, "Le lien du fichier est invalide");
   }
   return payload;
 }
@@ -341,6 +351,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       .from(attachment.storageBucket)
       .createSignedUrl(attachment.storagePath, 60, { download: attachment.originalName });
     if (error || !data?.signedUrl) throw new HttpError(503, "Ouverture du fichier impossible");
+    const payload = attachmentLinkPayload(data.signedUrl);
     await db.insert(supportEvents).values({
       requestId: attachment.requestId,
       eventType: "attachment.download_link_issued",
@@ -349,7 +360,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       toValue: { attachmentId: id, direction: attachment.direction, expiresIn: 60 },
       correlationId: randomUUID(),
     });
-    return { url: data.signedUrl, expiresIn: 60 };
+    return payload;
   });
 }
 

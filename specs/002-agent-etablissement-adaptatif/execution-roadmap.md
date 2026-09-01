@@ -795,6 +795,12 @@ l'autorisation de quota définie par le propriétaire.
   le navigateur. Seuls les états quarantaine ou propre peuvent confirmer un
   dépôt ou son rejeu ; les états bloqué, erreur et retrait retournent un refus
   explicite. Six contrôles ciblés et le build passent. T027B24 est terminée.
+- Lot N5ZZU : liens temporaires des pièces. **Fermés sans ouverture réelle ni
+  modification du stockage** : demandeur, agent et navigateur partagent deux
+  champs exacts, une durée bornée, l'origine HTTPS du stockage configuré et le
+  chemin de signature Supabase. Les liens d'un autre domaine, publics, non HTTPS
+  ou enrichis d'un champ caché sont refusés avant audit ou ouverture. Six
+  contrôles ciblés et le build passent. T020B1 est terminée.
 
 ## Prochaine séquence verrouillée
 
