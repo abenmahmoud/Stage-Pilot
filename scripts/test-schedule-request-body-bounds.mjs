@@ -7,6 +7,7 @@ const boundedRoutes = [
   ["approbation", "../api/schedule/admin/imports/[id]/approve.ts", "4kb"],
   ["activation", "../api/schedule/admin/imports/[id]/activate.ts", "4kb"],
   ["restauration", "../api/schedule/admin/imports/[id]/rollback.ts", "4kb"],
+  ["retrait", "../api/schedule/admin/imports/[id]/retire.ts", "4kb"],
   ["association de page", "../api/schedule/admin/imports/[id]/pages/index.ts", "4kb"],
 ];
 

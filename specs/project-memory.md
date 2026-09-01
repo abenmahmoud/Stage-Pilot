@@ -5,6 +5,23 @@
 **Depot** : `abenmahmoud/Stage-Pilot`
 **Dernier jalon de code verifie** : branche de preview Vercel
 
+## Jalon du 1er septembre 2026 - retrait logique des emplois du temps
+
+- Une route direction sous MFA retire uniquement une version non active après
+  justification et saisie exacte de `RETIRER`. Le verrou transactionnel ferme
+  les courses ; une version déjà retirée est idempotente et une version active
+  exige d'abord un remplacement.
+- Le retrait coupe immédiatement les liens PDF et mono-page, inscrit un audit
+  minimal et interdit toute réactivation en base.
+- Aucun fichier n'est effacé : la migration inscrit `pending_dpo`, aucune date
+  de purge et l'état `blocked`. La durée direction/DPO et la purge physique
+  restent ouvertes dans T004 et T042C2D.
+- L'interface explique cette différence avant confirmation. Seize contrôles de
+  sécurité, treize contrôles UI, quatre tests d'entrée, les bornes de requêtes et
+  le build passent sans donnée réelle ni mutation distante.
+- `002/T042C2D3` est terminée localement. Les cinq domaines comptent 532 tâches
+  Spec Kit : 430 terminées et 102 ouvertes.
+
 ## Jalon du 1er septembre 2026 - pages d'emploi du temps limitées
 
 - Le worker prépare maintenant une copie PDF privée par page uniquement après

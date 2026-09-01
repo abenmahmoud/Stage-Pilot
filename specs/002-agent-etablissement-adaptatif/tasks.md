@@ -712,6 +712,11 @@
   version et au numéro de page avant navigation. Les tests et le build passent
   sans donnée réelle. La migration de preview et la recette du worker restent
   dans T042C2C ; le retrait selon conservation reste dans T042C2D.
+- [x] T042C2D3 Ajouter le retrait logique sous MFA d'une version non active :
+  confirmation `RETIRER`, justification, verrou transactionnel, audit et coupure
+  immédiate des liens. Les fichiers restent intacts avec politique
+  `pending_dpo` et purge `blocked` ; la durée finale et la purge physique restent
+  dans T004 et T042C2D.
 - [ ] T042D Construire le modèle de lecture privé des créneaux, groupes, salles et
   périodes de validité, avec versions et possibilité de retour arrière.
 - [x] T042D1 Implémenter et tester sur données fictives la politique de lecture :

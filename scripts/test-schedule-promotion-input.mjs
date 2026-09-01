@@ -28,3 +28,13 @@ test("requires the exact rollback confirmation and a meaningful reason", () => {
     () => parseSchedulePromotionInput({ justification: "Retour à la version stable après contrôle.", confirmation: "RESTAURER" }, "RESTAURER")
   );
 });
+
+test("requires the exact retirement confirmation", () => {
+  assert.throws(
+    () => parseSchedulePromotionInput({ justification: "Version remplacée après contrôle par la direction.", confirmation: "retirer" }, "RETIRER"),
+    /RETIRER/
+  );
+  assert.doesNotThrow(
+    () => parseSchedulePromotionInput({ justification: "Version remplacée après contrôle par la direction.", confirmation: "RETIRER" }, "RETIRER")
+  );
+});

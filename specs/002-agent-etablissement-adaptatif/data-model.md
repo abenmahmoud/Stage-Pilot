@@ -213,6 +213,17 @@ Relie une version de compétence à une ou plusieurs sources. La publication éc
 | `uploaded_by` | uuid | Compte individuel |
 | `approved_by` | uuid nullable | Validation humaine requise |
 | `activated_at` | timestamptz nullable | Une seule version active par périmètre |
+| `retired_by/at` | uuid/timestamptz nullable | Compte MFA et date du retrait logique |
+| `retirement_reason` | text nullable | Justification de 20 à 1 000 caractères |
+| `retention_policy_key` | enum | `pending_dpo` par défaut, `approved` après décision |
+| `retention_until` | timestamptz nullable | Vide tant que la durée n'est pas validée |
+| `storage_purge_status` | enum | `blocked`, `scheduled`, `failed`, `purged` |
+| `purged_at` | timestamptz nullable | Renseigné seulement après purge physique prouvée |
+
+Une version retirée ne peut plus être réactivée ni ouverte. Par défaut, son
+original et ses copies mono-page restent conservés : `pending_dpo`, aucune date
+de purge et état `blocked`. Le passage à `approved` et la purge physique exigent
+la décision de conservation T004 et restent hors de la route de retrait.
 
 ### `schedule_page_indexes`
 

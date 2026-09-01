@@ -1,4 +1,4 @@
-export type SchedulePromotionConfirmation = "ACTIVER" | "RESTAURER";
+export type SchedulePromotionConfirmation = "ACTIVER" | "RESTAURER" | "RETIRER";
 
 export type SchedulePromotionInput = {
   justification: string;

@@ -95,7 +95,7 @@ poste local.
   pour chacune des pages du PDF.
 - L'approbation et l'activation exigent une justification de 20 à 1 000
   caractères. L'activation demande en plus la confirmation explicite
-  `ACTIVER` ; un retour arrière demande `RESTAURER`.
+  `ACTIVER` ; un retour arrière demande `RESTAURER` et un retrait `RETIRER`.
 - Chaque mutation prend un verrou transactionnel. L'activation verrouille le
   périmètre établissement-type-année, remplace l'éventuelle version active et
   journalise les deux opérations dans la même transaction.
@@ -107,6 +107,20 @@ poste local.
 - Ce contrat prépare le flux en preview mais n'autorise ni import réel ni
   activation réelle avant la recette du worker et la validation des comptes
   nominatifs.
+
+## Retrait et conservation
+
+- Une version active ne peut pas être retirée : une version de remplacement doit
+  d'abord être activée.
+- La direction sous MFA peut retirer une version en revue, approuvée, remplacée,
+  refusée ou en échec avec une justification et la confirmation `RETIRER`.
+- Le retrait est logique et transactionnel. Il coupe les routes de lecture,
+  empêche toute réactivation et conserve un audit minimal.
+- Tant que la direction et le DPO n'ont pas validé une durée, la politique reste
+  `pending_dpo`, la date de purge reste vide et `storage_purge_status` reste
+  `blocked`. Aucun original ni fichier mono-page n'est supprimé.
+- La planification et la purge physique seront ajoutées seulement après la
+  décision T004 et une recette de restauration ; elles restent dans T042C2D.
 
 ## Préparation des pages privées du 1er septembre 2026
 

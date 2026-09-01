@@ -58,6 +58,10 @@ const pageAssetMigration = readFileSync(
   new URL("../supabase/migrations/20260901080000_create_private_schedule_page_assets.sql", import.meta.url),
   "utf8"
 );
+const retirementMigration = readFileSync(
+  new URL("../supabase/migrations/20260901101500_add_schedule_retirement_governance.sql", import.meta.url),
+  "utf8"
+);
 const approveApi = readFileSync(
   new URL("../api/schedule/admin/imports/[id]/approve.ts", import.meta.url),
   "utf8"
@@ -68,6 +72,10 @@ const activateApi = readFileSync(
 );
 const rollbackApi = readFileSync(
   new URL("../api/schedule/admin/imports/[id]/rollback.ts", import.meta.url),
+  "utf8"
+);
+const retireApi = readFileSync(
+  new URL("../api/schedule/admin/imports/[id]/retire.ts", import.meta.url),
   "utf8"
 );
 const manager = readFileSync(
@@ -212,4 +220,17 @@ test("restores only a superseded version with an explicit audit", () => {
   assert.match(rollbackApi, /candidate\.status !== "superseded"/);
   assert.match(rollbackApi, /action: "rollback"/);
   assert.match(promotionMigration, /'rollback'/);
+});
+
+test("retires only a non-active version and blocks physical purge pending DPO", () => {
+  assert.match(retireApi, /parseSchedulePromotionInput\(req\.body, "RETIRER"\)/);
+  assert.match(retireApi, /candidate\.status === "active"/);
+  assert.match(retireApi, /retentionPolicyKey: "pending_dpo"/);
+  assert.match(retireApi, /storagePurgeStatus: "blocked"/);
+  assert.match(retireApi, /physicalPurge: false/);
+  assert.doesNotMatch(retireApi, /storage[\s\S]+\.remove\(/);
+  assert.match(retirementMigration, /old\.status = 'retired'/i);
+  assert.match(retirementMigration, /new\.status = 'retired'/i);
+  assert.match(retirementMigration, /old\.status not in \('review', 'approved', 'superseded', 'rejected', 'failed'\)/i);
+  assert.match(retirementMigration, /retention_policy_key = 'pending_dpo'[\s\S]+storage_purge_status = 'blocked'/i);
 });

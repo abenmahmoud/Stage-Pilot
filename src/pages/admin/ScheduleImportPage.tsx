@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import {
+  ArchiveX,
   BadgeCheck,
   CalendarDays,
   ExternalLink,
@@ -106,6 +107,10 @@ export default function ScheduleImportPage() {
   const [actionJustification, setActionJustification] = useState("");
   const [actionConfirmation, setActionConfirmation] = useState("");
   const [promotionBusy, setPromotionBusy] = useState(false);
+  const [retirementTargetId, setRetirementTargetId] = useState("");
+  const [retirementJustification, setRetirementJustification] = useState("");
+  const [retirementConfirmation, setRetirementConfirmation] = useState("");
+  const [retirementBusy, setRetirementBusy] = useState(false);
   const [pageSource, setPageSource] = useState<SchedulePageSource | null>(null);
   const [pages, setPages] = useState<SchedulePageMapping[]>([]);
   const [pageDrafts, setPageDrafts] = useState<Record<number, string>>({});
@@ -130,6 +135,12 @@ export default function ScheduleImportPage() {
       setActionTargetId((current) => {
         const candidates = result.imports.filter((item) =>
           ["review", "approved", "superseded"].includes(item.status)
+        );
+        return candidates.some((item) => item.id === current) ? current : candidates[0]?.id ?? "";
+      });
+      setRetirementTargetId((current) => {
+        const candidates = result.imports.filter((item) =>
+          ["review", "approved", "superseded", "rejected", "failed"].includes(item.status)
         );
         return candidates.some((item) => item.id === current) ? current : candidates[0]?.id ?? "";
       });
@@ -330,6 +341,39 @@ export default function ScheduleImportPage() {
     }
   }
 
+  async function retireVersion() {
+    const target = imports.find((item) => item.id === retirementTargetId);
+    if (!target) return;
+    setRetirementBusy(true);
+    setError("");
+    setNotice("");
+    try {
+      const response = await apiFetch<unknown>(`schedule/admin/imports/${target.id}/retire`, {
+        method: "POST",
+        body: JSON.stringify({
+          justification: retirementJustification,
+          confirmation: retirementConfirmation,
+        }),
+      });
+      const result = parseScheduleImportMutationPayload(response, {
+        id: target.id,
+        freshStatus: "retired",
+        duplicateStatuses: ["retired"],
+      });
+      if (!result) throw new Error("La confirmation du retrait reçue est invalide.");
+      setNotice(
+        "Version retirée : ses liens sont coupés. Les fichiers restent conservés sans purge jusqu'à validation de la durée par la direction et le DPO."
+      );
+      setRetirementJustification("");
+      setRetirementConfirmation("");
+      await load();
+    } catch (reason) {
+      setError(reason instanceof Error ? reason.message : "Retrait impossible.");
+    } finally {
+      setRetirementBusy(false);
+    }
+  }
+
   async function submit(event: React.FormEvent) {
     event.preventDefault();
     if (!file) {
@@ -433,6 +477,14 @@ export default function ScheduleImportPage() {
     actionJustification.trim().length >= 20 &&
     mappingComplete &&
     (!expectedConfirmation || actionConfirmation === expectedConfirmation)
+  );
+  const retirementCandidates = imports.filter((item) =>
+    ["review", "approved", "superseded", "rejected", "failed"].includes(item.status)
+  );
+  const canRetire = Boolean(
+    retirementTargetId
+    && retirementJustification.trim().length >= 20
+    && retirementConfirmation === "RETIRER"
   );
 
   return (
@@ -633,6 +685,66 @@ export default function ScheduleImportPage() {
           >
             {promotionBusy ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <BadgeCheck className="h-4 w-4" />}
             {actionKind === "approve" ? "Approuver" : actionKind === "activate" ? "Activer" : "Restaurer"}
+          </button>
+        </section>
+      ) : null}
+
+      {retirementCandidates.length > 0 ? (
+        <section className="space-y-4 border-y border-slate-200 bg-white p-4 sm:p-6">
+          <div>
+            <h2 className="text-lg font-bold text-slate-950">Retirer une ancienne version</h2>
+            <p className="text-sm text-slate-500">
+              Le retrait coupe les liens immédiatement. La suppression physique reste bloquée tant que la durée de conservation n'est pas validée.
+            </p>
+          </div>
+          <label className="block max-w-2xl text-sm font-medium text-slate-700">
+            Version non active
+            <select
+              className="field mt-1 bg-white"
+              value={retirementTargetId}
+              disabled={retirementBusy}
+              onChange={(event) => {
+                setRetirementTargetId(event.target.value);
+                setRetirementConfirmation("");
+              }}
+            >
+              {retirementCandidates.map((item) => (
+                <option key={item.id} value={item.id}>
+                  {item.title} · {STATUS[item.status].label}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="block max-w-2xl text-sm font-medium text-slate-700">
+            Motif du retrait
+            <textarea
+              className="field mt-1 bg-white"
+              rows={3}
+              minLength={20}
+              maxLength={1000}
+              value={retirementJustification}
+              disabled={retirementBusy}
+              onChange={(event) => setRetirementJustification(event.target.value)}
+              placeholder="Expliquez pourquoi cette version ne doit plus être consultée."
+            />
+          </label>
+          <label className="block max-w-sm text-sm font-medium text-slate-700">
+            Saisissez RETIRER
+            <input
+              className="field mt-1 bg-white font-mono uppercase"
+              value={retirementConfirmation}
+              disabled={retirementBusy}
+              onChange={(event) => setRetirementConfirmation(event.target.value.toUpperCase())}
+            />
+          </label>
+          <button
+            type="button"
+            onClick={() => void retireVersion()}
+            disabled={retirementBusy || !canRetire}
+            className="inline-flex min-h-10 items-center justify-center gap-2 rounded-md border border-red-300 bg-white px-4 text-sm font-semibold text-red-800 disabled:opacity-40"
+          >
+            {retirementBusy ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <ArchiveX className="h-4 w-4" />}
+            Retirer cette version
           </button>
         </section>
       ) : null}

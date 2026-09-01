@@ -16,6 +16,8 @@ const checks = [
   ["le lien de page est valide avant navigation", source.includes("parseSchedulePrivatePagePayload")],
   ["l'activation demande une confirmation explicite", source.includes('"ACTIVER"')],
   ["le retour arriere demande une confirmation explicite", source.includes('"RESTAURER"')],
+  ["le retrait demande une confirmation explicite", source.includes('"RETIRER"')],
+  ["le retrait explique que la purge attend la validation", source.includes("suppression physique reste bloquée")],
   ["la direction choisit la date de recontrole", source.includes("À recontrôler avant le")],
   ["la consequence d'une source perimee est expliquee", source.includes("l'agent refuse de répondre")],
 ];

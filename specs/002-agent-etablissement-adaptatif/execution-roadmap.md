@@ -513,6 +513,15 @@ l'autorisation de quota définie par le propriétaire.
   60 secondes ; le navigateur contrôle origine, version et numéro avant de
   naviguer. La migration de preview et la recette VPS restent ouvertes dans
   T042C2C, car les transports Supabase étaient indisponibles pendant ce lot.
+- Lot N5ZI4 : retrait logique des emplois du temps. **Implémenté et vérifié
+  localement sans donnée réelle** : la direction sous MFA doit saisir
+  `RETIRER` et une justification. Une version active est refusée, les autres
+  états stables passent à `retired` sous verrou, deviennent immédiatement
+  illisibles et sont audités. La migration conserve les fichiers avec
+  `pending_dpo` et purge `blocked`, puis interdit toute réactivation. La durée
+  validée et la purge physique restent ouvertes dans T004 et T042C2D ; la
+  migration de preview reste regroupée avec T042C2C tant que Supabase est
+  injoignable.
 - Lot N5ZJ : périmètre d'emploi du temps issu de l'identité. **Implémenté côté
   serveur et non exposé** : le résolveur exige un compte authentifié, une identité
   scolaire non révoquée et son annuaire actif. Il calcule les références valides
