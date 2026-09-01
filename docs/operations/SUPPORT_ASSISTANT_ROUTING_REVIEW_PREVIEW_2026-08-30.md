@@ -140,3 +140,23 @@ choisi reste obligatoire, même lorsque son URL ressemble à une preview.
 La nouvelle mission Claude a coûté 0,632103 USD selon le CLI pour un seul passage
 autorisé à 5 USD. Arbitrage :
 `docs/audits/CLAUDE_ROUTING_RECIPE_REVIEW_ADJUDICATION_2026-09-01.md`.
+
+## Contre-revue et garde Vercel executable
+
+Une seconde mission, explicitement renouvelee, s'est terminee pour 0,742712 USD
+selon le CLI. Les deux recettes interrogent maintenant les metadonnees Vercel
+avant tout client Supabase : projet et equipe exacts, URL sans alias, branche
+attendue, SHA complet, statut READY et environnement standard de preview.
+Le champ brut `target: null` observe pour la preview est admis ; un champ absent,
+la production ou un environnement personnalise sont refuses. Cette lecture ne
+cree pas d'acces public et ne modifie pas le deploiement.
+
+Les cles applicatives ne sont plus heritees par les processus du CLI. La seule
+authentification Vercel necessaire est preservee. Une reponse Auth incomplete
+produit un diagnostic generique, jamais une exception nulle ni un succes.
+La verification automatique ne dispense pas de choisir le bon commit et de
+ne pas promouvoir le deploiement pendant la recette.
+
+Le controle reel en lecture seule passe pour `4f5575b`, mais la recette API
+metier reste bloquee par la cle de service locale. Arbitrage et limites :
+`docs/audits/CLAUDE_ROUTING_RECIPE_FOLLOWUP_ADJUDICATION_2026-09-01.md`.

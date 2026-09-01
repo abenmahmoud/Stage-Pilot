@@ -4,7 +4,7 @@ import { mkdtemp, readFile, rmdir, unlink, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
-import { assertRoutingReviewVercelAvailable, routingReviewAuthorizationInput, runRoutingReviewVercel } from "./routing-review-vercel-cli.mjs";
+import { assertRoutingReviewDeployment, assertRoutingReviewVercelAvailable, routingReviewAuthorizationInput, runRoutingReviewVercel } from "./routing-review-vercel-cli.mjs";
 import { closeRoutingReviewFixtureSession } from "./routing-review-session-cleanup.mjs";
 
 const [source, publicClient] = await Promise.all([
@@ -50,6 +50,8 @@ for (const script of [source, publicClient]) {
   assert.match(script, /"--header",\s+"@-"/);
   assert.match(script, /input: routingReviewAuthorizationInput\(accessToken\)/);
   assert.ok(script.lastIndexOf("} finally {") < script.lastIndexOf("if (!process.exitCode) {"));
+  assert.ok(script.indexOf("assertRoutingReviewDeployment(deploymentHost);") < script.indexOf("= createClient("));
+  assert.doesNotMatch(script, /throw (?:created|signIn|enrollment)\.error/);
 }
 
 console.log("preview routing review static safety checks passed");
@@ -57,7 +59,6 @@ console.log("preview routing review static safety checks passed");
 test("both recipes reject misleading Supabase destinations before any network request", async () => {
   const directory = await mkdtemp(join(tmpdir(), "lyceegest-routing-recipe-"));
   const envFile = join(directory, "empty.env");
-  await writeFile(envFile, "# Empty synthetic recipe environment\n", { flag: "wx" });
   const preview = "xijocumlwivhbmffrnlj";
   const production = "sfqhxiamhgsbbogluqtq";
   const base = { ...process.env, PREVIEW_ENV_FILE: envFile,
@@ -86,13 +87,29 @@ test("both recipes reject misleading Supabase destinations before any network re
     { PREVIEW_ROUTING_REVIEW_DEPLOYMENT: "lyceegest.vercel.app" },
   ];
   try {
+    await writeFile(envFile, "# Empty synthetic recipe environment\n", { flag: "wx" });
     for (const name of ["test-preview-support-assistant-routing-review.mjs", "test-preview-routing-review-client.mjs"]) {
       const program = `import childProcess from 'node:child_process';
         import { syncBuiltinESMExports } from 'node:module';
-        childProcess.spawnSync = () => process.env.RECIPE_CLI_UNAVAILABLE === 'true'
-          ? ({ status: 1, stdout: '', stderr: '' }) : ({ status: 0, stdout: '59.10.0', stderr: '' });
+        childProcess.spawnSync = (_, args) => {
+          if (process.env.RECIPE_CLI_UNAVAILABLE === 'true') return { status: 1, stdout: '', stderr: '' };
+          if (args.includes('--version')) return { status: 0, stdout: '59.10.0', stderr: '' };
+          if (!args.includes('api') || !args.includes('GET')) throw new Error('unexpected_cli_mutation');
+          return { status: 0, stdout: JSON.stringify({
+            id: 'dpl_synthetic', name: 'lyceegest', url: process.env.PREVIEW_ROUTING_REVIEW_DEPLOYMENT,
+            target: process.env.RECIPE_PRODUCTION_METADATA === 'true' ? 'production' : null,
+            readyState: 'READY', projectId: 'prj_mgYyTk8e2FwUMW5kSG8176Snypy5',
+            ownerId: 'team_iImd3gDqlMkHIJEnx6ZVJXSy',
+            meta: { githubCommitRef: 'codex/lycee-connect-prototype', githubCommitSha: 'a'.repeat(40) },
+          }), stderr: '' };
+        };
         syncBuiltinESMExports();
-        globalThis.fetch = () => { console.error('unexpected_network_attempt'); process.exit(86); };
+        globalThis.fetch = () => {
+          if (process.env.RECIPE_EMPTY_SIGNIN === 'true') return Promise.resolve(new Response('{}', {
+            status: 200, headers: { 'Content-Type': 'application/json' },
+          }));
+          console.error('unexpected_network_attempt'); process.exit(86);
+        };
         await import(${JSON.stringify(new URL(name, import.meta.url).href)});`;
       const run = (changes, cwd = new URL("../", import.meta.url)) => spawnSync(process.execPath, ["--input-type=module", "--eval", program], {
         cwd, env: { ...base, ...changes },
@@ -105,6 +122,16 @@ test("both recipes reject misleading Supabase destinations before any network re
       assert.equal(unavailable.status, 1);
       assert.match(unavailable.stderr, /preview_vercel_cli_unavailable/);
       assert.doesNotMatch(unavailable.stdout + unavailable.stderr, /unexpected_network_attempt/);
+      const production = run({ RECIPE_PRODUCTION_METADATA: "true" });
+      assert.equal(production.status, 1);
+      assert.match(production.stderr, /routing_review_deployment_unverified/);
+      assert.doesNotMatch(production.stdout + production.stderr, /unexpected_network_attempt/);
+      if (name === "test-preview-routing-review-client.mjs") {
+        const emptySignIn = run({ RECIPE_EMPTY_SIGNIN: "true" });
+        assert.equal(emptySignIn.status, 1);
+        assert.match(emptySignIn.stderr, /preview_sign_in_failed/);
+        assert.doesNotMatch(emptySignIn.stdout, /"metrics":"verified"/);
+      }
       for (const target of targets) {
         const result = run(target);
         assert.equal(result.status, 1, `${name}: invalid destination rejected before fetch`);
@@ -113,8 +140,66 @@ test("both recipes reject misleading Supabase destinations before any network re
       }
     }
   } finally {
-    await unlink(envFile);
-    await rmdir(directory);
+    try {
+      await unlink(envFile);
+    } catch (error) {
+      if (error?.code !== "ENOENT") throw error;
+    } finally {
+      await rmdir(directory);
+    }
+  }
+});
+
+test("requires trusted Vercel metadata before a recipe can use a deployment", () => {
+  const host = "lyceegest-123abc456-safe-scol.vercel.app";
+  const valid = { id: "dpl_synthetic", name: "lyceegest", url: host, target: null,
+    readyState: "READY", projectId: "prj_mgYyTk8e2FwUMW5kSG8176Snypy5",
+    ownerId: "team_iImd3gDqlMkHIJEnx6ZVJXSy",
+    meta: { githubCommitRef: "codex/lycee-connect-prototype", githubCommitSha: "a".repeat(40) } };
+  const run = (metadata) => assertRoutingReviewDeployment(host, { spawnImpl: (_, args) => {
+    assert.deepEqual(args.slice(4), ["api", `/v13/deployments/${host}`, "--method", "GET", "--raw", "--scope", valid.ownerId]);
+    return { status: 0, stdout: JSON.stringify(metadata) };
+  } });
+  assert.equal(run(valid).commit, valid.meta.githubCommitSha);
+  assert.equal(run({ ...valid, target: "preview" }).commit, valid.meta.githubCommitSha);
+  for (const candidate of [null, [], {}, { ...valid, target: "production" },
+    { ...valid, target: undefined }, { ...valid, target: "staging" },
+    { ...valid, customEnvironment: { slug: "custom" } }, { ...valid, readyState: "BUILDING" },
+    { ...valid, projectId: "prj_other" }, { ...valid, ownerId: "team_other" },
+    { ...valid, name: "other" }, { ...valid, url: "other.vercel.app" },
+    { ...valid, meta: { ...valid.meta, githubCommitRef: "main" } },
+    { ...valid, meta: { ...valid.meta, githubCommitSha: "short" } }]) {
+    assert.throws(() => run(candidate), { message: "routing_review_deployment_unverified" });
+  }
+  for (const result of [{ status: 1, stdout: "private-provider-detail" },
+    { status: null, stdout: "", error: { code: "ETIMEDOUT" } }, { status: 0, stdout: "invalid-json" }]) {
+    assert.throws(() => assertRoutingReviewDeployment(host, { spawnImpl: () => result }),
+      { message: "routing_review_deployment_unverified" });
+  }
+  assert.throws(() => assertRoutingReviewDeployment("https://untrusted.invalid", {
+    spawnImpl: () => assert.fail("Invalid host must not reach a process"),
+  }), { message: "routing_review_deployment_unverified" });
+});
+
+test("does not pass application credentials to the CLI", () => {
+  const names = ["SUPABASE_SERVICE_ROLE_KEY", "DATABASE_URL", "BREVO_API_KEY", "OPENAI_API_KEY",
+    "ANTHROPIC_API_KEY", "SUPPORT_ACCESS_SECRET", "PREVIEW_ROUTING_REVIEW_FIXTURE_PASSWORD",
+    "PGPASSWORD", "supabase_service_role_key", "VERCEL_TOKEN"];
+  const original = new Map(names.map((name) => [name, process.env[name]]));
+  try {
+    for (const name of names) process.env[name] = "synthetic-private-marker";
+    runRoutingReviewVercel(["--version"], { spawnImpl: (_, __, options) => {
+      for (const name of names.filter((name) => name !== "VERCEL_TOKEN")) assert.equal(options.env[name], undefined);
+      assert.equal(options.env.VERCEL_TOKEN, "synthetic-private-marker");
+      const pathEntry = Object.entries(options.env).find(([name]) => name.toUpperCase() === "PATH");
+      assert.equal(pathEntry?.[1], process.env.PATH);
+      return { status: 0, stdout: "59.10.0" };
+    } });
+  } finally {
+    for (const [name, value] of original) {
+      if (value === undefined) delete process.env[name];
+      else process.env[name] = value;
+    }
   }
 });
 

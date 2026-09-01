@@ -636,6 +636,10 @@
   jeton transmis hors arguments, retrait du facteur MFA fictif et succès
   conditionné au nettoyage. Tests locaux et observabilité passent ; la recette
   authentifiée et son nettoyage distant ne sont toujours pas déclarés réussis.
+  La contre-revue suivante autorisée (0,742712 USD sur 5) ajoute la vérification
+  automatique des métadonnées Vercel avant Supabase, l'isolation des clés dans
+  les processus enfants et les diagnostics Auth. Six tests de sûreté passent,
+  ainsi qu'une lecture réelle des métadonnées ; aucune recette métier distante.
 
 ## Phase 4 - Compétences du pilote
 

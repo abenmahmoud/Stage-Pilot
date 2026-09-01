@@ -5,6 +5,23 @@
 **Depot** : `abenmahmoud/Stage-Pilot`
 **Dernier jalon de code verifie** : branche de preview Vercel
 
+## Jalon du 1er septembre 2026 - contre-revue des recettes
+
+- Le renouvellement explicite a permis un second passage Fable 5, six scripts,
+  lecture seule, plafond 5 USD. Cout CLI : 0,742712 USD, sans secret ni donnee
+  personnelle. Autorisation consommee, pas de relance supplementaire.
+- Le controle de destination Vercel est maintenant automatique avant Supabase :
+  projet/equipe, URL, branche, SHA, READY et preview standard. Il a reconnu le
+  deploiement reel `4f5575b` en lecture seule ; les faux cas de production sont
+  bloques avant tout appel de recette. Aucune protection publique modifiee.
+- Les outils enfants n'heritent plus des cles applicatives. Les reponses Auth
+  incompletes sont diagnostiquees ; le nettoyage temporaire reste non recursif.
+- Six tests de surete et onze d'observabilite passent. La cle locale est encore
+  masquee : aucun compte/dossier cree et T030D3 reste ouverte. Compte rendu :
+  `docs/audits/CLAUDE_ROUTING_RECIPE_FOLLOWUP_ADJUDICATION_2026-09-01.md`.
+- Barriere complete de securite, integrite des specifications et compilation
+  reussies ; l'avertissement XLSX persiste, sans changement d'interface.
+
 ## Jalon du 1er septembre 2026 - revue des recettes de classement
 
 - Nouvelle mission Fable 5 explicitement autorisee : six scripts, lecture seule,

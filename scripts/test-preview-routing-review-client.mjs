@@ -3,7 +3,7 @@ import { createHmac } from "node:crypto";
 import { readFile } from "node:fs/promises";
 import { createClient } from "@supabase/supabase-js";
 import { assertRoutingReviewPreviewTarget } from "./routing-review-preview-target.mjs";
-import { assertRoutingReviewVercelAvailable, routingReviewAuthorizationInput, runRoutingReviewVercel } from "./routing-review-vercel-cli.mjs";
+import { assertRoutingReviewDeployment, assertRoutingReviewVercelAvailable, routingReviewAuthorizationInput, runRoutingReviewVercel } from "./routing-review-vercel-cli.mjs";
 import { closeRoutingReviewFixtureSession } from "./routing-review-session-cleanup.mjs";
 
 async function loadEnvFile(path) {
@@ -122,6 +122,7 @@ assert.match(correctCode, /^BC-2099-\d{6}$/);
 assert.notEqual(confirmCode, correctCode);
 
 assertRoutingReviewVercelAvailable();
+assertRoutingReviewDeployment(deploymentHost);
 const client = createClient(supabaseUrl, anonKey, {
   auth: { autoRefreshToken: false, persistSession: false },
 });
@@ -129,13 +130,13 @@ let createdFactorId = null;
 
 try {
   const signIn = await client.auth.signInWithPassword({ email, password });
-  if (signIn.error || !signIn.data.session) throw signIn.error;
+  if (signIn.error || !signIn.data?.session) throw new Error("preview_sign_in_failed");
   const enrollment = await client.auth.mfa.enroll({
     factorType: "totp",
     friendlyName: "Codex routing review SQL fixture",
   });
   createdFactorId = enrollment.data?.id ?? null;
-  if (enrollment.error || !enrollment.data.totp?.secret) throw enrollment.error;
+  if (enrollment.error || !enrollment.data?.totp?.secret) throw new Error("preview_mfa_enrollment_failed");
   await waitForStableTotpWindow();
   const challenge = await client.auth.mfa.challenge({ factorId: enrollment.data.id });
   if (challenge.error) throw challenge.error;

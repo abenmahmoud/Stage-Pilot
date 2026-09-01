@@ -3,7 +3,7 @@ import { createHmac, randomBytes, randomUUID } from "node:crypto";
 import { readFile } from "node:fs/promises";
 import { createClient } from "@supabase/supabase-js";
 import { assertRoutingReviewPreviewTarget } from "./routing-review-preview-target.mjs";
-import { assertRoutingReviewVercelAvailable, routingReviewAuthorizationInput, runRoutingReviewVercel } from "./routing-review-vercel-cli.mjs";
+import { assertRoutingReviewDeployment, assertRoutingReviewVercelAvailable, routingReviewAuthorizationInput, runRoutingReviewVercel } from "./routing-review-vercel-cli.mjs";
 
 async function loadEnvFile(path) {
   let content;
@@ -130,6 +130,7 @@ assert.equal(
   "Routing review must be enabled only on the selected preview"
 );
 assertRoutingReviewVercelAvailable();
+assertRoutingReviewDeployment(deploymentHost);
 const admin = createClient(supabaseUrl, serviceRoleKey, {
   auth: { autoRefreshToken: false, persistSession: false },
 });
@@ -173,7 +174,7 @@ try {
     email_confirm: true,
     app_metadata: { role: "superadmin", fixture: true },
   });
-  if (created.error || !created.data.user) throw created.error;
+  if (created.error || !created.data?.user) throw new Error("preview_fixture_account_failed");
   createdUserId = created.data.user.id;
 
   const membership = await admin.from("institution_memberships").insert({
@@ -189,12 +190,12 @@ try {
     auth: { autoRefreshToken: false, persistSession: false },
   });
   const signIn = await client.auth.signInWithPassword({ email, password });
-  if (signIn.error || !signIn.data.session) throw signIn.error;
+  if (signIn.error || !signIn.data?.session) throw new Error("preview_sign_in_failed");
   const enrollment = await client.auth.mfa.enroll({
     factorType: "totp",
     friendlyName: "Codex routing review preview",
   });
-  if (enrollment.error || !enrollment.data.totp?.secret) throw enrollment.error;
+  if (enrollment.error || !enrollment.data?.totp?.secret) throw new Error("preview_mfa_enrollment_failed");
   await waitForStableTotpWindow();
   const challenge = await client.auth.mfa.challenge({ factorId: enrollment.data.id });
   if (challenge.error) throw challenge.error;

@@ -51,6 +51,7 @@ Sources primaires utilisees pour les corrections :
 [curl, en-tetes depuis stdin](https://curl.se/docs/manpage.html#-H) et
 [Supabase, retrait d'un facteur MFA](https://supabase.com/docs/reference/javascript/auth-mfa-unenroll).
 
-La revue externe a porte sur les six fichiers avant correction. Les corrections
-et le nouvel auxiliaire de nettoyage sont contre-verifies par Codex, pas par
-une seconde execution de Claude.
+La premiere revue externe a porte sur les six fichiers avant correction. Le
+proprietaire a ensuite autorise une contre-revue distincte des corrections et
+du nouvel auxiliaire de nettoyage, documentee dans
+`CLAUDE_ROUTING_RECIPE_FOLLOWUP_ADJUDICATION_2026-09-01.md`.
