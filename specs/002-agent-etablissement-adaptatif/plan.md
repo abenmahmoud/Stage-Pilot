@@ -247,6 +247,20 @@ email ; une révocation ultérieure à la lecture ne peut pas rappeler un envoi.
 Le worker VPS n'est pas déployé par ce lot. Invalidation des sessions déjà émises
 et recette concurrente PostgreSQL restent des travaux séparés.
 
+L'invalidation des sessions émises conserve deux origines distinctes. La session
+créée avec une première demande reste sans contact : l'adresse déclarée n'est pas
+encore une preuve. Une session ouverte après échange d'un lien ou d'un code porte
+au contraire l'identifiant du contact email exact. Chaque lecture publique joint
+ce contact et exige encore le même dossier, le canal email, l'usage support et
+l'absence de désactivation. Une migration de preview révoque toutes les anciennes
+sessions ouvertes dont la provenance ne peut pas être reconstruite. Deux
+déclencheurs révoquent les sessions liées et consomment les jetons encore ouverts
+lors d'une désactivation ou avant une suppression. La suppression peut ensuite
+mettre la référence du contact à null sans rendre la session utilisable, car sa
+date de révocation est déjà inscrite. Le scénario installé et son nettoyage sont
+vérifiés sur données fictives. La course entre deux connexions PostgreSQL reste
+une preuve séparée tant que l'URL locale de preview est masquée.
+
 La récupération du suivi accepte seulement un numéro public et l'email déjà
 fourni. L'API et l'interface ont chacune un interrupteur fermé par défaut. Les
 compteurs partagés précèdent toute recherche : trois essais par couple dossier

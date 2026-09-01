@@ -1075,6 +1075,21 @@ et contre-revue indépendante ne sont pas déclarées réalisées. Claude reste 
 pause sans relance automatique. Voir
 `docs/security/SUPPORT_ACCESS_RECOVERY_PREVIEW_2026-09-02.md`.
 
+Suite T049C8 : la provenance du contact est implémentée et la migration
+`20260901223342` est installée uniquement sur `guichet-lycee-preview`. Les liens
+et codes créent une session liée au contact email exact ; les trois lecteurs de
+session revérifient son dossier, son canal, son usage et sa disponibilité. Les
+sessions historiques ouvertes ont été fermées. La désactivation et la suppression
+d'un contact révoquent ses sessions et rendent ses jetons inutilisables, sans
+couper la session ordinaire ni un autre contact du dossier. Un scénario PostgreSQL
+fictif installé passe et laisse zéro résidu ; 99 contrôles ciblés passent. La
+recette à deux connexions est préparée et fermée à la seule preview, mais n'a pas
+pu s'exécuter car l'URL PostgreSQL locale est masquée. La barrière transversale,
+l'intégrité des 92 migrations, les 560 tâches Spec Kit et la compilation passent.
+T049C8 reste donc ouverte pour cette course et la contre-revue externe après la
+pause demandée ; le commit doit encore être confirmé READY sur Vercel. Voir
+`docs/security/SUPPORT_SESSION_CONTACT_REVOCATION_PREVIEW_2026-09-02.md`.
+
 ## Portes de validation humaine
 
 - Import de listes, emplois du temps ou pièces réelles.

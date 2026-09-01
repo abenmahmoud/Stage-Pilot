@@ -72,6 +72,15 @@ async function replayFixture({ cookie = "owner", expired = false, revoked = fals
         tuples = tuples.flatMap((tuple) => (draft[table.name] ?? []).map((row) => ({ ...tuple, [table.name]: row }))).filter(on);
         return query;
       },
+      leftJoin(table, on) {
+        tuples = tuples.flatMap((tuple) => {
+          const matches = (draft[table.name] ?? [])
+            .map((row) => ({ ...tuple, [table.name]: row }))
+            .filter(on);
+          return matches.length > 0 ? matches : [{ ...tuple, [table.name]: null }];
+        });
+        return query;
+      },
       where(predicate) { tuples = tuples.filter(predicate); return query; },
       orderBy() { return query; },
       async limit(count) {
@@ -151,6 +160,7 @@ async function replayFixture({ cookie = "owner", expired = false, revoked = fals
     },
     "../../_shared/institution-context.js": { requireConfiguredInstitution: async () => ({ id: "school-a" }) },
     "../../_shared/support-normalization.js": { supportNormalizationProvenance: () => ({ normalizationStatus: "non_disponible" }) },
+    "../../_shared/support-session-contact.js": { supportSessionContactPredicate: () => () => true },
     "../../../shared/support-public-list-payload-policy.js": {},
   });
   const body = await handler({ method: "POST", body: {} }, response);

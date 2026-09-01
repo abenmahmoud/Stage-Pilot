@@ -1,10 +1,11 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { and, eq, gt, isNull } from "drizzle-orm";
 import { db } from "../../db/index.js";
-import { supportDeviceSessions, supportRequests, supportSessionRequests } from "../../db/schema.js";
+import { supportContacts, supportDeviceSessions, supportRequests, supportSessionRequests } from "../../db/schema.js";
 import { getUserFromRequest, HttpError } from "./auth.js";
 import { requireConfiguredInstitution } from "./institution-context.js";
 import { resolveAssistantQuotaCookie } from "./assistant-quota-identity.js";
+import { supportSessionContactPredicate } from "./support-session-contact.js";
 import {
   SUPPORT_RATE_LIMIT_POLICIES,
   normalizedSupportBehaviorText,
@@ -100,11 +101,13 @@ export async function enforceAssistantRateLimits(
         .from(supportDeviceSessions)
         .innerJoin(supportSessionRequests, eq(supportSessionRequests.sessionId, supportDeviceSessions.id))
         .innerJoin(supportRequests, eq(supportRequests.id, supportSessionRequests.requestId))
+        .leftJoin(supportContacts, eq(supportContacts.id, supportDeviceSessions.accessContactId))
         .where(and(
           eq(supportDeviceSessions.sessionHash, sha256(token)),
           gt(supportDeviceSessions.expiresAt, new Date()),
           isNull(supportDeviceSessions.revokedAt),
-          eq(supportRequests.institutionId, institution.id)
+          eq(supportRequests.institutionId, institution.id),
+          supportSessionContactPredicate()
         )).limit(1);
       if (session) keys.push(personalHash(`assistant-tracking:${institution.id}:${session.id}`));
     } catch {

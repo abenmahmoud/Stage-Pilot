@@ -25,9 +25,10 @@ function fixture() {
     counters: new Map(), attempts: [], network: "fictitious-network", user: null,
     session: null, dbFailure: false, authFailure: false, checks: 0, institutionId,
   };
-  const sessionCols = Object.fromEntries(["id", "sessionHash", "expiresAt", "revokedAt"].map((k) => [k, `session.${k}`]));
+  const sessionCols = Object.fromEntries(["id", "sessionHash", "accessContactId", "expiresAt", "revokedAt"].map((k) => [k, `session.${k}`]));
   const grantCols = { sessionId: "grant.sessionId", requestId: "grant.requestId" };
   const requestCols = { id: "request.id", institutionId: "request.institutionId" };
+  const contactCols = Object.fromEntries(["id", "requestId", "channel", "usageScope", "disabledAt"].map((k) => [k, `contact.${k}`]));
   const value = (row, input) => typeof input === "string" && Object.hasOwn(row, input) ? row[input] : input;
   const orm = {
     eq: (a, b) => (row) => value(row, a) === value(row, b),
@@ -40,6 +41,7 @@ function fixture() {
     const query = {
       from: () => query,
       innerJoin: (_table, condition) => { filters.push(condition); return query; },
+      leftJoin: () => query,
       where: (condition) => { filters.push(condition); return query; },
       limit: async (limit) => {
         state.checks++;
@@ -64,13 +66,21 @@ function fixture() {
   const dependencies = {
     "drizzle-orm": orm,
     "../../db/index.js": { db },
-    "../../db/schema.js": { supportDeviceSessions: sessionCols, supportSessionRequests: grantCols, supportRequests: requestCols },
+    "../../db/schema.js": { supportContacts: contactCols, supportDeviceSessions: sessionCols, supportSessionRequests: grantCols, supportRequests: requestCols },
     "./auth.js": { HttpError, getUserFromRequest: async () => {
       if (state.authFailure) throw new Error("fictional-auth-private-detail");
       return state.user;
     } },
     "./institution-context.js": { requireConfiguredInstitution: async () => ({ id: state.institutionId }) },
     "./assistant-quota-identity.js": { resolveAssistantQuotaCookie },
+    "./support-session-contact.js": { supportSessionContactPredicate: () => (row) => {
+      const contactId = row[sessionCols.accessContactId];
+      return contactId == null || (row[contactCols.id] === contactId
+        && row[contactCols.requestId] === row[requestCols.id]
+        && row[contactCols.channel] === "email"
+        && row[contactCols.usageScope] === "support"
+        && row[contactCols.disabledAt] == null);
+    } },
     "../../shared/support-rate-limit-policy.js": policies,
     "./support.js": {
       personalHash: hash, sha256,
@@ -199,6 +209,31 @@ test("tracking quota requires an unexpired non-revoked session and an institutio
   tracked.clearCookie();
   tracked.req.headers.cookie = `bc_support_session=${token}`;
   await assert.rejects(tracked.run("fictional-tracked-device-next"), { status: 429 });
+});
+
+test("tracking quota rechecks the exact active contact bound to an email session", async () => {
+  const token = "u".repeat(43);
+  const active = {
+    "session.id": "bound-session", "session.sessionHash": sha256(token),
+    "session.accessContactId": "contact-fixture",
+    "session.expiresAt": new Date(Date.now() + 3600_000), "session.revokedAt": null,
+    "grant.sessionId": "bound-session", "grant.requestId": "request-fixture",
+    "request.id": "request-fixture", "request.institutionId": institutionId,
+    "contact.id": "contact-fixture", "contact.requestId": "request-fixture",
+    "contact.channel": "email", "contact.usageScope": "support", "contact.disabledAt": null,
+  };
+  for (const overrides of [{},
+    { "contact.disabledAt": new Date() }, { "contact.id": null },
+    { "contact.requestId": "other-request" }, { "contact.channel": "phone" },
+    { "contact.usageScope": "communications" },
+  ]) {
+    const f = fixture();
+    f.req.headers.cookie = `bc_support_session=${token}`;
+    f.state.session = { ...active, ...overrides };
+    await f.run();
+    const trackingKey = hash(`assistant-tracking:${institutionId}:bound-session`);
+    assert.equal(f.state.attempts.some((attempt) => attempt.keyHash === trackingKey), Object.keys(overrides).length === 0);
+  }
 });
 
 test("new anonymous visitors and rotating or missing IPs still share the global guard", async () => {

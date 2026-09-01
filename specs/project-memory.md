@@ -5,6 +5,32 @@
 **Depot** : `abenmahmoud/Stage-Pilot`
 **Dernier jalon de code verifie** : branche de preview Vercel
 
+## Jalon du 2 septembre 2026 - révocation liée au contact en preview
+
+- Les sessions ouvertes par lien ou code enregistrent maintenant le contact
+  email support exact. Les sessions ordinaires créées avec une première demande
+  restent volontairement sans contact, car une adresse déclarée n'est pas encore
+  une preuve.
+- Les trois lectures publiques de session revérifient le contact courant. La
+  migration `20260901223342` a été installée seulement sur la branche Supabase
+  `guichet-lycee-preview` ; toutes les sessions historiques ouvertes y ont été
+  fermées faute de provenance fiable.
+- Désactiver ou supprimer un contact révoque ses sessions et rend ses jetons
+  ouverts inutilisables. Un scénario PostgreSQL installé avec deux contacts et
+  une session ordinaire passe puis confirme zéro résidu fictif.
+- Les conseillers Supabase restent à 62 informations de sécurité et 16
+  avertissements de performance préexistants. Le nouvel index produit une seule
+  information d'absence d'usage, attendue sans trafic réel.
+- Les 92 contrôles d'accès existants et sept contrôles de provenance passent.
+  La barrière de sécurité transversale, l'intégrité des 92 migrations et 560
+  tâches Spec Kit, ainsi que la compilation passent. La vraie course à deux
+  connexions reste ouverte : la recette est prête et
+  verrouillée sur la preview, mais l'URL PostgreSQL locale est encore masquée.
+  Claude reste en pause à la demande du propriétaire ; aucune consommation
+  externe, donnée réelle, production, email, VPS ou DNS n'a été touché.
+- Compte rendu :
+  `docs/security/SUPPORT_SESSION_CONTACT_REVOCATION_PREVIEW_2026-09-02.md`.
+
 ## Jalon du 1er septembre 2026 - contre-revue des recettes
 
 - Le renouvellement explicite a permis un second passage Fable 5, six scripts,

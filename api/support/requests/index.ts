@@ -22,6 +22,7 @@ import {
 } from "../../../db/schema.js";
 import { handleApi, methodNotAllowed } from "../../_shared/response.js";
 import { HttpError } from "../../_shared/auth.js";
+import { supportSessionContactPredicate } from "../../_shared/support-session-contact.js";
 import {
   completeSupportCreateRequestAction,
   startSupportCreateRequestAction,
@@ -488,12 +489,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           eq(supportSessionRequests.sessionId, supportDeviceSessions.id)
         )
         .innerJoin(supportRequests, eq(supportRequests.id, supportSessionRequests.requestId))
+        .leftJoin(supportContacts, eq(supportContacts.id, supportDeviceSessions.accessContactId))
         .where(
           and(
             eq(supportDeviceSessions.sessionHash, sha256(token)),
             gt(supportDeviceSessions.expiresAt, new Date()),
             isNull(supportDeviceSessions.revokedAt),
-            eq(supportRequests.institutionId, institution.id)
+            eq(supportRequests.institutionId, institution.id),
+            supportSessionContactPredicate()
           )
         )
         .orderBy(desc(supportRequests.createdAt))

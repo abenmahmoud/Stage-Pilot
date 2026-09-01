@@ -52,6 +52,7 @@ export async function openSupportAccessSession(input: {
     .values({
       sessionHash: sha256(input.newSessionToken),
       label: input.label,
+      accessContactId: input.contactId,
       expiresAt: new Date(input.now.getTime() + SUPPORT_SESSION_DAYS * 24 * 60 * 60 * 1000),
     })
     .returning({ id: supportDeviceSessions.id });

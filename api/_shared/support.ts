@@ -3,11 +3,13 @@ import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { and, eq, gt, isNull, sql } from "drizzle-orm";
 import { db } from "../../db/index.js";
 import {
+  supportContacts,
   supportDeviceSessions,
   supportRequests,
   supportSessionRequests,
 } from "../../db/schema.js";
 import { HttpError } from "./auth.js";
+import { supportSessionContactPredicate } from "./support-session-contact.js";
 import { routeSupportRequest, type SupportRoute } from "../../shared/support-routing.js";
 import {
   normalizeSupportConversation,
@@ -455,13 +457,15 @@ export async function requireSupportAccess(
       eq(supportSessionRequests.sessionId, supportDeviceSessions.id)
     )
     .innerJoin(supportRequests, eq(supportRequests.id, supportSessionRequests.requestId))
+    .leftJoin(supportContacts, eq(supportContacts.id, supportDeviceSessions.accessContactId))
     .where(
       and(
         eq(supportDeviceSessions.sessionHash, sha256(token)),
         gt(supportDeviceSessions.expiresAt, new Date()),
         isNull(supportDeviceSessions.revokedAt),
         eq(supportRequests.institutionId, institution.id),
-        eq(supportRequests.publicCode, publicCode)
+        eq(supportRequests.publicCode, publicCode),
+        supportSessionContactPredicate()
       )
     )
     .limit(1);

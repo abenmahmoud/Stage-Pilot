@@ -911,6 +911,14 @@
   parcours réel vérifié avec HTTP fictif à 320, 390 et 1 440 px. Activation
   distante, recette PostgreSQL concurrente et audit externe restent séparés,
   sans email réel. Voir le rapport SUPPORT_ACCESS_RECOVERY_PREVIEW_2026-09-02.
+- [ ] T049C8 Lier toute session ouverte par lien/code au contact email exact.
+  Révoquer sessions et jetons lors de sa désactivation ou suppression, fermer
+  les anciennes sessions non attribuables lors de la migration et revérifier le
+  contact à chaque lecture. Tester rollback, concurrence et périmètre en preview,
+  sans session réelle ni modification de production. Liaison, révocation,
+  migration `20260901223342`, test PostgreSQL fictif installé et 99 contrôles
+  ciblés passent sur la preview avec zéro résidu. La course à deux connexions
+  reste ouverte : sa recette est prête mais l'URL PostgreSQL locale est masquée.
 - [ ] T050 Ouvrir un pilote limité avec agents nommés et canal de retour.
 - [ ] T051 Mesurer deux semaines : classement, délai, transferts, corrections, coût et incidents.
 - [ ] T052 Corriger les écarts puis exécuter `/speckit.analyze` et `/speckit.converge` avant généralisation.

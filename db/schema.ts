@@ -1343,6 +1343,9 @@ export const supportDeviceSessions = pgTable("support_device_sessions", {
   id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
   sessionHash: text("session_hash").notNull().unique(),
   label: text("label"),
+  accessContactId: uuid("access_contact_id").references(() => supportContacts.id, {
+    onDelete: "set null",
+  }),
   lastUsedAt: timestamp("last_used_at", { withTimezone: true }).notNull().defaultNow(),
   expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
   revokedAt: timestamp("revoked_at", { withTimezone: true }),

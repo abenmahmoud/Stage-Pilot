@@ -239,6 +239,7 @@ for (const mode of ["link", "code"]) {
     assert.equal(rows.supportContacts[0].isVerified, true);
     assert.equal(rows.supportEvents[0].toValue.identityStatus, "contact_verifie");
     const id = rows.supportDeviceSessions[1].id;
+    assert.equal(rows.supportDeviceSessions[1].accessContactId, "contact-a");
     assert.deepEqual(rows.supportSessionRequests.filter((grant) => grant.sessionId === id).map((grant) => grant.requestId).sort(), ["request-a", "request-b"]);
     const locks = result.storage.trace.filter((entry) => entry.kind === "lock");
     assert.deepEqual(locks.map((entry) => [entry.table, entry.strength]), [["supportContacts", "update"], ["supportDeviceSessions", "update"]]);
@@ -622,6 +623,7 @@ for (const mode of ["link", "code"]) {
     assert.equal(opened.body.request.publicCode, "BC-2026-000001");
     assert.equal(opened.storage.rows.supportRequests.length, 3, "no new dossier");
     const newSession = opened.storage.rows.supportDeviceSessions[1];
+    assert.equal(newSession.accessContactId, "contact-a");
     assert.deepEqual(opened.storage.rows.supportSessionRequests.filter((grant) => grant.sessionId === newSession.id).map((grant) => grant.requestId), ["request-a"]);
     const replayed = await exchange(mode, () => {}, { rows: opened.storage.rows, token: recoveredToken, oldToken: null });
     assert.equal(replayed.status, mode === "link" ? 410 : 401);
@@ -646,6 +648,7 @@ test("real recovery limiter batches hashed pair, email and school quotas without
   const { enforceSupportAccessRecoveryLimits } = load("api/_shared/support-rate-limits.ts", {
     "drizzle-orm": orm, "../../db/index.js": { db: {} }, "../../db/schema.js": schema,
     "./auth.js": { HttpError }, "./institution-context.js": {}, "./assistant-quota-identity.js": {},
+    "./support-session-contact.js": { supportSessionContactPredicate: () => () => true },
     "../../shared/support-rate-limit-policy.js": ratePolicy,
     "./support.js": { personalHash: hash, enforceSupportRateLimits: async (attempts) => { batches.push(Array.from(attempts, (x) => ({ ...x }))); } },
   });
