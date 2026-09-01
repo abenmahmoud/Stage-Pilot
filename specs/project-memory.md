@@ -4662,3 +4662,23 @@ taches et analyse de coherence avant une automatisation sensible.
 - Le webhook, le téléchargement Brevo, ClamAV, les données réelles et la
   production restent fermés. Les cinq domaines comptent désormais 546 tâches
   Spec Kit : 447 terminées et 99 ouvertes.
+
+### Jalon du 1er septembre 2026 - transfert privé entrant vérifié
+
+- Le transport serveur sait télécharger une pièce sur l'hôte Brevo fixé, avec
+  limite de taille, délai et refus des redirections, puis déposer sans écrasement
+  dans la quarantaine opaque. Type média, taille et empreinte sont relus avant
+  de rendre une confirmation. Aucun jeton fournisseur n'est conservé.
+- Précision du contrat de réservation : la taille annoncée par le webhook est
+  estimée. Les octets seront mesurés avant la réservation immuable, puis déposés
+  et confirmés. Ce raccordement n'est pas encore effectué.
+- Dix-neuf tests fictifs passent, dont un échange HTTP local, vingt rejeux
+  simultanés, les coupures, les blocages et les substitutions à taille égale.
+  Communications, barrière de sécurité de preview et compilation passent.
+- Claude Fable 5 a effectué une revue autorisée unique, sans outil ni sous-agent,
+  pour environ 0,70 USD selon le CLI. Mémoire et erreurs ont été améliorées ; les
+  autres constats sont arbitrés avec preuves dans le compte rendu versionné.
+- Aucun changement de schéma, service réel, webhook, worker, secret ou production.
+  Raccordement, limitation de concurrence, antivirus et conservation restent à
+  compléter. Les cinq domaines comptent désormais 547 tâches Spec Kit : 448
+  terminées et 99 ouvertes ; ce compte n'est pas un taux de service opérationnel.

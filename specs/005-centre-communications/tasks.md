@@ -291,6 +291,11 @@
   crée une seule tâche PGMQ minimale dans la même transaction. Une recette
   fictive prouve rejeu, rollback et cinq résidus nuls sur la preview. Le jeton
   Brevo, le téléchargement, le worker et les interrupteurs restent fermés.
+- [x] T022H Ajouter le transfert serveur borné Brevo vers la quarantaine privée.
+  Mesurer la taille réelle, refuser redirections et dépassements, ne conserver
+  aucun jeton fournisseur, déposer sans écrasement et vérifier par relecture
+  l'empreinte de chaque fichier. Prouver avec des échanges fictifs les pannes,
+  rejeux et substitutions avant de raccorder le webhook ou le worker.
 - [x] T023 Rattacher chaque réponse à la bonne communication.
 - [x] T023A Définir le rattachement strict avant la persistance. La référence
   `In-Reply-To` entrante utilise le même HMAC secret que l'identifiant du message

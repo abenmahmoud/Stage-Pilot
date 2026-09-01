@@ -439,3 +439,18 @@ Fable 5 autorisée et bornée a atteint son plafond après environ 1,04 dollar s
 produire de rapport final exploitable ; elle n'a pas été relancée. Le contrôle
 Codex, les tests et la compilation ont détecté puis fermé le risque cumulatif.
 Le téléchargement Brevo, le contenu réel, ClamAV et le webhook restent fermés.
+
+T022H ajoute les deux transports bornés sans les raccorder : téléchargement
+sur l'hôte Brevo fixé et dépôt privé Supabase sans écrasement. La taille du
+webhook étant estimée, la réservation future utilisera la taille réellement
+mesurée. Une relecture complète doit retrouver média, taille et SHA-256 avant
+confirmation ; un retour 400/409 ne suffit pas à conclure au succès.
+
+Dix-neuf tests fictifs prouvent notamment limites de taille et délai, refus des
+redirections, substitutions et métadonnées modifiées, reprise après réponse
+perdue, vingt rejeux simultanés et un échange HTTP natif local. Le contrôle de
+concurrence de l'orchestrateur, les services réels et ClamAV restent hors preuve.
+La revue Fable 5 unique a coûté environ 0,70 USD : allocation mémoire et erreurs
+uniformes corrigées, autres observations contre-vérifiées dans le compte rendu
+`docs/audits/CLAUDE_INBOUND_TRANSFER_ADJUDICATION_2026-09-01.md`. T022 reste
+ouverte pour raccordement, scan, conservation et recette complète autorisée.

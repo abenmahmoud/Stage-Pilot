@@ -62,6 +62,9 @@ La réservation verrouille l'entrant parent avant de compter les objets déjà
 présents : un entrant ne peut dépasser vingt-et-un objets ni 26 Mo, y compris
 si plusieurs traitements arrivent en parallèle. Une référence déjà connue est
 un rejeu seulement si type, média et taille correspondent exactement.
+La taille immuable est celle des octets téléchargés, pas l'estimation du webhook
+Brevo. Le jeton de téléchargement reste transitoire ; la référence HMAC dépend
+de l'établissement, de l'entrant et de l'indice de pièce jointe.
 
 ### `communication_inbound_object_events`
 
@@ -87,6 +90,10 @@ conservation reste à décider avant toute activation réelle. La file ne reçoi
 que la version de contrat, le type de travail et les trois identifiants opaques
 établissement/entrant/objet. Elle ne reçoit ni chemin, jeton, coordonnées, nom
 de fichier ou contenu. État, événement et mise en file partagent la transaction.
+Le transport serveur dépose sans écrasement puis relit intégralement l'objet :
+taille, type média et SHA-256 doivent correspondre avant toute confirmation.
+Un conflit de dépôt ne vaut jamais succès sans cette même relecture. Ce
+transport reste distinct du raccordement transactionnel et du scan antivirus.
 
 ### `communication_events`
 

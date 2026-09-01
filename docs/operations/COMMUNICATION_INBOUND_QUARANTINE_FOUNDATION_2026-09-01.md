@@ -64,7 +64,7 @@ présentes et impose les plafonds cumulatifs de vingt-et-un objets et 26 Mo. Une
 référence déjà connue n'est réutilisée que si type d'objet, type média, taille et
 chemin privé correspondent.
 
-Après une écriture privée réalisée par un futur téléchargeur, la confirmation
+Après une écriture privée vérifiée, la confirmation
 exacte enregistre ensemble l'état `quarantine`, l'événement machine et une tâche
 PGMQ ne contenant que trois identifiants opaques. Un rejeu identique n'ajoute ni
 événement ni tâche. La recette
@@ -72,9 +72,37 @@ PGMQ ne contenant que trois identifiants opaques. Un rejeu identique n'ajoute ni
 prouve le rejeu, une panne forcée et le rollback à cinq résidus nuls sur la base
 de preview.
 
+## Transport privé borné
+
+Le téléchargeur et le dépôt privé sont maintenant implémentés et testés
+séparément. L'orchestrateur devra mesurer les octets Brevo avant de réserver la
+taille immuable, puis déposer, relire et confirmer. La taille du webhook est
+une estimation. Le raccordement n'est pas encore effectué.
+
+Le transport limite chaque objet à 10 Mio, refuse les redirections, interrompt
+les échanges bloqués et ne conserve aucun jeton fournisseur. Le dépôt utilise
+uniquement le chemin opaque réservé, refuse l'écrasement et compare type média,
+taille et SHA-256 à la relecture. Une réponse de dépôt perdue peut être rejouée
+sans remplacer le premier objet. Les erreurs ne reprennent aucun texte distant.
+
+La recette `test:communication-inbound-transfer` couvre dix-neuf scénarios
+fictifs, dont vingt rejeux simultanés, la substitution à taille égale et un
+échange HTTP natif limité à `127.0.0.1`. Elle ne prouve ni le service Brevo réel,
+ni un scan ClamAV, ni la capacité globale pour deux cents téléchargements.
+L'orchestrateur devra borner sa concurrence et effacer ses tampons après usage.
+L'effacement des copies internes n'est pas une garantie d'effacement de toutes
+les copies détenues par le runtime, le transport ou l'appelant.
+
+Sources du contrat : [pièces entrantes Brevo](https://developers.brevo.com/reference/get-inbound-email-attachment),
+[webhook Brevo et taille estimée](https://developers.brevo.com/docs/inbound-parse-webhooks),
+[dépôt standard Supabase](https://supabase.com/docs/guides/storage/uploads/standard-uploads).
+Le dépôt standard est utilisé pour ce petit plafond ; une charge réelle et les
+grandes pièces nécessitent encore une recette sur l'environnement autorisé.
+
 ## Frontières encore fermées
 
-- récupération bornée du contenu depuis Brevo et écriture dans le bucket réservé ;
+- raccordement du transport à la réservation et à la confirmation transactionnelles ;
+- recette de transport sur les services de preview explicitement autorisés ;
 - worker ClamAV autorisé et supervision ;
 - preuves avec fichier propre et signature EICAR ;
 - politique de conservation et purge validée ;

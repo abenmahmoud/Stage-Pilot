@@ -74,6 +74,16 @@ la communication rattachée. Le texte brut reste absent tant que le stockage
 privé et son contrôle antivirus ne sont pas validés. Toutes les catégories sont
 des propositions : un agent habilité doit toujours lire puis décider.
 
+Le téléchargement des pièces utilise exclusivement l'endpoint HTTPS Brevo
+documenté. `ContentLength` dans le webhook est une estimation, pas la taille
+immuable du registre : celle-ci provient du flux réellement reçu et borné avant
+réservation. Les jetons restent en mémoire dans ce transport serveur. Le dépôt
+privé est sans écrasement et doit être relu avec taille, média et SHA-256 exacts
+avant confirmation. Une réponse perdue se reprend donc sans remplacer le
+premier fichier. Ce transfert n'est pas une preuve antivirus et ne peut rendre
+un objet propre. Aucun raccordement réel avant la recette ClamAV et la décision
+de conservation.
+
 ## Interface simplifiée
 
 L'écran principal propose trois commandes visibles :
