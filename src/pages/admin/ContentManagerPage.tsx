@@ -357,7 +357,7 @@ export default function ContentManagerPage() {
         attachReadyAsset(confirmed.asset);
         setNotice("Fichier vérifié et ajouté. Enregistrez maintenant le brouillon.");
       } else {
-        setNotice("Fichier reçu. Le contrôle antivirus continue en arrière-plan ; il apparaîtra dans les fichiers vérifiés après actualisation.");
+        setNotice("Fichier placé en quarantaine. Il pourra être utilisé uniquement après validation du contrôle antivirus.");
       }
     } catch (reason) { setError(reason instanceof Error ? reason.message : "Ajout impossible"); }
     finally { setBusy(false); }

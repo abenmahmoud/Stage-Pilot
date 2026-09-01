@@ -63,7 +63,7 @@ test("keeps failures retryable and archives the fifth failed attempt", () => {
 test("never attaches a quarantined asset in the browser", () => {
   assert.match(page, /from\("site-content-quarantine"\)\.uploadToSignedUrl/);
   assert.match(page, /if \(confirmed\.asset\.status === "ready"\)[\s\S]*attachReadyAsset\(confirmed\.asset\)/);
-  assert.match(page, /contrôle antivirus continue en arrière-plan/);
+  assert.match(page, /uniquement après validation du contrôle antivirus/);
   assert.match(page, /Fichiers vérifiés/);
 });
 
