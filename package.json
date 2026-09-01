@@ -148,6 +148,7 @@
     "test:support-notification-routing": "node --experimental-strip-types scripts/test-support-notification-routing.mjs",
     "test:support-operations": "node --import ./scripts/ts-test-resolver.mjs --experimental-strip-types scripts/test-support-operations.mjs",
     "test:support-incident-guidance": "node --import ./scripts/ts-test-resolver.mjs --experimental-strip-types scripts/test-support-incident-guidance.mjs",
+    "test:support-incident-response-runbook": "node scripts/test-support-incident-response-runbook.mjs",
     "test:support-operations-payload": "node --import ./scripts/ts-test-resolver.mjs --experimental-strip-types scripts/test-support-operations-payload.mjs",
     "test:support-resolution-metrics": "node scripts/test-support-resolution-metrics.mjs",
     "test:schedule-policy": "node --import ./scripts/ts-test-resolver.mjs --experimental-strip-types scripts/test-schedule-policy.mjs",

@@ -896,6 +896,12 @@
   copiable exclut toute donnée de dossier et n'est confirmé qu'après réussite du
   presse-papier. Aucune alerte, réparation, suppression ou restauration n'est
   déclenchée ; T057 reste ouverte pour l'exploitation externe validée.
+- [x] T057D Réunir les preuves de supervision, file d'échec, restauration isolée
+  et journal d'accès dans un runbook d'incident unique. Il couvre site, API,
+  base, pièces, notifications et identité, interdit suppression et restauration
+  directe, puis vérifie automatiquement ses commandes et garde-fous. T057 reste
+  ouverte pour les responsables nommés, alertes externes, sauvegarde programmée
+  et restauration distante autorisée.
 - [ ] T058 Faire valider le cadre ESSUF GROUP-lycée : rôles RGPD, support,
   propriété, mentions, réversibilité et fin de partenariat.
 - [ ] T059 Exécuter un pilote avec données minimales, responsables nommés et plan

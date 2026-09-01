@@ -902,6 +902,14 @@ l'autorisation de quota définie par le propriétaire.
   Une propriété interne, une substitution ou une incohérence bloque le message
   de réussite dans l'écran. Huit contrôles ciblés, les règles historiques, le
   build et la barrière complète passent. T014B4 est terminée.
+- Lot N5ZZZ3 : runbook d'incident transversal. **Fermé sans alerte, restauration
+  ni action distante** : un cycle unique relie détection, contention, preuves,
+  diagnostic, restauration isolée, réouverture et retour d'expérience pour les
+  six surfaces critiques. Le document interdit suppression de preuve,
+  restauration directe, contournement MFA/RLS/quarantaine et communication non
+  validée. Un test contrôle l'ordre, les surfaces, les interdictions, l'absence
+  de secret et l'existence de chaque commande locale. T057D est terminée ; T057
+  reste ouverte pour l'exploitation externe validée.
 
 ## Prochaine séquence verrouillée
 

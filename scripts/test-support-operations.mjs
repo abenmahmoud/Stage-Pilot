@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
 import "./test-support-incident-guidance.mjs";
+import "./test-support-incident-response-runbook.mjs";
 import "./test-support-operations-payload.mjs";
 import {
   isSupportRetryableJobType,

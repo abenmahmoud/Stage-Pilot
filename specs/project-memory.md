@@ -5,6 +5,21 @@
 **Depot** : `abenmahmoud/Stage-Pilot`
 **Dernier jalon de code verifie** : branche de preview Vercel
 
+## Jalon du 1er septembre 2026 - runbook d'incident transversal
+
+- Une procédure unique relie désormais santé, file d'échec, journaux, reprise
+  des workers et restauration isolée pour le site, l'API, la base, les pièces,
+  les notifications et l'identité.
+- Elle impose une chronologie minimale sans donnée privée, une contention sans
+  suppression, une restauration vers une cible vide non routable et une
+  réouverture progressive validée par une personne habilitée.
+- Les commandes dangereuses, le contournement MFA/RLS/quarantaine, les secrets
+  et les communications collectives non validées sont explicitement interdits.
+  Un test vérifie ces invariants et l'existence de chaque commande locale.
+- `002/T057D` est terminée. T057 reste ouverte pour les responsables nommés,
+  alertes externes, sauvegarde programmée et restauration distante autorisée.
+  Les cinq domaines comptent 534 tâches Spec Kit : 432 terminées et 102 ouvertes.
+
 ## Jalon du 1er septembre 2026 - relecture éditoriale reproductible
 
 - Un contrôle local analyse les 28 contenus WordPress inventoriés sans toucher
