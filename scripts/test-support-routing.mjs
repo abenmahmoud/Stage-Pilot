@@ -62,6 +62,23 @@ test("routes digital access and equipment to the digital lead", () => {
   assert.equal(laptop.service, "referent_numerique");
 });
 
+test("routes PRONOTE access through the digital support service", () => {
+  assert.match(publicPortal, /ENT, EduConnect ou PRONOTE/);
+  assert.match(supportAgent, /ENT, EduConnect ou PRONOTE/);
+  assert.match(publicPortal, /ent\|educonnect\|pronote/);
+  assert.match(supportAgent, /ent\|educonnect\|pronote/);
+
+  const route = routeSupportRequest({
+    category: "autre",
+    description: "Je n'arrive plus à ouvrir PRONOTE",
+  });
+  assert.equal(route.service, "referent_numerique");
+  assert.equal(route.confidence, "high");
+  assert.equal(route.reason, "acces_ou_equipement_numerique");
+  assert.equal(route.requiredIdentity, "I3");
+  assert.equal(route.priority, "p3");
+});
+
 test("routes school administration to the secretariat", () => {
   const route = routeSupportRequest({
     category: "documents_scolarite",

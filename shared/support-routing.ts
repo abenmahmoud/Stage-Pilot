@@ -47,7 +47,7 @@ function normalize(value: string): string {
 function requiredIdentity(category: string, text: string): AgentIdentityLevel {
   if (
     ["ent", "email_academique"].includes(category) ||
-    /\b(code|identifiant|mot de passe|compte academique|educonnect)\b/.test(text)
+    /\b(code|identifiant|mot de passe|compte academique|educonnect|pronote)\b/.test(text)
   ) {
     return "I3";
   }
@@ -84,7 +84,7 @@ export function routeSupportRequest(input: {
     };
   }
   if (
-    /\b(ent|educonnect|webmail|zimbra|email academique|wifi|reseau|ordinateur|pc|tablette|logiciel|connexion)\b/.test(text)
+    /\b(ent|educonnect|pronote|webmail|zimbra|email academique|wifi|reseau|ordinateur|pc|tablette|logiciel|connexion)\b/.test(text)
   ) {
     return {
       service: "referent_numerique",

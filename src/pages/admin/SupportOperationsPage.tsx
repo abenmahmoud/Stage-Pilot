@@ -53,7 +53,7 @@ const CATEGORY_LABELS: Record<string, string> = {
   inscription: "Inscription",
   affectation_classe: "Classe ou affectation",
   documents_scolarite: "Documents de scolarité",
-  ent: "Accès ENT",
+  ent: "Accès ENT, EduConnect ou PRONOTE",
   email_academique: "Messagerie académique",
   ordinateur: "Ordinateur",
   logiciel: "Logiciel",

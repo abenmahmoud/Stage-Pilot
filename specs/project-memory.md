@@ -4503,3 +4503,15 @@ taches et analyse de coherence avant une automatisation sensible.
   notification, décision ou réponse officielle n'est automatisé par ce lot.
 - Les cinq domaines comptent toujours 536 tâches Spec Kit : 436 terminées et
   100 ouvertes.
+
+### Jalon du 1er septembre 2026 - guichet numérique complet
+
+- Le dialogue et le formulaire reconnaissent explicitement ENT, EduConnect,
+  PRONOTE, messagerie académique, équipement, logiciel et réseau.
+- Ces demandes rejoignent le référent numérique. Les accès sensibles conservent
+  l'identité I3 et aucune réponse ne prétend consulter, modifier ou réinitialiser
+  un compte externe.
+- Les procédures locales, liens directs et connecteurs restent bloqués jusqu'à
+  validation ou autorisation distincte ; fermer le guichet T035 ne les active pas.
+- Les cinq domaines comptent toujours 536 tâches Spec Kit : 437 terminées et
+  99 ouvertes.

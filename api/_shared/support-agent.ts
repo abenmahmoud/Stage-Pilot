@@ -99,7 +99,7 @@ const CATEGORY_LABELS: Record<SupportAgentResult["category"], string> = {
   inscription: "Inscription ou réinscription",
   affectation_classe: "Classe ou emploi du temps",
   documents_scolarite: "Certificat, document ou pièce manquante",
-  ent: "ENT ou EduConnect",
+  ent: "ENT, EduConnect ou PRONOTE",
   email_academique: "Email académique",
   ordinateur: "Ordinateur ou équipement",
   logiciel: "Logiciel ou accès numérique",
@@ -188,7 +188,7 @@ Règles:
 
 function inferCategory(text: string): SupportAgentResult["category"] {
   if (/\b(inscription|réinscription|reinscription|inscrire)\b/i.test(text)) return "inscription";
-  if (/\b(ent|educonnect|connexion|connecter|identifiant|code)\b/i.test(text)) return "ent";
+  if (/\b(ent|educonnect|pronote|connexion|connecter|identifiant|code)\b/i.test(text)) return "ent";
   if (/\b(email|mail|webmail|zimbra|académique|academique)\b/i.test(text)) return "email_academique";
   if (/\b(classe|affectation|emploi du temps|edt)\b/i.test(text)) return "affectation_classe";
   if (/\b(document|pièce|piece|dossier|justificatif|manque)\b/i.test(text)) return "documents_scolarite";

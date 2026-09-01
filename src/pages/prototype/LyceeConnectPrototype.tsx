@@ -205,7 +205,7 @@ const supportCategories = [
   { value: "inscription", label: "Inscription ou réinscription" },
   { value: "affectation_classe", label: "Classe ou emploi du temps" },
   { value: "documents_scolarite", label: "Certificat, document ou pièce manquante" },
-  { value: "ent", label: "ENT ou EduConnect" },
+  { value: "ent", label: "ENT, EduConnect ou PRONOTE" },
   { value: "email_academique", label: "Email académique" },
   { value: "ordinateur", label: "Ordinateur ou équipement" },
   { value: "logiciel", label: "Logiciel ou accès numérique" },
@@ -1160,7 +1160,7 @@ type AssistantApiResult = AssistantInsight & {
 
 function inferSupportCategory(text: string): SupportCategory {
   if (/\b(inscription|réinscription|reinscription|inscrire)\b/i.test(text)) return "inscription";
-  if (/\b(ent|educonnect|connexion|connecter|identifiant|code)\b/i.test(text)) return "ent";
+  if (/\b(ent|educonnect|pronote|connexion|connecter|identifiant|code)\b/i.test(text)) return "ent";
   if (/\b(email|mail|webmail|zimbra|académique|academique)\b/i.test(text)) return "email_academique";
   if (/\b(classe|affectation|emploi du temps|edt|prochain cours|mon cours|quelle salle|dans quelle salle|changement de salle)\b/i.test(text)) return "affectation_classe";
   if (/\b(certificat|attestation|document|pièce|piece|dossier|justificatif|manque)\b/i.test(text)) return "documents_scolarite";

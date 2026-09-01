@@ -637,7 +637,11 @@
   le formulaire classique. Ils réutilisent le dossier, les pièces privées, le
   suivi sur appareil et les files existantes ; un rendez-vous générique reste
   confié au tri humain de l'administration sans créer un second guichet.
-- [ ] T035 Ajouter ENT, PRONOTE, messagerie académique, équipement et réseau.
+- [x] T035 Ajouter ENT, PRONOTE, messagerie académique, équipement et réseau.
+  Ces besoins sont reconnus dans le dialogue et le formulaire, puis dirigés vers
+  le référent numérique avec identité I3 pour les accès sensibles. Le lot ouvre
+  uniquement un dossier de support : il ne consulte, ne modifie et ne réinitialise
+  aucun compte ENT, PRONOTE ou académique.
 - [x] T035A Créer le brouillon `pc-portable`, le pré-triage déterministe et ses
   tests sans inventer de procédure locale de réparation.
 - [ ] T035B Compléter puis publier `pc-portable` après validation de la procédure

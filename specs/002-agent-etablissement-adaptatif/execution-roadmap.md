@@ -935,6 +935,13 @@ l'autorisation de quota définie par le propriétaire.
   humain. Le dossier, les pièces et le suivi restent ceux du guichet unique.
   T036 est terminée.
 
+- Lot N5ZZZ6 : accès et équipements numériques. **Fermé au niveau du guichet** :
+  ENT, EduConnect, PRONOTE, messagerie académique, équipement, logiciel et réseau
+  sont reconnus puis dirigés vers le référent numérique. Les accès sensibles
+  exigent I3 ; aucune lecture, modification ou réinitialisation de compte n'est
+  exécutée. Les procédures locales et connecteurs officiels restent séparément
+  bloqués par T032, T035B, T035C et T043. T035 est terminée.
+
 ## Prochaine séquence verrouillée
 
 1. Conserver `BC-2026-000009` comme preuve fictive de recette jusqu'à la décision
