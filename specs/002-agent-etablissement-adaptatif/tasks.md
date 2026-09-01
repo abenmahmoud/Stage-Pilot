@@ -261,6 +261,10 @@
   précontrôler les archives, calculer SHA-256 et bloquer les signaux privés.
   Les PPTX extraient localement diapositives et notes avec parseur XML fermé,
   limites d'entrées et refus des entités ; les images restent en revue humaine.
+- [x] T019B2 Contrôler après ClamAV et avant promotion chaque DOCX/XLSX du
+  guichet : type et extension cohérents, archive lisible et non chiffrée,
+  chemins et entrées uniques, décompression bornée, manifestes XML sûrs, pièce
+  principale reliée et absence de macros, objets embarqués ou contenu actif.
 - [x] T019C Produire une proposition structurée résistante aux injections,
   afficher les conflits et questions, puis exiger une validation humaine avant
   la création d'une source ou d'une compétence. Un éventuel modèle externe ne

@@ -3985,3 +3985,17 @@ taches et analyse de coherence avant une automatisation sensible.
   production, DNS, VPS, ENT, PRONOTE ou webmail.
 - La porte de sécurité complète et l'intégrité des 502 tâches Spec Kit passent.
   L'audit des dépendances livrées retourne également zéro vulnérabilité.
+
+## 2026-09-01 - Archives DOCX et XLSX du guichet durcies
+
+- T019B2 ferme le point résiduel confirmé par l'audit Claude : un préfixe ZIP et
+  un MIME déclaré ne suffisent plus à promouvoir une pièce bureautique.
+- Après ClamAV et avant copie dans le stockage propre, le worker contrôle
+  extension, type, chiffrement, chemins, doublons, nombre d'entrées, taille
+  décompressée, manifestes XML et relation vers la pièce principale.
+- Les macros, objets embarqués, contrôles actifs, faux ZIP, types contradictoires
+  et archives excessives sont bloqués en quarantaine avec un motif technique
+  sans contenu utilisateur. Neuf contrôles ciblés et le build passent sans
+  fichier réel, base distante, production, DNS, VPS, ENT, PRONOTE ou webmail.
+- La porte de sécurité complète et l'intégrité des 503 tâches Spec Kit passent.
+  Les audits de l'application et du worker retournent chacun zéro vulnérabilité.

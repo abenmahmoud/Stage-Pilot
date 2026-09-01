@@ -8,6 +8,10 @@ import { createClient } from "@supabase/supabase-js";
 import postgres from "postgres";
 import WebSocket from "ws";
 import { boundedBlobToBuffer, readBoundedResponseBytes } from "./bounded-download.mjs";
+import {
+  inspectSupportOfficeArchive,
+  SupportOfficeArchiveError,
+} from "./support-office-archive-policy.mjs";
 
 const execFileAsync = promisify(execFile);
 const databaseUrl = process.env.DATABASE_URL;
@@ -151,6 +155,24 @@ async function scanJob(job) {
     await sql`
       update public.support_attachments
       set scan_status = 'blocked', scan_detail = 'antivirus_detected_threat'
+      where id = ${file.attachmentId} and request_id = ${job.request_id}
+    `;
+    return "blocked";
+  }
+
+  try {
+    await inspectSupportOfficeArchive({
+      bytes: file.bytes,
+      name: file.name,
+      mimeType: file.mimeType,
+    });
+  } catch (error) {
+    const detail = error instanceof SupportOfficeArchiveError
+      ? error.code
+      : "invalid_office_archive";
+    await sql`
+      update public.support_attachments
+      set scan_status = 'blocked', scan_detail = ${detail}
       where id = ${file.attachmentId} and request_id = ${job.request_id}
     `;
     return "blocked";

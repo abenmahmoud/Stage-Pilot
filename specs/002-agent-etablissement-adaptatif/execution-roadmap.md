@@ -783,6 +783,13 @@ l'autorisation de quota définie par le propriétaire.
   unique, avec modèle sûr ou traduction signée à structure exacte. Les deux
   commandes sont refusées avant la première lecture du dossier. Huit scénarios
   ciblés et le build passent. T027B23 est terminée.
+- Lot N5ZZS : archives bureautiques du guichet. **Durcies sans fichier réel ni
+  activation de worker** : après ClamAV et avant sortie de quarantaine, les
+  DOCX/XLSX doivent respecter leur extension, leur MIME, des limites d'entrées
+  et de décompression, leurs manifestes XML et la relation vers leur pièce
+  principale. Archives chiffrées, chemins ambigus, doublons, macros, objets
+  embarqués et contenus actifs sont bloqués. Neuf contrôles ciblés et le build
+  passent. T019B2 est terminée.
 
 ## Prochaine séquence verrouillée
 
