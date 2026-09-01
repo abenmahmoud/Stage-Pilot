@@ -1,6 +1,7 @@
 import { randomUUID } from "node:crypto";
+import { KNOWLEDGE_DOCUMENT_BUCKET } from "../../shared/knowledge-document-admin-payload.js";
 
-export const KNOWLEDGE_DOCUMENT_BUCKET = "knowledge-ingest";
+export { KNOWLEDGE_DOCUMENT_BUCKET };
 
 export function knowledgeDocumentStoragePath(
   institutionId: string,

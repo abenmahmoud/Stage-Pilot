@@ -22,7 +22,18 @@ import { uploadKnowledgeDocument } from "../../lib/resumable-upload";
 import {
   KNOWLEDGE_DOCUMENT_MAX_BYTES,
   knowledgeDocumentMime,
+  parseKnowledgeDocumentInput,
 } from "../../../shared/knowledge-document-input";
+import {
+  parseKnowledgeDocumentConfirmationPayload,
+  parseKnowledgeDocumentDownloadPayload,
+  parseKnowledgeDocumentListPayload,
+  parseKnowledgeDocumentReservationPayload,
+  parseKnowledgeDocumentReviewPayload,
+  type KnowledgeDocumentPayload as KnowledgeDocument,
+  type KnowledgeDocumentReviewProposal as DocumentReviewProposal,
+  type KnowledgeDocumentStatus,
+} from "../../../shared/knowledge-document-admin-payload";
 import {
   parseSkillScenarioPlan,
   SKILL_SCENARIO_PLAN_MAX_BYTES,
@@ -68,52 +79,6 @@ type SkillVersion = {
 };
 
 type SourceLink = { skillVersionId: string; sourceId: string };
-type KnowledgeDocumentStatus =
-  | "reserved"
-  | "uploaded"
-  | "quarantined"
-  | "processing"
-  | "review"
-  | "ready"
-  | "rejected"
-  | "failed"
-  | "purged";
-type KnowledgeDocument = {
-  id: string;
-  title: string;
-  purposeDescription: string;
-  sourceType: string;
-  classification: string;
-  ownerServiceCode: string;
-  serviceCodes: string[];
-  validFrom: string;
-  reviewDueAt: string;
-  originalName: string;
-  mimeType: string;
-  sizeBytes: number;
-  status: KnowledgeDocumentStatus;
-  retentionPolicyKey: "pending_dpo" | "approved";
-  retentionUntil: string | null;
-  purgeStatus: "blocked" | "scheduled" | "processing" | "failed" | "purged";
-  purgedAt: string | null;
-  analysisSummary: string | null;
-  analysisError: string | null;
-  reviewProposal: DocumentReviewProposal | null;
-  sourceId: string | null;
-  excerptCount: number;
-  createdAt: string;
-  uploadedAt: string | null;
-};
-type DocumentReviewProposal = {
-  overview: string;
-  keyPoints: string[];
-  rules: string[];
-  prohibitions: string[];
-  datedStatements: string[];
-  conflicts: Array<{ first: string; second: string }>;
-  questions: string[];
-  instructionSignals: string[];
-};
 type Evaluation = {
   skillVersionId: string;
   testCaseKey: string;
@@ -187,6 +152,16 @@ const SERVICE_OPTIONS = [
   ["direction", "Direction"],
   ["administration", "Administration"],
 ] as const;
+
+const SUPABASE_ORIGIN = (() => {
+  try {
+    return new URL(
+      import.meta.env.VITE_SUPABASE_URL ?? import.meta.env.NEXT_PUBLIC_SUPABASE_URL
+    ).origin;
+  } catch {
+    return "";
+  }
+})();
 
 function localInput(date: Date): string {
   const shifted = new Date(date.getTime() - date.getTimezoneOffset() * 60_000);
@@ -284,10 +259,12 @@ export default function KnowledgeRegistryPage() {
     try {
       const [nextRegistry, documentResult] = await Promise.all([
         apiFetch<Registry>("knowledge/admin"),
-        apiFetch<{ documents: KnowledgeDocument[] }>("knowledge/admin/documents"),
+        apiFetch<unknown>("knowledge/admin/documents"),
       ]);
+      const parsedDocuments = parseKnowledgeDocumentListPayload(documentResult);
+      if (!parsedDocuments) throw new Error("La liste des documents reçue est invalide.");
       setRegistry(nextRegistry);
-      setDocuments(documentResult.documents);
+      setDocuments(parsedDocuments.documents);
     } catch (reason) {
       setError(reason instanceof Error ? reason.message : "Chargement impossible.");
     } finally {
@@ -306,26 +283,33 @@ export default function KnowledgeRegistryPage() {
     const mimeType = knowledgeDocumentMime(documentFile.name, documentFile.type);
     setBusy(true); setError(""); setNotice(""); setUploadProgress(0);
     try {
-      const reservation = await apiFetch<{
-        document: KnowledgeDocument;
-        upload: { bucket: string; path: string; token: string };
-      }>("knowledge/admin/documents", {
-        method: "POST",
-        body: JSON.stringify({
-          ...documentDraft,
-          originalName: documentFile.name,
-          mimeType,
-          sizeBytes: documentFile.size,
-        }),
+      const requestedDocument = parseKnowledgeDocumentInput({
+        ...documentDraft,
+        originalName: documentFile.name,
+        mimeType,
+        sizeBytes: documentFile.size,
       });
+      const reservationResponse = await apiFetch<unknown>("knowledge/admin/documents", {
+        method: "POST",
+        body: JSON.stringify(requestedDocument),
+      });
+      const reservation = parseKnowledgeDocumentReservationPayload(reservationResponse, requestedDocument);
+      if (!reservation) throw new Error("La réservation de dépôt reçue est invalide.");
       const uploadFile = documentFile.type === mimeType
         ? documentFile
         : new File([documentFile], documentFile.name, { type: mimeType });
       await uploadKnowledgeDocument(uploadFile, reservation.upload, setUploadProgress);
-      await apiFetch(`knowledge/admin/documents/${reservation.document.id}/confirm`, {
+      const confirmationResponse = await apiFetch<unknown>(`knowledge/admin/documents/${reservation.document.id}/confirm`, {
         method: "POST",
       });
-      setNotice("Document reçu dans l’espace privé. Il n’est pas encore utilisé par l’agent.");
+      const confirmation = parseKnowledgeDocumentConfirmationPayload(
+        confirmationResponse,
+        reservation.document.id
+      );
+      if (!confirmation) throw new Error("La confirmation du document reçue est invalide.");
+      setNotice(confirmation.duplicate
+        ? "Ce document avait déjà été reçu. Son état actuel a été relu sans créer une seconde analyse."
+        : "Document reçu dans l’espace privé. Il n’est pas encore utilisé par l’agent.");
       setDocumentOpen(false);
       setDocumentFile(null);
       setDocumentDraft({
@@ -489,10 +473,12 @@ export default function KnowledgeRegistryPage() {
     }
     setBusy(true); setError(""); setNotice("");
     try {
-      await apiFetch(`knowledge/admin/documents/${id}/review`, {
+      const response = await apiFetch<unknown>(`knowledge/admin/documents/${id}/review`, {
         method: "POST",
         body: JSON.stringify({ action, note }),
       });
+      const result = parseKnowledgeDocumentReviewPayload(response, id, action);
+      if (!result) throw new Error("La confirmation de validation reçue est invalide.");
       setDocumentNotes((value) => {
         const next = { ...value };
         delete next[id];
@@ -508,11 +494,21 @@ export default function KnowledgeRegistryPage() {
   }
 
   async function openDocument(id: string) {
+    const popup = window.open("about:blank", "_blank");
+    if (popup) {
+      popup.opener = null;
+      popup.document.title = "Ouverture du document";
+      popup.document.body.textContent = "Ouverture du document privé...";
+    }
     setBusy(true); setError("");
     try {
-      const result = await apiFetch<{ url: string }>(`knowledge/admin/documents/${id}/download`);
-      window.open(result.url, "_blank", "noopener,noreferrer");
+      const response = await apiFetch<unknown>(`knowledge/admin/documents/${id}/download`);
+      const result = parseKnowledgeDocumentDownloadPayload(response, SUPABASE_ORIGIN);
+      if (!result) throw new Error("Le lien privé reçu est invalide.");
+      if (popup) popup.location.href = result.url;
+      else window.open(result.url, "_blank", "noopener,noreferrer");
     } catch (reason) {
+      popup?.close();
       setError(reason instanceof Error ? reason.message : "Ouverture impossible.");
     } finally { setBusy(false); }
   }
@@ -573,7 +569,7 @@ export default function KnowledgeRegistryPage() {
               {document.status === "review" && document.reviewProposal ? <DocumentProposalReview proposal={document.reviewProposal} /> : null}
               {document.status === "ready" ? <p className="mt-1 text-xs font-semibold text-emerald-700">{document.excerptCount > 0 ? `${document.excerptCount} extrait${document.excerptCount > 1 ? "s" : ""} disponible${document.excerptCount > 1 ? "s" : ""} pour l’agent` : "Lecture humaine uniquement"}</p> : null}
               {document.analysisError ? <p className="mt-2 text-xs text-red-700">{document.analysisError}</p> : null}
-              {!['reserved', 'quarantined', 'processing', 'rejected', 'purged'].includes(document.status) ? <button type="button" disabled={busy} onClick={() => void openDocument(document.id)} className="mt-2 inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-700 hover:text-emerald-900 disabled:opacity-50"><FileText className="h-3.5 w-3.5" /> Ouvrir l’original privé</button> : null}
+              {['review', 'ready'].includes(document.status) ? <button type="button" disabled={busy} onClick={() => void openDocument(document.id)} className="mt-2 inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-700 hover:text-emerald-900 disabled:opacity-50"><FileText className="h-3.5 w-3.5" /> Ouvrir l’original privé</button> : null}
               {document.status === "review" ? <div className="mt-3 space-y-2 border-l-2 border-amber-400 pl-3">
                 <label className="block text-xs font-semibold text-slate-700" htmlFor={`review-note-${document.id}`}>Note de validation humaine</label>
                 <textarea id={`review-note-${document.id}`} rows={2} className="field bg-white text-sm" value={documentNotes[document.id] ?? ""} placeholder="Ce que vous avez vérifié et la limite d’utilisation, sans nom ni coordonnée." onChange={(event) => setDocumentNotes((value) => ({ ...value, [document.id]: event.target.value }))} />

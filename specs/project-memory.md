@@ -4144,3 +4144,22 @@ taches et analyse de coherence avant une automatisation sensible.
   ou envoi externe. Le worker antivirus réel reste ouvert dans T042C2C.
 - Les cinq domaines comptent désormais 512 tâches Spec Kit : 411 terminées et
   101 ouvertes.
+
+## 2026-09-01 - Frontière fermée des documents confiés à l'agent
+
+- T014C3 remplace la confiance TypeScript de l'écran superadmin par des contrats
+  runtime exacts pour la liste, la réservation TUS, la confirmation, la décision
+  humaine et le lien de lecture. Une réponse inattendue est refusée avant upload,
+  message de réussite, changement d'état ou navigation.
+- Les routes ne transmettent plus les lignes SQL complètes. Les coordonnées du
+  coffre, checksums, textes extraits, identifiants d'acteurs et propositions
+  brutes restent côté serveur. Les reçus de confirmation et de revue sont liés à
+  l'UUID, l'action et l'état attendus.
+- L'API de lecture exige désormais un document `review` ou `ready` avant de
+  signer le lien de 60 secondes. Un fichier réservé, encore en quarantaine, en
+  traitement, en échec, refusé ou purgé reste donc fermé même par appel direct.
+- Sept tests adverses, trente-huit recettes documentaires existantes, le build
+  et la barrière de sécurité complète passent sans fichier réel, donnée distante,
+  production, DNS, VPS, ENT, PRONOTE, webmail ou envoi externe.
+- Les cinq domaines comptent désormais 513 tâches Spec Kit : 412 terminées et
+  101 ouvertes.

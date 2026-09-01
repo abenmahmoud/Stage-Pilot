@@ -9,6 +9,7 @@ import {
   knowledgeSources,
 } from "../../../../../db/schema.js";
 import { compileKnowledgeExcerpts } from "../../../../../shared/knowledge-excerpts.js";
+import { projectKnowledgeDocumentReviewReceipt } from "../../../../../shared/knowledge-document-admin-payload.js";
 import { HttpError, supabaseAdmin } from "../../../../_shared/auth.js";
 import { requireKnowledgeManager } from "../../../../_shared/knowledge-registry.js";
 import { handleApi, methodNotAllowed } from "../../../../_shared/response.js";
@@ -131,7 +132,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         return updated;
       });
       if (!rejected) throw new HttpError(409, "Le document a déjà été traité");
-      return { document: rejected };
+      return projectKnowledgeDocumentReviewReceipt(rejected, "reject", false);
     }
 
     return db.transaction(async (tx) => {
@@ -150,7 +151,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         .limit(1);
       if (!document) throw new HttpError(404, "Document introuvable");
       if (document.status === "ready" && document.sourceId) {
-        return { document, sourceId: document.sourceId, duplicate: true };
+        return projectKnowledgeDocumentReviewReceipt(document, "approve", true);
       }
       if (document.status !== "review" || !document.checksum) {
         throw new HttpError(409, "Le document doit d’abord terminer son analyse locale");
@@ -228,7 +229,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           summary: { fromDocumentId: id, status: "draft" },
         },
       ]);
-      return { document: ready, source, duplicate: false };
+      return projectKnowledgeDocumentReviewReceipt(ready, "approve", false);
     });
   });
 }

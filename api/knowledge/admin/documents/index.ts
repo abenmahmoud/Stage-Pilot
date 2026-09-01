@@ -7,6 +7,10 @@ import {
   knowledgeSourceExcerpts,
 } from "../../../../db/schema.js";
 import { maskKnowledgeDocumentListMetadata } from "../../../../shared/knowledge-document-governance.js";
+import {
+  projectKnowledgeDocumentPayload,
+  projectKnowledgeDocumentReservation,
+} from "../../../../shared/knowledge-document-admin-payload.js";
 import { parseKnowledgeDocumentInput } from "../../../../shared/knowledge-document-input.js";
 import { supabaseAdmin } from "../../../_shared/auth.js";
 import {
@@ -37,9 +41,9 @@ function proposalText(value: unknown, maxLength: number): string | null {
 }
 
 function proposalList(value: unknown, maxItems = 6): string[] {
-  return Array.isArray(value)
-    ? value.flatMap((item) => proposalText(item, 320) ?? []).slice(0, maxItems)
-    : [];
+  if (!Array.isArray(value)) return [];
+  return [...new Set(value.flatMap((item) => proposalText(item, 320) ?? []))]
+    .slice(0, maxItems);
 }
 
 function reviewProposal(value: unknown): ReviewProposal | null {
@@ -120,10 +124,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         .limit(200);
       return {
         documents: documents.map(({ reviewProposalJson, ...document }) =>
-          maskKnowledgeDocumentListMetadata({
+          projectKnowledgeDocumentPayload(maskKnowledgeDocumentListMetadata({
             ...document,
             reviewProposal: reviewProposal(reviewProposalJson),
-          })
+          }))
         ),
       };
     });
@@ -176,7 +180,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         },
       });
       return {
-        document,
+        document: projectKnowledgeDocumentReservation(document),
         upload: {
           bucket: KNOWLEDGE_DOCUMENT_BUCKET,
           path: upload.path,

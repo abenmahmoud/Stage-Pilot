@@ -1,5 +1,5 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { and, eq } from "drizzle-orm";
+import { and, eq, inArray } from "drizzle-orm";
 import { db } from "../../../../../db/index.js";
 import { agentSkillAudit, knowledgeDocuments } from "../../../../../db/schema.js";
 import { HttpError, supabaseAdmin } from "../../../../_shared/auth.js";
@@ -20,16 +20,24 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const context = await requireKnowledgeManager(req);
     const id = routeId(req);
     const [document] = await db
-      .select()
+      .select({
+        id: knowledgeDocuments.id,
+        originalName: knowledgeDocuments.originalName,
+        storageBucket: knowledgeDocuments.storageBucket,
+        storagePath: knowledgeDocuments.storagePath,
+        status: knowledgeDocuments.status,
+        classification: knowledgeDocuments.classification,
+      })
       .from(knowledgeDocuments)
       .where(
         and(
           eq(knowledgeDocuments.id, id),
-          eq(knowledgeDocuments.institutionId, context.institutionId)
+          eq(knowledgeDocuments.institutionId, context.institutionId),
+          inArray(knowledgeDocuments.status, ["review", "ready"])
         )
       )
       .limit(1);
-    if (!document || document.status === "rejected") {
+    if (!document) {
       throw new HttpError(404, "Document privé introuvable");
     }
     const downloadName = document.originalName

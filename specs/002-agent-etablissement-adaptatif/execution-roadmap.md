@@ -252,8 +252,18 @@ l'autorisation de quota définie par le propriétaire.
   identifié, et le service responsable, le périmètre, la date d'effet, la date
   de révision et l'explication métier sont obligatoires. La migration est
   appliquée sur la base isolée, vide, avec RLS forcée et aucun droit client.
-  L'antivirus documentaire, l'extraction et la revue de publication restent à
-  implémenter.
+  Ce jalon initial précédait l'antivirus, l'extraction et la revue humaine,
+  désormais livrés dans T014C2 ; il ne doit pas être lu isolément comme l'état
+  actuel du pipeline.
+- Lot N5N2 : frontière privée des documents confiés à l'agent. **Implémentée et
+  vérifiée sans donnée réelle** : les listes, dépôts, confirmations, décisions
+  et liens temporaires sont projetés côté serveur puis validés côté navigateur
+  avant tout effet. Les lignes SQL et coordonnées du coffre ne quittent plus le
+  serveur. Un document `reserved`, `quarantined`, `processing`, `failed`,
+  `rejected` ou `purged` ne peut pas obtenir de lien d'ouverture ; seuls `review`
+  et `ready` sont lisibles pendant 60 secondes par un gestionnaire habilité.
+  Sept tests adverses, trente-huit recettes documentaires, le build et la
+  barrière complète passent.
 - Lot N5O : coffre opérationnel du répertoire. **Premier jalon chiffré
   implémenté et vérifié uniquement en preview** : les noms, emails et téléphones
   validés sont chiffrés par le worker en AES-256-GCM avec nonce aléatoire et

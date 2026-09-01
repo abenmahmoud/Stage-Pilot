@@ -184,6 +184,13 @@
   revue manuelle, ouvrir l'original par lien court et créer seulement une source
   en brouillon après validation humaine MFA. EICAR et le nettoyage à zéro sont
   vérifiés ; la publication et le contexte agent restent dans T014C/T014D.
+- [x] T014C3 Fermer les réponses du dépôt documentaire : listes, réservation,
+  confirmation, approbation, refus et lien privé utilisent des contrats runtime
+  exacts avant tout état visible ou accès au stockage. Les routes ne renvoient
+  plus les lignes SQL, chemins, checksums, extraits ou identifiants d'acteurs ;
+  seuls les documents ayant terminé l'antivirus (`review` ou `ready`) peuvent
+  recevoir un lien de lecture de 60 secondes. Sept tests adverses, les recettes
+  documentaires, le build et la barrière de sécurité passent.
 - [x] T014D Exposer aux compétences uniquement des extraits minimaux de sources
   publiées et autorisées ; interdire les listes nominatives, fichiers bruts et
   documents personnels dans le contexte du modèle. Une recette distante avec

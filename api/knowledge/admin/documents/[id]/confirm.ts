@@ -3,13 +3,16 @@ import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { and, eq, inArray, sql } from "drizzle-orm";
 import { db } from "../../../../../db/index.js";
 import { agentSkillAudit, knowledgeDocuments } from "../../../../../db/schema.js";
+import { projectKnowledgeDocumentConfirmation } from "../../../../../shared/knowledge-document-admin-payload.js";
 import { HttpError, supabaseAdmin } from "../../../../_shared/auth.js";
 import { requireKnowledgeManager } from "../../../../_shared/knowledge-registry.js";
 import { handleApi, methodNotAllowed } from "../../../../_shared/response.js";
 
 function routeId(req: VercelRequest): string {
   const value = Array.isArray(req.query.id) ? req.query.id[0] : req.query.id;
-  if (!value) throw new HttpError(400, "Document manquant");
+  if (!value || !/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value)) {
+    throw new HttpError(400, "Document invalide");
+  }
   return value;
 }
 
@@ -30,7 +33,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       .limit(1);
     if (!document) throw new HttpError(404, "Document introuvable");
     if (["quarantined", "processing", "review", "ready"].includes(document.status)) {
-      return { document, duplicate: true };
+      return projectKnowledgeDocumentConfirmation(document, true);
     }
     if (!["reserved", "uploaded"].includes(document.status)) {
       throw new HttpError(409, "Ce dépôt ne peut plus être confirmé");
@@ -130,7 +133,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     });
     if (!confirmed) throw new HttpError(409, "Ce dépôt a déjà été traité");
     res.status(202);
-    return { document: confirmed, duplicate: false };
+    return projectKnowledgeDocumentConfirmation(confirmed, false);
   });
 }
 
