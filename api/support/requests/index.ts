@@ -45,6 +45,7 @@ import {
 } from "../../_shared/support-rate-limits.js";
 import { requireConfiguredInstitution } from "../../_shared/institution-context.js";
 import { SUPPORT_PUBLIC_LIST_LIMITS } from "../../../shared/support-public-list-payload-policy.js";
+import { supportNormalizationProvenance } from "../../_shared/support-normalization.js";
 
 type DeviceSession = { id: string; rawToken: string | null };
 
@@ -107,6 +108,16 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             secret: process.env.SUPPORT_HASH_SECRET,
           })
         : null;
+      input.subjectContext = {
+        ...input.subjectContext,
+        ...supportNormalizationProvenance({
+          request: input,
+          receipt: input.assistantNormalizationReceipt,
+          institutionId: institution.id,
+          requesterRefHash: deviceKey,
+          secret: process.env.SUPPORT_HASH_SECRET,
+        }),
+      };
       if (
         input.assistantRoutingReceipt
         && (routingReviewEnabled || createRequestActionEnabled)

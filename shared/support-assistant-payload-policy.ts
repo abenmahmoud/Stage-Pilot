@@ -48,6 +48,8 @@ const PAYLOAD_FIELDS = new Set([
   "sourceReferences",
   "routingReceipt",
   "routingReceiptExpiresAt",
+  "normalizationReceipt",
+  "normalizationReceiptExpiresAt",
   "requestActionAuthorized",
 ]);
 const SOURCE_FIELDS = new Set(["title", "updatedAt"]);
@@ -121,6 +123,17 @@ function hasValidReceiptPair(value: Record<string, unknown>, nowMs: number): boo
     && expiresAt <= nowMs + SUPPORT_ASSISTANT_PAYLOAD_LIMITS.receiptLifetimeMs;
 }
 
+function hasValidNormalizationReceipt(value: Record<string, unknown>, nowMs: number): boolean {
+  if (value.normalizationReceipt === null && value.normalizationReceiptExpiresAt === null) return true;
+  if (value.usedAi !== true || !value.internalSummaryFr || !value.detectedLanguage
+    || typeof value.normalizationReceipt !== "string"
+    || value.normalizationReceipt.length < 80 || value.normalizationReceipt.length > SUPPORT_ASSISTANT_PAYLOAD_LIMITS.receipt
+    || !RECEIPT_PATTERN.test(value.normalizationReceipt) || !isIsoDate(value.normalizationReceiptExpiresAt)) return false;
+  const expiresAt = Date.parse(value.normalizationReceiptExpiresAt);
+  return expiresAt >= nowMs - 30_000
+    && expiresAt <= nowMs + SUPPORT_ASSISTANT_PAYLOAD_LIMITS.receiptLifetimeMs;
+}
+
 export function isValidSupportAssistantPayload(value: unknown, nowMs = Date.now()): boolean {
   if (!isRecord(value)
     || !hasOnlyKeys(value, PAYLOAD_FIELDS)
@@ -150,6 +163,7 @@ export function isValidSupportAssistantPayload(value: unknown, nowMs = Date.now(
     || !value.sourceReferences.every(isValidSourceReference)
     || typeof value.requestActionAuthorized !== "boolean"
     || !hasValidReceiptPair(value, nowMs)
+    || !hasValidNormalizationReceipt(value, nowMs)
   ) {
     return false;
   }

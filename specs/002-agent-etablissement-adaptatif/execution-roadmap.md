@@ -996,6 +996,13 @@ appel externe n'est autorisé par ce lot. La configuration courante, les quotas,
 les résumés déclarés et l'envoi de documents personnels restent à vérifier ou
 compléter avant toute activation réelle. Voir le compte rendu d'arbitrage.
 
+Suite T049C1 : la provenance des résumés est maintenant contrôlée dans le code
+et testée localement. L'agent distingue origine signée et texte transmis ; un
+échec de preuve n'empêche pas le dépôt. Aucune nouvelle autorisation n'est liée
+à ce reçu. La contre-revue externe attend un accord distinct ; la recette
+authentifiée distante reste à faire. Voir
+`docs/operations/SUPPORT_NORMALIZATION_PROVENANCE_PREVIEW_2026-09-01.md`.
+
 1. Conserver `BC-2026-000009` comme preuve fictive de recette jusqu'à la décision
    de nettoyage du pilote ; le dossier historique `BC-2026-000008` n'est pas
    déplacé silencieusement.

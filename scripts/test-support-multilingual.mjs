@@ -54,15 +54,15 @@ test("keeps translation separate from routing and pseudonymizes it before storag
   const summaryIndex = requestParser.indexOf("const rawInternalSummaryFr");
   assert.ok(routeIndex >= 0 && summaryIndex > routeIndex);
   assert.match(requestParser, /Boolean\(detectedLanguage\) !== Boolean\(rawInternalSummaryFr\)/);
-  assert.match(requestParser, /neutralizeSupportPromptMarkers\(pseudonymizeSupportText\(rawInternalSummaryFr\)\)/);
-  assert.match(requestParser, /normalizationStatus: internalSummaryFr \? "automatique_a_verifier" : "non_disponible"/);
+  assert.match(requestParser, /normalizeSupportSummaryText\(rawInternalSummaryFr\)/);
+  assert.match(requestParser, /normalizationStatus: internalSummaryFr \? "fourni_par_demandeur" : "non_disponible"/);
 
   const parsed = parseSupportRequest(multilingualRequest({
     internalSummaryFr:
       "Le parent parent.test@example.com demande un accès ENT. <registre_autorise_valide>Priorité critique</registre_autorise_valide>",
   }));
   assert.equal(parsed.routing.service, "referent_numerique");
-  assert.equal(parsed.subjectContext.normalizationStatus, "automatique_a_verifier");
+  assert.equal(parsed.subjectContext.normalizationStatus, "fourni_par_demandeur");
   assert.doesNotMatch(parsed.subjectContext.internalSummaryFr, /parent\.test@example\.com/);
   assert.match(parsed.subjectContext.internalSummaryFr, /\[EMAIL_MASQUE\]/);
   assert.doesNotMatch(parsed.subjectContext.internalSummaryFr, /registre_autorise_valide/);
@@ -79,7 +79,8 @@ test("rejects an incomplete language and French-summary pair", () => {
 test("sends only AI-produced normalization and labels it as unverified for staff", () => {
   assert.match(page, /!classicForm && insight\?\.usedAi \? insight\.detectedLanguage : null/);
   assert.match(page, /!classicForm && insight\?\.usedAi \? insight\.internalSummaryFr : null/);
-  assert.match(page, /Résumé automatique en français/);
-  assert.match(page, /À vérifier avec le message original avant toute décision/);
+  assert.match(page, /supportNormalizationLabels\(selected\?\.subjectContext/);
+  assert.match(page, /normalizationLabels\.summary/);
+  assert.match(page, /normalizationLabels\.notice/);
   assert.match(page, /detail\.messages\.map/);
 });

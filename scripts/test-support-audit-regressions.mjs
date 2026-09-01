@@ -142,7 +142,7 @@ async function replayFixture({ cookie = "owner", expired = false, revoked = fals
     "../../_shared/support.js": {
       readSupportSessionToken: () => cookie, sha256: hash, opaqueToken: () => "new-token",
       idempotencyKey: () => key, SUPPORT_SESSION_DAYS: 30, SUPPORT_MAGIC_TOKEN_MINUTES: 30,
-      parseSupportRequest: () => ({ routing: { service: "secretariat", confidence: "medium", priority: "p3" } }),
+      parseSupportRequest: () => ({ subjectContext: {}, routing: { service: "secretariat", confidence: "medium", priority: "p3" } }),
       setSupportSessionCookie: () => { cookieWritten = true; },
     },
     "../../_shared/support-rate-limits.js": {
@@ -150,6 +150,7 @@ async function replayFixture({ cookie = "owner", expired = false, revoked = fals
       enforceSupportRequestCreationLimits: async () => {},
     },
     "../../_shared/institution-context.js": { requireConfiguredInstitution: async () => ({ id: "school-a" }) },
+    "../../_shared/support-normalization.js": { supportNormalizationProvenance: () => ({ normalizationStatus: "non_disponible" }) },
     "../../../shared/support-public-list-payload-policy.js": {},
   });
   const body = await handler({ method: "POST", body: {} }, response);

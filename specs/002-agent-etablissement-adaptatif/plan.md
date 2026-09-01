@@ -168,6 +168,24 @@ Chaque ligne de données V2 porte un `institution_id`. Le premier déploiement r
 
 ## Vérification
 
+### Provenance des résumés français
+
+Le serveur d'analyse joint au résultat déjà produit un reçu de quinze minutes.
+Une empreinte HMAC porte sur la conversation canonique, la description et le
+couple langue/résumé pseudonymisé. Une signature distincte lie cette empreinte
+à l'établissement, à la catégorie et au signal d'appareil. Le secret serveur
+existant suffit ; aucun appel IA, schéma ou service supplémentaire n'est requis.
+
+À la création du dossier, le parseur ignore toute provenance déclarée par le
+client. Le serveur vérifie le reçu puis persiste uniquement son empreinte et
+sa date avec le statut d'origine dans la transaction du dossier. Un reçu absent,
+modifié ou expiré laisse le résumé non vérifié sans bloquer la demande. Il reste
+séparé du reçu d'autorisation des outils et n'est pas conservé dans le brouillon
+local. L'origine ne prouve ni l'identité, ni la vérité du texte, ni le contenu des
+pièces jointes. Les anciens dossiers restent non vérifiés, sans migration.
+
+### Contrôles transversaux
+
 - Tests unitaires des règles et schémas de sortie.
 - Tests de chaque scénario positif, ambigu, interdit et expiré de chaque compétence.
 - Tests d'autorisation croisée élève/parent/personnel/service/établissement.

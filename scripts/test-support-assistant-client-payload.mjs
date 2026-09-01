@@ -35,6 +35,8 @@ const validPayload = {
   }],
   routingReceipt: null,
   routingReceiptExpiresAt: null,
+  normalizationReceipt: null,
+  normalizationReceiptExpiresAt: null,
   requestActionAuthorized: false,
 };
 
@@ -63,6 +65,19 @@ test("accepts one exact, bounded and coherent assistant payload", () => {
     receiptLifetimeMs: 16 * 60_000,
   });
   assert.equal(isValidSupportAssistantPayload(validPayload, nowMs), true);
+});
+
+test("accepts normalization provenance without a routing or action grant", () => {
+  const normalized = { ...validPayload, normalizationReceipt: receipt, normalizationReceiptExpiresAt: "2026-09-01T08:15:00.000Z" };
+  assert.equal(isValidSupportAssistantPayload(normalized, nowMs), true);
+  for (const changes of [
+    { usedAi: false }, { internalSummaryFr: null }, { detectedLanguage: null },
+    { normalizationReceipt: null }, { normalizationReceiptExpiresAt: null },
+    { normalizationReceipt: "a".repeat(2049) }, { normalizationReceipt: "malformed" },
+    { normalizationReceiptExpiresAt: "2026-09-01T07:59:29.000Z" },
+    { normalizationReceiptExpiresAt: "2026-09-01T08:16:01.000Z" },
+    { requestActionAuthorized: true },
+  ]) assert.equal(isValidSupportAssistantPayload({ ...normalized, ...changes }, nowMs), false);
 });
 
 test("rejects hidden fields at the root and inside sources", () => {

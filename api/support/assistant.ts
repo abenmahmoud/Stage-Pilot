@@ -21,6 +21,7 @@ import {
 import { isValidSupportAssistantPayload } from "../../shared/support-assistant-payload-policy.js";
 import { parseSupportAssistantInput } from "../../shared/support-assistant-input-policy.js";
 import { loadPublicKnowledgeContext } from "../_shared/public-knowledge-context.js";
+import { createSupportNormalizationReceipt } from "../_shared/support-normalization.js";
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== "POST") return methodNotAllowed(res, ["POST"]);
@@ -89,6 +90,17 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         actionGrant = null;
       }
     }
+    const signedNormalization = knowledgeActor && result.usedAi ? createSupportNormalizationReceipt({
+      institutionId: knowledgeActor.institutionId,
+      category: result.category,
+      usedAi: result.usedAi,
+      messages,
+      reply: result.reply,
+      detectedLanguage: result.detectedLanguage,
+      internalSummaryFr: result.internalSummaryFr,
+      requesterRefHash: deviceKey,
+      secret: process.env.SUPPORT_HASH_SECRET,
+    }) : null;
     const signedRouting = knowledgeActor
       && (supportAssistantRoutingReviewEnabled() || actionGrant)
       ? createSupportAssistantRoutingReceipt({
@@ -124,6 +136,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       sourceReferences: result.sourceReferences.map(({ title, updatedAt }) => ({ title, updatedAt })),
       routingReceipt: signedRouting?.receipt ?? null,
       routingReceiptExpiresAt: signedRouting?.expiresAt ?? null,
+      normalizationReceipt: signedNormalization?.receipt ?? null,
+      normalizationReceiptExpiresAt: signedNormalization?.expiresAt ?? null,
       requestActionAuthorized: actionGrant !== null && signedRouting !== null,
     };
     if (!isValidSupportAssistantPayload(payload)) {

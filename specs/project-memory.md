@@ -4885,3 +4885,26 @@ taches et analyse de coherence avant une automatisation sensible.
 - Compilation, barrière complète de sécurité, traduction, routage, contrats
   responsive et intégrité Spec Kit passent. 552 tâches : 450 terminées,
   102 ouvertes. Ce compte ne mesure pas la disponibilité opérationnelle.
+
+### Jalon du 1er septembre 2026 - origine des résumés français
+
+- Suite locale du constat P2 Fable 5.1 : un résumé envoyé par le navigateur
+  n'est plus présenté comme automatique. Le serveur attribue l'origine à
+  l'assistant seulement après une preuve signée de quinze minutes, liée aux
+  messages, description, langue, résumé, établissement, catégorie et appareil.
+- Ni texte ni coordonnées en clair dans le reçu. Il n'est pas enregistré dans
+  le brouillon appareil ; seule son empreinte et sa date sont persistées avec
+  la provenance. Aucune élévation d'identité ou autorisation d'outil.
+- Une preuve absente, modifiée, expirée ou provenant d'un autre appareil laisse
+  le résumé non vérifié, sans empêcher la création de la demande. Les messages
+  originaux restent la référence ; les pièces ne sont pas certifiées par ce reçu.
+- Treize tests nouveaux, neuf tests de réponse assistant, dix-huit régressions
+  du précédent audit, quatre tests multilingues, quatre contrats responsive,
+  compilation et barrière complète de sécurité passent. Rendu réel du bloc
+  extrait de la console vérifié dans une fixture isolée à 320 et 1 440 px :
+  aucun élément hors largeur. Ce n'est pas une recette privée Auth/MFA.
+- T049C1 est terminée localement ; T049C reste ouverte. Contre-revue Claude
+  proposée en lecture seule avec plafond de 2 USD, non exécutée faute d'accord
+  distinct reçu pour ce passage. Brief versionné ; aucune consommation externe.
+- Aucune migration, activation, donnée réelle, notification ou production.
+  553 tâches : 451 terminées et 102 ouvertes, sans taux opérationnel annoncé.

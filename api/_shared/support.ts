@@ -14,10 +14,7 @@ import {
   SupportConversationValidationError,
   type SupportConversationTurn,
 } from "../../shared/support-conversation.js";
-import {
-  neutralizeSupportPromptMarkers,
-  pseudonymizeSupportText,
-} from "../../shared/support-pseudonymizer.js";
+import { normalizeSupportSummaryText } from "../../shared/support-normalization-policy.js";
 import {
   detectForbiddenSupportSecret,
   FORBIDDEN_SUPPORT_SECRET_MESSAGE,
@@ -76,6 +73,7 @@ export type SupportRequestInput = {
   email: string | null;
   phone: string | null;
   assistantRoutingReceipt: string | null;
+  assistantNormalizationReceipt: string | null;
   routing: SupportRoute;
   conversation: SupportConversationTurn[];
 };
@@ -175,7 +173,7 @@ export function parseSupportRequest(body: unknown): SupportRequestInput {
     throw new HttpError(400, "La reformulation multilingue est incomplète");
   }
   const internalSummaryFr = rawInternalSummaryFr
-    ? neutralizeSupportPromptMarkers(pseudonymizeSupportText(rawInternalSummaryFr))
+    ? normalizeSupportSummaryText(rawInternalSummaryFr)
     : null;
   let conversation: SupportConversationTurn[];
   try {
@@ -222,7 +220,7 @@ export function parseSupportRequest(body: unknown): SupportRequestInput {
       languagePreference: contextValue(input.languagePreference, "Langue souhaitée"),
       detectedLanguage: detectedLanguage ?? undefined,
       internalSummaryFr: internalSummaryFr ?? undefined,
-      normalizationStatus: internalSummaryFr ? "automatique_a_verifier" : "non_disponible",
+      normalizationStatus: internalSummaryFr ? "fourni_par_demandeur" : "non_disponible",
       communicationSupport:
         callbackRequested
           ? "Rappel téléphonique souhaité pour faciliter la compréhension"
@@ -252,6 +250,7 @@ export function parseSupportRequest(body: unknown): SupportRequestInput {
     email,
     phone,
     assistantRoutingReceipt: optionalAssistantRoutingReceipt(input.assistantRoutingReceipt),
+    assistantNormalizationReceipt: optionalAssistantRoutingReceipt(input.assistantNormalizationReceipt),
     routing,
     conversation,
   };

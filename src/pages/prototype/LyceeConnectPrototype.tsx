@@ -141,6 +141,7 @@ import {
   supportReplyRequiresSchoolIdentity,
   supportTranslationTargetLanguage,
 } from "../../../shared/support-reply-policy";
+import { supportNormalizationLabels } from "../../../shared/support-normalization-policy";
 import { isValidSupportAgentTranslationPayload } from "../../../shared/support-agent-translation-payload-policy";
 import {
   reconcileActiveSupportNotification,
@@ -1180,6 +1181,8 @@ type AssistantInsight = {
 type AssistantApiResult = AssistantInsight & {
   routingReceipt: string | null;
   routingReceiptExpiresAt: string | null;
+  normalizationReceipt: string | null;
+  normalizationReceiptExpiresAt: string | null;
   requestActionAuthorized: boolean;
 };
 
@@ -1280,6 +1283,7 @@ function HelpDeskView({
   const [chatInput, setChatInput] = useState("");
   const [insight, setInsight] = useState<AssistantInsight | null>(null);
   const [assistantRoutingReceipt, setAssistantRoutingReceipt] = useState<string | null>(null);
+  const [assistantNormalizationReceipt, setAssistantNormalizationReceipt] = useState<string | null>(null);
   const [assistantRequestActionExpected, setAssistantRequestActionExpected] = useState(false);
   const [assistantBusy, setAssistantBusy] = useState(false);
   const [showDetails, setShowDetails] = useState(initialClassicForm);
@@ -1405,6 +1409,7 @@ function HelpDeskView({
     setSubmitError(null);
     let result: AssistantInsight = localAssistantFallback(nextMessages, files);
     let routingReceipt: string | null = null;
+    let normalizationReceipt: string | null = null;
     let requestActionAuthorized = false;
     if (AI_ASSISTANT_ENABLED) {
       try {
@@ -1423,17 +1428,21 @@ function HelpDeskView({
         const {
           routingReceipt: signedReceipt,
           routingReceiptExpiresAt: _expiresAt,
+          normalizationReceipt: signedNormalizationReceipt,
+          normalizationReceiptExpiresAt: _normalizationExpiresAt,
           requestActionAuthorized: authorizedAction,
           ...assistantResult
         } = apiResult;
         result = assistantResult;
         routingReceipt = signedReceipt;
+        normalizationReceipt = signedNormalizationReceipt;
         requestActionAuthorized = authorizedAction;
       } catch {
         result = localAssistantFallback(nextMessages, files);
       }
     }
     setAssistantRoutingReceipt(routingReceipt);
+    setAssistantNormalizationReceipt(normalizationReceipt);
     setAssistantRequestActionExpected(requestActionAuthorized);
     setInsight(result);
     setCategory(result.category);
@@ -1473,6 +1482,7 @@ function HelpDeskView({
     setChatInput("");
     setInsight(null);
     setAssistantRoutingReceipt(null);
+    setAssistantNormalizationReceipt(null);
     setAssistantRequestActionExpected(false);
     setShowDetails(initialContactCollection);
     setClassicForm(initialContactCollection);
@@ -1595,6 +1605,7 @@ function HelpDeskView({
             detectedLanguage: !classicForm && insight?.usedAi ? insight.detectedLanguage : null,
             internalSummaryFr: !classicForm && insight?.usedAi ? insight.internalSummaryFr : null,
             assistantRoutingReceipt: !classicForm ? assistantRoutingReceipt : null,
+            assistantNormalizationReceipt: !classicForm ? assistantNormalizationReceipt : null,
             website: form.get("website"),
           }),
         });
@@ -3917,6 +3928,7 @@ function ConnectedAgentView({ onBack }: { onBack: () => void }) {
   }
 
   const selected = detail?.request;
+  const normalizationLabels = supportNormalizationLabels(selected?.subjectContext ?? {});
   const requiresSafeIdentityReply = Boolean(
     selected && supportReplyNeedsIdentityCheck(selected)
   );
@@ -4037,7 +4049,7 @@ function ConnectedAgentView({ onBack }: { onBack: () => void }) {
               {detail.duplicateReview ? <section className="lycee-agent-duplicate" data-status={detail.duplicateReview.status}><Copy aria-hidden="true" /><span><strong>{detail.duplicateReview.status === "pending" ? "Possible doublon à vérifier" : detail.duplicateReview.status === "confirmed" ? "Doublon confirmé" : "Dossiers distincts"}</strong><small>Même contact et même catégorie sur sept jours. Aucun dossier n’est fusionné automatiquement.</small></span><div>{detail.duplicateReview.candidatePublicCode ? <button type="button" onClick={() => setSelectedCode(detail.duplicateReview?.candidatePublicCode ?? null)}>Voir {detail.duplicateReview.candidatePublicCode}</button> : null}{detail.duplicateReview.status === "pending" && detail.duplicateReview.candidatePublicCode ? <><button type="button" disabled={saving} onClick={() => void updateRequest({ duplicateDecision: "dismissed" })}>Dossiers distincts</button><button type="button" disabled={saving} onClick={() => void updateRequest({ duplicateDecision: "confirmed" })}>Confirmer</button></> : detail.duplicateReview.status === "pending" ? <small>Validation réservée à un agent autorisé à consulter les deux dossiers.</small> : <small>Décision humaine enregistrée dans l’audit.</small>}</div></section> : null}
               <div className="lycee-agent-thread">{detail.messages.map((message) => <div data-direction={message.direction} data-author={message.authorLabel === "Assistant du lycée" ? "assistant" : undefined} key={message.id}><span><strong>{message.direction === "internal" ? "Note interne" : message.authorLabel ?? "Utilisateur"}</strong><small>{supportDate(message.createdAt)}{message.direction === "internal" ? " · invisible pour l’utilisateur" : message.authorLabel === "Assistant du lycée" ? " · réponse automatique" : ` · ${supportDeliveryLabel(message.deliveryStatus)}`}</small></span><p>{message.bodyText}</p></div>)}</div>
               {detail.attachments.length > 0 ? <div className="lycee-tracked-files">{detail.attachments.map((attachment) => <div key={attachment.id}><FileText aria-hidden="true" /><span><strong>{attachment.originalName}</strong><small>{attachment.direction === "agent" ? attachment.releasedAt ? "Envoyé au demandeur · " : "Préparé par un agent · " : "Reçu du demandeur · "}{attachment.scanStatus === "clean" ? "vérifié" : attachment.scanStatus === "blocked" ? "refusé" : attachment.scanStatus === "scan_error" ? "contrôle indisponible" : "contrôle en cours"}</small></span>{attachment.scanStatus === "clean" ? <button type="button" onClick={() => void openAgentAttachment(attachment.id)} aria-label={`Ouvrir ${attachment.originalName}`}><ExternalLink aria-hidden="true" /></button> : null}</div>)}</div> : null}
-              <section className="lycee-agent-ai"><div><WandSparkles aria-hidden="true" /><span><span className="lycee-eyebrow">Aide au traitement</span><h3>{supportCategoryLabel(selected.category)} · priorité {priorityLabels[selected.priority] ?? "Normale"}</h3></span></div><dl><div><dt>Personne</dt><dd>{selected.beneficiaryType === "self" ? "Demandeur" : `${selected.beneficiaryFirstName ?? ""} ${selected.beneficiaryLastName ?? ""}`}</dd></div><div><dt>Canal disponible</dt><dd>{detail.contacts.map((contact) => channelLabels[contact.channel] ?? contact.channel).join(" + ")}</dd></div><div><dt>Langue détectée</dt><dd>{selected.subjectContext.detectedLanguage ?? "Non déterminée"}</dd></div><div><dt>Langue de réponse</dt><dd>{languagePreferenceLabels[selected.subjectContext.languagePreference ?? ""] ?? "Non précisée"}</dd></div><div><dt>Aide à la compréhension</dt><dd>{selected.subjectContext.communicationSupport ?? "Réponse écrite"}</dd></div><div><dt>Pièces</dt><dd>{detail.attachments.length} {detail.attachments.length > 1 ? "documents" : "document"}</dd></div></dl>{selected.subjectContext.internalSummaryFr ? <div className="lycee-agent-french-summary"><Languages aria-hidden="true" /><span><small>Résumé automatique en français</small><p>{selected.subjectContext.internalSummaryFr}</p><em>À vérifier avec le message original avant toute décision.</em></span></div> : null}</section>
+              <section className="lycee-agent-ai"><div><WandSparkles aria-hidden="true" /><span><span className="lycee-eyebrow">Aide au traitement</span><h3>{supportCategoryLabel(selected.category)} · priorité {priorityLabels[selected.priority] ?? "Normale"}</h3></span></div><dl><div><dt>Personne</dt><dd>{selected.beneficiaryType === "self" ? "Demandeur" : `${selected.beneficiaryFirstName ?? ""} ${selected.beneficiaryLastName ?? ""}`}</dd></div><div><dt>Canal disponible</dt><dd>{detail.contacts.map((contact) => channelLabels[contact.channel] ?? contact.channel).join(" + ")}</dd></div><div><dt>{normalizationLabels.language}</dt><dd>{selected.subjectContext.detectedLanguage ?? "Non déterminée"}</dd></div><div><dt>Langue de réponse</dt><dd>{languagePreferenceLabels[selected.subjectContext.languagePreference ?? ""] ?? "Non précisée"}</dd></div><div><dt>Aide à la compréhension</dt><dd>{selected.subjectContext.communicationSupport ?? "Réponse écrite"}</dd></div><div><dt>Pièces</dt><dd>{detail.attachments.length} {detail.attachments.length > 1 ? "documents" : "document"}</dd></div></dl>{selected.subjectContext.internalSummaryFr ? <div className="lycee-agent-french-summary"><Languages aria-hidden="true" /><span><small>{normalizationLabels.summary}</small><p>{selected.subjectContext.internalSummaryFr}</p><em>{normalizationLabels.notice}</em></span></div> : null}</section>
               <section className="lycee-agent-actions"><div><span><StickyNote aria-hidden="true" /><strong>Note interne</strong><small>Visible uniquement par les agents.</small></span><textarea aria-label="Note interne" rows={3} value={internalNote} disabled={saving} onChange={(event) => changeInternalNote(event.target.value)} placeholder="Diagnostic, appel effectué ou prochaine action…" maxLength={5000} /><button type="button" disabled={saving || !internalNote.trim()} onClick={() => void saveInternalNote()}>Ajouter la note</button></div><div data-closed={selected.status === "clos"}><span><CheckCircle2 aria-hidden="true" /><strong>{selected.status === "clos" ? "Dossier clôturé" : "Clôturer proprement"}</strong><small>{selected.status === "clos" ? selected.subjectContext.closureReason ?? "Motif enregistré dans l’historique." : requiresSafeIdentityReply ? "Confirmez d’abord l’identité scolaire pour cette demande sensible." : "Un motif est obligatoire et reste dans l’audit."}</small></span>{selected.status === "clos" ? <button type="button" disabled={saving} onClick={() => void updateRequest({ status: "en_cours" })}>Rouvrir le dossier</button> : <><textarea aria-label="Motif de clôture" rows={3} value={closureReason} onChange={(event) => changeClosureReason(event.target.value)} placeholder="Solution apportée ou raison de la clôture…" maxLength={500} /><button type="button" disabled={saving || !closureReason.trim() || requiresSafeIdentityReply} onClick={() => void updateRequest({ status: "clos", closureReason })}>Clôturer le dossier</button></>}</div></section>
               <section className="lycee-reply-box">
                 <div>

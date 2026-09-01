@@ -863,6 +863,11 @@
   des résumés, quotas non renouvelables et coût global, MFA et adhésions
   vérifiées sur le déploiement courant, publication de documents personnels
   avec identité et relation contrôlées, recette réseau de reprise interappareils.
+- [x] T049C1 Distinguer les résumés déclarés des résumés liés par une preuve
+  serveur au texte exact, à l'établissement et au signal d'appareil. Un reçu
+  absent, expiré ou modifié n'empêche pas le dépôt et ne confère aucun droit.
+  Treize régressions locales et rendu isolé à 320 et 1 440 px vérifiés ; la
+  contre-revue externe de ce correctif attend une autorisation distincte.
 - [ ] T050 Ouvrir un pilote limité avec agents nommés et canal de retour.
 - [ ] T051 Mesurer deux semaines : classement, délai, transferts, corrections, coût et incidents.
 - [ ] T052 Corriger les écarts puis exécuter `/speckit.analyze` et `/speckit.converge` avant généralisation.

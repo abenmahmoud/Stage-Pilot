@@ -206,6 +206,14 @@ leur date, leur responsable et leur état de validité.
   Traduction, pièces jointes et clôture appliquent la même règle.
   Le verrou historique ENT/messagerie académique n'est jamais abaissé par
   un niveau de routage plus faible, notamment un mot d'urgence dans le message.
+- Un résumé français n'est attribué à l'assistant qu'après vérification côté
+  serveur d'un reçu signé et non expiré, lié à l'établissement, au signal
+  d'appareil, à la conversation enregistrée, à sa description et au couple
+  langue/résumé. Le reçu ne contient aucun texte ni coordonnées en clair.
+  Cette preuve atteste l'origine, jamais la véracité des propos ou l'identité.
+  Un résumé absent, ancien, modifié ou sans preuve reste non vérifié ; la demande
+  et les messages originaux restent enregistrables. Aucun nouvel appel IA n'est
+  nécessaire à la création du dossier. Les autorisations d'outils restent distinctes.
 - Une demande urgente classée I0 reste recevable et peut recevoir une consigne
   d'aide sans identité scolaire. Ce droit n'autorise aucune consultation de
   données privées. Les demandes I0-I2 et formulaires vierges ne deviennent pas
