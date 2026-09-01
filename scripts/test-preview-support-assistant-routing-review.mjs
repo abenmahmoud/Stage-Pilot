@@ -1,8 +1,9 @@
 import assert from "node:assert/strict";
-import { spawnSync } from "node:child_process";
 import { createHmac, randomBytes, randomUUID } from "node:crypto";
 import { readFile } from "node:fs/promises";
 import { createClient } from "@supabase/supabase-js";
+import { assertRoutingReviewPreviewTarget } from "./routing-review-preview-target.mjs";
+import { assertRoutingReviewVercelAvailable, runRoutingReviewVercel } from "./routing-review-vercel-cli.mjs";
 
 async function loadEnvFile(path) {
   let content;
@@ -23,10 +24,6 @@ async function loadEnvFile(path) {
         ? rawValue.slice(1, -1)
         : rawValue;
   }
-}
-
-function projectRefFromUrl(url) {
-  return new URL(url).hostname.split(".")[0] ?? "";
 }
 
 function decodeBase32(value) {
@@ -67,10 +64,7 @@ async function waitForStableTotpWindow() {
 }
 
 function vercelApi({ deploymentHost, path, method = "GET", accessToken, body }) {
-  const executable = process.platform === "win32" ? "npx.cmd" : "npx";
   const args = [
-    "--no-install",
-    "vercel",
     "curl",
     path,
     "--deployment",
@@ -79,6 +73,8 @@ function vercelApi({ deploymentHost, path, method = "GET", accessToken, body }) 
     "--silent",
     "--show-error",
     "--fail-with-body",
+    "--connect-timeout", "10",
+    "--max-time", "25",
     "--request",
     method,
     "--header",
@@ -94,11 +90,7 @@ function vercelApi({ deploymentHost, path, method = "GET", accessToken, body }) 
       JSON.stringify(body)
     );
   }
-  const result = spawnSync(executable, args, {
-    encoding: "utf8",
-    maxBuffer: 2 * 1024 * 1024,
-    windowsHide: true,
-  });
+  const result = runRoutingReviewVercel(args);
   if (result.status !== 0) {
     throw new Error(`preview_api_failed:${method}:${path}:${result.status ?? "unknown"}`);
   }
@@ -120,31 +112,24 @@ const expectedRef = process.env.EXPECTED_SUPABASE_REF ?? "";
 const productionRef = process.env.PRODUCTION_SUPABASE_REF ?? "";
 const deploymentHost = process.env.PREVIEW_ROUTING_REVIEW_DEPLOYMENT ?? "";
 
+assertRoutingReviewPreviewTarget({ supabaseUrl, expectedRef, productionRef, deploymentHost });
 assert.ok(supabaseUrl && anonKey && serviceRoleKey, "Preview Supabase variables are required");
 assert.doesNotMatch(
   serviceRoleKey,
   /^\[(?:SENSITIVE|ENCRYPTED)\]$/i,
   "Preview service role must be injected locally; Vercel redacted secret placeholders are refused"
 );
-assert.ok(/^[a-z0-9]{20}$/.test(expectedRef), "EXPECTED_SUPABASE_REF is required");
 assert.equal(
   process.env.CONFIRM_PREVIEW_ROUTING_REVIEW_RECIPE,
   expectedRef,
   "CONFIRM_PREVIEW_ROUTING_REVIEW_RECIPE must equal the preview ref"
 );
-assert.equal(projectRefFromUrl(supabaseUrl), expectedRef, "Unexpected Supabase target");
-assert.notEqual(expectedRef, productionRef, "Preview and production refs must differ");
 assert.equal(
   process.env.SUPPORT_ASSISTANT_ROUTING_REVIEW_ENABLED,
   "true",
   "Routing review must be enabled only on the selected preview"
 );
-assert.match(
-  deploymentHost,
-  /^lyceegest-[a-z0-9-]+-safe-scol\.vercel\.app$/,
-  "An immutable LyceeGest preview deployment is required"
-);
-
+assertRoutingReviewVercelAvailable();
 const admin = createClient(supabaseUrl, serviceRoleKey, {
   auth: { autoRefreshToken: false, persistSession: false },
 });

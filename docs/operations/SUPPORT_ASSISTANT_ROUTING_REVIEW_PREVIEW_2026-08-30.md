@@ -72,3 +72,53 @@ Le prochain contrôle reste donc applicatif : injecter localement une clé de
 service de la preview, confirmer le premier dossier, corriger le second sous MFA,
 vérifier les agrégats puis le nettoyage automatique. Ne jamais utiliser ce
 protocole sur le projet Supabase principal.
+
+## Vérification du 1er septembre 2026
+
+Le contrôle non destructif de configuration confirme l'origine HTTPS de la
+preview et la présence d'une clé de service masquée, pas utilisable. Il ne
+révèle aucune valeur. Le connecteur confirme encore `guichet-lycee-preview`
+distincte du projet principal, `with_data=false` et `ACTIVE_HEALTHY`.
+
+Deux défauts des outils de recette ont été reproduits puis corrigés :
+
+- Le premier segment du domaine ne suffisait pas à prouver la destination.
+  `routing-review-preview-target.mjs` impose désormais l'origine HTTPS exacte,
+  les deux références connues et une URL de déploiement sans alias de branche.
+  Un refus ne réaffiche jamais l'URL ou sa valeur potentiellement sensible.
+- Sous Windows, `spawnSync('npx.cmd', ...)` échouait avec `EINVAL`. Le lancement
+  passe maintenant par Node et le point d'entrée JavaScript de npm, en mode
+  hors ligne et sans installation. Un contrôle de version précède les clients
+  Supabase et toute création de fixture. La disponibilité du Vercel 59.10.0
+  déjà en cache a été vérifiée ; cela ne valide pas son authentification.
+
+Le transport conserve des arguments distincts sans shell, masque les erreurs
+du fournisseur et borne ses délais : connexion curl 10 secondes, requête
+25 secondes et processus 45 secondes. Le contrôle de version a un délai de
+15 secondes. Aucun paramètre de production ou secret n'est modifié.
+
+`test:preview-routing-review-recipe-safety` exerce vingt refus dans les deux
+vrais exécutables avec réseau interdit. Les deux configurations valides vont
+seulement jusqu'au faux réseau ; le CLI est simulé pour ces essais. Le second
+test contrôle le lancement natif, l'absence d'installation et les erreurs de
+disponibilité. Ces essais ne créent aucun compte ni dossier.
+
+La suite d'observabilité avait une assertion de source périmée : elle cherchait
+le marqueur `assistantRoutingAttached` dans un objet JavaScript alors que
+l'événement est construit en SQL paramétré. Le marqueur est toujours lié au
+résultat de l'insertion. Le test suit maintenant cette écriture et contrôle
+également le lien à l'appareil et le refus d'un reçu présenté mais invalide.
+Il ne prétend plus que tout reçu incorrect laisse créer une demande.
+
+Les tests d'observabilité et les six tests du reçu passent. La recette API
+complète reste **non exécutée**, T030D3 reste ouverte. Avant toute exécution,
+vérifier les métadonnées Vercel du déploiement choisi : la forme de son URL
+n'atteste pas à elle seule son statut non production. Fournir la clé via le
+gestionnaire de secrets, jamais dans une réponse ou un compte rendu.
+Ces corrections d'outillage ont été vérifiées par Codex ; aucun nouvel audit
+Claude ni coût externe n'a été engagé.
+
+La barrière complète `test:preview-security-gate`, l'intégrité des spécifications
+et `npm run build` passent après ces corrections. Le build conserve son
+avertissement de taille du module XLSX ; ce lot ne modifie aucun écran ni asset.
+Ces résultats locaux ne remplacent pas la recette authentifiée encore bloquée.

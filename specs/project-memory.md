@@ -5,6 +5,28 @@
 **Depot** : `abenmahmoud/Stage-Pilot`
 **Dernier jalon de code verifie** : branche de preview Vercel
 
+## Jalon du 1er septembre 2026 - recettes de classement preparees pour Windows
+
+- Le controle local confirme une origine Supabase de preview exacte mais une
+  cle de service encore masquee. La connexion directe PostgreSQL reste refusee.
+  Aucun secret affiche et aucune recette authentifiee lancee.
+- Les deux recettes de confirmation/correction du classement refusent desormais
+  toute origine autre que la preview exacte. Une URL contenant seulement son
+  nom dans le premier segment du domaine ne suffit plus. Vingt refus locaux
+  sont verifies avant reseau, deux cas valides atteignent seulement un substitut.
+- Le lancement direct de `npx.cmd` etait en echec `EINVAL` sur ce poste. Les
+  recettes utilisent maintenant Node, npm hors ligne et Vercel deja en cache,
+  sans installation. La disponibilite du CLI est verifiee avant toute fixture.
+  Le controle natif de version passe, sans valider une connexion au compte.
+- Un test d'observabilite perime a ete aligne sur l'evenement SQL reel et sur
+  le refus d'un recu invalide. Observabilite, recus et controles de recette
+  passes ; aucun composant d'interface ou comportement public change.
+- La barriere complete de securite, l'integrite des specifications et le build
+  passent. L'avertissement de taille XLSX subsiste, sans changement d'asset.
+- T030D3 reste ouverte pour une cle de service utilisable et la recette API.
+  Pas de nouvel appel Claude : l'autorisation de la mission precedente a ete
+  consommee. Ce lot d'outillage est contre-verifie par Codex uniquement.
+
 ## Jalon du 1er septembre 2026 - revue du worker terminee
 
 - Le proprietaire a repondu a la demande de mission Fable 5 et fixe un plafond

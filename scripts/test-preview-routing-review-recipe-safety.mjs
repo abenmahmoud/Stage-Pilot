@@ -1,5 +1,10 @@
 import assert from "node:assert/strict";
-import { readFile } from "node:fs/promises";
+import { spawnSync } from "node:child_process";
+import { mkdtemp, readFile, rmdir, unlink, writeFile } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import test from "node:test";
+import { assertRoutingReviewVercelAvailable, runRoutingReviewVercel } from "./routing-review-vercel-cli.mjs";
 
 const [source, publicClient] = await Promise.all([
   readFile(new URL("./test-preview-support-assistant-routing-review.mjs", import.meta.url), "utf8"),
@@ -7,11 +12,12 @@ const [source, publicClient] = await Promise.all([
 ]);
 
 assert.match(source, /CONFIRM_PREVIEW_ROUTING_REVIEW_RECIPE/);
-assert.match(source, /projectRefFromUrl\(supabaseUrl\)/);
-assert.match(source, /expectedRef, productionRef/);
+assert.match(source, /assertRoutingReviewPreviewTarget\(\{/);
+assert.ok(source.indexOf("assertRoutingReviewPreviewTarget({") < source.indexOf("const admin = createClient("));
+assert.ok(source.indexOf("assertRoutingReviewVercelAvailable();") < source.indexOf("const admin = createClient("));
 assert.match(source, /SUPPORT_ASSISTANT_ROUTING_REVIEW_ENABLED/);
 assert.match(source, /Vercel redacted secret placeholders are refused/);
-assert.match(source, /lyceegest-\[a-z0-9-\]\+-safe-scol\\\.vercel\\\.app/);
+assert.match(source, /supabaseUrl, expectedRef, productionRef, deploymentHost/);
 assert.match(source, /@example\.test/);
 assert.match(source, /support_requests/);
 assert.match(source, /support_assistant_routing_reviews/);
@@ -28,10 +34,102 @@ assert.match(source, /admin\.auth\.admin\.deleteUser/);
 assert.doesNotMatch(source, /console\.(?:log|error)\([^\n]*(?:accessToken|password|email|public_code)/);
 assert.doesNotMatch(publicClient, /SUPABASE_SERVICE_ROLE_KEY|auth\.admin|(?:admin|client)\.from\(/);
 assert.match(publicClient, /CONFIRM_PREVIEW_ROUTING_REVIEW_RECIPE/);
+assert.match(publicClient, /assertRoutingReviewPreviewTarget\(\{/);
+assert.ok(publicClient.indexOf("assertRoutingReviewPreviewTarget({") < publicClient.indexOf("const client = createClient("));
+assert.ok(publicClient.indexOf("assertRoutingReviewVercelAvailable();") < publicClient.indexOf("const client = createClient("));
 assert.match(publicClient, /currentLevel, "aal2"/);
 assert.match(publicClient, /routingDecision: "confirmed"/);
 assert.match(publicClient, /assignedTeam: "secretariat"/);
 assert.match(publicClient, /cleanup: "external_required"/);
 assert.doesNotMatch(publicClient, /console\.(?:log|error)\([^\n]*(?:accessToken|password|email|confirmCode|correctCode)/);
 
-console.log("preview routing review recipe safety: 27/27 checks passed");
+console.log("preview routing review static safety checks passed");
+
+test("both recipes reject misleading Supabase destinations before any network request", async () => {
+  const directory = await mkdtemp(join(tmpdir(), "lyceegest-routing-recipe-"));
+  const envFile = join(directory, "empty.env");
+  await writeFile(envFile, "# Empty synthetic recipe environment\n", { flag: "wx" });
+  const preview = "xijocumlwivhbmffrnlj";
+  const production = "sfqhxiamhgsbbogluqtq";
+  const base = { ...process.env, PREVIEW_ENV_FILE: envFile,
+    NEXT_PUBLIC_SUPABASE_URL: `https://${preview}.supabase.co`,
+    VITE_SUPABASE_URL: `https://${preview}.supabase.co`,
+    NEXT_PUBLIC_SUPABASE_ANON_KEY: "synthetic-anon-key", VITE_SUPABASE_ANON_KEY: "synthetic-anon-key",
+    SUPABASE_SERVICE_ROLE_KEY: "synthetic-service-key", EXPECTED_SUPABASE_REF: preview,
+    PRODUCTION_SUPABASE_REF: production, CONFIRM_PREVIEW_ROUTING_REVIEW_RECIPE: preview,
+    SUPPORT_ASSISTANT_ROUTING_REVIEW_ENABLED: "true",
+    PREVIEW_ROUTING_REVIEW_DEPLOYMENT: "lyceegest-123abc456-safe-scol.vercel.app",
+    PREVIEW_ROUTING_REVIEW_FIXTURE_EMAIL: "codex-routing-review-synthetic@example.test",
+    PREVIEW_ROUTING_REVIEW_FIXTURE_PASSWORD: "synthetic-password-for-local-tests",
+    PREVIEW_ROUTING_REVIEW_CONFIRM_CODE: "BC-2099-000001",
+    PREVIEW_ROUTING_REVIEW_CORRECT_CODE: "BC-2099-000002" };
+  const targets = [
+    { NEXT_PUBLIC_SUPABASE_URL: `https://${preview}.attacker.invalid` },
+    { NEXT_PUBLIC_SUPABASE_URL: `http://${preview}.supabase.co` },
+    { NEXT_PUBLIC_SUPABASE_URL: `https://${preview}.supabase.co:8443` },
+    { NEXT_PUBLIC_SUPABASE_URL: `https://${preview}.supabase.co?private=synthetic-private-marker` },
+    { NEXT_PUBLIC_SUPABASE_URL: `https://synthetic-private-marker@${preview}.supabase.co` },
+    { NEXT_PUBLIC_SUPABASE_URL: `https://${production}.supabase.co`, EXPECTED_SUPABASE_REF: production,
+      PRODUCTION_SUPABASE_REF: "", CONFIRM_PREVIEW_ROUTING_REVIEW_RECIPE: production },
+    { PRODUCTION_SUPABASE_REF: "" },
+    { EXPECTED_SUPABASE_REF: "" },
+    { PREVIEW_ROUTING_REVIEW_DEPLOYMENT: "lyceegest-git-codex-lycee-connect-prototype-safe-scol.vercel.app" },
+    { PREVIEW_ROUTING_REVIEW_DEPLOYMENT: "lyceegest.vercel.app" },
+  ];
+  try {
+    for (const name of ["test-preview-support-assistant-routing-review.mjs", "test-preview-routing-review-client.mjs"]) {
+      const program = `import childProcess from 'node:child_process';
+        import { syncBuiltinESMExports } from 'node:module';
+        childProcess.spawnSync = () => process.env.RECIPE_CLI_UNAVAILABLE === 'true'
+          ? ({ status: 1, stdout: '', stderr: '' }) : ({ status: 0, stdout: '59.10.0', stderr: '' });
+        syncBuiltinESMExports();
+        globalThis.fetch = () => { console.error('unexpected_network_attempt'); process.exit(86); };
+        await import(${JSON.stringify(new URL(name, import.meta.url).href)});`;
+      const run = (changes) => spawnSync(process.execPath, ["--input-type=module", "--eval", program], {
+        cwd: new URL("../", import.meta.url), env: { ...base, ...changes },
+        encoding: "utf8", windowsHide: true, timeout: 5000,
+      });
+      // The local guard intercepts even the valid case; no real service is contacted.
+      assert.equal(run({}).status, 86, `${name}: valid configuration reaches only the injected guard`);
+      const unavailable = run({ RECIPE_CLI_UNAVAILABLE: "true" });
+      assert.equal(unavailable.status, 1);
+      assert.match(unavailable.stderr, /preview_vercel_cli_unavailable/);
+      assert.doesNotMatch(unavailable.stdout + unavailable.stderr, /unexpected_network_attempt/);
+      for (const target of targets) {
+        const result = run(target);
+        assert.equal(result.status, 1, `${name}: invalid destination rejected before fetch`);
+        assert.match(result.stderr, /routing_review_preview_target_invalid/);
+        assert.doesNotMatch(result.stdout + result.stderr, /unexpected_network_attempt|synthetic-private-marker|synthetic-service-key/);
+      }
+    }
+  } finally {
+    await unlink(envFile);
+    await rmdir(directory);
+  }
+});
+
+test("runs the cached CLI through Node without a Windows shell or automatic installation", () => {
+  const calls = [];
+  const spawnImpl = (executable, args, options) => {
+    calls.push({ executable, args, options });
+    return { status: 0, stdout: "59.10.0\n", stderr: "" };
+  };
+  assertRoutingReviewVercelAvailable(spawnImpl);
+  const args = ["curl", "/api/support/agent/metrics?days=7", "--deployment", "lyceegest-123abc456-safe-scol.vercel.app"];
+  runRoutingReviewVercel(args, spawnImpl);
+  for (const call of calls) {
+    assert.equal(call.executable, process.execPath);
+    assert.match(call.args[0], /[\\/]npm[\\/]bin[\\/]npx-cli\.js$/u);
+    assert.deepEqual(call.args.slice(1, 4), ["--offline", "--no-install", "vercel"]);
+    assert.equal(call.options.shell, false);
+    assert.equal(call.options.windowsHide, true);
+    assert.equal(call.options.env.CI, "1");
+  }
+  assert.deepEqual(calls[1].args.slice(4), args);
+  assert.equal(calls[0].options.timeout, 15000);
+  assert.equal(calls[1].options.timeout, 45000);
+  for (const result of [{ status: 1, stdout: "private-provider-detail" },
+    { status: null, stdout: "", error: { code: "ETIMEDOUT" } }, { status: 0, stdout: "not a CLI version" }]) {
+    assert.throws(() => assertRoutingReviewVercelAvailable(() => result), { message: "preview_vercel_cli_unavailable" });
+  }
+});

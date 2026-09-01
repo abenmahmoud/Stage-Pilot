@@ -626,6 +626,12 @@
   agrégats puis contrôler le nettoyage complet. Les recettes sont préparées ;
   leur exécution attend une clé de service preview injectée localement, jamais
   exportée ou journalisée.
+  Au 1er septembre, les deux recettes imposent la référence et l'origine HTTPS
+  exactes de preview avant tout client ; vingt destinations trompeuses sont
+  refusées dans les exécutables, réseau intercepté. Leur lancement Windows
+  passe par Node et le Vercel en cache, sans installation, avec contrôle de
+  disponibilité avant création de fixture. La clé locale reste masquée : aucune
+  confirmation, correction, création de compte ou action distante de recette.
 
 ## Phase 4 - Compétences du pilote
 

@@ -1,8 +1,9 @@
 import assert from "node:assert/strict";
-import { spawnSync } from "node:child_process";
 import { createHmac } from "node:crypto";
 import { readFile } from "node:fs/promises";
 import { createClient } from "@supabase/supabase-js";
+import { assertRoutingReviewPreviewTarget } from "./routing-review-preview-target.mjs";
+import { assertRoutingReviewVercelAvailable, runRoutingReviewVercel } from "./routing-review-vercel-cli.mjs";
 
 async function loadEnvFile(path) {
   const content = await readFile(path, "utf8");
@@ -57,10 +58,7 @@ async function waitForStableTotpWindow() {
 }
 
 function vercelApi({ deploymentHost, path, method = "GET", accessToken, body }) {
-  const executable = process.platform === "win32" ? "npx.cmd" : "npx";
   const args = [
-    "--no-install",
-    "vercel",
     "curl",
     path,
     "--deployment",
@@ -69,6 +67,8 @@ function vercelApi({ deploymentHost, path, method = "GET", accessToken, body }) 
     "--silent",
     "--show-error",
     "--fail-with-body",
+    "--connect-timeout", "10",
+    "--max-time", "25",
     "--request",
     method,
     "--header",
@@ -79,11 +79,7 @@ function vercelApi({ deploymentHost, path, method = "GET", accessToken, body }) 
   if (body !== undefined) {
     args.push("--header", "Content-Type: application/json", "--data-raw", JSON.stringify(body));
   }
-  const result = spawnSync(executable, args, {
-    encoding: "utf8",
-    maxBuffer: 2 * 1024 * 1024,
-    windowsHide: true,
-  });
+  const result = runRoutingReviewVercel(args);
   if (result.status !== 0) {
     throw new Error(`preview_api_failed:${method}:${path}:${result.status ?? "unknown"}`);
   }
@@ -108,18 +104,17 @@ const password = process.env.PREVIEW_ROUTING_REVIEW_FIXTURE_PASSWORD ?? "";
 const confirmCode = process.env.PREVIEW_ROUTING_REVIEW_CONFIRM_CODE ?? "";
 const correctCode = process.env.PREVIEW_ROUTING_REVIEW_CORRECT_CODE ?? "";
 
+assertRoutingReviewPreviewTarget({ supabaseUrl, expectedRef, productionRef, deploymentHost });
 assert.ok(supabaseUrl && anonKey, "Preview public Supabase variables are required");
-assert.equal(new URL(supabaseUrl).hostname.split(".")[0], expectedRef, "Unexpected Supabase target");
-assert.notEqual(expectedRef, productionRef, "Preview and production refs must differ");
 assert.equal(process.env.CONFIRM_PREVIEW_ROUTING_REVIEW_RECIPE, expectedRef);
 assert.equal(process.env.SUPPORT_ASSISTANT_ROUTING_REVIEW_ENABLED, "true");
-assert.match(deploymentHost, /^lyceegest-[a-z0-9-]+-safe-scol\.vercel\.app$/);
 assert.match(email, /^codex-routing-review-[a-z0-9-]+@example\.test$/);
 assert.ok(password.length >= 20, "Fixture password is required");
 assert.match(confirmCode, /^BC-2099-\d{6}$/);
 assert.match(correctCode, /^BC-2099-\d{6}$/);
 assert.notEqual(confirmCode, correctCode);
 
+assertRoutingReviewVercelAvailable();
 const client = createClient(supabaseUrl, anonKey, {
   auth: { autoRefreshToken: false, persistSession: false },
 });

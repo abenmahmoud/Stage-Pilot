@@ -32,7 +32,7 @@ test("keeps routing reviews private, scoped and terminal after a human decision"
   );
 });
 
-test("attaches only a verified short-lived assistant receipt without blocking request creation", () => {
+test("binds the assistant receipt to its requester and audits whether the review was attached", () => {
   assert.match(assistantRoute, /supportAssistantRoutingReviewEnabled\(\)/);
   assert.match(assistantRoute, /createSupportAssistantRoutingReceipt/);
   assert.match(assistantRoute, /knowledgeActor\.institutionId/);
@@ -42,7 +42,9 @@ test("attaches only a verified short-lived assistant receipt without blocking re
   assert.match(requestRoute, /institutionId: institution\.id/);
   assert.match(requestRoute, /category: input\.category/);
   assert.match(requestRoute, /service: input\.routing\.service/);
-  assert.match(requestRoute, /assistantRoutingAttached: Boolean\(attachedRoutingReview\)/);
+  assert.match(requestRoute, /expectedRequesterRefHash: deviceKey/);
+  assert.match(requestRoute, /input\.assistantRoutingReceipt[\s\S]+!verifiedRoutingReceipt[\s\S]+throw new HttpError\(\s*400/);
+  assert.match(requestRoute, /'assistantRoutingAttached', \$\{Boolean\(attachedRoutingReview\)\}::boolean/);
   assert.doesNotMatch(requestRoute, /toValue:[\s\S]{0,500}routingReceipt/);
 });
 
