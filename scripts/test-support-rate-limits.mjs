@@ -46,11 +46,10 @@ test("uses device and contact limits before the high shared-network guard", () =
 test("keeps counters atomic, shared and bounded instead of server-memory based", () => {
   assert.match(sharedSupport, /insert into public\.support_rate_limits/);
   assert.match(sharedSupport, /on conflict \(scope, key_hash\) do update/);
-  assert.match(sharedSupport, /from unnest\(/);
+  assert.match(sharedSupport, /JSON\.stringify\(inputs\.map/);
+  assert.match(sharedSupport, /jsonb_to_recordset\(\$\{inputRows\}::jsonb\)/);
   assert.match(sharedSupport, /request_count < \([\s\S]*candidate\.max_count/);
   assert.match(sharedSupport, /duplicate_rate_limit_attempt/);
-  assert.match(sharedSupport, /String\(input\.limit\)/);
-  assert.match(sharedSupport, /String\(input\.windowSeconds\)/);
   assert.match(sharedSupport, /where expires_at < now\(\) - interval '1 day'/);
   assert.match(sharedSupport, /limit 100/);
   assert.doesNotMatch(sharedSupport, /new Map|setInterval/);
