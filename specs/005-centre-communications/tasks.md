@@ -311,6 +311,16 @@
   Code et dix-sept tests locaux vérifiés ; revue Fable arbitrée et régressions
   reproduites puis corrigées. Aucun scanner réel ni worker activé : T022 reste
   ouverte pour le service complet et ses preuves antivirus réelles.
+- [ ] T022K Construire le worker entrant complet sans l'activer : tâche louée
+  et objet verrouillés, lecture bornée de quarantaine, analyse, dépôt propre
+  vérifié sans écrasement, preuve et acquittement atomiques, erreurs privées,
+  cinq essais maximum et aucune suppression. Prouver les interruptions,
+  substitutions, rejeux et accès croisés ; garder ouverte la recette intégrée
+  sur la preview tant que le vrai antivirus et la connexion ne sont pas prêts.
+  Code, vingt tests locaux et recette SQL sous rollback vérifiés (six résidus
+  nuls). Les signatures ZIP ordinaires masquées sont refusées avant scan.
+  Revue Claude de ce worker en attente d'accord courant ; ni recette complète
+  du programme avec ClamAV réel, ni activation, ni supervision validées.
 - [x] T023 Rattacher chaque réponse à la bonne communication.
 - [x] T023A Définir le rattachement strict avant la persistance. La référence
   `In-Reply-To` entrante utilise le même HMAC secret que l'identifiant du message

@@ -507,3 +507,40 @@ vérifiée. Ce durcissement interne n'est pas une exploitation HTTP démontrée.
 Le compte rendu `docs/audits/CLAUDE_INBOUND_SCANNER_ADJUDICATION_2026-09-01.md`
 distingue corrections, observations et prérequis. T022J est terminée pour cet
 adaptateur testé ; T022 et T022I restent ouvertes. Rien n'est promu ni publié.
+
+## Worker entrant préparé, T022K encore ouverte
+
+Le programme de traitement relie maintenant les adaptateurs locaux : bail de
+300 secondes, vérification du compteur de lecture, verrous de tâche et d'objet,
+lecture privée bornée et vérifiée, scan, dépôt propre sans écrasement et
+relecture. État, événement et acquittement partagent une transaction. Les
+échecs temporaires attendent 30, 120, 300 puis 900 secondes ; au cinquième
+essai, ou dès une erreur permanente, le message est archivé et le fichier
+reste privé. Les RFC822 ne sont pas libérés sans extraction interne validée.
+
+Les vingt tests locaux couvrent les adaptateurs assemblés avec substituts,
+les reprises, reçus incohérents, épuisement des tentatives, états terminaux,
+SQL paramétré et périmétré, bornes d'exécution et refus de configuration. Ils
+ne prouvent ni le véritable moteur, ni un redémarrage physique PostgreSQL.
+La recette `communication_inbound_scan_worker.test.sql` vérifie réellement
+les transitions, événements, bail, temporisation, archivage et rollback sur
+la branche `guichet-lycee-preview`. Ses lectures PGMQ sont filtrées sur les
+fixtures exactes ; les six compteurs après rollback sont nuls.
+
+L'exécutable exige deux confirmations d'exploitation et `--preview-only`,
+refuse une cible étrangère, paramètres de connexion additionnels et fragments,
+et impose TLS avec validation du certificat. Aucun interrupteur n'a été activé.
+La déclaration manuelle `CLAMAV_VERIFIED` n'est pas une preuve technique : une
+personne habilitée doit d'abord conserver les résultats de la recette réelle.
+
+Le scanner refuse aussi une signature ZIP ordinaire annoncée dans un format
+non Office. Son dix-huitième test couvre quinze combinaisons de signatures et
+types mensongers sans lancer de processus. Ce contrôle n'est pas un analyseur
+universel des formats ou des fichiers polyglottes.
+
+La suite communications, la barrière de sécurité preview, le build et l'audit
+des dépendances d'exécution passent. Une nouvelle mission Claude a été proposée
+avec un plafond distinct de 3 USD ; aucun appel supplémentaire n'est lancé
+sans réponse. T022K reste ouverte pour cette revue et la recette intégrée du
+programme avec la vraie connexion et ClamAV. Voir la procédure d'exploitation
+`docs/operations/COMMUNICATION_INBOUND_SCAN_WORKER_PREVIEW_2026-09-01.md`.

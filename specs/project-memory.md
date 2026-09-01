@@ -5,6 +5,29 @@
 **Depot** : `abenmahmoud/Stage-Pilot`
 **Dernier jalon de code verifie** : branche de preview Vercel
 
+## Jalon du 1er septembre 2026 - worker entrant avec reprise
+
+- Le worker relie lecture privée, antivirus, dépôt propre vérifié et validation
+  transactionnelle. Un bail et des verrous empêchent une reprise périmée ; une
+  panne conserve la tâche ou l'archive pour intervention, sans supprimer le
+  fichier. Cinq tentatives maximum par message, avec attente progressive.
+- Vingt tests locaux passent. La recette SQL fictive de la base de preview
+  prouve les transitions, acquittements, reprises et rollback ; ses six
+  compteurs de résidus sont nuls. Aucun fichier réel ou compte créé.
+- Le scanner refuse désormais les signatures ZIP ordinaires dissimulées sous
+  un type non Office ; dix-huit tests du processus passent. Les RFC822 restent
+  privés tant que leurs pièces internes ne sont pas contrôlées séparément.
+- Communications, barrière de sécurité et build passent ; l'audit des
+  dépendances d'exécution ne trouve aucune vulnérabilité connue. Cela ne vaut
+  ni test de charge du service réel, ni garantie absolue de sécurité.
+- `005/T022K` reste ouverte : revue externe de ce nouveau worker et recette
+  complète avec vraie connexion PostgreSQL et ClamAV manquent encore. La
+  nouvelle autorisation Claude à 3 USD a été demandée, pas consommée. La mission
+  précédente à 1,84 USD est terminée et son budget n'est pas reconduit.
+- Rien n'est activé sur la production, les services distants ou les files.
+  La procédure et les limites sont dans
+  `docs/operations/COMMUNICATION_INBOUND_SCAN_WORKER_PREVIEW_2026-09-01.md`.
+
 ## Jalon du 1er septembre 2026 - corrections mécaniques WordPress
 
 - Le pipeline du prochain import explicite corrige vingt-et-une occurrences non

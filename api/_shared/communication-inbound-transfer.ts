@@ -10,6 +10,7 @@ import {
 
 const BREVO_ATTACHMENT_ENDPOINT = "https://api.brevo.com/v3/inbound/attachments/";
 const QUARANTINE_BUCKET = "communication-inbound-quarantine";
+const CLEAN_BUCKET = "communication-inbound-clean";
 const MEDIA_TYPES = new Set<string>(COMMUNICATION_INBOUND_MEDIA_TYPES);
 const MAX_BYTES = COMMUNICATION_INBOUND_CONTENT_LIMITS.objectBytes;
 
@@ -206,41 +207,80 @@ export function createCommunicationBrevoAttachmentDownloader(options: {
   };
 }
 
-export function createCommunicationInboundQuarantineStore(options: {
+type PrivateStorageOptions = {
   supabaseUrl: string | undefined; serviceRoleKey: string | undefined;
   fetchImpl?: typeof fetch; timeoutMs?: number;
-}): (input: {
-  confirmation: unknown; bytes: Uint8Array;
-}) => Promise<CommunicationInboundQuarantineConfirmation> {
+};
+
+function privateStorage(options: PrivateStorageOptions) {
   if (typeof options.supabaseUrl !== "string"
     || !/^https:\/\/[a-z0-9-]{1,63}\.supabase\.co\/?$/u.test(options.supabaseUrl)) {
     fail("configuration_invalid");
   }
-  const baseUrl = options.supabaseUrl.replace(/\/$/u, "");
   const serviceRoleKey = key(options.serviceRoleKey);
-  const timeoutMs = timeout(options.timeoutMs);
-  const fetchImpl = options.fetchImpl ?? fetch;
+  return {
+    baseUrl: options.supabaseUrl.replace(/\/$/u, ""),
+    timeoutMs: timeout(options.timeoutMs),
+    fetchImpl: options.fetchImpl ?? fetch,
+    headers: { apikey: serviceRoleKey, authorization: `Bearer ${serviceRoleKey}`,
+      "accept-encoding": "identity" },
+  };
+}
+
+export function createCommunicationInboundQuarantineReader(options: PrivateStorageOptions) {
+  const { baseUrl, timeoutMs, fetchImpl, headers } = privateStorage(options);
+  return async (value: unknown): Promise<Uint8Array> => {
+    let confirmation: CommunicationInboundQuarantineConfirmation;
+    try { confirmation = parseCommunicationInboundQuarantineConfirmation(value); }
+    catch { fail("input_invalid"); }
+    const path = communicationInboundObjectStoragePath(
+      confirmation.institutionId, confirmation.inboundId, confirmation.objectId
+    );
+    return deadline(timeoutMs, async (signal) => {
+      const response = await request(fetchImpl, `${baseUrl}/storage/v1/object/${QUARANTINE_BUCKET}/${path}`,
+        { method: "GET", headers }, signal);
+      if (response.status !== 200) { discard(response); fail("storage_read_failed"); }
+      const bytes = await readBytes(response, confirmation.mediaType, signal, false, confirmation.sizeBytes);
+      if (createHash("sha256").update(bytes).digest("hex") !== confirmation.sha256) {
+        bytes.fill(0);
+        fail("content_digest_mismatch");
+      }
+      return bytes;
+    });
+  };
+}
+
+export function createCommunicationInboundQuarantineStore(options: PrivateStorageOptions) {
+  return createPrivateStore(options, QUARANTINE_BUCKET);
+}
+
+export function createCommunicationInboundCleanStore(options: PrivateStorageOptions) {
+  return createPrivateStore(options, CLEAN_BUCKET);
+}
+
+function createPrivateStore(options: PrivateStorageOptions, bucket: typeof QUARANTINE_BUCKET | typeof CLEAN_BUCKET): (input: {
+  confirmation: unknown; bytes: Uint8Array;
+}) => Promise<CommunicationInboundQuarantineConfirmation> {
+  const { baseUrl, timeoutMs, fetchImpl, headers } = privateStorage(options);
   return async (input) => {
     let confirmation: CommunicationInboundQuarantineConfirmation;
     try {
       confirmation = { ...parseCommunicationInboundQuarantineConfirmation(input.confirmation) };
     } catch { fail("input_invalid"); }
-    if (!(input.bytes instanceof Uint8Array) || input.bytes.byteLength !== confirmation.sizeBytes) {
+    const source = input.bytes;
+    if (!(source instanceof Uint8Array) || source.byteLength !== confirmation.sizeBytes) {
       fail("content_size_invalid");
     }
-    const bytes = Uint8Array.from(input.bytes);
+    const bytes = Uint8Array.from(source);
     try {
+      if (bytes.byteLength !== confirmation.sizeBytes) fail("content_size_invalid");
       if (createHash("sha256").update(bytes).digest("hex") !== confirmation.sha256) {
         fail("content_digest_mismatch");
       }
       const path = communicationInboundObjectStoragePath(
         confirmation.institutionId, confirmation.inboundId, confirmation.objectId
       );
-      const url = `${baseUrl}/storage/v1/object/${QUARANTINE_BUCKET}/${path}`;
-      const headers = {
-        apikey: serviceRoleKey, authorization: `Bearer ${serviceRoleKey}`,
-        "accept-encoding": "identity",
-      };
+      const url = `${baseUrl}/storage/v1/object/${bucket}/${path}`;
       return await deadline(timeoutMs, async (signal) => {
         const uploaded = await request(fetchImpl, url, {
           method: "POST", body: new Blob([bytes]),

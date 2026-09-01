@@ -111,6 +111,21 @@ avec le vrai ClamAV et ses signatures à jour, les limites du démon contrôlée
 et des preuves fichier propre/EICAR/limites. Un exécutable fictif teste le
 pilotage du processus, pas l'efficacité de l'antivirus.
 
+## Traitement durable des objets entrants
+
+Le worker reçoit une tâche louée PGMQ, recoupe son compteur de lecture et son
+périmètre puis verrouille l'objet associé. Lecture, analyse et dépôt propre
+vérifié précèdent la transition persistée. L'événement et l'acquittement de la
+tâche sont dans la même transaction. Un commit perdu se reprend sans refaire
+un objet terminal ; une copie propre orpheline reste privée et peut être relue
+à la reprise. Aucune suppression de quarantaine dans ce lot.
+
+Une erreur laisse une preuve fermée, remet la tâche à plus tard et conserve le
+contenu ; au cinquième essai elle est archivée pour intervention. Le worker
+reste limité à la preview, sans boucle permanente ni activation automatique.
+Les emails RFC822 restent en attente de revue tant que leurs pièces internes
+ne passent pas une extraction bornée et le contrôle Office par objet.
+
 ## Interface simplifiée
 
 L'écran principal propose trois commandes visibles :

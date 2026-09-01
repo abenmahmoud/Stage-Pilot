@@ -12,6 +12,11 @@ import { inspectSupportOfficeArchive } from "./support-office-archive-policy.mjs
 const OUTPUT_BYTES = 16 * 1024;
 const MAX_BYTES = COMMUNICATION_INBOUND_CONTENT_LIMITS.objectBytes;
 const ENV_KEYS = new Set(["systemroot", "windir", "temp", "tmp"]);
+const OFFICE_TYPES = new Set([
+  "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+  "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+  "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+]);
 
 export class CommunicationInboundScanError extends Error {
   constructor(code) {
@@ -127,6 +132,11 @@ export function createCommunicationInboundScanner({
       if (bytes.length < 1 || bytes.length > MAX_BYTES) fail("input_invalid");
       if (bytes.length !== confirmation.sizeBytes) fail("digest_mismatch");
       if (createHash("sha256").update(bytes).digest("hex") !== confirmation.sha256) fail("digest_mismatch");
+      // Ordinary ZIP signatures must not bypass Office checks via a false MIME declaration.
+      const zip = bytes[0] === 0x50 && bytes[1] === 0x4b
+        && ((bytes[2] === 3 && bytes[3] === 4) || (bytes[2] === 5 && bytes[3] === 6)
+          || (bytes[2] === 7 && bytes[3] === 8));
+      if (zip && !OFFICE_TYPES.has(confirmation.mediaType)) fail("unsafe_archive");
       root = resolve(tmpdir());
       directory = await mkdtemp(join(root, "lyceegest-inbound-scan-"));
       const configPath = join(directory, "clamdscan.conf");

@@ -106,6 +106,17 @@ test("streams an exact private snapshot through native pipes and returns a scope
   h.assertReleased();
 });
 
+test("does not let an ordinary ZIP bypass archive policy through a non-Office MIME declaration", async () => {
+  for (const signature of [[0x50, 0x4b, 3, 4], [0x50, 0x4b, 5, 6], [0x50, 0x4b, 7, 8]]) {
+    for (const mediaType of ["text/plain", "application/pdf", "image/png", "image/heic", "message/rfc822"]) {
+      const h = harness();
+      await rejected(h.scan(input(Buffer.from([...signature, 0, 0, 0, 0]), mediaType)), "unsafe_archive");
+      assert.equal(h.children.length, 0);
+      h.assertReleased();
+    }
+  }
+});
+
 test("refuses invalid configuration and never accepts arbitrary remote scan targets", () => {
   for (const options of [
     {}, { executable: "clamdscan" }, { executable: process.execPath + "\n" },
