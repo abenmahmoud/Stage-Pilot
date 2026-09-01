@@ -80,7 +80,9 @@ validation globale direction/DPO avant production.
   Effacer, invalider ou expirer tous les cookies crée néanmoins un nouvel anonyme.
   Le garde-fou global reste commun, mais un anonyme n'est pas une personne unique.
   La rotation d'une session de suivi ne prouve pas non plus une identité durable.
-- Un budget monétaire global et son activation restent à fixer avec le
+- L'enveloppe monétaire quotidienne atomique est implémentée et désactivée par
+  défaut. Son montant, les réserves maximales par route, les prix de modèles, le
+  plafond dur du projet fournisseur et son activation restent à fixer avec le
   propriétaire. Le garde-fou de trafic n'est pas présenté comme cette garantie.
 - Un contact partagé par une famille est possible ; les seuils restent assez
   hauts pour plusieurs enfants et le réseau collectif possède un plafond séparé.

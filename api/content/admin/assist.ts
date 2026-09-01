@@ -6,6 +6,7 @@ import { HttpError } from "../../_shared/auth.js";
 import { requireSiteEditor, inputError, redactEditorialText } from "../../_shared/site-content.js";
 import { enforceSupportRateLimit, personalHash } from "../../_shared/support.js";
 import { handleApi, methodNotAllowed } from "../../_shared/response.js";
+import { reserveAgentAiDailyBudget } from "../../_shared/agent-ai-budget.js";
 
 const RESULT_SCHEMA = {
   type: "object",
@@ -61,6 +62,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     });
     const apiKey = process.env.OPENAI_API_KEY;
     if (!apiKey) throw new HttpError(503, "L’aide à la rédaction n’est pas encore configurée");
+    const budget = await reserveAgentAiDailyBudget("content_assist");
+    if (budget.status === "unavailable") {
+      throw new HttpError(503, "Le budget de l’aide à la rédaction n’est pas disponible");
+    }
+    if (budget.status === "exhausted") {
+      throw new HttpError(429, "Le budget quotidien de l’aide à la rédaction est atteint");
+    }
 
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 20_000);

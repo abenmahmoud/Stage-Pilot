@@ -919,6 +919,13 @@
   migration `20260901223342`, test PostgreSQL fictif installé et 99 contrôles
   ciblés passent sur la preview avec zéro résidu. La course à deux connexions
   reste ouverte : sa recette est prête mais l'URL PostgreSQL locale est masquée.
+- [x] T049C9 Ajouter une enveloppe monétaire quotidienne atomique et commune aux
+  trois routes OpenAI. Réserver avant l'appel, échouer fermé si la configuration
+  active est incomplète, ne conserver aucune donnée utilisateur et laisser le
+  garde désactivé tant que le propriétaire n'a pas fixé les montants. Migration
+  `20260901225812` installée sur la preview seule ; dix réservations concurrentes
+  respectent la borne et laissent zéro fixture. Le plafond dur du projet OpenAI,
+  les prix vérifiés, les montants et l'activation restent dans T049C.
 - [ ] T050 Ouvrir un pilote limité avec agents nommés et canal de retour.
 - [ ] T051 Mesurer deux semaines : classement, délai, transferts, corrections, coût et incidents.
 - [ ] T052 Corriger les écarts puis exécuter `/speckit.analyze` et `/speckit.converge` avant généralisation.

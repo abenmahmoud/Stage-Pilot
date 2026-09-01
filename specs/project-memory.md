@@ -1,9 +1,27 @@
 # Memoire durable - Portail numerique du Lycee Blaise Cendrars
 
-**Derniere mise a jour** : 1 septembre 2026
+**Derniere mise a jour** : 2 septembre 2026
 **Branche de travail** : `codex/lycee-connect-prototype`
 **Depot** : `abenmahmoud/Stage-Pilot`
 **Dernier jalon de code verifie** : branche de preview Vercel
+
+## Jalon du 2 septembre 2026 - enveloppe quotidienne IA en preview
+
+- Une enveloppe quotidienne atomique commune couvre l'assistant, la rédaction
+  du site et les communications. Elle réserve avant le fournisseur un montant
+  maximal par appel et ne stocke aucune donnée utilisateur.
+- Le garde reste désactivé tant que le propriétaire n'a pas choisi le budget
+  quotidien et les trois réserves. Une activation incomplète échoue fermée ;
+  aucune valeur financière n'est imposée par le code.
+- La migration `20260901225812` est installée seulement sur
+  `guichet-lycee-preview`. Dix réservations concurrentes fictives respectent la
+  borne, exactement trois sur dix passent, et le nettoyage laisse zéro ligne.
+- Les conseillers donnent 63 informations et aucune alerte de sécurité ; les 16
+  avertissements de performance sont inchangés. Le plafond dur OpenAI, les prix,
+  les montants, l'activation et la contre-revue restent ouverts dans T049C.
+- Claude est resté en pause. Aucun appel OpenAI, donnée réelle, production,
+  email, DNS, VPS, Hostinger, Webmail, ENT ou PRONOTE n'a été touché.
+- Rapport : `docs/security/AGENT_AI_DAILY_BUDGET_PREVIEW_2026-09-02.md`.
 
 ## Jalon du 2 septembre 2026 - révocation liée au contact en preview
 

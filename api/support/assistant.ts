@@ -10,6 +10,7 @@ import {
 } from "../_shared/support-agent.js";
 import { resolveKnowledgeActorFromRequest } from "../_shared/knowledge-actor.js";
 import { recordAgentRuntimeMetric } from "../_shared/agent-runtime-metrics.js";
+import { reserveAgentAiDailyBudget } from "../_shared/agent-ai-budget.js";
 import { readNextCourseForVerifiedIdentity } from "../_shared/schedule-identity-reader.js";
 import { routeSupportRequest } from "../../shared/support-routing.js";
 import {
@@ -42,6 +43,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       runtimeMetricsRecorder: knowledgeActor
         ? (metric) => recordAgentRuntimeMetric(knowledgeActor.institutionId, metric)
         : undefined,
+      aiBudgetGuard: () => reserveAgentAiDailyBudget("support_assistant"),
       scheduleReader: async ({ requestedAt }) => {
         try {
           return await readNextCourseForVerifiedIdentity({

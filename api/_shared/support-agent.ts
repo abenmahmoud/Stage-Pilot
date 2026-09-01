@@ -20,6 +20,7 @@ import {
   type AgentRuntimeOutcome,
   type AgentTokenUsage,
 } from "../../shared/agent-runtime-metrics.js";
+import type { AgentAiBudgetReservationResult } from "../../shared/agent-ai-budget.js";
 import type { ScheduleReadResult } from "../../shared/schedule-policy.js";
 import {
   requestsOwnNextCourse,
@@ -386,6 +387,7 @@ export async function analyzeSupportConversation(input: {
     turnCount: number;
   }) => Promise<void>;
   runtimeMetricsRecorder?: (metric: AgentRuntimeMetric) => Promise<void>;
+  aiBudgetGuard?: () => Promise<AgentAiBudgetReservationResult>;
   scheduleReader?: (input: { requestedAt: Date }) => Promise<ScheduleReadResult>;
 }): Promise<SupportAgentResult> {
   const startedAt = Date.now();
@@ -512,6 +514,23 @@ export async function analyzeSupportConversation(input: {
     }
   } catch {
     publicKnowledgeContext = { instructions: "", versions: [], sources: [] };
+  }
+
+  if (process.env.OPENAI_BUDGET_GUARD_ENABLED === "true") {
+    let budget: AgentAiBudgetReservationResult = { status: "unavailable" };
+    try {
+      budget = input.aiBudgetGuard ? await input.aiBudgetGuard() : budget;
+    } catch {
+      budget = { status: "unavailable" };
+    }
+    if (budget.status === "unavailable") {
+      await recordRuntime("budget_unavailable", false, false);
+      return fallback;
+    }
+    if (budget.status === "exhausted") {
+      await recordRuntime("budget_exhausted", false, false);
+      return fallback;
+    }
   }
 
   const controller = new AbortController();

@@ -1726,6 +1726,23 @@ export const agentRuntimeMetrics = pgTable(
   ]
 );
 
+/**
+ * Enveloppe quotidienne conservatrice des appels IA. Aucun contenu ni identifiant utilisateur.
+ */
+export const agentAiBudgetDays = pgTable(
+  "agent_ai_budget_days",
+  {
+    budgetKey: text("budget_key").notNull(),
+    budgetDay: date("budget_day").notNull(),
+    limitMicros: bigint("limit_micros", { mode: "number" }).notNull(),
+    reservedMicros: bigint("reserved_micros", { mode: "number" }).notNull(),
+    reservationCount: integer("reservation_count").notNull().default(0),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [primaryKey({ columns: [table.budgetKey, table.budgetDay] })]
+);
+
 export const communicationSettings = pgTable("communication_settings", {
   institutionId: uuid("institution_id")
     .primaryKey()

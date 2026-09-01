@@ -1090,6 +1090,18 @@ T049C8 reste donc ouverte pour cette course et la contre-revue externe après la
 pause demandée ; le commit doit encore être confirmé READY sur Vercel. Voir
 `docs/security/SUPPORT_SESSION_CONTACT_REVOCATION_PREVIEW_2026-09-02.md`.
 
+Suite T049C9 : une enveloppe quotidienne commune réserve désormais un montant
+maximal avant chacun des trois appels OpenAI. Elle est fermée par défaut et ne
+s'active qu'avec un budget quotidien et trois réserves par appel explicitement
+configurés ; toute configuration active incomplète refuse l'IA. Le compteur ne
+contient aucune donnée utilisateur et son upsert PostgreSQL est atomique. La
+migration `20260901225812` est installée uniquement sur la preview. Dix requêtes
+concurrentes de 300 000 micro-euros sur une limite fictive de 1 000 000 donnent
+trois acceptations, 900 000 réservés et zéro résidu après nettoyage. T049C reste
+ouverte pour les montants, les prix vérifiés, le plafond dur du projet OpenAI,
+l'activation contrôlée et la contre-revue. Claude est resté en pause. Voir
+`docs/security/AGENT_AI_DAILY_BUDGET_PREVIEW_2026-09-02.md`.
+
 ## Portes de validation humaine
 
 - Import de listes, emplois du temps ou pièces réelles.

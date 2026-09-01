@@ -2,6 +2,8 @@ export const AGENT_RUNTIME_OUTCOMES = [
   "deterministic",
   "pretriage",
   "model_unavailable",
+  "budget_unavailable",
+  "budget_exhausted",
   "provider_error",
   "invalid_output",
   "policy_fallback",
