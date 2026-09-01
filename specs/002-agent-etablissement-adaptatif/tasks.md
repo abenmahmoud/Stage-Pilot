@@ -809,6 +809,12 @@
 - [ ] T050 Ouvrir un pilote limité avec agents nommés et canal de retour.
 - [ ] T051 Mesurer deux semaines : classement, délai, transferts, corrections, coût et incidents.
 - [ ] T052 Corriger les écarts puis exécuter `/speckit.analyze` et `/speckit.converge` avant généralisation.
+- [x] T052A Réexécuter l'analyse transversale après les lots de restauration,
+  transport Webmail, responsive et diagnostic public. Les 102 tâches ouvertes
+  sont rapprochées de leurs dépendances humaines, externes, réelles ou de
+  production ; aucun parent n'est fermé sur une preuve locale partielle. T052
+  reste ouverte jusqu'au pilote, à l'audit externe autorisé et à la convergence
+  finale avant généralisation.
 
 ## Phase 7 - Portail complet et généralisation contrôlée
 

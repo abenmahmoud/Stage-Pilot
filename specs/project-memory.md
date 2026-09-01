@@ -5,6 +5,17 @@
 **Depot** : `abenmahmoud/Stage-Pilot`
 **Dernier jalon de code verifie** : branche de preview Vercel
 
+## Jalon du 1er septembre 2026 - analyse de convergence actualisée
+
+- L'analyse transversale recalcule 528 tâches : 426 terminées et 102 ouvertes.
+- Les parents restent ouverts quand la preuve exige Direction, DPO, comptes
+  nominatifs, moteur externe, données validées ou action de production. Aucun
+  résultat local n'est présenté comme validation réelle.
+- `002/T052A` est terminée ; la convergence finale reste après pilote.
+- Un brief Fable 5 en lecture seule limite l'audit aux onze fichiers des lots
+  restauration et Webmail. Il n'est pas exécuté sans autorisation actuelle du
+  modèle, de ce périmètre et de la limite de consommation.
+
 ## Jalon du 1er septembre 2026 - cause de l'écart public confirmée
 
 - Le domaine public reste lié au déploiement production du 28 août
