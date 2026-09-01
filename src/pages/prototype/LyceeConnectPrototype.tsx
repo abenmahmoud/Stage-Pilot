@@ -1569,6 +1569,11 @@ function HelpDeskView({
             subjectArea: form.get("subjectArea"),
             schoolTrack: form.get("schoolTrack"),
             category,
+            subcategory: initialContactCollection
+              ? contactCollectionAction === "remove"
+                ? "contact_personnel_retrait"
+                : "contact_personnel_ajout"
+              : null,
             subject: initialContactCollection
               ? contactCollectionAction === "remove"
                 ? "Retrait de coordonnées personnelles"
