@@ -1105,8 +1105,8 @@ ouverte pour les montants, les prix vérifiés, le plafond dur du projet OpenAI,
 l'activation contrôlée et la contre-revue. Claude est resté en pause. Voir
 `docs/security/AGENT_AI_DAILY_BUDGET_PREVIEW_2026-09-02.md`.
 
-Suite T052B : l'analyse transversale est rejouée après les trois derniers lots
-de sécurité. Elle confirme 563 tâches, 460 terminées et 103 ouvertes, ainsi que
+Suite T052B : l'analyse transversale est rejouée après les derniers lots
+de sécurité et la preuve ClamAV locale. Elle confirme 564 tâches, 461 terminées et 103 ouvertes, ainsi que
 93 migrations uniques. Le dernier jalon applicatif est propre, sa preview Vercel
 est READY et non promue, et la branche Supabase non principale est saine. Les tâches
 ouvertes restantes sont liées à une validation humaine, des données autorisées,

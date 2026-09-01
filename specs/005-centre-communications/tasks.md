@@ -316,6 +316,11 @@
   Code et dix-sept tests locaux vérifiés ; revue Fable arbitrée et régressions
   reproduites puis corrigées. Aucun scanner réel ni worker activé : T022 reste
   ouverte pour le service complet et ses preuves antivirus réelles.
+- [x] T022J1 Exécuter le véritable adaptateur avec l'image officielle ClamAV
+  1.5 épinglée par empreinte, sans réseau ni port publié. Un texte fictif sain
+  devient `clean`, EICAR devient `blocked`, le refus sans confirmation et le
+  nettoyage du conteneur sont vérifiés. T022K reste ouverte pour PostgreSQL,
+  Storage, panne et reprise intégrés sur un runtime de preview autorisé.
 - [ ] T022K Construire le worker entrant complet sans l'activer : tâche louée
   et objet verrouillés, lecture bornée de quarantaine, analyse, dépôt propre
   vérifié sans écrasement, preuve et acquittement atomiques, erreurs privées,

@@ -575,3 +575,17 @@ bornes de charge. Un test de composition utilise les vrais adaptateurs de
 transfert et scanner, un stockage simulé et des processus Node fictifs ; les
 pannes scanner et transactionnelle se reprennent sans deuxième dépôt ni preuve
 terminale en double. Aucun de ces tests ne remplace ClamAV réel.
+
+## Preuve moteur ClamAV local du 2 septembre 2026
+
+La recette bornée `recipe:local-real-clamav-scanner` utilise désormais l'image
+officielle ClamAV 1.5 épinglée par empreinte. Le conteneur n'a ni réseau ni port
+publié. Le véritable adaptateur reçoit un texte fictif sain puis EICAR : les
+verdicts sont respectivement `clean` et `blocked`, les confirmations taille et
+SHA-256 restent obligatoires et aucun répertoire temporaire ou conteneur ne
+subsiste. Les 18 tests de scanner et 23 tests du worker restent verts.
+
+Cette preuve remplace la lacune « aucun moteur réel » pour l'adaptateur seul.
+Elle ne ferme pas T022K : PGMQ, PostgreSQL, Storage, socket du runtime, panne et
+reprise intégrés ne sont pas exercés. Aucun service distant n'est activé. Voir
+`docs/operations/REAL_CLAMAV_LOCAL_RECIPE_2026-09-02.md`.
