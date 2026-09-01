@@ -1,5 +1,21 @@
 # Analyse de cohérence - Centre de communication
 
+## Transport HTTP sortant du 1er septembre 2026
+
+Le client abstrait possède désormais un transport HTTP serveur concret, mais
+aucun environnement ne l'active. La configuration refuse HTTP, adresses IP,
+hôtes locaux, identifiants dans l'URL, paramètres et redirections. Le corps
+sortant contient uniquement le jeton opaque déjà signé ; le Bearer reste dans
+les en-têtes serveur. Une réponse n'est acceptée qu'en JSON borné à 24 Kio, puis
+le reçu signé est encore vérifié contre la commande avant toute décision de
+persistance.
+
+La recette injecte un faux Webmail en mémoire : elle contrôle la requête exacte,
+le reçu accepté, les statuts HTTP, le délai, les corps trop grands ou inattendus
+et une série de 200 livraisons avec concurrence bornée. Elle n'appelle aucun
+réseau, ne configure aucun secret et ne ferme pas T027 ou T032 : la preuve
+réseau sur une preview déployée reste distincte.
+
 ## Recette de file Webmail du 30 août 2026
 
 Une recette transactionnelle prépare désormais 200 livraisons fictives et les

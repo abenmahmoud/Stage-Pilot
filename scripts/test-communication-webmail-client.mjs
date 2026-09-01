@@ -7,6 +7,7 @@ import {
 import { createCommunicationWebmailDeliveryReceiptToken } from "../shared/communication-webmail-receipt.ts";
 import {
   CommunicationWebmailTransportError,
+  createCommunicationWebmailHttpTransport,
   runCommunicationWebmailDelivery,
   runCommunicationWebmailDeliveryBatch,
 } from "../shared/communication-webmail-client.ts";
@@ -86,6 +87,15 @@ function acceptingTransport(outcome = "accepted") {
   };
 }
 
+function httpTransport(fetchImpl, overrides = {}) {
+  return createCommunicationWebmailHttpTransport({
+    endpoint: "https://webmail.preview.example.test/api/communications/deliveries",
+    bearerToken: "preview-webmail-bearer-token-with-32-characters",
+    fetchImpl,
+    ...overrides,
+  });
+}
+
 test("verifies the receipt before returning a completion decision", async () => {
   const result = await runCommunicationWebmailDelivery({
     item: item(),
@@ -94,6 +104,103 @@ test("verifies the receipt before returning a completion decision", async () => 
   });
   assert.equal(result.ok, true);
   assert.equal(result.decision.nextDeliveryStatus, "sent");
+});
+
+test("posts one opaque command to the configured HTTPS Webmail endpoint", async () => {
+  let requestCount = 0;
+  const transport = httpTransport(async (url, init) => {
+    requestCount += 1;
+    assert.equal(url, "https://webmail.preview.example.test/api/communications/deliveries");
+    assert.equal(init.method, "POST");
+    assert.equal(init.redirect, "error");
+    assert.equal(init.credentials, "omit");
+    assert.equal(init.cache, "no-store");
+    assert.equal(init.headers.authorization, "Bearer preview-webmail-bearer-token-with-32-characters");
+    const body = JSON.parse(init.body);
+    assert.deepEqual(Object.keys(body), ["commandToken"]);
+    const command = verifyCommunicationWebmailDeliveryToken({
+      token: body.commandToken,
+      institutionId,
+      secret: deliverySecret,
+      now,
+    });
+    assert.ok(command);
+    const receiptToken = createCommunicationWebmailDeliveryReceiptToken({
+      command,
+      outcome: "accepted",
+      providerMessageId: `<message-${command.deliveryId}@example.invalid>`,
+      receiptSecret,
+      providerHashingSecret,
+      acceptedAt: now,
+      now,
+    });
+    return new Response(JSON.stringify({ receiptToken }), {
+      status: 200,
+      headers: { "content-type": "application/json; charset=utf-8" },
+    });
+  });
+  const result = await runCommunicationWebmailDelivery({ item: item(), transport, now });
+  assert.equal(requestCount, 1);
+  assert.equal(result.ok, true);
+  assert.equal(result.decision.nextDeliveryStatus, "sent");
+});
+
+test("rejects unsafe endpoint and credential configuration before any request", () => {
+  const options = {
+    bearerToken: "preview-webmail-bearer-token-with-32-characters",
+    fetchImpl: async () => { throw new Error("must_not_run"); },
+  };
+  for (const endpoint of [
+    "http://webmail.preview.example.test/api/deliveries",
+    "https://127.0.0.1/api/deliveries",
+    "https://webmail.internal/api/deliveries",
+    "https://webmail.preview.example.test/",
+    "https://user:password@webmail.preview.example.test/api/deliveries",
+    "https://webmail.preview.example.test/api/deliveries?target=other",
+  ]) {
+    assert.throws(() => createCommunicationWebmailHttpTransport({ ...options, endpoint }), /webmail_endpoint_invalid/);
+  }
+  assert.throws(() => createCommunicationWebmailHttpTransport({
+    endpoint: "https://webmail.preview.example.test/api/deliveries",
+    bearerToken: "short",
+  }), /webmail_bearer_token_invalid/);
+});
+
+test("fails closed on oversized, non-JSON and unexpected Webmail responses", async () => {
+  const valid = item();
+  const cases = [
+    new Response(JSON.stringify({ receiptToken: "x".repeat(500) }), {
+      status: 200,
+      headers: { "content-type": "application/json", "content-length": "100000" },
+    }),
+    new Response("not json", { status: 200, headers: { "content-type": "text/plain" } }),
+    new Response(JSON.stringify({ receiptToken: "invalid", providerText: "must not escape" }), {
+      status: 200,
+      headers: { "content-type": "application/json" },
+    }),
+  ];
+  for (const response of cases) {
+    const result = await runCommunicationWebmailDelivery({
+      item: valid,
+      transport: httpTransport(async () => response.clone(), { maxResponseBytes: 256 }),
+      now,
+    });
+    assert.deepEqual(result, { ok: false, failureCode: "scope_invalid" });
+    assert.equal(JSON.stringify(result).includes("providerText"), false);
+  }
+});
+
+test("maps HTTP status without reading or retaining the provider error body", async () => {
+  const result = await runCommunicationWebmailDelivery({
+    item: item(),
+    transport: httpTransport(async () => new Response("internal provider detail", {
+      status: 503,
+      headers: { "content-type": "text/plain", "content-length": "24" },
+    })),
+    now,
+  });
+  assert.deepEqual(result, { ok: false, failureCode: "provider_unavailable" });
+  assert.equal(JSON.stringify(result).includes("internal provider detail"), false);
 });
 
 test("fails closed for an invalid command, response or receipt", async () => {

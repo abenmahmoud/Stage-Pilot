@@ -5,6 +5,22 @@
 **Depot** : `abenmahmoud/Stage-Pilot`
 **Dernier jalon de code verifie** : branche de preview Vercel
 
+## Jalon du 1er septembre 2026 - transport HTTP LyceeGest vers Webmail
+
+- Le client de livraison possède désormais son transport HTTP serveur réel,
+  toujours non raccordé à un environnement. Il accepte uniquement une URL HTTPS
+  publique sans identifiants, paramètres, fragment, IP ou hôte local.
+- Une commande envoie seulement son jeton opaque avec un Bearer serveur. Les
+  redirections sont interdites, la réponse JSON est limitée à 24 Kio et le reçu
+  signé reste vérifié contre la commande avant toute persistance.
+- Dix tests couvrent succès, 200 livraisons à concurrence bornée, délai, statuts
+  HTTP, réponse malformée ou trop grande et configuration dangereuse. Aucun
+  réseau, secret externe, contact, Webmail, Brevo ou production n'est utilisé.
+- T027F est terminée. T027 et T032 restent ouvertes jusqu'à une recette réseau
+  déployée avec un faux Webmail explicitement autorisé.
+- Les cinq domaines comptent désormais 524 tâches Spec Kit : 422 terminées et
+  102 ouvertes.
+
 ## Jalon du 1er septembre 2026 - supervision des fichiers éditoriaux
 
 - L'espace `Contenus du site` lit désormais une santé privée et agrégée des

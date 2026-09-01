@@ -1,4 +1,5 @@
 import type { CommunicationJobFailureCode } from "./communication-job-policy.js";
+import { isIP } from "node:net";
 import {
   verifyCommunicationWebmailDeliveryToken,
 } from "./communication-webmail-delivery.js";
@@ -17,12 +18,25 @@ const MAX_BATCH_SIZE = 500;
 const MAX_CONCURRENCY = 20;
 const MIN_TIMEOUT_MS = 100;
 const MAX_TIMEOUT_MS = 30_000;
+const MAX_COMMAND_TOKEN_BYTES = 16 * 1024;
+const MAX_HTTP_RESPONSE_BYTES = 24 * 1024;
+const MIN_BEARER_TOKEN_LENGTH = 32;
+const MAX_BEARER_TOKEN_LENGTH = 1024;
+const MAX_ENDPOINT_LENGTH = 2048;
 const RESPONSE_FIELDS = new Set(["receiptToken"]);
+const JSON_CONTENT_TYPE_PATTERN = /^application\/(?:[a-z0-9!#$&^_.+-]+\+)?json(?:\s*;|$)/i;
 
 export type CommunicationWebmailTransport = (input: {
   commandToken: string;
   signal: AbortSignal;
 }) => Promise<unknown>;
+
+export type CommunicationWebmailHttpTransportOptions = {
+  endpoint: string | undefined;
+  bearerToken: string | undefined;
+  fetchImpl?: typeof fetch;
+  maxResponseBytes?: number;
+};
 
 export type CommunicationWebmailClientInput = {
   institutionId: string;
@@ -64,6 +78,128 @@ export class CommunicationWebmailTransportError extends Error {
 }
 
 class CommunicationWebmailTimeoutError extends Error {}
+
+function validatedHttpEndpoint(value: string | undefined): string {
+  if (typeof value !== "string" || value.length < 1 || value.length > MAX_ENDPOINT_LENGTH) {
+    throw new Error("webmail_endpoint_invalid");
+  }
+  let endpoint: URL;
+  try {
+    endpoint = new URL(value);
+  } catch {
+    throw new Error("webmail_endpoint_invalid");
+  }
+  const hostname = endpoint.hostname.toLowerCase();
+  if (
+    endpoint.protocol !== "https:" ||
+    endpoint.username !== "" ||
+    endpoint.password !== "" ||
+    endpoint.search !== "" ||
+    endpoint.hash !== "" ||
+    endpoint.pathname === "/" ||
+    isIP(hostname) !== 0 ||
+    !hostname.includes(".") ||
+    hostname === "localhost" ||
+    hostname.endsWith(".localhost") ||
+    hostname.endsWith(".local") ||
+    hostname.endsWith(".internal")
+  ) {
+    throw new Error("webmail_endpoint_invalid");
+  }
+  return endpoint.toString();
+}
+
+function validatedBearerToken(value: string | undefined): string {
+  if (
+    typeof value !== "string" ||
+    value.length < MIN_BEARER_TOKEN_LENGTH ||
+    value.length > MAX_BEARER_TOKEN_LENGTH ||
+    /[^A-Za-z0-9._~-]/.test(value)
+  ) {
+    throw new Error("webmail_bearer_token_invalid");
+  }
+  return value;
+}
+
+function validatedResponseLimit(value: number | undefined): number {
+  const limit = value ?? MAX_HTTP_RESPONSE_BYTES;
+  if (!Number.isInteger(limit) || limit < 256 || limit > MAX_HTTP_RESPONSE_BYTES) {
+    throw new Error("webmail_response_limit_invalid");
+  }
+  return limit;
+}
+
+async function readBoundedJsonResponse(response: Response, maxBytes: number): Promise<unknown> {
+  const contentType = response.headers.get("content-type") ?? "";
+  if (!JSON_CONTENT_TYPE_PATTERN.test(contentType)) throw new Error("response_invalid");
+  const declaredLength = response.headers.get("content-length");
+  if (declaredLength !== null && (!/^\d+$/.test(declaredLength) || Number(declaredLength) > maxBytes)) {
+    throw new Error("response_invalid");
+  }
+  if (!response.body) throw new Error("response_invalid");
+  const reader = response.body.getReader();
+  const chunks: Uint8Array[] = [];
+  let totalBytes = 0;
+  try {
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      totalBytes += value.byteLength;
+      if (totalBytes > maxBytes) {
+        await reader.cancel().catch(() => undefined);
+        throw new Error("response_invalid");
+      }
+      chunks.push(value);
+    }
+  } finally {
+    reader.releaseLock();
+  }
+  const bytes = new Uint8Array(totalBytes);
+  let offset = 0;
+  for (const chunk of chunks) {
+    bytes.set(chunk, offset);
+    offset += chunk.byteLength;
+  }
+  try {
+    return JSON.parse(new TextDecoder("utf-8", { fatal: true }).decode(bytes));
+  } catch {
+    throw new Error("response_invalid");
+  }
+}
+
+export function createCommunicationWebmailHttpTransport(
+  options: CommunicationWebmailHttpTransportOptions
+): CommunicationWebmailTransport {
+  const endpoint = validatedHttpEndpoint(options.endpoint);
+  const bearerToken = validatedBearerToken(options.bearerToken);
+  const maxResponseBytes = validatedResponseLimit(options.maxResponseBytes);
+  const fetchImpl = options.fetchImpl ?? fetch;
+
+  return async ({ commandToken, signal }) => {
+    if (
+      typeof commandToken !== "string" ||
+      commandToken.length < 1 ||
+      Buffer.byteLength(commandToken, "utf8") > MAX_COMMAND_TOKEN_BYTES
+    ) {
+      throw new Error("response_invalid");
+    }
+    const response = await fetchImpl(endpoint, {
+      method: "POST",
+      headers: {
+        accept: "application/json",
+        authorization: `Bearer ${bearerToken}`,
+        "content-type": "application/json",
+      },
+      body: JSON.stringify({ commandToken }),
+      cache: "no-store",
+      credentials: "omit",
+      redirect: "error",
+      signal,
+    });
+    if (!response.ok) throw new CommunicationWebmailTransportError(response.status);
+    return readBoundedJsonResponse(response, maxResponseBytes);
+  };
+}
 
 function failureCode(error: unknown): CommunicationJobFailureCode {
   if (error instanceof CommunicationWebmailTimeoutError) return "provider_timeout";

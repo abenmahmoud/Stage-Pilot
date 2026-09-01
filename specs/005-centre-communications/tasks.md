@@ -327,6 +327,15 @@
   l'état attendus sont liés à la commande ; la réponse d'un modèle ne retourne
   plus les identifiants internes inutiles. T027 reste ouvert pour la recette
   réseau fictive entre LyceeGest et le Webmail.
+- [x] T027F Ajouter le transport HTTP sortant concret sans l'activer. Il exige
+  une URL HTTPS publique sans identifiants, paramètres, fragment, adresse IP ni
+  hôte local, un Bearer serveur d'au moins 32 caractères, interdit les
+  redirections et borne la réponse JSON à 24 Kio. Le Webmail reçoit uniquement
+  le jeton opaque d'une livraison ; réponse, reçu et erreurs sont validés ou
+  réduits à des codes fermés sans conserver le texte fournisseur. Dix tests
+  couvrent succès, 200 livraisons, délai, HTTP, réponse trop grande et
+  configuration dangereuse. T027 et T032 restent ouverts jusqu'à la recette
+  réseau déployée avec un faux Webmail autorisé.
 - [x] T028 Tester rôles, MFA, contenus internes et API publique.
 - [x] T028A Exiger `aal2` sur toutes les routes privées du centre et vérifier
   les rôles bornés, le cloisonnement établissement, la fermeture du module et
