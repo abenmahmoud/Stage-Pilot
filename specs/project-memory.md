@@ -4958,3 +4958,30 @@ taches et analyse de coherence avant une automatisation sensible.
 - Compilation, barrière complète de sécurité, quatre contrats responsive et
   intégrité Spec Kit passent : 555 tâches, 453 terminées et 102 ouvertes. Ces
   comptes ne mesurent pas un taux de disponibilité opérationnelle.
+
+### Jalon du 1er septembre 2026 - quotas de l'assistant
+
+- Cookie anonyme signé côté serveur, HttpOnly, sécurisé hors développement,
+  trente jours sans prolongation à la lecture. Changer le signal déclaré ne
+  renouvelle plus ce compteur. Aucun cookie ne prouve une identité scolaire.
+- Compteurs additionnels du compte Auth et de la session de suivi, uniquement
+  après contrôle du fournisseur ou de la durée, révocation et autorisation
+  institutionnelle en base. Erreurs génériques sans repli donnant un accès.
+- Garde-fou global assistant de 20 000 appels par heure, reprenant le seuil
+  réseau existant sans le diminuer. Migration `20260901212344` appliquée à la
+  seule preview après vérification. Le formulaire et le suivi restent distincts.
+- Neuf tests locaux et 200 appels concurrents dans un stockage simulé passent.
+  La requête SQL du véritable compteur est exécutée sur la preview : borne,
+  refus et expiration vérifiés, transaction annulée et zéro fixture restante.
+  Cette preuve ne vaut pas test de charge distribué ni recette Auth réelle.
+- Les reçus d'outils gardent leur liaison ; aucune nouvelle autorité. T049C4 est
+  terminée, pas T049C. Effacer tous les cookies peut créer un nouvel anonyme ;
+  la rotation du suivi n'est pas une preuve d'identité durable.
+- Le plafond monétaire global reste à réaliser et à régler : montant quotidien
+  demandé au propriétaire, sans réponse à ce stade. Le garde de trafic n'est
+  pas un budget en euros et ne couvre pas tous les autres usages IA.
+- Rapport : `docs/security/ASSISTANT_QUOTA_IDENTITY_PREVIEW_2026-09-01.md`.
+  Aucun appel Claude ou OpenAI, compte réel, notification ou production.
+- Compilation, barrière de sécurité, treize tests de provenance, quatre contrats
+  responsive et intégrité Spec Kit passent : 91 migrations, 556 tâches,
+  454 terminées et 102 ouvertes, sans pourcentage opérationnel annoncé.

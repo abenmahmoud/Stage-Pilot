@@ -881,6 +881,14 @@
   Migration appliquée à la preview seule : 360 assertions d'expressions,
   35 cas CRUD et zéro fixture restante. La recette Auth réelle, les périmètres
   historiques et la contre-revue demeurent ouverts ; voir le rapport RLS.
+- [x] T049C4 Stabiliser le quota public avec un cookie anonyme signé côté
+  serveur, ajouter les compteurs des sessions de suivi et comptes réellement
+  vérifiés, puis appliquer le seuil global de trafic assistant sans abaisser
+  le seuil du réseau partagé. Conserver les preuves des outils et le formulaire
+  indépendants. Le budget monétaire et la résistance aux nouveaux anonymes
+  restent dans T049C, sans montant décidé automatiquement.
+  Neuf tests locaux, 200 appels dans un stockage simulé et recette PostgreSQL
+  annulée passent. La charge réseau réelle et le budget restent ouverts.
 - [ ] T050 Ouvrir un pilote limité avec agents nommés et canal de retour.
 - [ ] T051 Mesurer deux semaines : classement, délai, transferts, corrections, coût et incidents.
 - [ ] T052 Corriger les écarts puis exécuter `/speckit.analyze` et `/speckit.converge` avant généralisation.

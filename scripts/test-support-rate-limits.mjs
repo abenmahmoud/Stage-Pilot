@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
+import { readFileSync, readdirSync } from "node:fs";
 import test from "node:test";
 import {
   SUPPORT_RATE_LIMIT_POLICIES,
@@ -27,6 +27,10 @@ const migration = [
   "../supabase/migrations/20260829205947_add_multidimensional_support_rate_limits.sql",
   "../supabase/migrations/20260830190000_add_attachment_download_rate_limits.sql",
 ].map((path) => readFileSync(new URL(path, import.meta.url), "utf8")).join("\n");
+const globalMigration = readdirSync(new URL("../supabase/migrations/", import.meta.url))
+  .find((name) => name.endsWith("_add_global_assistant_traffic_guard.sql"));
+assert.ok(globalMigration);
+const globalSql = readFileSync(new URL(`../supabase/migrations/${globalMigration}`, import.meta.url), "utf8");
 
 test("normalizes only bounded opaque device identifiers", () => {
   assert.equal(normalizedSupportDeviceId("123e4567-e89b-12d3-a456-426614174000"), "123e4567-e89b-12d3-a456-426614174000");
@@ -94,7 +98,7 @@ test("counts request traffic, invalid forms and repeated behavior independently"
 test("sends one stable opaque device signal from assistant and request flows", () => {
   const headers = prototype.match(/"X-Support-Device": assistantSessionId/g) ?? [];
   assert.equal(headers.length, 2);
-  assert.match(assistantRoute, /enforceAssistantRateLimits\(req, input\.sessionId\)/);
+  assert.match(assistantRoute, /enforceAssistantRateLimits\(req, input\.sessionId, res\)/);
   assert.match(requestRoute, /supportDeviceRateKey\(req\)/);
 });
 
@@ -121,6 +125,6 @@ test("keeps the database table private and accepts only HMAC-shaped keys", () =>
   assert.match(migration, /revoke all on table public\.support_rate_limits from anon, authenticated/);
   assert.match(migration, /key_hash ~ '\^\[a-f0-9\]\{64\}\$'/);
   for (const policy of Object.values(SUPPORT_RATE_LIMIT_POLICIES)) {
-    assert.match(migration, new RegExp(`'${policy.scope}'`));
+    assert.match(migration + globalSql, new RegExp(`'${policy.scope}'`));
   }
 });

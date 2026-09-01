@@ -1019,6 +1019,15 @@ aucune fixture restante. Permissions et autres politiques inchangées. Ce lot
 ne prouve pas la recette Auth réelle ni les relations familiales. Rapport :
 `docs/security/AGENT_MFA_RLS_PREVIEW_2026-09-01.md`.
 
+Suite T049C4 : cookie assistant signé, compte Auth et session de suivi reconnue
+ajoutent leurs compteurs ; le changement de numéro de conversation ne suffit
+plus à renouveler le quota. Le seuil réseau existant est aussi global au lycée.
+Neuf tests, 200 appels simulés et la requête réelle du compteur exécutée en
+PostgreSQL passent, sans fixture restante. Le plafond financier reste ouvert,
+ainsi que les nouveaux anonymes et la charge réseau réelle. Aucun budget choisi
+automatiquement. Rapport :
+`docs/security/ASSISTANT_QUOTA_IDENTITY_PREVIEW_2026-09-01.md`.
+
 1. Conserver `BC-2026-000009` comme preuve fictive de recette jusqu'à la décision
    de nettoyage du pilote ; le dossier historique `BC-2026-000008` n'est pas
    déplacé silencieusement.

@@ -1,6 +1,7 @@
 export type SupportRateLimitScope =
   | "assistant_session"
   | "assistant_network"
+  | "assistant_global"
   | "request_network"
   | "message_session"
   | "magic_token_network"
@@ -34,10 +35,16 @@ export const SUPPORT_RATE_LIMIT_POLICIES = {
     limit: 24,
     windowSeconds: 24 * 60 * 60,
     message:
-      "La limite quotidienne de l’assistant est atteinte sur cet appareil. Vous pouvez toujours envoyer le formulaire au lycée ou reprendre plus tard.",
+      "La limite quotidienne de l’assistant est atteinte. Vous pouvez toujours envoyer le formulaire au lycée ou reprendre plus tard.",
   },
   assistantNetworkGuard: {
     scope: "assistant_network",
+    limit: 20_000,
+    windowSeconds: 60 * 60,
+    message: "L’assistant reçoit momentanément trop de trafic. Le formulaire classique reste disponible.",
+  },
+  assistantGlobalGuard: {
+    scope: "assistant_global",
     limit: 20_000,
     windowSeconds: 60 * 60,
     message: "L’assistant reçoit momentanément trop de trafic. Le formulaire classique reste disponible.",

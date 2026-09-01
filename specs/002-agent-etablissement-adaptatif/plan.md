@@ -204,6 +204,19 @@ une classe fictive, dans une transaction toujours annulée. Aucun compte Auth,
 facteur MFA, personne réelle ou notification n'est créé. Cette preuve SQL ne
 remplace pas la recette Auth réelle, ni le contrôle des relations parent-enfant.
 
+Le quota assistant ajoute un cookie HMAC aléatoire de trente jours, `HttpOnly`,
+`SameSite=Lax`, `Secure` et préfixé `__Host-` hors développement. Sa lecture ne
+prolonge pas sa durée. Les clés de compteur sont hachées et séparées des preuves
+d'outils : le signal déclaré reste utilisé pour leurs liaisons existantes.
+Un compte est reconnu par Auth ; une session de suivi par son hash, sa durée,
+sa non-révocation et une autorisation liée à l'établissement. Un cookie brut
+ne suffit jamais. Les compteurs reconnus s'ajoutent, sans remplacer l'anonyme.
+Le seuil réseau existant de 20 000 appels par heure devient aussi un garde-fou
+global par établissement, sur la même table privée et atomique. Il compte le
+trafic de l'assistant, pas des euros ni tous les usages IA de l'application.
+La limite monétaire, les nouveaux anonymes et le réglage d'exploitation restent
+des suites distinctes avant ouverture élargie.
+
 - Tests unitaires des règles et schémas de sortie.
 - Tests de chaque scénario positif, ambigu, interdit et expiré de chaque compétence.
 - Tests d'autorisation croisée élève/parent/personnel/service/établissement.

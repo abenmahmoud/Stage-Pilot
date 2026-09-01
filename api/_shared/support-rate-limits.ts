@@ -1,4 +1,10 @@
-import type { VercelRequest } from "@vercel/node";
+import type { VercelRequest, VercelResponse } from "@vercel/node";
+import { and, eq, gt, isNull } from "drizzle-orm";
+import { db } from "../../db/index.js";
+import { supportDeviceSessions, supportRequests, supportSessionRequests } from "../../db/schema.js";
+import { getUserFromRequest, HttpError } from "./auth.js";
+import { requireConfiguredInstitution } from "./institution-context.js";
+import { resolveAssistantQuotaCookie } from "./assistant-quota-identity.js";
 import {
   SUPPORT_RATE_LIMIT_POLICIES,
   normalizedSupportBehaviorText,
@@ -40,14 +46,74 @@ export function supportDeviceRateKey(
 
 export async function enforceAssistantRateLimits(
   req: VercelRequest,
-  explicitDeviceId: string
+  explicitDeviceId: string,
+  res: VercelResponse
 ): Promise<string> {
   const networkKey = requestIpHash(req);
   if (networkKey) await enforce(SUPPORT_RATE_LIMIT_POLICIES.assistantNetworkGuard, networkKey);
 
+  const institution = await requireConfiguredInstitution();
+  await enforce(
+    SUPPORT_RATE_LIMIT_POLICIES.assistantGlobalGuard,
+    personalHash(`assistant-global:${institution.id}`)
+  );
+  let anonymous;
+  try {
+    anonymous = resolveAssistantQuotaCookie({
+      cookieHeader: req.headers.cookie,
+      secret: process.env.SUPPORT_HASH_SECRET,
+      institutionId: institution.id,
+      production: process.env.NODE_ENV === "production",
+    });
+  } catch {
+    throw new HttpError(503, "L'assistant est momentanément indisponible. Le formulaire reste disponible.");
+  }
+  if (anonymous.setCookie) {
+    const existing = res.getHeader("Set-Cookie");
+    const cookies = existing === undefined ? [] : Array.isArray(existing) ? existing : [String(existing)];
+    res.setHeader("Set-Cookie", [...cookies, anonymous.setCookie]);
+  }
+
+  // The declared signal still binds tool receipts, but cannot renew the server quota.
   const deviceKey = supportDeviceRateKey(req, explicitDeviceId);
   if (!deviceKey) throw new Error("validated_support_device_missing");
-  await enforce(SUPPORT_RATE_LIMIT_POLICIES.assistantDeviceDaily, deviceKey);
+  const keys = [deviceKey, personalHash(`assistant-anonymous:${institution.id}:${anonymous.anonymousId}`)];
+  if (req.headers.authorization) {
+    let user;
+    try {
+      user = await getUserFromRequest(req);
+    } catch {
+      throw new HttpError(503, "La vérification de la session est momentanément indisponible.");
+    }
+    if (!user) throw new HttpError(401, "Reconnectez-vous ou utilisez le formulaire public.");
+    keys.push(personalHash(`assistant-account:${institution.id}:${user.id}`));
+  }
+  let token: string | null;
+  try {
+    token = readSupportSessionToken(req);
+  } catch {
+    throw new HttpError(400, "Les informations de suivi sont invalides. Le formulaire reste disponible.");
+  }
+  if (token && /^[A-Za-z0-9_-]{43}$/.test(token)) {
+    try {
+      const [session] = await db.select({ id: supportDeviceSessions.id })
+        .from(supportDeviceSessions)
+        .innerJoin(supportSessionRequests, eq(supportSessionRequests.sessionId, supportDeviceSessions.id))
+        .innerJoin(supportRequests, eq(supportRequests.id, supportSessionRequests.requestId))
+        .where(and(
+          eq(supportDeviceSessions.sessionHash, sha256(token)),
+          gt(supportDeviceSessions.expiresAt, new Date()),
+          isNull(supportDeviceSessions.revokedAt),
+          eq(supportRequests.institutionId, institution.id)
+        )).limit(1);
+      if (session) keys.push(personalHash(`assistant-tracking:${institution.id}:${session.id}`));
+    } catch {
+      throw new HttpError(503, "La vérification du suivi est momentanément indisponible.");
+    }
+  }
+  await enforceSupportRateLimits(keys.map((keyHash) => ({
+    ...SUPPORT_RATE_LIMIT_POLICIES.assistantDeviceDaily, keyHash,
+  })));
   return deviceKey;
 }
 

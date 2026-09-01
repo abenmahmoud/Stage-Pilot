@@ -30,7 +30,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (!input) throw new HttpError(400, "La demande est invalide");
     input.messages.forEach((message) => assertNoForbiddenSupportSecret(message.content));
     input.attachments.forEach((attachment) => assertNoForbiddenSupportSecret(attachment.name));
-    const deviceKey = await enforceAssistantRateLimits(req, input.sessionId);
+    const deviceKey = await enforceAssistantRateLimits(req, input.sessionId, res);
     const messages = input.messages;
     const attachments = input.attachments;
     const knowledgeActor = await resolveKnowledgeActorFromRequest(req);

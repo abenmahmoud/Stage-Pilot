@@ -227,6 +227,14 @@ leur date, leur responsable et leur état de validité.
   Ce verrou restrictif couvre lecture et écriture ; il ne remplace pas les
   autorisations existantes et ne donne aucun droit supplémentaire. Les rôles
   élèves et professeurs conservent leurs périmètres et leurs parcours actuels.
+- Le quota de l'assistant ne dépend pas seulement du numéro de conversation
+  envoyé par le navigateur. Un identifiant anonyme signé par le serveur et,
+  lorsqu'ils sont disponibles, un compte authentifié ou une session de suivi
+  vérifiée ajoutent leurs propres compteurs. Aucun cookie ne prouve à lui seul
+  une identité scolaire. Le garde-fou réseau existant est aussi appliqué à
+  l'ensemble du trafic assistant du lycée, indépendamment du changement d'IP.
+  Effacer tous les cookies peut créer un nouvel anonyme : le plafond financier
+  global reste une validation distincte, sans compte obligatoire pour le public.
 - Une demande urgente classée I0 reste recevable et peut recevoir une consigne
   d'aide sans identité scolaire. Ce droit n'autorise aucune consultation de
   données privées. Les demandes I0-I2 et formulaires vierges ne deviennent pas
