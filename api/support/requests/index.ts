@@ -16,7 +16,6 @@ import {
   supportCallbackTasks,
   supportDeviceSessions,
   supportEvents,
-  supportMagicTokens,
   supportMessages,
   supportRequests,
   supportSessionRequests,
@@ -295,21 +294,36 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
               .returning({ id: supportAssistantRoutingReviews.id })
           : [];
 
-        await tx.insert(supportEvents).values({
-          requestId: created.id,
-          eventType: "request.created",
-          actorType: "requester",
-          actorId: session.id,
-          toValue: {
-            status: created.status,
-            messageId: sourceMessage.id,
-            messageCount: messageRows.length,
-            conversationCaptured: input.conversation.length > 0,
-            callbackRequested: input.callbackRequested,
-            assistantRoutingAttached: Boolean(attachedRoutingReview),
-          },
-          correlationId,
-        });
+        await tx.execute(sql`
+          with inserted_event as (
+            insert into public.support_events (
+              request_id,
+              event_type,
+              actor_type,
+              actor_id,
+              to_value,
+              correlation_id
+            ) values (
+              ${created.id}::uuid,
+              'request.created',
+              'requester',
+              ${session.id}::text,
+              jsonb_build_object(
+                'status', ${created.status}::text,
+                'messageId', ${sourceMessage.id}::uuid,
+                'messageCount', ${messageRows.length}::integer,
+                'conversationCaptured', ${input.conversation.length > 0}::boolean,
+                'callbackRequested', ${input.callbackRequested}::boolean,
+                'assistantRoutingAttached', ${Boolean(attachedRoutingReview)}::boolean
+              ),
+              ${correlationId}::uuid
+            )
+            returning id
+          )
+          insert into public.support_session_requests (session_id, request_id)
+          select ${session.id}::uuid, ${created.id}::uuid
+          from inserted_event
+        `);
 
         if (duplicateCandidate) {
           await tx.insert(supportEvents).values({
@@ -340,20 +354,24 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           });
         }
 
-        await tx
-          .insert(supportSessionRequests)
-          .values({ sessionId: session.id, requestId: created.id });
-
         if (emailContact) {
-          await tx.insert(supportMagicTokens).values({
-            requestId: created.id,
-            contactId: emailContact.id,
-            tokenHash: sha256(rawAccessToken),
-            purpose: "support_access",
-            expiresAt: new Date(Date.now() + SUPPORT_MAGIC_TOKEN_MINUTES * 60 * 1000),
-          });
-
           await tx.execute(sql`
+            with inserted_magic_token as (
+              insert into public.support_magic_tokens (
+                request_id,
+                contact_id,
+                token_hash,
+                purpose,
+                expires_at
+              ) values (
+                ${created.id}::uuid,
+                ${emailContact.id}::uuid,
+                ${sha256(rawAccessToken)}::text,
+                'support_access',
+                ${new Date(Date.now() + SUPPORT_MAGIC_TOKEN_MINUTES * 60 * 1000)}::timestamptz
+              )
+              returning id
+            )
             select
               pgmq.send(
                 'support_jobs',
@@ -381,6 +399,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
                   'attempt', 0
                 )
               ) as agent_job_id
+            from inserted_magic_token
           `);
         } else {
           await tx.execute(sql`

@@ -58,3 +58,16 @@ test("queues requester and agent notifications in one email-path statement", () 
   assert.match(notificationBlock, /as requester_job_id,[\s\S]*as agent_job_id/);
   assert.match(notificationBlock, /\} else \{[\s\S]*notify_agent_request_created/);
 });
+
+test("groups durable creation evidence without dropping a persistence boundary", () => {
+  assert.match(
+    route,
+    /with inserted_event as \([\s\S]*insert into public\.support_events[\s\S]*insert into public\.support_session_requests/
+  );
+  assert.match(
+    route,
+    /with inserted_magic_token as \([\s\S]*insert into public\.support_magic_tokens[\s\S]*from inserted_magic_token/
+  );
+  assert.match(route, /jsonb_build_object\([\s\S]*'assistantRoutingAttached'/);
+  assert.doesNotMatch(route, /tx\.insert\(supportMagicTokens\)/);
+});
