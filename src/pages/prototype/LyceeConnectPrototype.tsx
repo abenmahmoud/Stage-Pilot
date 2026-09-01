@@ -157,6 +157,8 @@ type View = "home" | "services" | "help" | "requests" | "school" | "news" | "age
 type RequesterProfile = "eleve" | "parent" | "professeur" | "personnel" | "autre" | "";
 
 const SUPPORT_API_ENABLED = import.meta.env.VITE_SUPPORT_API_ENABLED === "true";
+const SUPPORT_ACCESS_CODE_ENABLED =
+  SUPPORT_API_ENABLED && import.meta.env.VITE_SUPPORT_ACCESS_CODE_ENABLED === "true";
 const AI_ASSISTANT_ENABLED = import.meta.env.VITE_AI_ASSISTANT_ENABLED !== "false";
 const LYCEEGEST_URL = "/login";
 const ENT_URL = "https://ent.iledefrance.fr/auth/login";
@@ -1849,6 +1851,10 @@ function RequestsView({ ticketCode, onBack }: { ticketCode: string | null; onBac
 function ConnectedRequestsView({ ticketCode, onBack }: { ticketCode: string | null; onBack: () => void }) {
   const [requests, setRequests] = useState<SupportRequestSummary[]>([]);
   const [selectedCode, setSelectedCode] = useState<string | null>(ticketCode);
+  const [accessPublicCode, setAccessPublicCode] = useState(ticketCode ?? "");
+  const [accessCode, setAccessCode] = useState("");
+  const [accessCodeSubmitting, setAccessCodeSubmitting] = useState(false);
+  const [accessCodeError, setAccessCodeError] = useState<string | null>(null);
   const [detail, setDetail] = useState<SupportRequestDetail | null>(null);
   const [query, setQuery] = useState("");
   const [loading, setLoading] = useState(true);
@@ -2070,6 +2076,43 @@ function ConnectedRequestsView({ ticketCode, onBack }: { ticketCode: string | nu
     notificationsEnabledRef.current = true;
     setNotificationsEnabled(true);
     setError(null);
+  }
+
+  async function openRequestWithCode(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const publicCode = accessPublicCode.trim().toUpperCase();
+    if (!/^BC-[0-9]{4}-[0-9]{6}$/.test(publicCode) || !/^[0-9]{6}$/.test(accessCode)) {
+      setAccessCodeError("Vérifiez le numéro de demande et le code à 6 chiffres.");
+      return;
+    }
+    setAccessCodeSubmitting(true);
+    setAccessCodeError(null);
+    try {
+      const payload = await readApiResponse<unknown>(
+        await fetch("/api/support/access-code", {
+          method: "POST",
+          credentials: "include",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ publicCode, code: accessCode }),
+        })
+      );
+      if (!isSupportMagicAccessPayload(payload, publicCode)) {
+        throw new Error("La confirmation du code reçue est invalide.");
+      }
+      setAccessCode("");
+      setAccessPublicCode(payload.request.publicCode);
+      selectedCodeRef.current = payload.request.publicCode;
+      setSelectedCode(payload.request.publicCode);
+      await loadRequests(true);
+    } catch (accessError) {
+      setAccessCodeError(
+        accessError instanceof Error
+          ? accessError.message
+          : "Impossible d’ouvrir cette demande."
+      );
+    } finally {
+      setAccessCodeSubmitting(false);
+    }
   }
 
   async function selectFollowupFiles(event: React.ChangeEvent<HTMLInputElement>) {
@@ -2308,7 +2351,21 @@ function ConnectedRequestsView({ ticketCode, onBack }: { ticketCode: string | nu
 
   return (
     <div className="lycee-page">
-      <PageIntro eyebrow="Suivi" title="Mes demandes" description="Retrouvez les réponses sur cet appareil. Le lien reçu par email permet de reprendre depuis un autre téléphone ou ordinateur." onBack={onBack} />
+      <PageIntro eyebrow="Suivi" title="Mes demandes" description="Retrouvez les réponses sur cet appareil. Le lien ou le code reçu par email permet de reprendre depuis un autre téléphone ou ordinateur." onBack={onBack} />
+      {SUPPORT_ACCESS_CODE_ENABLED ? (
+        <form className="lycee-code-access" onSubmit={openRequestWithCode}>
+          <div className="lycee-code-access-copy">
+            <KeyRound aria-hidden="true" />
+            <span><strong>Ouvrir une demande sur cet appareil</strong><small>Utilisez le numéro du dossier et le code à usage unique reçus par email.</small></span>
+          </div>
+          <div className="lycee-code-access-fields">
+            <label><span>Numéro de demande</span><input name="supportPublicCode" value={accessPublicCode} onChange={(event) => setAccessPublicCode(event.target.value.toUpperCase().slice(0, 14))} placeholder="BC-2026-000001" autoCapitalize="characters" autoComplete="off" maxLength={14} required /></label>
+            <label><span>Code reçu par email</span><input name="supportAccessCode" value={accessCode} onChange={(event) => setAccessCode(event.target.value.replace(/[^0-9]/g, "").slice(0, 6))} placeholder="000000" inputMode="numeric" pattern="[0-9]{6}" autoComplete="one-time-code" maxLength={6} required /></label>
+            <button type="submit" disabled={accessCodeSubmitting || !/^BC-[0-9]{4}-[0-9]{6}$/.test(accessPublicCode.trim().toUpperCase()) || !/^[0-9]{6}$/.test(accessCode)}>{accessCodeSubmitting ? "Vérification…" : "Ouvrir"}<ArrowRightLeft aria-hidden="true" /></button>
+          </div>
+          {accessCodeError ? <div className="lycee-form-error" role="alert"><CircleAlert aria-hidden="true" />{accessCodeError}</div> : null}
+        </form>
+      ) : null}
       <div className="lycee-shared-device-action">
         <span><ShieldCheck aria-hidden="true" /><span><strong>Appareil partagé ?</strong><small>Fermez l’accès avant de le quitter.</small></span></span>
         <div className="lycee-device-action-buttons">
@@ -2321,7 +2378,7 @@ function ConnectedRequestsView({ ticketCode, onBack }: { ticketCode: string | nu
       {loading ? <div className="lycee-loading-state"><Clock3 aria-hidden="true" /> Chargement des demandes…</div> : null}
       {detailLoading && requests.length > 0 ? <div className="lycee-loading-state" role="status" aria-live="polite"><Clock3 aria-hidden="true" /> Chargement du dossier…</div> : null}
       {!loading && requests.length === 0 ? (
-        <section className="lycee-empty-state"><TicketCheck aria-hidden="true" /><h2>Aucune demande sur cet appareil</h2><p>Si vous aviez déjà créé une demande ailleurs, ouvrez le lien sécurisé reçu par email.</p><button type="button" onClick={onBack}>Retour à l’accueil</button></section>
+        <section className="lycee-empty-state"><TicketCheck aria-hidden="true" /><h2>Aucune demande sur cet appareil</h2><p>Si vous aviez déjà créé une demande ailleurs, utilisez le lien sécurisé ou le code reçu par email.</p><button type="button" onClick={onBack}>Retour à l’accueil</button></section>
       ) : null}
       {requests.length > 0 ? (
         <div className="lycee-track-grid">
@@ -2346,7 +2403,7 @@ function ConnectedRequestsView({ ticketCode, onBack }: { ticketCode: string | nu
               <div className="lycee-ticket-meta"><span><Users aria-hidden="true" /> {requesterProfileLabels[detail.request.requesterType] ?? detail.request.requesterType}</span><span><Smartphone aria-hidden="true" /> Suivi sur cet appareil</span><span><Mail aria-hidden="true" /> Contact principal : {channelLabels[detail.request.preferredChannel] ?? detail.request.preferredChannel}</span></div>
               <section className="lycee-identity-status" data-status={detail.request.identityStatus}>
                 <BadgeCheck aria-hidden="true" />
-                <span><strong>{identityStatusLabels[detail.request.identityStatus]}</strong><small>{detail.request.identityStatus === "identite_confirmee" ? "Le lycée a rapproché la personne d’une source officielle." : detail.request.identityStatus === "contact_verifie" ? detail.request.identityMethod === "phone_callback" ? "Un agent a vérifié le numéro de téléphone par rappel, sans confirmer encore l’identité scolaire." : "Le lien sécurisé confirme l’accès à l’adresse email, sans confirmer encore l’identité scolaire." : "La demande est enregistrée. Aucune donnée sensible ne sera transmise avant vérification."}</small></span>
+                <span><strong>{identityStatusLabels[detail.request.identityStatus]}</strong><small>{detail.request.identityStatus === "identite_confirmee" ? "Le lycée a rapproché la personne d’une source officielle." : detail.request.identityStatus === "contact_verifie" ? detail.request.identityMethod === "phone_callback" ? "Un agent a vérifié le numéro de téléphone par rappel, sans confirmer encore l’identité scolaire." : "L’accès sécurisé confirme le contrôle de l’adresse email, sans confirmer encore l’identité scolaire." : "La demande est enregistrée. Aucune donnée sensible ne sera transmise avant vérification."}</small></span>
               </section>
               <div className="lycee-conversation" role="log" aria-label="Conversation">
                 {detail.messages.map((message) => (

@@ -131,6 +131,12 @@
   appareil rotative et révocable, contact email vérifié seulement pour le suivi,
   réponse minimale exacte validée avant cookie et retrait du jeton de l'URL avant
   tout appel réseau. Un code numérique ou un canal téléphone reste dans T010B3.
+- [x] T010B3B Préparer le code email local à six chiffres, fermé par défaut :
+  dérivation HMAC depuis le jeton sans stockage du code en clair, expiration du
+  jeton existant, cinq essais maximum, réponse non énumérable, session appareil
+  rotative et contact email vérifié sans promotion en identité scolaire. Le
+  secret, le drapeau frontend et toute livraison réelle restent non configurés ;
+  le téléphone ou SMS reste dans T010B3.
 - [ ] T010B4 Rapprocher une identité uniquement contre une version active du
   répertoire, avec MFA agent, justification, gestion des conflits et audit.
 - [ ] T010B4A Construire en preview le canal de recherche déterministe chiffré :

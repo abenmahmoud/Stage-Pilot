@@ -801,6 +801,16 @@ l'autorisation de quota définie par le propriétaire.
   limitée au numéro public, validée avant cookie ou changement d'écran. Douze
   scénarios ciblés couvrent contrat, rotation et séparation de l'identité.
   T010B3A est terminée ; T010B3 reste ouverte pour le code numérique ou téléphone.
+- Lot N5ZZP : code email local sans mot de passe. **Fermé sans secret, email ou
+  donnée réelle** : un code à six chiffres est dérivé par HMAC du jeton à usage
+  unique déjà présent et n'est jamais stocké en clair. Le numéro de dossier et le
+  code sont nécessaires, la réponse reste générique, la limite réseau existante
+  et cinq essais par jeton précèdent une consommation atomique. La session est
+  renouvelée, l'ancienne révoquée et seul le contrôle du contact email est
+  confirmé. Les deux workers ajoutent le code uniquement aux emails demandeur si
+  un secret serveur valide et un contact ciblé existent. L'interface est derrière
+  un drapeau désactivé par défaut. T010B3B est terminée ; T010B3 reste ouverte
+  pour configuration autorisée, recette de livraison et canal téléphone ou SMS.
 - Lot N5ZZQ : entrées simples de la console agent. **Fermées sans donnée réelle,
   migration ni action externe** : modèles, réservations de fichier, notes et
   rappels partagent des contrats runtime à champs exacts. Les types, identifiants

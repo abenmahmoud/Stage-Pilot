@@ -23,6 +23,7 @@ import {
   assertLegacySingleInstitutionMode,
   requireConfiguredInstitution,
 } from "../_shared/institution-context.js";
+import { supportAccessCodeFromToken } from "../../shared/support-access-code.mjs";
 
 type QueueRow = {
   msg_id: number;
@@ -85,6 +86,13 @@ function trackingUrl(accessToken: string | undefined): string {
   return `${base}?support_token=${encodeURIComponent(accessToken)}`;
 }
 
+function requesterAccessCode(job: SupportEmailQueueJob): string | null {
+  const secret = process.env.SUPPORT_ACCESS_CODE_SECRET;
+  if (!secret || !job.contact_id) return null;
+  if (!job.access_token) throw new Error("access_token_missing");
+  return supportAccessCodeFromToken({ token: job.access_token, secret });
+}
+
 function paragraphs(value: string): string {
   return escapeHtml(value).replace(/\r?\n/g, "<br>");
 }
@@ -108,11 +116,14 @@ async function deliver(job: SupportEmailQueueJob, institutionId: string): Promis
   if (job.job_type === "notify_requester_request_created") {
     if (!context.email) return "skipped:no_email";
     const link = trackingUrl(job.access_token);
+    const accessCode = requesterAccessCode(job);
+    const accessCodeText = accessCode ? `\nCode à usage unique : ${accessCode}` : "";
+    const accessCodeHtml = accessCode ? `<p>Code à usage unique : <strong>${accessCode}</strong></p>` : "";
     const result = await sendTransactionalEmail({
       to: { email: context.email, name: requesterName },
       subject: `${context.request.publicCode} - Votre demande a été reçue`,
-      textContent: `Bonjour ${requesterName},\n\nVotre demande « ${context.request.subject} » a bien été reçue.\nNuméro : ${context.request.publicCode}\nSuivi sécurisé : ${link}\n\nAucun mot de passe ne vous sera demandé.`,
-      htmlContent: `<p>Bonjour ${escapeHtml(requesterName)},</p><p>Votre demande <strong>${escapeHtml(context.request.subject)}</strong> a bien été reçue.</p><p>Numéro : <strong>${escapeHtml(context.request.publicCode)}</strong></p><p><a href="${escapeHtml(link)}">Suivre ma demande</a></p><p><small>Aucun mot de passe ne vous sera demandé.</small></p>`,
+      textContent: `Bonjour ${requesterName},\n\nVotre demande « ${context.request.subject} » a bien été reçue.\nNuméro : ${context.request.publicCode}${accessCodeText}\nSuivi sécurisé : ${link}\n\nLe code et le lien expirent après 30 minutes. Aucun mot de passe ne vous sera demandé.`,
+      htmlContent: `<p>Bonjour ${escapeHtml(requesterName)},</p><p>Votre demande <strong>${escapeHtml(context.request.subject)}</strong> a bien été reçue.</p><p>Numéro : <strong>${escapeHtml(context.request.publicCode)}</strong></p>${accessCodeHtml}<p><a href="${escapeHtml(link)}">Suivre ma demande</a></p><p><small>Le code et le lien expirent après 30 minutes. Aucun mot de passe ne vous sera demandé.</small></p>`,
       idempotencyKey: job.job_id,
       replyTo: { email: requesterReplyAddress(context.request.publicCode), name: senderName },
       tags: ["lyceegest-support", "demande-recue"],
@@ -163,11 +174,14 @@ async function deliver(job: SupportEmailQueueJob, institutionId: string): Promis
       ? `<p><strong>${attachmentCount} document${attachmentCount > 1 ? "s sont" : " est"} disponible${attachmentCount > 1 ? "s" : ""} dans votre suivi sécurisé.</strong></p>`
       : "";
     const link = trackingUrl(job.access_token);
+    const accessCode = requesterAccessCode(job);
+    const accessCodeText = accessCode ? `\nCode à usage unique : ${accessCode}` : "";
+    const accessCodeHtml = accessCode ? `<p>Code à usage unique : <strong>${accessCode}</strong></p>` : "";
     const result = await sendTransactionalEmail({
       to: { email: context.email, name: requesterName },
       subject: `${context.request.publicCode} - Réponse du lycée`,
-      textContent: `Bonjour ${requesterName},\n\n${message.bodyText}${attachmentText}\n\nRépondre et suivre : ${link}`,
-      htmlContent: `<p>Bonjour ${escapeHtml(requesterName)},</p><p>${paragraphs(message.bodyText)}</p>${attachmentHtml}<p><a href="${escapeHtml(link)}">Répondre et suivre la demande</a></p>`,
+      textContent: `Bonjour ${requesterName},\n\n${message.bodyText}${attachmentText}${accessCodeText}\n\nRépondre et suivre : ${link}\n\nLe code et le lien expirent après 30 minutes.`,
+      htmlContent: `<p>Bonjour ${escapeHtml(requesterName)},</p><p>${paragraphs(message.bodyText)}</p>${attachmentHtml}${accessCodeHtml}<p><a href="${escapeHtml(link)}">Répondre et suivre la demande</a></p><p><small>Le code et le lien expirent après 30 minutes.</small></p>`,
       idempotencyKey: job.job_id,
       replyTo: { email: requesterReplyAddress(context.request.publicCode), name: senderName },
       tags: ["lyceegest-support", "reponse-agent"],

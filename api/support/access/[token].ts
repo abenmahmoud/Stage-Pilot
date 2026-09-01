@@ -1,24 +1,19 @@
-import { randomUUID } from "node:crypto";
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { and, eq, gt, isNull, sql } from "drizzle-orm";
 import { db } from "../../../db/index.js";
 import {
-  supportContacts,
-  supportDeviceSessions,
-  supportEvents,
   supportMagicTokens,
   supportRequests,
-  supportSessionRequests,
 } from "../../../db/schema.js";
 import { HttpError } from "../../_shared/auth.js";
 import { handleApi, methodNotAllowed } from "../../_shared/response.js";
 import {
-  SUPPORT_SESSION_DAYS,
   opaqueToken,
   readSupportSessionToken,
   setSupportSessionCookie,
   sha256,
 } from "../../_shared/support.js";
+import { openSupportAccessSession } from "../../_shared/support-access-session.js";
 import { enforceMagicTokenNetworkGuard } from "../../_shared/support-rate-limits.js";
 import { requireConfiguredInstitution } from "../../_shared/institution-context.js";
 import { isSupportMagicAccessPayload } from "../../../shared/support-magic-access-payload-policy.js";
@@ -80,113 +75,17 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         throw new HttpError(410, "Ce lien de suivi est expiré ou déjà utilisé");
       }
 
-      const [session] = await tx
-        .insert(supportDeviceSessions)
-        .values({
-          sessionHash: sha256(newSessionToken),
-          label: "Lien sécurisé",
-          expiresAt: new Date(Date.now() + SUPPORT_SESSION_DAYS * 24 * 60 * 60 * 1000),
-        })
-        .returning({ id: supportDeviceSessions.id });
-
-      if (existingSessionToken) {
-        const [previousSession] = await tx
-          .select({ id: supportDeviceSessions.id })
-          .from(supportDeviceSessions)
-          .where(
-            and(
-              eq(supportDeviceSessions.sessionHash, sha256(existingSessionToken)),
-              gt(supportDeviceSessions.expiresAt, now),
-              isNull(supportDeviceSessions.revokedAt)
-            )
-          )
-          .limit(1);
-        if (previousSession) {
-          const previousGrants = await tx
-            .select({ requestId: supportSessionRequests.requestId })
-            .from(supportSessionRequests)
-            .innerJoin(
-              supportRequests,
-              eq(supportRequests.id, supportSessionRequests.requestId)
-            )
-            .where(and(
-              eq(supportSessionRequests.sessionId, previousSession.id),
-              eq(supportRequests.institutionId, institution.id)
-            ));
-          if (previousGrants.length > 0) {
-            await tx
-              .insert(supportSessionRequests)
-              .values(
-                previousGrants.map((grant) => ({
-                  sessionId: session.id,
-                  requestId: grant.requestId,
-                }))
-              )
-              .onConflictDoNothing();
-          }
-          await tx
-            .update(supportDeviceSessions)
-            .set({ revokedAt: now })
-            .where(
-              and(
-                eq(supportDeviceSessions.id, previousSession.id),
-                isNull(supportDeviceSessions.revokedAt)
-              )
-            );
-        }
-      }
-
-      await tx
-        .insert(supportSessionRequests)
-        .values({ sessionId: session.id, requestId: magic.requestId })
-        .onConflictDoNothing();
-
-      let targetContactId = magic.contactId;
-      if (!targetContactId) {
-        const legacyContacts = await tx
-          .select({ id: supportContacts.id })
-          .from(supportContacts)
-          .where(
-            and(
-              eq(supportContacts.requestId, magic.requestId),
-              eq(supportContacts.channel, "email"),
-              isNull(supportContacts.disabledAt)
-            )
-          )
-          .limit(2);
-        if (legacyContacts.length === 1) targetContactId = legacyContacts[0].id;
-      }
-
-      const verifiedContacts = targetContactId
-        ? await tx
-            .update(supportContacts)
-            .set({
-              isVerified: true,
-              verificationSource: "email_magic_link",
-              verifiedAt: now,
-            })
-            .where(
-              and(
-                eq(supportContacts.id, targetContactId),
-                eq(supportContacts.requestId, magic.requestId),
-                eq(supportContacts.channel, "email"),
-                eq(supportContacts.isVerified, false),
-                isNull(supportContacts.disabledAt)
-              )
-            )
-            .returning({ id: supportContacts.id })
-        : [];
-
-      if (verifiedContacts.length > 0) {
-        await tx.insert(supportEvents).values({
-          requestId: magic.requestId,
-          eventType: "identity.contact_verified",
-          actorType: "requester",
-          actorId: session.id,
-          toValue: { identityStatus: "contact_verifie", method: "email_magic_link" },
-          correlationId: randomUUID(),
-        });
-      }
+      await openSupportAccessSession({
+        tx,
+        institutionId: institution.id,
+        requestId: magic.requestId,
+        contactId: magic.contactId,
+        existingSessionToken,
+        newSessionToken,
+        label: "Lien sécurisé",
+        verificationSource: "email_magic_link",
+        now,
+      });
 
       return { publicCode: magic.publicCode };
     });

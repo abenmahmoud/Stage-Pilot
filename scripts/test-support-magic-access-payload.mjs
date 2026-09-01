@@ -5,6 +5,7 @@ import { isSupportMagicAccessPayload } from "../shared/support-magic-access-payl
 
 const page = readFileSync(new URL("../src/pages/prototype/LyceeConnectPrototype.tsx", import.meta.url), "utf8");
 const route = readFileSync(new URL("../api/support/access/[token].ts", import.meta.url), "utf8");
+const session = readFileSync(new URL("../api/_shared/support-access-session.ts", import.meta.url), "utf8");
 
 const publicCode = "BC-2026-000123";
 
@@ -66,8 +67,8 @@ test("validates the projected server payload before issuing the cookie", () => {
 
 test("keeps contact verification separate from school identity", () => {
   assert.match(route, /verificationSource: "email_magic_link"/);
-  assert.match(route, /identityStatus: "contact_verifie"/);
-  assert.doesNotMatch(route, /identityStatus: "identite_confirmee"/);
-  assert.match(route, /eq\(supportContacts\.id, targetContactId\)/);
-  assert.match(route, /eq\(supportContacts\.requestId, magic\.requestId\)/);
+  assert.match(session, /identityStatus: "contact_verifie"/);
+  assert.doesNotMatch(`${route}\n${session}`, /identityStatus: "identite_confirmee"/);
+  assert.match(session, /eq\(supportContacts\.id, targetContactId\)/);
+  assert.match(session, /eq\(supportContacts\.requestId, input\.requestId\)/);
 });

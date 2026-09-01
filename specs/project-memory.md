@@ -5,6 +5,21 @@
 **Depot** : `abenmahmoud/Stage-Pilot`
 **Dernier jalon de code verifie** : branche de preview Vercel
 
+## Jalon du 1er septembre 2026 - code email local fermé par défaut
+
+- Le suivi peut désormais combiner le numéro public du dossier et un code email
+  à six chiffres, sans compte ni mot de passe. Le code est dérivé par HMAC du
+  jeton à usage unique et n'est jamais conservé en clair.
+- Cinq essais par jeton, la limite réseau distribuée existante, une erreur
+  générique et une consommation atomique protègent l'échange. Une réussite
+  renouvelle la session appareil et confirme seulement le contact email.
+- Les workers incluent le code uniquement dans les emails au demandeur lorsque
+  le secret serveur et le contact ciblé existent. L'interface et l'API échouent
+  fermées sans configuration ; aucun secret, email ou environnement n'est activé.
+- `002/T010B3B` est terminée. `002/T010B3` reste ouverte pour la configuration,
+  la recette de livraison et le téléphone ou SMS.
+- Les cinq domaines comptent 530 tâches Spec Kit : 428 terminées et 102 ouvertes.
+
 ## Jalon du 1er septembre 2026 - réponses Webmail fermées proprement
 
 - Le transport refuse désormais les noms DNS terminés par un point, y compris

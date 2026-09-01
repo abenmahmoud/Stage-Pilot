@@ -523,6 +523,21 @@
 .lycee-confirmation-actions { display: flex; justify-content: center; gap: 9px; margin-top: 22px; }
 
 .lycee-track-grid { display: grid; grid-template-columns: 340px minmax(0,1fr); gap: 14px; align-items: start; }
+.lycee-code-access { display: grid; grid-template-columns: minmax(220px,.8fr) minmax(440px,1.2fr); gap: 14px 20px; align-items: end; margin: -10px 0 18px; padding: 14px; border: 1px solid #b9d5cf; border-radius: 8px; background: #f4fbf8; }
+.lycee-code-access-copy { min-width: 0; display: flex; align-items: center; gap: 11px; }
+.lycee-code-access-copy > svg { width: 22px; flex: 0 0 22px; color: var(--lc-green); }
+.lycee-code-access-copy > span { min-width: 0; display: grid; gap: 3px; }
+.lycee-code-access-copy strong { color: var(--lc-ink); font-size: 13px; }
+.lycee-code-access-copy small { color: var(--lc-muted); font-size: 11px; line-height: 1.45; }
+.lycee-code-access-fields { min-width: 0; display: grid; grid-template-columns: minmax(150px,1fr) minmax(140px,.8fr) auto; gap: 9px; align-items: end; }
+.lycee-code-access-fields label { min-width: 0; display: grid; gap: 5px; }
+.lycee-code-access-fields label > span { color: #475b70; font-size: 10px; font-weight: 800; }
+.lycee-code-access-fields input { width: 100%; min-width: 0; min-height: 40px; padding: 0 10px; border: 1px solid #afc0d0; border-radius: 7px; background: #fff; color: var(--lc-ink); font: inherit; font-size: 12px; letter-spacing: 0; }
+.lycee-code-access-fields input:focus-visible { outline: 3px solid rgba(32,99,219,.2); outline-offset: 1px; border-color: var(--lc-blue); }
+.lycee-code-access-fields button { min-height: 40px; display: inline-flex; align-items: center; justify-content: center; gap: 7px; padding: 0 13px; border: 0; border-radius: 7px; background: var(--lc-green); color: #fff; font-size: 11px; font-weight: 900; }
+.lycee-code-access-fields button svg { width: 15px; }
+.lycee-code-access-fields button:disabled { cursor: not-allowed; opacity: .55; }
+.lycee-code-access > .lycee-form-error { grid-column: 1 / -1; }
 .lycee-shared-device-action { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin: -10px 0 18px; padding: 11px 14px; border: 1px solid #cdd9e6; border-radius: 8px; background: #f7fafc; }
 .lycee-shared-device-action > span { min-width: 0; display: flex; align-items: center; gap: 10px; }
 .lycee-shared-device-action > span > svg { width: 19px; flex: 0 0 19px; color: var(--lc-green); }
@@ -1063,6 +1078,7 @@
   .lycee-help-ai { position: static; }
   .lycee-help-ai .lycee-chat-bubble:not(:last-of-type) { display: none; }
   .lycee-track-grid { grid-template-columns: 1fr; }
+  .lycee-code-access { grid-template-columns: 1fr; align-items: stretch; }
   .lycee-shared-device-action { align-items: stretch; flex-direction: column; }
   .lycee-device-action-buttons { display: grid; grid-template-columns: 1fr; }
   .lycee-device-action-buttons button { width: 100%; }
@@ -1070,6 +1086,11 @@
   .lycee-agent-stats { grid-template-columns: repeat(2,minmax(0,1fr)); }
   .lycee-specialties-grid { grid-template-columns: repeat(2,minmax(0,1fr)); }
   .lycee-trust-contact { align-items: flex-start; flex-direction: column; }
+}
+
+@media (max-width: 620px) {
+  .lycee-code-access-fields { grid-template-columns: 1fr; }
+  .lycee-code-access-fields button { width: 100%; }
 }
 
 @media (max-width: 720px) {

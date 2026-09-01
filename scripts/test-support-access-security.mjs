@@ -10,6 +10,10 @@ const accessRoute = await readFile(
   new URL("../api/support/access/[token].ts", import.meta.url),
   "utf8"
 );
+const accessSession = await readFile(
+  new URL("../api/_shared/support-access-session.ts", import.meta.url),
+  "utf8"
+);
 const requestRoute = await readFile(
   new URL("../api/support/requests/index.ts", import.meta.url),
   "utf8"
@@ -33,14 +37,16 @@ test("rotates the device session after a magic-link exchange", () => {
   assert.match(accessRoute, /const newSessionToken = opaqueToken\(\);/);
   assert.doesNotMatch(accessRoute, /existingSessionToken\s*\?\?/);
   assert.match(accessRoute, /setSupportSessionCookie\(res, newSessionToken\);/);
-  assert.match(accessRoute, /previousGrants\.map/);
-  assert.match(accessRoute, /set\(\{ revokedAt: now \}\)/);
+  assert.match(accessRoute, /openSupportAccessSession/);
+  assert.match(accessSession, /previousGrants\.map/);
+  assert.match(accessSession, /set\(\{ revokedAt: input\.now \}\)/);
 });
 
 test("consumes a magic link atomically before granting a session", () => {
   const consumeIndex = accessRoute.indexOf(".update(supportMagicTokens)");
-  const grantIndex = accessRoute.indexOf(".insert(supportSessionRequests)");
+  const grantIndex = accessRoute.indexOf("openSupportAccessSession({");
   assert.ok(consumeIndex >= 0 && consumeIndex < grantIndex);
+  assert.match(accessSession, /\.insert\(supportSessionRequests\)/);
   assert.match(accessRoute, /isNull\(supportMagicTokens\.usedAt\)/);
   assert.match(
     accessRoute,
