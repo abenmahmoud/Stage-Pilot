@@ -5,6 +5,19 @@
 **Depot** : `abenmahmoud/Stage-Pilot`
 **Dernier jalon de code verifie** : branche de preview Vercel
 
+## Jalon du 1er septembre 2026 - cause de l'écart public confirmée
+
+- Le domaine public reste lié au déploiement production du 28 août
+  `dpl_41augagG39fL5gMXcud3WrWiZfQH`. Son flux de contenus répond encore `500`.
+- Les journaux Vercel lus sans mutation confirment PostgreSQL `42P01` : la base
+  de ce déploiement ne possède pas la relation `site_content_items`.
+- La preview `fe7500e` est `Ready` et renvoie le contrat public vide valide en
+  `200`. Une promotion du code seule ne corrigerait donc pas la base cible.
+- `001/T040A1` est terminée. `001/T040A` reste ouverte pour une préparation de
+  schéma, sauvegarde, migrations, recette et promotion explicitement autorisées.
+- Les cinq domaines comptent désormais 527 tâches Spec Kit : 425 terminées et
+  102 ouvertes.
+
 ## Jalon du 1er septembre 2026 - restauration locale isolée
 
 - Le paquet chiffré DB + Storage fictif peut désormais être restauré dans un

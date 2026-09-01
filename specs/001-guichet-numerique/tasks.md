@@ -356,9 +356,15 @@ voir sa réponse dans le dossier. L'agent traite tout depuis une seule file.
   mobile/ordinateur, API, base, email sortant et fichier sain.
 - [ ] **T040** Basculer les DNS seulement après validation fonctionnelle.
 - [ ] **T040A** Résoudre l'écart entre l'ancien déploiement public `a9cf32e` et
-  la preview courante : le portail public répond, mais son flux de contenus
-  échoue en `500`. Vérifier environnement et migrations, puis exécuter une
-  promotion réversible uniquement après autorisation explicite.
+  la preview courante : le portail public répond, mais sa base de production ne
+  possède pas `site_content_items` et son flux échoue en `500`. Préparer le
+  schéma cible et une promotion réversible, puis les exécuter uniquement après
+  autorisation explicite.
+- [x] **T040A1** Diagnostiquer cet écart en lecture seule : le domaine public est
+  encore lié au déploiement production `dpl_41augagG39fL5gMXcud3WrWiZfQH` du
+  28 août ; ses journaux confirment PostgreSQL `42P01` sur
+  `site_content_items`. La preview `fe7500e` répond `200` avec le contrat vide
+  valide. Aucune variable, migration, base, promotion ou alias n'a été modifié.
 
 ### Sortie Jour 3
 
