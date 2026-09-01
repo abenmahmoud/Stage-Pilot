@@ -356,3 +356,17 @@ sur `targeted`. Une communication ciblée ne peut désormais plus être appelée
 activation future. Les trois visibilités et les six états sont testés ensemble.
 La cible tactile reste contrôlée, tandis qu'une assertion de couleur purement
 cosmétique a été retirée. Le rapport n'a reçu aucun secret ni donnée réelle.
+
+T022C extrait sans changement de politique la transaction réellement appelée
+par le webhook entrant. Une recette exécutable et explicitement bornée à la base
+Supabase de preview reçoit deux messages fictifs, rejoue exactement le même lot
+et réutilise l'une des empreintes dans un second établissement. Le rejeu ajoute
+zéro ligne et zéro événement ; le second établissement reste indépendant et les
+rôles clients n'ont aucun privilège direct. La transaction est forcée au
+rollback, puis six familles de résidus sont contrôlées à zéro. Le webhook reste
+fermé et T022 demeure ouvert pour le stockage privé avec antivirus du contenu.
+La preuve SQL équivalente a été répétée via le connecteur Supabase sur le projet
+de preview `xijocumlwivhbmffrnlj` : utilisateur, établissements,
+communications, livraisons, entrants et événements sont tous revenus à zéro.
+Le lanceur Node reste disponible pour un environnement sécurisé possédant une
+vraie `DATABASE_URL` ; les fichiers locaux Vercel la masquent volontairement.

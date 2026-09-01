@@ -69,6 +69,7 @@
     "test:communication-inbound-classifier": "node --import ./scripts/ts-test-resolver.mjs --experimental-strip-types scripts/test-communication-inbound-classifier.mjs",
     "test:communication-brevo-inbound": "node --import ./scripts/ts-test-resolver.mjs --experimental-strip-types scripts/test-communication-brevo-inbound.mjs",
     "test:communication-inbound-persistence": "node scripts/test-communication-inbound-persistence.mjs",
+    "recipe:preview-communication-inbound-replay": "node --env-file=.env.preview.local --import ./scripts/ts-test-resolver.mjs --experimental-strip-types scripts/test-preview-communication-inbound-replay.mjs --preview-only",
     "test:communication-inbound-inbox": "node scripts/test-communication-inbound-inbox.mjs",
     "test:communication-inbound-classification-persistence": "node scripts/test-communication-inbound-classification-persistence.mjs",
     "test:communication-preview-recipe": "node scripts/test-communication-preview-recipe.mjs",

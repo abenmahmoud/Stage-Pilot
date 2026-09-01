@@ -4579,3 +4579,18 @@ taches et analyse de coherence avant une automatisation sensible.
   libellés ont été confirmés puis corrigés ; aucun défaut bloquant n'a été trouvé.
 - Les cinq domaines comptent désormais 541 tâches Spec Kit : 442 terminées et
   99 ouvertes.
+
+### Jalon du 1er septembre 2026 - rejeu entrant prouvé sur la preview
+
+- La transaction réellement appelée par le webhook de réponses entrantes est
+  maintenant isolée et testable sans modifier sa politique ni ouvrir la route.
+- Une recette bornée à la base Supabase de preview utilise deux établissements
+  et trois réponses fictives. Le rejeu exact ne crée ni doublon ni second
+  événement, tandis que la même empreinte reste cloisonnée par établissement.
+- La recette vérifie l'absence de privilèges clients, force un rollback et
+  contrôle ensuite zéro résidu. La preuve SQL a été répétée via le connecteur
+  Supabase sur `xijocumlwivhbmffrnlj` avec six compteurs à zéro. Aucun webhook,
+  email, secret Vercel ou contenu réel n'est activé.
+- T022 reste ouvert pour le stockage privé avec antivirus des contenus entrants.
+  Les cinq domaines comptent désormais 542 tâches Spec Kit : 443 terminées et
+  99 ouvertes.

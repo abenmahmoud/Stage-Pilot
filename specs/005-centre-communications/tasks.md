@@ -260,7 +260,13 @@
 - [x] T022B Ajouter la route et la persistance de métadonnées, fermées par
   défaut. Le lot est HMAC, idempotent et borné ; aucun expéditeur, sujet, corps,
   nom de fichier ou adresse n'est stocké. T022 reste ouvert jusqu'au stockage
-  privé antivirus du contenu et à la recette de rejeu sur la preview.
+  privé antivirus du contenu.
+- [x] T022C Extraire la transaction réelle de réception puis prouver sur la base
+  de preview, avec deux établissements et des messages fictifs, qu'un rejeu ne
+  crée ni seconde ligne ni second événement. La même empreinte reste recevable
+  dans l'autre établissement, les rôles clients n'ont aucun accès et le
+  rollback laisse zéro résidu. T022 reste ouvert pour le stockage privé et la
+  preuve antivirus du contenu ; aucun webhook ni secret Vercel n'est activé.
 - [x] T023 Rattacher chaque réponse à la bonne communication.
 - [x] T023A Définir le rattachement strict avant la persistance. La référence
   `In-Reply-To` entrante utilise le même HMAC secret que l'identifiant du message
