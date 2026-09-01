@@ -1012,6 +1012,13 @@ La publication des documents personnels attend encore un lien fiable entre le
 destinataire, son identité scolaire et le bénéficiaire ; le statut manuel actuel
 du dossier ne fournit pas cette preuve.
 
+Suite T049C3 : les neuf politiques restrictives historiques exigent maintenant
+AAL2 pour les quatre rôles agents sur la base de preview. Les 360 assertions
+des expressions et 35 cas CRUD sur une classe fictive passent en PostgreSQL ;
+aucune fixture restante. Permissions et autres politiques inchangées. Ce lot
+ne prouve pas la recette Auth réelle ni les relations familiales. Rapport :
+`docs/security/AGENT_MFA_RLS_PREVIEW_2026-09-01.md`.
+
 1. Conserver `BC-2026-000009` comme preuve fictive de recette jusqu'à la décision
    de nettoyage du pilote ; le dossier historique `BC-2026-000008` n'est pas
    déplacé silencieusement.

@@ -195,6 +195,15 @@ Les retours de connexion utilisent une validation commune avec le parseur URL
 du navigateur : origine locale, taille bornée, refus des chemins réseau,
 antislashs et caractères de contrôle, avant et après normalisation.
 
+Une migration additive aligne les politiques restrictives des neuf tables
+historiques sur le garde API : les quatre rôles agents doivent présenter AAL2.
+Elle supprime l'exception liée à l'absence de facteur sans modifier les droits
+SQL ou les politiques permissives. La recette PostgreSQL évalue les expressions
+de lecture et d'écriture des neuf tables et exerce les quatre opérations sur
+une classe fictive, dans une transaction toujours annulée. Aucun compte Auth,
+facteur MFA, personne réelle ou notification n'est créé. Cette preuve SQL ne
+remplace pas la recette Auth réelle, ni le contrôle des relations parent-enfant.
+
 - Tests unitaires des règles et schémas de sortie.
 - Tests de chaque scénario positif, ambigu, interdit et expiré de chaque compétence.
 - Tests d'autorisation croisée élève/parent/personnel/service/établissement.

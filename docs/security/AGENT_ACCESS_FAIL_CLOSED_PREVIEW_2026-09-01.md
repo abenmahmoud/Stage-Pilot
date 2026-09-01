@@ -50,6 +50,10 @@ agent AAL1 doit s'enrôler avant de lire les données. Aucune baisse de contrôl
 n'est prévue pour le dépanner : utiliser la procédure institutionnelle et deux
 responsables enrôlés avant une future promotion autorisée.
 
+Un lot suivant aligne aussi les politiques SQL historiques en preview. La
+migration, les preuves PostgreSQL et leurs limites sont consignées dans
+`AGENT_MFA_RLS_PREVIEW_2026-09-01.md`. Le présent lot API/UI ne les couvrait pas.
+
 La réponse d'assurance reste liée au JWT et au comportement du SDK existant.
 Ce lot ne prouve ni l'invalidation immédiate d'un JWT après retrait de facteur,
 ni la révocation des sessions Auth distantes. Le réseau Auth, les comptes

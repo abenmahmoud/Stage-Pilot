@@ -222,6 +222,11 @@ leur date, leur responsable et leur état de validité.
   services du profil. L'enrôlement et le parcours public restent accessibles.
   Les chemins de retour après connexion ou MFA restent dans l'application,
   y compris après normalisation par le navigateur.
+- Les accès directs aux neuf tables historiques protégées par le verrou MFA
+  exigent eux aussi AAL2 pour les quatre rôles agents, même sans enrôlement.
+  Ce verrou restrictif couvre lecture et écriture ; il ne remplace pas les
+  autorisations existantes et ne donne aucun droit supplémentaire. Les rôles
+  élèves et professeurs conservent leurs périmètres et leurs parcours actuels.
 - Une demande urgente classée I0 reste recevable et peut recevoir une consigne
   d'aide sans identité scolaire. Ce droit n'autorise aucune consultation de
   données privées. Les demandes I0-I2 et formulaires vierges ne deviennent pas

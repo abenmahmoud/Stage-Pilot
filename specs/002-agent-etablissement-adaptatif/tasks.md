@@ -874,6 +874,13 @@
   borner les chemins de retour après connexion. Vérifier les vrais gardes
   serveur et React avec dépendances fictives, ainsi que l'accès à l'enrôlement.
   La recette Auth distante, les comptes nominatifs et la revue externe restent ouverts.
+- [x] T049C3 Aligner les politiques restrictives des neuf tables historiques
+  sur l'exigence AAL2 des quatre rôles agents. Vérifier en PostgreSQL les
+  expressions et les opérations réelles sur une classe fictive avec annulation,
+  sans nouveau droit, compte Auth, notification ou accès à une donnée réelle.
+  Migration appliquée à la preview seule : 360 assertions d'expressions,
+  35 cas CRUD et zéro fixture restante. La recette Auth réelle, les périmètres
+  historiques et la contre-revue demeurent ouverts ; voir le rapport RLS.
 - [ ] T050 Ouvrir un pilote limité avec agents nommés et canal de retour.
 - [ ] T051 Mesurer deux semaines : classement, délai, transferts, corrections, coût et incidents.
 - [ ] T052 Corriger les écarts puis exécuter `/speckit.analyze` et `/speckit.converge` avant généralisation.

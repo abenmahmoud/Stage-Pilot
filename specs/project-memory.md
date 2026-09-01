@@ -4933,3 +4933,28 @@ taches et analyse de coherence avant une automatisation sensible.
   statut manuel à cette preuve, ni ouvrir la publication sur ce seul statut.
 - 554 tâches : 452 terminées et 102 ouvertes. Ce total ne mesure pas un taux de
   disponibilité du service. Production, données réelles et notifications inchangées.
+
+### Jalon du 1er septembre 2026 - MFA des accès directs à la base
+
+- L'ancien verrou SQL excluait le rôle `agent` et laissait une exception sans
+  facteur enrôlé. Les neuf tables historiques exigent maintenant AAL2 pour les
+  quatre rôles agents, en complément des règles de lignes existantes.
+- Migration `20260901210917` appliquée seulement à `guichet-lycee-preview` après
+  vérification de cible. Les 20 autres politiques et 252 lignes de permissions
+  sont identiques avant/après. Aucun nouveau droit ni fonction privilégiée.
+- Recette PostgreSQL réussie : 360 assertions sur les expressions installées,
+  35 cas des quatre opérations sur une classe fictive, quatre refus anonymes et
+  lecture serveur conservée. Transactions annulées ; contrôle indépendant :
+  zéro fixture restante. Aucun compte Auth, facteur MFA ou personne réelle créé.
+- Trois contrôles de contrat hors ligne rejoignent la barrière de sécurité.
+  Ils sont distincts de la recette SQL, qui n'utilise pas pgTAP. Le conseiller
+  Supabase ne remonte aucun nouvel avis ; les 62 INFO préexistants restent.
+- T049C3 est terminée en preview, pas T049C ou T007B. Restent notamment la
+  recette Auth réelle, les documents personnels et relations parent-enfant,
+  les quotas et la revue des périmètres historiques. Aucun nouveau passage
+  Claude ; les autorisations en attente ne sont ni consommées ni élargies.
+- Rapport : `docs/security/AGENT_MFA_RLS_PREVIEW_2026-09-01.md`. Aucune production,
+  notification, donnée réelle ou modification visuelle ; aucune réinstallation.
+- Compilation, barrière complète de sécurité, quatre contrats responsive et
+  intégrité Spec Kit passent : 555 tâches, 453 terminées et 102 ouvertes. Ces
+  comptes ne mesurent pas un taux de disponibilité opérationnelle.
