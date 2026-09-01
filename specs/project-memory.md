@@ -4612,3 +4612,16 @@ taches et analyse de coherence avant une automatisation sensible.
   propre/EICAR et à la validation de la conservation.
 - Les cinq domaines comptent désormais 543 tâches Spec Kit : 444 terminées et
   99 ouvertes.
+
+### Jalon du 1er septembre 2026 - preuves antivirus entrantes immuables
+
+- Une preuve de scan enregistrée ne peut plus changer silencieusement à état
+  constant. Les transitions autorisées restent inchangées.
+- Chaque événement entrant doit correspondre à l'état réel de son objet et son
+  résumé est limité à un petit contrat machine de 1 Ko, sans texte libre.
+- La première recette distante a détecté une incompatibilité PostgreSQL avant
+  toute donnée. Une migration additive l'a corrigée, puis la recette a refusé
+  altération de preuve, contenu libre et faux événement avec cinq résidus nuls.
+- Aucun webhook, téléchargement Brevo, worker, secret ou interrupteur n'a été
+  activé. Les cinq domaines comptent désormais 544 tâches Spec Kit : 445
+  terminées et 99 ouvertes.

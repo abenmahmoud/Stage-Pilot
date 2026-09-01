@@ -64,7 +64,10 @@ exige une preuve machine `clamav_clean` et un passage préalable en quarantaine.
 Audit append-only des réservations, mises en quarantaine, résultats de scan et
 purges. Les événements sont liés à l'objet et à son établissement par une clé
 composite. Le résumé est réservé à des codes et compteurs techniques bornés ;
-aucun contenu utilisateur ni résultat antivirus brut ne doit y être écrit.
+aucun contenu utilisateur ni résultat antivirus brut ne doit y être écrit. La
+base limite le résumé à 1 Ko, impose un schéma exact par type d'événement et
+vérifie que l'événement correspond à l'état courant de l'objet. Les preuves de
+scan ne peuvent pas être modifiées sans transition d'état autorisée.
 
 ### Stockage et file des contenus entrants
 

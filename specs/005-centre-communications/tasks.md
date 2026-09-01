@@ -273,6 +273,11 @@
   sont appliqués et prouvés sur la preview avec rollback à zéro. Le webhook, le
   téléchargement fournisseur, le worker et les interrupteurs restent fermés.
   T022 demeure ouvert jusqu'au raccordement et aux preuves ClamAV propre/EICAR.
+- [x] T022E Durcir la preuve de quarantaine avant raccordement. Une preuve de
+  scan déjà enregistrée ne peut plus être réécrite à état constant ; chaque
+  événement doit correspondre à l'état réel de l'objet et utiliser un résumé
+  machine exact de 1 Ko maximum. La recette de preview refuse contenu libre,
+  faux événement et altération de preuve, puis laisse cinq résidus à zéro.
 - [x] T023 Rattacher chaque réponse à la bonne communication.
 - [x] T023A Définir le rattachement strict avant la persistance. La référence
   `In-Reply-To` entrante utilise le même HMAC secret que l'identifiant du message

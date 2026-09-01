@@ -389,5 +389,16 @@ deux index ne sont pas encore utilisés en l'absence de trafic activé.
 
 Ce lot ne télécharge aucun contenu Brevo, ne démarre aucun worker, ne configure
 aucun secret et n'active aucun interrupteur Vercel. T022 reste donc ouvert pour
-le raccordement transactionnel, la validation stricte des résumés machine, la
-politique de conservation et les preuves ClamAV propre/EICAR.
+le raccordement transactionnel, la politique de conservation et les preuves
+ClamAV propre/EICAR.
+
+T022E ferme la validation des preuves machine avant ce raccordement. Une mise à
+jour sans changement d'état ne peut plus remplacer bucket, code de scan,
+empreinte ou date ; chaque événement doit correspondre à l'état réellement lu
+dans le même établissement. Son résumé suit un schéma exact par événement et ne
+peut dépasser 1 Ko. Le premier passage de la recette a détecté une fonction JSON
+absente du runtime PostgreSQL de preview ; une migration additive la remplace
+par un comptage compatible et conserve la trace de la correction. Le passage
+final refuse les trois falsifications ajoutées et revient à cinq résidus nuls.
+La validation stricte des résumés est donc fermée ; conservation, raccordement
+et preuves ClamAV propre/EICAR restent ouverts dans T022.

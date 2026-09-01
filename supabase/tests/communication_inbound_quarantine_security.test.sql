@@ -43,8 +43,35 @@ declare
   duplicate_ref_blocked boolean := false;
   cross_scope_blocked boolean := false;
   reverse_transition_blocked boolean := false;
+  clean_proof_rewrite_blocked boolean := false;
+  unsafe_summary_blocked boolean := false;
+  state_mismatch_event_blocked boolean := false;
   event_update_blocked boolean := false;
 begin
+  begin
+    insert into public.communication_inbound_object_events (
+      institution_id, inbound_object_id, event_type, actor_type, summary
+    ) values (
+      '00000000-0000-4000-8000-000000009001',
+      '00000000-0000-4000-8000-000000009020',
+      'object.reserved', 'provider', '{"body":"must-not-be-audited"}'::jsonb
+    );
+  exception when others then
+    unsafe_summary_blocked := true;
+  end;
+
+  begin
+    insert into public.communication_inbound_object_events (
+      institution_id, inbound_object_id, event_type, actor_type, summary
+    ) values (
+      '00000000-0000-4000-8000-000000009001',
+      '00000000-0000-4000-8000-000000009020',
+      'object.clean', 'system', '{"antivirus":"clamav_clean"}'::jsonb
+    );
+  exception when others then
+    state_mismatch_event_blocked := true;
+  end;
+
   begin
     update public.communication_inbound_objects
     set status = 'clean', storage_bucket = 'communication-inbound-clean'
@@ -108,6 +135,14 @@ begin
 
   begin
     update public.communication_inbound_objects
+    set sha256 = repeat('e', 64), scanned_at = transaction_timestamp()
+    where id = '00000000-0000-4000-8000-000000009020';
+  exception when others then
+    clean_proof_rewrite_blocked := true;
+  end;
+
+  begin
+    update public.communication_inbound_objects
     set status = 'quarantine', storage_bucket = 'communication-inbound-quarantine',
         scan_detail = 'awaiting_antivirus', scanned_at = null
     where id = '00000000-0000-4000-8000-000000009020';
@@ -127,6 +162,9 @@ begin
     or not duplicate_ref_blocked
     or not cross_scope_blocked
     or not reverse_transition_blocked
+    or not clean_proof_rewrite_blocked
+    or not unsafe_summary_blocked
+    or not state_mismatch_event_blocked
     or not event_update_blocked then
     raise exception 'Inbound quarantine guard failed';
   end if;

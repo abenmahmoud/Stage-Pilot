@@ -6,6 +6,14 @@ const migration = readFileSync(new URL(
   "../supabase/migrations/20260901133000_create_communication_inbound_quarantine.sql",
   import.meta.url
 ), "utf8");
+const hardeningMigration = readFileSync(new URL(
+  "../supabase/migrations/20260901160000_harden_communication_inbound_quarantine.sql",
+  import.meta.url
+), "utf8");
+const summaryFixMigration = readFileSync(new URL(
+  "../supabase/migrations/20260901161000_fix_communication_inbound_summary_validator.sql",
+  import.meta.url
+), "utf8");
 const recipe = readFileSync(new URL(
   "../supabase/tests/communication_inbound_quarantine_security.test.sql",
   import.meta.url
@@ -31,6 +39,19 @@ test("enforces quarantine, clean proof and an immutable lifecycle", () => {
   assert.match(migration, /scan_detail = 'clamav_clean'/);
   assert.match(migration, /sha256 ~ '\^\[a-f0-9\]\{64\}\$'/);
   assert.match(migration, /communication_inbound_object_events_append_only_trigger/);
+  assert.match(hardeningMigration, /communication_inbound_object_proof_immutable/);
+  assert.match(hardeningMigration, /old\.status = new\.status/);
+  assert.match(hardeningMigration, /communication_inbound_object_event_state_mismatch/);
+});
+
+test("accepts only exact bounded machine summaries in the audit", () => {
+  assert.match(summaryFixMigration, /pg_column_size\(summary_value\) > 1024/);
+  assert.match(summaryFixMigration, /pg_catalog\.jsonb_object_keys\(summary_value\)/);
+  assert.doesNotMatch(summaryFixMigration, /jsonb_object_length/);
+  assert.match(summaryFixMigration, /summary_value = '\{"scan":"pending"\}'::jsonb/);
+  assert.match(summaryFixMigration, /summary_value = '\{"antivirus":"clamav_clean"\}'::jsonb/);
+  assert.match(hardeningMigration, /communication_inbound_object_events_summary_safe_check/);
+  assert.doesNotMatch(summaryFixMigration, /sender|recipient|subject|download_token|original_name/);
 });
 
 test("keeps both storage buckets and the scan queue private", () => {
@@ -61,6 +82,9 @@ test("proves the preview lifecycle, isolation and rollback with fixtures only", 
   assert.match(recipe, /duplicate_ref_blocked/);
   assert.match(recipe, /cross_scope_blocked/);
   assert.match(recipe, /event_update_blocked/);
+  assert.match(recipe, /clean_proof_rewrite_blocked/);
+  assert.match(recipe, /unsafe_summary_blocked/);
+  assert.match(recipe, /state_mismatch_event_blocked/);
   assert.match(recipe, /communication-inbound-clean/);
   assert.match(recipe, /rollback;[\s\S]*institution_residue[\s\S]*inbound_residue[\s\S]*object_residue[\s\S]*event_residue[\s\S]*queue_residue/);
   assert.doesNotMatch(recipe, /@ac-creteil\.fr|lycee-blaise-cendrars-sevran\.fr/);

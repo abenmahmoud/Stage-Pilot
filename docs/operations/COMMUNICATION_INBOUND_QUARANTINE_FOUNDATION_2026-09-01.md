@@ -34,6 +34,19 @@ Les conseillers Supabase remontent seulement quatre informations attendues pour
 ce nouveau socle : deux tables RLS sans politique, car elles sont réservées au
 service interne, et deux index encore inutilisés, car aucun trafic n'est activé.
 
+## Durcissement complémentaire
+
+Les migrations additives `20260901160000` et `20260901161000` rendent les
+preuves de scan immuables à état constant, limitent les résumés d'événements à
+1 Ko et imposent un contrat machine exact. Un événement doit aussi correspondre
+à l'état réellement lu pour l'objet du même établissement.
+
+Le premier passage distant a détecté l'absence d'une fonction JSON sur la
+version PostgreSQL de preview. La seconde migration remplace cette fonction par
+un comptage compatible. La recette finale refuse la réécriture d'une preuve
+propre, un résumé contenant du texte libre et un faux événement `clean`, puis
+confirme de nouveau cinq familles de résidus à zéro.
+
 ## Frontières encore fermées
 
 - récupération bornée du contenu depuis Brevo ;
