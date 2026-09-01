@@ -122,3 +122,21 @@ La barrière complète `test:preview-security-gate`, l'intégrité des spécific
 et `npm run build` passent après ces corrections. Le build conserve son
 avertissement de taille du module XLSX ; ce lot ne modifie aucun écran ni asset.
 Ces résultats locaux ne remplacent pas la recette authentifiée encore bloquée.
+
+## Après la revue externe des recettes
+
+Les jetons sont désormais transmis à curl par l'entrée standard, jamais par
+argument de processus ou fichier temporaire. Le client sans clé serveur retire
+le facteur MFA qu'il a créé avant de fermer sa propre session. Les deux recettes
+n'annoncent une réussite qu'après leur nettoyage ; un échec impose de vérifier
+les résidus de cette seule exécution avant tout nouveau run.
+
+Exécuter sans autre manipulation concurrente des demandes de preview : les
+mesures sont comparées à une valeur initiale globale. Le rôle de la fixture
+reste celui nécessaire aux mesures Direction avec MFA ; une simple adhésion
+administrative ne donne pas ce droit. Vérifier les métadonnées du déploiement
+choisi reste obligatoire, même lorsque son URL ressemble à une preview.
+
+La nouvelle mission Claude a coûté 0,632103 USD selon le CLI pour un seul passage
+autorisé à 5 USD. Arbitrage :
+`docs/audits/CLAUDE_ROUTING_RECIPE_REVIEW_ADJUDICATION_2026-09-01.md`.

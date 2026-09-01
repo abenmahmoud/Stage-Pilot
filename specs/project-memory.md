@@ -5,6 +5,26 @@
 **Depot** : `abenmahmoud/Stage-Pilot`
 **Dernier jalon de code verifie** : branche de preview Vercel
 
+## Jalon du 1er septembre 2026 - revue des recettes de classement
+
+- Nouvelle mission Fable 5 explicitement autorisee : six scripts, lecture seule,
+  un passage, plafond 5 USD. Cout CLI 0,632103 USD ; aucun secret ou fichier
+  utilisateur transmis. Cette autorisation est consommee, aucune relance.
+- Le jeton AAL2 des recettes passe maintenant par entree standard, sans fichier
+  temporaire ni argument sensible. Un essai curl Windows purement local confirme
+  ce transport ; une validation refuse les sauts de ligne et entrees invalides.
+- Le client fictif retire son propre facteur MFA avant la deconnexion. Toute
+  erreur de nettoyage supprime le message de succes ; la suppression du compte
+  reste tentee apres un echec de suppression de son adhesion.
+- Les gardes de recette et l'observabilite passent. La cascade SQL et les droits
+  Direction sont confirmes ; les propositions contraires ne sont pas appliquees.
+- Barriere complete de securite, integrite Spec Kit et compilation reussies.
+  L'avertissement XLSX subsiste ; aucun composant ni asset public modifie.
+- La configuration privee est en cours de renseignement par le proprietaire.
+  T030D3 reste ouverte tant que la recette authentifiee n'est pas executee.
+  Le compte rendu est dans
+  `docs/audits/CLAUDE_ROUTING_RECIPE_REVIEW_ADJUDICATION_2026-09-01.md`.
+
 ## Jalon du 1er septembre 2026 - recettes de classement preparees pour Windows
 
 - Le controle local confirme une origine Supabase de preview exacte mais une

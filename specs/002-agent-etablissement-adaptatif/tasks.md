@@ -632,6 +632,10 @@
   passe par Node et le Vercel en cache, sans installation, avec contrôle de
   disponibilité avant création de fixture. La clé locale reste masquée : aucune
   confirmation, correction, création de compte ou action distante de recette.
+  Une nouvelle revue Fable 5 autorisée est arbitrée (0,632103 USD sur 5) :
+  jeton transmis hors arguments, retrait du facteur MFA fictif et succès
+  conditionné au nettoyage. Tests locaux et observabilité passent ; la recette
+  authentifiée et son nettoyage distant ne sont toujours pas déclarés réussis.
 
 ## Phase 4 - Compétences du pilote
 

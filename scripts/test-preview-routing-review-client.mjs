@@ -3,10 +3,17 @@ import { createHmac } from "node:crypto";
 import { readFile } from "node:fs/promises";
 import { createClient } from "@supabase/supabase-js";
 import { assertRoutingReviewPreviewTarget } from "./routing-review-preview-target.mjs";
-import { assertRoutingReviewVercelAvailable, runRoutingReviewVercel } from "./routing-review-vercel-cli.mjs";
+import { assertRoutingReviewVercelAvailable, routingReviewAuthorizationInput, runRoutingReviewVercel } from "./routing-review-vercel-cli.mjs";
+import { closeRoutingReviewFixtureSession } from "./routing-review-session-cleanup.mjs";
 
 async function loadEnvFile(path) {
-  const content = await readFile(path, "utf8");
+  let content;
+  try {
+    content = await readFile(path, "utf8");
+  } catch (error) {
+    if (error?.code === "ENOENT" && !process.env.PREVIEW_ENV_FILE) return;
+    throw error;
+  }
   for (const line of content.split(/\r?\n/)) {
     const match = line.match(/^([A-Z][A-Z0-9_]*)=(.*)$/);
     if (!match || process.env[match[1]]) continue;
@@ -74,12 +81,12 @@ function vercelApi({ deploymentHost, path, method = "GET", accessToken, body }) 
     "--header",
     "Accept: application/json",
     "--header",
-    `Authorization: Bearer ${accessToken}`,
+    "@-",
   ];
   if (body !== undefined) {
     args.push("--header", "Content-Type: application/json", "--data-raw", JSON.stringify(body));
   }
-  const result = runRoutingReviewVercel(args);
+  const result = runRoutingReviewVercel(args, { input: routingReviewAuthorizationInput(accessToken) });
   if (result.status !== 0) {
     throw new Error(`preview_api_failed:${method}:${path}:${result.status ?? "unknown"}`);
   }
@@ -118,6 +125,7 @@ assertRoutingReviewVercelAvailable();
 const client = createClient(supabaseUrl, anonKey, {
   auth: { autoRefreshToken: false, persistSession: false },
 });
+let createdFactorId = null;
 
 try {
   const signIn = await client.auth.signInWithPassword({ email, password });
@@ -126,6 +134,7 @@ try {
     factorType: "totp",
     friendlyName: "Codex routing review SQL fixture",
   });
+  createdFactorId = enrollment.data?.id ?? null;
   if (enrollment.error || !enrollment.data.totp?.secret) throw enrollment.error;
   await waitForStableTotpWindow();
   const challenge = await client.auth.mfa.challenge({ factorId: enrollment.data.id });
@@ -205,6 +214,14 @@ try {
   assert.equal(after.routingReviewConfirmed, baseline.routingReviewConfirmed + 1);
   assert.equal(after.routingReviewCorrected, baseline.routingReviewCorrected + 1);
 
+} finally {
+  if (!await closeRoutingReviewFixtureSession(client, createdFactorId)) {
+    console.error("Fixture MFA or session cleanup failed");
+    process.exitCode = 1;
+  }
+}
+
+if (!process.exitCode) {
   console.log(JSON.stringify({
     target: "isolated_preview",
     mfa: "aal2",
@@ -213,6 +230,4 @@ try {
     metrics: "verified",
     cleanup: "external_required",
   }));
-} finally {
-  await client.auth.signOut();
 }

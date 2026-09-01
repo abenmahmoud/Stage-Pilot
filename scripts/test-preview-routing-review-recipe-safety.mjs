@@ -4,7 +4,8 @@ import { mkdtemp, readFile, rmdir, unlink, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
-import { assertRoutingReviewVercelAvailable, runRoutingReviewVercel } from "./routing-review-vercel-cli.mjs";
+import { assertRoutingReviewVercelAvailable, routingReviewAuthorizationInput, runRoutingReviewVercel } from "./routing-review-vercel-cli.mjs";
+import { closeRoutingReviewFixtureSession } from "./routing-review-session-cleanup.mjs";
 
 const [source, publicClient] = await Promise.all([
   readFile(new URL("./test-preview-support-assistant-routing-review.mjs", import.meta.url), "utf8"),
@@ -41,7 +42,15 @@ assert.match(publicClient, /currentLevel, "aal2"/);
 assert.match(publicClient, /routingDecision: "confirmed"/);
 assert.match(publicClient, /assignedTeam: "secretariat"/);
 assert.match(publicClient, /cleanup: "external_required"/);
+assert.match(publicClient, /await closeRoutingReviewFixtureSession\(client, createdFactorId\)/);
+assert.match(publicClient, /error\?\.code === "ENOENT" && !process\.env\.PREVIEW_ENV_FILE/);
 assert.doesNotMatch(publicClient, /console\.(?:log|error)\([^\n]*(?:accessToken|password|email|confirmCode|correctCode)/);
+for (const script of [source, publicClient]) {
+  assert.doesNotMatch(script, /Authorization: Bearer/);
+  assert.match(script, /"--header",\s+"@-"/);
+  assert.match(script, /input: routingReviewAuthorizationInput\(accessToken\)/);
+  assert.ok(script.lastIndexOf("} finally {") < script.lastIndexOf("if (!process.exitCode) {"));
+}
 
 console.log("preview routing review static safety checks passed");
 
@@ -85,12 +94,13 @@ test("both recipes reject misleading Supabase destinations before any network re
         syncBuiltinESMExports();
         globalThis.fetch = () => { console.error('unexpected_network_attempt'); process.exit(86); };
         await import(${JSON.stringify(new URL(name, import.meta.url).href)});`;
-      const run = (changes) => spawnSync(process.execPath, ["--input-type=module", "--eval", program], {
-        cwd: new URL("../", import.meta.url), env: { ...base, ...changes },
+      const run = (changes, cwd = new URL("../", import.meta.url)) => spawnSync(process.execPath, ["--input-type=module", "--eval", program], {
+        cwd, env: { ...base, ...changes },
         encoding: "utf8", windowsHide: true, timeout: 5000,
       });
       // The local guard intercepts even the valid case; no real service is contacted.
       assert.equal(run({}).status, 86, `${name}: valid configuration reaches only the injected guard`);
+      assert.equal(run({ PREVIEW_ENV_FILE: undefined }, directory).status, 86, `${name}: exported variables do not require a default env file`);
       const unavailable = run({ RECIPE_CLI_UNAVAILABLE: "true" });
       assert.equal(unavailable.status, 1);
       assert.match(unavailable.stderr, /preview_vercel_cli_unavailable/);
@@ -116,7 +126,8 @@ test("runs the cached CLI through Node without a Windows shell or automatic inst
   };
   assertRoutingReviewVercelAvailable(spawnImpl);
   const args = ["curl", "/api/support/agent/metrics?days=7", "--deployment", "lyceegest-123abc456-safe-scol.vercel.app"];
-  runRoutingReviewVercel(args, spawnImpl);
+  const input = routingReviewAuthorizationInput("synthetic.header.signature");
+  runRoutingReviewVercel(args, { spawnImpl, input });
   for (const call of calls) {
     assert.equal(call.executable, process.execPath);
     assert.match(call.args[0], /[\\/]npm[\\/]bin[\\/]npx-cli\.js$/u);
@@ -126,10 +137,44 @@ test("runs the cached CLI through Node without a Windows shell or automatic inst
     assert.equal(call.options.env.CI, "1");
   }
   assert.deepEqual(calls[1].args.slice(4), args);
+  assert.equal(calls[1].options.input, "Authorization: Bearer synthetic.header.signature\n");
+  assert.doesNotMatch(JSON.stringify(calls[1].args), /Bearer|synthetic\.header\.signature/);
   assert.equal(calls[0].options.timeout, 15000);
   assert.equal(calls[1].options.timeout, 45000);
   for (const result of [{ status: 1, stdout: "private-provider-detail" },
     { status: null, stdout: "", error: { code: "ETIMEDOUT" } }, { status: 0, stdout: "not a CLI version" }]) {
     assert.throws(() => assertRoutingReviewVercelAvailable(() => result), { message: "preview_vercel_cli_unavailable" });
+  }
+});
+
+test("rejects malformed authorization before constructing a curl input", () => {
+  for (const token of [null, undefined, "", "token", "a.b.c\r\nX-Other: injected", "a.b.c\n", "a.b.c\0", "a".repeat(8193)]) {
+    assert.throws(() => routingReviewAuthorizationInput(token), { message: "preview_authorization_invalid" });
+  }
+});
+
+test("removes only the fixture factor and signs out even when one cleanup step fails", async () => {
+  for (const factorId of [null, "synthetic-factor"]) {
+    for (const failure of [null, "unenroll_error", "unenroll_throw", "signout_error", "signout_throw"]) {
+      const calls = [];
+      const client = { auth: {
+        mfa: { unenroll: async (args) => {
+          calls.push({ step: "unenroll", args });
+          if (failure === "unenroll_throw") throw new Error("private-provider-detail");
+          return { error: failure === "unenroll_error" ? new Error("private-provider-detail") : null };
+        } },
+        signOut: async (args) => {
+          calls.push({ step: "signout", args });
+          if (failure === "signout_throw") throw new Error("private-provider-detail");
+          return { error: failure === "signout_error" ? new Error("private-provider-detail") : null };
+        },
+      } };
+      const expected = !failure || (!factorId && failure.startsWith("unenroll"));
+      assert.equal(await closeRoutingReviewFixtureSession(client, factorId), expected);
+      assert.deepEqual(calls, [
+        ...(factorId ? [{ step: "unenroll", args: { factorId } }] : []),
+        { step: "signout", args: { scope: "local" } },
+      ]);
+    }
   }
 });

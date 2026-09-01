@@ -16,6 +16,7 @@ const [migration, assistantRoute, requestRoute, agentRoute, metricsRoute, page, 
 
 test("keeps routing reviews private, scoped and terminal after a human decision", () => {
   assert.match(migration, /foreign key \(request_id, institution_id\)[\s\S]+support_requests\(id, institution_id\)/i);
+  assert.match(migration, /foreign key \(request_id, institution_id\)\s+references public\.support_requests\(id, institution_id\)\s+on delete cascade/i);
   assert.match(migration, /unique \(request_id\)/i);
   assert.match(migration, /unique \(institution_id, receipt_hash\)/i);
   assert.match(migration, /status in \('pending', 'confirmed', 'corrected'\)/i);

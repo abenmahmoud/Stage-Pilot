@@ -3,7 +3,7 @@ import { createHmac, randomBytes, randomUUID } from "node:crypto";
 import { readFile } from "node:fs/promises";
 import { createClient } from "@supabase/supabase-js";
 import { assertRoutingReviewPreviewTarget } from "./routing-review-preview-target.mjs";
-import { assertRoutingReviewVercelAvailable, runRoutingReviewVercel } from "./routing-review-vercel-cli.mjs";
+import { assertRoutingReviewVercelAvailable, routingReviewAuthorizationInput, runRoutingReviewVercel } from "./routing-review-vercel-cli.mjs";
 
 async function loadEnvFile(path) {
   let content;
@@ -80,7 +80,7 @@ function vercelApi({ deploymentHost, path, method = "GET", accessToken, body }) 
     "--header",
     "Accept: application/json",
     "--header",
-    `Authorization: Bearer ${accessToken}`,
+    "@-",
   ];
   if (body !== undefined) {
     args.push(
@@ -90,7 +90,7 @@ function vercelApi({ deploymentHost, path, method = "GET", accessToken, body }) 
       JSON.stringify(body)
     );
   }
-  const result = runRoutingReviewVercel(args);
+  const result = runRoutingReviewVercel(args, { input: routingReviewAuthorizationInput(accessToken) });
   if (result.status !== 0) {
     throw new Error(`preview_api_failed:${method}:${path}:${result.status ?? "unknown"}`);
   }
@@ -344,13 +344,6 @@ try {
   assert.equal(afterCleanup.routingReviewConfirmed, baseline.routingReviewConfirmed);
   assert.equal(afterCleanup.routingReviewCorrected, baseline.routingReviewCorrected);
 
-  console.log(JSON.stringify({
-    target: "isolated_preview",
-    confirmed: 1,
-    corrected: 1,
-    metrics: "verified",
-    cleanup: "complete",
-  }));
 } finally {
   try {
     await deleteRequestFixtures();
@@ -359,19 +352,33 @@ try {
     process.exitCode = 1;
   }
   if (createdUserId) {
-    const membershipCleanup = await admin
-      .from("institution_memberships")
-      .delete()
-      .eq("institution_id", institution.id)
-      .eq("user_id", createdUserId);
-    if (membershipCleanup.error) {
+    try {
+      const membershipCleanup = await admin
+        .from("institution_memberships")
+        .delete()
+        .eq("institution_id", institution.id)
+        .eq("user_id", createdUserId);
+      if (membershipCleanup.error) throw membershipCleanup.error;
+    } catch {
       console.error("Fixture membership cleanup failed");
       process.exitCode = 1;
     }
-    const userCleanup = await admin.auth.admin.deleteUser(createdUserId);
-    if (userCleanup.error) {
+    try {
+      const userCleanup = await admin.auth.admin.deleteUser(createdUserId);
+      if (userCleanup.error) throw userCleanup.error;
+    } catch {
       console.error("Fixture account cleanup failed");
       process.exitCode = 1;
     }
   }
+}
+
+if (!process.exitCode) {
+  console.log(JSON.stringify({
+    target: "isolated_preview",
+    confirmed: 1,
+    corrected: 1,
+    metrics: "verified",
+    cleanup: "complete",
+  }));
 }
