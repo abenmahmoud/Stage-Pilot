@@ -354,37 +354,50 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           });
 
           await tx.execute(sql`
+            select
+              pgmq.send(
+                'support_jobs',
+                jsonb_build_object(
+                  'job_id', ${requesterJobId}::uuid,
+                  'job_type', 'notify_requester_request_created',
+                  'institution_id', ${institution.id}::uuid,
+                  'request_id', ${created.id}::uuid,
+                  'message_id', ${sourceMessage.id}::uuid,
+                  'contact_id', ${emailContact.id}::uuid,
+                  'access_token', ${rawAccessToken}::text,
+                  'idempotency_key', ${`requester-request-created:${created.id}`}::text,
+                  'attempt', 0
+                )
+              ) as requester_job_id,
+              pgmq.send(
+                'support_jobs',
+                jsonb_build_object(
+                  'job_id', ${agentJobId}::uuid,
+                  'job_type', 'notify_agent_request_created',
+                  'institution_id', ${institution.id}::uuid,
+                  'request_id', ${created.id}::uuid,
+                  'message_id', ${sourceMessage.id}::uuid,
+                  'idempotency_key', ${`agent-request-created:${created.id}`}::text,
+                  'attempt', 0
+                )
+              ) as agent_job_id
+          `);
+        } else {
+          await tx.execute(sql`
             select pgmq.send(
               'support_jobs',
               jsonb_build_object(
-                'job_id', ${requesterJobId}::uuid,
-                'job_type', 'notify_requester_request_created',
+                'job_id', ${agentJobId}::uuid,
+                'job_type', 'notify_agent_request_created',
                 'institution_id', ${institution.id}::uuid,
                 'request_id', ${created.id}::uuid,
                 'message_id', ${sourceMessage.id}::uuid,
-                'contact_id', ${emailContact.id}::uuid,
-                'access_token', ${rawAccessToken}::text,
-                'idempotency_key', ${`requester-request-created:${created.id}`}::text,
+                'idempotency_key', ${`agent-request-created:${created.id}`}::text,
                 'attempt', 0
               )
             )
           `);
         }
-
-        await tx.execute(sql`
-          select pgmq.send(
-            'support_jobs',
-            jsonb_build_object(
-              'job_id', ${agentJobId}::uuid,
-              'job_type', 'notify_agent_request_created',
-              'institution_id', ${institution.id}::uuid,
-              'request_id', ${created.id}::uuid,
-              'message_id', ${sourceMessage.id}::uuid,
-              'idempotency_key', ${`agent-request-created:${created.id}`}::text,
-              'attempt', 0
-            )
-          )
-        `);
 
         const agentAction = createRequestAction
           ? await completeSupportCreateRequestAction({

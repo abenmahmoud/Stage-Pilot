@@ -47,3 +47,14 @@ test("uses the unique insertion as the first idempotency decision", () => {
   assert.doesNotMatch(route.slice(transaction), /const \[existing\] = await tx/);
   assert.match(route, /onConflictDoNothing\(\{[\s\S]*supportRequests\.idempotencyKeyHash/);
 });
+
+test("queues requester and agent notifications in one email-path statement", () => {
+  const emailBranch = route.indexOf("if (emailContact)");
+  const agentAction = route.indexOf("const agentAction = createRequestAction", emailBranch);
+  const notificationBlock = route.slice(emailBranch, agentAction);
+  assert.ok(emailBranch >= 0 && agentAction > emailBranch);
+  assert.equal(notificationBlock.match(/await tx\.execute/g)?.length, 2);
+  assert.equal(notificationBlock.match(/pgmq\.send/g)?.length, 3);
+  assert.match(notificationBlock, /as requester_job_id,[\s\S]*as agent_job_id/);
+  assert.match(notificationBlock, /\} else \{[\s\S]*notify_agent_request_created/);
+});
