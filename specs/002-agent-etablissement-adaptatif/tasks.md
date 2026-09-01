@@ -831,6 +831,10 @@
 - [x] T048G Corriger les contrastes WCAG des vues publiques, augmenter les
   textes secondaires trop petits et donner une sémantique valide aux parcours
   et conversations après recette Chrome réelle à 390 px.
+- [x] T048H Structurer la file agent comme une liste annoncée, exposer la demande
+  courante et nommer le panneau de détail. Vérifier avec données fictives la
+  sélection au clavier, l'arbre sémantique et l'absence de débordement à 320 et
+  1 440 px. La recette humaine avec lecteur d'écran reste dans T048.
 - [ ] T049 Exécuter une revue de sécurité et de protection des données.
 - [x] T049A Créer et exécuter une porte de sécurité reproductible pour la
   preview : en-têtes navigateur, cache API, source maps, secrets, limites,

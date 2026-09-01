@@ -852,12 +852,14 @@
 .lycee-agent-tabs button.is-active { border-bottom-color: var(--lc-blue); color: var(--lc-blue); }
 .lycee-agent-tabs span { min-width: 19px; padding: 3px 5px; border-radius: 999px; background: #edf2ff; text-align: center; }
 .lycee-agent-list { position: relative; min-height: 0; max-height: 560px; overflow-y: auto; }
+.lycee-agent-list > ul { margin: 0; padding: 0; list-style: none; }
+.lycee-agent-list > ul > li { margin: 0; padding: 0; }
 .lycee-agent-list-loading { position: sticky; top: 0; z-index: 2; min-height: 32px; display: flex; align-items: center; justify-content: center; gap: 6px; border-bottom: 1px solid #dbe3ed; background: rgba(248,250,252,.96); color: #53657a; font-size: 9px; font-weight: 800; }
 .lycee-agent-list-loading svg { width: 13px; }
-.lycee-agent-list > button { position: relative; width: 100%; min-height: 100px; display: grid; grid-template-columns: 38px minmax(0,1fr); align-items: start; gap: 10px; padding: 14px; border: 0; border-bottom: 1px solid var(--lc-line); border-left: 3px solid transparent; background: #fff; color: var(--lc-ink); text-align: left; }
-.lycee-agent-list > button.is-selected { border-left-color: var(--lc-blue); background: #f2f6ff; }
+.lycee-agent-list > ul > li > button { position: relative; width: 100%; min-height: 100px; display: grid; grid-template-columns: 38px minmax(0,1fr); align-items: start; gap: 10px; padding: 14px; border: 0; border-bottom: 1px solid var(--lc-line); border-left: 3px solid transparent; background: #fff; color: var(--lc-ink); text-align: left; }
+.lycee-agent-list > ul > li > button.is-selected { border-left-color: var(--lc-blue); background: #f2f6ff; }
 .lycee-request-avatar { width: 36px; height: 36px; display: grid; place-items: center; border-radius: 50%; background: #e8efff; color: var(--lc-blue); font-size: 10px; font-weight: 900; }
-.lycee-agent-list > button > span:nth-child(2) { min-width: 0; display: flex; flex-direction: column; gap: 3px; }
+.lycee-agent-list > ul > li > button > span:nth-child(2) { min-width: 0; display: flex; flex-direction: column; gap: 3px; }
 .lycee-agent-list strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 12px; }
 .lycee-agent-list small { color: #53657a; font-size: 10px; }
 .lycee-agent-list em { color: #8995a5; font-size: 9px; font-style: normal; }

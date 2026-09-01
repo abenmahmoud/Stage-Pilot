@@ -25,7 +25,15 @@ test("names the search and announces the current service and dossier", () => {
   assert.match(page, /<input aria-label="Rechercher une demande"/);
   assert.match(page, /<nav aria-label="Filtrer par charge de service">/);
   assert.match(page, /aria-pressed=\{serviceFilter === value\}/);
-  assert.match(page, /<button aria-pressed=\{selectedCode === request\.publicCode\}/);
+  assert.match(page, /<button aria-pressed=\{isSelected\}/);
+});
+
+test("exposes the queue as a semantic list and marks the current request", () => {
+  assert.match(page, /<ul aria-label="Demandes affichées">/);
+  assert.match(page, /<li key=\{request\.publicCode\}><button/);
+  assert.match(page, /aria-pressed=\{isSelected\}/);
+  assert.match(page, /aria-current=\{isSelected \? "true" : undefined\}/);
+  assert.match(page, /<article className="lycee-agent-detail" aria-label="Détail de la demande"/);
 });
 
 test("exposes one keyboard-operable next action without changing a dossier", () => {

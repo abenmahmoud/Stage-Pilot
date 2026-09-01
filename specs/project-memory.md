@@ -4554,3 +4554,14 @@ taches et analyse de coherence avant une automatisation sensible.
   l'application Webmail séparée reste nécessaire avant de fermer T027.
 - Les cinq domaines comptent désormais 539 tâches Spec Kit : 440 terminées et
   99 ouvertes.
+
+### Jalon du 1er septembre 2026 - file agent annoncée correctement
+
+- La file agent est désormais une liste sémantique nommée au lieu d'une suite
+  visuelle de boutons sans structure collective.
+- La demande courante expose son état au lecteur d'écran et le panneau de détail
+  possède un nom stable. Les boutons natifs et leurs droits restent inchangés.
+- La recette utilise uniquement des dossiers fictifs ; la validation humaine
+  avec un lecteur d'écran et des comptes nominatifs reste ouverte dans T048.
+- Les cinq domaines comptent désormais 540 tâches Spec Kit : 441 terminées et
+  99 ouvertes.

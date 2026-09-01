@@ -965,6 +965,12 @@ l'autorisation de quota définie par le propriétaire.
   spécification 005 est terminée ; la recette réseau interapplications reste
   séparément bloquée.
 
+- Lot N5ZZZA : structure accessible de la file agent. **Fermée sur données
+  fictives** : les dossiers forment une liste nommée, la demande courante est
+  annoncée et le panneau de détail possède un nom stable. La sélection reste un
+  bouton natif utilisable au clavier et le comportement métier ne change pas.
+  T048H est terminée ; la recette humaine avec lecteur d'écran reste dans T048.
+
 ## Prochaine séquence verrouillée
 
 1. Conserver `BC-2026-000009` comme preuve fictive de recette jusqu'à la décision
