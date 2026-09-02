@@ -941,8 +941,9 @@
   reste ouverte jusqu'au pilote, à la fermeture des suites de l'audit et à la convergence
   finale avant généralisation.
 - [x] T052B Réexécuter l'analyse après la récupération du suivi, la révocation
-  concurrente, le garde budgétaire IA et la recette worker locale. Les 565 tâches sont recomptées et les
-  103 ouvertures sont rapprochées des décisions, données, accès, services,
+  concurrente, le garde budgétaire IA et les recettes locales d'ingestion et du
+  worker. Les 565 tâches sont recomptées : 463 terminées et 102 ouvertures,
+  rapprochées des décisions, données, accès, services,
   pilotes ou opérations qui les bloquent. Aucun parent n'est fermé sur une
   preuve partielle ; voir `specs/ANALYZE_2026-09-02.md`.
 

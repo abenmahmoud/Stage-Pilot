@@ -296,18 +296,20 @@
   aucun jeton fournisseur, déposer sans écrasement et vérifier par relecture
   l'empreinte de chaque fichier. Prouver avec des échanges fictifs les pannes,
   rejeux et substitutions avant de raccorder le webhook ou le worker.
-- [ ] T022I Relier téléchargement, réservation durable, dépôt vérifié et mise
+- [x] T022I Relier téléchargement, réservation durable, dépôt vérifié et mise
   en file antivirus. Verrouiller l'objet pendant la confirmation, préserver
   les états déjà traités, refuser les reprises incohérentes, borner les appels
   simultanés par instance et prouver la reprise après panne sans activer la route.
   Code et seize tests locaux livrés ; revue Fable arbitrée. La recette directe
-  du nouvel orchestrateur sur PostgreSQL reste bloquée par la configuration
-  locale de preview non utilisable : la tâche n'est pas déclarée terminée.
+  du nouvel orchestrateur passe sur une pile Supabase locale reconstruite avec
+  les 93 migrations : interruption après dépôt, reprise, rejeu et substitution
+  refusée laissent une tâche unique puis zéro résidu DB et Storage.
   Les deux recettes entrantes et le worker utilisent désormais le même contrôle
   exact de destination, sans recherche textuelle de référence. Quatre tests
   locaux refusent une référence cachée dans un mot de passe, chemin ou requête,
   ainsi qu'un pooler étranger, avant création du client. TLS est imposé et les
   clients dédiés sont fermés ; aucune recette distante supplémentaire exécutée.
+  La route, Brevo et le worker restent fermés. Voir la recette locale dédiée.
 - [x] T022J Préparer l'adaptateur ClamAV borné et isolé : empreinte exacte,
   configuration locale figée, entrée standard sans nom utilisateur, délai et
   sorties limités, fichiers Office contrôlés, erreurs fermées. Tester le

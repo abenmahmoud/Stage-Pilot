@@ -463,19 +463,22 @@ limitée à cinq secondes. Un rejeu conserve son état confirmé, ne redépose r
 et ne crée pas de scan supplémentaire. Une purge refuse toute recréation.
 
 Seize tests locaux exécutent les fonctions réelles sur un substitut de
-transaction avec injections de panne ; ils ne constituent pas une preuve
-PostgreSQL. La recette SQL de réservation existante a été répétée par le
-connecteur de preview et laisse cinq résidus nuls. La nouvelle recette directe
-`recipe:preview-communication-inbound-ingestion` refuse cependant les paramètres
-locaux non utilisables avant toute connexion. Son exécution complète reste
-ouverte : elle utilise des savepoints sous rollback global, pas une preuve de
-reprise après redémarrage physique du serveur.
+transaction avec injections de panne. La recette SQL de réservation existante
+a aussi été répétée par le connecteur de preview et laisse cinq résidus nuls.
+La cible distante reste strictement contrôlée et ne peut pas être remplacée par
+une URL locale ou étrangère.
 
 Claude Fable 5 a relu les quatre fichiers du raccordement une fois pour environ
 0,71 USD. Les erreurs, le compare-and-set du harnais et le rattrapage d'un objet
 propre sont corrigés. L'encodage du jeton et les bornes de la référence étaient
 déjà présents. Le compte rendu distingue constats confirmés et limites restantes.
-Ni la route entrante ni le worker ne sont activés. T022I reste donc ouverte.
+La recette locale réelle complète désormais cette preuve avec les 93 migrations,
+PostgreSQL, PGMQ et Storage privé. Une interruption après dépôt conserve la
+réservation, annule confirmation et file, puis le rejeu vérifie l'objet existant
+et crée exactement une tâche. Un rejeu supplémentaire est idempotent et une
+substitution de même taille est refusée. Le nettoyage retrouve zéro résidu DB
+et Storage. Ni la route entrante ni le worker ne sont activés ; T022I est
+terminée, tandis que T022 et T022K restent ouvertes.
 
 T022J prépare un adaptateur ClamAV importable, sans effets au chargement et
 sans accès à la base, au stockage ou aux variables de services. Le contenu est
@@ -506,7 +509,7 @@ explicite validée, la vue est lue une fois et la taille réelle de sa copie est
 vérifiée. Ce durcissement interne n'est pas une exploitation HTTP démontrée.
 Le compte rendu `docs/audits/CLAUDE_INBOUND_SCANNER_ADJUDICATION_2026-09-01.md`
 distingue corrections, observations et prérequis. T022J est terminée pour cet
-adaptateur testé ; T022 et T022I restent ouvertes. Rien n'est promu ni publié.
+adaptateur testé ; T022 reste ouverte. Rien n'est promu ni publié.
 
 ## Worker entrant préparé, T022K encore ouverte
 
@@ -561,9 +564,9 @@ bibliothèque PostgreSQL sans appel réseau et l'arrêt des deux exécutables su
 une URL trompeuse avant création de leur client. Les erreurs de fixture initiales
 ont été corrigées : remplacement ancré du chemin final et contrôle multi-ligne
 du `finally`. Aucune fausse conclusion de vulnérabilité supplémentaire n'en est
-tirée. La configuration locale de preview reste non acceptée et ClamAV n'est
-pas disponible parmi les exécutables vérifiés ; les recettes intégrées restent
-ouvertes.
+tirée. La recette de preview continue de refuser une configuration locale ; une
+recette locale distincte et fermée par défaut porte désormais cette preuve sans
+affaiblir le contrôle de cible. L'exploitation distante reste ouverte.
 
 La revue du worker ne confirme pas la perte conditionnelle de tâche proposée :
 le producteur, lu ensuite par Codex, confirme la quarantaine et enfile dans une
@@ -597,6 +600,21 @@ le programme réel à PostgreSQL, PGMQ, Storage privé et au ClamAV épinglé. U
 texte sain devient `clean`, EICAR devient `blocked`, puis une indisponibilité
 scanner persiste `scan_error` et le même travail réussit au second bail. Les
 états, événements et acquittements sont ceux des migrations du dépôt.
+
+## Recette locale réelle de l'orchestrateur du 2 septembre 2026
+
+T022I est également exécutée contre cette pile locale avec le véritable code
+de téléchargement, réservation, dépôt, confirmation et mise en file. Le
+fournisseur est simulé, mais PostgreSQL, PGMQ et Storage sont réels. Une panne
+injectée après dépôt annule la confirmation sans perdre la réservation ; le
+rejeu vérifie l'objet déjà stocké et termine avec une seule tâche antivirus.
+Le rejeu confirmé ne redépose rien et une substitution est refusée.
+
+La recette exige la boucle locale et `--local-stack-only`, ne contient aucune
+référence de projet distant et nettoie par API Storage puis SQL ciblé. Elle
+retrouve zéro résidu dans les six familles DB/PGMQ et dans Storage. Cette preuve
+termine T022I, pas T022, le webhook, Brevo ou le runtime supervisé de T022K.
+Voir `docs/operations/REAL_INBOUND_INGESTION_LOCAL_RECIPE_2026-09-02.md`.
 
 Le harnais exige une base et une API sur boucle locale, ne contient aucune
 référence de projet distant et n'affiche pas la clé serveur locale. Le nettoyage

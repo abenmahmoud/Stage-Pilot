@@ -5,6 +5,20 @@
 **Depot** : `abenmahmoud/Stage-Pilot`
 **Dernier jalon de code verifie** : branche de preview Vercel
 
+## Jalon du 2 septembre 2026 - orchestrateur entrant sur pile locale
+
+- Le véritable orchestrateur relie un téléchargement Brevo simulé à PostgreSQL,
+  PGMQ et Storage privé locaux après rejeu des 93 migrations.
+- Une interruption injectée après dépôt conserve la réservation, annule la
+  confirmation et la tâche, puis le rejeu reprend le même objet. Un second rejeu
+  est idempotent et une substitution de même taille est refusée.
+- Une seule tâche antivirus est produite. Le nettoyage retrouve zéro fixture,
+  tâche, archive et objet Storage. La route, Brevo et le worker distant restent
+  fermés ; aucun service distant ou donnée réelle n'est joint.
+- T022I est terminée. T022 et T022K restent ouvertes pour le webhook complet et
+  le runtime supervisé. Spec Kit compte 565 tâches : 463 terminées et 102 ouvertes.
+  Rapport : `docs/operations/REAL_INBOUND_INGESTION_LOCAL_RECIPE_2026-09-02.md`.
+
 ## Jalon du 2 septembre 2026 - worker entrant complet sur pile locale
 
 - Une pile Supabase locale rejoue les 93 migrations puis exécute le véritable
