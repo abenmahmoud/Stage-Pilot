@@ -20,6 +20,7 @@ const confirmPath = new URL(
   import.meta.url
 );
 const workerPath = new URL("../workers/communication-document-worker.mjs", import.meta.url);
+const workerCorePath = new URL("../workers/communication-document-worker-core.mjs", import.meta.url);
 const schemaPath = new URL("../db/schema.ts", import.meta.url);
 
 test("accepts only exact PDF and DOCX metadata", () => {
@@ -118,17 +119,21 @@ test("confirms exact object metadata and queues only scoped quarantine work", as
 
 test("runs antivirus and local extraction before mandatory human review", async () => {
   const worker = await readFile(workerPath, "utf8");
-  assert.match(worker, /clamdscan/);
-  assert.match(worker, /extractCommunicationDocument/);
-  assert.match(worker, /status = 'processing'/);
-  assert.match(worker, /status = 'review'/);
-  assert.match(worker, /privacySignals/);
-  assert.match(worker, /duplicate_checksum/);
-  assert.match(worker, /antivirus_detected_threat/);
-  assert.match(worker, /invalid_job_archived/);
-  assert.match(worker, /unresolved_job_archived/);
-  assert.doesNotMatch(worker, /openai|anthropic|generativelanguage|api\.mistral/i);
-  assert.doesNotMatch(worker, /status = 'used'/);
+  const core = await readFile(workerCorePath, "utf8");
+  assert.match(worker, /createCommunicationInboundScanner/);
+  assert.match(worker, /createCommunicationDocumentWorker/);
+  assert.match(core, /extractCommunicationDocument/);
+  assert.match(core, /status = 'processing'/);
+  assert.match(core, /status = 'review'/);
+  assert.match(core, /privacySignals/);
+  assert.match(core, /duplicate_checksum/);
+  assert.match(core, /antivirus_detected_threat/);
+  assert.match(core, /invalid_job_archived/);
+  assert.match(core, /unresolved_job_archived/);
+  assert.match(core, /machineErrorCode\(error\)/);
+  assert.doesNotMatch(`${worker}\n${core}`, /openai|anthropic|generativelanguage|api\.mistral/i);
+  assert.doesNotMatch(core, /status = 'used'/);
+  assert.doesNotMatch(core, /error\.message\.slice/);
 });
 
 test("keeps the Drizzle schema aligned with the two private tables", async () => {

@@ -17,11 +17,15 @@ const workers = [
 
 test("contrôle les six workers avant toute copie complète en mémoire", () => {
   for (const worker of workers) {
-    const source = worker === "site-content-file-worker.mjs"
-      ? `${readFileSync(new URL(`../workers/${worker}`, import.meta.url), "utf8")}\n${readFileSync(
-        new URL("../workers/site-content-file-worker-core.mjs", import.meta.url), "utf8"
-      )}`
-      : readFileSync(new URL(`../workers/${worker}`, import.meta.url), "utf8");
+    const coreByWorker = {
+      "communication-document-worker.mjs": "communication-document-worker-core.mjs",
+      "site-content-file-worker.mjs": "site-content-file-worker-core.mjs",
+    };
+    const source = `${readFileSync(new URL(`../workers/${worker}`, import.meta.url), "utf8")}\n${
+      coreByWorker[worker]
+        ? readFileSync(new URL(`../workers/${coreByWorker[worker]}`, import.meta.url), "utf8")
+        : ""
+    }`;
     assert.match(source, /boundedBlobToBuffer|readBoundedResponseBytes/);
     assert.doesNotMatch(source, /\.arrayBuffer\(\)/);
   }

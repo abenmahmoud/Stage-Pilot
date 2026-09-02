@@ -39,7 +39,8 @@ Required environment variables:
 - `NEXT_PUBLIC_SUPABASE_URL` or `VITE_SUPABASE_URL`
 - `SUPABASE_SERVICE_ROLE_KEY`
 - `BREVO_API_KEY` for email delivery and inbound email attachments
-- `CLAMDSCAN_PATH` only when `clamdscan` is not on `PATH`
+- `CLAMDSCAN_PATH` absolu pour les workers qui utilisent l'adaptateur de flux,
+  avec `CLAMD_SOCKET_PATH` local ou `CLAMD_PORT` sur `127.0.0.1`
 - `IDENTITY_CONTACT_PEPPER` (at least 32 random characters) for the identity
   directory worker only
 
