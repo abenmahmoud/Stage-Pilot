@@ -34,3 +34,22 @@ test("les vues publiques conservent des textes secondaires lisibles", () => {
 test("les conversations nommées utilisent un rôle journal valide", () => {
   assert.equal((page.match(/className="lycee-conversation" role="log" aria-label=/g) ?? []).length, 2);
 });
+
+test("l'assistant public reste visible avant les outils secondaires", () => {
+  const heroHelp = page.indexOf('className="lycee-hero-help"');
+  const assistant = page.indexOf('className="lycee-assistant"');
+  const coreTools = page.indexOf('className="lycee-core-tools"');
+
+  assert.ok(heroHelp >= 0, "le raccourci d'aide du héros doit rester présent");
+  assert.ok(assistant > heroHelp, "l'assistant doit suivre le héros");
+  assert.ok(coreTools > assistant, "les autres outils doivent suivre l'assistant");
+});
+
+test("l'assistant public conserve une saisie libre et une alternative formulaire", () => {
+  assert.match(page, /<section className="lycee-assistant" aria-labelledby="lycee-assistant-title">/);
+  assert.match(page, /<h2 id="lycee-assistant-title">Posez votre question à l’assistant du lycée<\/h2>/);
+  assert.match(page, /aria-label="Écrivez votre question ou votre problème"/);
+  assert.match(page, /disabled=\{!message\.trim\(\)\}/);
+  assert.match(page, /onClick=\{\(\) => startHelp\("", "form"\)\}/);
+  assert.match(page, /Je préfère remplir un formulaire/);
+});
