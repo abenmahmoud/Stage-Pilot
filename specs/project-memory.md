@@ -5547,3 +5547,27 @@ taches et analyse de coherence avant une automatisation sensible.
   repondaient `500`. Sa protection SSO a ete reactivee ; ne pas partager son URL.
 - Rapport :
   `docs/operations/LYCEEGEST_PUBLIC_PREVIEW_ACCESS_2026-09-02.md`.
+
+### Jalon du 2 septembre 2026 Paris - identite appareil et traitement express
+
+- Le code de suivi d'un dossier et la future identite scolaire sur appareil sont
+  maintenant deux preuves explicitement distinctes. Le premier reste I2 et lie a
+  une demande ; la seconde exigera une adresse deja connue, un rapprochement
+  unique dans une version active du repertoire et un code email consomme.
+- La duree cible est une session de navigateur sur appareil partage ou sept jours
+  d'inactivite sur appareil personnel, avec rotation, revocation et bouton
+  d'oubli. Le cookie ne contiendra ni contact ni reference scolaire.
+- Une matrice commune autorise immediatement les informations et documents
+  generaux. Une session I3 active peut lire l'emploi du temps propre ou celui
+  d'un enfant relie. Codes, documents personnels et modifications officielles
+  restent en validation humaine, avec file express seulement. Sans preuve, le
+  formulaire et la demande suivie restent disponibles.
+- Les fichiers ne sont jamais ouverts avant l'etat antivirus `clean`. Les etats
+  attente, quarantaine et analyse restent fermes ; infection ou rejet bloquent
+  le fichier.
+- Huit scenarios fictifs de la nouvelle matrice, quatorze controles d'acces,
+  onze controles d'emploi du temps, l'integrite Spec Kit et la compilation
+  passent. Spec Kit compte 583 taches : 490 terminees et 93 ouvertes.
+- Ce jalon ne cree encore ni schema de session, ni endpoint OTP, ni envoi email,
+  ni import ou deploiement reel. T010B4B porte l'implementation fermee sur donnees
+  fictives avant toute activation du worker prive ou du repertoire reel.

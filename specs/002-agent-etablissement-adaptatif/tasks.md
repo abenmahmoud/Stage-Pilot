@@ -160,6 +160,12 @@
   bloquer toute donnée scolaire personnelle jusqu'à une vérification humaine.
   Le SMS reste une extension ultérieure avec consentement, budget et règles de
   conservation séparés.
+- [x] T010B3D Définir la session d'identité sur appareil et la matrice commune
+  des services : documents généraux immédiats, emploi du temps propre immédiat
+  seulement avec `I3` actif, données sensibles en revue humaine express, repli
+  vers une demande suivie sans identité, et fichier inaccessible avant résultat
+  antivirus propre. Couvrir les adresses ambiguës, sessions expirées, relations
+  responsables-élèves et recherches de tiers par des tests fictifs.
 - [ ] T010B4 Rapprocher une identité uniquement contre une version active du
   répertoire, avec MFA agent, justification, gestion des conflits et audit.
 - [ ] T010B4A Construire en preview le canal de recherche déterministe chiffré :
@@ -178,6 +184,11 @@
   installer le worker séparé, configurer uniquement la clé publique et le secret
   de reçu sur Vercel preview, puis valider les cas unique, absent, ambigu, panne,
   reprise et expiration avec un répertoire entièrement fictif.
+- [ ] T010B4B Implémenter le rapprochement libre-service par email connu : réponse
+  non énumérable, recherche chiffrée exécutée par le worker privé, exclusion des
+  adresses partagées, code de dix minutes et cinq essais, session d'identité
+  `HttpOnly` révocable, oubli immédiat et repli formulaire. Tester uniquement sur
+  répertoire fictif avant toute autorisation d'import ou d'envoi réel.
 - [x] T010C Définir les liens élève-responsable, personnel-service et classe-groupe,
   puis tester qu'un compte ne consulte jamais les données d'un autre foyer.
 - [x] T011 Implémenter le parseur et le validateur du format de compétence.

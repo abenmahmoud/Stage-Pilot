@@ -157,6 +157,26 @@ leur date, leur responsable et leur état de validité.
   contenant des signaux de coordonnées, identifiants ou codes ne conserve aucun
   texte extrait automatiquement. L'original n'est consultable que par un lien
   privé court et aucune analyse ne publie seule une source ou une compétence.
+- **FR-047** : une personne peut faire vérifier une adresse email déjà connue
+  d'une version active du répertoire. Le code à usage unique prouve le contrôle
+  du canal ; le niveau `I3` n'est accordé que si le rapprochement est unique,
+  actif, cohérent avec le type de personne et non signalé comme adresse partagée.
+- **FR-048** : après cette vérification, une session d'identité révocable peut
+  rester sur l'appareil pendant une durée limitée. L'interface distingue
+  clairement un appareil personnel d'un appareil partagé et permet d'oublier
+  immédiatement l'identité.
+- **FR-049** : une session `I3` active permet un traitement immédiat des seules
+  données personnelles à faible risque du demandeur, notamment son propre emploi
+  du temps. Un responsable ne consulte que les enfants reliés par une relation
+  `guardian_of` active. Toute donnée d'un tiers reste interdite.
+- **FR-050** : sans rapprochement unique, sans email connu, avec une session
+  expirée ou lorsque la personne refuse la vérification, l'agent conserve le
+  formulaire et crée une demande suivie. Aucune donnée scolaire personnelle
+  n'est révélée avant la reprise humaine.
+- **FR-051** : les informations et documents généraux restent immédiatement
+  accessibles sans identité. Les codes d'accès, documents personnels et
+  modifications d'un système officiel exigent toujours une validation humaine,
+  même avec une session `I3` active.
 
 ## Exigences non fonctionnelles
 

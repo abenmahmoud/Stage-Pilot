@@ -287,6 +287,23 @@ locale utilise la vraie page et des réponses fictives, sans Auth ou API externe
 Activation distante, recette PostgreSQL concurrente et audit indépendant restent
 séparés ; le délai de trente minutes commence à la création, pas à la livraison.
 
+La session d'identité sur appareil est un mécanisme séparé du suivi d'un dossier.
+La demande de code reste non énumérable et transmet l'adresse chiffrée au worker
+privé, seul détenteur de la clé de rapprochement. Le worker accepte uniquement
+une fiche valide et une adresse unique dans une version active ; une adresse
+partagée, absente ou ambiguë produit le même résultat public et le formulaire
+reste disponible. Le code dure dix minutes et cinq essais. Sa consommation crée
+une session serveur opaque : session de navigateur sur appareil partagé, ou sept
+jours d'inactivité sur appareil personnel, avec rotation et révocation.
+
+Une politique déterministe commune précède l'agent et chaque outil. Les contenus
+généraux sont immédiats sans identité. Les données propres à faible risque, dont
+l'emploi du temps, exigent `I3`, une session active et un périmètre relu dans la
+même version du répertoire. Les documents personnels, codes et modifications
+officielles restent soumis à une personne habilitée, même en mode express. Les
+fichiers restent inaccessibles avant un verdict antivirus `clean`. Le détail du
+contrat et des replis est versionné dans `identity-device-access.md`.
+
 - Tests unitaires des règles et schémas de sortie.
 - Tests de chaque scénario positif, ambigu, interdit et expiré de chaque compétence.
 - Tests d'autorisation croisée élève/parent/personnel/service/établissement.
