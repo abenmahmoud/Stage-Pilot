@@ -5,6 +5,19 @@
 **Depot** : `abenmahmoud/Stage-Pilot`
 **Dernier jalon de code verifie** : branche de preview Vercel
 
+## Jalon du 2 septembre 2026 - tentative Fable arrêtée sans rapport
+
+- Une contre-revue de sécurité Fable 5 a été lancée en lecture seule, sans
+  terminal, écriture, secret, donnée réelle, sous-agent ni accès Web.
+- Le CLI a interrompu l'exécution sur `--max-budget-usd 5` avant tout rapport
+  exploitable, mais retourne un coût calculé de 9,438435 USD après chargement du
+  contexte initial. Aucun constat externe n'est donc accepté et aucune tâche ne
+  change d'état.
+- Aucune relance automatique n'est autorisée. Toute nouvelle mission Claude
+  exigera un accord distinct et un contexte froid fortement réduit.
+  Rapport :
+  `docs/audits/CLAUDE_FABLE_FINAL_SECURITY_ATTEMPT_2026-09-02.md`.
+
 ## Jalon du 2 septembre 2026 - barrière finale de sécurité rejouée
 
 - `npm run test:preview-security-gate` termine avec le code zéro sur le dépôt
