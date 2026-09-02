@@ -942,8 +942,8 @@
   finale avant généralisation.
 - [x] T052B Réexécuter l'analyse après la récupération du suivi, la révocation
   concurrente, le garde budgétaire IA et les recettes locales d'ingestion, des
-  workers entrant et éditorial. Les 566 tâches sont recomptées : 464 terminées
-  et 102 ouvertures,
+  workers entrant, éditorial et des documents de communication. Les 566 tâches
+  sont recomptées : 466 terminées et 100 ouvertures,
   rapprochées des décisions, données, accès, services,
   pilotes ou opérations qui les bloquent. Aucun parent n'est fermé sur une
   preuve partielle ; voir `specs/ANALYZE_2026-09-02.md`.

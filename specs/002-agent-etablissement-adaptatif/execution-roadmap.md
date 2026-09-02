@@ -1107,7 +1107,8 @@ l'activation contrôlée et la contre-revue. Claude est resté en pause. Voir
 
 Suite T052B : l'analyse transversale est rejouée après les derniers lots
 de sécurité et les recettes locales d'ingestion, des workers entrant et
-éditorial. Elle confirme 566 tâches, 464 terminées et 102 ouvertes, ainsi que
+éditorial, puis du worker des documents de communication. Elle confirme 566
+tâches, 466 terminées et 100 ouvertes, ainsi que
 93 migrations uniques. Le dernier jalon applicatif est propre, sa preview Vercel
 est READY et non promue, et la branche Supabase non principale est saine. Les tâches
 ouvertes restantes sont liées à une validation humaine, des données autorisées,
@@ -1127,6 +1128,13 @@ DOCX EICAR, panne scanner, panne de nettoyage et altération après validation
 passent ; cette dernière archive le média au cinquième échec. Le nettoyage
 retrouve zéro fixture, objet, tâche et conteneur. T009C reste ouverte pour le
 runtime supervisé, les médias historiques et le pilote public autorisés.
+
+Suite 005/T011D : le worker des documents de communication est exécuté avec les
+93 migrations, PostgreSQL, PGMQ, Storage privé et ClamAV locaux. PDF sain,
+DOCX EICAR, panne scanner, panne de nettoyage et altération après relecture
+passent ; cette dernière échoue fermée au cinquième essai. Le nettoyage retrouve
+zéro fixture, objet, tâche, fichier temporaire et conteneur. T011 et T011D sont
+terminées ; l'activation distante reste fermée et soumise à autorisation.
 
 ## Portes de validation humaine
 

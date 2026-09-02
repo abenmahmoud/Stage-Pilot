@@ -5,6 +5,27 @@
 **Depot** : `abenmahmoud/Stage-Pilot`
 **Dernier jalon de code verifie** : branche de preview Vercel
 
+## Jalon du 2 septembre 2026 - documents de communication sur pile locale
+
+- Le véritable worker des documents de communication relie PostgreSQL, PGMQ,
+  Storage privé et ClamAV après rejeu des 93 migrations sur une pile locale.
+- PDF sain, DOCX EICAR, panne scanner, panne de nettoyage et altération après
+  relecture passent. L'altération échoue fermée au cinquième essai, efface le
+  texte extrait et archive la tâche ; les erreurs persistées restent des codes
+  machine bornés.
+- La recette retrouve zéro fixture, tâche, objet Storage, fichier temporaire et
+  conteneur. Aucun service distant, secret ou donnée personnelle réelle n'est
+  joint.
+- Le commit `bd1cfae` est associé au déploiement de preview
+  `dpl_8XZeSuFvQxgRSmsGsierSPexkxSG`, vérifié `READY` avec `target=null` et le
+  même SHA exact.
+- `005/T011` et `005/T011D` sont terminées localement. L'installation d'un
+  runtime distant supervisé et l'activation des deux drapeaux restent fermées et
+  exigent une autorisation séparée. Spec Kit compte 566 tâches : 466 terminées
+  et 100 ouvertes. Claude n'a pas été appelé pour ce lot.
+  Rapport :
+  `docs/operations/REAL_COMMUNICATION_DOCUMENT_ANTIVIRUS_LOCAL_RECIPE_2026-09-02.md`.
+
 ## Jalon du 2 septembre 2026 - antivirus éditorial sur pile locale
 
 - Le véritable worker des médias éditoriaux relie PostgreSQL, PGMQ, Storage

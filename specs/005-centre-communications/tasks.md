@@ -58,7 +58,10 @@
   n'existe ; les visibilités interne, publique et ciblée restent distinctes, et
   les communications archivées ou annulées n'exposent aucune fausse étape
   courante. Les six états sont testés sans contact ni envoi réel.
-- [ ] T011 Extraire localement le texte des PDF et DOCX autorisés.
+- [x] T011 Extraire localement le texte des PDF et DOCX autorisés. La chaîne
+  complète est prouvée sur une pile locale avec PostgreSQL, PGMQ, Storage privé
+  et ClamAV réel : fichiers fictifs sains et menaçants, reprise après panne,
+  contrôle d'intégrité et nettoyage sans résidu.
 - [x] T011A Ajouter l'extracteur local borné PDF/DOCX. Il réutilise le moteur
   PDF.js/Mammoth et les précontrôles d'archives existants, ne contacte aucune IA
   et bascule en relecture manuelle pour coordonnées, secrets ou instructions.
@@ -71,18 +74,21 @@
   localement, bloque menaces et doublons, conserve zéro texte en présence de
   coordonnées ou secrets et termine toujours en revue humaine. Il n'est pas
   déployé et n'est relié à aucun environnement réel.
-- [ ] T011D Relier le dépôt à l'interface fermée puis exécuter une recette de
-  bout en bout avec fichiers fictifs sur un moteur ClamAV autorisé. T011 ne sera
-  fermé qu'après cette preuve ; aucune activation distante n'est implicite.
+- [x] T011D Relier le dépôt à l'interface fermée puis exécuter une recette de
+  bout en bout avec fichiers fictifs sur un moteur ClamAV autorisé. La recette
+  locale rejoue les 93 migrations et prouve PDF sain, DOCX EICAR, reprise du
+  scanner, reprise du nettoyage et échec fermé après altération, avec zéro
+  résidu. Aucune activation distante n'est implicite.
 - [x] T011D1 Relier le dépôt signé PDF/DOCX à l'interface responsive avec suivi
   des états, derrière `COMMUNICATION_DOCUMENT_UPLOAD_ENABLED` et
   `VITE_COMMUNICATION_DOCUMENTS_ENABLED`, tous deux fermés par défaut. La preuve
-  ClamAV fictive et l'activation contrôlée restent dans T011D.
+  ClamAV locale est acquise dans T011D ; l'activation distante contrôlée reste
+  fermée et exige une autorisation séparée.
 - [x] T011D2 Valider côté navigateur les réponses inconnues de liste,
   réservation signée et confirmation avant tout accès au stockage ou message de
   succès. Le bucket, le chemin privé, le jeton borné, le fichier attendu, les
-  statuts, dates et limites sont contrôlés ; T011D reste ouvert pour la recette
-  ClamAV fictive et l'activation contrôlée.
+  statuts, dates et limites sont contrôlés. La recette locale de T011D est
+  acquise ; l'activation distante contrôlée reste fermée.
 - [x] T012 Étendre l'aide IA avec sortie structurée et informations à confirmer.
   L'aide propose uniquement structure, correction ou simplification, avec faits
   bornés et questions ouvertes. Elle fonctionne sans persistance fournisseur,
@@ -471,7 +477,8 @@
 - [x] T030 Vérifier PDF, image, DOCX, fichier invalide et données personnelles.
   Les PDF/DOCX fictifs sûrs sont extraits localement ; image, faux PDF et type
   incohérent sont refusés. Une adresse ou un code scolaire supprime le texte
-  extrait et impose la revue humaine. La preuve antivirus reste dans T011D.
+  extrait et impose la revue humaine. La preuve antivirus locale de T011D est
+  acquise ; aucun runtime distant n'est activé.
 - [ ] T031 Vérifier 320 px, ordinateur, clavier et lecteur d'écran.
 - [x] T031A Renforcer le contrat accessible de l'interface avant la recette
   humaine : étapes, chargement, résultats, sélection, groupes de modes et
