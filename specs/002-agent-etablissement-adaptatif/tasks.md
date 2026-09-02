@@ -26,7 +26,11 @@
 ## Phase 1 - Socle de compétences
 
 - [x] T008 Créer les migrations `institutions`, adhésions, compétences, versions et sources.
-- [ ] T009 Ajouter actions, validations, intégrations et évaluations avec politiques d'accès.
+- [x] T009 Ajouter actions, validations, intégrations et évaluations avec
+  politiques d'accès. La preview possède les neuf tables attendues avec RLS
+  forcée, zéro privilège client et accès serveur contrôlé. Cinquante tests
+  ciblés valident le registre, les évaluations, les actions, la boîte de
+  validation, le MFA et les contrats navigateur.
 - [x] T009A Brancher en preview les brouillons, évaluations, validations,
   publications, retraits, révocations, journal et création d'une nouvelle
   version sur des tables privées réservées au serveur.
@@ -937,8 +941,8 @@
 - [x] T052B Réexécuter l'analyse après la récupération du suivi, la révocation
   concurrente, le garde budgétaire IA et les recettes locales d'ingestion, des
   workers entrant, éditorial et des documents de communication, puis la recette
-  MFA de validation du routage en preview. Les 566 tâches sont recomptées : 468
-  terminées et 98 ouvertures,
+  MFA de validation du routage en preview, puis la vérification du registre et
+  des actions. Les 566 tâches sont recomptées : 469 terminées et 97 ouvertures,
   rapprochées des décisions, données, accès, services,
   pilotes ou opérations qui les bloquent. Aucun parent n'est fermé sur une
   preuve partielle ; voir `specs/ANALYZE_2026-09-02.md`.

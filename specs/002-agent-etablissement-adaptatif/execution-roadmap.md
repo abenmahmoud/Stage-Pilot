@@ -1108,8 +1108,8 @@ l'activation contrôlée et la contre-revue. Claude est resté en pause. Voir
 Suite T052B : l'analyse transversale est rejouée après les derniers lots
 de sécurité et les recettes locales d'ingestion, des workers entrant et
 éditorial, du worker des documents de communication, puis de la validation
-humaine du routage sous MFA en preview. Elle confirme 566 tâches, 468 terminées
-et 98 ouvertes, ainsi que
+humaine du routage sous MFA en preview. Elle confirme 566 tâches, 469 terminées
+et 97 ouvertes, ainsi que
 93 migrations uniques. Le dernier jalon applicatif est propre, sa preview Vercel
 est READY et non promue, et la branche Supabase non principale est saine. Les tâches
 ouvertes restantes sont liées à une validation humaine, des données autorisées,
@@ -1142,6 +1142,12 @@ strictement fictif sous MFA, confirme un classement, corrige un second vers le
 secrétariat et vérifie les agrégats. Le nettoyage automatique puis un contrôle
 SQL indépendant retrouvent zéro compte, adhésion, dossier et revue de recette.
 T030D et T030D3 sont terminées sans secret journalisé ni donnée réelle.
+
+Suite T009 : le registre de compétences et le moteur d'actions sont revérifiés
+sur la preview. Les neuf tables attendues existent, RLS est forcée partout,
+`anon` et `authenticated` n'ont aucun privilège DML et `service_role` conserve
+la lecture contrôlée. Cinquante tests ciblés couvrent registre, évaluations,
+actions, validations, MFA et contrats navigateur. T009 est terminée.
 
 ## Portes de validation humaine
 

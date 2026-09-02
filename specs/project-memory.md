@@ -5,6 +5,20 @@
 **Depot** : `abenmahmoud/Stage-Pilot`
 **Dernier jalon de code verifie** : branche de preview Vercel
 
+## Jalon du 2 septembre 2026 - registre agent revérifié en preview
+
+- Un contrôle direct du catalogue Supabase confirme les neuf tables du registre,
+  des évaluations, des actions, des validations et de leurs audits.
+- Les neuf tables ont RLS activée et forcée. `anon` et `authenticated` ne
+  disposent d'aucun privilège DML ; `service_role` conserve la lecture attendue.
+- Cinquante tests ciblés passent : registre, publication, sources et outils,
+  évaluations, actions A3, validation indépendante, MFA, périmètres et contrats
+  navigateur.
+- `002/T009` est terminée. Spec Kit compte 566 tâches : 469 terminées et 97
+  ouvertes. Aucun compte, donnée métier, secret, production ou appel Claude
+  n'est utilisé.
+  Rapport : `docs/security/AGENT_REGISTRY_ACCESS_PREVIEW_2026-09-02.md`.
+
 ## Jalon du 2 septembre 2026 - validation humaine du routage en preview
 
 - La recette applicative authentifiée crée un compte strictement fictif sous
