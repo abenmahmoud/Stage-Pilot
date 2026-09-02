@@ -24,7 +24,9 @@ test("partitions current, expired and manually withdrawn publications", () => {
 });
 
 test("binds pagination to the current or expired scope", () => {
-  assert.match(route, /parsePublicContentScope\(req\.query\.archive\)/);
+  assert.match(route, /parsePublicContentScope\(requestQueryValue\(searchParams, "archive"\)\)/);
+  assert.match(route, /requestSearchParams\(req\.url\)/);
+  assert.doesNotMatch(route, /req\.query/);
   assert.match(route, /cursor\.scope !== scope/);
   assert.match(route, /scope === "expired"/);
   assert.match(route, /ne\(siteContentItems\.status, "archive"\)/);

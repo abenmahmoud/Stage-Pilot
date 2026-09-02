@@ -8,6 +8,10 @@ import {
   parsePublicContentScope,
 } from "../api/_shared/public-content-pagination.ts";
 import {
+  requestQueryValue,
+  requestSearchParams,
+} from "../api/_shared/request-url.ts";
+import {
   filterPublicContentFeed,
   publicContentDateLabel,
   publicContentFeedCategories,
@@ -68,6 +72,13 @@ test("round-trips a bounded opaque cursor and rejects malformed pagination", () 
   assert.throws(() => parsePublicContentPageSize("1.5"), /limit_invalid/);
 });
 
+test("reads public query parameters without the deprecated Vercel query getter", () => {
+  const params = requestSearchParams("/api/content/public?limit=25&archive=expired&archive=current");
+  assert.equal(requestQueryValue(params, "limit"), "25");
+  assert.deepEqual(requestQueryValue(params, "archive"), ["expired", "current"]);
+  assert.equal(requestQueryValue(params, "missing"), undefined);
+});
+
 test("keeps the public API limited to published snapshots in the requested time scope", async () => {
   const route = await readFile(new URL("../api/content/public.ts", import.meta.url), "utf8");
   assert.match(route, /isNotNull\(siteContentItems\.publishedVersion\)/);
@@ -76,7 +87,9 @@ test("keeps the public API limited to published snapshots in the requested time 
   assert.match(route, /eq\(siteContentItems\.audience, "tous"\)/);
   assert.match(route, /lte\(siteContentItems\.publishAt, now\)/);
   assert.match(route, /gt\(siteContentItems\.expiresAt, now\)/);
-  assert.match(route, /parsePublicContentScope\(req\.query\.archive\)/);
+  assert.match(route, /parsePublicContentScope\(requestQueryValue\(searchParams, "archive"\)\)/);
+  assert.match(route, /requestSearchParams\(req\.url\)/);
+  assert.doesNotMatch(route, /req\.query/);
   assert.match(route, /and\(isNotNull\(siteContentItems\.expiresAt\), lte\(siteContentItems\.expiresAt, now\)\)/);
   assert.match(route, /cursor\.scope !== scope/);
   assert.match(route, /scope === "expired"/);

@@ -19,6 +19,7 @@ import {
   parsePublicContentPageSize,
   parsePublicContentScope,
 } from "../_shared/public-content-pagination.js";
+import { requestQueryValue, requestSearchParams } from "../_shared/request-url.js";
 import { signedAssetUrl } from "../_shared/site-content.js";
 import { handleApi, methodNotAllowed } from "../_shared/response.js";
 
@@ -26,16 +27,20 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== "GET") return methodNotAllowed(res, ["GET"]);
   return handleApi(res, async () => {
     const now = new Date();
-    const rawSlug = Array.isArray(req.query.slug) ? req.query.slug[0] : req.query.slug;
+    const searchParams = requestSearchParams(req.url);
+    const slugValue = requestQueryValue(searchParams, "slug");
+    const rawSlug = Array.isArray(slugValue) ? slugValue[0] : slugValue;
     const requestedSlug = rawSlug ? normalizeSiteSlug(rawSlug) : null;
     if (rawSlug && requestedSlug !== rawSlug) throw new HttpError(400, "Adresse de contenu invalide");
-    const rawCursor = Array.isArray(req.query.cursor) ? req.query.cursor[0] : req.query.cursor;
-    const rawLimit = Array.isArray(req.query.limit) ? req.query.limit[0] : req.query.limit;
+    const cursorValue = requestQueryValue(searchParams, "cursor");
+    const limitValue = requestQueryValue(searchParams, "limit");
+    const rawCursor = Array.isArray(cursorValue) ? cursorValue[0] : cursorValue;
+    const rawLimit = Array.isArray(limitValue) ? limitValue[0] : limitValue;
     let scope: ReturnType<typeof parsePublicContentScope>;
     let cursor;
     let pageSize;
     try {
-      scope = parsePublicContentScope(req.query.archive);
+      scope = parsePublicContentScope(requestQueryValue(searchParams, "archive"));
       cursor = requestedSlug ? null : parsePublicContentCursor(rawCursor);
       pageSize = requestedSlug ? 1 : parsePublicContentPageSize(rawLimit);
     } catch {
