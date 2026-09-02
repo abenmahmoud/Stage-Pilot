@@ -14,6 +14,10 @@
 - Après acceptation, l'assistant n'appelle ni modèle ni registre, précise que la
   demande n'est pas encore envoyée et ouvre le formulaire de vérification. Seul
   le reçu serveur avec numéro `BC-...` confirme ensuite l'enregistrement.
+- Dès qu'une demande est suffisamment claire, l'interface passe aux coordonnées
+  et masque temporairement la saisie du chat : prénom, nom et au moins email ou
+  téléphone. Fournir les deux reste facultatif mais recommandé ; avec un seul
+  canal incorrect ou inaccessible, la réponse peut arriver plus tard.
 - Le scénario observé sur le nom de la proviseure est rejoué jusqu'au moteur
   serveur, routé vers la Direction et protégé par des tests d'interface. Le refus
   conserve explicitement zéro envoi.

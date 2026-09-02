@@ -1213,6 +1213,13 @@ contrats API, interface et le build passent sans donnée ni écriture réelle.
 T027E est terminée ; une recette navigateur sur une demande fictive reste à
 effectuer après publication sur la preview.
 
+Complément T027E : une demande désormais exploitable ouvre immédiatement la
+collecte minimale des coordonnées et masque la saisie du chat pendant cette
+étape. Le demandeur renseigne prénom, nom et au moins un canal ; email et
+téléphone sont recommandés mais jamais tous les deux imposés. Le texte prévient
+qu'un canal unique incorrect ou inaccessible peut retarder la réponse. Fermer
+le formulaire permet encore de préciser le dialogue sans perdre le brouillon.
+
 ## Portes de validation humaine
 
 - Import de listes, emplois du temps ou pièces réelles.

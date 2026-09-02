@@ -78,7 +78,6 @@ import {
   type AssistantPolicyAction,
   type AssistantScope,
 } from "../../../shared/assistant-policy";
-import { resolveAssistantConversationTransition } from "../../../shared/assistant-conversation-state";
 import { evaluateLaptopIntake } from "../../../shared/laptop-intake";
 import {
   prepareSupportSubmissionConversation,
@@ -1465,12 +1464,10 @@ function HelpDeskView({
         sourceReferences: result.sourceReferences,
       },
     ]);
-    const transition = resolveAssistantConversationTransition(nextMessages);
-    if (
-      transition.stage === "action_confirmed"
-      && (result.action === "offer_case" || result.action === "human_transfer")
-      && result.readyToCreate
-    ) {
+    const shouldCollectContact =
+      (result.action === "offer_case" || result.action === "human_transfer")
+      && result.readyToCreate;
+    if (shouldCollectContact) {
       setClassicForm(false);
       setShowDetails(true);
       window.requestAnimationFrame(() => caseFormRef.current?.scrollIntoView({ block: "start" }));
@@ -1568,7 +1565,7 @@ function HelpDeskView({
       return;
     }
     if (!email && !phone) {
-      setSubmitError("Indiquez un email ou un téléphone pour recevoir la réponse.");
+      setSubmitError("Sans email ni téléphone, le lycée ne pourra pas vous répondre. Indiquez au moins un des deux.");
       return;
     }
     let preferredChannel = String(form.get("preferredChannel") ?? "email");
@@ -1779,7 +1776,7 @@ function HelpDeskView({
             </div>
           ) : null}
 
-          {!conversationStopped ? (
+          {!conversationStopped && !(canCreateRequest && showDetails) ? (
             <form className="lycee-chat-composer" onSubmit={sendChatMessage}>
               <textarea id="lycee-chat-message" name="chatMessage" value={chatInput} onChange={(event) => setChatInput(event.target.value)} rows={2} maxLength={1500} placeholder="Écrivez comme si vous parliez à l’accueil du lycée…" aria-label="Votre message" />
               <input id="lycee-support-files" name="supportFiles" aria-label="Documents à joindre" ref={fileInputRef} className="lycee-file-input" type="file" multiple accept={SUPPORT_FILE_TYPES.join(",")} onChange={selectFiles} />
@@ -1798,9 +1795,9 @@ function HelpDeskView({
 
           {requesterMessages.length > 0 && !showDetails ? (
             <div className={`lycee-chat-next${canCreateRequest ? " is-ready" : " is-form-only"}`}>
-              {canCreateRequest ? <div className="lycee-case-ready"><CheckCircle2 aria-hidden="true" /><span><strong>{insight?.action === "human_transfer" ? "Un adulte doit reprendre la demande" : "Votre demande est prête"}</strong><small>La conversation et les documents seront réunis dans le même dossier.</small></span></div> : null}
+              {canCreateRequest ? <div className="lycee-case-ready"><CheckCircle2 aria-hidden="true" /><span><strong>{insight?.action === "human_transfer" ? "Un adulte doit reprendre la demande" : "Votre demande est prête"}</strong><small>Ajoutez maintenant votre prénom, votre nom et un moyen de réponse pour l’envoyer au lycée.</small></span></div> : null}
               <div className="lycee-chat-next-actions">
-                {canCreateRequest ? <button className="lycee-primary-action" type="button" onClick={() => setShowDetails(true)}>{insight?.action === "human_transfer" ? "Préparer la demande urgente" : "Vérifier et envoyer"} <ChevronRight aria-hidden="true" /></button> : null}
+                {canCreateRequest ? <button className="lycee-primary-action" type="button" onClick={() => setShowDetails(true)}>{insight?.action === "human_transfer" ? "Indiquer mes coordonnées" : "Continuer avec mes coordonnées"} <ChevronRight aria-hidden="true" /></button> : null}
                 <button type="button" onClick={() => { setClassicDescription((current) => current.trim() ? current : conversationDescription); setClassicForm(true); setShowDetails(true); }}>Je préfère remplir le formulaire</button>
               </div>
             </div>
@@ -1816,7 +1813,7 @@ function HelpDeskView({
           ) : null}
           {showDetails ? (
             <form ref={caseFormRef} className="lycee-case-form" onSubmit={submitRequest}>
-              <div className="lycee-case-form-head"><span><ShieldCheck aria-hidden="true" /></span><div><h2>{initialContactCollection ? "Coordonnées à vérifier" : classicForm ? "Formulaire classique" : "Une dernière étape"}</h2><p>{initialContactCollection ? "L’adresse reste inutilisable pour une diffusion tant que le lien email et l’identité n’ont pas été confirmés." : classicForm ? "Tous les champs sont visibles pour ceux qui préfèrent écrire leur demande directement." : "Vos coordonnées permettent au lycée de vous répondre et de retrouver la bonne personne."}</p></div>{!initialContactCollection ? <button type="button" aria-label="Fermer" onClick={() => { setShowDetails(false); setClassicForm(false); }}>Fermer</button> : null}</div>
+              <div className="lycee-case-form-head"><span><ShieldCheck aria-hidden="true" /></span><div><h2>{initialContactCollection ? "Coordonnées à vérifier" : classicForm ? "Formulaire classique" : "Vos coordonnées pour recevoir la réponse"}</h2><p>{initialContactCollection ? "L’adresse reste inutilisable pour une diffusion tant que le lien email et l’identité n’ont pas été confirmés." : classicForm ? "Tous les champs sont visibles pour ceux qui préfèrent écrire leur demande directement." : "Indiquez votre prénom, votre nom et au moins un moyen de contact. L’email est conseillé pour conserver une trace."}</p></div>{!initialContactCollection ? <button type="button" aria-label="Fermer" onClick={() => { setShowDetails(false); setClassicForm(false); }}>Fermer</button> : null}</div>
               <div className="lycee-fields-grid">
                 {initialContactCollection ? <label className="is-wide"><span>Action demandée</span><select name="contactCollectionAction" value={contactCollectionAction} onChange={(event) => setContactCollectionAction(event.target.value as "add_or_update" | "remove")}><option value="add_or_update">Ajouter ou modifier mon email</option><option value="remove">Retirer mon email</option></select></label> : null}
                 <label><span>Vous êtes</span><select id="lycee-requester-profile" name="requesterProfile" value={profile} onChange={(event) => setProfile(event.target.value as RequesterProfile)} required><option value="">Sélectionner</option><option value="eleve">Élève</option><option value="parent">Parent</option><option value="professeur">Professeur</option><option value="personnel">Personnel</option><option value="autre">Autre</option></select></label>
@@ -1827,7 +1824,7 @@ function HelpDeskView({
                 {profile === "eleve" || profile === "parent" ? <label><span>Classe, si connue</span><input name="className" type="text" autoComplete="off" placeholder="Ex. 2GT4" value={formValues.className} onChange={(event) => updateFormValue("className", event.target.value)} /></label> : null}
                 {profile === "professeur" || profile === "personnel" ? <label><span>Matière ou service</span><input name="subjectArea" type="text" autoComplete="organization-title" placeholder="Ex. Mathématiques, intendance" value={formValues.subjectArea} onChange={(event) => updateFormValue("subjectArea", event.target.value)} /></label> : null}
                 {profile === "professeur" ? <label><span>Voie</span><select name="schoolTrack" value={formValues.schoolTrack} onChange={(event) => updateFormValue("schoolTrack", event.target.value)}><option value="">Non précisée</option><option value="general">Générale et technologique</option><option value="professionnel">Professionnelle</option><option value="les_deux">Les deux</option></select></label> : null}
-                <div className="lycee-contact-requirement is-wide"><strong>Comment le lycée peut-il vous répondre ?</strong><span>{initialContactCollection ? "L’adresse email est obligatoire. Le téléphone reste facultatif." : "Indiquez au moins une adresse email ou un numéro de téléphone."}</span></div>
+                <div className="lycee-contact-requirement is-wide"><strong>Comment le lycée peut-il vous répondre ?</strong><span>{initialContactCollection ? "L’adresse email est obligatoire. Le téléphone reste facultatif." : "Email ou téléphone obligatoire. Ajoutez les deux si possible."}</span></div>
                 <label><span>{initialContactCollection ? "Adresse email personnelle" : "Adresse email recommandée"}</span><input name="email" type="email" autoComplete="email" placeholder="nom@exemple.fr" value={formValues.email} onChange={(event) => updateFormValue("email", event.target.value)} required={initialContactCollection} /><small>{initialContactCollection ? "Un lien sécurisé vérifiera cette adresse avant toute validation." : "Pour garder une trace et retrouver la demande sur un autre appareil."}</small></label>
                 <label><span>Téléphone</span><input name="phone" type="tel" autoComplete="tel" placeholder="06 00 00 00 00" value={formValues.phone} onChange={(event) => updateFormValue("phone", event.target.value)} /><small>Pour un rappel si l’email ne suffit pas.</small></label>
                 <label><span>Moyen de contact principal</span><select name="preferredChannel" value={formValues.preferredChannel} onChange={(event) => updateFormValue("preferredChannel", event.target.value as "email" | "phone")}><option value="email">Email, recommandé</option><option value="phone">Téléphone</option></select></label>
@@ -1838,7 +1835,7 @@ function HelpDeskView({
                 {classicForm ? <div className="lycee-classic-files is-wide"><button type="button" onClick={() => fileInputRef.current?.click()} disabled={files.length >= MAX_SUPPORT_FILES}><Paperclip aria-hidden="true" /> Joindre un document</button><small>PDF, image, Word ou Excel, jusqu’à 10 Mo.</small>{files.map((file, index) => <div key={`${file.name}-${file.lastModified}`}><FileText aria-hidden="true" /><span>{file.name}</span><button type="button" onClick={() => setFiles((current) => current.filter((_, fileIndex) => fileIndex !== index))}>Retirer</button></div>)}</div> : null}
                 <label className="lycee-honeypot" aria-hidden="true"><span>Site web</span><input name="website" type="text" tabIndex={-1} autoComplete="off" /></label>
               </div>
-              <div className="lycee-contact-guidance"><Smartphone aria-hidden="true" /><span><strong>Deux moyens pour ne pas perdre la demande</strong><small>Le suivi sur cet appareil est toujours actif. L’email ajoute une copie durable et un accès depuis un autre téléphone ou ordinateur.</small></span></div>
+              <div className="lycee-contact-guidance" role="status"><Smartphone aria-hidden="true" /><span><strong>{formValues.email && formValues.phone ? "Email et téléphone disponibles" : formValues.email || formValues.phone ? "Un seul moyen de réponse" : "Au moins un moyen de réponse est nécessaire"}</strong><small>{formValues.email && formValues.phone ? "Si l’un des deux ne fonctionne pas, le lycée pourra utiliser l’autre selon votre autorisation." : formValues.email || formValues.phone ? "La demande peut être envoyée. Si ce contact est incorrect ou inaccessible, la réponse pourra arriver plus tard." : "Sans email ni téléphone, le lycée ne pourra pas vous répondre. Vous pouvez choisir l’un des deux sans fournir les deux."}</small></span></div>
               <div className="lycee-ai-summary"><WandSparkles aria-hidden="true" /><span><strong>{initialContactCollection ? contactCollectionAction === "remove" ? "Retrait à confirmer" : "Adresse à vérifier" : selectedCategory?.label}</strong><small>{initialContactCollection ? "La demande reste dans la file jusqu’à la décision d’un agent" : "Conversation et pièces jointes conservées dans le même dossier"}</small></span></div>
               <div className="lycee-case-security"><BadgeCheck aria-hidden="true" /><span><strong>Vérification adaptée à la demande</strong><small>{initialContactCollection ? "Le lien reçu confirme seulement l’adresse. Un agent rapproche ensuite la demande de la liste officielle avant ajout, correction ou retrait." : "Le lien reçu par email vérifie votre adresse. Pour un code ENT, PRONOTE ou une messagerie académique, un agent confirme aussi votre identité dans la liste officielle du lycée."}</small></span></div>
               {submitError ? <div className="lycee-form-error" role="alert"><CircleAlert aria-hidden="true" />{submitError}</div> : null}

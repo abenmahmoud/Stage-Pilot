@@ -419,6 +419,10 @@
   nouvel appel IA, un refus ne crée rien, et seul le reçu serveur avec numéro de
   dossier confirme l'enregistrement. Le scénario réel « nom de la proviseure »
   est couvert du moteur au routage Direction et au déclenchement de l'interface.
+  Dès que le besoin devient exploitable, l'interface passe aux coordonnées sans
+  nouvelle boucle : prénom et nom, puis email ou téléphone obligatoire. Les deux
+  restent conseillés et l'interface explique le risque de retard si le seul
+  moyen fourni est incorrect ou inaccessible.
 - [x] T027A Ajouter le routage initial déterministe, sa justification, le niveau
   d'identité requis et le filtre de file par service dans la console agent.
 - [ ] T027B Ajouter une file `À qualifier`, les délais par service, la détection
