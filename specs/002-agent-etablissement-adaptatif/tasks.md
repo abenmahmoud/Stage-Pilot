@@ -150,8 +150,10 @@
   dérivation HMAC depuis le jeton sans stockage du code en clair, expiration du
   jeton existant, cinq essais maximum, réponse non énumérable, session appareil
   rotative et contact email vérifié sans promotion en identité scolaire. Le
-  secret, le drapeau frontend et toute livraison réelle restent non configurés ;
-  le téléphone ou SMS reste dans T010B3.
+  secret et les drapeaux d'interface sont désormais limités à la branche preview
+  `codex/lycee-connect-prototype` ; l'écran est visible et un faux code reçoit le
+  refus `401` attendu. La livraison réelle d'un email contrôlé reste à vérifier ;
+  le téléphone ou SMS reste hors du pilote dans T010B3.
 - [x] T010B3C Fixer le pilote sans dépendance au téléphone : utiliser d'abord un
   code envoyé à une adresse déjà connue du répertoire ; conserver le suivi sur
   l'appareil et la demande générale lorsqu'aucun email n'est disponible, mais
