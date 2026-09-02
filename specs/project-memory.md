@@ -5,6 +5,24 @@
 **Depot** : `abenmahmoud/Stage-Pilot`
 **Dernier jalon de code verifie** : branche de preview Vercel
 
+## Jalon du 2 septembre 2026 - relations d'identité cloisonnées
+
+- Les liens responsable-élève utilisent `guardian_of` avec établissement,
+  source active, état et dates. La classe vient de la fiche personne valide et
+  les groupes uniquement des lignes `member_of` de la même version.
+- Le service d'annuaire d'un personnel reste descriptif et ne donne aucun droit
+  agent. Les files et actions utilisent seulement l'adhésion persistée, son
+  statut, ses services et le MFA, relus côté serveur à chaque requête.
+- Quarante-neuf tests exécutables et dix-sept contrôles du parseur passent. Ils
+  refusent notamment l'autre foyer, établissement, service, relation révoquée,
+  groupe étranger et élargissement par métadonnée de profil.
+- La recette Auth fictive de preview déjà conservée a séparé deux élèves et un
+  responsable puis laissé zéro résidu après `ROLLBACK`.
+- `002/T010C` est terminée. Spec Kit compte 566 tâches : 472 terminées et 94
+  ouvertes. Aucun import, compte ou emploi du temps réel, aucune production et
+  aucun appel fournisseur ne sont utilisés.
+  Rapport : `docs/security/IDENTITY_RELATION_SCOPE_PREVIEW_2026-09-02.md`.
+
 ## Jalon du 2 septembre 2026 - matrice identite-role-action unifiee
 
 - La selection des connaissances avant IA et chaque outil utilisent maintenant

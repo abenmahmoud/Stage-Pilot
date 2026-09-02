@@ -160,7 +160,7 @@
   installer le worker séparé, configurer uniquement la clé publique et le secret
   de reçu sur Vercel preview, puis valider les cas unique, absent, ambigu, panne,
   reprise et expiration avec un répertoire entièrement fictif.
-- [ ] T010C Définir les liens élève-responsable, personnel-service et classe-groupe,
+- [x] T010C Définir les liens élève-responsable, personnel-service et classe-groupe,
   puis tester qu'un compte ne consulte jamais les données d'un autre foyer.
 - [x] T011 Implémenter le parseur et le validateur du format de compétence.
 - [x] T012 Refuser la publication d'une compétence sans propriétaire, sources, révision et tests valides.

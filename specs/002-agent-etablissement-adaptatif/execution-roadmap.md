@@ -1161,6 +1161,17 @@ son parent T015 sont terminées. Le commit technique `b012366` est `READY` sur
 la preview Vercel `dpl_CjamgEvHEZAP25fjJbGy3LrTyZ9o`, sans cible de production. Voir
 `docs/security/IDENTITY_ROLE_ACTION_GATE_PREVIEW_2026-09-02.md`.
 
+Suite T010C : les trois rattachements d'identité sont maintenant explicitement
+prouvés. `guardian_of` borne le responsable à l'enfant lié ; `class_ref` et
+`member_of` bornent l'élève à sa classe et ses groupes ; le service déclaré par
+l'annuaire ne donne aucun droit agent, qui dépend uniquement de l'adhésion
+persistée et relue côté serveur. Quarante-neuf tests exécutables et dix-sept
+contrôles du parseur passent, dont autre foyer, autre établissement, autre
+service, relation révoquée et groupe étranger. La recette Auth fictive déjà
+exécutée sur la preview a laissé zéro résidu. T010C est terminée sans import ni
+compte réel. Voir
+`docs/security/IDENTITY_RELATION_SCOPE_PREVIEW_2026-09-02.md`.
+
 ## Portes de validation humaine
 
 - Import de listes, emplois du temps ou pièces réelles.
