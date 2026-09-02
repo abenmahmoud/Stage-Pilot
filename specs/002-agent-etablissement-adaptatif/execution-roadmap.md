@@ -1116,6 +1116,17 @@ ouvertes restantes sont liées à une validation humaine, des données autorisé
 un accès ou service externe, une recette intégrée, un pilote ou la production ;
 aucun parent n'est fermé artificiellement. Voir `specs/ANALYZE_2026-09-02.md`.
 
+Suite T052C : l'analyse est réconciliée avec `005/T032A`. Le client de recette
+réseau vers un faux Webmail séparé est préparé et prouvé localement sur 200
+commandes fictives et 20 rejeux, mais aucun projet temporaire, secret ou appel
+réseau n'est créé sans autorisation précise. Le déploiement Vercel
+`dpl_DJwpGbmRC92NMBgjmLmKrzFP23fY` porte exactement le commit
+`f9847a8a6ef99ade0d5697a451166b1104f48cf8`, est `READY`, en région `cdg1` et
+conserve `target=null`. La tentative de contre-revue Fable plafonnée s'est
+arrêtée sans rapport exploitable et ne vaut donc aucune preuve indépendante.
+Spec Kit compte 569 tâches : 475 terminées et 94 ouvertes ; les ouvertures
+restantes gardent leurs dépendances humaines, externes, réelles ou de pilote.
+
 Suite T022I : l'orchestrateur entrant est exécuté avec les 93 migrations,
 PostgreSQL, PGMQ et Storage local réels. Le téléchargement Brevo reste simulé.
 Une interruption après dépôt, la reprise du même objet, le rejeu idempotent et

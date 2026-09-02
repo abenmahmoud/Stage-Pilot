@@ -950,6 +950,12 @@
   rapprochées des décisions, données, accès, services,
   pilotes ou opérations qui les bloquent. Aucun parent n'est fermé sur une
   preuve partielle ; voir `specs/ANALYZE_2026-09-02.md`.
+- [x] T052C Réconcilier l'analyse avec le client de recette Webmail réseau
+  préparé, le déploiement Vercel exact `f9847a8` et la tentative Fable arrêtée
+  sans rapport. Les 569 tâches sont recomptées : 475 terminées et 94 ouvertes.
+  Chaque ouverture reste liée à une décision ou validation humaine, une donnée
+  autorisée, un service ou runtime externe, une recette humaine, un pilote ou
+  la production ; aucun parent n'est fermé sur une préparation locale.
 
 ## Phase 7 - Portail complet et généralisation contrôlée
 

@@ -5,6 +5,21 @@
 **Depot** : `abenmahmoud/Stage-Pilot`
 **Dernier jalon de code verifie** : branche de preview Vercel
 
+## Jalon du 2 septembre 2026 - analyse finale réconciliée
+
+- `002/T052C` met à jour les preuves Spec Kit sans fermer artificiellement une
+  tâche opérationnelle : 569 tâches, 475 terminées et 94 ouvertes.
+- Le déploiement `dpl_DJwpGbmRC92NMBgjmLmKrzFP23fY` est relu via Vercel : état
+  `READY`, commit exact `f9847a8a6ef99ade0d5697a451166b1104f48cf8`, région
+  `cdg1` et `target=null`. Aucune production n'est promue.
+- La preview demeure protégée par Vercel Authentication. Le connecteur confirme
+  la redirection de protection ; elle n'est pas présentée comme une recette
+  publique ou authentifiée du produit.
+- La contre-revue Fable arrêtée sans rapport n'est pas comptée comme preuve. Les
+  tâches ouvertes dépendent toujours d'une décision ou validation humaine, de
+  données autorisées, d'un service ou runtime externe, d'une recette humaine,
+  d'un pilote ou de la production.
+
 ## Jalon du 2 septembre 2026 - client de recette Webmail réseau préparé
 
 - `005/T032A` prépare, sans l'exécuter, un client réseau limité à un faux
