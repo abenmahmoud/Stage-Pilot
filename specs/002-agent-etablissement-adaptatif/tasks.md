@@ -61,8 +61,11 @@
   chemins limités au dossier privé, références opaques stables par HMAC avec clé
   protégée par le compte Windows, exclusion des mots de passe, codes de première
   connexion et dates de naissance, sortie inactive et rapport uniquement
-  agrégé. Une archive fictive vérifie treize invariants ; la copie locale
-  normalisée passe le parseur officiel sans rejet et ne quitte pas le poste.
+  agrégé. Le convertisseur couvre aussi enseignants actifs, personnels actifs,
+  téléphones valides et relations professeur-classe. Une archive fictive vérifie
+  dix-huit invariants ; les emails académiques dupliqués sont retirés des deux
+  fiches au lieu d'être attribués arbitrairement. La copie locale normalisée passe
+  le parseur officiel sans rejet et ne quitte pas le poste.
 - [x] T010B2A2 Fermer les contrats d'administration du répertoire privé : corps
   de réservation et de décision à champs exacts, listes, reçus de dépôt,
   rapports et confirmations minimaux validés côté API puis navigateur avant

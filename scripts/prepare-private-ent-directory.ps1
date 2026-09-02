@@ -70,9 +70,33 @@ function Read-JsonEntry($Archive, [string]$FileName) {
   }
 }
 
+function Read-OptionalJsonEntry($Archive, [string]$FileName) {
+  $entry = $Archive.Entries |
+    Where-Object { [IO.Path]::GetFileName($_.FullName) -eq $FileName } |
+    Select-Object -First 1
+  if ($null -eq $entry) { return ,@() }
+  if ($entry.Length -lt 2 -or $entry.Length -gt $maxEntryBytes) {
+    throw "Le paquet privé contient un fichier optionnel invalide."
+  }
+  $reader = [IO.StreamReader]::new($entry.Open(), [Text.Encoding]::UTF8, $true)
+  try {
+    $parsed = $reader.ReadToEnd() | ConvertFrom-Json
+    return ,@($parsed)
+  } finally {
+    $reader.Dispose()
+  }
+}
+
 function Text($Value) {
   if ($null -eq $Value) { return "" }
   return ([string]$Value).Trim()
+}
+
+function Field($Object, [string]$Name) {
+  if ($null -eq $Object) { return $null }
+  $property = $Object.PSObject.Properties[$Name]
+  if ($null -eq $property) { return $null }
+  return $property.Value
 }
 
 function Normalized-Key($Value) {
@@ -85,6 +109,21 @@ function Valid-Email($Value) {
     return ""
   }
   return $email.ToLowerInvariant()
+}
+
+function Valid-Phone($Value) {
+  $phone = (Text $Value) -replace '[\s().-]', ''
+  if (-not $phone) { return "" }
+  if ($phone.StartsWith("00")) { $phone = "+" + $phone.Substring(2) }
+  if ($phone -match '^0\d{9}$') { $phone = "+33" + $phone.Substring(1) }
+  if (-not $phone.StartsWith("+")) { $phone = "+" + $phone }
+  if ($phone -notmatch '^\+[1-9]\d{7,14}$') { return "" }
+  return $phone
+}
+
+function Is-Active($Value) {
+  if ($Value -is [bool]) { return [bool]$Value }
+  return (Text $Value) -match '^(?i:true|1|oui|yes)$'
 }
 
 function Read-Or-Create-Key([string]$KeyPath) {
@@ -130,8 +169,11 @@ function Directory-Row {
     [string]$PersonType = "",
     [string]$FirstName = "",
     [string]$LastName = "",
+    [string]$AcademicEmail = "",
     [string]$PersonalEmail = "",
+    [string]$Phone = "",
     [string]$ClassRef = "",
+    [string]$ServiceCode = "",
     [string]$SubjectPersonRef = "",
     [string]$RelationshipType = "",
     [string]$ObjectRef = ""
@@ -142,11 +184,11 @@ function Directory-Row {
     person_type = $PersonType
     first_name = $FirstName
     last_name = $LastName
-    academic_email = ""
+    academic_email = $AcademicEmail
     personal_email = $PersonalEmail
-    phone = ""
+    phone = $Phone
     class_ref = $ClassRef
-    service_code = ""
+    service_code = $ServiceCode
     active_from = $(if ($RecordType -eq "person") { $ActiveFrom } else { "" })
     active_until = $(if ($RecordType -eq "person") { $ActiveUntil } else { "" })
     subject_person_ref = $SubjectPersonRef
@@ -182,11 +224,20 @@ try {
   $students = Read-JsonEntry $archive "statut_eleves.json"
   $guardians = Read-JsonEntry $archive "parents.json"
   $links = Read-JsonEntry $archive "liens_parent_eleve.json"
+  $entStudents = Read-OptionalJsonEntry $archive "eleves.json"
+  $teachers = Read-OptionalJsonEntry $archive "professeurs.json"
+  $staffMembers = Read-OptionalJsonEntry $archive "personnels.json"
+  $lessons = Read-OptionalJsonEntry $archive "enseignements.json"
 } finally {
   $archive.Dispose()
 }
 
-if ($students.Count -gt 10000 -or $guardians.Count -gt 10000 -or $links.Count -gt 25000) {
+if (
+  $students.Count -gt 10000 -or $guardians.Count -gt 10000 -or
+  $links.Count -gt 25000 -or $entStudents.Count -gt 10000 -or
+  $teachers.Count -gt 1000 -or $staffMembers.Count -gt 1000 -or
+  $lessons.Count -gt 10000
+) {
   throw "Le paquet privé dépasse les limites du pilote."
 }
 
@@ -195,8 +246,23 @@ $studentByIdentifier = @{}
 $guardianByIdentifier = @{}
 $seenPersonRefs = [Collections.Generic.HashSet[string]]::new([StringComparer]::Ordinal)
 $studentEmailCount = 0
+$studentPhoneCount = 0
 $guardianEmailCount = 0
+$guardianPhoneCount = 0
 $studentClassCount = 0
+$teacherCount = 0
+$staffMemberCount = 0
+$staffAcademicEmailCount = 0
+$staffPersonalEmailCount = 0
+$staffPhoneCount = 0
+$entStudentByIdentifier = @{}
+
+foreach ($entStudent in $entStudents) {
+  $identifier = Normalized-Key $entStudent.ident
+  if ($identifier -and -not $entStudentByIdentifier.ContainsKey($identifier)) {
+    $entStudentByIdentifier[$identifier] = $entStudent
+  }
+}
 
 foreach ($student in $students) {
   $identifier = Normalized-Key $student.identifiant
@@ -212,10 +278,14 @@ foreach ($student in $students) {
   if ($identifier) { $studentByIdentifier[$identifier] = $personRef }
   $classValue = Normalized-Key $student.classe
   $classRef = if ($classValue) { Opaque-Reference "CLASS" "class|$classValue" $key 16 } else { "" }
+  $entStudent = $entStudentByIdentifier[$identifier]
   $email = Valid-Email $student.email
+  if (-not $email -and $null -ne $entStudent) { $email = Valid-Email $entStudent.email }
+  $phone = if ($null -ne $entStudent) { Valid-Phone $entStudent.tel } else { "" }
   if ($email) { $studentEmailCount += 1 }
+  if ($phone) { $studentPhoneCount += 1 }
   if ($classRef) { $studentClassCount += 1 }
-  $rows.Add((Directory-Row -RecordType "person" -PersonRef $personRef -PersonType "student" -FirstName (Text $student.prenom) -LastName (Text $student.nom) -PersonalEmail $email -ClassRef $classRef))
+  $rows.Add((Directory-Row -RecordType "person" -PersonRef $personRef -PersonType "student" -FirstName (Text $student.prenom) -LastName (Text $student.nom) -PersonalEmail $email -Phone $phone -ClassRef $classRef))
   if ($classRef) {
     $rows.Add((Directory-Row -RecordType "relationship" -SubjectPersonRef $personRef -RelationshipType "member_of" -ObjectRef $classRef))
   }
@@ -230,8 +300,12 @@ foreach ($guardian in $guardians) {
   }
   $guardianByIdentifier[$identifier] = $personRef
   $email = Valid-Email $guardian.email
+  $phone = Valid-Phone (Field $guardian "tel")
   if ($email) { $guardianEmailCount += 1 }
-  $rows.Add((Directory-Row -RecordType "person" -PersonRef $personRef -PersonType "guardian" -FirstName (Text $guardian.pre) -LastName (Text $guardian.nom) -PersonalEmail $email))
+  if ($phone) { $guardianPhoneCount += 1 }
+  $guardianFirstName = Text (Field $guardian "prenom")
+  if (-not $guardianFirstName) { $guardianFirstName = Text (Field $guardian "pre") }
+  $rows.Add((Directory-Row -RecordType "person" -PersonRef $personRef -PersonType "guardian" -FirstName $guardianFirstName -LastName (Text $guardian.nom) -PersonalEmail $email -Phone $phone))
 }
 
 $seenRelationships = [Collections.Generic.HashSet[string]]::new([StringComparer]::Ordinal)
@@ -253,21 +327,103 @@ foreach ($link in $links) {
   $resolvedLinks += 1
 }
 
+$teacherByIdentifier = @{}
+foreach ($teacher in $teachers) {
+  if (-not (Is-Active $teacher.active)) { continue }
+  $identifier = Normalized-Key $teacher.ident
+  if (-not $identifier) { continue }
+  $personRef = Opaque-Reference "STA" "staff|teacher|$identifier" $key
+  if (-not $seenPersonRefs.Add($personRef)) {
+    throw "Le répertoire contient deux enseignants impossibles à distinguer."
+  }
+  $teacherByIdentifier[$identifier] = $personRef
+  $email = Valid-Email $teacher.email
+  $academicEmail = if ($email -match '@ac-creteil\.fr$') { $email } else { "" }
+  $personalEmail = if ($email -and -not $academicEmail) { $email } else { "" }
+  $phone = Valid-Phone $teacher.tel
+  if ($academicEmail) { $staffAcademicEmailCount += 1 }
+  if ($personalEmail) { $staffPersonalEmailCount += 1 }
+  if ($phone) { $staffPhoneCount += 1 }
+  $teacherCount += 1
+  $rows.Add((Directory-Row -RecordType "person" -PersonRef $personRef -PersonType "staff" -FirstName (Text $teacher.prenom) -LastName (Text $teacher.nom) -AcademicEmail $academicEmail -PersonalEmail $personalEmail -Phone $phone -ServiceCode "teaching_staff"))
+}
+
+foreach ($staffMember in $staffMembers) {
+  if (-not (Is-Active $staffMember.active)) { continue }
+  $identifier = Normalized-Key $staffMember.ident
+  if (-not $identifier) { continue }
+  $personRef = Opaque-Reference "STA" "staff|non-teaching|$identifier" $key
+  if (-not $seenPersonRefs.Add($personRef)) {
+    throw "Le répertoire contient deux personnels impossibles à distinguer."
+  }
+  $email = Valid-Email $staffMember.email
+  $academicEmail = if ($email -match '@ac-creteil\.fr$') { $email } else { "" }
+  $personalEmail = if ($email -and -not $academicEmail) { $email } else { "" }
+  $phone = Valid-Phone $staffMember.tel
+  if ($academicEmail) { $staffAcademicEmailCount += 1 }
+  if ($personalEmail) { $staffPersonalEmailCount += 1 }
+  if ($phone) { $staffPhoneCount += 1 }
+  $staffMemberCount += 1
+  $rows.Add((Directory-Row -RecordType "person" -PersonRef $personRef -PersonType "staff" -FirstName (Text $staffMember.prenom) -LastName (Text $staffMember.nom) -AcademicEmail $academicEmail -PersonalEmail $personalEmail -Phone $phone -ServiceCode "school_staff_unclassified"))
+}
+
+$teachingRelationships = [Collections.Generic.HashSet[string]]::new([StringComparer]::Ordinal)
+foreach ($lesson in $lessons) {
+  $teacherIdentifier = Normalized-Key $lesson.prof
+  $teacherRef = $teacherByIdentifier[$teacherIdentifier]
+  $classValue = Normalized-Key $lesson.classe
+  if (-not $teacherRef -or -not $classValue) { continue }
+  $classRef = Opaque-Reference "CLASS" "class|$classValue" $key 16
+  $relationshipKey = "$teacherRef|teaches|$classRef"
+  if ($teachingRelationships.Add($relationshipKey)) {
+    $rows.Add((Directory-Row -RecordType "relationship" -SubjectPersonRef $teacherRef -RelationshipType "teaches" -ObjectRef $classRef))
+  }
+}
+
+$duplicateAcademicEmailGroups = 0
+$duplicateAcademicEmailRowsExcluded = 0
+$academicEmailGroups = @(
+  $rows |
+    Where-Object { $_.record_type -eq "person" -and $_.academic_email } |
+    Group-Object { $_.academic_email.ToLowerInvariant() } |
+    Where-Object { $_.Count -gt 1 }
+)
+foreach ($group in $academicEmailGroups) {
+  $duplicateAcademicEmailGroups += 1
+  foreach ($row in $group.Group) {
+    $row.academic_email = ""
+    $duplicateAcademicEmailRowsExcluded += 1
+  }
+}
+$staffAcademicEmailCount = [Math]::Max(0, $staffAcademicEmailCount - $duplicateAcademicEmailRowsExcluded)
+
 $csv = $rows | Select-Object $headers | ConvertTo-Csv -NoTypeInformation
 [IO.File]::WriteAllLines($outputPath, $csv, [Text.UTF8Encoding]::new($false))
 
-$secretRowsExcluded = @($students | Where-Object { -not [string]::IsNullOrWhiteSpace((Text $_.code_premiere_connexion)) }).Count +
-  @($guardians | Where-Object { -not [string]::IsNullOrWhiteSpace((Text $_.pw)) }).Count
+$secretRowsExcluded = @($students | Where-Object { -not [string]::IsNullOrWhiteSpace((Text (Field $_ "code_premiere_connexion"))) }).Count +
+  @($guardians | Where-Object { -not [string]::IsNullOrWhiteSpace((Text (Field $_ "pw"))) -or -not [string]::IsNullOrWhiteSpace((Text (Field $_ "code"))) }).Count +
+  @($teachers | Where-Object { -not [string]::IsNullOrWhiteSpace((Text (Field $_ "code"))) }).Count +
+  @($staffMembers | Where-Object { -not [string]::IsNullOrWhiteSpace((Text (Field $_ "code"))) }).Count
 $report = [ordered]@{
   generatedAt = [DateTimeOffset]::UtcNow.ToString("o")
   status = "inactive_local_test"
   studentCount = $students.Count
   guardianCount = $guardianByIdentifier.Count
-  personCount = $students.Count + $guardianByIdentifier.Count
+  personCount = $students.Count + $guardianByIdentifier.Count + $teacherCount + $staffMemberCount
   studentEmailCount = $studentEmailCount
+  studentPhoneCount = $studentPhoneCount
   guardianEmailCount = $guardianEmailCount
+  guardianPhoneCount = $guardianPhoneCount
+  teacherCount = $teacherCount
+  staffMemberCount = $staffMemberCount
+  staffAcademicEmailCount = $staffAcademicEmailCount
+  staffPersonalEmailCount = $staffPersonalEmailCount
+  staffPhoneCount = $staffPhoneCount
+  duplicateAcademicEmailGroups = $duplicateAcademicEmailGroups
+  duplicateAcademicEmailRowsExcluded = $duplicateAcademicEmailRowsExcluded
   studentClassCount = $studentClassCount
   guardianStudentRelationCount = $seenRelationships.Count
+  teachingRelationCount = $teachingRelationships.Count
   sourceLinkCount = $links.Count
   resolvedSourceLinkCount = $resolvedLinks
   unresolvedSourceLinkCount = $unresolvedLinks

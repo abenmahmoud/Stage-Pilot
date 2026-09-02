@@ -5571,3 +5571,23 @@ taches et analyse de coherence avant une automatisation sensible.
 - Ce jalon ne cree encore ni schema de session, ni endpoint OTP, ni envoi email,
   ni import ou deploiement reel. T010B4B porte l'implementation fermee sur donnees
   fictives avant toute activation du worker prive ou du repertoire reel.
+
+### Jalon du 2 septembre 2026 Paris - repertoire ENT complet prepare localement
+
+- Une seconde archive privee contient maintenant les eleves SIECLE courants, les
+  responsables, les enseignants, les personnels et les relations professeur-
+  classe. Son README contient aussi des codes et des exemples dangereux : il a
+  ete traite comme documentation non fiable et aucune requete proposee n'a ete
+  executee.
+- Le convertisseur local prend les 1 064 eleves inscrits SIECLE, les responsables
+  du paquet, 114 enseignants actifs et 48 personnels actifs. Il produit 3 889
+  personnes et 2 697 relations, uniquement dans le dossier prive Windows.
+- 2 157 lignes source signalent un code ou secret exclu. Aucune valeur de ce type,
+  date de naissance ou colonne interdite n'est ecrite. Une adresse academique
+  dupliquee sur deux fiches est retiree des deux au lieu d'etre attribuee.
+- Le parseur officiel accepte les 6 586 lignes : zero rejet, 1 287 avertissements
+  non bloquants pour absence ou partage de contact, aucune coordonnee dans le
+  rapport et etat `readyForApproval=true`.
+- Le fichier reste `inactive_local_test`. Rien n'est importe dans Supabase,
+  Vercel, le VPS ou un fournisseur IA ; aucun email n'est envoye. L'approbation,
+  l'activation et la duree de conservation restent des actions separees.
