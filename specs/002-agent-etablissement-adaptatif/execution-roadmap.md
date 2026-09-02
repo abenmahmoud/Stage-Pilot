@@ -1149,6 +1149,18 @@ sur la preview. Les neuf tables attendues existent, RLS est forcée partout,
 la lecture contrôlée. Cinquante-six tests ciblés couvrent registre, évaluations,
 actions, validations, MFA et contrats navigateur. T009 est terminée.
 
+Suite T015B : la matrice centrale identité-rôle-action est branchée dans la
+sélection des connaissances avant IA et dans la politique de chaque outil.
+L'acteur de connaissances abandonne les anciennes tables élèves/professeurs et
+exige une identité scolaire unique issue d'un import actif, non révoquée et
+vérifiée. Les 58 tests centraux, le build et la barrière complète passent. Un
+contrôle direct confirme 10 tables sensibles sur 10 en RLS forcée et aucun
+privilège client. La revue indépendante Fable 5 a consommé 3,804796 USD sur le
+plafond autorisé de 5 USD ; ses deux écarts confirmés sont corrigés. T015B et
+son parent T015 sont terminées. Le commit technique `b012366` est `READY` sur
+la preview Vercel `dpl_CjamgEvHEZAP25fjJbGy3LrTyZ9o`, sans cible de production. Voir
+`docs/security/IDENTITY_ROLE_ACTION_GATE_PREVIEW_2026-09-02.md`.
+
 ## Portes de validation humaine
 
 - Import de listes, emplois du temps ou pièces réelles.

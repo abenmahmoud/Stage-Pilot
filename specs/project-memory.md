@@ -5,6 +5,28 @@
 **Depot** : `abenmahmoud/Stage-Pilot`
 **Dernier jalon de code verifie** : branche de preview Vercel
 
+## Jalon du 2 septembre 2026 - matrice identite-role-action unifiee
+
+- La selection des connaissances avant IA et chaque outil utilisent maintenant
+  la decision commune etablissement, identite, role, service, relation et MFA.
+- Le niveau scolaire `I3` ne vient plus des anciennes tables eleves/professeurs :
+  il exige une identite de l'annuaire unique, active, non revoquee, horodatee et
+  correctement verifiee. Les relations d'emploi du temps et les adhesions
+  restent lues cote serveur et echouent ferme.
+- Les 58 tests centraux, la compilation et la barriere complete passent. Le
+  catalogue Supabase de preview confirme 10 tables sensibles sur 10 en RLS
+  forcee, zero privilege client et acces serveur attendu.
+- Claude Fable 5 a effectue un passage en lecture seule pour 3,804796 USD sur le
+  plafond autorise de 5 USD. Ses deux constats confirmes ont ete corriges ; les
+  observations indirectes ont ete contre-verifiees par le code, les tests et le
+  catalogue de preview.
+- Le commit technique `b012366a707dbe1fd196f79a4c5e22b86b503dc7` est `READY`
+  sur `dpl_CjamgEvHEZAP25fjJbGy3LrTyZ9o`, avec le meme SHA et `target=null`.
+- `002/T015B` et `002/T015` sont terminees. Spec Kit compte 566 taches : 471
+  terminees et 95 ouvertes. Aucun secret, donnee reelle ou production n'est
+  utilise.
+  Rapport : `docs/security/IDENTITY_ROLE_ACTION_GATE_PREVIEW_2026-09-02.md`.
+
 ## Jalon du 2 septembre 2026 - registre agent revérifié en preview
 
 - Un contrôle direct du catalogue Supabase confirme les neuf tables du registre,

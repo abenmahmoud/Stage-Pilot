@@ -232,12 +232,16 @@
 
 ## Phase 2 - Autorité et sécurité
 
-- [ ] T015 Implémenter le moteur déterministe identité-rôle-niveau-action avant le modèle.
+- [x] T015 Implémenter le moteur déterministe identité-rôle-niveau-action avant
+  le modèle. La matrice commune contrôle le contexte autorisé avant l'IA et
+  chaque outil ; identités, relations, adhésions et RLS sont prouvées en preview.
 - [x] T015A Implémenter et tester sur objets fictifs la matrice d'accès identité,
   établissement, relation et service : contact vérifié distinct de l'identité
   scolaire, révocation, MFA et aucun passe-droit administrateur hors périmètre.
-- [ ] T015B Brancher cette matrice avant l'IA et chaque outil sur les futures
-  tables d'identités, relations et adhésions, puis la renforcer par les RLS.
+- [x] T015B Brancher cette matrice avant l'IA et chaque outil sur les futures
+  tables d'identités, relations et adhésions, puis la renforcer par les RLS. Le
+  chemin pré-IA exige désormais une identité scolaire unique, active et non
+  révoquée ; les connaissances et outils réutilisent la même décision centrale.
 - [x] T015B1 Rendre l'établissement obligatoire et immuable sur chaque demande,
   cloisonner création, suivi, files, détail, réponses, notes, traductions, pièces,
   métriques et reprise manuelle, puis transmettre et contrôler ce périmètre dans
