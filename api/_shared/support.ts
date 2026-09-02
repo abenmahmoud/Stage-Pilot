@@ -22,6 +22,7 @@ import {
   FORBIDDEN_SUPPORT_SECRET_MESSAGE,
 } from "../../shared/support-secret-policy.js";
 import type { SupportRateLimitScope } from "../../shared/support-rate-limit-policy.js";
+import { normalizeSupportPersonName } from "../../shared/support-contact-input.js";
 import { requireConfiguredInstitution } from "./institution-context.js";
 
 export const SUPPORT_COOKIE = "bc_support_session";
@@ -108,6 +109,15 @@ function selected(value: unknown, allowed: Set<string>, field: string): string {
   return clean;
 }
 
+function personName(value: unknown, field: string): string {
+  const clean = cleanText(value, field, 100);
+  const normalized = normalizeSupportPersonName(clean);
+  if (!normalized) {
+    throw new HttpError(400, `${field} semble invalide. Utilisez uniquement des lettres, espaces, apostrophes ou tirets`);
+  }
+  return normalized;
+}
+
 function normalizeEmail(value: unknown): string | null {
   const email = optionalText(value, "Email", 254)?.toLowerCase() ?? null;
   if (!email) return null;
@@ -161,8 +171,8 @@ export function parseSupportRequest(body: unknown): SupportRequestInput {
   );
   const category = selected(input.category, categories, "Catégorie");
   const preferredChannel = selected(input.preferredChannel, channels, "Canal préféré");
-  const requesterFirstName = cleanText(input.requesterFirstName, "Prénom", 100);
-  const requesterLastName = cleanText(input.requesterLastName, "Nom", 100);
+  const requesterFirstName = personName(input.requesterFirstName, "Prénom");
+  const requesterLastName = personName(input.requesterLastName, "Nom");
   const email = normalizeEmail(input.email);
   const phone = normalizePhone(input.phone);
   const callbackRequested = input.communicationSupport === true;
@@ -204,11 +214,11 @@ export function parseSupportRequest(body: unknown): SupportRequestInput {
   const beneficiaryFirstName =
     beneficiaryType === "self"
       ? requesterFirstName
-      : optionalText(input.beneficiaryFirstName, "Prénom du bénéficiaire", 100);
+      : personName(input.beneficiaryFirstName, "Prénom du bénéficiaire");
   const beneficiaryLastName =
     beneficiaryType === "self"
       ? requesterLastName
-      : optionalText(input.beneficiaryLastName, "Nom du bénéficiaire", 100);
+      : personName(input.beneficiaryLastName, "Nom du bénéficiaire");
 
   if (beneficiaryType !== "self" && (!beneficiaryFirstName || !beneficiaryLastName)) {
     throw new HttpError(400, "Indiquez la personne concernée par la demande");

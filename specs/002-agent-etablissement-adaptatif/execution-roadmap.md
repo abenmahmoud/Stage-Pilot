@@ -4,6 +4,22 @@
 **Périmètre** : feature `002-agent-etablissement-adaptatif` et dépendance `001`  
 **Principe** : avancer vite en preview, valider avant données réelles et production
 
+## Point vérifié du 2 septembre 2026 - création, suivi et accès agent
+
+- Les identités déclarées ne sont plus de simples textes non vides. La même
+  règle navigateur-serveur accepte les noms français et internationaux usuels,
+  mais refuse chiffres, ponctuation incohérente et saisies comme celles relevées
+  pendant la recette.
+- Le suivi affiche le premier message du demandeur dans un encadré explicite
+  `Votre demande`, avant la conversation complète. La catégorie générale reste
+  un outil de classement et ne remplace plus visuellement le besoin exprimé.
+- Les boutons publics `Espace agent` conduisent à la connexion professionnelle.
+  La page précise qu'un compte nominatif et une vérification renforcée sont
+  nécessaires ; aucun mot de passe ou code commun n'est créé.
+- Les contrôles unitaires, d'interface, de contrat public, la compilation et la
+  barrière complète de sécurité passent. La recette navigateur de la nouvelle
+  preview reste la dernière preuve avant présentation.
+
 ## Point vérifié du 1er septembre 2026
 
 - La preview `6673aa2` est publiée et vérifiée. Le worker des communications

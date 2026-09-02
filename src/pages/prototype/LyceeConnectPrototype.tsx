@@ -90,6 +90,7 @@ import { verifySupportAgentReplyConfirmation } from "../../../shared/support-age
 import { verifySupportInternalNoteConfirmation } from "../../../shared/support-internal-note-confirmation";
 import { verifySupportCallbackConfirmation } from "../../../shared/support-callback-confirmation";
 import { verifySupportAttachmentRemovalConfirmation } from "../../../shared/support-attachment-removal-confirmation";
+import { normalizeSupportPersonName } from "../../../shared/support-contact-input";
 import {
   DEFAULT_SUPPORT_REPLY_TEMPLATES,
   renderSupportReplyTemplate,
@@ -625,6 +626,11 @@ export default function LyceeConnectPrototype() {
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
+  function openAgentLogin() {
+    const returnTo = encodeURIComponent("/prototype?view=agent");
+    window.location.assign(`/login?returnTo=${returnTo}&mode=staff`);
+  }
+
   function startHelp(prompt = "", mode: "chat" | "form" = "chat") {
     setMessage(prompt);
     setHelpMode(mode);
@@ -667,11 +673,11 @@ export default function LyceeConnectPrototype() {
           <button type="button" onClick={() => changeView("trust")}><ShieldCheck aria-hidden="true" /><span><strong>Confidentialité</strong><small>Protection et utilisation des données</small></span><ChevronRight aria-hidden="true" /></button>
         </div>
 
-        <button className="lycee-agent-link" type="button" onClick={() => changeView("agent")}>
+        <button className="lycee-agent-link" type="button" onClick={openAgentLogin}>
           <Headphones aria-hidden="true" />
           <span>
             <strong>Espace agent</strong>
-            <small>Traiter les demandes</small>
+            <small>Connexion professionnelle</small>
           </span>
         </button>
 
@@ -705,7 +711,7 @@ export default function LyceeConnectPrototype() {
           <div className="lycee-top-actions">
             <button className="lycee-top-tool" type="button" onClick={() => changeView("news")} title="Voir les informations du lycée"><Newspaper aria-hidden="true" /><span>À la une</span></button>
             <a className="lycee-top-tool" href={WEBMAIL_URL} target="_blank" rel="noreferrer" title="Ouvrir le Webmail"><Mail aria-hidden="true" /><span>Webmail</span></a>
-            <button className="lycee-profile-button" type="button" aria-label="Ouvrir l’espace agent" onClick={() => changeView("agent")}>
+            <button className="lycee-profile-button" type="button" aria-label="Se connecter à l’espace agent" onClick={openAgentLogin}>
               <CircleUserRound aria-hidden="true" />
               <span>Espace agent</span>
             </button>
@@ -1558,6 +1564,22 @@ function HelpDeskView({
       return;
     }
     const form = new FormData(event.currentTarget);
+    const requesterFirstName = normalizeSupportPersonName(form.get("requesterFirstName"));
+    const requesterLastName = normalizeSupportPersonName(form.get("requesterLastName"));
+    const beneficiaryFirstName = profile === "parent"
+      ? normalizeSupportPersonName(form.get("beneficiaryFirstName"))
+      : null;
+    const beneficiaryLastName = profile === "parent"
+      ? normalizeSupportPersonName(form.get("beneficiaryLastName"))
+      : null;
+    if (!requesterFirstName || !requesterLastName) {
+      setSubmitError("Vérifiez votre prénom et votre nom. Utilisez uniquement des lettres, espaces, apostrophes ou tirets.");
+      return;
+    }
+    if (profile === "parent" && (!beneficiaryFirstName || !beneficiaryLastName)) {
+      setSubmitError("Vérifiez le prénom et le nom de l’élève concerné.");
+      return;
+    }
     const email = String(form.get("email") ?? "").trim();
     const phone = String(form.get("phone") ?? "").trim();
     if (initialContactCollection && !email) {
@@ -1588,11 +1610,11 @@ function HelpDeskView({
           },
           body: JSON.stringify({
             requesterType: profile,
-            requesterFirstName: form.get("requesterFirstName"),
-            requesterLastName: form.get("requesterLastName"),
+            requesterFirstName,
+            requesterLastName,
             beneficiaryType: profile === "parent" ? "eleve" : "self",
-            beneficiaryFirstName: profile === "parent" ? form.get("beneficiaryFirstName") : null,
-            beneficiaryLastName: profile === "parent" ? form.get("beneficiaryLastName") : null,
+            beneficiaryFirstName,
+            beneficiaryLastName,
             className: form.get("className"),
             subjectArea: form.get("subjectArea"),
             schoolTrack: form.get("schoolTrack"),
@@ -1818,9 +1840,9 @@ function HelpDeskView({
                 {initialContactCollection ? <label className="is-wide"><span>Action demandée</span><select name="contactCollectionAction" value={contactCollectionAction} onChange={(event) => setContactCollectionAction(event.target.value as "add_or_update" | "remove")}><option value="add_or_update">Ajouter ou modifier mon email</option><option value="remove">Retirer mon email</option></select></label> : null}
                 <label><span>Vous êtes</span><select id="lycee-requester-profile" name="requesterProfile" value={profile} onChange={(event) => setProfile(event.target.value as RequesterProfile)} required><option value="">Sélectionner</option><option value="eleve">Élève</option><option value="parent">Parent</option><option value="professeur">Professeur</option><option value="personnel">Personnel</option><option value="autre">Autre</option></select></label>
                 {classicForm && !initialContactCollection ? <label><span>Votre demande concerne</span><select id="lycee-support-category" name="supportCategory" value={category} onChange={(event) => setCategory(event.target.value as SupportCategory)}>{supportCategories.map((item) => <option value={item.value} key={item.value}>{item.label}</option>)}</select></label> : null}
-                <label><span>Votre prénom</span><input name="requesterFirstName" type="text" autoComplete="given-name" placeholder="Prénom" value={formValues.requesterFirstName} onChange={(event) => updateFormValue("requesterFirstName", event.target.value)} required /></label>
-                <label><span>Votre nom</span><input name="requesterLastName" type="text" autoComplete="family-name" placeholder="Nom" value={formValues.requesterLastName} onChange={(event) => updateFormValue("requesterLastName", event.target.value)} required /></label>
-                {profile === "parent" ? <><label><span>Prénom de l’élève</span><input name="beneficiaryFirstName" type="text" autoComplete="off" value={formValues.beneficiaryFirstName} onChange={(event) => updateFormValue("beneficiaryFirstName", event.target.value)} required /></label><label><span>Nom de l’élève</span><input name="beneficiaryLastName" type="text" autoComplete="off" value={formValues.beneficiaryLastName} onChange={(event) => updateFormValue("beneficiaryLastName", event.target.value)} required /></label></> : null}
+                <label><span>Votre prénom</span><input name="requesterFirstName" type="text" autoComplete="given-name" placeholder="Prénom" minLength={2} maxLength={100} value={formValues.requesterFirstName} onChange={(event) => updateFormValue("requesterFirstName", event.target.value)} required /></label>
+                <label><span>Votre nom</span><input name="requesterLastName" type="text" autoComplete="family-name" placeholder="Nom" minLength={2} maxLength={100} value={formValues.requesterLastName} onChange={(event) => updateFormValue("requesterLastName", event.target.value)} required /></label>
+                {profile === "parent" ? <><label><span>Prénom de l’élève</span><input name="beneficiaryFirstName" type="text" autoComplete="off" minLength={2} maxLength={100} value={formValues.beneficiaryFirstName} onChange={(event) => updateFormValue("beneficiaryFirstName", event.target.value)} required /></label><label><span>Nom de l’élève</span><input name="beneficiaryLastName" type="text" autoComplete="off" minLength={2} maxLength={100} value={formValues.beneficiaryLastName} onChange={(event) => updateFormValue("beneficiaryLastName", event.target.value)} required /></label></> : null}
                 {profile === "eleve" || profile === "parent" ? <label><span>Classe, si connue</span><input name="className" type="text" autoComplete="off" placeholder="Ex. 2GT4" value={formValues.className} onChange={(event) => updateFormValue("className", event.target.value)} /></label> : null}
                 {profile === "professeur" || profile === "personnel" ? <label><span>Matière ou service</span><input name="subjectArea" type="text" autoComplete="organization-title" placeholder="Ex. Mathématiques, intendance" value={formValues.subjectArea} onChange={(event) => updateFormValue("subjectArea", event.target.value)} /></label> : null}
                 {profile === "professeur" ? <label><span>Voie</span><select name="schoolTrack" value={formValues.schoolTrack} onChange={(event) => updateFormValue("schoolTrack", event.target.value)}><option value="">Non précisée</option><option value="general">Générale et technologique</option><option value="professionnel">Professionnelle</option><option value="les_deux">Les deux</option></select></label> : null}
@@ -1981,6 +2003,7 @@ function ConnectedRequestsView({ ticketCode, onBack, accessLinkError }: { ticket
   const detailLoadIdRef = useRef(0);
   const notificationSnapshotsRef = useRef(new Map<string, ActiveSupportNotificationSnapshot>());
   const detailedCodesRef = useRef(new Set<string>());
+  const initialRequesterMessage = detail?.messages.find((message) => message.direction === "inbound") ?? null;
 
   async function showActiveNotification(notification: ActiveSupportNotification) {
     if (
@@ -2506,6 +2529,12 @@ function ConnectedRequestsView({ ticketCode, onBack, accessLinkError }: { ticket
                 <BadgeCheck aria-hidden="true" />
                 <span><strong>{identityStatusLabels[detail.request.identityStatus]}</strong><small>{detail.request.identityStatus === "identite_confirmee" ? "Le lycée a rapproché la personne d’une source officielle." : detail.request.identityStatus === "contact_verifie" ? detail.request.identityMethod === "phone_callback" ? "Un agent a vérifié le numéro de téléphone par rappel, sans confirmer encore l’identité scolaire." : "L’accès sécurisé confirme le contrôle de l’adresse email, sans confirmer encore l’identité scolaire." : "La demande est enregistrée. Aucune donnée sensible ne sera transmise avant vérification."}</small></span>
               </section>
+              {initialRequesterMessage ? (
+                <section className="lycee-request-summary" aria-label="Votre demande">
+                  <MessageCircleMore aria-hidden="true" />
+                  <span><strong>Votre demande</strong><p>{initialRequesterMessage.bodyText}</p></span>
+                </section>
+              ) : null}
               <div className="lycee-conversation" role="log" aria-label="Conversation">
                 {detail.messages.map((message) => (
                   <div className={message.authorLabel === "Assistant du lycée" ? "is-assistant" : message.direction === "outbound" ? "is-agent" : "is-requester"} key={message.id}>

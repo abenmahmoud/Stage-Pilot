@@ -5,6 +5,24 @@
 **Depot** : `abenmahmoud/Stage-Pilot`
 **Dernier jalon de code verifie** : branche de preview Vercel
 
+## Jalon du 2 septembre 2026 - validation, suivi lisible et connexion agent
+
+- Les noms du demandeur et du bénéficiaire sont normalisés par une règle
+  partagée entre navigateur et serveur. Les lettres Unicode, espaces,
+  apostrophes et tirets usuels sont acceptés ; les chiffres et signes incohérents
+  sont refusés. La saisie exacte observée pendant la recette est couverte.
+- Le détail public met désormais le premier message entrant en évidence sous
+  le titre `Votre demande`, sans ajouter de champ privé au contrat API et sans
+  retirer l'historique complet.
+- Les deux accès publics à l'espace agent ouvrent la page de connexion en mode
+  personnel avec retour vers la file. Le texte rappelle le compte nominatif et
+  la vérification renforcée ; aucun code agent partagé n'est introduit.
+- `002/T027E1` est terminée localement. Les tests ciblés, le build et la barrière
+  complète de sécurité passent ; la nouvelle preview et sa recette navigateur
+  restent à effectuer. Spec Kit
+  compte 578 tâches : 486 terminées et 92 ouvertes. Ces comptes ne mesurent pas
+  la disponibilité globale du produit.
+
 ## Jalon du 2 septembre 2026 - consentement conversationnel vers une demande
 
 - Un automate partagé distingue désormais proposition, acceptation explicite,

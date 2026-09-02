@@ -351,10 +351,13 @@ export default function LoginPage() {
             <form onSubmit={handleStaffSubmit} className="space-y-5">
               <div>
                 <h2 className="text-2xl font-bold font-heading text-gray-900">
-                  Connexion
+                  Connexion à l’espace agent
                 </h2>
                 <p className="text-sm text-gray-500 mt-1">
-                  Espace réservé au personnel administratif du lycée.
+                  Accès réservé aux agents autorisés. Utilisez votre compte professionnel nominatif.
+                </p>
+                <p className="mt-3 rounded-xl border border-blue-100 bg-blue-50 px-4 py-3 text-xs leading-5 text-blue-800">
+                  Chaque agent possède son propre compte. Après la connexion, une vérification renforcée protège les demandes du lycée.
                 </p>
               </div>
 

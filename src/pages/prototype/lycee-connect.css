@@ -590,6 +590,11 @@
 .lycee-identity-status[data-status="contact_verifie"] > svg { color: var(--lc-blue); }
 .lycee-identity-status[data-status="identite_confirmee"] { border-color: #bde3d8; background: #edf9f5; }
 .lycee-identity-status[data-status="identite_confirmee"] > svg { color: var(--lc-green); }
+.lycee-request-summary { display: grid; grid-template-columns: 32px minmax(0,1fr); gap: 10px; margin: 10px 0 4px; padding: 13px; border: 1px solid #b9ccee; border-radius: 7px; background: #f2f6ff; }
+.lycee-request-summary > svg { width: 18px; color: var(--lc-blue); }
+.lycee-request-summary > span { min-width: 0; }
+.lycee-request-summary strong { color: #173e78; font-size: 10px; }
+.lycee-request-summary p { margin: 4px 0 0; color: #243a55; font-size: 12px; line-height: 1.5; overflow-wrap: anywhere; white-space: pre-wrap; }
 .lycee-timeline { padding-top: 4px; }
 .lycee-timeline > div { position: relative; display: grid; grid-template-columns: 32px minmax(0,1fr); gap: 11px; min-height: 80px; }
 .lycee-timeline > div:not(:last-child)::after { content: ""; position: absolute; left: 15px; top: 32px; bottom: 0; width: 2px; background: #dbe3ec; }

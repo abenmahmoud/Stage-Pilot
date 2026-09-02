@@ -423,6 +423,11 @@
   nouvelle boucle : prénom et nom, puis email ou téléphone obligatoire. Les deux
   restent conseillés et l'interface explique le risque de retard si le seul
   moyen fourni est incorrect ou inaccessible.
+- [x] T027E1 Fermer les défauts constatés pendant la recette publique : valider
+  les noms côté navigateur et serveur sans exclure les écritures internationales,
+  afficher le premier message du demandeur dans un encadré `Votre demande` du
+  suivi, et conduire les entrées `Espace agent` vers la connexion nominative
+  avec vérification renforcée. Aucun code partagé n'est ajouté.
 - [x] T027A Ajouter le routage initial déterministe, sa justification, le niveau
   d'identité requis et le filtre de file par service dans la console agent.
 - [ ] T027B Ajouter une file `À qualifier`, les délais par service, la détection

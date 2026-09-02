@@ -212,3 +212,9 @@ test("keeps public detail races and errors separate", () => {
   assert.match(page, /Réessayer le dossier/);
   assert.match(page, /setDetail\(null\);\s+setDetailError\(null\);/);
 });
+
+test("shows the first requester message as the visible request summary", () => {
+  assert.match(page, /detail\?\.messages\.find\(\(message\) => message\.direction === "inbound"\)/);
+  assert.match(page, /className="lycee-request-summary" aria-label="Votre demande"/);
+  assert.match(page, /<strong>Votre demande<\/strong><p>\{initialRequesterMessage\.bodyText\}<\/p>/);
+});
