@@ -387,6 +387,11 @@ voir sa réponse dans le dossier. L'agent traite tout depuis une seule file.
   44 classes, 106 professeurs, 1 159 élèves et 1 159 stages fictifs sont
   conservés. Cette preuve locale ne remplace ni une sauvegarde restaurée, ni la
   recette humaine, ni l'autorisation de production ; T040A reste ouverte.
+- [x] **T040A4** Aligner la branche Supabase de preview de 88 à 93 migrations,
+  vérifier les objets et exécuter un parcours HTTP fictif assistant, création,
+  liste et détail. La demande et sa tâche sont supprimées avec zéro résidu. La
+  production reste à 3 migrations et T040A reste ouverte pour la sauvegarde
+  restaurée, les comptes nominatifs, la recette humaine et l'autorisation.
 
 ### Sortie Jour 3
 

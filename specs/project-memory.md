@@ -5,6 +5,28 @@
 **Depot** : `abenmahmoud/Stage-Pilot`
 **Dernier jalon de code verifie** : branche de preview Vercel
 
+## Jalon du 2 septembre 2026 - preview alignée et demande vérifiée
+
+- La branche Supabase `guichet-lycee-preview` passe de 88 à 93 migrations. Les
+  cinq écarts sont réconciliés ou appliqués après contrôle ; la production reste
+  strictement à 3 migrations.
+- Le déploiement Vercel du commit `fdb8f37` est `READY`, `target=null`, en
+  `cdg1`. Le portail, l'assistant et le contenu public répondent en HTTP `200`.
+- Un dossier entièrement fictif est créé en HTTP `201`, retrouvé dans la liste
+  liée à l'appareil puis relu. L'assistant le classe en ENT avec confiance élevée
+  et propose son transfert au référent numérique.
+- Le dossier, sa session isolée et sa tâche sont ensuite supprimés. Le contrôle
+  retrouve zéro résidu de demande, de file ou d'archive et aucun envoi externe.
+- La preview éditoriale contient zéro publication : la reprise de l'ancien site
+  et les données 2026-2027 restent ouvertes. Un superadministrateur avec adhésion
+  admin active existe, mais aucun facteur MFA n'est vérifié ; son enrôlement, les
+  autres comptes nominatifs, la recette humaine et la restauration isolée de
+  production restent donc ouverts.
+- `001/T040A4` est terminée. Spec Kit compte 572 tâches : 480 terminées et 92
+  ouvertes. `T040A` et `T040` restent ouvertes.
+- Rapport :
+  `docs/operations/LYCEEGEST_PREVIEW_93_MIGRATIONS_SUPPORT_E2E_2026-09-02.md`.
+
 ## Jalon du 2 septembre 2026 - répétition locale de la forme historique
 
 - La base publique possède réellement 3 migrations appliquées ; la branche

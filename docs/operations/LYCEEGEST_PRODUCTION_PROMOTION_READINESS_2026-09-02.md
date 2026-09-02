@@ -13,9 +13,9 @@
   `dpl_BySFUPj18QBegTQK9nfMHn1HXbhb` est `READY`, cible `null`, région `cdg1`.
 - Le commit public contient 22 fichiers de migration. La branche courante en
   contient 93, soit 71 fichiers ajoutés depuis ce commit.
-- L'historique SQL lu sans mutation contient 3 migrations en production et 88
-  sur la branche Supabase de preview. Ces nombres décrivent les bases réelles ;
-  ils ne sont pas déduits de Git.
+- L'historique SQL contient 3 migrations en production. La branche Supabase de
+  preview, initialement à 88, a été alignée sur les 93 migrations Git le 2
+  septembre. La production est restée inchangée.
 - Les volumes observés en production sont ceux de l'année scolaire précédente :
   44 classes, 106 professeurs, 1 159 élèves et 1 159 stages. Ils sont obsolètes
   pour l'annuaire 2026-2027 et ne doivent alimenter ni l'agent ni un envoi.
@@ -41,6 +41,13 @@ donnée de production n'a été copiée. Rapport et recette reproductible :
 
 - `docs/operations/LYCEEGEST_LOCAL_PRODUCTION_SHAPE_REHEARSAL_2026-09-02.md` ;
 - `npm run recipe:local-production-shape-migration`.
+
+La preview alignée à 93 migrations a ensuite validé un parcours HTTP entièrement
+fictif : assistant, création `201`, suivi sur le même appareil et lecture du
+dossier. Le dossier et sa tâche de file ont été supprimés avec contrôle de zéro
+résidu. Cette recette ne remplace toujours pas la restauration de production.
+Rapport :
+`docs/operations/LYCEEGEST_PREVIEW_93_MIGRATIONS_SUPPORT_E2E_2026-09-02.md`.
 
 ## Portes obligatoires
 
@@ -118,6 +125,7 @@ La promotion reste bloquée tant que les preuves suivantes ne sont pas réunies 
 - Ancien et nouveau code testés contre le schéma final avant promotion.
 - Zéro fixture, notification fournisseur ou donnée personnelle utilisée.
 
-Cette préparation ferme `001/T040A2` et la répétition locale ferme `001/T040A3`.
-`T040A` et `T040` restent ouvertes jusqu'aux autorisations, sauvegardes,
-restaurations isolées, recettes humaines et exécutions réelles.
+Cette préparation ferme `001/T040A2`, la répétition locale ferme `001/T040A3`
+et l'alignement de preview ferme `001/T040A4`. `T040A` et `T040` restent
+ouvertes jusqu'aux autorisations, sauvegardes, restaurations isolées, recettes
+humaines et exécutions réelles.
