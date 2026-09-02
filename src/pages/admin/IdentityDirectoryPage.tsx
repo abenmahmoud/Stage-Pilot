@@ -22,7 +22,10 @@ import {
   isIdentityDirectoryListPayload,
   isIdentityDirectoryReservationPayload,
 } from "../../../shared/identity-directory-admin-payload-policy";
-import { generateFictitiousIdentityDirectory } from "../../../shared/fictitious-identity-directory";
+import {
+  FICTITIOUS_IDENTITY_DIRECTORY_PERSON_COUNT,
+  generateFictitiousIdentityDirectory,
+} from "../../../shared/fictitious-identity-directory";
 import IdentityDirectoryReport from "./IdentityDirectoryReport";
 import IdentityDirectoryLookupPanel from "./IdentityDirectoryLookupPanel";
 
@@ -33,7 +36,7 @@ function downloadLargeFictitiousDirectory() {
   const href = URL.createObjectURL(blob);
   const anchor = document.createElement("a");
   anchor.href = href;
-  anchor.download = "repertoire-fictif-2100-personnes.csv";
+  anchor.download = `repertoire-fictif-${FICTITIOUS_IDENTITY_DIRECTORY_PERSON_COUNT}-personnes.csv`;
   document.body.append(anchor);
   anchor.click();
   anchor.remove();
@@ -248,7 +251,7 @@ export default function IdentityDirectoryPage() {
               onClick={downloadLargeFictitiousDirectory}
               className="inline-flex items-center gap-2 text-sm font-semibold text-blue-700 hover:text-blue-900"
             >
-              <FileSpreadsheet className="h-4 w-4" /> Générer 2 100 personnes fictives
+              <FileSpreadsheet className="h-4 w-4" /> Générer 4 000 personnes fictives
             </button>
           </div>
           <p className="mt-3 border-l-4 border-amber-500 bg-amber-50 p-3 text-sm text-amber-950">

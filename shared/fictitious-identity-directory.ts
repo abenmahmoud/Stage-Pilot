@@ -28,6 +28,15 @@ const SERVICES = [
   "administration",
 ];
 
+const STUDENT_COUNT = 1200;
+const GUARDIAN_COUNT = 2600;
+const STAFF_COUNT = 200;
+
+export const FICTITIOUS_IDENTITY_DIRECTORY_PERSON_COUNT =
+  STUDENT_COUNT + GUARDIAN_COUNT + STAFF_COUNT;
+export const FICTITIOUS_IDENTITY_DIRECTORY_RELATIONSHIP_COUNT =
+  GUARDIAN_COUNT + STUDENT_COUNT;
+
 function csvCell(value: string): string {
   return `"${value.replaceAll('"', '""')}"`;
 }
@@ -97,7 +106,7 @@ function relationshipRow(subject: string, type: string, object: string): string[
 export function generateFictitiousIdentityDirectory(): string {
   const rows: string[][] = [];
 
-  for (let index = 1; index <= 1200; index += 1) {
+  for (let index = 1; index <= STUDENT_COUNT; index += 1) {
     const id = number(index, 4);
     rows.push(personRow({
       reference: `STU-DEMO-${id}`,
@@ -109,7 +118,7 @@ export function generateFictitiousIdentityDirectory(): string {
     }));
   }
 
-  for (let index = 1; index <= 700; index += 1) {
+  for (let index = 1; index <= GUARDIAN_COUNT; index += 1) {
     const id = number(index, 4);
     rows.push(personRow({
       reference: `RESP-DEMO-${id}`,
@@ -121,7 +130,7 @@ export function generateFictitiousIdentityDirectory(): string {
     }));
   }
 
-  for (let index = 1; index <= 200; index += 1) {
+  for (let index = 1; index <= STAFF_COUNT; index += 1) {
     const id = number(index, 3);
     rows.push(personRow({
       reference: `STAFF-DEMO-${id}`,
@@ -133,12 +142,17 @@ export function generateFictitiousIdentityDirectory(): string {
     }));
   }
 
-  for (let index = 1; index <= 700; index += 1) {
-    const id = number(index, 4);
-    rows.push(relationshipRow(`RESP-DEMO-${id}`, "guardian_of", `STU-DEMO-${id}`));
+  for (let index = 1; index <= GUARDIAN_COUNT; index += 1) {
+    const guardianId = number(index, 4);
+    const studentId = number(((index - 1) % STUDENT_COUNT) + 1, 4);
+    rows.push(relationshipRow(
+      `RESP-DEMO-${guardianId}`,
+      "guardian_of",
+      `STU-DEMO-${studentId}`
+    ));
   }
 
-  for (let index = 1; index <= 1200; index += 1) {
+  for (let index = 1; index <= STUDENT_COUNT; index += 1) {
     const id = number(index, 4);
     rows.push(relationshipRow(
       `STU-DEMO-${id}`,

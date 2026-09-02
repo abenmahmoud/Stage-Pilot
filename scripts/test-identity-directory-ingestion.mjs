@@ -8,7 +8,11 @@ import {
   parseIdentityDirectoryInput,
 } from "../shared/identity-directory-input.ts";
 import { identityDirectoryStoragePath } from "../api/_shared/identity-directory-path.ts";
-import { generateFictitiousIdentityDirectory } from "../shared/fictitious-identity-directory.ts";
+import {
+  FICTITIOUS_IDENTITY_DIRECTORY_PERSON_COUNT,
+  FICTITIOUS_IDENTITY_DIRECTORY_RELATIONSHIP_COUNT,
+  generateFictitiousIdentityDirectory,
+} from "../shared/fictitious-identity-directory.ts";
 import {
   IDENTITY_DIRECTORY_MAX_ROWS as PARSER_MAX_ROWS,
   parseIdentityDirectoryBytes,
@@ -227,11 +231,11 @@ test("generates a safe school-scale fictitious directory", () => {
   assert.doesNotMatch(csv, /@ac-creteil\.fr|code_ent|password|mot_de_passe/i);
   const parsed = parseIdentityDirectoryBytes({
     bytes: Buffer.from(csv, "utf8"),
-    fileName: "repertoire-fictif-2100-personnes.csv",
+    fileName: "repertoire-fictif-4000-personnes.csv",
     contactPepper: "test-only-pepper-with-at-least-32-characters",
   });
-  assert.equal(parsed.summary.personCount, 2100);
-  assert.equal(parsed.summary.relationshipCount, 1900);
-  assert.equal(parsed.summary.rowCount, 4000);
+  assert.equal(parsed.summary.personCount, FICTITIOUS_IDENTITY_DIRECTORY_PERSON_COUNT);
+  assert.equal(parsed.summary.relationshipCount, FICTITIOUS_IDENTITY_DIRECTORY_RELATIONSHIP_COUNT);
+  assert.equal(parsed.summary.rowCount, 7800);
   assert.equal(parsed.summary.rejectedRowCount, 0);
 });

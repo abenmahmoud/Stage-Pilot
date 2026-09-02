@@ -53,6 +53,10 @@
 - [x] T010B2A1 Ajouter dans l'interface un générateur local de 2 100 personnes
   fictives et 1 900 relations, sans code ni domaine réel, validé intégralement
   par le même parseur que les futurs imports.
+- [x] T010B2A1B Porter la recette locale à 4 000 personnes fictives et 3 800
+  relations pour éprouver le volume envisagé : 1 200 élèves, 2 600 responsables
+  avec plusieurs responsables possibles par élève, et 200 personnels. Aucun
+  nom, contact, établissement ou identifiant réel n'entre dans Git ou dans l'IA.
 - [x] T010B2A2 Fermer les contrats d'administration du répertoire privé : corps
   de réservation et de décision à champs exacts, listes, reçus de dépôt,
   rapports et confirmations minimaux validés côté API puis navigateur avant

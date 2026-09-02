@@ -10,6 +10,28 @@ Les documents de procédure, règlements, informations et contenus pédagogiques
 passent par le registre de connaissances. Les listes de personnes et leurs
 coordonnées passent exclusivement par le répertoire privé.
 
+Le volume cible de 4 000 personnes est traité comme un annuaire relationnel,
+pas comme 4 000 documents pour l'IA. Après vérification, l'agent reçoit seulement
+un contexte minimal et temporaire : type de personne, classe ou service utile,
+et relations autorisées. Il ne reçoit jamais la fiche complète ni la liste.
+
+## Services proposés après vérification
+
+Les propositions sont déterministes et dépendent du niveau d'identité :
+
+| Contexte vérifié | Services proposés en priorité |
+|---|---|
+| Aucun rapprochement | Informations publiques et création d'une demande générale |
+| Contact contrôlé (`I2`) | Suivi de ses propres demandes, sans donnée scolaire personnelle |
+| Élève rapproché (`I3`) | ENT, équipement, vie scolaire, documents et emploi du temps de sa classe |
+| Responsable rapproché (`I3`) | Services de chaque enfant relié par `guardian_of`, après sélection sûre |
+| Personnel rapproché (`I3`) | Messagerie académique, accès, équipement et services liés à son périmètre |
+
+Le navigateur ne décide jamais du rôle ou des relations. Le serveur les relit
+dans la seule version active du répertoire. Une absence, une ambiguïté, une
+relation expirée ou une version retirée bloque la personnalisation et ouvre une
+demande de vérification humaine.
+
 ## Ce que le propriétaire peut préparer
 
 Conserver d'abord les exports officiels originaux sans les modifier. Préparer
