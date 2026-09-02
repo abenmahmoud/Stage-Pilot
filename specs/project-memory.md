@@ -5,6 +5,21 @@
 **Depot** : `abenmahmoud/Stage-Pilot`
 **Dernier jalon de code verifie** : branche de preview Vercel
 
+## Jalon du 2 septembre 2026 - observabilité de preview relue
+
+- `002/T057E` relit le déploiement `c22a99f` en lecture seule : build sans
+  erreur, aucun journal `warning/error/fatal` sur six heures et aucun
+  commentaire Vercel non résolu sur la branche.
+- Les groupes historiques ne sont pas transformés en défauts actuels sans
+  reproduction. Aucun appel applicatif à `url.parse()` n'est trouvé. Les deux
+  relations éditoriales autrefois absentes existent aujourd'hui sur la branche
+  Supabase non principale avec RLS, sans lecture de contenu.
+- Cette observation sans trafic ne ferme ni la recette active, ni les alertes,
+  ni la restauration distante de `T057`. Spec Kit compte 570 tâches : 476
+  terminées et 94 ouvertes.
+- Rapport :
+  `docs/operations/PREVIEW_RUNTIME_OBSERVABILITY_2026-09-02.md`.
+
 ## Jalon du 2 septembre 2026 - analyse finale réconciliée
 
 - `002/T052C` met à jour les preuves Spec Kit sans fermer artificiellement une

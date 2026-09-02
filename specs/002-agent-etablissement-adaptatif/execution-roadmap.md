@@ -1183,6 +1183,16 @@ exécutée sur la preview a laissé zéro résidu. T010C est terminée sans impo
 compte réel. Voir
 `docs/security/IDENTITY_RELATION_SCOPE_PREVIEW_2026-09-02.md`.
 
+Suite T057E : l'observabilité du déploiement Vercel courant est relue en lecture
+seule. Le build ne contient aucune erreur, aucun journal `warning`, `error` ou
+`fatal` n'est rattaché au déploiement exact sur six heures et aucun commentaire
+de branche n'est ouvert. Les groupes historiques restent séparés : aucun appel
+applicatif à `url.parse()` n'est trouvé, et les deux relations éditoriales
+autrefois absentes existent désormais avec RLS sur la branche Supabase de
+preview. Cette passe sans trafic ne remplace ni recette active ni alerte
+externe. Voir
+`docs/operations/PREVIEW_RUNTIME_OBSERVABILITY_2026-09-02.md`.
+
 ## Portes de validation humaine
 
 - Import de listes, emplois du temps ou pièces réelles.

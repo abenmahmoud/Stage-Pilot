@@ -1027,6 +1027,12 @@
   directe, puis vérifie automatiquement ses commandes et garde-fous. T057 reste
   ouverte pour les responsables nommés, alertes externes, sauvegarde programmée
   et restauration distante autorisée.
+- [x] T057E Revoir l'observabilité Vercel de la preview courante sans générer de
+  trafic : build sans erreur, aucun journal `warning/error/fatal` du déploiement
+  exact et aucun commentaire non résolu. Deux groupes historiques sont
+  arbitrés ; les tables éditoriales manquantes alors existent maintenant sur la
+  branche Supabase non principale avec RLS, sans lecture de contenu. T057 reste
+  ouverte pour la recette active, les alertes et l'exploitation autorisée.
 - [ ] T058 Faire valider le cadre ESSUF GROUP-lycée : rôles RGPD, support,
   propriété, mentions, réversibilité et fin de partenariat.
 - [ ] T059 Exécuter un pilote avec données minimales, responsables nommés et plan
