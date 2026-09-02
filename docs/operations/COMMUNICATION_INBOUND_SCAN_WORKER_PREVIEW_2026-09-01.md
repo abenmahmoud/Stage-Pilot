@@ -2,8 +2,9 @@
 
 ## Statut
 
-Code préparé et revue externe arbitrée, non activé. `005/T022K` reste ouverte
-pour son exécution intégrée avec le vrai ClamAV et PostgreSQL.
+Code préparé et revue externe arbitrée, non activé. La recette locale T022K1
+exécute maintenant le programme complet avec PostgreSQL, PGMQ, Storage et le
+vrai ClamAV. `005/T022K` reste ouverte pour le runtime de preview supervisé.
 Production, VPS, Webmail, DNS, secrets et interrupteurs inchangés. Le programme
 n'est ni une route HTTP, ni un Cron, ni un service installé.
 
@@ -91,6 +92,10 @@ mécanisme de supervision n'est activé par cette commande.
   défaut vide, `set_vt` retournant une ligne et `delete`/`archive` booléens.
 - Communications, sécurité preview et build passent ; aucune vulnérabilité
   connue dans l'audit npm des dépendances d'exécution.
+- `npm run recipe:local-real-communication-inbound-worker` rejoue la chaîne
+  complète sur une pile Supabase locale reconstruite avec 93 migrations : sain,
+  EICAR, indisponibilité, temporisation et reprise passent, puis six familles de
+  résidus et le conteneur temporaire reviennent à zéro.
 
 La recette SQL exerce les requêtes et les contraintes serveur. Elle ne lance
 pas le programme JavaScript complet ni un transport de fichiers réel. Les
@@ -103,9 +108,8 @@ logiciel n'a été installé pour contourner ces prérequis.
 
 ## Reste avant activation
 
-Connexion directe de test utilisable, qualification du
-ClamAV réel (signatures, EICAR, propre, chiffré, limites, erreur et reprise),
-preuve intégrée du transfert, dimensionnement global et supervision, traitement
+Installation sur un runtime de preview autorisé, qualification de son ClamAV
+et de sa connexion TLS, dimensionnement global et supervision, traitement
 opérateur des archives, conservation et purge approuvées. Le statut `clean`
 ne crée aucun lien public ni droit utilisateur ; l'accès doit encore passer
 par les contrôles du demandeur et de l'établissement.

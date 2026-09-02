@@ -57,9 +57,9 @@ les octets, l'empreinte, le protocole de processus, les verdicts, les reçus et 
 nettoyage ; elle ne valide pas encore le raccordement du futur runtime au socket
 ou port local du démon.
 
-La recette ne loue aucune tâche PGMQ, ne lit ni n'écrit Supabase Storage et ne
-teste pas une reprise après redémarrage PostgreSQL. `005/T022K`, `005/T011D` et
-`003/T009C` restent donc ouvertes jusqu'à leur recette intégrée sur un runtime
-de preview explicitement autorisé.
+Cette première recette ne louait aucune tâche PGMQ et ne touchait pas Storage.
+La recette suivante `005/T022K1` couvre désormais localement PostgreSQL, PGMQ,
+Storage, panne scanner et reprise. `005/T022K`, `005/T011D` et `003/T009C`
+restent ouvertes pour leurs runtimes de preview explicitement autorisés.
 
 Production, Vercel, VPS, Webmail, Brevo, DNS et bases distantes sont inchangés.

@@ -589,3 +589,21 @@ Cette preuve remplace la lacune « aucun moteur réel » pour l'adaptateur seul.
 Elle ne ferme pas T022K : PGMQ, PostgreSQL, Storage, socket du runtime, panne et
 reprise intégrés ne sont pas exercés. Aucun service distant n'est activé. Voir
 `docs/operations/REAL_CLAMAV_LOCAL_RECIPE_2026-09-02.md`.
+
+## Recette locale complète du worker du 2 septembre 2026
+
+T022K1 rejoue ensuite les 93 migrations sur une pile Supabase locale et relie
+le programme réel à PostgreSQL, PGMQ, Storage privé et au ClamAV épinglé. Un
+texte sain devient `clean`, EICAR devient `blocked`, puis une indisponibilité
+scanner persiste `scan_error` et le même travail réussit au second bail. Les
+états, événements et acquittements sont ceux des migrations du dépôt.
+
+Le harnais exige une base et une API sur boucle locale, ne contient aucune
+référence de projet distant et n'affiche pas la clé serveur locale. Le nettoyage
+utilise l'API Storage puis des suppressions SQL ciblées. Un contrôle indépendant
+retrouve six familles de résidus nulles et aucun conteneur temporaire.
+
+Cette preuve ferme l'écart d'intégration locale, pas l'exploitation. T022K reste
+ouverte pour installer, superviser et interrompre le worker sur un runtime de
+preview explicitement autorisé. Voir
+`docs/operations/REAL_INBOUND_WORKER_LOCAL_RECIPE_2026-09-02.md`.

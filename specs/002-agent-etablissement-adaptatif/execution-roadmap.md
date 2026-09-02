@@ -1106,7 +1106,7 @@ l'activation contrôlée et la contre-revue. Claude est resté en pause. Voir
 `docs/security/AGENT_AI_DAILY_BUDGET_PREVIEW_2026-09-02.md`.
 
 Suite T052B : l'analyse transversale est rejouée après les derniers lots
-de sécurité et la preuve ClamAV locale. Elle confirme 564 tâches, 461 terminées et 103 ouvertes, ainsi que
+de sécurité et la recette worker locale. Elle confirme 565 tâches, 462 terminées et 103 ouvertes, ainsi que
 93 migrations uniques. Le dernier jalon applicatif est propre, sa preview Vercel
 est READY et non promue, et la branche Supabase non principale est saine. Les tâches
 ouvertes restantes sont liées à une validation humaine, des données autorisées,

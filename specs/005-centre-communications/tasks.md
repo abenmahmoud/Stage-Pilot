@@ -333,6 +333,11 @@
   du programme avec ClamAV réel, ni activation, ni supervision validées.
   Limites décimales strictes et test de composition ajoutés ; l'enfilement
   après quarantaine est confirmé dans le producteur, sans contournement TLS.
+- [x] T022K1 Rejouer les 93 migrations dans une pile Supabase locale puis
+  exécuter le programme complet avec PostgreSQL, PGMQ, Storage privé et le vrai
+  ClamAV : sain, EICAR, indisponibilité, temporisation et reprise passent. Les
+  fixtures, objets Storage, files et conteneur temporaire reviennent à zéro.
+  T022K reste ouverte pour le runtime de preview et sa supervision autorisée.
 - [x] T023 Rattacher chaque réponse à la bonne communication.
 - [x] T023A Définir le rattachement strict avant la persistance. La référence
   `In-Reply-To` entrante utilise le même HMAC secret que l'identifiant du message

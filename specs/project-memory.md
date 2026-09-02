@@ -5,6 +5,19 @@
 **Depot** : `abenmahmoud/Stage-Pilot`
 **Dernier jalon de code verifie** : branche de preview Vercel
 
+## Jalon du 2 septembre 2026 - worker entrant complet sur pile locale
+
+- Une pile Supabase locale rejoue les 93 migrations puis exécute le véritable
+  worker avec PostgreSQL, PGMQ, Storage privé et ClamAV épinglé.
+- Les scénarios sain, EICAR, indisponibilité scanner, temporisation et reprise
+  passent. Un contrôle indépendant retrouve zéro fixture, objet Storage, tâche,
+  archive et conteneur temporaire.
+- La recette refuse toute base ou API non locale et n'écrit ni n'affiche sa clé
+  serveur locale. Aucun projet distant, VPS ou fournisseur n'est joint.
+- T022K reste ouverte pour le runtime de preview supervisé et explicitement
+  autorisé. Spec Kit compte 565 tâches : 462 terminées et 103 ouvertes.
+  Rapport : `docs/operations/REAL_INBOUND_WORKER_LOCAL_RECIPE_2026-09-02.md`.
+
 ## Jalon du 2 septembre 2026 - véritable moteur ClamAV local
 
 - L'image officielle `clamav/clamav:1.5` est épinglée par empreinte et exécutée
@@ -16,13 +29,13 @@
 - Cette preuve ne ferme pas le worker intégré : PostgreSQL, PGMQ, Storage,
   socket de runtime, panne et reprise restent à exécuter sur une preview
   explicitement autorisée. Aucun service distant ni donnée réelle n'a été touché.
-- Spec Kit compte maintenant 564 tâches : 461 terminées et 103 ouvertes.
+- Spec Kit compte maintenant 565 tâches : 462 terminées et 103 ouvertes.
   Rapport : `docs/operations/REAL_CLAMAV_LOCAL_RECIPE_2026-09-02.md`.
 
 ## Jalon du 2 septembre 2026 - nouvelle analyse transversale
 
 - L'analyse Spec Kit a été rejouée après la récupération du suivi, la révocation
-  concurrente, le garde budgétaire IA et la preuve ClamAV locale. Elle compte 564 tâches : 461 terminées
+  concurrente, le garde budgétaire IA et la recette worker locale. Elle compte 565 tâches : 462 terminées
   et 103 ouvertes, ainsi que 93 migrations uniques.
 - Le dernier jalon applicatif est propre au commit `f466418`, sa preview Vercel
   est READY et non promue, et la branche Supabase non principale reste
