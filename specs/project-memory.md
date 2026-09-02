@@ -5440,3 +5440,25 @@ taches et analyse de coherence avant une automatisation sensible.
   nécessaires. Le délai du jeton commence à sa création, pas à la livraison.
 - Rapport : `docs/security/SUPPORT_ACCESS_RECOVERY_PREVIEW_2026-09-02.md`.
   Claude reste en pause sans relance automatique ; aucune consommation externe.
+
+### Jalon du 2 septembre 2026 Paris - pilote partageable sans compte Vercel
+
+- Le deploiement preview `dpl_EZCRLdHUdVo6oNWd4AhruDDr96Pa`, commit
+  `d898a45159e30192eb99ba86f51f2c2788037fa1`, est maintenant accessible sans
+  compte Vercel via l'alias de branche `lyceegest-git-codex-lycee-connect-prototype-safe-scol.vercel.app`.
+- Accueil, contenu public et liste publique des demandes repondent `200`. Un
+  appel ENT fictif a l'assistant repond `200`, utilise l'IA et propose un
+  dossier. Les trois API internes agent/contenu/communications testees refusent
+  l'anonyme en `401`.
+- La protection SSO Vercel du projet `lyceegest` est desactivee pendant le
+  pilote. Les protections applicatives Auth, habilitations et MFA restent
+  obligatoires. Retablir le SSO apres attribution d'un domaine public dedie ou
+  a la fin du pilote ; ne pas confondre acces public et autorisation agent.
+- La production Supabase a trois migrations, le domaine public historique,
+  Hostinger, le VPS, le Webmail, les DNS et les envois restent inchanges. Le
+  pilote utilise toujours la base preview alignee a 93 migrations.
+- Une tentative dans le projet Vercel isole `lyceegest-blaise-cendrars` n'est
+  pas retenue : les secrets masques ne pouvaient pas etre recopies et ses API
+  repondaient `500`. Sa protection SSO a ete reactivee ; ne pas partager son URL.
+- Rapport :
+  `docs/operations/LYCEEGEST_PUBLIC_PREVIEW_ACCESS_2026-09-02.md`.
