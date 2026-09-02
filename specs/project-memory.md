@@ -17,9 +17,12 @@
 - Les deux accès publics à l'espace agent ouvrent la page de connexion en mode
   personnel avec retour vers la file. Le texte rappelle le compte nominatif et
   la vérification renforcée ; aucun code agent partagé n'est introduit.
-- `002/T027E1` est terminée localement. Les tests ciblés, le build et la barrière
-  complète de sécurité passent ; la nouvelle preview et sa recette navigateur
-  restent à effectuer. Spec Kit
+- `002/T027E1` est terminée. Les tests ciblés, le build et la barrière complète
+  de sécurité passent. Le déploiement `dpl_HCn6KMzAy1vBRs6rQWYubSoXeeUw` du
+  commit `9b81d0a` est `READY`. Le navigateur confirme l'accès à la connexion
+  agent nominative et le refus exact de `k:vkbjn / kjb;jhb:k` avant réseau ;
+  aucun dossier n'a été créé. L'encadré `Votre demande` est couvert par son
+  contrat automatisé, sans recette persistante supplémentaire. Spec Kit
   compte 578 tâches : 486 terminées et 92 ouvertes. Ces comptes ne mesurent pas
   la disponibilité globale du produit.
 

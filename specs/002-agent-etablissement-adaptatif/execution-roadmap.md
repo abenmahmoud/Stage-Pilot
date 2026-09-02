@@ -17,8 +17,10 @@
   La page précise qu'un compte nominatif et une vérification renforcée sont
   nécessaires ; aucun mot de passe ou code commun n'est créé.
 - Les contrôles unitaires, d'interface, de contrat public, la compilation et la
-  barrière complète de sécurité passent. La recette navigateur de la nouvelle
-  preview reste la dernière preuve avant présentation.
+  barrière complète de sécurité passent. La preview du commit `9b81d0a` est
+  `READY` : le navigateur confirme la connexion agent nominative et refuse la
+  saisie invalide observée avant toute requête. L'encadré du suivi reste couvert
+  par son contrat automatisé ; aucun faux dossier n'a été créé pour la recette.
 
 ## Point vérifié du 1er septembre 2026
 
