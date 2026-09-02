@@ -5,6 +5,26 @@
 **Depot** : `abenmahmoud/Stage-Pilot`
 **Dernier jalon de code verifie** : branche de preview Vercel
 
+## Jalon du 2 septembre 2026 - répétition locale de la forme historique
+
+- La base publique possède réellement 3 migrations appliquées ; la branche
+  Supabase de preview en possède 88 et Git en contient 93.
+- Les volumes publics relevés correspondent à l'année scolaire précédente. Ils
+  sont déclarés obsolètes pour 2026-2027 et ne peuvent alimenter ni l'annuaire,
+  ni l'agent, ni les communications.
+- `001/T040A3` répète dans Docker le passage de 3 à 93 migrations avec des
+  identités et coordonnées entièrement fictives. Les 44 classes, 106 professeurs,
+  1 159 élèves et 1 159 stages synthétiques sont conservés.
+- Cette répétition locale n'est pas une sauvegarde restaurée et n'autorise
+  aucune promotion. `T040A` et `T040` restent ouvertes.
+- La tentative Claude Fable 5 a consommé 5,033649 USD puis s'est arrêtée sans
+  rapport ; elle n'est comptée comme aucune preuve et ne sera pas relancée sans
+  une nouvelle autorisation.
+- Spec Kit compte 571 tâches : 479 terminées et 92 ouvertes.
+- Rapports :
+  `docs/operations/LYCEEGEST_LOCAL_PRODUCTION_SHAPE_REHEARSAL_2026-09-02.md` et
+  `docs/audits/CLAUDE_FRIDAY_PILOT_READINESS_ATTEMPT_2026-09-02.md`.
+
 ## Jalon du 2 septembre 2026 - recette réseau Webmail fictive nettoyée
 
 - `005/T027` et `005/T032` sont terminées par un run réseau unique entre

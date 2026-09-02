@@ -381,6 +381,12 @@ voir sa réponse dans le dossier. L'agent traite tout depuis une seule file.
   répétition isolée, compatibilité de l'ancien code, promotion d'un SHA figé et
   retour du code sans migration descendante. T040A reste ouverte pour les
   autorisations, la répétition sur sauvegarde et l'exécution contrôlée.
+- [x] **T040A3** Répéter localement le passage des 3 migrations réellement
+  appliquées en production aux 93 migrations Git, avec une fixture entièrement
+  fictive reprenant seulement les volumes obsolètes de l'année précédente. Les
+  44 classes, 106 professeurs, 1 159 élèves et 1 159 stages fictifs sont
+  conservés. Cette preuve locale ne remplace ni une sauvegarde restaurée, ni la
+  recette humaine, ni l'autorisation de production ; T040A reste ouverte.
 
 ### Sortie Jour 3
 

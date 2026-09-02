@@ -9,10 +9,16 @@
   déploiement `dpl_41augagG39fL5gMXcud3WrWiZfQH`, commit `a9cf32e`, cible
   `production`, région `iad1`.
 - Le dernier déploiement de branche vérifié avant ce paquet est le commit
-  `5ab5cf6`. Son déploiement
-  `dpl_vmaKR2AbfpVoSs7kBLmi6ys3TKA1` est `READY`, cible `null`, région `cdg1`.
+  `4a49d21c132cdb3fd8818201d74740ab975af506`. Son déploiement
+  `dpl_BySFUPj18QBegTQK9nfMHn1HXbhb` est `READY`, cible `null`, région `cdg1`.
 - Le commit public contient 22 fichiers de migration. La branche courante en
   contient 93, soit 71 fichiers ajoutés depuis ce commit.
+- L'historique SQL lu sans mutation contient 3 migrations en production et 88
+  sur la branche Supabase de preview. Ces nombres décrivent les bases réelles ;
+  ils ne sont pas déduits de Git.
+- Les volumes observés en production sont ceux de l'année scolaire précédente :
+  44 classes, 106 professeurs, 1 159 élèves et 1 159 stages. Ils sont obsolètes
+  pour l'annuaire 2026-2027 et ne doivent alimenter ni l'agent ni un envoi.
 - Malgré la présence de la migration éditoriale dans le commit public, la base
   de production ne possède pas `site_content_items` et l'API publique échoue
   avec PostgreSQL `42P01`. Le commit Git ne prouve donc pas l'état réellement
@@ -20,6 +26,21 @@
 
 Une promotion du code seule est interdite : elle augmenterait le nombre de
 routes dépendant d'un schéma absent ou incomplet.
+
+## Répétition locale acquise
+
+Une répétition locale Docker a reconstruit le schéma aux 3 migrations réellement
+présentes en production, chargé des données entièrement fictives aux mêmes
+volumes que l'année précédente, puis appliqué les 90 migrations restantes. Les
+93 versions finales et les quatre compteurs ont été vérifiés sans perte.
+
+Cette preuve confirme que le chemin SQL s'exécute sur cette forme de données.
+Elle ne remplace ni une sauvegarde, ni sa restauration isolée, ni la recette des
+données réelles. Aucune identité, coordonnée, adresse scolaire, clé, code ENT ou
+donnée de production n'a été copiée. Rapport et recette reproductible :
+
+- `docs/operations/LYCEEGEST_LOCAL_PRODUCTION_SHAPE_REHEARSAL_2026-09-02.md` ;
+- `npm run recipe:local-production-shape-migration`.
 
 ## Portes obligatoires
 
@@ -97,5 +118,6 @@ La promotion reste bloquée tant que les preuves suivantes ne sont pas réunies 
 - Ancien et nouveau code testés contre le schéma final avant promotion.
 - Zéro fixture, notification fournisseur ou donnée personnelle utilisée.
 
-Cette préparation ferme uniquement `001/T040A2`. `T040A` et `T040` restent
-ouvertes jusqu'aux autorisations, sauvegardes, répétitions et exécutions réelles.
+Cette préparation ferme `001/T040A2` et la répétition locale ferme `001/T040A3`.
+`T040A` et `T040` restent ouvertes jusqu'aux autorisations, sauvegardes,
+restaurations isolées, recettes humaines et exécutions réelles.
