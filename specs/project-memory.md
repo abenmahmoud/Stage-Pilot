@@ -5,6 +5,26 @@
 **Depot** : `abenmahmoud/Stage-Pilot`
 **Dernier jalon de code verifie** : branche de preview Vercel
 
+## Jalon du 2 septembre 2026 - validation humaine du routage en preview
+
+- La recette applicative authentifiée crée un compte strictement fictif sous
+  MFA `aal2`, confirme un classement assistant et corrige un second dossier vers
+  le secrétariat. Les agrégats sont vérifiés avant et après nettoyage.
+- La clé `service_role` de la branche est obtenue par la CLI Supabase uniquement
+  en mémoire, sans affichage ni écriture. Le CLI Vercel est épinglé à la version
+  locale `59.10.0` et reçoit zéro secret applicatif.
+- Le résultat annonce `confirmed=1`, `corrected=1`, `metrics=verified` et
+  `cleanup=complete`. Un contrôle SQL indépendant retrouve ensuite zéro compte,
+  adhésion, dossier et revue fictifs.
+- Le commit technique `ddbf4f1` est `READY` sur le déploiement de preview
+  `dpl_2z8ZUbMbvY6UKJCqkqX2kQQQhgAx`, avec le même SHA exact et `target=null`.
+  Les tests d'observabilité et la barrière complète de sécurité passent.
+- `002/T030D` et `002/T030D3` sont terminées. Spec Kit compte 566 tâches : 468
+  terminées et 98 ouvertes. Aucun appel Claude, email, donnée réelle ou
+  promotion en production n'est réalisé.
+  Rapport :
+  `docs/operations/SUPPORT_ASSISTANT_ROUTING_REVIEW_PREVIEW_2026-08-30.md`.
+
 ## Jalon du 2 septembre 2026 - documents de communication sur pile locale
 
 - Le véritable worker des documents de communication relie PostgreSQL, PGMQ,

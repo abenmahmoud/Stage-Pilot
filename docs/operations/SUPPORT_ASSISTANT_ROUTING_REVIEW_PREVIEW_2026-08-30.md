@@ -160,3 +160,33 @@ ne pas promouvoir le deploiement pendant la recette.
 Le controle reel en lecture seule passe pour `4f5575b`, mais la recette API
 metier reste bloquee par la cle de service locale. Arbitrage et limites :
 `docs/audits/CLAUDE_ROUTING_RECIPE_FOLLOWUP_ADJUDICATION_2026-09-01.md`.
+
+## Recette authentifiée exécutée le 2 septembre 2026
+
+Le blocage est levé sans écrire de secret : la CLI Supabase authentifiée révèle
+la clé `service_role` de la branche uniquement en mémoire du processus. La
+valeur n'est ni affichée, ni enregistrée dans un fichier, ni transmise au CLI
+Vercel. Le lanceur Vercel est épinglé au paquet local `vercel@59.10.0`, exécuté
+hors ligne, sans shell et avec les variables applicatives retirées.
+
+La cible vérifiée avant création des fixtures est
+`lyceegest-42d9y6e7g-safe-scol.vercel.app`, commit
+`b50ccd501a89145373e870136da1167535c1458c`, branche
+`codex/lycee-connect-prototype`, état `READY` et `target=null`.
+
+Résultat exact :
+
+```json
+{"target":"isolated_preview","confirmed":1,"corrected":1,"metrics":"verified","cleanup":"complete"}
+```
+
+Un contrôle SQL indépendant exécuté après la recette retrouve :
+
+```json
+{"fixture_users":0,"fixture_memberships":0,"fixture_requests":0,"fixture_reviews":0}
+```
+
+Les six gardes de la recette, les tests d'observabilité et la barrière complète
+de sécurité passent. `T030D` et `T030D3` sont terminées. Aucun appel Claude,
+aucune donnée réelle, aucun email et aucune promotion en production ne sont
+réalisés par cette exécution.

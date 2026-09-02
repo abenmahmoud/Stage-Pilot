@@ -612,9 +612,11 @@
 - [x] T030C Distinguer dans l'écran direction une sortie IA retenue par les
   contrôles techniques d'une validation humaine, qui n'est jamais déduite de
   `model_success` ni annoncée sans événement humain explicite.
-- [ ] T030D Activer en preview la validation humaine traçable du classement
+- [x] T030D Activer en preview la validation humaine traçable du classement
   assistant après application contrôlée de la migration et activation de
-  l'interrupteur serveur.
+  l'interrupteur serveur. La recette authentifiée sous MFA confirme un
+  classement, en corrige un second, vérifie les agrégats puis nettoie toutes
+  ses fixtures.
 - [x] T030D1 Implémenter le reçu HMAC éphémère sans contenu personnel, la table
   privée et cloisonnée, la confirmation sous MFA, la correction par transfert,
   les agrégats anonymes et l'interface responsive. Le code reste inactif par
@@ -622,25 +624,17 @@
 - [x] T030D2 Appliquer `20260830090500` uniquement à la base preview, exécuter
   la recette fictive avec `ROLLBACK`, contrôler les auditeurs puis activer
   `SUPPORT_ASSISTANT_ROUTING_REVIEW_ENABLED=true` uniquement sur la preview.
-- [ ] T030D3 Exécuter sur la preview une confirmation et une correction via les
+- [x] T030D3 Exécuter sur la preview une confirmation et une correction via les
   API protégées avec un compte fictif éphémère sous MFA `aal2`, vérifier les
-  agrégats puis contrôler le nettoyage complet. Les recettes sont préparées ;
-  leur exécution attend une clé de service preview injectée localement, jamais
-  exportée ou journalisée.
-  Au 1er septembre, les deux recettes imposent la référence et l'origine HTTPS
-  exactes de preview avant tout client ; vingt destinations trompeuses sont
-  refusées dans les exécutables, réseau intercepté. Leur lancement Windows
-  passe par Node et le Vercel en cache, sans installation, avec contrôle de
-  disponibilité avant création de fixture. La clé locale reste masquée : aucune
-  confirmation, correction, création de compte ou action distante de recette.
-  Une nouvelle revue Fable 5 autorisée est arbitrée (0,632103 USD sur 5) :
-  jeton transmis hors arguments, retrait du facteur MFA fictif et succès
-  conditionné au nettoyage. Tests locaux et observabilité passent ; la recette
-  authentifiée et son nettoyage distant ne sont toujours pas déclarés réussis.
-  La contre-revue suivante autorisée (0,742712 USD sur 5) ajoute la vérification
-  automatique des métadonnées Vercel avant Supabase, l'isolation des clés dans
-  les processus enfants et les diagnostics Auth. Six tests de sûreté passent,
-  ainsi qu'une lecture réelle des métadonnées ; aucune recette métier distante.
+  agrégats puis contrôler le nettoyage complet. Le 2 septembre, la clé de
+  service de la branche est récupérée en mémoire par la CLI Supabase, sans
+  écriture ni affichage. La cible Vercel exacte est vérifiée `READY`, non
+  production et liée à la branche avant tout client Supabase. Un classement est
+  confirmé, un second corrigé vers le secrétariat et les agrégats reviennent à
+  leur valeur initiale. Un contrôle SQL indépendant retrouve zéro compte,
+  adhésion, dossier et revue fictifs. Le CLI Vercel est épinglé à la version
+  locale `59.10.0` ; les six gardes, l'observabilité et la barrière complète de
+  sécurité passent. Aucun secret n'est journalisé et Claude n'est pas appelé.
 
 ## Phase 4 - Compétences du pilote
 
@@ -942,8 +936,9 @@
   finale avant généralisation.
 - [x] T052B Réexécuter l'analyse après la récupération du suivi, la révocation
   concurrente, le garde budgétaire IA et les recettes locales d'ingestion, des
-  workers entrant, éditorial et des documents de communication. Les 566 tâches
-  sont recomptées : 466 terminées et 100 ouvertures,
+  workers entrant, éditorial et des documents de communication, puis la recette
+  MFA de validation du routage en preview. Les 566 tâches sont recomptées : 468
+  terminées et 98 ouvertures,
   rapprochées des décisions, données, accès, services,
   pilotes ou opérations qui les bloquent. Aucun parent n'est fermé sur une
   preuve partielle ; voir `specs/ANALYZE_2026-09-02.md`.

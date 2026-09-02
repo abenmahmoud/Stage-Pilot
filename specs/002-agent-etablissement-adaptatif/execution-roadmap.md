@@ -1107,8 +1107,9 @@ l'activation contrôlée et la contre-revue. Claude est resté en pause. Voir
 
 Suite T052B : l'analyse transversale est rejouée après les derniers lots
 de sécurité et les recettes locales d'ingestion, des workers entrant et
-éditorial, puis du worker des documents de communication. Elle confirme 566
-tâches, 466 terminées et 100 ouvertes, ainsi que
+éditorial, du worker des documents de communication, puis de la validation
+humaine du routage sous MFA en preview. Elle confirme 566 tâches, 468 terminées
+et 98 ouvertes, ainsi que
 93 migrations uniques. Le dernier jalon applicatif est propre, sa preview Vercel
 est READY et non promue, et la branche Supabase non principale est saine. Les tâches
 ouvertes restantes sont liées à une validation humaine, des données autorisées,
@@ -1135,6 +1136,12 @@ DOCX EICAR, panne scanner, panne de nettoyage et altération après relecture
 passent ; cette dernière échoue fermée au cinquième essai. Le nettoyage retrouve
 zéro fixture, objet, tâche, fichier temporaire et conteneur. T011 et T011D sont
 terminées ; l'activation distante reste fermée et soumise à autorisation.
+
+Suite T030D3 : une recette API authentifiée sur la preview crée un compte
+strictement fictif sous MFA, confirme un classement, corrige un second vers le
+secrétariat et vérifie les agrégats. Le nettoyage automatique puis un contrôle
+SQL indépendant retrouvent zéro compte, adhésion, dossier et revue de recette.
+T030D et T030D3 sont terminées sans secret journalisé ni donnée réelle.
 
 ## Portes de validation humaine
 
