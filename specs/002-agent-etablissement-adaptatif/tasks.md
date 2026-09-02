@@ -852,6 +852,11 @@
   courante et nommer le panneau de détail. Vérifier avec données fictives la
   sélection au clavier, l'arbre sémantique et l'absence de débordement à 320 et
   1 440 px. La recette humaine avec lecteur d'écran reste dans T048.
+- [x] T048I Recontrôler l'alias public dans un navigateur neuf après retrait de
+  la protection Vercel : l'assistant est annoncé juste après le héros et avant
+  les outils secondaires, avec saisie libre, action désactivée à vide et
+  formulaire alternatif. Six tests de non-régression, le build et la barrière
+  de sécurité passent ; T048 reste ouverte pour le lecteur d'écran humain.
 - [ ] T049 Exécuter une revue de sécurité et de protection des données.
 - [x] T049A Créer et exécuter une porte de sécurité reproductible pour la
   preview : en-têtes navigateur, cache API, source maps, secrets, limites,
@@ -956,6 +961,12 @@
   Chaque ouverture reste liée à une décision ou validation humaine, une donnée
   autorisée, un service ou runtime externe, une recette humaine, un pilote ou
   la production ; aucun parent n'est fermé sur une préparation locale.
+- [x] T052D Réconcilier l'analyse après l'ouverture contrôlée du pilote public,
+  le contrôle anonyme reproductible et la vérification de l'assistant dans un
+  navigateur neuf. Les 575 tâches sont recomptées : 483 terminées et 92
+  ouvertes. Les ouvertures restantes exigent toujours une décision, une
+  validation humaine, des comptes ou données autorisés, un runtime externe,
+  un pilote ou la production ; T052 reste ouverte jusqu'à la convergence finale.
 
 ## Phase 7 - Portail complet et généralisation contrôlée
 

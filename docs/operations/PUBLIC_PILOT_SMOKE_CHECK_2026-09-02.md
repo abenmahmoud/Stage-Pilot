@@ -67,3 +67,22 @@ Ce contrôle prouve la disponibilité publique et les frontières anonymes du
 pilote. Il ne remplace pas la recette humaine sur téléphone et ordinateur, la
 création fictive de dossier déjà testée séparément, les alertes externes, une
 restauration distante ni une autorisation de mise en production.
+
+## Recontrôle de l'assistant visible
+
+Le commit `ebeb8b7` est `READY` sur le déploiement de preview
+`dpl_BrC59bx5FRjThyvNGqqw6eSKySSE`. L'alias public pointe sur ce déploiement et
+la recette anonyme repasse intégralement avec zéro écriture et zéro appel IA.
+
+L'arbre accessible lu dans un navigateur neuf confirme, dans cet ordre :
+
+1. le héros `Blaise Cendrars` et son bouton `Besoin d'aide ?` ;
+2. la région `Posez votre question à l'assistant du lycée` ;
+3. la zone de saisie libre et l'action `Obtenir de l'aide` désactivée à vide ;
+4. l'alternative `Je préfère remplir un formulaire` ;
+5. seulement ensuite les outils principaux et les accès rapides.
+
+Deux régressions automatiques protègent maintenant cet ordre, le nom de la
+région, la saisie et l'alternative formulaire. Les six tests de l'ensemble
+public passent, ainsi que le build et la barrière complète de sécurité. Cette
+preuve ne remplace toujours pas une recette humaine avec lecteur d'écran.

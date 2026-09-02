@@ -7,8 +7,8 @@
 
 ## Jalon du 2 septembre 2026 - controle reproductible du pilote public
 
-- Le commit `8b3d902` est `READY` sur le deploiement de preview
-  `dpl_BtSKNarT5779wZ8eoCST3syJi67G`. L'alias stable de la branche pointe sur ce
+- Le commit `ebeb8b7` est `READY` sur le deploiement de preview
+  `dpl_BrC59bx5FRjThyvNGqqw6eSKySSE`. L'alias stable de la branche pointe sur ce
   deploiement et s'ouvre dans un navigateur neuf sans compte Vercel.
 - Une recette strictement limitee a cet alias verifie l'accueil, le contenu et
   les demandes publiques en `200`, puis trois frontieres internes en `401`.
@@ -17,6 +17,11 @@
 - Les en-tetes navigateur et l'absence de cache public sur les API internes sont
   controles. Trois tests empechent l'emploi d'une autre cible, d'une methode
   mutante, de secrets ou de l'assistant.
+- L'arbre accessible reel place le bouton d'aide du heros, la region de
+  l'assistant, sa saisie libre et l'alternative formulaire avant les outils
+  secondaires. Six tests protegent ce contrat ; build et barriere complete de
+  securite passent. `002/T048I` est terminee sans fermer la recette humaine du
+  lecteur d'ecran.
 - `002/T057F` est terminee. `T057` reste ouverte pour les alertes externes et la
   restauration distante. Production, DNS, Hostinger, VPS, Webmail et donnees
   reelles restent inchanges.
