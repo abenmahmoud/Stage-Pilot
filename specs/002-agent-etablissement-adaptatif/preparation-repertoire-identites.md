@@ -32,6 +32,14 @@ dans la seule version active du répertoire. Une absence, une ambiguïté, une
 relation expirée ou une version retirée bloque la personnalisation et ouvre une
 demande de vérification humaine.
 
+Le pilote 2026-2027 ne dépend pas du téléphone. Lorsqu'une adresse email connue
+est disponible, un code à usage unique contrôle ce canal sans suffire à lui seul
+à prouver l'identité scolaire. Sans email connu, l'usager conserve la création
+et le suivi de sa demande sur son appareil ; aucune donnée scolaire personnelle
+n'est fournie avant revue humaine. La date de naissance ne constitue jamais un
+facteur suffisant. Le SMS pourra être ajouté plus tard sans modifier les niveaux
+d'identité ni les relations du répertoire.
+
 ## Ce que le propriétaire peut préparer
 
 Conserver d'abord les exports officiels originaux sans les modifier. Préparer

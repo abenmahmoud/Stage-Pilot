@@ -146,6 +146,12 @@
   rotative et contact email vérifié sans promotion en identité scolaire. Le
   secret, le drapeau frontend et toute livraison réelle restent non configurés ;
   le téléphone ou SMS reste dans T010B3.
+- [x] T010B3C Fixer le pilote sans dépendance au téléphone : utiliser d'abord un
+  code envoyé à une adresse déjà connue du répertoire ; conserver le suivi sur
+  l'appareil et la demande générale lorsqu'aucun email n'est disponible, mais
+  bloquer toute donnée scolaire personnelle jusqu'à une vérification humaine.
+  Le SMS reste une extension ultérieure avec consentement, budget et règles de
+  conservation séparés.
 - [ ] T010B4 Rapprocher une identité uniquement contre une version active du
   répertoire, avec MFA agent, justification, gestion des conflits et audit.
 - [ ] T010B4A Construire en preview le canal de recherche déterministe chiffré :
