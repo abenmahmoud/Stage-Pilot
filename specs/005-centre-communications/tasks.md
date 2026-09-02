@@ -493,4 +493,12 @@
   contraste des étapes. T031 reste ouverte pour le lecteur d'écran réel et la
   recette humaine avec une session de preview autorisée.
 - [ ] T032 Déployer en preview et tester avec des contacts fictifs.
+- [x] T032A Préparer sans l'exécuter le client de recette réseau vers un faux
+  Webmail séparé. Il exige une cible Vercel temporaire nommée comme fixture, une
+  confirmation liée au run, quatre secrets partagés distincts et une preuve
+  HMAC fraîche avant le premier appel. La future recette enverra 200 références
+  opaques fictives et rejouera 20 états déjà envoyés ; cinq tests de sécurité,
+  la recette locale intégrale 200 + 20 et le build passent sans réseau. T032
+  reste ouverte jusqu'au déploiement autorisé, à la preuve réseau et au
+  nettoyage sans résidu.
 - [ ] T033 Faire valider le pilote avant toute liste réelle ou envoi collectif.

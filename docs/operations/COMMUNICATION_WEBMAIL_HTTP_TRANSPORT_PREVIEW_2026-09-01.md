@@ -35,3 +35,8 @@ Aucune donnée ni requête réelle n'est produite.
 T027 et T032 restent ouvertes. Leur fermeture exige une recette réseau sur une
 preview déployée, avec un faux Webmail autorisé, des secrets éphémères et une
 preuve d'absence de résidu. Ce lot n'autorise aucune activation implicite.
+
+Le client borné, ses portes de sécurité et la procédure d'autorisation sont
+maintenant préparés dans
+`docs/operations/COMMUNICATION_WEBMAIL_NETWORK_PREVIEW_RECIPE_2026-09-02.md`.
+Aucun réseau n'a encore été appelé.

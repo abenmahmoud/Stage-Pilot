@@ -30,6 +30,17 @@ et une série de 200 livraisons avec concurrence bornée. Elle n'appelle aucun
 réseau, ne configure aucun secret et ne ferme pas T027 ou T032 : la preuve
 réseau sur une preview déployée reste distincte.
 
+Le client de cette future preuve réseau est désormais préparé sans l'exécuter.
+Il n'accepte qu'un projet Vercel temporaire séparé nommé comme fixture, exige une
+confirmation liée au run et quatre secrets éphémères distincts, puis vérifie une
+preuve HMAC fraîche avant tout envoi. La recette prévoit 200 commandes opaques
+fictives et 20 rejeux depuis un état déjà envoyé, sans mémoire serveur ni contact
+réel. Cinq tests contrôlent les portes et l'exécution reste absente de la
+barrière permanente ; une recette locale intégrale prouve aussi les 200 appels
+et 20 rejeux avec un `fetch` en mémoire signé, sans socket. T027, T029 et T032
+restent ouverts jusqu'à l'autorisation, au déploiement séparé, à la preuve réseau
+et au nettoyage.
+
 ## Recette de file Webmail du 30 août 2026
 
 Une recette transactionnelle prépare désormais 200 livraisons fictives et les

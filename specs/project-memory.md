@@ -5,6 +5,23 @@
 **Depot** : `abenmahmoud/Stage-Pilot`
 **Dernier jalon de code verifie** : branche de preview Vercel
 
+## Jalon du 2 septembre 2026 - client de recette Webmail réseau préparé
+
+- `005/T032A` prépare, sans l'exécuter, un client réseau limité à un faux
+  Webmail Vercel séparé. Cible, chemin, run, confirmation et quatre secrets
+  partagés sont validés avant tout appel ; une preuve HMAC fraîche distingue la
+  fixture d'une mauvaise cible.
+- La future recette contient 200 commandes à références opaques entièrement
+  fictives et 20 rejeux depuis un état déjà envoyé. Elle n'utilise ni adresse,
+  ni base, ni Brevo, ni Webmail réel et reste hors de la barrière permanente.
+- Cinq tests de sécurité, la recette locale intégrale 200 + 20, les onze tests du
+  transport et le build passent sans socket réseau. `T032` demeure ouverte
+  jusqu'à l'autorisation du projet temporaire, son déploiement, la preuve réseau
+  et son retrait sans résidu.
+- Spec Kit compte désormais 568 tâches : 474 terminées et 94 ouvertes.
+  Procédure :
+  `docs/operations/COMMUNICATION_WEBMAIL_NETWORK_PREVIEW_RECIPE_2026-09-02.md`.
+
 ## Jalon du 2 septembre 2026 - tentative Fable arrêtée sans rapport
 
 - Une contre-revue de sécurité Fable 5 a été lancée en lecture seule, sans
