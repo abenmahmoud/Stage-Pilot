@@ -28,7 +28,7 @@
 - [x] T008 Créer les migrations `institutions`, adhésions, compétences, versions et sources.
 - [x] T009 Ajouter actions, validations, intégrations et évaluations avec
   politiques d'accès. La preview possède les neuf tables attendues avec RLS
-  forcée, zéro privilège client et accès serveur contrôlé. Cinquante tests
+  forcée, zéro privilège client et accès serveur contrôlé. Cinquante-six tests
   ciblés valident le registre, les évaluations, les actions, la boîte de
   validation, le MFA et les contrats navigateur.
 - [x] T009A Brancher en preview les brouillons, évaluations, validations,

@@ -11,7 +11,7 @@
   des évaluations, des actions, des validations et de leurs audits.
 - Les neuf tables ont RLS activée et forcée. `anon` et `authenticated` ne
   disposent d'aucun privilège DML ; `service_role` conserve la lecture attendue.
-- Cinquante tests ciblés passent : registre, publication, sources et outils,
+- Cinquante-six tests ciblés passent : registre, publication, sources et outils,
   évaluations, actions A3, validation indépendante, MFA, périmètres et contrats
   navigateur.
 - `002/T009` est terminée. Spec Kit compte 566 tâches : 469 terminées et 97

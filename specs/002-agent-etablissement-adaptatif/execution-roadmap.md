@@ -1146,7 +1146,7 @@ T030D et T030D3 sont terminées sans secret journalisé ni donnée réelle.
 Suite T009 : le registre de compétences et le moteur d'actions sont revérifiés
 sur la preview. Les neuf tables attendues existent, RLS est forcée partout,
 `anon` et `authenticated` n'ont aucun privilège DML et `service_role` conserve
-la lecture contrôlée. Cinquante tests ciblés couvrent registre, évaluations,
+la lecture contrôlée. Cinquante-six tests ciblés couvrent registre, évaluations,
 actions, validations, MFA et contrats navigateur. T009 est terminée.
 
 ## Portes de validation humaine

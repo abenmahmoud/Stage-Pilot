@@ -39,7 +39,7 @@ npm run test:agent-approval-inbox
 npm run test:knowledge-registry-admin-action-payload
 ```
 
-Les 50 tests passent. Ils couvrent publication et retour arrière, sources et
+Les 56 tests passent. Ils couvrent publication et retour arrière, sources et
 outils autorisés, évaluations positives/ambiguës/interdites, actions A3,
 validation indépendante, MFA, périmètre établissement/service, audit et
 validation des réponses avant tout succès visible.
