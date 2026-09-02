@@ -7,8 +7,9 @@ const reader = await readFile(
   "utf8"
 );
 
-test("requires a server-authenticated school identity from an active source", () => {
+test("requires a server-authenticated account or revocable device identity from an active source", () => {
   assert.match(reader, /requireUser\(req\)/);
+  assert.match(reader, /readIdentityDeviceSession\(req\)/);
   assert.match(reader, /requireConfiguredInstitution\(\)/);
   assert.match(reader, /isNull\(schoolIdentities\.revokedAt\)/);
   assert.match(reader, /eq\(identityDirectoryImports\.status, "active"\)/);
@@ -23,11 +24,13 @@ test("allows a third-party target only through an active dated relationship", ()
   assert.match(reader, /eq\(schoolRelationships\.status, "active"\)/);
   assert.match(reader, /lte\(schoolRelationships\.validFrom, today\)/);
   assert.match(reader, /gte\(schoolRelationships\.validUntil, today\)/);
+  assert.match(reader, /eq\(identityDirectoryRows\.subjectPersonRef, ownRef\)/);
+  assert.match(reader, /eq\(identityDirectoryRows\.objectRef, targetRef\)/);
 });
 
 test("derives only valid current class and group references", () => {
   const institutionFilters = reader.match(/eq\(identityDirectoryRows\.institutionId, (?:institution\.id|scope\.institutionId)\)/g) ?? [];
-  assert.equal(institutionFilters.length, 2);
+  assert.equal(institutionFilters.length, 3);
   assert.match(reader, /eq\(identityDirectoryRows\.validationStatus, "valid"\)/);
   assert.match(reader, /eq\(identityDirectoryRows\.relationshipType, "member_of"\)/);
   assert.match(reader, /\.limit\(MAX_GROUPS \+ 1\)/);

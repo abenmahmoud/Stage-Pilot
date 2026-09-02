@@ -46,8 +46,8 @@ begin
 
   select count(*) into migration_count
   from supabase_migrations.schema_migrations;
-  if migration_count <> 93 then
-    raise exception 'Expected 93 migration versions, got %', migration_count;
+  if migration_count <> 94 then
+    raise exception 'Expected 94 migration versions, got %', migration_count;
   end if;
 
   if to_regclass('public.support_requests') is null

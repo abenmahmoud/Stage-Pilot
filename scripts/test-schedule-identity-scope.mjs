@@ -54,7 +54,7 @@ const relationship = (extra = {}) => ({
 
 function fixture() {
   const state = { user: { id: "user-fixture" }, institutionId: "school-fixture", readCalls: [], queries: [], transactions: [],
-    dbFailure: false, afterQuery: null, data: { identities: [identity()],
+    deviceIdentity: null, dbFailure: false, afterQuery: null, data: { identities: [identity()],
       imports: [{ id: "import-fixture", institutionId: "school-fixture", status: "active" }], relationships: [], rows: [person(), group()] } };
   // Evaluate all joins and predicates; fixtures are not pre-filtered answers.
   function reader(getData) {
@@ -92,6 +92,7 @@ function fixture() {
       if (!state.user) throw new HttpError(401, "Authentication required"); return state.user;
     } },
     "./institution-context.js": { requireConfiguredInstitution: async () => ({ id: state.institutionId }) },
+    "./identity-device-access.js": { readIdentityDeviceSession: async () => state.deviceIdentity },
     "./schedule-reader.js": { readNextCourseFromPrivateSchedule: async (input) => {
       state.readCalls.push(input); return { ok: false, reason: "no_authorized_course" };
     } },
@@ -122,6 +123,33 @@ test("student gets only own class/groups using a read-only coherent snapshot", a
   const f = fixture(); f.state.data.rows.push(person({ personRef: "OTHER-001", classRef: "OTHER-CLASS" }), group({ subjectPersonRef: "OTHER-001", objectRef: "OTHER-GROUP" }));
   assert.deepEqual(await f.resolve(), studentScope); assert.deepEqual(await f.resolve("STUDENT-001"), studentScope);
   assert.equal(f.state.transactions.length, 2);
+});
+test("email-verified device identity gets the same own-student scope without an account", async () => {
+  const f = fixture();
+  f.state.user = null;
+  f.state.deviceIdentity = {
+    sourceImportId: "import-fixture", personRef: "STUDENT-001",
+    personType: "student", assuranceLevel: "directory_email_otp",
+  };
+  assert.deepEqual(await f.resolve(), studentScope);
+});
+test("email-verified guardian needs an active directory relationship for the selected child", async () => {
+  const f = guardianFixture();
+  f.state.user = null;
+  f.state.deviceIdentity = {
+    sourceImportId: "import-fixture", personRef: "GUARDIAN-001",
+    personType: "guardian", assuranceLevel: "directory_email_otp",
+  };
+  f.state.data.relationships = [];
+  f.state.data.rows.push(group({
+    id: "guardian-link-fixture", subjectPersonRef: "GUARDIAN-001",
+    relationshipType: "guardian_of", objectRef: "CHILD-001",
+  }));
+  assert.deepEqual(await f.resolve("CHILD-001"), {
+    institutionId: "school-fixture", identityLevel: "I3",
+    authorizedClassRefs: ["CHILD-CLASS"], authorizedGroupRefs: ["CHILD-GROUP"],
+    authorizedTeacherRefs: [],
+  });
 });
 test("requires authentication and ignores public identity claims", async () => {
   const f = fixture(); f.state.user = null;

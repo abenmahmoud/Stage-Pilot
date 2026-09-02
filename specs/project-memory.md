@@ -5,6 +5,31 @@
 **Depot** : `abenmahmoud/Stage-Pilot`
 **Dernier jalon de code verifie** : branche de preview Vercel
 
+## Jalon du 2 septembre 2026 - identité email sur appareil préparée et fermée
+
+- Le rapprochement libre-service par adresse connue est implémenté derrière les
+  deux drapeaux `IDENTITY_DEVICE_ACCESS_ENABLED` et
+  `VITE_IDENTITY_DEVICE_ACCESS_ENABLED`, laissés à `false`. Une réponse publique
+  identique couvre adresse absente, partagée ou reconnue.
+- La recherche exacte reste chiffrée vers le worker privé. L'adresse n'est pas
+  stockée dans les nouvelles tables ; le code à six chiffres expire après dix
+  minutes et cinq essais. La session opaque `HttpOnly` dure la session du
+  navigateur sur appareil partagé, ou sept jours d'inactivité et trente jours
+  au maximum sur appareil personnel. L'utilisateur peut la révoquer.
+- Une session active vaut I3 pour la seule fiche liée. Elle peut ouvrir l'emploi
+  du temps propre ; un responsable doit en plus avoir une relation active vers
+  l'enfant demandé. Codes, documents personnels et modifications officielles
+  restent sous validation humaine.
+- La méthode durable d'évolution de l'agent retient connaissances versionnées,
+  règles stables, outils limités et scénarios fictifs. Le répertoire brut, les
+  recherches libres par nom et les secrets n'entrent jamais dans le contexte du
+  modèle.
+- Compilation, build, contrats API, limites, worker, lecture d'emploi du temps,
+  sécurité des routes et responsive passent localement. Docker Desktop n'a pas
+  fourni de serveur exploitable pendant ce lot : la migration 94 n'est donc pas
+  encore rejouée sur PostgreSQL. Aucun déploiement, import, email ou changement
+  distant n'a été effectué ; `002/T010B4B` reste ouverte.
+
 ## Jalon du 2 septembre 2026 - validation, suivi lisible et connexion agent
 
 - Les noms du demandeur et du bénéficiaire sont normalisés par une règle

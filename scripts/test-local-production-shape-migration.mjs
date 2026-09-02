@@ -73,7 +73,7 @@ supabase(
 console.log(JSON.stringify({
   target: "local_synthetic_production_shape",
   cliVersion,
-  migrations: 93,
+  migrations: 94,
   classes: 44,
   staff: 106,
   students: 1159,

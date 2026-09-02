@@ -17,7 +17,13 @@ export type SupportRateLimitScope =
   | "attachment_confirm_session"
   | "attachment_download_session"
   | "agent_attachment_download_user"
-  | "agent_write_user";
+  | "agent_write_user"
+  | "identity_otp_device_burst"
+  | "identity_otp_device_daily"
+  | "identity_otp_contact_burst"
+  | "identity_otp_contact_daily"
+  | "identity_otp_network"
+  | "identity_otp_verify_device";
 
 export type SupportRateLimitPolicy = {
   scope: SupportRateLimitScope;
@@ -150,6 +156,42 @@ export const SUPPORT_RATE_LIMIT_POLICIES = {
     limit: 300,
     windowSeconds: 60 * 60,
     message: "Ce compte a effectué trop d’actions rapprochées. Attendez quelques minutes puis recommencez.",
+  },
+  identityOtpDeviceBurst: {
+    scope: "identity_otp_device_burst",
+    limit: 5,
+    windowSeconds: 15 * 60,
+    message: "Plusieurs codes ont été demandés. Réessayez dans quelques minutes.",
+  },
+  identityOtpDeviceDaily: {
+    scope: "identity_otp_device_daily",
+    limit: 12,
+    windowSeconds: 24 * 60 * 60,
+    message: "La limite de vérifications de cet appareil est atteinte. Utilisez le formulaire du lycée.",
+  },
+  identityOtpContactBurst: {
+    scope: "identity_otp_contact_burst",
+    limit: 3,
+    windowSeconds: 15 * 60,
+    message: "Plusieurs codes ont été demandés. Réessayez dans quelques minutes.",
+  },
+  identityOtpContactDaily: {
+    scope: "identity_otp_contact_daily",
+    limit: 8,
+    windowSeconds: 24 * 60 * 60,
+    message: "La limite quotidienne de vérification est atteinte. Utilisez le formulaire du lycée.",
+  },
+  identityOtpNetwork: {
+    scope: "identity_otp_network",
+    limit: 120,
+    windowSeconds: 60 * 60,
+    message: "La vérification reçoit trop de trafic. Réessayez plus tard ou utilisez le formulaire.",
+  },
+  identityOtpVerifyDevice: {
+    scope: "identity_otp_verify_device",
+    limit: 20,
+    windowSeconds: 10 * 60,
+    message: "Trop de codes ont été essayés. Réessayez plus tard.",
   },
 } as const satisfies Record<string, SupportRateLimitPolicy>;
 

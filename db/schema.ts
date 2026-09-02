@@ -411,7 +411,8 @@ export const identityDirectoryLookupRequests = pgTable(
     institutionId: uuid("institution_id")
       .notNull()
       .references(() => institutions.id, { onDelete: "cascade" }),
-    actorId: uuid("actor_id").notNull(),
+    actorId: uuid("actor_id"),
+    publicActorId: uuid("public_actor_id"),
     searchType: text("search_type").notNull(),
     reasonCategory: text("reason_category").notNull(),
     justificationHash: text("justification_hash").notNull(),
@@ -440,6 +441,11 @@ export const identityDirectoryLookupRequests = pgTable(
     index("identity_directory_lookup_actor_idx").on(
       table.institutionId,
       table.actorId,
+      table.createdAt
+    ),
+    index("identity_directory_lookup_public_actor_idx").on(
+      table.institutionId,
+      table.publicActorId,
       table.createdAt
     ),
     index("identity_directory_lookup_expiry_idx").on(table.expiresAt),
@@ -472,6 +478,94 @@ export const contactVerifications = pgTable(
       table.userId,
       table.supportSessionId,
       table.status
+    ),
+  ]
+);
+
+export const identityDeviceChallenges = pgTable(
+  "identity_device_challenges",
+  {
+    id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+    institutionId: uuid("institution_id")
+      .notNull()
+      .references(() => institutions.id, { onDelete: "cascade" }),
+    lookupRequestId: uuid("lookup_request_id")
+      .notNull()
+      .unique()
+      .references(() => identityDirectoryLookupRequests.id, { onDelete: "cascade" }),
+    deviceKeyHash: text("device_key_hash").notNull(),
+    contactHash: text("contact_hash").notNull(),
+    rememberDevice: boolean("remember_device").notNull().default(false),
+    status: text("status").notNull().default("lookup_queued"),
+    codeHash: text("code_hash"),
+    attemptCount: integer("attempt_count").notNull().default(0),
+    matchedImportId: uuid("matched_import_id").references(
+      () => identityDirectoryImports.id,
+      { onDelete: "restrict" }
+    ),
+    matchedPersonRef: text("matched_person_ref"),
+    matchedPersonType: text("matched_person_type"),
+    expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+    codeSentAt: timestamp("code_sent_at", { withTimezone: true }),
+    verifiedAt: timestamp("verified_at", { withTimezone: true }),
+    consumedAt: timestamp("consumed_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    index("identity_device_challenges_scope_status_idx").on(
+      table.institutionId,
+      table.status,
+      table.expiresAt
+    ),
+    index("identity_device_challenges_device_idx").on(
+      table.institutionId,
+      table.deviceKeyHash,
+      table.createdAt
+    ),
+    index("identity_device_challenges_contact_idx").on(
+      table.institutionId,
+      table.contactHash,
+      table.createdAt
+    ),
+  ]
+);
+
+export const identityDeviceSessions = pgTable(
+  "identity_device_sessions",
+  {
+    id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+    institutionId: uuid("institution_id")
+      .notNull()
+      .references(() => institutions.id, { onDelete: "cascade" }),
+    sourceImportId: uuid("source_import_id")
+      .notNull()
+      .references(() => identityDirectoryImports.id, { onDelete: "restrict" }),
+    personRef: text("person_ref").notNull(),
+    personType: text("person_type").notNull(),
+    sessionHash: text("session_hash").notNull().unique(),
+    assuranceLevel: text("assurance_level").notNull().default("directory_email_otp"),
+    persistent: boolean("persistent").notNull().default(false),
+    verifiedAt: timestamp("verified_at", { withTimezone: true }).notNull(),
+    lastUsedAt: timestamp("last_used_at", { withTimezone: true }).notNull().defaultNow(),
+    expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+    absoluteExpiresAt: timestamp("absolute_expires_at", { withTimezone: true }).notNull(),
+    revokedAt: timestamp("revoked_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    index("identity_device_sessions_active_idx").on(
+      table.institutionId,
+      table.sessionHash,
+      table.expiresAt
+    ),
+    index("identity_device_sessions_person_idx").on(
+      table.institutionId,
+      table.sourceImportId,
+      table.personRef,
+      table.personType,
+      table.expiresAt
     ),
   ]
 );

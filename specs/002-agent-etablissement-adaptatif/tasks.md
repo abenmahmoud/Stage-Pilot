@@ -192,6 +192,12 @@
   adresses partagées, code de dix minutes et cinq essais, session d'identité
   `HttpOnly` révocable, oubli immédiat et repli formulaire. Tester uniquement sur
   répertoire fictif avant toute autorisation d'import ou d'envoi réel.
+  L'implémentation locale fermée par deux drapeaux est prête : schéma serveur,
+  recherche chiffrée, code, session, oubli, limites et lecture de l'emploi du
+  temps propre. Les tests statiques et fonctionnels fictifs passent. La tâche
+  reste ouverte jusqu'au rejeu PostgreSQL local de la 94e migration, à une
+  livraison d'email fictive durable avec reprise, puis à la recette complète du
+  worker sur un répertoire synthétique. Aucune donnée réelle n'est activée.
 - [x] T010C Définir les liens élève-responsable, personnel-service et classe-groupe,
   puis tester qu'un compte ne consulte jamais les données d'un autre foyer.
 - [x] T011 Implémenter le parseur et le validateur du format de compétence.
@@ -413,6 +419,10 @@
   liée à la langue attendue, textes et avertissements bornés, reçu signé de
   courte durée et validation serveur puis navigateur avant affichage. La
   comparaison et l'autorisation humaines restent obligatoires avant envoi.
+- [x] T023H Formaliser la méthode d'évolution de l'agent à partir des éléments
+  utiles du document métier fourni : connaissances versionnées, règles stables,
+  outils limités et scénarios de test. Le répertoire brut, les recherches libres
+  par nom et les codes d'accès restent hors contexte IA et hors apprentissage.
 - [x] T024A Autoriser le contexte public à tous, le contexte interne uniquement
   aux agents de rôle habilité avec I3 ou I4 dans le service de la source, et interdire l'injection directe des
   classifications personnelles ou sensibles, même pour un administrateur.

@@ -26,6 +26,7 @@ const prototype = readFileSync(new URL("../src/pages/prototype/LyceeConnectProto
 const migration = [
   "../supabase/migrations/20260829205947_add_multidimensional_support_rate_limits.sql",
   "../supabase/migrations/20260830190000_add_attachment_download_rate_limits.sql",
+  "../supabase/migrations/20260902210908_create_identity_device_access.sql",
 ].map((path) => readFileSync(new URL(path, import.meta.url), "utf8")).join("\n");
 const globalMigration = readdirSync(new URL("../supabase/migrations/", import.meta.url))
   .find((name) => name.endsWith("_add_global_assistant_traffic_guard.sql"));

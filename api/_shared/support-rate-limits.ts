@@ -229,3 +229,41 @@ export async function enforceAgentWriteRateLimit(userId: string): Promise<void> 
     personalHash(`agent-write:${userId}`)
   );
 }
+
+export async function enforceIdentityOtpRequestLimits(input: {
+  req: VercelRequest;
+  institutionId: string;
+  deviceId: string;
+  email: string;
+}): Promise<void> {
+  const deviceKey = personalHash(
+    `identity-otp-device:${input.institutionId}:${input.deviceId}`
+  );
+  const contactKey = personalHash(
+    `identity-otp-contact:${input.institutionId}:${input.email}`
+  );
+  const attempts: SupportRateLimitAttempt[] = [
+    { ...SUPPORT_RATE_LIMIT_POLICIES.identityOtpDeviceBurst, keyHash: deviceKey },
+    { ...SUPPORT_RATE_LIMIT_POLICIES.identityOtpDeviceDaily, keyHash: deviceKey },
+    { ...SUPPORT_RATE_LIMIT_POLICIES.identityOtpContactBurst, keyHash: contactKey },
+    { ...SUPPORT_RATE_LIMIT_POLICIES.identityOtpContactDaily, keyHash: contactKey },
+  ];
+  const networkKey = requestIpHash(input.req);
+  if (networkKey) {
+    attempts.push({
+      ...SUPPORT_RATE_LIMIT_POLICIES.identityOtpNetwork,
+      keyHash: personalHash(`identity-otp-network:${input.institutionId}:${networkKey}`),
+    });
+  }
+  await enforceSupportRateLimits(attempts);
+}
+
+export async function enforceIdentityOtpVerificationLimit(input: {
+  institutionId: string;
+  deviceId: string;
+}): Promise<void> {
+  await enforce(
+    SUPPORT_RATE_LIMIT_POLICIES.identityOtpVerifyDevice,
+    personalHash(`identity-otp-verify:${input.institutionId}:${input.deviceId}`)
+  );
+}

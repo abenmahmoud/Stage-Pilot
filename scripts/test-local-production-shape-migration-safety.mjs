@@ -41,7 +41,7 @@ assert.doesNotMatch(fixture, /2026-2027/u);
 assert.doesNotMatch(fixture, /@ac-creteil\.fr|@gmail\.com|0932048W/u);
 assert.doesNotMatch(fixture, /Blaise Cendrars|Sevran|VER-EECKE/u);
 
-assert.match(assertions, /migration_count <> 93/u);
+assert.match(assertions, /migration_count <> 94/u);
 assert.match(assertions, /actual_count <> 1159/u);
 assert.match(assertions, /Fixture contains a non-example email/u);
 assert.match(assertions, /Fixture contains a non-synthetic legacy access code/u);

@@ -9,6 +9,7 @@ import {
 } from "../../db/schema.js";
 import type { ScheduleReadResult } from "../../shared/schedule-policy.js";
 import { HttpError, requireUser } from "./auth.js";
+import { readIdentityDeviceSession } from "./identity-device-access.js";
 import { requireConfiguredInstitution } from "./institution-context.js";
 import {
   readNextCourseFromPrivateSchedule,
@@ -65,49 +66,70 @@ export async function resolveVerifiedScheduleScope(
   req: VercelRequest,
   targetPersonRef?: string
 ): Promise<TrustedScheduleScope> {
-  const user = await requireUser(req);
   const institution = await requireConfiguredInstitution();
   const now = new Date();
   const today = now.toISOString().slice(0, 10);
   const requestedRef = targetPersonRef === undefined ? undefined : trustedPersonRef(targetPersonRef);
+  const deviceIdentity = await readIdentityDeviceSession(req);
+  const user = deviceIdentity ? null : await requireUser(req);
 
   return db.transaction(async (tx): Promise<TrustedScheduleScope> => {
-    const identities = await tx
-      .select({
-        id: schoolIdentities.id,
-        sourceImportId: schoolIdentities.sourceImportId,
-        personType: schoolIdentities.personType,
-        officialPersonRef: schoolIdentities.officialPersonRef,
-        assuranceLevel: schoolIdentities.assuranceLevel,
-        verifiedBy: schoolIdentities.verifiedBy,
-        verifiedAt: schoolIdentities.verifiedAt,
-      })
-      .from(schoolIdentities)
-      .innerJoin(identityDirectoryImports, and(
-        eq(identityDirectoryImports.id, schoolIdentities.sourceImportId),
-        eq(identityDirectoryImports.institutionId, schoolIdentities.institutionId)
-      ))
-      .where(and(
-        eq(schoolIdentities.institutionId, institution.id),
-        eq(schoolIdentities.userId, user.id),
-        isNull(schoolIdentities.revokedAt),
-        eq(identityDirectoryImports.status, "active")
-      ))
-      .limit(2);
-    const identity = identities[0];
+    let identity: {
+      id: string | null;
+      sourceImportId: string;
+      personType: string;
+      officialPersonRef: string;
+      assuranceLevel: string;
+    };
+    if (deviceIdentity) {
+      identity = {
+        id: null,
+        sourceImportId: deviceIdentity.sourceImportId,
+        personType: deviceIdentity.personType,
+        officialPersonRef: deviceIdentity.personRef,
+        assuranceLevel: deviceIdentity.assuranceLevel,
+      };
+    } else {
+      const identities = await tx
+        .select({
+          id: schoolIdentities.id,
+          sourceImportId: schoolIdentities.sourceImportId,
+          personType: schoolIdentities.personType,
+          officialPersonRef: schoolIdentities.officialPersonRef,
+          assuranceLevel: schoolIdentities.assuranceLevel,
+          verifiedBy: schoolIdentities.verifiedBy,
+          verifiedAt: schoolIdentities.verifiedAt,
+        })
+        .from(schoolIdentities)
+        .innerJoin(identityDirectoryImports, and(
+          eq(identityDirectoryImports.id, schoolIdentities.sourceImportId),
+          eq(identityDirectoryImports.institutionId, schoolIdentities.institutionId)
+        ))
+        .where(and(
+          eq(schoolIdentities.institutionId, institution.id),
+          eq(schoolIdentities.userId, user!.id),
+          isNull(schoolIdentities.revokedAt),
+          eq(identityDirectoryImports.status, "active")
+        ))
+        .limit(2);
+      const accountIdentity = identities[0];
+      if (
+        identities.length !== 1
+        || !["directory_matched", "official_sso"].includes(accountIdentity.assuranceLevel)
+        || (accountIdentity.assuranceLevel === "directory_matched" && !accountIdentity.verifiedBy)
+        || !accountIdentity.verifiedAt
+        || !Number.isFinite(accountIdentity.verifiedAt.getTime())
+        || accountIdentity.verifiedAt > now
+      ) {
+        throw new HttpError(403, IDENTITY_REQUIRED);
+      }
+      identity = accountIdentity;
+    }
     if (
-      identities.length !== 1
-      || !["directory_matched", "official_sso"].includes(identity.assuranceLevel)
-      || (identity.assuranceLevel === "directory_matched" && !identity.verifiedBy)
-      || !identity.verifiedAt
-      || !Number.isFinite(identity.verifiedAt.getTime())
-      || identity.verifiedAt > now
-      || !["student", "guardian", "staff"].includes(identity.personType)
+      !["student", "guardian", "staff"].includes(identity.personType)
       || !PERSON_REF.test(identity.officialPersonRef)
       || identity.officialPersonRef.trim() !== identity.officialPersonRef
-    ) {
-      throw new HttpError(403, IDENTITY_REQUIRED);
-    }
+    ) throw new HttpError(403, IDENTITY_REQUIRED);
 
     const ownRef = identity.officialPersonRef;
     const targetRef = requestedRef ?? ownRef;
@@ -116,25 +138,46 @@ export async function resolveVerifiedScheduleScope(
     if (ownPerson.personType !== identity.personType) throw new HttpError(403, IDENTITY_REQUIRED);
     let targetPerson = ownPerson;
     if (targetRef !== ownRef) {
-      const [relationship] = await tx
-        .select({ id: schoolRelationships.id })
-        .from(schoolRelationships)
-        .innerJoin(identityDirectoryImports, and(
-          eq(identityDirectoryImports.id, schoolRelationships.sourceImportId),
-          eq(identityDirectoryImports.institutionId, schoolRelationships.institutionId)
-        ))
-        .where(and(
-          eq(schoolRelationships.institutionId, institution.id),
-          eq(schoolRelationships.sourceImportId, identity.sourceImportId),
-          eq(schoolRelationships.subjectIdentityId, identity.id),
-          eq(schoolRelationships.objectPersonRef, targetRef),
-          eq(schoolRelationships.relationshipType, "guardian_of"),
-          eq(schoolRelationships.status, "active"),
-          lte(schoolRelationships.validFrom, today),
-          or(isNull(schoolRelationships.validUntil), gte(schoolRelationships.validUntil, today)),
-          eq(identityDirectoryImports.status, "active")
-        ))
-        .limit(1);
+      const [relationship] = identity.id
+        ? await tx
+            .select({ id: schoolRelationships.id })
+            .from(schoolRelationships)
+            .innerJoin(identityDirectoryImports, and(
+              eq(identityDirectoryImports.id, schoolRelationships.sourceImportId),
+              eq(identityDirectoryImports.institutionId, schoolRelationships.institutionId)
+            ))
+            .where(and(
+              eq(schoolRelationships.institutionId, institution.id),
+              eq(schoolRelationships.sourceImportId, identity.sourceImportId),
+              eq(schoolRelationships.subjectIdentityId, identity.id),
+              eq(schoolRelationships.objectPersonRef, targetRef),
+              eq(schoolRelationships.relationshipType, "guardian_of"),
+              eq(schoolRelationships.status, "active"),
+              lte(schoolRelationships.validFrom, today),
+              or(isNull(schoolRelationships.validUntil), gte(schoolRelationships.validUntil, today)),
+              eq(identityDirectoryImports.status, "active")
+            ))
+            .limit(1)
+        : await tx
+            .select({ id: identityDirectoryRows.id })
+            .from(identityDirectoryRows)
+            .innerJoin(identityDirectoryImports, and(
+              eq(identityDirectoryImports.id, identityDirectoryRows.importId),
+              eq(identityDirectoryImports.institutionId, identityDirectoryRows.institutionId)
+            ))
+            .where(and(
+              eq(identityDirectoryRows.institutionId, institution.id),
+              eq(identityDirectoryRows.importId, identity.sourceImportId),
+              eq(identityDirectoryRows.recordType, "relationship"),
+              eq(identityDirectoryRows.subjectPersonRef, ownRef),
+              eq(identityDirectoryRows.objectRef, targetRef),
+              eq(identityDirectoryRows.relationshipType, "guardian_of"),
+              eq(identityDirectoryRows.validationStatus, "valid"),
+              lte(identityDirectoryRows.validFrom, today),
+              or(isNull(identityDirectoryRows.validUntil), gte(identityDirectoryRows.validUntil, today)),
+              eq(identityDirectoryImports.status, "active")
+            ))
+            .limit(1);
       if (!relationship) {
         throw new HttpError(403, IDENTITY_REQUIRED);
       }

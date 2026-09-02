@@ -48,16 +48,24 @@ function requestPayload(value, row) {
   if (!value || typeof value !== "object" || Array.isArray(value) || value.schema !== 1) {
     throw new Error("lookup_request_invalid");
   }
+  const actorContext = row.actor_id ?? row.public_actor_id;
   for (const [field, expected] of [
     ["requestId", row.id],
     ["institutionId", row.institution_id],
-    ["actorId", row.actor_id],
+    ["actorId", actorContext],
     ["searchType", row.search_type],
     ["reasonCategory", row.reason_category],
   ]) {
     if (value[field] !== expected) throw new Error("lookup_request_context_mismatch");
   }
-  if (!["academic_email", "personal_email", "phone", "person_ref"].includes(value.searchType)) {
+  if (!["academic_email", "personal_email", "email", "phone", "person_ref"].includes(value.searchType)) {
+    throw new Error("lookup_request_invalid");
+  }
+  const publicSelfService = row.actor_id === null && row.public_actor_id !== null;
+  if (
+    (publicSelfService && (value.searchType !== "email" || value.reasonCategory !== "identity_verification"))
+    || (!publicSelfService && value.searchType === "email")
+  ) {
     throw new Error("lookup_request_invalid");
   }
   if (typeof value.justification !== "string" || value.justification.length < 20 || value.justification.length > 500) {
@@ -81,6 +89,12 @@ function requestPayload(value, row) {
 function lookupFactor(searchType, query) {
   if (searchType === "person_ref") return { column: "person_ref", value: normalizeRef(query) };
   const normalized = searchType === "phone" ? normalizePhone(query) : normalizeEmail(query);
+  if (searchType === "email") {
+    return {
+      columns: ["academic_email_hash", "personal_email_hash"],
+      value: createHmac("sha256", contactPepper).update(normalized).digest("hex"),
+    };
+  }
   const column = searchType === "academic_email"
     ? "academic_email_hash"
     : searchType === "personal_email"
@@ -94,6 +108,9 @@ function lookupFactor(searchType, query) {
 
 async function findMatches(row, payload) {
   const factor = lookupFactor(payload.searchType, payload.query);
+  const factorPredicate = factor.columns
+    ? sql`(${sql(factor.columns[0])} = ${factor.value} or ${sql(factor.columns[1])} = ${factor.value})`
+    : sql`${sql(factor.column)} = ${factor.value}`;
   return sql`
     select r.person_ref, r.person_type, r.class_ref, r.service_code,
            i.id as import_id, i.activated_at,
@@ -110,7 +127,7 @@ async function findMatches(row, payload) {
       and r.validation_status in ('valid', 'warning')
       and (r.valid_from is null or r.valid_from <= current_date)
       and (r.valid_until is null or r.valid_until >= current_date)
-      and ${sql(factor.column)} = ${factor.value}
+      and ${factorPredicate}
     order by r.row_number
     limit 2
   `;
@@ -132,7 +149,7 @@ async function finalize(row, status, options = {}) {
           error_code = ${options.errorCode ?? null}, completed_at = now()
       where id = ${row.id} and institution_id = ${row.institution_id}
         and status in ('queued', 'processing')
-      returning actor_id, search_type
+      returning actor_id, public_actor_id, search_type
     `;
     if (updated) {
       await transaction`
@@ -143,6 +160,7 @@ async function finalize(row, status, options = {}) {
           ${updated.actor_id}, ${transaction.json({
             status,
             searchType: updated.search_type,
+            publicSelfService: updated.public_actor_id !== null,
             resultCount: options.resultCount ?? 0,
             matchedImportId: options.matchedImportId ?? null,
           })}
@@ -211,7 +229,7 @@ async function processMessage(message) {
     },
     requestId: row.id,
     institutionId: row.institution_id,
-    actorId: row.actor_id,
+    actorId: row.actor_id ?? row.public_actor_id,
     privateKey: lookupConfig.privateKey,
   });
   const payload = requestPayload(decrypted, row);
@@ -249,7 +267,7 @@ async function processMessage(message) {
     responseKey: payload.responseKey,
     requestId: row.id,
     institutionId: row.institution_id,
-    actorId: row.actor_id,
+    actorId: row.actor_id ?? row.public_actor_id,
   });
   return finalize(row, "completed", {
     resultCount: 1,
@@ -261,7 +279,7 @@ async function processMessage(message) {
 async function expireStaleRequests() {
   await sql.begin(async (transaction) => {
     const stale = await transaction`
-      select id, institution_id, actor_id, status
+      select id, institution_id, actor_id, public_actor_id, status
       from public.identity_directory_lookup_requests
       where expires_at <= now()
         and status in ('queued', 'processing', 'completed')
@@ -309,7 +327,7 @@ async function main() {
         const institutionId = message.message?.institution_id;
         if (typeof requestId === "string" && typeof institutionId === "string") {
           await finalize(
-            { id: requestId, institution_id: institutionId, actor_id: null, search_type: "unknown", msg_id: message.msg_id },
+            { id: requestId, institution_id: institutionId, actor_id: null, public_actor_id: null, search_type: "unknown", msg_id: message.msg_id },
             "failed",
             { resultCount: 0, errorCode: "lookup_worker_failed" }
           );

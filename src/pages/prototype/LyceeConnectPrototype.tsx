@@ -167,6 +167,8 @@ const SUPPORT_ACCESS_CODE_ENABLED =
 const SUPPORT_ACCESS_RECOVERY_ENABLED =
   SUPPORT_API_ENABLED && import.meta.env.VITE_SUPPORT_ACCESS_RECOVERY_ENABLED === "true";
 const AI_ASSISTANT_ENABLED = import.meta.env.VITE_AI_ASSISTANT_ENABLED !== "false";
+const IDENTITY_DEVICE_ACCESS_ENABLED =
+  SUPPORT_API_ENABLED && import.meta.env.VITE_IDENTITY_DEVICE_ACCESS_ENABLED === "true";
 const LYCEEGEST_URL = "/login";
 const ENT_URL = "https://ent.iledefrance.fr/auth/login";
 const SCOLARITE_SERVICES_URL = "https://www.education.gouv.fr/scolarite-services-un-acces-unique-pour-toutes-les-demarches-scolaires-326158";
@@ -1268,6 +1270,147 @@ function localAssistantFallback(messages: AssistantChatMessage[], files: File[])
   };
 }
 
+type IdentityDeviceUiState = "checking" | "anonymous" | "awaiting_code" | "verified";
+
+function IdentityDeviceAccessPanel() {
+  const [state, setState] = useState<IdentityDeviceUiState>("checking");
+  const [email, setEmail] = useState("");
+  const [code, setCode] = useState("");
+  const [rememberDevice, setRememberDevice] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [personType, setPersonType] = useState<string | null>(null);
+  const deviceId = useRef(supportAssistantSessionId());
+
+  useEffect(() => {
+    let active = true;
+    void fetch("/api/identity/device/session", { credentials: "include" })
+      .then((response) => readJsonApiResponse<Record<string, unknown>>(response, { maxBytes: 16 * 1024 }))
+      .then((payload) => {
+        if (!active) return;
+        if (payload.status === "verified") {
+          setPersonType(typeof payload.personType === "string" ? payload.personType : null);
+          setState("verified");
+        } else {
+          setState("anonymous");
+        }
+      })
+      .catch(() => { if (active) setState("anonymous"); });
+    return () => { active = false; };
+  }, []);
+
+  useEffect(() => {
+    if (state !== "awaiting_code") return;
+    let active = true;
+    let attempts = 0;
+    const poll = () => {
+      if (!active || attempts >= 40) return;
+      attempts += 1;
+      void fetch("/api/identity/device/status", {
+        method: "POST",
+        credentials: "include",
+      }).catch(() => undefined);
+    };
+    poll();
+    const timer = window.setInterval(poll, 3_000);
+    return () => { active = false; window.clearInterval(timer); };
+  }, [state]);
+
+  async function requestCode(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setBusy(true);
+    setError(null);
+    try {
+      const response = await fetch("/api/identity/device/request", {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, deviceId: deviceId.current, rememberDevice }),
+      });
+      const payload = await readJsonApiResponse<Record<string, unknown>>(response, { maxBytes: 16 * 1024 });
+      if (!response.ok || payload.status !== "ready") throw new Error("request_failed");
+      setState("awaiting_code");
+    } catch {
+      setError("La vérification est indisponible. Vous pouvez continuer avec le formulaire.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function verifyCode(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setBusy(true);
+    setError(null);
+    try {
+      const response = await fetch("/api/identity/device/verify", {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code }),
+      });
+      const payload = await readJsonApiResponse<Record<string, unknown>>(response, { maxBytes: 16 * 1024 });
+      if (!response.ok || payload.status !== "verified") throw new Error("verify_failed");
+      setPersonType(typeof payload.personType === "string" ? payload.personType : null);
+      setCode("");
+      setState("verified");
+    } catch {
+      setError("Ce code est invalide ou expiré. Vérifiez l’email reçu ou recommencez.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function forgetIdentity() {
+    setBusy(true);
+    await fetch("/api/identity/device/session", { method: "DELETE", credentials: "include" })
+      .catch(() => undefined);
+    setEmail("");
+    setCode("");
+    setPersonType(null);
+    setError(null);
+    setState("anonymous");
+    setBusy(false);
+  }
+
+  if (state === "checking") {
+    return <section className="lycee-identity-device" aria-label="Vérification de l’identité"><RefreshCw className="is-spinning" aria-hidden="true" /><p>Vérification de cet appareil…</p></section>;
+  }
+  if (state === "verified") {
+    const profileLabel = personType === "student" ? "Élève" : personType === "guardian" ? "Parent ou responsable" : personType === "staff" ? "Personnel du lycée" : "Identité reconnue";
+    return (
+      <section className="lycee-identity-device is-verified" aria-label="Identité vérifiée">
+        <BadgeCheck aria-hidden="true" />
+        <div><strong>Appareil reconnu</strong><p>{profileLabel}. L’assistant peut utiliser les services autorisés pour votre propre situation.</p></div>
+        <button type="button" disabled={busy} onClick={() => void forgetIdentity()}>Oublier mon identité</button>
+      </section>
+    );
+  }
+  return (
+    <section className="lycee-identity-device" aria-labelledby="identity-device-title">
+      <KeyRound aria-hidden="true" />
+      <div className="lycee-identity-device-copy">
+        <strong id="identity-device-title">Accéder à mes informations</strong>
+        <p>Utilisez une adresse déjà connue du lycée. Aucun mot de passe n’est demandé.</p>
+      </div>
+      {state === "anonymous" ? (
+        <form onSubmit={requestCode}>
+          <input type="email" autoComplete="email" value={email} onChange={(event) => setEmail(event.target.value)} placeholder="Votre adresse email" aria-label="Adresse email connue du lycée" required />
+          <label><input type="checkbox" checked={rememberDevice} onChange={(event) => setRememberDevice(event.target.checked)} /> Appareil personnel</label>
+          <button type="submit" disabled={busy}>{busy ? "Vérification…" : "Recevoir un code"}</button>
+        </form>
+      ) : (
+        <form onSubmit={verifyCode}>
+          <span>Si l’adresse peut être utilisée, un code vient d’être envoyé.</span>
+          <input inputMode="numeric" autoComplete="one-time-code" pattern="[0-9]{6}" maxLength={6} value={code} onChange={(event) => setCode(event.target.value.replace(/\D/g, "").slice(0, 6))} placeholder="Code à 6 chiffres" aria-label="Code de vérification à six chiffres" required />
+          <button type="submit" disabled={busy || code.length !== 6}>{busy ? "Contrôle…" : "Vérifier"}</button>
+          <button type="button" disabled={busy} onClick={() => { setState("anonymous"); setCode(""); setError(null); }}>Recommencer</button>
+        </form>
+      )}
+      {error ? <p className="lycee-identity-device-error" role="alert">{error}</p> : null}
+    </section>
+  );
+}
+
 function HelpDeskView({
   initialMessage,
   initialClassicForm,
@@ -1753,6 +1896,8 @@ function HelpDeskView({
           : "Écrivez avec vos mots, dans la langue qui vous convient. Vous pourrez enregistrer la demande et suivre la réponse."}
         onBack={onBack}
       />
+
+      {IDENTITY_DEVICE_ACCESS_ENABLED && !initialContactCollection ? <IdentityDeviceAccessPanel /> : null}
 
       <div className={`lycee-guided-chat${initialContactCollection ? " is-contact-collection" : ""}`}>
         {!initialContactCollection ? (
