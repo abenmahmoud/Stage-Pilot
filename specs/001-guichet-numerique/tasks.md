@@ -375,6 +375,12 @@ voir sa réponse dans le dossier. L'agent traite tout depuis une seule file.
   28 août ; ses journaux confirment PostgreSQL `42P01` sur
   `site_content_items`. La preview `fe7500e` répond `200` avec le contrat vide
   valide. Aucune variable, migration, base, promotion ou alias n'a été modifié.
+- [x] **T040A2** Préparer sans l'exécuter le paquet de promotion réversible :
+  inventaire des déploiements, 22 migrations présentes au commit public contre
+  93 dans la branche courante, état SQL réel à relever, sauvegarde restaurée,
+  répétition isolée, compatibilité de l'ancien code, promotion d'un SHA figé et
+  retour du code sans migration descendante. T040A reste ouverte pour les
+  autorisations, la répétition sur sauvegarde et l'exécution contrôlée.
 
 ### Sortie Jour 3
 

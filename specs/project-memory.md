@@ -5,6 +5,27 @@
 **Depot** : `abenmahmoud/Stage-Pilot`
 **Dernier jalon de code verifie** : branche de preview Vercel
 
+## Jalon du 2 septembre 2026 - promotion LyceeGest préparée sans exécution
+
+- Le domaine public reste sur `dpl_41augagG39fL5gMXcud3WrWiZfQH`, commit
+  `a9cf32e`. Le dernier jalon de branche vérifié avant ce paquet, `5ab5cf6`, est
+  `READY` sur `dpl_vmaKR2AbfpVoSs7kBLmi6ys3TKA1` avec `target=null` ; il ne
+  devient pas pour autant le candidat automatique d'une future promotion.
+- Le commit public contient 22 fichiers de migration et la branche courante 93.
+  La table éditoriale reste pourtant absente de la base publique : l'historique
+  Git ne doit jamais être pris comme preuve des migrations réellement appliquées.
+- Le paquet impose un inventaire SQL en lecture seule, une sauvegarde restaurée,
+  la répétition des versions manquantes sur une cible isolée et le test de
+  l'ancien puis du nouveau code contre le schéma final.
+- Le retour prévu réaffecte le code ancien seulement si le schéma répété est
+  compatible. Aucune migration descendante ni restauration directe sur la base
+  active n'est autorisée.
+- `001/T040A2` est terminée ; `T040A` et `T040` restent ouvertes. Spec Kit compte
+  567 tâches : 473 terminées et 94 ouvertes. Production, alias, base, DNS,
+  Hostinger, VPS et Webmail sont inchangés.
+  Rapport :
+  `docs/operations/LYCEEGEST_PRODUCTION_PROMOTION_READINESS_2026-09-02.md`.
+
 ## Jalon du 2 septembre 2026 - relations d'identité cloisonnées
 
 - Les liens responsable-élève utilisent `guardian_of` avec établissement,
