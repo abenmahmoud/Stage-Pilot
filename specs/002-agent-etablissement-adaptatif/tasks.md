@@ -57,6 +57,12 @@
   relations pour éprouver le volume envisagé : 1 200 élèves, 2 600 responsables
   avec plusieurs responsables possibles par élève, et 200 personnels. Aucun
   nom, contact, établissement ou identifiant réel n'entre dans Git ou dans l'IA.
+- [x] T010B2A1C Ajouter un convertisseur local borné pour l'export ENT/SIECLE :
+  chemins limités au dossier privé, références opaques stables par HMAC avec clé
+  protégée par le compte Windows, exclusion des mots de passe, codes de première
+  connexion et dates de naissance, sortie inactive et rapport uniquement
+  agrégé. Une archive fictive vérifie treize invariants ; la copie locale
+  normalisée passe le parseur officiel sans rejet et ne quitte pas le poste.
 - [x] T010B2A2 Fermer les contrats d'administration du répertoire privé : corps
   de réservation et de décision à champs exacts, listes, reçus de dépôt,
   rapports et confirmations minimaux validés côté API puis navigateur avant

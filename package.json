@@ -217,6 +217,7 @@
     "test:preview-knowledge-document-worker": "node scripts/test-preview-knowledge-document-worker.mjs",
     "test:identity-access": "node --import ./scripts/ts-test-resolver.mjs --experimental-strip-types scripts/test-identity-access-policy.mjs",
     "test:identity-directory": "node --experimental-strip-types scripts/test-identity-directory-ingestion.mjs",
+    "test:private-ent-directory-preparation": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/test-prepare-private-ent-directory.ps1",
     "test:identity-directory-parser": "node scripts/test-identity-directory-parser.mjs",
     "test:identity-directory-worker": "node scripts/test-identity-directory-worker.mjs",
     "test:identity-directory-vault": "node scripts/test-identity-directory-vault.mjs",
