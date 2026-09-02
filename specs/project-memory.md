@@ -29,6 +29,8 @@
   fourni de serveur exploitable pendant ce lot : la migration 94 n'est donc pas
   encore rejouée sur PostgreSQL. Aucun déploiement, import, email ou changement
   distant n'a été effectué ; `002/T010B4B` reste ouverte.
+- Passation autonome :
+  `docs/operations/CLAUDE_HANDOFF_IDENTITY_DEVICE_2026-09-02.md`.
 
 ## Jalon du 2 septembre 2026 - validation, suivi lisible et connexion agent
 
