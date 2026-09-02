@@ -125,6 +125,17 @@ test("keeps appointment requests in human administrative triage", () => {
   assert.equal(route.priority, "p3");
 });
 
+test("routes a question for the headteacher to the direction queue", () => {
+  const route = routeSupportRequest({
+    category: "autre",
+    description: "Je souhaite demander le nom de la proviseure à la direction du lycée",
+  });
+  assert.equal(route.service, "direction");
+  assert.equal(route.confidence, "medium");
+  assert.equal(route.reason, "direction_ou_situation_transverse");
+  assert.equal(route.priority, "p3");
+});
+
 test("routes absences and student life to the CPE queue", () => {
   const route = routeSupportRequest({
     category: "affectation_classe",

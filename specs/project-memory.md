@@ -5,6 +5,23 @@
 **Depot** : `abenmahmoud/Stage-Pilot`
 **Dernier jalon de code verifie** : branche de preview Vercel
 
+## Jalon du 2 septembre 2026 - consentement conversationnel vers une demande
+
+- Un automate partagé distingue désormais proposition, acceptation explicite,
+  refus et poursuite du dialogue. Les réponses courtes comme `oui`, `d'accord`
+  ou `vas-y` ne sont interprétées que lorsqu'elles suivent une proposition de
+  demande contrôlée ; un `oui` isolé ne déclenche aucune action.
+- Après acceptation, l'assistant n'appelle ni modèle ni registre, précise que la
+  demande n'est pas encore envoyée et ouvre le formulaire de vérification. Seul
+  le reçu serveur avec numéro `BC-...` confirme ensuite l'enregistrement.
+- Le scénario observé sur le nom de la proviseure est rejoué jusqu'au moteur
+  serveur, routé vers la Direction et protégé par des tests d'interface. Le refus
+  conserve explicitement zéro envoi.
+- Les tests de politique, orchestration, routage, contrats d'entrée et de sortie,
+  interface ainsi que le build passent. Aucune donnée réelle, demande, IA ou
+  mutation distante n'a été utilisée. `002/T027E` est terminée ; la recette
+  navigateur fictive sur la preview reste à faire après déploiement.
+
 ## Jalon du 2 septembre 2026 - journaux publics Node 24 corriges
 
 - Le getter `req.query` du runtime Vercel declenchait `DEP0169` sur

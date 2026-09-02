@@ -12,3 +12,12 @@ test("refreshes the staff session before loading the agent queue", () => {
   assert.match(source, /if \(!sessionReady\) return;/);
   assert.match(source, /serviceFilter, sessionReady/);
 });
+
+test("opens the verified request form after explicit assistant consent", () => {
+  assert.match(source, /resolveAssistantConversationTransition\(nextMessages\)/);
+  assert.match(source, /transition\.stage === "action_confirmed"/);
+  assert.match(source, /result\.action === "offer_case"/);
+  assert.match(source, /result\.readyToCreate/);
+  assert.match(source, /setShowDetails\(true\)/);
+  assert.match(source, /caseFormRef\.current\?\.scrollIntoView/);
+});

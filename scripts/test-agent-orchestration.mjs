@@ -75,6 +75,45 @@ test("deterministic laptop triage stops knowledge and model access", async () =>
   });
 });
 
+test("an accepted request offer opens the final step without calling the model", async () => {
+  await withModelEnabled(async () => {
+    let fetchCalls = 0;
+    let knowledgeCalls = 0;
+    globalThis.fetch = async () => {
+      fetchCalls += 1;
+      throw new Error("model must not be called");
+    };
+
+    const result = await analyzeSupportConversation({
+      messages: [
+        { role: "assistant", content: "Bonjour, je suis l’assistant du lycée." },
+        { role: "requester", content: "C’est quoi le nom de la proviseure ?" },
+        {
+          role: "assistant",
+          content: "Voulez-vous que je vous aide à rédiger une demande auprès de l’accueil du lycée ?",
+        },
+        { role: "requester", content: "oui" },
+      ],
+      attachments: [],
+      safetyIdentifier: "test-orchestration-request-consent",
+      knowledgeContextLoader: async () => {
+        knowledgeCalls += 1;
+        return "forbidden";
+      },
+    });
+
+    assert.equal(result.scope, "school_support");
+    assert.equal(result.action, "offer_case");
+    assert.equal(result.readyToCreate, true);
+    assert.equal(result.category, "autre");
+    assert.match(result.reply, /n’est pas encore envoyée/);
+    assert.match(result.reply, /Envoyer au lycée/);
+    assert.equal(result.usedAi, false);
+    assert.equal(knowledgeCalls, 0);
+    assert.equal(fetchCalls, 0);
+  });
+});
+
 test("invalid structured output creates no source reference or usage audit", async () => {
   await withModelEnabled(async () => {
     let auditCalls = 0;

@@ -41,6 +41,35 @@ test("offers a dossier when an ordinary lycée request is ready", () => {
   assert.equal(action, "offer_case");
 });
 
+test("converts an accepted request offer into the final verification step", () => {
+  const policy = evaluateConversationPolicy([
+    { role: "assistant", content: "Bonjour, je suis l’assistant du lycée." },
+    { role: "requester", content: "C’est quoi le nom de la proviseure ?" },
+    {
+      role: "assistant",
+      content: "Voulez-vous que je vous aide à rédiger une demande auprès de l’accueil du lycée ?",
+    },
+    { role: "requester", content: "oui" },
+  ]);
+  assert.equal(policy.scope, "school_support");
+  assert.equal(policy.action, "offer_case");
+  assert.equal(policy.readyToCreate, true);
+  assert.match(policy.deterministicReply, /n’est pas encore envoyée/);
+  assert.match(policy.deterministicReply, /numéro de dossier/);
+});
+
+test("records a refusal without claiming that a request was sent", () => {
+  const policy = evaluateConversationPolicy([
+    { role: "assistant", content: "Bonjour, je suis l’assistant du lycée." },
+    { role: "requester", content: "Je souhaite joindre la direction." },
+    { role: "assistant", content: "Voulez-vous que je prépare une demande pour la direction ?" },
+    { role: "requester", content: "non merci" },
+  ]);
+  assert.equal(policy.action, "continue");
+  assert.equal(policy.readyToCreate, false);
+  assert.match(policy.deterministicReply, /aucune demande n’a été envoyée/);
+});
+
 test("does not turn an unknown request into a dossier automatically", () => {
   const action = resolveAssistantAction({
     policyAction: "continue",

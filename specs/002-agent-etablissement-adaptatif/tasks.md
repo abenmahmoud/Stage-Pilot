@@ -414,6 +414,11 @@
   administration, puis simplifier l'interface sans élargir les droits : retrait
   du bouton de notification inactif, priorité lisible, confirmation adaptée au
   canal choisi et suppression des termes techniques d'analyse côté public.
+- [x] T027E Formaliser la transition conversationnelle après une proposition de
+  demande : une acceptation explicite ouvre le formulaire de vérification sans
+  nouvel appel IA, un refus ne crée rien, et seul le reçu serveur avec numéro de
+  dossier confirme l'enregistrement. Le scénario réel « nom de la proviseure »
+  est couvert du moteur au routage Direction et au déclenchement de l'interface.
 - [x] T027A Ajouter le routage initial déterministe, sa justification, le niveau
   d'identité requis et le filtre de file par service dans la console agent.
 - [ ] T027B Ajouter une file `À qualifier`, les délais par service, la détection

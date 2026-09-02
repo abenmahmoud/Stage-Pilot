@@ -78,6 +78,7 @@ import {
   type AssistantPolicyAction,
   type AssistantScope,
 } from "../../../shared/assistant-policy";
+import { resolveAssistantConversationTransition } from "../../../shared/assistant-conversation-state";
 import { evaluateLaptopIntake } from "../../../shared/laptop-intake";
 import {
   prepareSupportSubmissionConversation,
@@ -1464,6 +1465,16 @@ function HelpDeskView({
         sourceReferences: result.sourceReferences,
       },
     ]);
+    const transition = resolveAssistantConversationTransition(nextMessages);
+    if (
+      transition.stage === "action_confirmed"
+      && (result.action === "offer_case" || result.action === "human_transfer")
+      && result.readyToCreate
+    ) {
+      setClassicForm(false);
+      setShowDetails(true);
+      window.requestAnimationFrame(() => caseFormRef.current?.scrollIntoView({ block: "start" }));
+    }
     setAssistantBusy(false);
   }
 

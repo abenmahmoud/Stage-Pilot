@@ -1,3 +1,5 @@
+import { resolveAssistantConversationTransition } from "./assistant-conversation-state.js";
+
 export type AssistantPolicyMessage = {
   role: "assistant" | "requester";
   content: string;
@@ -130,7 +132,7 @@ function explicitScope(content: string): AssistantScope {
   }
 
   if (
-    /\b(lycee|ent|educonnect|pronote|webmail|zimbra|email academique|mot de passe academique|inscription|reinscription|classe|affectation|emploi du temps|document|dossier|justificatif|ordinateur|pc portable|tablette|wifi|logiciel|cantine|restauration|bourse|intendance|orientation|parcoursup|formation|specialite|absence|retard|vie scolaire|cpe|stage|grand oral)\b/.test(
+    /\b(lycee|direction|proviseur|proviseure|accueil|secretariat|ent|educonnect|pronote|webmail|zimbra|email academique|mot de passe academique|inscription|reinscription|classe|affectation|emploi du temps|document|dossier|justificatif|ordinateur|pc portable|tablette|wifi|logiciel|cantine|restauration|bourse|intendance|orientation|parcoursup|formation|specialite|absence|retard|vie scolaire|cpe|stage|grand oral)\b/.test(
       text
     )
   ) {
@@ -177,6 +179,7 @@ export function evaluateConversationPolicy(
   );
   const lastScope = scopes.at(-1) ?? "unknown";
   const latestRequesterText = normalizeText(requesterMessages.at(-1)?.content ?? "");
+  const transition = resolveAssistantConversationTransition(messages);
 
   if (isAlertStatusQuestion(latestRequesterText)) {
     return {
@@ -217,6 +220,40 @@ export function evaluateConversationPolicy(
       urgency: "urgente",
       readyToCreate: true,
       safetyNotice: "Un adulte doit reprendre cette situation rapidement.",
+    };
+  }
+
+  if (transition.stage === "action_confirmed" && transition.pendingAction) {
+    const humanTransfer = transition.pendingAction === "human_transfer";
+    return {
+      scope: lastScope === "unknown" ? "school_support" : lastScope,
+      action: humanTransfer ? "human_transfer" : "offer_case",
+      turnCount,
+      remainingTurns,
+      limitReached: false,
+      deterministicReply: humanTransfer
+        ? "D’accord. La reprise par un agent humain est prête, mais elle n’est pas encore envoyée. Vérifiez vos coordonnées puis utilisez « Envoyer au lycée ». Le numéro de dossier confirmera l’enregistrement."
+        : "D’accord. Votre demande est prête, mais elle n’est pas encore envoyée. Vérifiez vos coordonnées puis utilisez « Envoyer au lycée ». Le numéro de dossier confirmera l’enregistrement.",
+      category: null,
+      urgency: humanTransfer ? "urgente" : "normale",
+      readyToCreate: true,
+      safetyNotice: "Aucune demande n’est considérée comme transmise avant la confirmation du serveur.",
+    };
+  }
+
+  if (transition.stage === "action_declined") {
+    return {
+      scope: lastScope,
+      action: "continue",
+      turnCount,
+      remainingTurns,
+      limitReached: false,
+      deterministicReply:
+        "D’accord, aucune demande n’a été envoyée. Vous pouvez continuer ici ou utiliser le formulaire quand vous le souhaitez.",
+      category: null,
+      urgency: "normale",
+      readyToCreate: false,
+      safetyNotice: null,
     };
   }
 

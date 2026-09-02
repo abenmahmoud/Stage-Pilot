@@ -11,7 +11,7 @@
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview",
     "worker:knowledge-document-purge": "node workers/knowledge-document-purge-worker.mjs",
-    "test:assistant-policy": "node --experimental-strip-types scripts/test-assistant-policy.mjs",
+    "test:assistant-policy": "node --import ./scripts/ts-test-resolver.mjs --experimental-strip-types scripts/test-assistant-conversation-state.mjs && node --import ./scripts/ts-test-resolver.mjs --experimental-strip-types scripts/test-assistant-policy.mjs",
     "test:support-agent": "node --import ./scripts/ts-test-resolver.mjs --experimental-strip-types scripts/test-support-agent.mjs",
     "test:agent-orchestration": "node --import ./scripts/ts-test-resolver.mjs --experimental-strip-types scripts/test-agent-orchestration.mjs",
     "test:agent-tool-policy": "node --import ./scripts/ts-test-resolver.mjs --experimental-strip-types scripts/test-agent-tool-policy.mjs",

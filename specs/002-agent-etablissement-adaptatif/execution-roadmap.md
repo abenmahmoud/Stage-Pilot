@@ -1202,6 +1202,17 @@ complète passent. Le déploiement final `dpl_AvkB9JZtD1AMZwHgMJKBd2QWVzi9`
 sert l'alias public sans journal `warning` ou `error` après la recette. T057
 reste ouverte pour l'exploitation externe et la restauration distante.
 
+Suite T027E : l'orchestrateur possède désormais un état conversationnel partagé
+pour une proposition de demande, son acceptation ou son refus. L'acceptation
+explicite ne rappelle ni le modèle ni le registre : elle annonce que rien n'est
+encore envoyé, ouvre le formulaire de vérification et attend la mutation serveur.
+Le refus garantit qu'aucune demande n'a été transmise. Le dialogue reproduit
+« nom de la proviseure » passe dans la politique et l'orchestrateur, puis le
+routage cible la Direction. Les tests de politique, orchestration, routage,
+contrats API, interface et le build passent sans donnée ni écriture réelle.
+T027E est terminée ; une recette navigateur sur une demande fictive reste à
+effectuer après publication sur la preview.
+
 ## Portes de validation humaine
 
 - Import de listes, emplois du temps ou pièces réelles.
