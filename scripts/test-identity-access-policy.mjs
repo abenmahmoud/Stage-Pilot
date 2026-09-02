@@ -1,6 +1,10 @@
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import test from "node:test";
-import { authorizeInstitutionAccess } from "../shared/identity-access-policy.ts";
+import {
+  authorizeIdentityRoleAction,
+  authorizeInstitutionAccess,
+} from "../shared/identity-access-policy.ts";
 
 const now = "2026-08-27T08:00:00.000Z";
 const baseActor = {
@@ -189,4 +193,39 @@ test("keeps invited or disabled memberships outside every staff area", () => {
       { ok: false, reason: "membership_required" }
     );
   }
+});
+
+test("uses one identity-role-action decision before AI context and every tool", () => {
+  const actor = {
+    institutionId: "school-a",
+    identityLevel: "I3",
+    role: "agent",
+    serviceCodes: ["numerique"],
+    relationshipConfirmed: false,
+    authenticatorLevel: "aal1",
+  };
+  const requirement = {
+    institutionId: "school-a",
+    requiredIdentity: "I3",
+    allowedRoles: ["agent"],
+    serviceCodes: ["numerique"],
+    relationshipRequired: false,
+    mfaRequired: false,
+  };
+  assert.deepEqual(authorizeIdentityRoleAction({ actor, requirement }), { ok: true });
+  assert.deepEqual(
+    authorizeIdentityRoleAction({ actor, requirement: { ...requirement, mfaRequired: true } }),
+    { ok: false, reason: "mfa_required" }
+  );
+
+  const knowledgePolicy = readFileSync(
+    new URL("../shared/public-agent-skill-policy.ts", import.meta.url),
+    "utf8"
+  );
+  const toolPolicy = readFileSync(
+    new URL("../shared/agent-tool-policy.ts", import.meta.url),
+    "utf8"
+  );
+  assert.match(knowledgePolicy, /authorizeIdentityRoleAction\(/);
+  assert.match(toolPolicy, /authorizeIdentityRoleAction\(/);
 });

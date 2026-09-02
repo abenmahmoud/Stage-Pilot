@@ -2,7 +2,10 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import test from "node:test";
 import { migrateLegacyActorLevel } from "../shared/agent-identity-policy.ts";
-import { resolveKnowledgeActor } from "../shared/knowledge-actor-policy.ts";
+import {
+  resolveKnowledgeActor,
+  resolveSchoolIdentityRole,
+} from "../shared/knowledge-actor-policy.ts";
 
 const base = {
   institutionId: "school-a",
@@ -48,6 +51,28 @@ test("requires a persisted school record for I3 and keeps the school role separa
     institutionId: "school-a",
     serviceCodes: [],
   });
+});
+
+test("accepts one current server-side school identity and fails closed otherwise", () => {
+  const identity = {
+    institutionId: "school-a",
+    sourceInstitutionId: "school-a",
+    sourceStatus: "active",
+    personType: "guardian",
+    assuranceLevel: "directory_matched",
+    verifiedBy: "staff-1",
+    verifiedAt: "2026-09-02T08:00:00.000Z",
+    revokedAt: null,
+  };
+  const input = { institutionId: "school-a", rows: [identity], now: "2026-09-02T09:00:00.000Z" };
+  assert.equal(resolveSchoolIdentityRole(input), "guardian");
+  assert.equal(resolveSchoolIdentityRole({ ...input, rows: [] }), null);
+  assert.equal(resolveSchoolIdentityRole({ ...input, rows: [identity, identity] }), null);
+  assert.equal(resolveSchoolIdentityRole({ ...input, rows: [{ ...identity, sourceStatus: "retired" }] }), null);
+  assert.equal(resolveSchoolIdentityRole({ ...input, rows: [{ ...identity, revokedAt: input.now }] }), null);
+  assert.equal(resolveSchoolIdentityRole({ ...input, rows: [{ ...identity, verifiedBy: null }] }), null);
+  assert.equal(resolveSchoolIdentityRole({ ...input, rows: [{ ...identity, verifiedAt: "2026-09-03T08:00:00.000Z" }] }), null);
+  assert.equal(resolveSchoolIdentityRole({ ...input, rows: [{ ...identity, institutionId: "school-b" }] }), null);
 });
 
 test("uses only an active same-institution staff membership and its services", () => {
@@ -124,16 +149,21 @@ test("migrates legacy labels without ever inferring I4", () => {
 test("resolves server evidence by auth id and never from conversation text", () => {
   const resolver = readFileSync(new URL("../api/_shared/knowledge-actor.ts", import.meta.url), "utf8");
   assert.match(resolver, /getUserFromRequest\(req\)/);
-  assert.match(resolver, /eq\(eleves\.authUserId, user\.id\)/);
-  assert.match(resolver, /eq\(professeurs\.authUserId, user\.id\)/);
+  assert.match(resolver, /eq\(schoolIdentities\.userId, user\.id\)/);
+  assert.match(resolver, /eq\(identityDirectoryImports\.status, "active"\)/);
+  assert.match(resolver, /isNull\(schoolIdentities\.revokedAt\)/);
+  assert.match(resolver, /resolveSchoolIdentityRole\(/);
+  assert.match(resolver, /\.limit\(2\)/);
   assert.match(resolver, /eq\(institutionMemberships\.status, "active"\)/);
   assert.match(resolver, /getAuthenticatorLevelFromRequest\(req\)/);
+  assert.doesNotMatch(resolver, /eleves|professeurs/);
   assert.doesNotMatch(resolver, /message|conversation|requesterType/);
 });
 
 test("the prototype sends the optional Supabase session through apiFetch", () => {
   const page = readFileSync(new URL("../src/pages/prototype/LyceeConnectPrototype.tsx", import.meta.url), "utf8");
-  assert.match(page, /apiFetch<AssistantApiResult>\("support\/assistant"/);
+  assert.match(page, /apiFetch<unknown>\("support\/assistant"/);
+  assert.match(page, /isAssistantApiResult\(apiResult\)/);
 });
 
 test("the assistant route resolves and forwards only server-side actor evidence", () => {

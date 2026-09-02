@@ -1,8 +1,8 @@
-import { identityAtLeast } from "./agent-identity-policy.js";
 import type {
   AgentIdentityLevel,
   AgentInstitutionRole,
 } from "./agent-identity-policy.js";
+import { authorizeIdentityRoleAction } from "./identity-access-policy.js";
 import type { KnowledgeActor } from "./skill-registry-policy.js";
 import { knowledgeQueryTokens } from "./knowledge-query.js";
 
@@ -72,11 +72,25 @@ const INTERNAL_ROLES = new Set<AgentInstitutionRole>([
 
 function classificationIsPromptSafe(
   classification: PublicAgentSkillCandidate["dataClassification"],
-  actor: KnowledgeActor
+  actor: KnowledgeActor,
+  serviceCodes: string[] = []
 ): boolean {
-  if (classification === "public") return true;
   if (classification !== "internal") return false;
-  return identityAtLeast(actor.identityLevel, "I3") && INTERNAL_ROLES.has(actor.role);
+  return authorizeIdentityRoleAction({
+    actor: {
+      ...actor,
+      relationshipConfirmed: false,
+      authenticatorLevel: actor.identityLevel === "I4" ? "aal2" : "aal1",
+    },
+    requirement: {
+      institutionId: actor.institutionId,
+      requiredIdentity: "I3",
+      allowedRoles: [...INTERNAL_ROLES],
+      serviceCodes,
+      relationshipRequired: false,
+      mfaRequired: false,
+    },
+  }).ok;
 }
 
 function sourceIsAuthorizedAndCurrent(
@@ -89,15 +103,11 @@ function sourceIsAuthorizedAndCurrent(
   return (
     source.institutionId === actor.institutionId &&
     source.status === "published" &&
-    classificationIsPromptSafe(source.classification, actor) &&
+    (source.classification === "public"
+      || classificationIsPromptSafe(source.classification, actor, source.serviceCodes)) &&
     Number.isFinite(validFrom) &&
     validFrom <= now &&
-    expiresAt >= now &&
-    (
-      source.classification === "public" ||
-      source.serviceCodes.length === 0 ||
-      source.serviceCodes.some((service) => actor.serviceCodes.includes(service))
-    )
+    expiresAt >= now
   );
 }
 
@@ -113,7 +123,8 @@ function skillIsAuthorizedAndCurrent(
     candidate.enabled &&
     candidate.activeVersionId === candidate.versionId &&
     candidate.versionStatus === "published" &&
-    classificationIsPromptSafe(candidate.dataClassification, actor) &&
+    (candidate.dataClassification === "public"
+      || classificationIsPromptSafe(candidate.dataClassification, actor)) &&
     candidate.publishedAt !== null &&
     timestamp(candidate.publishedAt) <= now &&
     timestamp(candidate.reviewDueAt) > now &&

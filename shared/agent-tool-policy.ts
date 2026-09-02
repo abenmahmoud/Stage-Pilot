@@ -1,6 +1,6 @@
 import { createHash } from "node:crypto";
-import { identityAtLeast } from "./agent-identity-policy.js";
 import type { AgentIdentityLevel } from "./agent-identity-policy.js";
+import { authorizeIdentityRoleAction } from "./identity-access-policy.js";
 
 export type { AgentIdentityLevel } from "./agent-identity-policy.js";
 export type AgentActionAuthority = "A0" | "A1" | "A2" | "A3" | "A4";
@@ -238,10 +238,7 @@ export function authorizeAgentToolInvocation(input: {
   if (!input.skill.allowedTools.includes(input.tool.key)) {
     return { ok: false, status: "refused", reason: "tool_not_granted" };
   }
-  if (
-    input.actor.institutionId !== input.skill.institutionId ||
-    input.actor.institutionId !== input.tool.institutionId
-  ) {
+  if (input.actor.institutionId !== input.skill.institutionId) {
     return { ok: false, status: "refused", reason: "institution_mismatch" };
   }
   if (input.requestedAuthority !== input.tool.authority) {
@@ -256,23 +253,19 @@ export function authorizeAgentToolInvocation(input: {
   ) {
     return { ok: false, status: "refused", reason: "input_invalid" };
   }
-  if (!identityAtLeast(input.actor.identityLevel, input.tool.requiredIdentity)) {
-    return { ok: false, status: "refused", reason: "identity_insufficient" };
-  }
-  if (!input.tool.allowedRoles.includes(input.actor.role)) {
-    return { ok: false, status: "refused", reason: "role_insufficient" };
-  }
-  if (
-    input.tool.serviceCodes.length > 0 &&
-    !input.tool.serviceCodes.some((service) => input.actor.serviceCodes.includes(service))
-  ) {
-    return { ok: false, status: "refused", reason: "service_scope_required" };
-  }
-  if (input.tool.relationshipRequired && !input.actor.relationshipConfirmed) {
-    return { ok: false, status: "refused", reason: "relationship_required" };
-  }
-  if (input.tool.mfaRequired && input.actor.authenticatorLevel !== "aal2") {
-    return { ok: false, status: "refused", reason: "mfa_required" };
+  const access = authorizeIdentityRoleAction({
+    actor: input.actor,
+    requirement: {
+      institutionId: input.tool.institutionId,
+      requiredIdentity: input.tool.requiredIdentity,
+      allowedRoles: input.tool.allowedRoles,
+      serviceCodes: input.tool.serviceCodes,
+      relationshipRequired: input.tool.relationshipRequired,
+      mfaRequired: input.tool.mfaRequired,
+    },
+  });
+  if (!access.ok) {
+    return { ok: false, status: "refused", reason: access.reason };
   }
   const sanitizedInput = validateToolInput(input.tool.inputSchema, input.toolInput);
   if (!sanitizedInput) {

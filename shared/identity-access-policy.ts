@@ -1,3 +1,6 @@
+import { identityAtLeast } from "./agent-identity-policy.js";
+import type { AgentIdentityLevel } from "./agent-identity-policy.js";
+
 export type SchoolIdentityAssurance = "directory_matched" | "official_sso";
 export type InstitutionRole = "agent" | "service_manager" | "admin" | "auditor";
 
@@ -57,6 +60,61 @@ export type InstitutionAccessReason =
 export type InstitutionAccessDecision =
   | { ok: true; basis: "public" | "verified_owner" | "school_relationship" | "membership" }
   | { ok: false; reason: InstitutionAccessReason };
+
+export type IdentityRoleActionReason =
+  | "institution_mismatch"
+  | "identity_insufficient"
+  | "role_insufficient"
+  | "service_scope_required"
+  | "relationship_required"
+  | "mfa_required";
+
+export type IdentityRoleActionDecision =
+  | { ok: true }
+  | { ok: false; reason: IdentityRoleActionReason };
+
+export function authorizeIdentityRoleAction(input: {
+  actor: {
+    institutionId: string;
+    identityLevel: AgentIdentityLevel;
+    role: string;
+    serviceCodes: string[];
+    relationshipConfirmed: boolean;
+    authenticatorLevel: "aal1" | "aal2";
+  };
+  requirement: {
+    institutionId: string;
+    requiredIdentity: AgentIdentityLevel;
+    allowedRoles: string[];
+    serviceCodes: string[];
+    relationshipRequired: boolean;
+    mfaRequired: boolean;
+  };
+}): IdentityRoleActionDecision {
+  const { actor, requirement } = input;
+  if (actor.institutionId !== requirement.institutionId) {
+    return { ok: false, reason: "institution_mismatch" };
+  }
+  if (!identityAtLeast(actor.identityLevel, requirement.requiredIdentity)) {
+    return { ok: false, reason: "identity_insufficient" };
+  }
+  if (!requirement.allowedRoles.includes(actor.role)) {
+    return { ok: false, reason: "role_insufficient" };
+  }
+  if (
+    requirement.serviceCodes.length > 0
+    && !requirement.serviceCodes.some((service) => actor.serviceCodes.includes(service))
+  ) {
+    return { ok: false, reason: "service_scope_required" };
+  }
+  if (requirement.relationshipRequired && !actor.relationshipConfirmed) {
+    return { ok: false, reason: "relationship_required" };
+  }
+  if (requirement.mfaRequired && actor.authenticatorLevel !== "aal2") {
+    return { ok: false, reason: "mfa_required" };
+  }
+  return { ok: true };
+}
 
 function timestamp(value: string): number {
   const parsed = Date.parse(value);
@@ -144,12 +202,6 @@ export function authorizeInstitutionAccess(input: {
   const membership = activeMembership(actor, target.institutionId);
   if (!membership) return { ok: false, reason: "membership_required" };
 
-  if (target.kind === "membership_admin") {
-    if (membership.role !== "admin") return { ok: false, reason: "role_insufficient" };
-    if (actor.authenticatorLevel !== "aal2") return { ok: false, reason: "mfa_required" };
-    return { ok: true, basis: "membership" };
-  }
-
   if (
     target.kind === "audit_log" &&
     target.serviceCode === null &&
@@ -158,33 +210,45 @@ export function authorizeInstitutionAccess(input: {
     return { ok: false, reason: "service_scope_required" };
   }
 
-  if (
-    target.serviceCode !== null &&
-    !membership.serviceCodes.includes(target.serviceCode)
-  ) {
-    return { ok: false, reason: "service_scope_required" };
-  }
-
-  if (target.kind === "service_queue") {
-    if (!["agent", "service_manager", "admin"].includes(membership.role)) {
-      return { ok: false, reason: "role_insufficient" };
-    }
-    if (actor.authenticatorLevel !== "aal2") {
-      return { ok: false, reason: "mfa_required" };
-    }
-    return { ok: true, basis: "membership" };
-  }
-
-  if (target.kind === "skill_publication") {
-    if (!["service_manager", "admin"].includes(membership.role)) {
-      return { ok: false, reason: "role_insufficient" };
-    }
-  } else if (!["auditor", "admin"].includes(membership.role)) {
-    return { ok: false, reason: "role_insufficient" };
-  }
-
-  if (actor.authenticatorLevel !== "aal2") {
-    return { ok: false, reason: "mfa_required" };
+  const allowedRoles = target.kind === "membership_admin"
+    ? ["admin"]
+    : target.kind === "service_queue"
+      ? ["agent", "service_manager", "admin"]
+      : target.kind === "skill_publication"
+        ? ["service_manager", "admin"]
+        : target.serviceCode === null
+          ? ["admin"]
+          : ["auditor", "admin"];
+  const serviceCodes = target.kind === "membership_admin"
+    ? []
+    : target.serviceCode === null
+      ? []
+      : [target.serviceCode];
+  const decision = authorizeIdentityRoleAction({
+    actor: {
+      institutionId: membership.institutionId,
+      identityLevel: "I3",
+      role: membership.role,
+      serviceCodes: membership.serviceCodes,
+      relationshipConfirmed: false,
+      authenticatorLevel: actor.authenticatorLevel,
+    },
+    requirement: {
+      institutionId: target.institutionId,
+      requiredIdentity: "I3",
+      allowedRoles,
+      serviceCodes,
+      relationshipRequired: false,
+      mfaRequired: true,
+    },
+  });
+  if (!decision.ok) {
+    const reason: InstitutionAccessReason = decision.reason === "identity_insufficient"
+      ? "membership_required"
+      : decision.reason === "relationship_required"
+        ? "role_insufficient"
+        : decision.reason;
+    return { ok: false, reason };
   }
   return { ok: true, basis: "membership" };
 }

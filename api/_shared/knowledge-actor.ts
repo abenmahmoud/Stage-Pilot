@@ -1,13 +1,16 @@
 import type { VercelRequest } from "@vercel/node";
-import { and, eq, inArray } from "drizzle-orm";
+import { and, eq, inArray, isNull } from "drizzle-orm";
 import { db } from "../../db/index.js";
 import {
-  eleves,
+  identityDirectoryImports,
   institutionMemberships,
   institutions,
-  professeurs,
+  schoolIdentities,
 } from "../../db/schema.js";
-import { resolveKnowledgeActor } from "../../shared/knowledge-actor-policy.js";
+import {
+  resolveKnowledgeActor,
+  resolveSchoolIdentityRole,
+} from "../../shared/knowledge-actor-policy.js";
 import type { KnowledgeActor } from "../../shared/skill-registry-policy.js";
 import {
   getAuthenticatorLevelFromRequest,
@@ -44,7 +47,8 @@ export async function resolveKnowledgeActorFromRequest(
       });
     }
 
-    const [[membership], [student], [teacher]] = await Promise.all([
+    const now = new Date();
+    const [[membership], schoolIdentityRows] = await Promise.all([
       db
         .select({
           institutionId: institutionMemberships.institutionId,
@@ -62,18 +66,39 @@ export async function resolveKnowledgeActorFromRequest(
         )
         .limit(1),
       db
-        .select({ id: eleves.id })
-        .from(eleves)
-        .where(eq(eleves.authUserId, user.id))
-        .limit(1),
-      db
-        .select({ id: professeurs.id })
-        .from(professeurs)
-        .where(eq(professeurs.authUserId, user.id))
-        .limit(1),
+        .select({
+          institutionId: schoolIdentities.institutionId,
+          sourceInstitutionId: identityDirectoryImports.institutionId,
+          sourceStatus: identityDirectoryImports.status,
+          personType: schoolIdentities.personType,
+          assuranceLevel: schoolIdentities.assuranceLevel,
+          verifiedBy: schoolIdentities.verifiedBy,
+          verifiedAt: schoolIdentities.verifiedAt,
+          revokedAt: schoolIdentities.revokedAt,
+        })
+        .from(schoolIdentities)
+        .innerJoin(identityDirectoryImports, and(
+          eq(identityDirectoryImports.id, schoolIdentities.sourceImportId),
+          eq(identityDirectoryImports.institutionId, schoolIdentities.institutionId)
+        ))
+        .where(and(
+          eq(schoolIdentities.institutionId, institution.id),
+          eq(schoolIdentities.userId, user.id),
+          isNull(schoolIdentities.revokedAt),
+          eq(identityDirectoryImports.status, "active")
+        ))
+        .limit(2),
     ]);
 
-    const schoolRole = student ? "student" : teacher ? "staff" : null;
+    const schoolRole = resolveSchoolIdentityRole({
+      institutionId: institution.id,
+      rows: schoolIdentityRows.map((identity) => ({
+        ...identity,
+        verifiedAt: identity.verifiedAt.toISOString(),
+        revokedAt: identity.revokedAt?.toISOString() ?? null,
+      })),
+      now: now.toISOString(),
+    });
     const authenticatorLevel = membership
       ? await getAuthenticatorLevelFromRequest(req)
       : "aal1";
@@ -82,7 +107,7 @@ export async function resolveKnowledgeActorFromRequest(
       institutionId: institution.id,
       authenticated: true,
       emailConfirmed: user.emailConfirmedAt !== null,
-      schoolRecordMatched: Boolean(student || teacher),
+      schoolRecordMatched: schoolRole !== null,
       schoolRole,
       authenticatorLevel,
       membership: membership ?? null,
