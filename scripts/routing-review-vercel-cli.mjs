@@ -4,6 +4,7 @@ import { dirname, join } from "node:path";
 
 const PREVIEW_TEAM = "team_iImd3gDqlMkHIJEnx6ZVJXSy";
 const PREVIEW_PROJECT = "prj_mgYyTk8e2FwUMW5kSG8176Snypy5";
+const VERCEL_CLI_PACKAGE = "vercel@59.10.0";
 
 export function runRoutingReviewVercel(args, { spawnImpl = spawnSync, input } = {}) {
   const npxPath = process.env.npm_execpath
@@ -13,7 +14,7 @@ export function runRoutingReviewVercel(args, { spawnImpl = spawnSync, input } = 
   const env = Object.fromEntries(Object.entries(process.env).filter(([name]) =>
     name.toUpperCase() === "VERCEL_TOKEN"
     || !/KEY|TOKEN|SECRET|PASSWORD|DATABASE|SUPABASE|BREVO|OPENAI|ANTHROPIC|PREVIEW_ROUTING_REVIEW|^PG/iu.test(name)));
-  return spawnImpl(process.execPath, [npxPath, "--offline", "--no-install", "vercel", ...args], {
+  return spawnImpl(process.execPath, [npxPath, "--offline", "--no-install", VERCEL_CLI_PACKAGE, ...args], {
     encoding: "utf8", maxBuffer: 2 * 1024 * 1024, input,
     windowsHide: true, shell: false, timeout: args[0] === "--version" ? 15_000 : 45_000,
     env: { ...env, CI: "1", NO_UPDATE_NOTIFIER: "1", VERCEL_TELEMETRY_DISABLED: "1" },

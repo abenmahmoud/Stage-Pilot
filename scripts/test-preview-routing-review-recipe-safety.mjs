@@ -216,7 +216,7 @@ test("runs the cached CLI through Node without a Windows shell or automatic inst
   for (const call of calls) {
     assert.equal(call.executable, process.execPath);
     assert.match(call.args[0], /[\\/]npm[\\/]bin[\\/]npx-cli\.js$/u);
-    assert.deepEqual(call.args.slice(1, 4), ["--offline", "--no-install", "vercel"]);
+    assert.deepEqual(call.args.slice(1, 4), ["--offline", "--no-install", "vercel@59.10.0"]);
     assert.equal(call.options.shell, false);
     assert.equal(call.options.windowsHide, true);
     assert.equal(call.options.env.CI, "1");
