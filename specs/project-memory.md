@@ -5,6 +5,24 @@
 **Depot** : `abenmahmoud/Stage-Pilot`
 **Dernier jalon de code verifie** : branche de preview Vercel
 
+## Jalon du 2 septembre 2026 - barrière finale de sécurité rejouée
+
+- `npm run test:preview-security-gate` termine avec le code zéro sur le dépôt
+  propre après les derniers lots. Les contrôles couvrent 104 routes API, 71
+  routes privées, 16 tables du guichet sous preuve RLS et 93 migrations uniques.
+- Le déploiement `dpl_3sCzmc37CJfvfavvJ6B3bkHsmoto` est `READY`, correspond
+  exactement au SHA `0503d383fdef8d87844534a62365c58d3094aec8` et conserve
+  `target=null`. Sa page protégée reste sans débordement à 320 px et son API de
+  contenu public renvoie `200` avec le contrat attendu.
+- L'audit des tâches terminales ne trouve aucun lot local faussement ouvert.
+  `005/T032` exige toujours un faux Webmail séparé réellement déployé, des
+  secrets éphémères autorisés et une recette réseau sans résidu ; les onze tests
+  en mémoire ne permettent pas de le déclarer réalisé.
+- Aucun endpoint public, email, contact réel, variable distante, nouveau projet,
+  production ou appel Claude n'est utilisé. Spec Kit reste à 567 tâches : 473
+  terminées et 94 ouvertes.
+  Rapport : `docs/security/PREVIEW_FINAL_SECURITY_GATE_2026-09-02.md`.
+
 ## Jalon du 2 septembre 2026 - promotion LyceeGest préparée sans exécution
 
 - Le domaine public reste sur `dpl_41augagG39fL5gMXcud3WrWiZfQH`, commit
