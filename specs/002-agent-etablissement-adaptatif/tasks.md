@@ -1033,6 +1033,11 @@
   arbitrés ; les tables éditoriales manquantes alors existent maintenant sur la
   branche Supabase non principale avec RLS, sans lecture de contenu. T057 reste
   ouverte pour la recette active, les alertes et l'exploitation autorisée.
+- [x] T057F Ajouter une recette de disponibilité publique reproductible, limitée
+  à l'alias de preview autorisé : accueil et API publiques en `200`, trois
+  frontières internes en `401`, en-têtes de sécurité contrôlés, aucune écriture
+  et aucun appel IA. Le déploiement exact est `READY` et l'alias est ouvert sans
+  compte Vercel ; T057 reste ouverte pour les alertes et la restauration distante.
 - [ ] T058 Faire valider le cadre ESSUF GROUP-lycée : rôles RGPD, support,
   propriété, mentions, réversibilité et fin de partenariat.
 - [ ] T059 Exécuter un pilote avec données minimales, responsables nommés et plan

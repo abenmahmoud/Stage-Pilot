@@ -5,6 +5,23 @@
 **Depot** : `abenmahmoud/Stage-Pilot`
 **Dernier jalon de code verifie** : branche de preview Vercel
 
+## Jalon du 2 septembre 2026 - controle reproductible du pilote public
+
+- Le commit `8b3d902` est `READY` sur le deploiement de preview
+  `dpl_BtSKNarT5779wZ8eoCST3syJi67G`. L'alias stable de la branche pointe sur ce
+  deploiement et s'ouvre dans un navigateur neuf sans compte Vercel.
+- Une recette strictement limitee a cet alias verifie l'accueil, le contenu et
+  les demandes publiques en `200`, puis trois frontieres internes en `401`.
+  Elle effectue uniquement des lectures anonymes bornees, sans ecriture ni
+  appel IA.
+- Les en-tetes navigateur et l'absence de cache public sur les API internes sont
+  controles. Trois tests empechent l'emploi d'une autre cible, d'une methode
+  mutante, de secrets ou de l'assistant.
+- `002/T057F` est terminee. `T057` reste ouverte pour les alertes externes et la
+  restauration distante. Production, DNS, Hostinger, VPS, Webmail et donnees
+  reelles restent inchanges.
+- Rapport : `docs/operations/PUBLIC_PILOT_SMOKE_CHECK_2026-09-02.md`.
+
 ## Jalon du 2 septembre 2026 - preview alignée et demande vérifiée
 
 - La branche Supabase `guichet-lycee-preview` passe de 88 à 93 migrations. Les
