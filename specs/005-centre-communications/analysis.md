@@ -24,22 +24,23 @@ les en-têtes serveur. Une réponse n'est acceptée qu'en JSON borné à 24 Kio,
 le reçu signé est encore vérifié contre la commande avant toute décision de
 persistance.
 
-La recette injecte un faux Webmail en mémoire : elle contrôle la requête exacte,
+La recette locale injecte un faux Webmail en mémoire : elle contrôle la requête exacte,
 le reçu accepté, les statuts HTTP, le délai, les corps trop grands ou inattendus
 et une série de 200 livraisons avec concurrence bornée. Elle n'appelle aucun
-réseau, ne configure aucun secret et ne ferme pas T027 ou T032 : la preuve
-réseau sur une preview déployée reste distincte.
+réseau et ne configure aucun secret. À ce stade, elle ne fermait pas T027 ou
+T032 : la preuve réseau sur une preview déployée restait distincte.
 
-Le client de cette future preuve réseau est désormais préparé sans l'exécuter.
+Le client de cette preuve réseau a ensuite été préparé sans l'exécuter.
 Il n'accepte qu'un projet Vercel temporaire séparé nommé comme fixture, exige une
-confirmation liée au run et quatre secrets éphémères distincts, puis vérifie une
+confirmation liée au run et cinq secrets éphémères distincts, puis vérifie une
 preuve HMAC fraîche avant tout envoi. La recette prévoit 200 commandes opaques
 fictives et 20 rejeux depuis un état déjà envoyé, sans mémoire serveur ni contact
 réel. Cinq tests contrôlent les portes et l'exécution reste absente de la
 barrière permanente ; une recette locale intégrale prouve aussi les 200 appels
-et 20 rejeux avec un `fetch` en mémoire signé, sans socket. T027, T029 et T032
-restent ouverts jusqu'à l'autorisation, au déploiement séparé, à la preuve réseau
-et au nettoyage.
+et 20 rejeux avec un `fetch` en mémoire signé, sans socket. Au 1er septembre,
+T027 et T032 restaient ouverts jusqu'à l'autorisation, au déploiement séparé, à
+la preuve réseau et au nettoyage. La section du 2 septembre ci-dessous consigne
+leur fermeture.
 
 ## Recette de file Webmail du 30 août 2026
 
@@ -636,3 +637,28 @@ Cette preuve ferme l'écart d'intégration locale, pas l'exploitation. T022K res
 ouverte pour installer, superviser et interrompre le worker sur un runtime de
 preview explicitement autorisé. Voir
 `docs/operations/REAL_INBOUND_WORKER_LOCAL_RECIPE_2026-09-02.md`.
+
+## Recette réseau Webmail fictive du 2 septembre 2026
+
+Le dernier écart de `T027` et `T032` est fermé par une recette réseau unique
+entre le client LyceeGest au SHA `6152f7c` et un faux Webmail Vercel séparé. Le
+challenge HMAC lie la cible, le run et l'expiration avant le premier appel. Les
+200 commandes ne transportent qu'un jeton signé et des références opaques;
+20 états déjà livrés sont ensuite rejoués.
+
+Le résultat est exactement 200 acceptations, 20 doublons et 200 références
+fournisseur hachées distinctes. Les sorties contrôlées ne contiennent aucune
+adresse, destinataire, copie, audience, liste, identifiant fournisseur brut ou
+contenu utilisateur. La fixture ne possède aucun stockage et n'appelle ni
+Brevo, ni Gmail, ni Supabase, ni le vrai Webmail.
+
+Le premier déploiement Vercel d'un projet neuf nécessitait une amorce HTML vide.
+Elle est restée sous SSO, sans fonction ou secret, pendant la construction de la
+preview, puis a été supprimée avant l'ouverture. La fixture vérifiée conserve
+`target=null` en `cdg1`. Après le run, le projet et ses cinq secrets sont
+supprimés; l'inventaire Vercel ne retrouve aucun projet de fixture et l'ancienne
+URL n'est plus récupérable. Aucun envoi réel ou pilote humain n'est déduit de
+cette preuve.
+
+Rapport :
+`docs/operations/COMMUNICATION_WEBMAIL_NETWORK_PREVIEW_EVIDENCE_2026-09-02.md`.

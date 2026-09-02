@@ -5,6 +5,28 @@
 **Depot** : `abenmahmoud/Stage-Pilot`
 **Dernier jalon de code verifie** : branche de preview Vercel
 
+## Jalon du 2 septembre 2026 - recette réseau Webmail fictive nettoyée
+
+- `005/T027` et `005/T032` sont terminées par un run réseau unique entre
+  LyceeGest au SHA `6152f7c` et une fixture Vercel séparée. Challenge HMAC,
+  Bearer, commande et reçu sont vérifiés avant de conclure au succès.
+- Le run `webmail-network-20260902-23db3a8fbf64` produit 200 acceptations et
+  20 doublons à partir de références opaques fictives. Les sorties ne contiennent
+  aucune adresse, audience, liste, copie, identifiant fournisseur brut ou texte
+  utilisateur. Aucun fournisseur ou stockage métier n'est appelé.
+- L'amorce HTML vide imposée par le premier déploiement Vercel est restée sous
+  SSO et sans secret, puis a été supprimée avant l'ouverture de la fixture. Le
+  déploiement applicatif `dpl_BisowiAbDy3awp4k5rdS7pwRpoHW` est `target=null`
+  en `cdg1`.
+- Le projet temporaire, les cinq secrets et l'URL sont supprimés. L'inventaire
+  Vercel retrouve zéro projet de fixture et l'ancienne URL n'est plus
+  récupérable. Production LyceeGest, Supabase, DNS, VPS, Brevo et vrai Webmail
+  restent inchangés.
+- Spec Kit compte 570 tâches : 478 terminées et 92 ouvertes. Ce total ne prouve
+  ni un pilote humain, ni un envoi réel, ni la disponibilité opérationnelle.
+- Rapport :
+  `docs/operations/COMMUNICATION_WEBMAIL_NETWORK_PREVIEW_EVIDENCE_2026-09-02.md`.
+
 ## Jalon du 2 septembre 2026 - observabilité de preview relue
 
 - `002/T057E` relit le déploiement `c22a99f` en lecture seule : build sans

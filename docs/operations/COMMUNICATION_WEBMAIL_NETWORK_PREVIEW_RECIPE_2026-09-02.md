@@ -2,9 +2,12 @@
 
 ## Statut
 
-Le client de recette est prêt mais **aucun appel réseau n'a été exécuté**. Le
-faux Webmail n'existe pas encore et aucune variable distante n'est configurée.
-Cette préparation ne ferme ni `005/T027`, ni `005/T029`, ni `005/T032`.
+La recette a été exécutée une seule fois le 2 septembre 2026, puis entièrement
+nettoyée. Elle ferme `005/T027` et `005/T032`. Elle ne remplace pas les preuves
+transactionnelles et de reprise déjà suivies séparément sous `005/T029`.
+
+Preuve détaillée :
+`docs/operations/COMMUNICATION_WEBMAIL_NETWORK_PREVIEW_EVIDENCE_2026-09-02.md`.
 
 ## But
 
@@ -28,6 +31,13 @@ La cible doit être un projet Vercel séparé, temporaire et nommé
 - ne conserver aucune commande et ne contacter ni Brevo, ni Gmail, ni le vrai
   Webmail, ni Supabase ;
 - expirer au plus tard vingt-quatre heures après sa création.
+
+Vercel classe le premier déploiement d'un projet neuf comme production. Après
+autorisation distincte, l'exécution a donc utilisé une amorce HTML vide, sans
+fonction ni secret, protégée par SSO. Cette amorce est restée protégée pendant
+la construction de la vraie preview, puis a été supprimée et sa disparition
+vérifiée avant la désactivation du SSO de la fixture. La recette applicative
+n'a utilisé que le déploiement `target=null`.
 
 Le point de challenge renvoie une preuve HMAC liée au run, au challenge aléatoire
 et à son expiration. Le client refuse la livraison tant que cette preuve n'est
@@ -71,33 +81,34 @@ Le client refuse le domaine public du lycée, le projet LyceeGest, une adresse
 IP, un hôte local, un autre chemin, une redirection, des secrets faibles ou
 réutilisés et l'absence du drapeau `--preview-only`.
 
-## Exécution future
+## Exécution réalisée
 
-Après une autorisation écrite couvrant la création du projet temporaire, son
-accès public borné, ses cinq secrets et son retrait :
+L'exécution autorisée a utilisé la commande suivante une seule fois, après les
+contrôles de cible, de preuve et d'environnement :
 
 ```powershell
 npm run recipe:preview-communication-webmail-network
 ```
 
-Le résultat attendu ne contient que le run, les compteurs `accepted: 200` et
+Le résultat obtenu contient uniquement le run, `accepted: 200`,
 `duplicates: 20`, la mention de références opaques fictives et l'obligation de
-nettoyage. Une seule erreur arrête la recette ; aucun succès partiel ne permet de
-fermer une tâche.
+nettoyage. Aucune reprise automatique du run réseau n'a été effectuée.
 
 ## Preuves et nettoyage
 
-Conserver uniquement : SHA LyceeGest, identifiant du déploiement fixture, heure,
-résumé JSON sans secret, résultat des tests et vérification de retrait. Ensuite,
-avec l'autorisation destructive correspondante : retirer les secrets, désactiver
-la fixture, vérifier qu'elle n'est plus joignable et confirmer qu'aucune donnée
-n'a été créée dans LyceeGest, Supabase, Brevo ou le Webmail réel.
+Sont conservés uniquement : SHA LyceeGest, identifiants des déploiements
+temporaires, heures, résumé JSON sans secret, résultats des tests et preuve de
+retrait. Le projet Vercel n'apparaît plus dans l'inventaire de l'équipe et son
+ancienne URL n'est plus récupérable. Aucun objet n'a été créé dans LyceeGest,
+Supabase, Brevo ou le Webmail réel.
 
-## Autorisation requise
+## Autorisations utilisées
 
-La phrase suivante couvre exactement le prochain lot et rien d'autre :
+L'autorisation a couvert exactement le projet temporaire, les cinq secrets, le
+run unique et le retrait. Une seconde confirmation a couvert l'ordre technique
+imposé par Vercel : conserver l'amorce vide sous SSO pendant le build de la
+preview, puis la supprimer avant l'accès public temporaire et la recette.
 
 > J'autorise la création d'un faux Webmail Vercel temporaire séparé, uniquement
 > en preview et sans donnée réelle, l'injection de cinq secrets éphémères,
 > l'exécution unique de la recette réseau 200 + 20, puis son retrait contrôlé.
-

@@ -395,7 +395,14 @@
 
 ## Phase 6 - Validation
 
-- [ ] T027 Tester qu'aucune adresse d'un autre destinataire n'est exposée.
+- [x] T027 Tester qu'aucune adresse d'un autre destinataire n'est exposée.
+  La recette réseau autorisée du 2 septembre 2026 envoie 200 commandes
+  individuelles puis rejoue 20 états déjà livrés vers une fixture Vercel
+  séparée. Chaque échange ne contient qu'un jeton signé et une référence opaque;
+  les sorties vérifiées ne contiennent ni adresse, destinataire, audience,
+  copie, liste, identifiant fournisseur brut ou contenu utilisateur. La fixture
+  n'appelle aucun fournisseur et le projet temporaire est supprimé avec ses
+  secrets après la recette.
 - [x] T027A Verrouiller la surface actuelle avant l'envoi. Un test découvre les
   sept routes privées, interdit toute nouvelle route publique, audience,
   destinataire ou envoi, contrôle les sorties documentaires et l'interface, et
@@ -492,7 +499,14 @@
   retourne zéro violation et zéro résultat incomplet après correction du
   contraste des étapes. T031 reste ouverte pour le lecteur d'écran réel et la
   recette humaine avec une session de preview autorisée.
-- [ ] T032 Déployer en preview et tester avec des contacts fictifs.
+- [x] T032 Déployer en preview et tester avec des contacts fictifs.
+  Le déploiement `dpl_BisowiAbDy3awp4k5rdS7pwRpoHW`, strictement temporaire,
+  est vérifié `target=null` en région `cdg1`. Le run
+  `webmail-network-20260902-23db3a8fbf64` accepte 200 références opaques
+  fictives et classe 20 rejeux comme doublons. L'amorce vide imposée par le
+  premier déploiement Vercel reste sous SSO et est supprimée avant l'ouverture
+  de la fixture. Le projet, les cinq secrets et l'URL sont ensuite retirés;
+  aucune persistance métier ou application réelle n'est utilisée.
 - [x] T032A Préparer sans l'exécuter le client de recette réseau vers un faux
   Webmail séparé. Il exige une cible Vercel temporaire nommée comme fixture, une
   confirmation liée au run, quatre secrets partagés distincts et une preuve
