@@ -4,6 +4,7 @@ import test from "node:test";
 
 const files = await Promise.all([
   readFile(new URL("../workers/site-content-file-worker.mjs", import.meta.url), "utf8"),
+  readFile(new URL("../workers/site-content-file-worker-core.mjs", import.meta.url), "utf8"),
   readFile(new URL("../api/content/admin/assets/[id]/confirm.ts", import.meta.url), "utf8"),
   readFile(new URL("../api/content/admin/assets.ts", import.meta.url), "utf8"),
   readFile(new URL("../src/pages/admin/ContentManagerPage.tsx", import.meta.url), "utf8"),
@@ -12,7 +13,8 @@ const files = await Promise.all([
   readFile(new URL("../deploy/lycee-site-content-file-worker.timer", import.meta.url), "utf8"),
   readFile(new URL("../docs/operations/recipes/preview-site-content-antivirus-rollback.sql", import.meta.url), "utf8"),
 ]);
-const [worker, confirm, reservation, page, migration, service, timer, recipe] = files;
+const [runner, core, confirm, reservation, page, migration, service, timer, recipe] = files;
+const worker = `${runner}\n${core}`;
 
 test("creates a private quarantine state machine and dedicated queue", () => {
   assert.match(migration, /pgmq\.create\('site_content_file_scan'\)/);
@@ -41,20 +43,33 @@ test("binds one exact upload to quarantine before queuing antivirus", () => {
 test("scans bounded bytes and verifies the digest before ClamAV", () => {
   const download = worker.indexOf("boundedBlobToBuffer");
   const digest = worker.indexOf('createHash("sha256")', download);
-  const clam = worker.indexOf("clamScan(bytes", digest);
-  const office = worker.indexOf("inspectSupportOfficeArchive", clam);
-  const cleanUpload = worker.indexOf('.from("site-content")', office);
-  const ready = worker.indexOf("status = 'ready'", cleanUpload);
+  const clam = worker.indexOf("scanBytes({", digest);
+  const office = worker.indexOf("inspectOfficeArchive({", clam);
+  const cleanUpload = worker.indexOf("await storeAndVerifyClean(asset, bytes)", office);
+  const ready = worker.indexOf("return persistClean(asset)", cleanUpload);
   assert.ok(download >= 0 && digest > download && clam > digest && office > clam && cleanUpload > office && ready > cleanUpload);
-  assert.match(worker, /digest !== asset\.sha256/);
+  assert.match(worker, /createHash\("sha256"\)\.update\(bytes\)\.digest\("hex"\) !== asset\.sha256/);
   assert.match(worker, /status = 'blocked', scan_detail = \$\{detail\}/);
   assert.match(worker, /where id = \$\{asset\.id\} and status = 'quarantine'/);
 });
 
+test("verifies clean storage before SQL promotion and keeps quarantine until commit", () => {
+  const cleanUpload = core.indexOf('.from("site-content").upload');
+  const cleanRead = core.indexOf('verifyStored("site-content"', cleanUpload);
+  const ready = core.indexOf("status = 'ready'", cleanRead);
+  const quarantineDelete = core.indexOf("await removeQuarantine(asset)", ready);
+  assert.ok(cleanUpload >= 0 && cleanRead > cleanUpload && ready > cleanRead
+    && quarantineDelete > ready);
+  assert.match(core, /upsert: false/);
+  assert.match(core, /asset\.status === "ready"[\s\S]*terminal: "clean"/);
+  assert.match(core, /finishTerminal[\s\S]*verifyStored\("site-content"/);
+});
+
 test("keeps failures retryable and archives the fifth failed attempt", () => {
   assert.match(worker, /try \{[\s\S]*invalid_site_content_scan_job[\s\S]*catch \(error\)/);
-  assert.match(worker, /if \(row\.read_ct >= 5\)/);
-  assert.match(worker, /status = 'scan_error', scan_detail = \$\{code\}/);
+  assert.match(worker, /if \(Number\(row\.read_ct\) >= 5\)/);
+  assert.match(worker, /case when status = 'ready' then 'archived' else 'scan_error' end/);
+  assert.match(worker, /status in \('quarantine', 'ready'\)/);
   assert.match(worker, /pgmq\.archive\('site_content_file_scan'/);
   assert.match(worker, /action, summary[\s\S]*'scan_error'/);
   assert.match(worker, /asset\.scan_detail === "clamav_clean"[\s\S]*asset\.sha256/);
