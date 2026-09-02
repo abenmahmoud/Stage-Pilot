@@ -5,6 +5,26 @@
 **Depot** : `abenmahmoud/Stage-Pilot`
 **Dernier jalon de code verifie** : branche de preview Vercel
 
+## Jalon du 2 septembre 2026 - antivirus éditorial sur pile locale
+
+- Le véritable worker des médias éditoriaux relie PostgreSQL, PGMQ, Storage
+  privé et ClamAV après rejeu des 93 migrations sur une pile locale.
+- PDF sain, DOCX EICAR, panne scanner, panne après commit puis reprise et
+  altération d'une copie propre passent. Après cinq échecs, la copie altérée
+  devient `archived` et n'est plus publiable ; les erreurs techniques persistées
+  restent des codes machine bornés.
+- La recette retrouve zéro fixture, reçu, tâche active ou archivée, objet
+  Storage et conteneur. La pile locale est arrêtée et `supabase/config.toml`
+  reste identique à Git.
+- Le commit `520afd9` est `READY` sur la preview Vercel
+  `dpl_GvRztUiztdQDp94cJ5tDPGaDwytS`, avec `target=null`. La barrière complète
+  de sécurité et le build passent ; l'avertissement XLSX déjà connu reste seul.
+- `003/T009C3` est terminée. `003/T009C` reste ouverte pour le runtime
+  supervisé, les médias historiques et le pilote public explicitement
+  autorisés. Spec Kit compte 566 tâches : 464 terminées et 102 ouvertes.
+  Rapport :
+  `docs/operations/REAL_SITE_CONTENT_ANTIVIRUS_LOCAL_RECIPE_2026-09-02.md`.
+
 ## Jalon du 2 septembre 2026 - orchestrateur entrant sur pile locale
 
 - Le véritable orchestrateur relie un téléchargement Brevo simulé à PostgreSQL,

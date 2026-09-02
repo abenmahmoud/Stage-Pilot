@@ -36,6 +36,13 @@
   minutes, blocages, erreurs, dernier reçu antivirus et fonds WordPress non
   rescanné. Une panne de cette lecture n'interrompt pas l'édition et aucun nom,
   chemin privé, acteur ou contenu de fichier n'est transmis au navigateur.
+- [x] T009C3 Exécuter le véritable worker éditorial sur une pile locale rejouant
+  les 93 migrations, avec PostgreSQL, PGMQ, Storage privé et ClamAV épinglé.
+  Vérifier un PDF sain, un DOCX EICAR bloqué, la reprise après panne scanner,
+  la reprise après panne de nettoyage et l'archivage fermé d'une copie propre
+  altérée, puis retrouver zéro fixture, objet, tâche active et conteneur.
+  T009C reste ouverte pour le runtime supervisé, le contrôle des médias
+  historiques et le pilote public explicitement autorisés.
 - [x] T010 Construire l'API publique des contenus publiés valides.
 - [x] T010A Valider dans le navigateur chaque contenu, média signé et curseur
   public avant rendu ou pagination, avec refus des origines externes injectées.

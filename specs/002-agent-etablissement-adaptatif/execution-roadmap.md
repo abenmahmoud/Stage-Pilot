@@ -1106,8 +1106,8 @@ l'activation contrôlée et la contre-revue. Claude est resté en pause. Voir
 `docs/security/AGENT_AI_DAILY_BUDGET_PREVIEW_2026-09-02.md`.
 
 Suite T052B : l'analyse transversale est rejouée après les derniers lots
-de sécurité et les recettes locales d'ingestion et du worker. Elle confirme
-565 tâches, 463 terminées et 102 ouvertes, ainsi que
+de sécurité et les recettes locales d'ingestion, des workers entrant et
+éditorial. Elle confirme 566 tâches, 464 terminées et 102 ouvertes, ainsi que
 93 migrations uniques. Le dernier jalon applicatif est propre, sa preview Vercel
 est READY et non promue, et la branche Supabase non principale est saine. Les tâches
 ouvertes restantes sont liées à une validation humaine, des données autorisées,
@@ -1120,6 +1120,13 @@ Une interruption après dépôt, la reprise du même objet, le rejeu idempotent 
 le refus d'une substitution passent ; une tâche unique est créée et le
 nettoyage laisse zéro résidu. T022I est terminée. Le webhook, Brevo et le
 runtime supervisé de T022K restent fermés et ouverts à validation séparée.
+
+Suite 003/T009C3 : le véritable worker des médias éditoriaux est exécuté avec
+les 93 migrations, PostgreSQL, PGMQ, Storage privé et ClamAV locaux. PDF sain,
+DOCX EICAR, panne scanner, panne de nettoyage et altération après validation
+passent ; cette dernière archive le média au cinquième échec. Le nettoyage
+retrouve zéro fixture, objet, tâche et conteneur. T009C reste ouverte pour le
+runtime supervisé, les médias historiques et le pilote public autorisés.
 
 ## Portes de validation humaine
 

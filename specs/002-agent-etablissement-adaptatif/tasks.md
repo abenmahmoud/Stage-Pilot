@@ -941,8 +941,9 @@
   reste ouverte jusqu'au pilote, à la fermeture des suites de l'audit et à la convergence
   finale avant généralisation.
 - [x] T052B Réexécuter l'analyse après la récupération du suivi, la révocation
-  concurrente, le garde budgétaire IA et les recettes locales d'ingestion et du
-  worker. Les 565 tâches sont recomptées : 463 terminées et 102 ouvertures,
+  concurrente, le garde budgétaire IA et les recettes locales d'ingestion, des
+  workers entrant et éditorial. Les 566 tâches sont recomptées : 464 terminées
+  et 102 ouvertures,
   rapprochées des décisions, données, accès, services,
   pilotes ou opérations qui les bloquent. Aucun parent n'est fermé sur une
   preuve partielle ; voir `specs/ANALYZE_2026-09-02.md`.
@@ -965,8 +966,9 @@
   prévisualisation mobile, programmation, retrait et historique. La
   partie éditeur de la spécification 003 est validée ; les contrats éditoriaux, droits,
   brouillons non enregistrés, médias privés et flux public restent testés.
-  `003/T009C` reste ouverte pour la recette antivirus éditoriale intégrée ;
-  cette tâche ne déclare pas l'ensemble de la spécification 003 terminé.
+  `003/T009C` reste ouverte pour le runtime supervisé, les médias historiques
+  et le pilote public ; cette tâche ne déclare pas l'ensemble de la
+  spécification 003 terminé.
 - [ ] T056 Construire les tableaux de bord secrétariat, CPE, intendance, direction
   et numérique avec comptes individuels et périmètres séparés.
 - [x] T056A Ajouter en preview la vue superadministrateur de la charge ouverte,
