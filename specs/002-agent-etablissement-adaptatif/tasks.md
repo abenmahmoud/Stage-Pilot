@@ -1049,6 +1049,13 @@
   frontières internes en `401`, en-têtes de sécurité contrôlés, aucune écriture
   et aucun appel IA. Le déploiement exact est `READY` et l'alias est ouvert sans
   compte Vercel ; T057 reste ouverte pour les alertes et la restauration distante.
+- [x] T057G Reproduire puis supprimer l'avertissement `DEP0169` de l'API de
+  contenu public sous Node 24. Une trace temporaire limitée à la branche de
+  preview attribue l'appel à l'ancien getter Vercel `req.query`. La route lit
+  désormais `req.url` avec l'API WHATWG, sans changer les contrats de
+  pagination. La variable de diagnostic est retirée ; le déploiement final
+  répond aux contrôles publics sans journal `warning` ou `error`. T057 reste
+  ouverte pour les alertes externes et la restauration distante.
 - [ ] T058 Faire valider le cadre ESSUF GROUP-lycée : rôles RGPD, support,
   propriété, mentions, réversibilité et fin de partenariat.
 - [ ] T059 Exécuter un pilote avec données minimales, responsables nommés et plan

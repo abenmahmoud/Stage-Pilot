@@ -2,36 +2,47 @@
 
 ## Périmètre
 
-Cette revue est strictement en lecture seule. Elle concerne le projet Vercel
-`lyceegest`, le déploiement de preview
-`dpl_EYa6x31MVTeEcFXPcBXHfmAmzQna` et la branche Supabase non principale
-`xijocumlwivhbmffrnlj`. Aucune requête métier, donnée réelle, configuration,
-alerte ou production n'a été créée ou modifiée.
+Cette revue concerne le projet Vercel `lyceegest`, la branche
+`codex/lycee-connect-prototype` et la branche Supabase non principale
+`xijocumlwivhbmffrnlj`. Aucune donnée métier ou réelle, alerte, production,
+DNS, VPS ou messagerie n'a été créée ou modifiée. Une option de trace Node a été
+ajoutée temporairement à cette seule branche de preview, puis retirée avant le
+déploiement final ; l'inventaire Vercel confirme son absence.
 
 ## Déploiement courant
 
 - état Vercel : `READY` ;
-- commit exact : `c22a99fbe7ad40c5869d408be66e5232bdb6a836` ;
+- commit exact : `1530a8ef3f9964e3e653ffda11149afd4c22c057` ;
+- déploiement final : `dpl_AvkB9JZtD1AMZwHgMJKBd2QWVzi9` ;
 - cible : `null`, donc aucune promotion en production ;
 - région : `cdg1` ;
-- build : terminé, aucun événement classé en erreur ;
-- journaux du déploiement sur six heures, niveaux `warning`, `error` et
-  `fatal` : aucun résultat ;
+- build : terminé ;
+- recette active : accueil et deux API publiques en `200`, trois frontières
+  internes en `401`, zéro écriture et zéro appel IA ;
+- journaux du déploiement final après la recette, niveaux `warning` et `error` :
+  aucun résultat ;
 - commentaires Vercel non résolus sur la branche : aucun.
 
-Cette absence de journal ne prouve pas un parcours fonctionnel sous charge : la
-preview est protégée et n'a pas reçu une recette utilisateur dans cette passe.
+Cette passe prouve le chemin anonyme borné, pas un parcours sous charge ni une
+validation humaine du pilote.
 
 ## Groupes historiques observés
 
 ### Avertissement `url.parse()`
 
-Vercel regroupe huit avertissements `DEP0169`, dont le dernier provient du
-déploiement antérieur `dpl_3sCzmc37CJfvfavvJ6B3bkHsmoto`. Une recherche dans
-`api`, `src` et `workers` ne trouve aucun appel applicatif à `url.parse()`. Les
-seules occurrences du paquet installé appartiennent à des dépendances de
-construction. Sans trace d'appel sur le déploiement courant, aucune correction
-applicative n'est justifiée ; le signal reste à surveiller après une recette.
+L'avertissement a été reproduit sur le déploiement diagnostic
+`dpl_FWfxMzJp3Ux4ifxWrNUaRnuNR2RF`. La trace complète situe l'appel dans
+`/opt/rust/nodejs.js`, au getter `IncomingMessage.query`, déclenché par
+`api/content/public.ts` lors de la lecture de `req.query.slug`. La réponse
+restait `200`, mais Vercel classait le message en erreur.
+
+Le code applicatif n'appelle pas `url.parse()`. Pour ne plus déclencher ce getter
+du runtime, la route publique lit maintenant `req.url` avec `new URL()` et
+`URLSearchParams`. Les paramètres répétés conservent leur forme de tableau afin
+de préserver les validations existantes. Onze tests ciblés, le build et la
+barrière complète de sécurité passent. Après déploiement du correctif et recette
+sur l'alias public, aucune occurrence `DEP0169`, aucun avertissement et aucune
+erreur ne sont rattachés au déploiement final.
 
 ### Relation éditoriale absente
 
@@ -44,9 +55,8 @@ compteur métier n'a été lu.
 
 ## Décision
 
-Aucun défaut actif reproductible n'est ouvert par cette revue. Les deux groupes
-restent historiques jusqu'à une nouvelle requête réelle du déploiement courant.
-`002/T057` reste ouverte pour les alertes externes, la sauvegarde programmée,
-la restauration distante autorisée et l'exploitation par des responsables
-nommés.
-
+Le défaut actif de journalisation est reproduit, corrigé et contrôlé dans
+`002/T057G`. La relation éditoriale absente reste un incident historique déjà
+résolu sur la base de preview. `002/T057` reste ouverte pour les alertes
+externes, la sauvegarde programmée, la restauration distante autorisée et
+l'exploitation par des responsables nommés.

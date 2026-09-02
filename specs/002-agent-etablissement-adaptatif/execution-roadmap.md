@@ -1193,6 +1193,15 @@ preview. Cette passe sans trafic ne remplace ni recette active ni alerte
 externe. Voir
 `docs/operations/PREVIEW_RUNTIME_OBSERVABILITY_2026-09-02.md`.
 
+Suite T057G : la recette publique a rendu reproductible l'avertissement Node 24
+`DEP0169`. Une trace temporaire limitée à la branche de preview l'attribue au
+getter `req.query` du runtime Vercel. Le contenu public utilise désormais
+`req.url`, `new URL()` et `URLSearchParams`, sans modifier ses contrats de
+pagination. La trace est retirée, onze tests ciblés, le build et la barrière
+complète passent. Le déploiement final `dpl_AvkB9JZtD1AMZwHgMJKBd2QWVzi9`
+sert l'alias public sans journal `warning` ou `error` après la recette. T057
+reste ouverte pour l'exploitation externe et la restauration distante.
+
 ## Portes de validation humaine
 
 - Import de listes, emplois du temps ou pièces réelles.

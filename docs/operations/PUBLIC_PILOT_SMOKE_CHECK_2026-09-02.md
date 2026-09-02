@@ -5,8 +5,8 @@ Date : 2 septembre 2026
 ## Cible vérifiée
 
 - Branche : `codex/lycee-connect-prototype`
-- Commit applicatif : `8b3d902d99a22a7a9c58b7935e3ae7913493dd4d`
-- Déploiement Vercel : `dpl_BtSKNarT5779wZ8eoCST3syJi67G`
+- Commit applicatif : `1530a8ef3f9964e3e653ffda11149afd4c22c057`
+- Déploiement Vercel : `dpl_AvkB9JZtD1AMZwHgMJKBd2QWVzi9`
 - État : `READY`, environnement `preview`
 - Alias public :
   `lyceegest-git-codex-lycee-connect-prototype-safe-scol.vercel.app`
@@ -86,3 +86,13 @@ Deux régressions automatiques protègent maintenant cet ordre, le nom de la
 région, la saisie et l'alternative formulaire. Les six tests de l'ensemble
 public passent, ainsi que le build et la barrière complète de sécurité. Cette
 preuve ne remplace toujours pas une recette humaine avec lecteur d'écran.
+
+## Recontrôle des journaux du runtime
+
+La recette publique est rejouée après le correctif du parseur de requête :
+accueil et API publiques en `200`, frontières privées en `401`, zéro écriture
+et zéro appel IA. Les journaux `warning` et `error` du déploiement final sont
+vides. L'ancien avertissement Node `DEP0169` a été attribué par une trace
+temporaire au getter `req.query` du runtime Vercel ; la route publique emploie
+désormais `req.url` avec l'API WHATWG. La trace temporaire de branche est
+retirée et absente de la configuration Vercel.

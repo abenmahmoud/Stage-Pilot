@@ -5,6 +5,27 @@
 **Depot** : `abenmahmoud/Stage-Pilot`
 **Dernier jalon de code verifie** : branche de preview Vercel
 
+## Jalon du 2 septembre 2026 - journaux publics Node 24 corriges
+
+- Le getter `req.query` du runtime Vercel declenchait `DEP0169` sur
+  `/api/content/public` sous Node 24, tout en repondant `200`. Une trace
+  temporaire limitee a la branche de preview l'a attribue a
+  `/opt/rust/nodejs.js` et a la lecture de `slug` dans la route.
+- Le commit `1530a8e` remplace cette lecture par `req.url`, `new URL()` et
+  `URLSearchParams`. Les tableaux de parametres repetes sont preserves pour les
+  validateurs existants. Onze tests cibles, le build et la barriere complete
+  de securite passent.
+- Le deploiement final `dpl_AvkB9JZtD1AMZwHgMJKBd2QWVzi9` est `READY` et sert
+  l'alias public. La recette retrouve les trois succes publics et les trois
+  refus internes attendus, avec zero ecriture et zero appel IA. Ses journaux ne
+  contiennent ni `DEP0169`, ni `warning`, ni `error`.
+- `NODE_OPTIONS` a ete retire et son absence verifiee dans l'environnement de
+  preview. Production, DNS, Hostinger, VPS, Webmail et donnees reelles restent
+  inchanges. `002/T057G` est terminee ; `T057` reste ouverte pour les alertes
+  externes et la restauration distante.
+- Spec Kit compte 576 taches : 484 terminees et 92 ouvertes. Ces comptes
+  documentaires ne constituent pas un pourcentage de disponibilite du service.
+
 ## Jalon du 2 septembre 2026 - controle reproductible du pilote public
 
 - Le commit `ebeb8b7` est `READY` sur le deploiement de preview
