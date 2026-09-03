@@ -24,25 +24,31 @@ const VALID_STATUSES = new Set([
 const VALID_SERVICES = new Set<string>(SUPPORT_SERVICES);
 const UNASSIGNED_SERVICE_FILTER = "unassigned";
 
+// Les sous-requetes correlees ci-dessous alias(ent) explicitement leur table et
+// qualifient la reference vers la demande englobante. Sans cela, la colonne
+// "id" non qualifiee est resolue par PostgreSQL sur la table interne :
+// la correlation devient fausse pour les rappels (comparaison uuid = uuid
+// silencieusement incorrecte) et provoque une erreur "operator does not exist:
+// uuid = bigint" pour les evenements, dont l'identifiant est un bigint.
 function hasPendingCallback(): SQL<boolean> {
   return sql<boolean>`exists (
-    select 1 from ${supportCallbackTasks}
-    where ${supportCallbackTasks.requestId} = ${supportRequests.id}
-      and ${supportCallbackTasks.status} in ('todo', 'in_progress')
+    select 1 from ${supportCallbackTasks} as cbt
+    where cbt."request_id" = "support_requests"."id"
+      and cbt."status" in ('todo', 'in_progress')
   )`;
 }
 
 function hasPendingDuplicateReview(): SQL<boolean> {
   return sql<boolean>`(
-    select ${supportEvents.eventType}
-    from ${supportEvents}
-    where ${supportEvents.requestId} = ${supportRequests.id}
-      and ${supportEvents.eventType} in (
+    select evt."event_type"
+    from ${supportEvents} as evt
+    where evt."request_id" = "support_requests"."id"
+      and evt."event_type" in (
         'request.duplicate_suspected',
         'request.duplicate_confirmed',
         'request.duplicate_dismissed'
       )
-    order by ${supportEvents.createdAt} desc, ${supportEvents.id} desc
+    order by evt."created_at" desc, evt."id" desc
     limit 1
   ) = 'request.duplicate_suspected'`;
 }
