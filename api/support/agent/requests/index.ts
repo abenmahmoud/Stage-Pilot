@@ -39,7 +39,10 @@ function hasPendingCallback(): SQL<boolean> {
 }
 
 function hasPendingDuplicateReview(): SQL<boolean> {
-  return sql<boolean>`(
+  // coalesce : sans evenement de doublon la sous-requete ne renvoie aucune ligne,
+  // la comparaison vaut alors NULL et le contrat navigateur, qui exige un
+  // booleen strict, rejette toute la file.
+  return sql<boolean>`coalesce((
     select evt."event_type"
     from ${supportEvents} as evt
     where evt."request_id" = "support_requests"."id"
@@ -50,7 +53,7 @@ function hasPendingDuplicateReview(): SQL<boolean> {
       )
     order by evt."created_at" desc, evt."id" desc
     limit 1
-  ) = 'request.duplicate_suspected'`;
+  ) = 'request.duplicate_suspected', false)`;
 }
 
 function queryValue(value: string | string[] | undefined): string {
