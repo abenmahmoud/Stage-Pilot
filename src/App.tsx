@@ -39,6 +39,7 @@ const SupportOperationsPage = lazy(() => import("./pages/admin/SupportOperations
 const ScheduleImportPage = lazy(() => import("./pages/admin/ScheduleImportPage"));
 const AgentApprovalsPage = lazy(() => import("./pages/admin/AgentApprovalsPage"));
 const CommunicationsPage = lazy(() => import("./pages/admin/CommunicationsPage"));
+const EnvoisNominatifsPage = lazy(() => import("./pages/admin/EnvoisNominatifsPage"));
 
 function PageFallback() {
   return (
@@ -228,6 +229,14 @@ export default function App() {
             element={
               <RoleRoute allowedRoles={CONTENT_MANAGER_ROLES}>
                 <CommunicationsPage />
+              </RoleRoute>
+            }
+          />
+          <Route
+            path="admin/envois-nominatifs"
+            element={
+              <RoleRoute allowedRoles={CONTENT_MANAGER_ROLES}>
+                <EnvoisNominatifsPage />
               </RoleRoute>
             }
           />

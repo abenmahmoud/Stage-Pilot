@@ -26,7 +26,7 @@ import {
   Inbox,
   MessagesSquare,
 } from "lucide-react";
-import { COMMUNICATIONS_UI_ENABLED } from "../lib/feature-flags";
+import { COMMUNICATIONS_UI_ENABLED, NOMINATIVE_SEND_UI_ENABLED } from "../lib/feature-flags";
 
 const navCls = ({ isActive }: { isActive: boolean }) =>
   `flex items-center gap-3 rounded-xl px-4 py-2.5 text-sm font-medium transition-all ${
@@ -218,6 +218,12 @@ export default function AppLayout() {
               <NavLink to="/admin/communications" className={navCls}>
                 <MessagesSquare className="w-4 h-4" />
                 Communications
+              </NavLink>
+            )}
+            {NOMINATIVE_SEND_UI_ENABLED && (
+              <NavLink to="/admin/envois-nominatifs" className={navCls}>
+                <MessagesSquare className="w-4 h-4" />
+                Envois nominatifs
               </NavLink>
             )}
             {(user.role === "superadmin" || isProviseur) && (
