@@ -1,0 +1,13 @@
+{
+  "avertissement": "Personnes entierement inventees. Aucun lien avec un eleve reel.",
+  "schoolYear": "2026-2027",
+  "beneficiaries": [
+    { "beneficiaryRef": "eleve:fictif01", "lastName": "Martin", "firstName": "Alice", "classLabel": "2nde 4", "contactRef": "contact:parent0001", "contactRevoked": false },
+    { "beneficiaryRef": "eleve:fictif02", "lastName": "Martin", "firstName": "Bruno", "classLabel": "2nde 4", "contactRef": "contact:parent0001", "contactRevoked": false },
+    { "beneficiaryRef": "eleve:fictif03", "lastName": "Nguyen", "firstName": "Camille", "classLabel": "1ere 2", "contactRef": "contact:parent0003", "contactRevoked": false },
+    { "beneficiaryRef": "eleve:fictif04", "lastName": "Nguyen", "firstName": "Camille", "classLabel": "1ere 2", "contactRef": "contact:parent0004", "contactRevoked": false },
+    { "beneficiaryRef": "eleve:fictif05", "lastName": "Dubois", "firstName": "Elias", "classLabel": "Tale 1", "contactRef": "contact:parent0005", "contactRevoked": false },
+    { "beneficiaryRef": "eleve:fictif06", "lastName": "Dubois", "firstName": "Farah", "classLabel": "Tale 1", "contactRef": null, "contactRevoked": false },
+    { "beneficiaryRef": "eleve:fictif07", "lastName": "Lopez", "firstName": "Gabriel", "classLabel": "2nde 4", "contactRef": "contact:parent0007", "contactRevoked": true }
+  ]
+}

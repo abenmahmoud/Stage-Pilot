@@ -1,0 +1,10 @@
+Reference eleve;Nom;Prenom;Classe;Numero de badge
+eleve:fictif01;Martin;Alice;2nde 4;0042
+eleve:fictif02;Martin;Bruno;2nde 4;0043
+;Nguyen;Camille;1ere 2;0100
+;Nguyen;Camille;1ere 2;0101
+eleve:fictif05;Dubois;Elias;Tale 1;
+eleve:fictif06;Dubois;Farah;Tale 1;0210
+eleve:fictif07;Lopez;Gabriel;2nde 4;0311
+eleve:fictif01;Martin;Alice;2nde 4;0042
+eleve:fictif09;Inconnu;Hugo;2nde 9;0400
