@@ -38,3 +38,18 @@ Tâche ouverte : `002/T010B4B` (identité email sur appareil). Drapeaux
 `IDENTITY_DEVICE_ACCESS_ENABLED` et `VITE_IDENTITY_DEVICE_ACCESS_ENABLED` à `false`.
 Bloquant : les 94 migrations n'ont pas encore été rejouées sur un PostgreSQL réel
 (Docker Desktop indisponible lors du dernier lot).
+
+## Pieges connus (verifies le 3 septembre 2026)
+
+- **L'alias public de preview est assigne a la main.** Il ne suit PAS
+  automatiquement les nouveaux deploiements de la branche : apres chaque push,
+  le site public sert encore l'ancien build tant qu'on n'a pas execute
+  `npx vercel alias set <url-du-nouveau-deploiement> lyceegest-git-codex-lycee-connect-prototype-safe-scol.vercel.app --scope safe-scol`.
+  Avant de conclure qu'un correctif ne marche pas, verifier quel deploiement
+  sert reellement l'alias (journaux Vercel, champ `dep=`).
+- **Drizzle ne qualifie pas toujours les colonnes dans un template `sql`.**
+  Dans une sous-requete correlee, `${table.colonne}` peut sortir en `"colonne"`
+  non qualifiee et PostgreSQL la resout alors sur la table interne. Toujours
+  aliaser la table interne et ecrire la reference externe en dur.
+- **Une sous-requete sans resultat renvoie NULL, pas `false`.** Les contrats
+  navigateur exigent des booleens stricts : envelopper dans `coalesce(..., false)`.
