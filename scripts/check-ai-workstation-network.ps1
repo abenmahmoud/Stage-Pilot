@@ -24,7 +24,7 @@ $endpoints = @(
     [pscustomobject]@{ Service = 'OpenAI'; Host = 'setup.auth.openai.com'; Required = $true }
     [pscustomobject]@{ Service = 'OpenAI'; Host = 'api.openai.com'; Required = $true }
     [pscustomobject]@{ Service = 'OpenAI'; Host = 'ws.chatgpt.com'; Required = $true }
-    [pscustomobject]@{ Service = 'OpenAI'; Host = 'desktop.chat.openai.com'; Required = $true }
+    [pscustomobject]@{ Service = 'OpenAI'; Host = 'desktop.chat.openai.com'; Required = $false }
     [pscustomobject]@{ Service = 'OpenAI'; Host = 'cdn.oaistatic.com'; Required = $true }
     [pscustomobject]@{ Service = 'OpenAI'; Host = 'files.oaiusercontent.com'; Required = $true }
 
@@ -186,7 +186,7 @@ if ($Json) {
 }
 else {
     $results |
-        Select-Object Service, Host, Status, DurationMs, CertificateIssuer |
+        Select-Object Service, Host, Required, Status, DurationMs, CertificateIssuer |
         Format-Table -AutoSize -Wrap
 
     if ($requiredFailures.Count -eq 0) {

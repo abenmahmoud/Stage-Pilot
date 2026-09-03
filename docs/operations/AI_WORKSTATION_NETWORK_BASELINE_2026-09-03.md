@@ -49,6 +49,20 @@ Le controle local confirme egalement :
 
 Aucun certificat, proxy ou parametre global n'a ete modifie pendant ce constat.
 
+### Recontrole sur connexion stable
+
+Un second controle effectue le 3 septembre 2026 apres stabilisation de la
+connexion trouve 28 destinations pretes sur 29. Toutes les destinations
+obligatoires de Claude, OpenAI/Codex, Kimi, GitHub, Vercel et Supabase passent
+la validation TLS avec des autorites publiques reconnues.
+
+La seule destination absente, `desktop.chat.openai.com`, ne possede aucun
+enregistrement DNS ni via le resolueur courant, ni via les resolueurs publics
+Cloudflare et Google. Elle est donc conservee comme controle informatif mais
+retiree des conditions bloquantes. Claude Code passe aussi `claude doctor` et
+son compte reste authentifie. La connexion est apte au chantier nocturne sans
+appel modele de recette.
+
 ## Controle reproductible
 
 Depuis la racine du depot :

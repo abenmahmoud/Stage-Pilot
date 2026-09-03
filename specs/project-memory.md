@@ -7,6 +7,12 @@
 
 ## Jalon du 3 septembre 2026 - socle reseau du poste IA diagnostique
 
+- Apres stabilisation de la connexion, un second controle trouve 28
+  destinations pretes sur 29 et toutes les destinations obligatoires au vert.
+  `desktop.chat.openai.com` reste uniquement informatif : il est absent des DNS
+  courant, Cloudflare et Google. Claude Code passe `doctor`, reste authentifie
+  et aucun appel modele n'a ete effectue. Le poste est apte au chantier Codex et
+  aux CLI IA sur cette connexion, sous reserve de sa stabilite dans le temps.
 - Le poste Windows est sain localement : Node.js `24.14.1`, Claude Code
   `2.1.259` sans erreur d'installation et authentifie, Kimi CLI `1.43.0`.
   Aucun appel modele ni quota n'a ete utilise pour ce controle.
