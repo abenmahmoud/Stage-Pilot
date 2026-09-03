@@ -5,6 +5,28 @@
 **Depot** : `abenmahmoud/Stage-Pilot`
 **Dernier jalon de code verifie** : branche de preview Vercel
 
+## Jalon du 3 septembre 2026 - socle reseau du poste IA diagnostique
+
+- Le poste Windows est sain localement : Node.js `24.14.1`, Claude Code
+  `2.1.259` sans erreur d'installation et authentifie, Kimi CLI `1.43.0`.
+  Aucun appel modele ni quota n'a ete utilise pour ce controle.
+- Le controle TLS strict de 29 destinations trouve 18 echecs sur le reseau
+  actuel : Claude et OpenAI/Codex sont bloques, ainsi que les API GitHub et
+  Vercel, tandis que Kimi et plusieurs services web de developpement passent.
+- Aucun certificat racine correspondant au proxy SSL regional n'est installe et
+  aucune variable dangereuse ne desactive TLS. Reinstaller les CLI ne constitue
+  donc pas une correction.
+- La solution durable exige une action du service reseau habilite : destinations
+  et WebSockets autorisees, exclusion du dechiffrement TLS privilegiee ou, si
+  l'inspection est imposee, deploiement GPO/MDM du certificat racine officiel
+  verifie et fourniture d'un bundle PEM maintenu.
+- `scripts/check-ai-workstation-network.ps1` reproduit le controle sans compte,
+  secret, adresse IP, donnee utilisateur ni consommation de quota. Il est valide
+  sous PowerShell 7 et Windows PowerShell 5.1.
+- Aucun certificat, proxy, parametre global, deploiement ou service distant n'a
+  ete modifie. Procedure :
+  `docs/operations/AI_WORKSTATION_NETWORK_BASELINE_2026-09-03.md`.
+
 ## Jalon du 2 septembre 2026 - identité email sur appareil préparée et fermée
 
 - Le rapprochement libre-service par adresse connue est implémenté derrière les
