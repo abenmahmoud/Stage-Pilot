@@ -9,3 +9,8 @@ dist
 .vscode
 .idea
 .env*
+
+# journaux de nuit
+docs/operations/night-logs/*.log
+STOP-NUIT.txt
+

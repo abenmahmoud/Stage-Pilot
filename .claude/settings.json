@@ -1,0 +1,31 @@
+{
+  "enableAllProjectMcpServers": false,
+  "enabledMcpjsonServers": [],
+  "permissions": {
+    "deny": [
+      "Bash(git push:*)",
+      "Bash(npm publish:*)",
+      "Bash(vercel:*)",
+      "Bash(npx vercel:*)",
+      "Bash(gh:*)",
+      "Bash(ssh:*)",
+      "Bash(scp:*)",
+      "Read(//C/Users/adelb/Documents/LyceeGest-DONNEES-PRIVEES/**)",
+      "WebFetch",
+      "WebSearch"
+    ]
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "powershell -NoProfile -ExecutionPolicy Bypass -File .claude/hooks/deny-remote.ps1"
+          }
+        ]
+      }
+    ]
+  }
+}
