@@ -6,6 +6,10 @@ import {
   type AssistantScope,
   type ConversationPolicy,
 } from "../../shared/assistant-policy.js";
+import {
+  buildKnowledgeSearchQuery,
+  selectAgentModelWindow,
+} from "../../shared/agent-context-window.js";
 import { readAiProviderJsonResponse } from "../../shared/ai-provider-response.js";
 import { evaluateLaptopIntake } from "../../shared/laptop-intake.js";
 import type { KnowledgeActor } from "../../shared/skill-registry-policy.js";
@@ -493,12 +497,13 @@ export async function analyzeSupportConversation(input: {
 
   let productionUsageRecorder: typeof input.knowledgeUsageRecorder;
   try {
-    const latestRequesterMessage = [...input.messages]
-      .reverse()
-      .find((message) => message.role === "requester")?.content ?? "";
+    // La recherche documentaire ne part plus de la seule derniere phrase :
+    // « et pour le badge ? » ne contient rien de cherchable. Le besoin initial
+    // et les precisions sont combines, sauf changement de sujet explicite.
+    const searchQuery = buildKnowledgeSearchQuery(input.messages).query;
     if (input.knowledgeContextLoader) {
       const loaded = await input.knowledgeContextLoader(
-        latestRequesterMessage,
+        searchQuery,
         input.knowledgeActor ?? null
       );
       publicKnowledgeContext = typeof loaded === "string"
@@ -507,7 +512,7 @@ export async function analyzeSupportConversation(input: {
     } else {
       const runtime = await import("./public-knowledge-context.js");
       publicKnowledgeContext = await runtime.loadPublicKnowledgeContext({
-        query: latestRequesterMessage,
+        query: searchQuery,
         actor: input.knowledgeActor,
       });
       productionUsageRecorder = runtime.recordPublicKnowledgeUsage;
@@ -553,7 +558,10 @@ export async function analyzeSupportConversation(input: {
           ? `${INSTRUCTIONS}\n\n${publicKnowledgeContext.instructions}`
           : INSTRUCTIONS,
         input: JSON.stringify({
-          conversation: input.messages.slice(-10).map((message) => ({
+          // Le modele voit la meme fenetre que celle acceptee par l'interface,
+          // besoin initial conserve : une conversation de vingt messages ne
+          // perd plus sa premiere phrase.
+          conversation: selectAgentModelWindow(input.messages).map((message) => ({
             role: message.role,
             content: neutralizeSupportPromptMarkers(
               pseudonymizeSupportText(message.content)
