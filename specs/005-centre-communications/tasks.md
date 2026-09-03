@@ -516,3 +516,56 @@
   reste ouverte jusqu'au déploiement autorisé, à la preuve réseau et au
   nettoyage sans résidu.
 - [ ] T033 Faire valider le pilote avant toute liste réelle ou envoi collectif.
+
+## Mode nominatif — informations de cantine (3 septembre 2026)
+
+Le mode nominatif réutilise le parcours existant : mêmes livraisons, même file
+durable, même Webmail seul autorisé à résoudre une adresse et à appeler Brevo.
+Il n'ajoute que ce qui manquait pour qu'un message porte une valeur propre à
+son bénéficiaire.
+
+- [x] T034 Poser le socle de la valeur nominative. La classification suit la
+  fonction déclarée de la valeur, pas le titre de sa colonne : une valeur qui
+  ouvre un accès est refusée par le circuit de diffusion et renvoyée au coffre
+  de remise de codes (FR-043). La valeur reste du texte, zéros initiaux
+  compris. Preuve : `npm run test:nominative-merge`.
+- [x] T035 Fusionner par livraison. Une variable inconnue ou sans valeur est une
+  erreur avant mise en file, jamais un marqueur laissé dans un message parti.
+  La valeur fusionnée doit appartenir au bénéficiaire de la livraison.
+- [x] T036 Corriger la clé d'idempotence pour le nominatif. La clé de groupe
+  existante porte sur (établissement, communication, version, contactRef) :
+  deux enfants qui partagent l'adresse d'un parent produisent la MÊME clé et la
+  seconde livraison disparaît à l'insertion. La clé nominative ajoute le
+  bénéficiaire et la version de valeur. Le défaut évité est prouvé par un test
+  qui exécute la fonction de groupe existante.
+- [x] T037 Figer un lot. Source, année, modèle, lignes et exclusions motivées
+  entrent dans une empreinte. Un contact révoqué, une valeur modifiée ou un
+  modèle changé après validation rendent le lot inapplicable au lieu de le
+  remplacer en silence.
+- [x] T038 Importer un fichier et rendre un bilan. Sept situations distinguées ;
+  une ligne non prête ne transporte ni valeur ni contact. Deux homonymes de la
+  même classe ne sont pas départagés par le système. Preuve :
+  `npm run test:nominative-import`.
+- [x] T039 Séparer simulation, exemplaire et envoi du lot. La simulation ne
+  planifie aucun appel fournisseur et n'a besoin d'aucun drapeau ; l'exemplaire
+  exige une adresse de test explicitement choisie ; l'envoi du lot exige les
+  deux drapeaux ouverts. Une réponse fournisseur sans identifiant devient
+  « résultat à vérifier », jamais un succès, et n'autorise pas de renvoi.
+  Preuve : `npm run test:nominative-send-mode`.
+- [x] T040 Parcours administratif complet en données fictives, à
+  `/admin/envois-nominatifs` : importer, confirmer les colonnes, lire le bilan,
+  voir le message de chaque destinataire, valider le lot. Le lien de navigation
+  reste fermé derrière `VITE_NOMINATIVE_SEND_UI_ENABLED`.
+- [ ] T041 Raccorder le parcours au serveur : route d'import privée, stockage
+  chiffré des valeurs par bénéficiaire sur le modèle de
+  `identity_directory_private_rows`, et construction de l'ordre Webmail à partir
+  de la fusion nominative. Le contrat d'ordre existant porte déjà `subject`,
+  `preheader` et `bodyText` par livraison : aucune extension du contrat signé
+  n'est nécessaire.
+- [ ] T042 Recette sur PostgreSQL réel jetable : deux livraisons vers la même
+  adresse coexistent bien en base, l'import rejoué n'en crée pas de troisième,
+  et une interruption entre la mise en file et le reçu laisse un état
+  « résultat à vérifier » rapprochable.
+- [ ] T043 Mise en service réelle. Cible, fichier et version, public, modèle,
+  nombre prêt et exclusions présentés à l'administration avant toute ouverture
+  de drapeau. Aucun envoi sans cette validation sur un lot concret.
