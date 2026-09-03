@@ -302,7 +302,8 @@
     "db:generate": "drizzle-kit generate",
     "db:push": "drizzle-kit push",
     "backup:supabase": "node scripts/backup-supabase.mjs",
-    "backup:verify": "node scripts/verify-supabase-backup.mjs"
+    "backup:verify": "node scripts/verify-supabase-backup.mjs",
+    "test:nominative-merge": "node --import ./scripts/ts-test-resolver.mjs --experimental-strip-types scripts/test-nominative-merge.mjs"
   },
   "license": "ISC",
   "dependencies": {
