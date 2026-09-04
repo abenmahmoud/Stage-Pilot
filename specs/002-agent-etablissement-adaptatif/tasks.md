@@ -447,6 +447,10 @@
 - [ ] T026B Faire une revue commune des informations pratiques avec Adel et les
   services : fiche unique, horaires distincts, contacts, démarches, documents,
   validité et responsables. Aligner ensuite site et sources approuvées de l'agent.
+- [x] T026C Préparer un classeur local pour cette revue : 36 éléments à fournir,
+  20 limites à relire et 44 scénarios avec résultats initialement à tester.
+  Les propositions, protections présentes et circuits à raccorder sont séparés.
+  T026B, la relecture métier et la publication des compétences restent ouvertes.
 - [x] T027 Créer ou compléter automatiquement un dossier `001` lors d'un transfert
   humain, en conservant le dialogue utile et les pièces sans demander de ressaisie.
 - [x] T027D Rejouer la recette navigateur complète après le jalon du registre.

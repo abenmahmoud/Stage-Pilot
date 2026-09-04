@@ -5761,3 +5761,16 @@ taches et analyse de coherence avant une automatisation sensible.
   navigateur à 320 et 1440 px vérifient date, horaires absents, demande claire et
   clarification, sans création de demande ni appel au fournisseur.
 - Détail : `docs/operations/ASSISTANT_CONTEXTE_2026-09-04.md`.
+
+### Préparation de l'enseignement et des limites — 4 septembre 2026
+
+- Adel demande ce qu'il doit fournir avant de commencer l'enseignement de l'agent
+  et la définition commune de ses limites. Un classeur Excel local hors Git
+  rassemble 36 éléments à compléter, 20 limites à relire et 44 scénarios.
+- Les règles existantes et fonctions encore à raccorder sont distinguées ; tous
+  les scénarios du classeur restent `À tester`. Aucun document réel, annuaire,
+  code ou connaissance n'est importé ou activé pendant cette préparation.
+- Reprendre à partir des réponses d'Adel dans les deux premiers onglets. Faire
+  relire ensemble les sources et règles, puis les intégrer et tester une
+  compétence à la fois. T026B et les validations métier restent ouvertes.
+- Support et références : `docs/operations/PREPARATION_AGENT_2026-09-04.md`.
