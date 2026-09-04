@@ -341,8 +341,11 @@ demande part alors avec un contenu que personne n'a réellement écrit.
 
 Ce refus ne doit jamais devenir un mur. Un accent, un bruit de couloir ou une
 langue hésitante ne sont pas des motifs d'exclusion : la règle du §4 s'applique
-ici aussi. Le nombre de tentatives avant de basculer vers la saisie au clavier,
-et la formulation de ce basculement, restent à décider. Une option native au navigateur est évaluée en premier ; toute option
+ici aussi. Après trois essais non compris, l'agent cesse de proposer la dictée
+et bascule vers la saisie au clavier. La formulation reste neutre : le problème
+est attribué à l'écoute, jamais à la personne ni à sa façon de parler. Le
+clavier est présenté comme la suite normale, pas comme une sanction, et la
+dictée redevient disponible à la demande. Une option native au navigateur est évaluée en premier ; toute option
 payante reste fermée jusqu'à validation du coût.
 
 ## 14. Isolation multi-établissement — évolution future

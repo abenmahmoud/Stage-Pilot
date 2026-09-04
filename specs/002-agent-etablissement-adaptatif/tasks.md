@@ -1209,9 +1209,13 @@
   périmée.
 - [ ] T072B Ne jamais afficher une transcription non fiable comme un résultat.
   Annoncer que l'agent n'a pas compris et proposer de recommencer, afin qu'un
-  texte douteux ne soit pas confirmé sans relecture. Le seuil de bascule vers
-  la saisie au clavier reste à décider ; sans lui, un accent ou un bruit de
-  couloir enferme la personne dans une boucle.
+  texte douteux ne soit pas confirmé sans relecture. Après trois essais non
+  compris, cesser de proposer la dictée et basculer vers la saisie au clavier :
+  sans cette limite, un accent ou un bruit de couloir enferme la personne dans
+  une boucle. Formulation neutre attribuant l'échec à l'écoute et non à la
+  personne ; le clavier est la suite normale, pas une sanction, et la dictée
+  reste redemandable. Tester avec un enregistrement volontairement dégradé que
+  la boucle s'arrête bien au troisième essai.
 - [ ] T072A Réserver la dictée aux personnes identifiées. Le microphone n'est
   pas rendu dans le chat public anonyme, et n'est pas proposé puis refusé au
   moment de l'usage. La condition est vérifiée côté serveur, pas seulement par
