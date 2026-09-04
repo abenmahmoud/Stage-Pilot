@@ -90,8 +90,10 @@ function isAlertStatusQuestion(text: string): boolean {
 }
 
 function isThirdPartySchoolDataRequest(content: string): boolean {
-  const text = normalizeText(content);
-  const asksForSchoolData = /\b(emploi du temps|salle|classe|absence|retard|note|bulletin|resultat|sanction|dossier scolaire)\b/.test(
+  // "La récupération n'a donné aucun résultat" describes a failed action,
+  // not a request to disclose a child's academic results.
+  const text = normalizeText(content).replace(/\b(?:sans (?:aucun )?|aucuns? )resultats?\b/g, "");
+  const asksForSchoolData = /\b(emploi du temps|salles?|classes?|absences?|retards?|notes?|bulletins?|resultats?|sanctions?|dossiers? scolaires?)\b/.test(
     text
   );
   const namesAnotherPerson = /\b(mon enfant|mon fils|ma fille|un autre eleve|une autre eleve|l[' ]eleve|d[' ]un eleve|d[' ]une eleve|ce professeur|cet enseignant|cette personne)\b/.test(

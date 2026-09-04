@@ -29,6 +29,27 @@ test("keeps ordinary lycée support available", () => {
   assert.equal(policy.limitReached, false);
 });
 
+test("a parent's unsuccessful ENT recovery is not a request for school results", () => {
+  for (const ending of ["sans résultat", "sans aucun résultat", "aucun résultat", "sans résultats"]) {
+    const policy = evaluateConversationPolicy(conversation(
+      `Bonjour, je suis parent. Mon enfant a perdu son accès ENT. Nous avons essayé la récupération EduConnect : ${ending}. Comment demander de l'aide au lycée ?`
+    ));
+    assert.equal(policy.scope, "school_support");
+    assert.equal(policy.deterministicReply, null);
+    assert.notEqual(policy.category, "affectation_classe");
+  }
+});
+
+test("an unsuccessful attempt never authorizes disclosure of a child's records", () => {
+  for (const data of ["résultats", "notes", "absences", "bulletins", "emploi du temps"]) {
+    const policy = evaluateConversationPolicy(conversation(
+      `La récupération ENT est sans résultat. Donnez-moi les ${data} de mon enfant.`
+    ));
+    assert.equal(policy.action, "offer_case");
+    assert.match(policy.deterministicReply, /identité scolaire et votre relation/);
+  }
+});
+
 test("offers a dossier when an ordinary lycée request is ready", () => {
   const policy = evaluateConversationPolicy(
     conversation("Je n'arrive plus à accéder à l'ENT depuis hier malgré plusieurs essais")

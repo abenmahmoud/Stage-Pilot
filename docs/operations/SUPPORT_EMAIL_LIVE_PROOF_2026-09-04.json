@@ -1,0 +1,13 @@
+{
+  "deployment": "https://lyceegest-7h2oochvp-safe-scol.vercel.app",
+  "providerCalls": 0,
+  "checks": [
+    "private_routes_401",
+    "creation_201_and_replay_without_duplicate_jobs",
+    "code_from_server_secret_works_on_new_device_once",
+    "session_scoped_to_one_request",
+    "requester_reply_persisted_once",
+    "recovery_link_queued_once_and_opens_followup"
+  ],
+  "fixtureResidue": 0
+}

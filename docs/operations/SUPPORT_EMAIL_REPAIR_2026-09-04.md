@@ -47,8 +47,32 @@ Cette ancienne version n'incluait pas le code de suivi ; sa configuration
   lien présents dans les corps texte/HTML ; démarrage refusé sans clé.
 - Tests de contrôle des contacts : 93 cas, dont relance refusée quand le
   résultat d'envoi est incertain, sans modifier le contact ni son lien.
-- Build TypeScript/Vite réussi. Vérification publique et identifiants du
-  déploiement à compléter après passage du contrôle de sécurité intégral.
+- Build TypeScript/Vite et contrôle de sécurité intégral réussis.
+- Déploiement `dpl_GLjs5Nfah15vDCRG5r4jmP1pwW3D`, commit `a8429b5`, READY,
+  validé puis affecté à `gestion.lycee-blaise-cendrars-sevran.fr` et à l'alias
+  public de la branche. Timer VPS remis en service, sortie 0, file vide.
+- Recette HTTP réelle sur cette version : création 201, rejeu sans doublon,
+  code dérivé avec la clé VPS accepté une seule fois par Vercel sur un nouvel
+  appareil, session limitée au bon dossier, message persistant unique, renvoi
+  d'un lien unique puis ouverture. Zéro appel email et zéro dossier fictif
+  restant. Preuve : `SUPPORT_EMAIL_LIVE_PROOF_2026-09-04.json`.
+- Navigateur du domaine public : formulaire code et renvoi accessibles ;
+  pas de débordement à 320 et 390 px. La recette assistant a identifié un
+  faux classement : « récupération EduConnect sans résultat » était interprété
+  comme la demande de résultats scolaires d'un enfant. L'expression courante
+  est désormais distinguée, avec maintien du contrôle des véritables demandes
+  de notes, résultats, absences ou bulletins, au singulier et au pluriel.
+
+## Livraison des futurs workers
+
+Un push Git ne met pas à jour le VPS. Exécuter `npm run build:support-email-worker`
+depuis le commit testé : le bundle et son manifeste SHA-256 sont générés dans
+`.vercel/support-email-worker-release`. Sauvegarder le programme installé,
+arrêter le timer, installer le bundle avec les droits `lycee-support:lycee-support`
+et `0640`, vérifier son empreinte et la présence des migrations/configurations,
+puis lancer le service et contrôler sa sortie avant de remettre le timer.
+`recipe:local-support-email-worker` vérifie le vrai bundle avec un transport
+fictif ; ne jamais remplacer cette vérification par un envoi réel non autorisé.
 
 ## Nettoyage demandé
 

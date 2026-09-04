@@ -5678,3 +5678,17 @@ taches et analyse de coherence avant une automatisation sensible.
 - Recette du vrai worker local avec transport fictif : deux travaux donnent
   un seul email contenant le code et le lien. 20 assertions de reprise DB et
   93 contrôles de contacts. Suivi : `SUPPORT_EMAIL_REPAIR_2026-09-04.md`.
+- Version `a8429b5` validée sur Vercel puis affectée au domaine du lycée et à
+  l'alias pilote ; timer VPS réactivé, sortie 0 et file vide. Le code calculé
+  avec la clé VPS ouvre bien une session Vercel sur nouvel appareil, une seule
+  fois. Création, message et récupération rejoués sans doublon ; aucun email
+  envoyé par la recette, aucune fixture restante. Preuve HTTP conservée.
+- Recette navigateur : accès au code et renvoi du lien disponibles à 320 et
+  390 px. Faux classement « récupération EduConnect sans résultat » corrigé
+  dans la politique ; vingt tests de politique et contrôle de sécurité complet
+  passent. Les demandes de véritables données scolaires restent protégées.
+- Build reproductible du worker : `npm run build:support-email-worker`.
+  Le déploiement Web ne remplace pas automatiquement le programme du VPS.
+- Affiche A4 prête dans le dossier parent `output/pdf`, QR décodé depuis le
+  rendu et pointant sur le domaine du lycée. Suppression des demandes en
+  attente du périmètre choisi par Adel : 13 demandes ou huit adresses fictives.
