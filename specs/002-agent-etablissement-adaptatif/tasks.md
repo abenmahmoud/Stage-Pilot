@@ -1186,6 +1186,16 @@
   une correction de forme, et exiger dans tous les cas la confirmation du
   référent numérique ou de la DDFPT avant l'envoi. Conserver avec la version
   l'écart analysé, la proposition et la décision humaine.
+- [ ] T071B Traiter le changement de public dans une correction. Calculer les
+  maintenus, les retirés et les ajoutés à partir des deux versions, préparer un
+  texte par ensemble — information corrigée, ligne sans détail signalant que
+  l'information ne concerne plus la personne, information neuve — puis afficher
+  les trois effectifs et les trois textes pour confirmation ensemble par
+  ensemble. N'emprunter que les canaux ayant réellement notifié : une flash
+  normale ne déclenche aucune correction, et un passage de normale à importante
+  ou urgente place tout le public dans les ajoutés. Tester en priorité le cas
+  des retirés, qui est celui qui fait agir quelqu'un sur une information
+  périmée.
 - [ ] T072 Prototyper la dictée navigateur en texte éditable dans le chat, les
   formulaires et les informations flash : langue automatique corrigeable,
   segments de deux minutes, reprise manuelle et aucune conservation audio.

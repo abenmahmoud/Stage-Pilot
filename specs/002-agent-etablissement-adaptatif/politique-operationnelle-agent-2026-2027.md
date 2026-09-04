@@ -290,6 +290,24 @@ confirme avant tout envoi, et peut demander une notification même sur une
 correction de forme, ou la refuser sur un changement décisif. La décision,
 son auteur et l'écart analysé sont conservés avec la version.
 
+Lorsque le public change, l'agent calcule trois ensembles à partir des deux
+versions et prépare un message distinct pour chacun :
+
+- **maintenus** : l'information corrigée ;
+- **retirés** : une seule ligne sans détail, indiquant que l'information ne les
+  concerne plus. Les prévenir est le point essentiel : sans ce message, ils
+  gardent la version d'origine et agissent dessus ;
+- **ajoutés** : l'information leur est envoyée comme une information neuve, car
+  ils n'ont jamais reçu l'original ; ce n'est pas une correction.
+
+Une correction n'emprunte que les canaux qui ont réellement notifié. Une flash
+normale n'a prévenu personne : seul le site est mis à jour et aucun message de
+correction n'est proposé. Un passage de normale à importante ou urgente place
+tout le public dans les ajoutés.
+
+Avant l'envoi, l'interface affiche les trois effectifs et les trois textes. Le
+référent numérique ou la DDFPT confirme, ensemble par ensemble.
+
 La dictée transforme la parole en texte modifiable dans le chat, les formulaires
 et les informations flash. La langue est détectée automatiquement avec un choix
 manuel simple. Un segment dure au plus deux minutes et peut être interrompu puis
