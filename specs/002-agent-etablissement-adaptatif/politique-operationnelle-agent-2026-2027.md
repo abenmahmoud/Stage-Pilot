@@ -273,6 +273,13 @@ sa classe immédiatement dispose déjà de la messagerie ENT et des canaux
 existants ; l'agent ne les remplace pas et ne doit jamais laisser croire qu'une
 proposition en attente a prévenu quelqu'un.
 
+Une proposition qui atteint son expiration sans avoir été validée n'est jamais
+fermée en silence. Son auteur est prévenu qu'elle n'a pas été publiée, faute de
+validation à temps, et que personne n'a été informé. Le message reste factuel :
+il ne met en cause aucun valideur et n'ajoute aucun motif. La proposition est
+conservée avec cet état, afin qu'une répétition de ces échecs soit visible et
+serve à ajuster les délais ou le nombre de valideurs.
+
 Un personnel ou professeur vérifié peut proposer une information flash avec une
 expiration obligatoire. Le référent numérique ou la DDFPT valide et peut
 modifier, y compris après publication, le texte, le public, l'importance, les

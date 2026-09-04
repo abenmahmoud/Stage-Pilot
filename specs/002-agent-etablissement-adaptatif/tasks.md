@@ -1182,6 +1182,11 @@
   proposition doit dire clairement qu'une proposition en attente n'a prévenu
   personne et renvoyer vers la messagerie ENT et les canaux existants lorsque
   la personne doit joindre son public tout de suite.
+- [ ] T071D Prévenir l'auteur d'une proposition qui expire sans validation :
+  message factuel indiquant qu'elle n'a pas été publiée et que personne n'a été
+  informé, sans mettre en cause un valideur ni ajouter de motif. Conserver la
+  proposition dans cet état et rendre le compte de ces échecs consultable, pour
+  ajuster ensuite les délais ou le nombre de valideurs.
 - [ ] T071 Concevoir les informations flash proposées par un compte vérifié,
   validées et modifiables par le référent numérique ou la DDFPT. Versionner le
   texte, l'audience, l'importance, les canaux et l'expiration.
