@@ -1,4 +1,7 @@
 import { useEffect, useRef, useState } from "react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { PublicPortalFooter } from "../../components/PublicPortalFooter";
+import { publicPortalView, PUBLIC_PORTAL_TITLES, type PublicPortalView as View } from "../../../shared/public-portal-navigation";
 import {
   ArrowLeft,
   ArrowRightLeft,
@@ -158,7 +161,6 @@ import {
 } from "./public-content-client";
 import "./lycee-connect.css";
 
-type View = "home" | "services" | "help" | "collect" | "requests" | "school" | "news" | "agent" | "trust";
 type RequesterProfile = "eleve" | "parent" | "professeur" | "personnel" | "autre" | "";
 
 const SUPPORT_API_ENABLED = import.meta.env.VITE_SUPPORT_API_ENABLED === "true";
@@ -577,12 +579,9 @@ const specialties = [
 ] as const;
 
 export default function LyceeConnectPrototype() {
-  const [view, setView] = useState<View>(() => {
-    const requested = new URLSearchParams(window.location.search).get("view");
-    return ["home", "services", "help", "collect", "requests", "school", "news", "agent", "trust"].includes(requested ?? "")
-      ? requested as View
-      : "home";
-  });
+  const location = useLocation();
+  const navigate = useNavigate();
+  const view = publicPortalView(location.search);
   const [message, setMessage] = useState("");
   const [helpMode, setHelpMode] = useState<"chat" | "form">("chat");
   const [menuOpen, setMenuOpen] = useState(false);
@@ -591,11 +590,34 @@ export default function LyceeConnectPrototype() {
   const homeAssistantRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
+    document.title = PUBLIC_PORTAL_TITLES[view];
+    setMenuOpen(false);
+    const section = location.hash.slice(1);
+    const frame = window.requestAnimationFrame(() => {
+      const target = section ? document.getElementById(section) : null;
+      if (target) target.scrollIntoView({ block: "start" });
+      else window.scrollTo({ top: 0 });
+    });
+    return () => window.cancelAnimationFrame(frame);
+  }, [view, location.key, location.hash]);
+
+  useEffect(() => {
+    if (!menuOpen) return;
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key !== "Escape") return;
+      setMenuOpen(false);
+      document.querySelector<HTMLButtonElement>(".lycee-menu-button")?.focus();
+    };
+    window.addEventListener("keydown", closeOnEscape);
+    return () => window.removeEventListener("keydown", closeOnEscape);
+  }, [menuOpen]);
+
+  useEffect(() => {
     const url = new URL(window.location.href);
     const token = url.searchParams.get("support_token");
     if (!token) return;
     url.searchParams.delete("support_token");
-    window.history.replaceState({}, "", url);
+    window.history.replaceState(window.history.state, "", url);
     if (!SUPPORT_API_ENABLED) return;
     readApiResponse<unknown>(
       fetch(`/api/support/access/${encodeURIComponent(token)}`, {
@@ -609,23 +631,18 @@ export default function LyceeConnectPrototype() {
         }
         setTicketCreated(payload.request.publicCode);
         setAccessLinkError(null);
-        setView("requests");
+        navigate("/?view=requests", { replace: true });
       })
       .catch(() => {
         setAccessLinkError("Ce lien n'a pas pu être ouvert. Il peut être expiré, déjà utilisé ou momentanément indisponible.");
-        setView("requests");
+        navigate("/?view=requests", { replace: true });
       });
   }, []);
 
   function changeView(nextView: View) {
     if (nextView !== "help") setHelpMode("chat");
-    setView(nextView);
     setMenuOpen(false);
-    const url = new URL(window.location.href);
-    if (nextView === "home") url.searchParams.delete("view");
-    else url.searchParams.set("view", nextView);
-    window.history.replaceState({}, "", url);
-    window.scrollTo({ top: 0, behavior: "smooth" });
+    navigate(nextView === "home" ? "/" : `/?view=${nextView}`);
   }
 
   function openAgentLogin() {
@@ -646,6 +663,7 @@ export default function LyceeConnectPrototype() {
 
   return (
     <div className="lycee-connect">
+      <a className="lycee-skip-link" href="#lycee-main">Aller au contenu</a>
       <aside className="lycee-sidebar">
         <div className="lycee-brand">
           <img src="/blaise-cendrars-portrait.webp" alt="Portrait de Blaise Cendrars" />
@@ -692,7 +710,7 @@ export default function LyceeConnectPrototype() {
         </div>
       </aside>
 
-      <div className="lycee-workspace" role="main">
+      <div className="lycee-workspace" role="main" id="lycee-main" tabIndex={-1}>
         <header className="lycee-topbar">
           <button
             className="lycee-menu-button"
@@ -906,6 +924,8 @@ export default function LyceeConnectPrototype() {
         {view === "agent" && <AgentView onBack={() => changeView("home")} />}
         {view === "trust" && <TrustView onBack={() => changeView("home")} />}
 
+        {view !== "agent" ? <PublicPortalFooter /> : null}
+
         <nav className="lycee-bottom-nav" aria-label="Navigation mobile">
           {navigation.map((item, index) => (
             <button
@@ -1065,7 +1085,7 @@ function NewsView({ onBack }: { onBack: () => void }) {
           <Newspaper aria-hidden="true" />
           <h2>{items.length > 0 ? "Aucune information ne correspond" : scope === "expired" ? "Aucune archive disponible" : "Les prochaines informations seront publiées ici"}</h2>
           <p>{items.length > 0 ? "Modifiez votre recherche ou choisissez une autre catégorie." : scope === "expired" ? "Les publications retirées par la direction ne sont jamais affichées ici." : "Les formations et la présentation du lycée restent disponibles dans « Vie du lycée »."}</p>
-          {items.length > 0 ? <button type="button" onClick={() => { setQuery(""); setCategory("all"); }}>Effacer les filtres</button> : null}
+          {items.length > 0 ? <button type="button" onClick={() => { setQuery(""); setCategory("all"); }}>Effacer les filtres</button> : <div className="lycee-empty-actions"><Link to="/?view=school">Découvrir le lycée</Link><Link to="/?view=help">Poser une question</Link></div>}
         </section>
       ) : null}
       {selected ? (
@@ -2814,7 +2834,6 @@ function SchoolView({ onBack, onHelp }: { onBack: () => void; onHelp: (prompt?: 
   }, []);
 
   const publishedPage = (slug: string) => publishedPages.find((item) => item.slug === slug);
-  const pageHref = (slug: string, fallback: string) => publishedPage(slug) ? `/site/${slug}` : fallback;
   const links = [
     { label: "Monlycée.net", href: ENT_URL, icon: GraduationCap },
     { label: "EduConnect", href: "https://educonnect.education.gouv.fr/", icon: KeyRound },
@@ -2911,10 +2930,6 @@ function SchoolView({ onBack, onHelp }: { onBack: () => void; onHelp: (prompt?: 
     },
   ];
 
-  function scrollToSchoolSection(id: string) {
-    document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
-  }
-
   return (
     <div className="lycee-page">
       <PageIntro eyebrow="Lycée polyvalent" title="Blaise Cendrars, Sevran" description="Découvrez les spécialités, les voies de formation et les accès utiles de l'établissement." onBack={onBack} />
@@ -2924,15 +2939,15 @@ function SchoolView({ onBack, onHelp }: { onBack: () => void; onHelp: (prompt?: 
       </section>
       <div className="lycee-school-stats"><div><strong>Polyvalent</strong><span>général, techno et pro</span></div><div><strong>8</strong><span>spécialités générales</span></div><div><strong>15</strong><span>formations référencées</span></div><div><strong>Euro</strong><span>section européenne anglais</span></div></div>
       <nav className="lycee-school-nav" aria-label="Rubriques du lycée">
-        <button type="button" onClick={() => scrollToSchoolSection("specialites")}>Spécialités</button>
-        <button type="button" onClick={() => scrollToSchoolSection("formations-detaillees")}>Formations</button>
-        <button type="button" onClick={() => scrollToSchoolSection("vie-lycee")}>Vie du lycée</button>
-        <button type="button" onClick={() => scrollToSchoolSection("infos-pratiques")}>Infos pratiques</button>
+        <Link to="/?view=school#specialites">Spécialités</Link>
+        <Link to="/?view=school#formations">Formations</Link>
+        <Link to="/?view=school#vie-lycee">Vie du lycée</Link>
+        <Link to="/?view=school#infos-pratiques">Infos pratiques</Link>
       </nav>
       <section className="lycee-specialties" id="specialites" aria-labelledby="specialites-title">
         <div className="lycee-section-title">
           <div><span className="lycee-eyebrow">Première et terminale générales</span><h2 id="specialites-title">Les spécialités proposées</h2></div>
-          <a href={pageHref("specialites", "https://lycee-blaise-cendrars-sevran.fr/specialites/")} target={publishedPage("specialites") ? undefined : "_blank"} rel={publishedPage("specialites") ? undefined : "noreferrer"}>Informations détaillées {publishedPage("specialites") ? <ChevronRight aria-hidden="true" /> : <ExternalLink aria-hidden="true" />}</a>
+          {publishedPage("specialites") ? <Link to="/site/specialites">Informations détaillées <ChevronRight aria-hidden="true" /></Link> : <button type="button" onClick={() => onHelp("Je souhaite être accompagné pour choisir mes spécialités.")}>Une question sur le choix ? <ChevronRight aria-hidden="true" /></button>}
         </div>
         <p className="lycee-specialties-intro">En première, chaque élève choisit trois spécialités puis en conserve deux en terminale. Le choix se construit selon ses goûts, ses points forts et son projet d'études.</p>
         <div className="lycee-specialties-grid">
@@ -2951,8 +2966,8 @@ function SchoolView({ onBack, onHelp }: { onBack: () => void; onHelp: (prompt?: 
           ))}
         </div>
       </section>
-      <section className="lycee-formations" aria-labelledby="formations-title">
-        <div className="lycee-section-title"><div><span className="lycee-eyebrow">Choisir son parcours</span><h2 id="formations-title">Les formations du lycée</h2></div><a href={pageHref("formations", "https://lycee-blaise-cendrars-sevran.fr/formations/")} target={publishedPage("formations") ? undefined : "_blank"} rel={publishedPage("formations") ? undefined : "noreferrer"}>Toutes les informations {publishedPage("formations") ? <ChevronRight aria-hidden="true" /> : <ExternalLink aria-hidden="true" />}</a></div>
+      <section className="lycee-formations" id="formations" aria-labelledby="formations-title">
+        <div className="lycee-section-title"><div><span className="lycee-eyebrow">Choisir son parcours</span><h2 id="formations-title">Les formations du lycée</h2></div><Link to={publishedPage("formations") ? "/site/formations" : "/?view=school#formations-detaillees"}>Les parcours en détail <ChevronRight aria-hidden="true" /></Link></div>
         <div>{formations.map((formation) => <article key={formation.title}><span><formation.icon aria-hidden="true" /></span><div><h3>{formation.title}</h3><p>{formation.description}</p><small>{formation.items}</small></div></article>)}</div>
       </section>
       {publishedPages.length ? (

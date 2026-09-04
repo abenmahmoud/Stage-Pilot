@@ -5727,3 +5727,19 @@ taches et analyse de coherence avant une automatisation sensible.
   utiliser le pilote courant ; aucune promotion de la base historique.
 - WordPress reste hébergé chez Hostinger ; sa reprise éditoriale reste ouverte.
   État et retour arrière : `docs/operations/DOMAINE_PRINCIPAL_2026-09-04.md`.
+
+### Jalon du 4 septembre 2026 — finition des parcours du site public
+
+- À la demande d’Adel, les liens vers les rubriques disponibles remplacent les
+  renvois vers des pages historiques encore non publiées. Les anciennes URL
+  gardent leur destination ; l’écran de page absente propose la bonne rubrique.
+- Navigation pilotée par React Router, précédent/suivant, ancres après rechargement,
+  pied de page contact/suivi/confidentialité, reprise réseau et ouverture PWA `/`.
+- Build et barrière de sécurité complète passent. Le navigateur vérifie sept
+  vues à 320, 390 et 1440 px et les parcours d’ancres/retour arrière sans
+  débordement ni erreur JavaScript : 24 contrôles, aucune mutation distante.
+- 28 brouillons lus, sept corrections préparées dans un paquet local de relecture,
+  dont la page Contact complétée depuis l’Onisep. Aucun état de vérification ni
+  publication n’est forcé ; validation des services et trois médias manquants
+  restent ouverts. La liste préparée avec Claude et les codes sont hors de ce lot.
+- Preuve et retour arrière : `docs/operations/FINITION_SITE_PUBLIC_2026-09-04.md`.

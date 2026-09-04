@@ -36,7 +36,7 @@ test("keeps every public secondary action at least 40 pixels high", () => {
   assert.match(css, /\.lycee-device-action-buttons button \{ min-height: 40px;/);
   assert.match(css, /\.lycee-list-toolbar input \{ min-height: 40px; \}/);
   assert.match(css, /\.lycee-page-intro > button \{ width: 40px; height: 40px; flex-basis: 40px; \}/);
-  assert.match(css, /\.lycee-school-nav button \{ min-height: 40px; \}/);
+  assert.match(css, /\.lycee-school-nav a \{ min-height: 44px; \}/);
 });
 
 test("keeps the assistant and its safe alternative visible as semantic controls", () => {

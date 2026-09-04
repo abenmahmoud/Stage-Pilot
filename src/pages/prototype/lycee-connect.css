@@ -675,8 +675,8 @@
 .lycee-school-stats > div:first-child strong { font-size: 18px; }
 .lycee-school-stats span { margin-top: 4px; color: var(--lc-muted); font-size: 10px; }
 .lycee-school-nav { position: sticky; z-index: 5; top: 82px; display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: 1px; margin-bottom: 14px; padding: 3px; border: 1px solid #cbd7e5; border-radius: 8px; background: #eef3f8; box-shadow: 0 8px 22px rgba(20,47,78,.08); }
-.lycee-school-nav button { min-height: 40px; border: 0; border-radius: 6px; background: transparent; color: #52667d; font-size: 10px; font-weight: 850; }
-.lycee-school-nav button:hover, .lycee-school-nav button:focus-visible { background: #fff; color: var(--lc-blue); outline: 0; }
+.lycee-school-nav a { min-height: 44px; display: flex; align-items: center; justify-content: center; border: 0; border-radius: 6px; background: transparent; color: #52667d; font-size: 10px; font-weight: 850; text-decoration: none; }
+.lycee-school-nav a:hover, .lycee-school-nav a:focus-visible { background: #fff; color: var(--lc-blue); }
 .lycee-specialties { scroll-margin-top: 90px; margin-bottom: 14px; padding: 22px; border: 1px solid var(--lc-line); border-radius: 8px; background: #fff; }
 .lycee-specialties-intro { max-width: 820px; margin: -3px 0 17px; color: var(--lc-muted); font-size: 12px; line-height: 1.55; }
 .lycee-specialties-grid { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: 10px; }
@@ -1261,7 +1261,7 @@
   .lycee-catalog-icon { width: 44px; height: 44px; }
   .lycee-school-stats strong { font-size: 21px; }
   .lycee-school-nav { top: 68px; grid-template-columns: repeat(2,minmax(0,1fr)); }
-  .lycee-school-nav button { min-height: 40px; }
+  .lycee-school-nav a { min-height: 44px; }
   .lycee-specialties-grid { grid-template-columns: 1fr; }
   .lycee-specialties-grid h3, .lycee-specialties-grid p { min-height: 0; }
   .lycee-programs, .lycee-school-life, .lycee-practical, .lycee-published-pages { padding: 16px; }
@@ -1334,4 +1334,25 @@
   .lycee-identity-device form > span, .lycee-identity-device label { grid-column: 1 / -1; max-width: none; }
   .lycee-identity-device input[type="email"], .lycee-identity-device input[inputmode="numeric"] { width: 100%; min-width: 0; }
   .lycee-identity-device-error { grid-column: 1 / -1; }
+}
+
+/* Public navigation remains usable before editorial pages are published. */
+.lycee-skip-link { position: fixed; top: 8px; left: 12px; z-index: 100; padding: 12px 16px; border-radius: 6px; background: #132238; color: #fff; transform: translateY(-160%); }
+.lycee-skip-link:focus { transform: translateY(0); }
+.lycee-public-footer { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px 28px; margin: 28px; padding: 22px 0 4px; border-top: 1px solid var(--lc-line); font-size: 12px; }
+.lycee-public-footer > div { display: grid; gap: 6px; }
+.lycee-public-footer strong { font-size: 14px; }
+.lycee-public-footer span { color: #52667d; }
+.lycee-public-footer nav { display: flex; flex-wrap: wrap; gap: 4px 18px; }
+.lycee-public-footer a { display: inline-flex; align-items: center; min-height: 44px; color: #174caa; text-decoration: underline; text-underline-offset: 4px; }
+.lycee-empty-actions { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 12px; margin-top: 22px; }
+.lycee-empty-actions a, .lycee-empty-actions button { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; margin: 0; padding: 11px 18px; border: 1px solid #c7d6eb; border-radius: 8px; background: #fff; color: #174caa; font-size: 14px; font-weight: 700; text-decoration: none; }
+.lycee-empty-actions a:first-child, .lycee-empty-actions button:first-child { border-color: var(--lc-blue); background: var(--lc-blue); color: #fff; }
+.lycee-article-page > .lycee-public-footer { width: min(100% - 48px, 1000px); margin: 28px auto; }
+.lycee-formations, .lycee-specialties { scroll-margin-top: 152px; }
+@media (max-width: 640px) {
+  .lycee-public-footer { margin: 22px 16px 10px; }
+  .lycee-public-footer nav { gap: 0 16px; }
+  .lycee-empty-actions { align-items: stretch; flex-direction: column; width: 100%; }
+  .lycee-formations, .lycee-specialties, .lycee-programs, .lycee-school-life, .lycee-practical { scroll-margin-top: 176px; }
 }

@@ -3,7 +3,7 @@
   "short_name": "Blaise Cendrars",
   "description": "Services, informations et assistance du Lycée Blaise Cendrars de Sevran.",
   "id": "/prototype",
-  "start_url": "/prototype",
+  "start_url": "/",
   "scope": "/",
   "display": "standalone",
   "background_color": "#f4f7fb",

@@ -1,6 +1,6 @@
-const CACHE_NAME = "blaise-cendrars-connect-v7";
+const CACHE_NAME = "blaise-cendrars-connect-v8";
 const APP_SHELL = [
-  "/prototype",
+  "/",
   "/manifest.webmanifest",
   "/lycee-blaise-logo.png",
   "/pwa-icon-192.png",
@@ -31,7 +31,7 @@ self.addEventListener("fetch", (event) => {
 
   if (event.request.mode === "navigate") {
     event.respondWith(
-      fetch(event.request, { cache: "no-store" }).catch(() => caches.match("/prototype"))
+      fetch(event.request, { cache: "no-store" }).catch(() => caches.match("/"))
     );
     return;
   }
@@ -54,7 +54,7 @@ self.addEventListener("fetch", (event) => {
 
 self.addEventListener("notificationclick", (event) => {
   event.notification.close();
-  const destination = "/prototype?view=requests";
+  const destination = "/?view=requests";
   event.waitUntil(
     self.clients.matchAll({ type: "window", includeUncontrolled: true }).then(async (clients) => {
       const existing = clients.find((client) => new URL(client.url).origin === self.location.origin);

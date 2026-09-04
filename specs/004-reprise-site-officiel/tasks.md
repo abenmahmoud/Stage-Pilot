@@ -66,6 +66,14 @@
 
 ## Bascule
 
+- [x] T017D Fiabiliser les parcours publics pendant la relecture : navigation
+  précédente/suivante, ancres partageables, alternatives aux pages non publiées,
+  reprise d’une erreur réseau, pied de page et ouverture PWA sur le domaine
+  principal. Build, barrière de sécurité et 24 vérifications navigateur à 320,
+  390 et 1440 px passent. Sept corrections éditoriales sont préparées localement
+  pour les 28 brouillons ; leur validation et les trois médias restent ouverts.
+  Voir `docs/operations/FINITION_SITE_PUBLIC_2026-09-04.md`.
+
 - [ ] T018 Comparer l'ancien site et la preview rubrique par rubrique.
 - [x] T018A Versionner une matrice initiale des 28 contenus qui rapproche chaque
   ancienne adresse de son brouillon et de sa destination, conserve les décisions
