@@ -322,6 +322,12 @@ tout le public dans les ajoutés.
 Avant l'envoi, l'interface affiche les trois effectifs et les trois textes. Le
 référent numérique ou la DDFPT confirme, ensemble par ensemble.
 
+La dictée est réservée aux personnes déjà identifiées. Le chat public anonyme
+n'affiche pas le microphone : la parole est une donnée personnelle, et rien ne
+justifie de l'accepter d'un visiteur dont on ne sait rien. Une personne non
+identifiée écrit normalement, sans que la dictée soit présentée puis refusée
+au moment de l'usage.
+
 La dictée transforme la parole en texte modifiable dans le chat, les formulaires
 et les informations flash. La langue est détectée automatiquement avec un choix
 manuel simple. Un segment dure au plus deux minutes et peut être interrompu puis

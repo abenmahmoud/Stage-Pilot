@@ -1207,6 +1207,10 @@
   ou urgente place tout le public dans les ajoutés. Tester en priorité le cas
   des retirés, qui est celui qui fait agir quelqu'un sur une information
   périmée.
+- [ ] T072A Réserver la dictée aux personnes identifiées. Le microphone n'est
+  pas rendu dans le chat public anonyme, et n'est pas proposé puis refusé au
+  moment de l'usage. La condition est vérifiée côté serveur, pas seulement par
+  l'affichage.
 - [ ] T072 Prototyper la dictée navigateur en texte éditable dans le chat, les
   formulaires et les informations flash : langue automatique corrigeable,
   segments de deux minutes, reprise manuelle et aucune conservation audio.
