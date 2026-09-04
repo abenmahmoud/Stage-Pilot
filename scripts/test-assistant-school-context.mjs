@@ -34,7 +34,7 @@ test('a visitor and a previous assistant answer cannot redefine the current year
 });
 
 test('school dates and course times are not mistaken for the clock', () => {
-  for (const content of ['Quelle date pour la rentrée ?', 'Quelle heure pour mon prochain cours ?', 'Quel jour est mon examen ?', 'Quelle date de naissance pour mon enfant ?']) {
+  for (const content of ['Quelle date pour la rentrée ?', 'Quelle heure pour mon prochain cours ?', 'Quel jour est mon examen ?', 'Quelle date de naissance pour mon enfant ?', 'Quel jour puis-je passer au secrétariat ?', 'Quelle date pour retirer mon attestation ?', 'Quelle année a été créé le lycée ?']) {
     assert.equal(schoolInformationIntent([message(content)]), null);
   }
 });

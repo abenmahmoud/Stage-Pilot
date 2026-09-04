@@ -14,8 +14,11 @@ export function schoolInformationIntent(messages: readonly Message[]): "clock" |
   if (/\b(horaires?|horraires?|ouverture|fermeture|ouvre|ouvrez|ouvert|ferme|fermez)\b/.test(text)
     && /\b(lycee|accueil|secretariat|vie scolaire|cdi|cantine|intendance|etablissement|vous|vos|vos? horaires|horaires? d ouverture|horraires? d ouverture)\b/.test(text)) return "opening_hours";
   // A date of enrolment, an exam or a timetable is not the current date.
-  if (/\b(inscription|rentree|examen|bac|naissance|rendez vous|vacances|cours|emploi du temps|fete|ferie)\b/.test(text)) return null;
-  if (/\b(quel jour|quelle date|quelle annee|quelle heure|la date d aujourd hui|date du jour|jour et l annee|jour et annee|on est (?:le )?combien|on est en quelle|nous sommes en quelle)\b/.test(text)
+  if (/\b(inscription|rentree|examen|bac|naissance|rendez vous|vacances|cours|emploi du temps|fete|ferie|retrait|retirer|recuperer|passer|venir|attestation|certificat|document|dossier|stage|grand oral)\b/.test(text)) return null;
+  const clockTopic = /\b(quel jour|quelle date|quelle annee|quelle heure|jour et l annee|jour et annee)\b/.test(text);
+  if ((clockTopic && /\b(sommes|est il|est on|on est|aujourd hui|maintenant|actuellement|en ce moment)\b/.test(text.replace(/-/g, " ")))
+    || /^(?:bonjour[, ]*)?(?:quel jour|quelle date|quelle annee|quelle heure)[ ?!.]*$/.test(text)
+    || /\b(la date d aujourd hui|date du jour|on est (?:le )?combien|on est en quelle|nous sommes en quelle)\b/.test(text)
     || /^(?:bonjour[, ]*)?(?:donne|donnez|dis|dites)(?: moi)? (?:le jour|la date|l annee|l heure)(?: actuelle?| d aujourd hui)?[ ?!.]*$/.test(text)) return "clock";
   return null;
 }
