@@ -1,7 +1,7 @@
 # Politique opérationnelle de l'agent 2026-2027
 
 **État** : décisions métier consolidées, mise en œuvre progressive  
-**Révision** : 4 septembre 2026  
+**Révision** : 5 septembre 2026  
 **Portée** : portail public, guichet de demandes, connaissances, identité,
 documents personnels, codes d'accès, notifications et exploitation multi-établissement
 
@@ -279,7 +279,16 @@ validation. L'agent propose le niveau, mais l'humain décide :
 Le menu de cantine expire après une semaine puis est archivé. Les contenus bac,
 orientation et événements possèdent un début et une fin. Les changements de
 classe, tests et sorties utilisent une information flash ciblée et expirante.
-La règle d'envoi d'une correction après modification reste à valider.
+Une modification après publication ne notifie jamais automatiquement. L'agent
+compare l'ancienne et la nouvelle version, puis propose une notification de
+correction lorsqu'un élément décisif change : date, heure, lieu, annulation,
+public concerné ou niveau d'urgence. Une correction de forme — orthographe,
+ponctuation, reformulation sans changement de sens — ne propose rien par défaut.
+
+La proposition reste une proposition : le référent numérique ou la DDFPT
+confirme avant tout envoi, et peut demander une notification même sur une
+correction de forme, ou la refuser sur un changement décisif. La décision,
+son auteur et l'écart analysé sont conservés avec la version.
 
 La dictée transforme la parole en texte modifiable dans le chat, les formulaires
 et les informations flash. La langue est détectée automatiquement avec un choix
@@ -320,7 +329,9 @@ validés et testés :
 - fournisseurs push, email et SMS, consentements et coûts ;
 - source d'emploi du temps et écrans de déclaration professeur ;
 - import des documents téléchargeables et routage selon la voie ;
-- workflow d'information flash, modification versionnée et règle de correction ;
+- workflow d'information flash et modification versionnée ; la règle de
+  correction est décidée (proposition analysée, confirmation humaine) et
+  attend son implémentation ;
 - dictée navigateur accessible, relecture, langues et absence de conservation audio ;
 - relecture des informations pratiques et des propriétaires de chaque source.
 

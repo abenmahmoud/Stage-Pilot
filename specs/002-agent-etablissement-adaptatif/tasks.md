@@ -1178,8 +1178,14 @@
   professionnel vers la DDFPT.
 - [ ] T071 Concevoir les informations flash proposées par un compte vérifié,
   validées et modifiables par le référent numérique ou la DDFPT. Versionner le
-  texte, l'audience, l'importance, les canaux et l'expiration, puis faire valider
-  la règle de notification d'une correction après publication.
+  texte, l'audience, l'importance, les canaux et l'expiration.
+- [ ] T071A Implémenter la règle de correction décidée le 5 septembre 2026 :
+  aucune notification automatique après publication. Comparer les deux versions,
+  proposer une notification quand la date, l'heure, le lieu, l'annulation, le
+  public concerné ou le niveau d'urgence change, ne rien proposer par défaut sur
+  une correction de forme, et exiger dans tous les cas la confirmation du
+  référent numérique ou de la DDFPT avant l'envoi. Conserver avec la version
+  l'écart analysé, la proposition et la décision humaine.
 - [ ] T072 Prototyper la dictée navigateur en texte éditable dans le chat, les
   formulaires et les informations flash : langue automatique corrigeable,
   segments de deux minutes, reprise manuelle et aucune conservation audio.
