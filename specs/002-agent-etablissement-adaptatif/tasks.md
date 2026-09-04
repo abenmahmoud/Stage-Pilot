@@ -1176,6 +1176,12 @@
 - [ ] T070 Ajouter les documents versionnés téléchargeables et leur retour depuis
   l'assistant, avec routage générale/technologique vers l'administration et
   professionnel vers la DDFPT.
+- [ ] T071C Traiter l'information flash comme un canal supplémentaire et non
+  comme le canal d'urgence. Aucune publication ni notification sans validation
+  du référent numérique ou de la DDFPT, sans exception d'horaire. L'écran de
+  proposition doit dire clairement qu'une proposition en attente n'a prévenu
+  personne et renvoyer vers la messagerie ENT et les canaux existants lorsque
+  la personne doit joindre son public tout de suite.
 - [ ] T071 Concevoir les informations flash proposées par un compte vérifié,
   validées et modifiables par le référent numérique ou la DDFPT. Versionner le
   texte, l'audience, l'importance, les canaux et l'expiration.

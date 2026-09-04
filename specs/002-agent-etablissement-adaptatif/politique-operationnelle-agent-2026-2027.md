@@ -266,6 +266,13 @@ publication. Après remplissage, ils peuvent être retournés depuis l'assistant
 Les voies générale et technologique sont routées vers l'administration ; la
 voie professionnelle est routée vers la DDFPT.
 
+L'information flash est un canal supplémentaire, jamais le canal d'urgence de
+l'établissement. Rien ne part sans la validation du référent numérique ou de la
+DDFPT, sans exception et quelle que soit l'heure. Un professeur qui doit joindre
+sa classe immédiatement dispose déjà de la messagerie ENT et des canaux
+existants ; l'agent ne les remplace pas et ne doit jamais laisser croire qu'une
+proposition en attente a prévenu quelqu'un.
+
 Un personnel ou professeur vérifié peut proposer une information flash avec une
 expiration obligatoire. Le référent numérique ou la DDFPT valide et peut
 modifier, y compris après publication, le texte, le public, l'importance, les
