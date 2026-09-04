@@ -174,3 +174,23 @@ partagé ne remplace les comptes nominatifs et le MFA prévus pour la production
 - Une publication peut être archivée sans supprimer sa version.
 - Une campagne en attente peut être annulée ; un email déjà remis ne peut pas
   être rappelé et sa correction passe par une nouvelle version officielle.
+
+## Raccordement nominatif — reprise du 4 septembre 2026
+
+Le service `api/_shared/nominative-persistence.ts` reçoit un répertoire résolu
+côté serveur, jamais fourni comme autorité par le navigateur. Les valeurs et
+le contexte nominatif sont chiffrés individuellement en AES-256-GCM. Les AAD
+lient chaque enveloppe à l'établissement, l'import et la personne. Les
+empreintes de valeurs et de fichiers utilisent un HMAC distinct de la clé de
+chiffrement : un numéro court ne doit pas être devinable depuis un SHA public.
+
+Le lot approuvé conserve le bilan de TOUTES les lignes source. Le stockage
+utilise les tables privées `communication_nominative_imports`,
+`communication_nominative_values` et `communication_nominative_delivery_values`.
+La livraison et la file existantes restent le socle de diffusion. Le pointeur
+de livraison vers sa valeur est unique pour un import et un bénéficiaire.
+
+Une réservation de départ doit être committée avant le réseau. Sans reçu,
+elle est présentée comme un résultat à vérifier et aucune nouvelle réservation
+n'est autorisée. Le raccordement du reçu et l'interface HTTP restent à livrer
+avant l'activation. La migration du 4 septembre n'est appliquée qu'en local.

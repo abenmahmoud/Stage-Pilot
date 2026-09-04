@@ -37,7 +37,7 @@ export class NominativeImportError extends Error {
 /** Lecture CSV minimale mais correcte : guillemets, separateur detecte, BOM retire. */
 export function parseDelimitedFile(text: unknown): { headers: string[]; rows: string[][] } {
   if (typeof text !== "string") throw new NominativeImportError("file_invalid");
-  if (text.length > MAX_FILE_BYTES) throw new NominativeImportError("file_too_large");
+  if (new TextEncoder().encode(text).byteLength > MAX_FILE_BYTES) throw new NominativeImportError("file_too_large");
   const cleaned = text.replace(/^﻿/, "").replace(/\r\n?/g, "\n");
   if (CONTROL_CHARACTERS.test(cleaned)) throw new NominativeImportError("file_invalid");
 
@@ -92,6 +92,9 @@ export function parseDelimitedFile(text: unknown): { headers: string[]; rows: st
   }
   const body = populated.slice(1);
   if (body.length > MAX_ROWS) throw new NominativeImportError("too_many_rows");
+  if (body.some((line) => line.length !== headers.length)) {
+    throw new NominativeImportError("row_width_invalid");
+  }
   return { headers, rows: body };
 }
 
@@ -135,12 +138,16 @@ export function suggestColumnMapping(headers: readonly string[]): NominativeColu
 }
 
 export function assertMappingComplete(mapping: NominativeColumnMapping, columnCount: number): void {
+  if (!mapping || typeof mapping !== "object" || Array.isArray(mapping) ||
+    Object.keys(mapping).some((key) => !(NOMINATIVE_IMPORT_ROLES as readonly string[]).includes(key))) {
+    throw new NominativeImportError("mapping_invalid");
+  }
   if (mapping.value === undefined) throw new NominativeImportError("value_column_missing");
   const hasIdentity =
     mapping.beneficiary_ref !== undefined ||
     (mapping.last_name !== undefined && mapping.first_name !== undefined);
   if (!hasIdentity) throw new NominativeImportError("identity_columns_missing");
-  const used = Object.values(mapping);
+  const used = Object.values(mapping).filter((index) => index !== undefined);
   for (const index of used) {
     if (!Number.isInteger(index) || index < 0 || index >= columnCount) {
       throw new NominativeImportError("column_index_invalid");
@@ -191,7 +198,7 @@ function foldName(value: string): string {
     .normalize("NFD")
     .replace(/\p{Diacritic}/gu, "")
     .toLowerCase()
-    .replace(/[^a-z0-9]+/g, " ")
+    .replace(/[^\p{L}\p{N}]+/gu, " ")
     .trim();
 }
 
@@ -209,10 +216,12 @@ export function buildNominativeImportReport(input: {
   mapping: NominativeColumnMapping;
   directory: readonly DirectoryBeneficiary[];
 }): NominativeImportReport {
-  const byRef = new Map<string, DirectoryBeneficiary>();
+  const byRef = new Map<string, DirectoryBeneficiary[]>();
   const byName = new Map<string, DirectoryBeneficiary[]>();
   for (const person of input.directory) {
-    byRef.set(person.beneficiaryRef, person);
+    const references = byRef.get(person.beneficiaryRef) ?? [];
+    references.push(person);
+    byRef.set(person.beneficiaryRef, references);
     const key = foldName(person.lastName) + "|" + foldName(person.firstName) + "|" + foldName(person.classLabel);
     const bucket = byName.get(key);
     if (bucket) bucket.push(person);
@@ -238,21 +247,33 @@ export function buildNominativeImportReport(input: {
     let matched: DirectoryBeneficiary | null = null;
     let matchedBy: NominativeImportRow["matchedBy"] = null;
     let candidates: DirectoryBeneficiary[] = [];
+    let identityConflict = false;
 
     const rawRef = cell(row, input.mapping.beneficiary_ref);
     if (rawRef.length > 0) {
       try {
         const reference = parseBeneficiaryRef(rawRef);
-        const person = byRef.get(reference);
-        if (person) {
-          matched = person;
+        candidates = byRef.get(reference) ?? [];
+        if (candidates.length === 1) {
+          matched = candidates[0];
           matchedBy = "reference";
+          identityConflict = ([
+            [input.mapping.last_name, matched.lastName],
+            [input.mapping.first_name, matched.firstName],
+            [input.mapping.class_label, matched.classLabel],
+          ] as const).some(([column, expected]) => {
+            const provided = cell(row, column);
+            return provided.length > 0 && foldName(provided) !== foldName(expected);
+          });
+          if (identityConflict) { matched = null; matchedBy = null; }
         }
       } catch (error) {
         if (!(error instanceof NominativeValueError)) throw error;
       }
     }
-    if (!matched) {
+    // A supplied reference is authoritative. An unknown or malformed reference
+    // must never fall back to the name of a different beneficiary.
+    if (!matched && rawRef.length === 0) {
       const key =
         foldName(cell(row, input.mapping.last_name)) +
         "|" +
@@ -267,7 +288,7 @@ export function buildNominativeImportReport(input: {
     }
 
     let outcome: NominativeImportOutcome;
-    if (!matched && candidates.length > 1) outcome = "match_ambiguous";
+    if (identityConflict || (!matched && candidates.length > 1)) outcome = "match_ambiguous";
     else if (!matched) outcome = "match_missing";
     else if (seenRefs.has(matched.beneficiaryRef)) outcome = "source_duplicate";
     else if (value === null) outcome = "value_missing";
@@ -287,6 +308,27 @@ export function buildNominativeImportReport(input: {
       candidateRefs: candidates.length > 1 ? candidates.map((person) => person.beneficiaryRef).sort() : [],
     });
   });
+
+  // Identical duplicate rows are harmless, but conflicting values for the same
+  // beneficiary require review of ALL occurrences. File order cannot choose
+  // which personal value will be sent.
+  const occurrences = new Map<string, NominativeImportRow[]>();
+  for (const row of rows) {
+    if (!row.beneficiaryRef) continue;
+    const group = occurrences.get(row.beneficiaryRef) ?? [];
+    group.push(row);
+    occurrences.set(row.beneficiaryRef, group);
+  }
+  for (const group of occurrences.values()) {
+    if (group.length < 2) continue;
+    const values = new Set(group.map((row) => cell(input.rows[row.rowNumber - 2], input.mapping.value)));
+    if (values.size < 2) continue;
+    for (const row of group) {
+      row.outcome = "source_duplicate";
+      row.value = null;
+      row.contactRef = null;
+    }
+  }
 
   const byOutcome: Record<NominativeImportOutcome, number> = {
     ready: 0,

@@ -305,7 +305,9 @@
     "backup:verify": "node scripts/verify-supabase-backup.mjs",
     "test:nominative-merge": "node --import ./scripts/ts-test-resolver.mjs --experimental-strip-types scripts/test-nominative-merge.mjs",
     "test:nominative-import": "node --import ./scripts/ts-test-resolver.mjs --experimental-strip-types scripts/test-nominative-import.mjs",
-    "test:nominatif": "npm run test:nominative-merge && npm run test:nominative-import && npm run test:nominative-send-mode",
+    "test:nominatif": "npm run test:nominative-merge && npm run test:nominative-import && npm run test:nominative-send-mode && npm run test:nominative-boundaries",
+    "test:nominative-boundaries": "node --import ./scripts/ts-test-resolver.mjs --experimental-strip-types scripts/test-nominative-import-boundaries.mjs && node --import ./scripts/ts-test-resolver.mjs --experimental-strip-types scripts/test-nominative-private-store.mjs",
+    "recipe:local-nominative-persistence": "node --import ./scripts/ts-test-resolver.mjs --experimental-strip-types scripts/test-local-nominative-persistence.mjs --local-stack-only",
     "test:nominative-send-mode": "node --import ./scripts/ts-test-resolver.mjs --experimental-strip-types scripts/test-nominative-send-mode.mjs",
     "test:agent-context-window": "node --import ./scripts/ts-test-resolver.mjs --experimental-strip-types scripts/test-agent-context-window.mjs"
   },

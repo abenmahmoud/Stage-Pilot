@@ -562,10 +562,35 @@ son bénéficiaire.
   de la fusion nominative. Le contrat d'ordre existant porte déjà `subject`,
   `preheader` et `bodyText` par livraison : aucune extension du contrat signé
   n'est nécessaire.
+- [x] T041A Persister un import préparé par le serveur avec des valeurs AES-GCM
+  liées à l'établissement, l'import et le bénéficiaire ; figer toutes les
+  exclusions, y compris les lignes sans personne reconnue ; vérifier le lot
+  exact à l'approbation ; créer deux livraisons idempotentes pour deux enfants
+  partageant un contact et construire leurs ordres Webmail distincts.
+  Preuve : `recipe:local-nominative-persistence`, 28 assertions sur PostgreSQL
+  local, zéro appel fournisseur et rollback vérifié, le 4 septembre 2026.
+  Le service est disponible pour le raccordement ; aucune route d'import ni
+  aucun worker d'envoi réel ne l'appelle encore.
+- [x] T041B Refuser le remplacement d'une référence inconnue par un nom et
+  l'écrasement d'une référence ambiguë du répertoire. Des valeurs contradictoires
+  pour un même bénéficiaire excluent toutes ses occurrences. Les fichiers
+  décalés et les dépassements en octets UTF-8 sont refusés.
+- [x] T041C Conserver les exclusions de chaque ligne jusqu'à la validation
+  simulée, y compris les doublons et les identités inconnues. Recette navigateur
+  locale réelle : 2 messages et 7 exclusions, valeurs séparées entre les deux
+  destinataires, aucun débordement du document à 320 px et capture à 1440 px.
+  Cette preuve porte sur le composant de simulation ; le raccordement API
+  authentifié et le lecteur d'écran humain restent à vérifier.
 - [ ] T042 Recette sur PostgreSQL réel jetable : deux livraisons vers la même
   adresse coexistent bien en base, l'import rejoué n'en crée pas de troisième,
   et une interruption entre la mise en file et le reçu laisse un état
   « résultat à vérifier » rapprochable.
+- [x] T042A Vérifier la persistance réelle des deux livraisons, le rejeu sans
+  troisième ligne, le refus d'un contact révoqué, le cloisonnement établissement
+  et l'absence de droits clients sur les valeurs privées. Une réservation
+  interrompue reste « résultat à vérifier » et ne peut être réservée à nouveau.
+  T042 reste ouverte pour la recette HTTP intégrée et le rapprochement du reçu
+  Webmail après interruption, qui n'est pas encore raccordé.
 - [ ] T043 Mise en service réelle. Cible, fichier et version, public, modèle,
   nombre prêt et exclusions présentés à l'administration avant toute ouverture
   de drapeau. Aucun envoi sans cette validation sur un lot concret.

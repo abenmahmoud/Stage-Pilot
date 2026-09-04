@@ -122,3 +122,26 @@ sans groupe, une publication non publique et une expiration incohérente.
 
 `api/_shared/communication-flags.ts` échoue fermé : la publication et l'envoi ne
 peuvent être actifs si le module lui-même ne l'est pas.
+
+## Valeurs nominatives privées
+
+La migration `20260904084803` ajoute trois tables, sans droit direct pour les
+rôles `anon` et `authenticated`, avec RLS forcée :
+
+- `communication_nominative_imports` : source, année, empreinte HMAC, modèle,
+  bilan sans valeur, lot figé, approbation exacte et révocation. Le contenu est
+  immuable après création ; les seuls changements portent sur le cycle de vie.
+- `communication_nominative_values` : une enveloppe AES-GCM par bénéficiaire et
+  import, version HMAC, référence de contact et date de révocation. La version
+  de clé permet de relire les enveloppes antérieures sans clé par défaut.
+- `communication_nominative_delivery_values` : lien immuable entre la livraison
+  existante et sa valeur. Le suivi de réservation distingue préparation,
+  départ réservé, acceptation et résultat incertain. Un départ réservé sans
+  reçu n'autorise pas une seconde réservation.
+
+La clé d'idempotence nominative inclut le bénéficiaire et sa version de valeur.
+Deux enfants partageant un contact produisent deux lignes en base. Le service
+de préparation revalide l'approbation du lot et les contacts résolus à nouveau.
+Le destinataire métier (élève, responsable ou plusieurs personnes) reste à
+confirmer avant le raccordement de la résolution ; le socle actuel prévoit
+un contact désigné par bénéficiaire et par import.

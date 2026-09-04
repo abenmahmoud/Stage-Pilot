@@ -61,11 +61,11 @@ const OUTCOME_LABEL: Record<NominativeImportOutcome, string> = {
 };
 
 const OUTCOME_HELP: Record<NominativeImportOutcome, string> = {
-  ready: "La ligne partira dans le lot.",
+  ready: "La ligne peut entrer dans le lot à valider.",
   value_missing: "La colonne valeur est vide pour cette personne.",
   match_missing: "Aucune personne du répertoire ne correspond.",
-  match_ambiguous: "Plusieurs personnes correspondent : le système ne choisit pas.",
-  source_duplicate: "Cette personne apparaît déjà plus haut dans le fichier.",
+  match_ambiguous: "Plusieurs personnes correspondent ou les informations se contredisent : vérification nécessaire.",
+  source_duplicate: "Une ligne est répétée. Si les valeurs diffèrent, toutes ses occurrences sont à vérifier.",
   contact_missing: "Aucun contact utilisable : remise par un autre canal.",
   contact_revoked: "Le contact a été révoqué et ne peut plus être utilisé.",
 };
@@ -76,6 +76,7 @@ const EXCLUSION_BY_OUTCOME: Partial<Record<NominativeImportOutcome, NominativeEx
   match_ambiguous: "rapprochement_ambigu",
   contact_missing: "contact_absent",
   contact_revoked: "contact_revoque",
+  source_duplicate: "doublon_source",
 };
 
 type Step = 1 | 2 | 3 | 4 | 5;
@@ -92,7 +93,7 @@ function StepBadge({ current, step, label }: { current: Step; step: Step; label:
             ? "bg-emerald-100 text-emerald-700"
             : active
               ? "bg-primary-600 text-white"
-              : "bg-gray-100 text-gray-400")
+              : "bg-gray-100 text-gray-600")
         }
       >
         {done ? "✓" : step}
@@ -143,7 +144,12 @@ export default function EnvoisNominatifsPage() {
   async function onFile(event: React.ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0];
     if (!file) return;
-    loadText(await file.text(), file.name);
+    try {
+      if (file.size > 4 * 1024 * 1024) throw new Error("Le fichier dépasse 4 Mo.");
+      loadText(await file.text(), file.name);
+    } catch {
+      setError("Fichier illisible ou trop volumineux (4 Mo maximum).");
+    }
   }
 
   function confirmColumns() {
@@ -186,7 +192,7 @@ export default function EnvoisNominatifsPage() {
         const record = parseNominativeValueRecord(
           {
             beneficiaryRef: row.beneficiaryRef,
-            valueFunction: "cantine_information",
+            valueFunction,
             value: row.value,
             schoolYear,
             sourceRef: FICTITIOUS_CANTINE_SOURCE_REF,
@@ -210,15 +216,11 @@ export default function EnvoisNominatifsPage() {
         });
       }
 
-      const ready = new Set(lines.map((line) => line.beneficiaryRef));
       const exclusions = [];
-      const seen = new Set<string>();
       for (const row of report.rows) {
         const reason = EXCLUSION_BY_OUTCOME[row.outcome];
-        if (!reason || !row.beneficiaryRef) continue;
-        if (ready.has(row.beneficiaryRef) || seen.has(row.beneficiaryRef)) continue;
-        seen.add(row.beneficiaryRef);
-        exclusions.push({ beneficiaryRef: row.beneficiaryRef, reason });
+        if (!reason) continue;
+        exclusions.push({ beneficiaryRef: `source-row:${row.rowNumber.toString().padStart(8, "0")}`, reason });
       }
 
       const frozen = freezeNominativeBatch(
@@ -292,7 +294,7 @@ export default function EnvoisNominatifsPage() {
       </div>
 
       {error && (
-        <div className="flex items-start gap-2 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+        <div role="alert" className="flex items-start gap-2 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
           <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
           <span>{error}</span>
         </div>
@@ -308,10 +310,10 @@ export default function EnvoisNominatifsPage() {
               <FileUp className="h-6 w-6 text-gray-400" />
               <span className="text-sm font-medium text-gray-700">Choisir un fichier CSV</span>
               <span className="text-xs text-gray-500">
-                Le fichier est lu dans le navigateur ; rien n’est envoyé tant que vous n’avez
-                pas validé un lot.
+                Le fichier est lu dans le navigateur. La simulation n’envoie aucun fichier
+                et aucun message, même après validation.
               </span>
-              <input type="file" accept=".csv,text/csv" className="hidden" onChange={onFile} />
+              <input type="file" accept=".csv,text/csv" className="max-w-full text-xs" onChange={onFile} />
             </label>
             <button
               onClick={() => loadText(FICTITIOUS_CANTINE_CSV, "cantine-2026-2027-fictif.csv")}
@@ -503,6 +505,7 @@ export default function EnvoisNominatifsPage() {
               {preview.items.map((item, index) => (
                 <button
                   key={item.beneficiaryRef}
+                  aria-pressed={index === selected}
                   onClick={() => setSelected(index)}
                   className={
                     "rounded-full px-3 py-1.5 text-xs " +
@@ -563,7 +566,7 @@ export default function EnvoisNominatifsPage() {
                   {batch.readyCount} message(s) figé(s), {batch.excludedCount} exclusion(s)
                 </p>
                 <p className="text-xs">
-                  Empreinte du lot {batch.scopeHash.slice(0, 16)}… — si une valeur, un contact
+                  Repère de simulation {batch.scopeHash.slice(0, 16)}… — si une valeur, un contact
                   ou le modèle change, ce lot redevient à vérifier.
                 </p>
               </div>
@@ -595,7 +598,9 @@ export default function EnvoisNominatifsPage() {
                   {batch.exclusions.map((exclusion) => (
                     <li key={exclusion.beneficiaryRef} className="flex flex-wrap gap-x-2">
                       <span className="text-gray-900">
-                        {fictitiousBeneficiaryLabel(exclusion.beneficiaryRef)}
+                        {exclusion.beneficiaryRef.startsWith("source-row:")
+                          ? `Ligne ${Number(exclusion.beneficiaryRef.slice("source-row:".length))}`
+                          : fictitiousBeneficiaryLabel(exclusion.beneficiaryRef)}
                       </span>
                       <span>— {exclusion.reason.replace(/_/g, " ")}</span>
                     </li>
@@ -618,7 +623,8 @@ export default function EnvoisNominatifsPage() {
   );
 }
 
-/* Petit hachage SHA-256 synchrone pour l'aperçu local, sans dépendance. */
+/* Repère non cryptographique réservé à la simulation locale. Le service
+ * persistant recalcule les empreintes cryptographiques côté serveur. */
 function sha256Hasher() {
   const parts: string[] = [];
   return {

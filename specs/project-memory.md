@@ -5646,3 +5646,20 @@ taches et analyse de coherence avant une automatisation sensible.
 - Le fichier reste `inactive_local_test`. Rien n'est importe dans Supabase,
   Vercel, le VPS ou un fournisseur IA ; aucun email n'est envoye. L'approbation,
   l'activation et la duree de conservation restent des actions separees.
+
+## Reprise nominative du 4 septembre 2026
+
+- Reprise à partir de `ec704a7` et de la passation de Claude du 3 septembre.
+  Build Windows, contrôles de sécurité et tests nominatifs passent ici.
+- T041A/T041B/T041C et T042A (spec 005) : service de persistance chiffrée,
+  protection des rapprochements et des doublons contradictoires, ordres
+  individuels, réservation durable sans renvoi aveugle. Recette PostgreSQL
+  locale : 28 assertions, deux livraisons au même contact, aucun appel externe,
+  rollback contrôlé. Migration `20260904084803` appliquée seulement en local.
+- Simulation navigateur réelle à 320 px : les deux messages restent séparés,
+  les neuf lignes donnent deux messages et sept exclusions, aucun débordement.
+  Le serveur HTTP d'import et la remise Webmail restent à raccorder : T041,
+  T042 et T043 ne sont pas clôturées.
+- Choix métier demandé : information de cantine adressée au responsable
+  désigné, à l'élève ou aux deux. Ne pas inventer la relation destinataire.
+- Preuves et état de reprise : `docs/operations/REPRISE_NOMINATIVE_2026-09-04.md`.
