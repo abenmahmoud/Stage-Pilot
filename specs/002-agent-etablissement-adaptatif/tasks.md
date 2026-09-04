@@ -1207,6 +1207,13 @@
   ou urgente place tout le public dans les ajoutés. Tester en priorité le cas
   des retirés, qui est celui qui fait agir quelqu'un sur une information
   périmée.
+- [ ] T072C Utiliser la reconnaissance vocale native du navigateur, sans
+  fournisseur payant. Écrire dans les mentions de confidentialité que l'audio
+  est transmis à l'éditeur du navigateur pour transcription, informer la
+  direction avant l'ouverture aux élèves, ne déclencher le microphone que sur
+  un geste explicite, et ne conserver que le texte relu. Sur un navigateur sans
+  cette interface, ne pas afficher le microphone et laisser la saisie au
+  clavier, sans message d'erreur.
 - [ ] T072B Ne jamais afficher une transcription non fiable comme un résultat.
   Annoncer que l'agent n'a pas compris et proposer de recommencer, afin qu'un
   texte douteux ne soit pas confirmé sans relecture. Après trois essais non

@@ -345,8 +345,19 @@ ici aussi. Après trois essais non compris, l'agent cesse de proposer la dictée
 et bascule vers la saisie au clavier. La formulation reste neutre : le problème
 est attribué à l'écoute, jamais à la personne ni à sa façon de parler. Le
 clavier est présenté comme la suite normale, pas comme une sanction, et la
-dictée redevient disponible à la demande. Une option native au navigateur est évaluée en premier ; toute option
-payante reste fermée jusqu'à validation du coût.
+dictée redevient disponible à la demande. La reconnaissance vocale native du navigateur est retenue. Aucun fournisseur
+payant n'est ouvert. Ce choix a une conséquence à assumer explicitement : sur
+Chrome, l'audio est transmis aux serveurs de Google pour être transcrit ; sur
+Safari, une partie des langues est traitée sur l'appareil ; Firefox ne fournit
+pas cette interface, et le microphone n'y apparaît simplement pas.
+
+Cet usage est courant sur les téléphones personnels, mais ici c'est
+l'établissement qui propose l'outil et qui est responsable du traitement. Deux
+conséquences pratiques : la transmission à un tiers doit figurer dans les
+mentions de confidentialité, et le microphone reste déclenché par un geste
+explicite de la personne, jamais actif par défaut. L'audio brut n'est pas
+conservé par l'application ; seul le texte relu est enregistré. La direction
+est informée de ce point avant l'ouverture aux élèves.
 
 ## 14. Isolation multi-établissement — évolution future
 
