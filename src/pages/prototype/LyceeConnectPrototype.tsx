@@ -117,6 +117,7 @@ import { isValidSupportAgentDetailPayload } from "../../../shared/support-agent-
 import { isValidSupportPublicDetailPayload } from "../../../shared/support-public-detail-payload-policy";
 import { isValidSupportPublicListPayload } from "../../../shared/support-public-list-payload-policy";
 import { isValidSupportAssistantPayload } from "../../../shared/support-assistant-payload-policy";
+import { safeScolAccessEnabled, validatedSafeScolUrl } from "../../../shared/safescol-access";
 import { isSupportMagicAccessPayload } from "../../../shared/support-magic-access-payload-policy";
 import { isSupportAttachmentLinkPayload } from "../../../shared/support-attachment-link-payload-policy";
 import {
@@ -177,6 +178,11 @@ const ENT_URL = "https://ent.iledefrance.fr/auth/login";
 const SCOLARITE_SERVICES_URL = "https://www.education.gouv.fr/scolarite-services-un-acces-unique-pour-toutes-les-demarches-scolaires-326158";
 const WEBMAIL_URL = "https://mail.lycee-blaise-cendrars-sevran.fr/";
 const WEBMAIL_ADMIN_URL = `${WEBMAIL_URL}admin`;
+const SAFESCOL_URL = validatedSafeScolUrl(import.meta.env.VITE_SAFESCOL_URL);
+const SAFESCOL_ACCESS_ENABLED = safeScolAccessEnabled({
+  enabled: import.meta.env.VITE_SAFESCOL_ENABLED,
+  url: import.meta.env.VITE_SAFESCOL_URL,
+});
 const MAX_SUPPORT_FILES = 5;
 const MAX_SUPPORT_FILE_BYTES = 10 * 1024 * 1024;
 const SUPPORT_FILE_TYPES = [
@@ -791,6 +797,11 @@ export default function LyceeConnectPrototype() {
               <span className="lycee-ai-status"><Sparkles aria-hidden="true" /> Disponible</span>
             </div>
             <p>Connexion, ordinateur, inscription, vie scolaire ou document&nbsp;: écrivez simplement votre besoin. L’assistant vous répond ou prépare une demande pour le bon service.</p>
+            {SAFESCOL_ACCESS_ENABLED && SAFESCOL_URL ? (
+              <a className="lycee-safescol-home-link" href={SAFESCOL_URL} target="_blank" rel="noreferrer">
+                <ShieldCheck aria-hidden="true" /> Signaler avec SafeScol <ExternalLink aria-hidden="true" />
+              </a>
+            ) : null}
             <div className="lycee-composer">
               <textarea
                 ref={homeAssistantRef}
@@ -1534,6 +1545,10 @@ function HelpDeskView({
 
   useEffect(() => {
     if (!draftReady || ticketCode || submitting || initialContactCollection) return;
+    if (insight?.scope === "safescol") {
+      void clearSupportDeviceDraft();
+      return;
+    }
     const hasDraft =
       chatMessages.some((message) => message.role === "requester") ||
       classicDescription.trim().length > 0 ||
@@ -1592,7 +1607,7 @@ function HelpDeskView({
     let routingReceipt: string | null = null;
     let normalizationReceipt: string | null = null;
     let requestActionAuthorized = false;
-    if (AI_ASSISTANT_ENABLED) {
+    if (AI_ASSISTANT_ENABLED && result.scope !== "safescol") {
       try {
         const apiResult = await apiFetch<unknown>("support/assistant", {
           method: "POST",
@@ -1625,6 +1640,10 @@ function HelpDeskView({
     setAssistantRoutingReceipt(routingReceipt);
     setAssistantNormalizationReceipt(normalizationReceipt);
     setAssistantRequestActionExpected(requestActionAuthorized);
+    if (result.scope === "safescol") {
+      setFiles([]);
+      void clearSupportDeviceDraft();
+    }
     setInsight(result);
     setCategory(result.category);
     if (result.requesterType !== "inconnu" && !profile) setProfile(result.requesterType);
@@ -1661,7 +1680,7 @@ function HelpDeskView({
     void askAssistant(nextMessages);
   }
 
-  const conversationStopped = insight?.limitReached === true;
+  const conversationStopped = insight?.limitReached === true || insight?.scope === "safescol";
   const canCreateRequest =
     insight?.action === "human_transfer" ||
     (insight?.action === "offer_case" && insight.readyToCreate === true);
@@ -1726,6 +1745,28 @@ function HelpDeskView({
     const description = initialContactCollection
       ? [contactCollectionPurpose, classicDescription.trim()].filter(Boolean).join("\n\n")
       : (classicForm ? classicDescription : conversationDescription).trim();
+    const safeScolPolicy = evaluateConversationPolicy(
+      description ? [{ role: "requester", content: description }] : []
+    );
+    if (!initialContactCollection && safeScolPolicy.scope === "safescol") {
+      const safeScolResult = localAssistantFallback(
+        [{ id: crypto.randomUUID(), role: "requester", content: description }],
+        []
+      );
+      setInsight(safeScolResult);
+      setChatMessages([
+        welcomeMessage,
+        { id: crypto.randomUUID(), role: "assistant", content: safeScolResult.reply },
+      ]);
+      setShowDetails(false);
+      setClassicForm(false);
+      setClassicDescription("");
+      setProfile("");
+      setFiles([]);
+      setFormValues(defaultSupportFormValues());
+      void clearSupportDeviceDraft();
+      return;
+    }
     if (!profile || !description) {
       setSubmitError("Indiquez votre profil et expliquez votre demande avant de continuer.");
       return;
@@ -1927,6 +1968,11 @@ function HelpDeskView({
         {!initialContactCollection ? (
           <>
         <div className="lycee-guided-chat-head"><span><Bot aria-hidden="true" /></span><div><strong>Assistant Blaise</strong><small>Comprend, reformule et transmet au bon agent</small></div><em><span /> Disponible</em></div>
+        {SAFESCOL_ACCESS_ENABLED && SAFESCOL_URL ? (
+          <a className="lycee-safescol-chat-link" href={SAFESCOL_URL} target="_blank" rel="noreferrer">
+            <ShieldCheck aria-hidden="true" /> Accéder directement à SafeScol <ExternalLink aria-hidden="true" />
+          </a>
+        ) : null}
         <div className="lycee-guided-thread" ref={threadRef} aria-live="polite">
           {chatMessages.map((message) => (
             <div data-speaker={message.role} key={message.id}>
@@ -1984,7 +2030,7 @@ function HelpDeskView({
             </div>
           ) : null}
 
-          {requesterMessages.length > 0 && !showDetails ? (
+          {requesterMessages.length > 0 && !showDetails && insight?.scope !== "safescol" ? (
             <div className={`lycee-chat-next${canCreateRequest ? " is-ready" : " is-form-only"}`}>
               {canCreateRequest ? <div className="lycee-case-ready"><CheckCircle2 aria-hidden="true" /><span><strong>{insight?.action === "human_transfer" ? "Un adulte doit reprendre la demande" : "Votre demande est prête"}</strong><small>Ajoutez maintenant votre prénom, votre nom et un moyen de réponse pour l’envoyer au lycée.</small></span></div> : null}
               <div className="lycee-chat-next-actions">
@@ -1994,7 +2040,17 @@ function HelpDeskView({
             </div>
           ) : null}
 
-          {conversationStopped && !canCreateRequest ? (
+          {insight?.scope === "safescol" ? (
+            <div className="lycee-safescol-direction" role="status">
+              <ShieldCheck aria-hidden="true" />
+              <span><strong>Utilisez le canal dédié SafeScol</strong><small>Aucun signalement ni détail n’est enregistré dans cette conversation.</small></span>
+              {SAFESCOL_ACCESS_ENABLED && SAFESCOL_URL
+                ? <a href={SAFESCOL_URL} target="_blank" rel="noreferrer">Ouvrir SafeScol <ExternalLink aria-hidden="true" /></a>
+                : <em>L’adresse officielle doit encore être validée par le lycée.</em>}
+            </div>
+          ) : null}
+
+          {conversationStopped && !canCreateRequest && insight?.scope !== "safescol" ? (
             <div className="lycee-chat-next">
               <button className="lycee-primary-action" type="button" onClick={restartConversation}>Commencer une demande du lycée</button>
             </div>
@@ -2807,6 +2863,13 @@ function ServicesView({ onHelp, onCollect, onBack }: { onHelp: () => void; onCol
     <div className="lycee-page">
       <PageIntro eyebrow="Application lycée" title="Mes services" description="Les outils déjà présents dans Gest et les nouveaux services du lycée, réunis au même endroit." onBack={onBack} />
       <div className="lycee-services-catalog">
+        {SAFESCOL_ACCESS_ENABLED && SAFESCOL_URL ? (
+          <article data-tone="coral">
+            <span className="lycee-catalog-icon"><ShieldCheck aria-hidden="true" /></span>
+            <div><h2>SafeScol</h2><p>Canal dédié aux signalements de harcèlement, de violence ou de menace.</p><small>Signalement protégé</small></div>
+            <a href={SAFESCOL_URL} target="_blank" rel="noreferrer">Ouvrir SafeScol <ExternalLink aria-hidden="true" /></a>
+          </article>
+        ) : null}
         {serviceGroups.map((service) => (
           <article data-tone={service.color} key={service.title}>
             <span className="lycee-catalog-icon"><service.icon aria-hidden="true" /></span>

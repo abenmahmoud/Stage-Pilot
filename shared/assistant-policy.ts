@@ -8,6 +8,7 @@ export type AssistantPolicyMessage = {
 export type AssistantScope =
   | "school_support"
   | "education_help"
+  | "safescol"
   | "wellbeing"
   | "privacy_request"
   | "out_of_scope"
@@ -89,6 +90,20 @@ function isAlertStatusQuestion(text: string): boolean {
   );
 }
 
+export function isSafeScolSituation(content: string): boolean {
+  const text = normalizeText(content);
+  return /\b(harcele(?:ment|e|ee|es|s)?|cyberharcele(?:ment|e|ee|es|s)?|violences?|agress(?:ion|e|ee|ions?)|menac(?:e|ee|es|er|es)|on me menace|intimidation|racket|discrimination)\b/.test(
+    text
+  );
+}
+
+function isImmediateDanger(content: string): boolean {
+  const text = normalizeText(content);
+  return /\b(danger immediat|en danger maintenant|arme|couteau|blesse|blessee|saigne|agression en cours|violence en cours)\b/.test(
+    text
+  );
+}
+
 function isThirdPartySchoolDataRequest(content: string): boolean {
   // "La récupération n'a donné aucun résultat" describes a failed action,
   // not a request to disclose a child's academic results.
@@ -104,6 +119,10 @@ function isThirdPartySchoolDataRequest(content: string): boolean {
 
 function explicitScope(content: string): AssistantScope {
   const text = normalizeText(content);
+
+  if (isSafeScolSituation(content)) {
+    return "safescol";
+  }
 
   if (
     /\b(je vais (tres )?mal|je (ne )?vais pas bien|je me sens (tres )?mal|je suis en danger|on me menace|mes parents? (sont )?(perdus?|introuvables?|disparus?)|je veux mourir|me tuer|suicide|suicidaire|me faire du mal|automutilation|je fais un malaise|j ai fait un malaise|je respire mal|j ai du mal a respirer|je saigne beaucoup|j ai pris trop de medicaments|surdose|overdose|intoxication)\b/.test(
@@ -182,6 +201,26 @@ export function evaluateConversationPolicy(
   const lastScope = scopes.at(-1) ?? "unknown";
   const latestRequesterText = normalizeText(requesterMessages.at(-1)?.content ?? "");
   const transition = resolveAssistantConversationTransition(messages);
+
+  if (lastScope === "safescol") {
+    const immediateDanger = requesterMessages.some((message) =>
+      isImmediateDanger(message.content)
+    );
+    return {
+      scope: "safescol",
+      action: "stop",
+      turnCount,
+      remainingTurns,
+      limitReached: true,
+      deterministicReply: immediateDanger
+        ? "Si le danger est immédiat, appelez le 112 et allez vers un adulte présent. Pour un harcèlement, une violence ou une menace, utilisez SafeScol, l’application dédiée. Je ne recueille aucun détail et je ne crée aucune demande dans ce chat."
+        : "Pour un harcèlement, une violence ou une menace, utilisez SafeScol, l’application dédiée. Je ne recueille aucun détail, aucune identité et je ne crée aucune demande dans ce chat. L’accès SafeScol apparaît sur le site dès que son adresse officielle est validée par le lycée.",
+      category: "vie_scolaire",
+      urgency: "urgente",
+      readyToCreate: false,
+      safetyNotice: "Ce signalement doit rester dans SafeScol. En cas de danger immédiat, appelez le 112.",
+    };
+  }
 
   if (isAlertStatusQuestion(latestRequesterText)) {
     return {

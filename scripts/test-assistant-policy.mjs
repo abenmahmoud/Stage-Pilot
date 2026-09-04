@@ -143,6 +143,32 @@ test("routes wellbeing and immediate danger to a human without AI", () => {
   assert.doesNotMatch(policy.deterministicReply, /(?:alerte|demande) (?:a été|est) transmise/i);
 });
 
+test("redirects harassment and violence exclusively to SafeScol", () => {
+  for (const message of [
+    "Je subis du harcèlement au lycée",
+    "Un élève me menace",
+    "Je veux signaler une violence",
+  ]) {
+    const policy = evaluateConversationPolicy(conversation(message));
+    assert.equal(policy.scope, "safescol");
+    assert.equal(policy.action, "stop");
+    assert.equal(policy.readyToCreate, false);
+    assert.equal(policy.limitReached, true);
+    assert.match(policy.deterministicReply, /SafeScol/);
+    assert.match(policy.deterministicReply, /aucun détail|aucune demande/);
+  }
+});
+
+test("shows 112 before the SafeScol channel for immediate danger", () => {
+  const policy = evaluateConversationPolicy(
+    conversation("Une agression est en cours, je suis en danger maintenant")
+  );
+  assert.equal(policy.scope, "safescol");
+  assert.equal(policy.readyToCreate, false);
+  assert.match(policy.deterministicReply, /112/);
+  assert.match(policy.deterministicReply, /SafeScol/);
+});
+
 test("recognizes a simple expression of distress", () => {
   const policy = evaluateConversationPolicy(conversation("Je vais pas bien"));
   assert.equal(policy.scope, "wellbeing");

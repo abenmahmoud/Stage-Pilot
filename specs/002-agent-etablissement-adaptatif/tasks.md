@@ -1130,3 +1130,42 @@
   de retour arrière avant tout remplacement du site officiel.
 - [ ] T060 Généraliser uniquement après critères de réussite, validation direction,
   sécurité, DPO et convergence complète des spécifications.
+
+## Phase 8 - Politique opérationnelle 2026-2027 et services personnels
+
+- [x] T061 Consolider les décisions métier sur les connaissances, l'identité,
+  les appareils, les codes, les certificats, les emplois du temps, les
+  notifications, SafeScol et l'isolation multi-établissement dans
+  `politique-operationnelle-agent-2026-2027.md`, sans donnée nominative ni secret.
+- [x] T061A Classer hors Git le livret 2026-2027, le calendrier prévisionnel et
+  la liste des professeurs principaux. Enregistrer leur usage autorisé sans
+  publier les noms, horaires internes ou contenus non relus.
+- [x] T061B Intercepter localement le harcèlement, la violence, les menaces,
+  l'intimidation, le racket et la discrimination avant l'appel IA. Bloquer le
+  formulaire de support, afficher le 112 en cas de danger immédiat et garder
+  les accès SafeScol fermés sans URL HTTPS et drapeau validés.
+- [ ] T062 Faire valider l'URL officielle SafeScol, activer le drapeau sur une
+  preview puis vérifier les trois accès, la redirection, le retour et le rendu
+  mobile avant la production.
+- [ ] T063 Importer le répertoire réel approuvé dans le coffre privé, relier les
+  personnes et responsables, traiter les doublons et contacts partagés, puis
+  activer l'OTP email après recette de révocation et mentions de confidentialité.
+- [ ] T063A Choisir un fournisseur OTP téléphone, définir le budget et les
+  consentements, puis tester la réponse neutre, les quotas et la révocation.
+- [ ] T064 Concevoir et tester le coffre de codes Koxo, ENT et cantine :
+  attribution unique, transaction concurrente, contrôle par rôle, affichage
+  30 minutes, trois consultations par jour et journal sans valeur secrète.
+- [ ] T064A Obtenir la décision de l'administration sur la remise de codes d'un
+  enfant à un parent. Jusqu'à cette décision, conserver uniquement le formulaire.
+- [ ] T065 Raccorder un modèle officiel de certificat, la génération PDF, le QR,
+  la vérification publique, l'expiration à 60 jours, les quotas, l'annulation et
+  l'archive privée, puis tester une future synchronisation NAS restaurable.
+- [ ] T066 Raccorder la source d'emploi du temps et la déclaration professeur
+  vérifiée, avec récapitulatif, validation opérationnelle, mise à jour humaine
+  de PRONOTE et notifications à une audience explicitement choisie.
+- [ ] T067 Programmer les contrôles de connaissances à 08:00, 13:00 et 18:00
+  Europe/Paris, la détection des conflits, les alertes immédiates et le digest
+  dédupliqué des questions inconnues.
+- [ ] T068 Mettre en œuvre la matrice de routage par établissement, le
+  superadministrateur sur toutes les demandes de son établissement, les
+  notifications push/email idempotentes et le SMS limité par consentement et budget.

@@ -5774,3 +5774,23 @@ taches et analyse de coherence avant une automatisation sensible.
   relire ensemble les sources et règles, puis les intégrer et tester une
   compétence à la fois. T026B et les validations métier restent ouvertes.
 - Support et références : `docs/operations/PREPARATION_AGENT_2026-09-04.md`.
+
+### Jalon du 4 septembre 2026 — politique opérationnelle consolidée
+
+- La revue guidée fixe le comportement attendu pour les connaissances,
+  demandes, urgences, identités, appareils, codes Koxo/ENT/cantine,
+  certificats, dossier numérique, emplois du temps, notifications et futurs
+  établissements. La référence sans donnée nominative est
+  `specs/002-agent-etablissement-adaptatif/politique-operationnelle-agent-2026-2027.md`.
+- Les trois documents 2026-2027 reçus sont classés hors Git : livret dans les
+  procédures, calendrier dans les procédures et professeurs principaux dans
+  l'annuaire interne. Ils ne sont ni publiés ni importés automatiquement dans
+  les connaissances.
+- SafeScol devient une frontière déterministe : aucun détail ou formulaire de
+  support pour harcèlement, violence ou menace ; 112 d'abord en danger immédiat.
+  L'interface prépare trois accès conditionnels, tous fermés tant qu'une URL
+  HTTPS officielle et un drapeau validé ne sont pas fournis.
+- L'OTP email, l'annuaire réel, les codes, les certificats, le NAS, le téléphone,
+  la source d'emploi du temps et les fournisseurs de notifications restent
+  fermés. Leur architecture et leurs critères d'activation sont documentés ;
+  aucune valeur réelle ni secret n'a été placé dans Git ou dans un prompt.

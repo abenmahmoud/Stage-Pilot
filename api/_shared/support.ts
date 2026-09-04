@@ -11,6 +11,7 @@ import {
 import { HttpError } from "./auth.js";
 import { supportSessionContactPredicate } from "./support-session-contact.js";
 import { routeSupportRequest, type SupportRoute } from "../../shared/support-routing.js";
+import { isSafeScolSituation } from "../../shared/assistant-policy.js";
 import {
   normalizeSupportConversation,
   SupportConversationValidationError,
@@ -178,6 +179,12 @@ export function parseSupportRequest(body: unknown): SupportRequestInput {
   const callbackRequested = input.communicationSupport === true;
   const subject = cleanText(input.subject, "Objet", 180);
   const description = cleanText(input.description, "Description", 5000);
+  if (isSafeScolSituation(`${subject}\n${description}`)) {
+    throw new HttpError(
+      422,
+      "Pour un harcèlement, une violence ou une menace, utilisez le canal dédié SafeScol. En cas de danger immédiat, appelez le 112."
+    );
+  }
   const routing = routeSupportRequest({ category, subject, description });
   const detectedLanguage = optionalText(input.detectedLanguage, "Langue détectée", 60);
   const rawInternalSummaryFr = optionalText(input.internalSummaryFr, "Résumé français", 700);
@@ -197,6 +204,12 @@ export function parseSupportRequest(body: unknown): SupportRequestInput {
     throw error;
   }
   for (const turn of conversation) assertNoForbiddenSupportSecret(turn.content);
+  if (conversation.some((turn) => isSafeScolSituation(turn.content))) {
+    throw new HttpError(
+      422,
+      "Pour un harcèlement, une violence ou une menace, utilisez le canal dédié SafeScol. En cas de danger immédiat, appelez le 112."
+    );
+  }
 
   if (!email && !phone) {
     throw new HttpError(400, "Indiquez un email ou un téléphone pour recevoir la réponse");

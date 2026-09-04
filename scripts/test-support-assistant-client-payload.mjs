@@ -67,6 +67,18 @@ test("accepts one exact, bounded and coherent assistant payload", () => {
   assert.equal(isValidSupportAssistantPayload(validPayload, nowMs), true);
 });
 
+test("accepts the closed SafeScol redirect state", () => {
+  assert.equal(isValidSupportAssistantPayload({
+    ...validPayload,
+    category: "vie_scolaire",
+    urgency: "urgente",
+    readyToCreate: false,
+    scope: "safescol",
+    action: "stop",
+    limitReached: true,
+  }, nowMs), true);
+});
+
 test("accepts normalization provenance without a routing or action grant", () => {
   const normalized = { ...validPayload, normalizationReceipt: receipt, normalizationReceiptExpiresAt: "2026-09-01T08:15:00.000Z" };
   assert.equal(isValidSupportAssistantPayload(normalized, nowMs), true);

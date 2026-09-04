@@ -56,3 +56,15 @@ test("validates the beneficiary identity at the same API boundary", () => {
   assert.equal(parsed.beneficiaryFirstName, "Yanis");
 });
 
+test("rejects a SafeScol situation at the support creation boundary", () => {
+  assert.throws(
+    () => parseSupportRequest({
+      ...baseRequest,
+      category: "vie_scolaire",
+      subject: "Demande vie scolaire",
+      description: "Je veux signaler un harcèlement au lycée.",
+      conversation: [{ role: "requester", content: "Je veux signaler un harcèlement au lycée." }],
+    }),
+    /SafeScol/
+  );
+});

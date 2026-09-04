@@ -1,71 +1,62 @@
-# Acces personnel sans mot de passe
+# Accès personnel sans mot de passe
 
 ## But
 
-Permettre a un eleve, un responsable ou un personnel de prouver simplement son
-lien avec le lycee par une adresse email deja connue, puis de conserver cette
-preuve sur son appareil pendant une duree limitee. Le numero et le code d'une
-demande restent un mecanisme de suivi de dossier distinct.
+Permettre à un élève, un responsable ou un personnel de prouver son lien avec
+le lycée par un email ou, à terme, un téléphone déjà connu. Le numéro et le code
+d'une demande restent une preuve de suivi distincte.
 
 ## Parcours cible
 
-1. La personne demande une information personnelle, par exemple son emploi du
-   temps.
-2. Le portail propose de verifier une adresse email deja connue du lycee, sans
-   indiquer si cette adresse existe dans le repertoire.
-3. Le serveur transmet la recherche chiffree au worker prive. Le worker refuse
-   les versions inactives, les absences, les doublons et les adresses partagees.
-4. En cas de correspondance unique et active, un code a six chiffres est envoye
-   a cette adresse. Le code expire apres dix minutes et accepte cinq essais.
-5. La consommation atomique du code ouvre une session d'identite opaque,
-   `HttpOnly`, `Secure`, `SameSite=Lax`, rotative et revocable. Aucun contact ni
-   identifiant scolaire n'est place dans le cookie.
-6. Sur un appareil personnel, la session peut durer sept jours d'inactivite au
-   maximum. Sur un appareil partage, elle se termine avec le navigateur. Le
-   bouton `Oublier mon identite` la revoque immediatement.
-7. Le serveur relit a chaque service la version active, la fiche de la personne,
-   la relation eventuelle et la fraicheur de la source. Le navigateur ne decide
-   jamais du role ou du perimetre.
+1. La personne demande une information ou une action personnelle.
+2. Le serveur cherche une correspondance exacte dans la version active du
+   répertoire privé, sans révéler si le contact existe, est partagé ou absent.
+3. Un code à six chiffres à durée courte est envoyé par le canal autorisé.
+4. Sa consommation atomique ouvre une session opaque, rotative et révocable ;
+   le cookie ne contient aucun contact ni identifiant scolaire.
+5. Chaque service relit côté serveur la personne, les relations, la source
+   active, l'établissement, la fraîcheur de la preuve et le droit demandé.
+6. Après 15 minutes d'inactivité, les données personnelles sont masquées et une
+   preuve récente est exigée pour l'action protégée.
 
-## Regles de service
+Un appareil personnel peut être reconnu jusqu'à la fin de l'année scolaire,
+avec révocation anticipée. Un appareil partagé ferme l'identité après l'action.
+`Changer de personne` révoque la session de l'appareil et efface l'écran, sans
+supprimer les anciens dossiers. Un nouvel appareil exige toujours un code et
+produit une alerte email et push. `Mes appareils` permet de révoquer un appareil
+ou tous les appareils après vérification récente.
 
-| Besoin | Sans identite | Identite `I3` active |
-|---|---|---|
-| Information ou document general | Reponse immediate | Reponse immediate |
-| Propre emploi du temps | Demande suivie | Reponse immediate, source datee |
-| Emploi du temps d'un enfant | Demande suivie | Reponse immediate seulement avec lien `guardian_of` actif |
-| Donnee scolaire personnelle a faible risque | Demande suivie | Reponse dans le perimetre propre |
-| Document personnel, code d'acces ou modification officielle | Attente humaine | File express, validation humaine obligatoire |
-| Donnee d'un tiers sans relation | Refus sans confirmer son existence | Refus sans confirmer son existence |
+Un téléphone peut vérifier successivement plusieurs personnes, mais jamais dans
+la même session. Les quotas, codes et documents restent attachés à la personne
+vérifiée. Un parent ne voit que les enfants reliés dans l'annuaire officiel.
 
-Le mode express ne donne jamais a l'IA le droit de modifier l'ENT, PRONOTE ou un
-autre systeme officiel. Il reduit seulement la ressaisie et l'attente lorsque le
-service et la preuve autorisent la lecture.
+## Services protégés
 
-## Fichiers
+- Les informations générales restent immédiates et anonymes.
+- L'emploi du temps propre ou d'un enfant relié exige une identité active et
+  une source actuelle.
+- Les coordonnées ne sont jamais modifiées par l'agent ; un écart devient une
+  demande de correction humaine.
+- Les documents archivés exigent un nouveau code à chaque ouverture ou
+  téléchargement, même sur appareil reconnu.
+- Les codes sont affichés dans un composant séparé du chat, pendant 30 minutes,
+  sans téléchargement et avec trois affichages quotidiens au maximum.
+- La remise des codes d'un enfant à un parent reste fermée jusqu'à décision de
+  l'administration.
 
-Tout fichier est depose dans un stockage prive avec nom neutralise, taille et
-signature controlees. Il reste inaccessible pendant les etats
-`awaiting_upload`, `quarantined` et `scanning`. Seul l'etat antivirus `clean`
-autorise sa consultation. Les etats `infected` et `rejected` bloquent le fichier
-et produisent un evenement technique sans exposer son contenu a l'IA.
+La matrice complète des rôles, codes, certificats et sessions figure dans
+[politique-operationnelle-agent-2026-2027.md](politique-operationnelle-agent-2026-2027.md).
 
-## Vie privee et echec
+## Fichiers et vie privée
 
-- La reponse a la demande de code reste identique pour une adresse connue,
-  inconnue, partagee ou indisponible.
-- Les limites combinent appareil, empreinte HMAC du contact et garde-fou global.
-- Le portail ne conserve ni code, ni adresse, ni reference de personne dans le
-  navigateur.
-- Une panne du worker, de l'email ou de l'annuaire laisse toujours disponible le
-  formulaire classique et le suivi de la demande.
-- L'agent ne recoit qu'un niveau d'identite, un type de personne et un perimetre
-  autorise ; il ne recoit jamais le repertoire complet.
+Tout fichier reste en stockage privé et fermé avant un état antivirus `clean`.
+L'agent reçoit un niveau de preuve, un type de personne et un périmètre, jamais
+le répertoire complet ni une valeur secrète. Une panne laisse disponible le
+formulaire classique.
 
 ## Activation
 
-Le lot peut etre developpe et teste avec des identites fictives. L'activation
-reelle exige une version approuvee du repertoire, le worker prive, la livraison
-email configuree, les mentions de protection des donnees, la duree de session
-validee et une recette de revocation. Aucun import reel ne doit etre necessaire
-pour verifier le code ou l'interface en preview.
+Le parcours email est codé mais reste fermé en production tant que les variables,
+le worker privé, l'annuaire approuvé, la livraison, la révocation et les mentions
+de protection des données ne sont pas vérifiés. Le canal téléphone reste à
+implémenter. Aucun import réel n'est requis pour les tests de preview.

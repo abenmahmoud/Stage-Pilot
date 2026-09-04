@@ -17,6 +17,7 @@ const CONFIDENCES = ["high", "medium", "low"] as const;
 const SCOPES = [
   "school_support",
   "education_help",
+  "safescol",
   "wellbeing",
   "privacy_request",
   "out_of_scope",

@@ -52,3 +52,29 @@ aucun import, aucune notification et aucun déploiement.
 - [Charte métier](../../specs/002-agent-etablissement-adaptatif/charte-metier-v1.md)
 - Compétences `administration-scolarite`, `referent-numerique` et
   `coordination-etablissement` de la spécification 002.
+
+## Décisions consolidées après la revue guidée
+
+La revue question par question est terminée. Les réponses sont maintenant
+classées dans la politique opérationnelle 2026-2027 : réponse directe depuis une
+source publiée, double validation des connaissances, contrôle à 08:00, 13:00 et
+18:00, identité par contact officiel, changement de personne, rôles séparés,
+coffre de codes, certificats vérifiables, emplois du temps, notifications ciblées
+et isolation de chaque établissement.
+
+Les trois sources reçues ont été copiées dans le dépôt privé local hors Git :
+
+- livret d'accueil : procédure de référence, règles publiques après extraction
+  et validation, horaires internes exclus ;
+- calendrier prévisionnel : dates publiées fait par fait, sans compléter les
+  heures absentes ;
+- professeurs principaux par classe : annuaire interne, jamais une liste
+  publique ni un contexte libre du modèle.
+
+L'agent public intercepte désormais SafeScol avant tout appel IA. Il ne demande
+aucun détail, ne propose pas le formulaire et affiche le 112 en cas de danger
+immédiat. Les boutons restent invisibles tant que l'URL officielle HTTPS et le
+drapeau d'activation ne sont pas validés.
+
+Référence :
+[Politique opérationnelle 2026-2027](../../specs/002-agent-etablissement-adaptatif/politique-operationnelle-agent-2026-2027.md).
