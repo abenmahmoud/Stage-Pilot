@@ -332,7 +332,17 @@ La dictée transforme la parole en texte modifiable dans le chat, les formulaire
 et les informations flash. La langue est détectée automatiquement avec un choix
 manuel simple. Un segment dure au plus deux minutes et peut être interrompu puis
 repris. Le texte doit être relu avant confirmation et l'audio brut n'est pas
-conservé. Une option native au navigateur est évaluée en premier ; toute option
+conservé.
+
+Lorsque la transcription n'est pas fiable, l'agent ne présente pas un texte
+approximatif : il dit qu'il n'a pas compris et propose de recommencer. Un texte
+douteux affiché comme un résultat se retrouve confirmé sans relecture, et une
+demande part alors avec un contenu que personne n'a réellement écrit.
+
+Ce refus ne doit jamais devenir un mur. Un accent, un bruit de couloir ou une
+langue hésitante ne sont pas des motifs d'exclusion : la règle du §4 s'applique
+ici aussi. Le nombre de tentatives avant de basculer vers la saisie au clavier,
+et la formulation de ce basculement, restent à décider. Une option native au navigateur est évaluée en premier ; toute option
 payante reste fermée jusqu'à validation du coût.
 
 ## 14. Isolation multi-établissement — évolution future

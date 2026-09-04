@@ -1207,6 +1207,11 @@
   ou urgente place tout le public dans les ajoutés. Tester en priorité le cas
   des retirés, qui est celui qui fait agir quelqu'un sur une information
   périmée.
+- [ ] T072B Ne jamais afficher une transcription non fiable comme un résultat.
+  Annoncer que l'agent n'a pas compris et proposer de recommencer, afin qu'un
+  texte douteux ne soit pas confirmé sans relecture. Le seuil de bascule vers
+  la saisie au clavier reste à décider ; sans lui, un accent ou un bruit de
+  couloir enferme la personne dans une boucle.
 - [ ] T072A Réserver la dictée aux personnes identifiées. Le microphone n'est
   pas rendu dans le chat public anonyme, et n'est pas proposé puis refusé au
   moment de l'usage. La condition est vérifiée côté serveur, pas seulement par
