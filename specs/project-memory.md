@@ -5692,3 +5692,38 @@ taches et analyse de coherence avant une automatisation sensible.
 - Affiche A4 prête dans le dossier parent `output/pdf`, QR décodé depuis le
   rendu et pointant sur le domaine du lycée. Suppression des demandes en
   attente du périmètre choisi par Adel : 13 demandes ou huit adresses fictives.
+
+## Remise à zéro confirmée et alimentation de l'agent — 4 septembre 2026
+
+- Adel confirme les 13 demandes. Suppression ciblée terminée à 11:29 UTC :
+  13 demandes, 13 sessions, six archives de travaux, une pièce jointe. Zéro
+  demande, message, pièce et travail actif restant. 57 ensembles préservés
+  vérifiés, dont comptes, annuaire et 78 objets du site. Séquence non réinitialisée.
+- Copie des données immédiatement avant suppression et fichier privé vérifié
+  conservés sur le VPS. Timer email actif. Preuve sans donnée personnelle :
+  `docs/operations/SUPPORT_RESET_PROOF_2026-09-04.json`.
+- Nouveau contrôle : zéro document/source de connaissance et zéro import/fiche
+  d'identité dans le pilote. Le répertoire réel préparé localement n'est pas
+  actif. Les documents du site ne deviennent pas automatiquement des connaissances.
+- Guide `docs/operations/GUIDE_ALIMENTER_AGENT_LYCEE.md` : dépôt des procédures,
+  revue, publication et compétence ; annuaire privé séparé ; codes d'accès
+  refusés par les imports existants, circuit de remise à raccorder.
+- Dossier de préparation créé sous LocalAppData/LyceeBlaiseCendrars/DepotPrive,
+  hors Git, droits limités à Adel/SYSTEM/administrateurs ; aucun fichier réel
+  copié ou importé. Question envoyée sur le service et l'usage des codes,
+  sans demander leurs valeurs.
+
+## Domaine principal demandé — 4 septembre 2026
+
+- Adel précise : codes d'activation ENT et badges de cantine ; vérification
+  souhaitée par l'adresse déjà enregistrée dans la base. Le guide intègre ce
+  besoin. Aucune valeur secrète reçue, aucun import effectué, coffre de remise
+  distinct à raccorder avec contrôle du bénéficiaire et des relations.
+- Adel demande ensuite le portail sur `lycee-blaise-cendrars-sevran.fr`, confirme
+  la reprise après interruption. DNS Hostinger : A racine vers 76.76.21.21,
+  ancien AAAA retiré, autres enregistrements conservés. Alias du déploiement
+  vérifié `e5efc4f` confirmé ; HTTPS 200 et DNS autoritaire vérifiés.
+- URLs email et affiche alignées sur cette adresse. Le domaine continue à
+  utiliser le pilote courant ; aucune promotion de la base historique.
+- WordPress reste hébergé chez Hostinger ; sa reprise éditoriale reste ouverte.
+  État et retour arrière : `docs/operations/DOMAINE_PRINCIPAL_2026-09-04.md`.

@@ -1,0 +1,20 @@
+{
+  "at": "2026-09-04T11:29:09.541Z",
+  "project": "xijocumlwivhbmffrnlj",
+  "institution": "7af2ff8d-26b6-4a52-b8b1-dd493aa38b1e",
+  "confirmedRequests": 13,
+  "deletedRequests": 13,
+  "deletedFiles": 1,
+  "preservedTables": 57,
+  "backup": "/root/lycee-support-backups/20260904-support-reset",
+  "deletedSessions": 13,
+  "deletedQueuedJobs": 0,
+  "deletedArchivedJobs": 6,
+  "accountsPreserved": true,
+  "directoryPreserved": true,
+  "siteContentPreserved": true,
+  "remainingRequests": 0,
+  "remainingSupportFiles": 0,
+  "remainingSiteFiles": 78,
+  "remainingQueuedJobs": 0
+}

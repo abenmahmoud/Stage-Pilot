@@ -79,10 +79,15 @@ fictif ; ne jamais remplacer cette vérification par un envoi réel non autoris�
 Inventaire : 13 demandes, dont huit avec adresses réservées aux tests,
 trois avec adresses ordinaires et deux sans email. Une pièce jointe appartient
 au guichet ; 78 objets du contenu éditorial appartiennent au site.
-Le choix entre remise à zéro des 13 demandes et retrait des huit fictives a
-été demandé à Adel. Préserver comptes, annuaire, contenus, documents métier et
-numérotation des nouvelles demandes. Ne pas réinitialiser la séquence : les
-anciens emails doivent continuer à désigner leurs anciens numéros.
+Adel a confirmé la suppression des 13 demandes. Opération réalisée à 11:29 UTC :
+13 demandes, 13 sessions associées, six anciens travaux archivés et une pièce
+jointe supprimés. Zéro demande, message, pièce ou travail en attente restant.
+Contrôle de 57 ensembles de données avant/après : comptes, répertoire et contenu
+conservés, dont les 78 objets du site. Numérotation non réinitialisée.
+Nouvelle sauvegarde avant suppression dans
+`/root/lycee-support-backups/20260904-support-reset`, sous accès root ; la pièce
+avait été sauvegardée et son empreinte a été revérifiée. Suppression physique via
+l'API Storage. Timer email remis actif. Preuve : `SUPPORT_RESET_PROOF_2026-09-04.json`.
 
 ## Reprise / retour arrière
 
