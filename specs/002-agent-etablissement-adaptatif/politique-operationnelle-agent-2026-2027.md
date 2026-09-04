@@ -238,7 +238,57 @@ classes, niveaux ou tout l'établissement. L'interface affiche le nombre de
 destinataires, déduplique les contacts partagés et estime le coût. Le SMS reste
 réservé aux destinataires sélectionnés ou aux urgences selon consentement.
 
-## 12. Isolation multi-établissement
+## 12. Services de connexion prioritaires
+
+Le périmètre de rentrée traite en priorité l'ENT, la cantine, Koxo/session lycée,
+la messagerie académique et les emplois du temps. Tant qu'une donnée n'est pas
+issue d'une source validée, l'agent explique qu'il ne peut pas la confirmer et
+propose le formulaire adapté sans produire de réponse supposée.
+
+Pour un compte ENT inactif, une preuve est envoyée uniquement vers l'email ou le
+téléphone déjà enregistré. Après vérification, l'identifiant et le code
+d'activation sont présentés dans le composant sécurisé pour monlycee.net. Pour
+un compte actif, l'agent guide la réinitialisation du mot de passe ; un échec ou
+une coordonnée incorrecte ouvre une demande au référent numérique. L'agent ne
+modifie jamais une coordonnée.
+
+Après vérification, le numéro annuel de badge de cantine peut être présenté ;
+une erreur est routée vers l'intendance. Le code Koxo, fixe, peut être présenté
+dans le même composant sécurisé ; une erreur est routée vers le référent
+numérique. Pour la messagerie académique, seul l'email est vérifiable dans la
+source disponible ; les autres demandes utilisent le formulaire enrichi. Un
+identifiant académique unique reste interne, chiffré et invisible aux usagers.
+
+## 13. Documents, informations flash et dictée
+
+Les documents téléchargeables sont classés, versionnés et validés avant leur
+publication. Après remplissage, ils peuvent être retournés depuis l'assistant.
+Les voies générale et technologique sont routées vers l'administration ; la
+voie professionnelle est routée vers la DDFPT.
+
+Un personnel ou professeur vérifié peut proposer une information flash avec une
+expiration obligatoire. Le référent numérique ou la DDFPT valide et peut
+modifier, y compris après publication, le texte, le public, l'importance, les
+canaux et l'expiration. Chaque modification conserve une version et sa trace de
+validation. L'agent propose le niveau, mais l'humain décide :
+
+- normale : affichage sur le site sans notification ;
+- importante : push et email facultatif ;
+- urgente : push et email, avec SMS seulement pour les personnes choisies.
+
+Le menu de cantine expire après une semaine puis est archivé. Les contenus bac,
+orientation et événements possèdent un début et une fin. Les changements de
+classe, tests et sorties utilisent une information flash ciblée et expirante.
+La règle d'envoi d'une correction après modification reste à valider.
+
+La dictée transforme la parole en texte modifiable dans le chat, les formulaires
+et les informations flash. La langue est détectée automatiquement avec un choix
+manuel simple. Un segment dure au plus deux minutes et peut être interrompu puis
+repris. Le texte doit être relu avant confirmation et l'audio brut n'est pas
+conservé. Une option native au navigateur est évaluée en premier ; toute option
+payante reste fermée jusqu'à validation du coût.
+
+## 14. Isolation multi-établissement — évolution future
 
 Chaque établissement possède son identifiant, ses sources, ses membres, ses
 rôles, ses annuaires, ses secrets, ses modèles, ses audiences, ses journaux et
@@ -249,7 +299,11 @@ côté serveur et par politiques RLS. Aucun superadministrateur d'un
 Le produit conserve les rôles séparés et configurables afin qu'un établissement
 puisse attribuer ses propres administrateurs sans modifier le code.
 
-## 13. Critères d'activation restants
+Cette capacité prépare une évolution future. Le travail actuel reste limité au
+lycée Blaise Cendrars et ne doit pas être retardé par la commercialisation ou le
+paramétrage d'autres établissements.
+
+## 15. Critères d'activation restants
 
 Les fonctions suivantes restent fermées tant que leurs éléments ne sont pas
 validés et testés :
@@ -265,6 +319,9 @@ validés et testés :
 - connecteur NAS avec sauvegarde, restauration et journal d'accès ;
 - fournisseurs push, email et SMS, consentements et coûts ;
 - source d'emploi du temps et écrans de déclaration professeur ;
+- import des documents téléchargeables et routage selon la voie ;
+- workflow d'information flash, modification versionnée et règle de correction ;
+- dictée navigateur accessible, relecture, langues et absence de conservation audio ;
 - relecture des informations pratiques et des propriétaires de chaque source.
 
 L'activation se fait compétence par compétence avec données fictives, contrôle

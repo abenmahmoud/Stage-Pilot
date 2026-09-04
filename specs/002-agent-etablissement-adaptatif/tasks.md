@@ -1169,3 +1169,17 @@
 - [ ] T068 Mettre en œuvre la matrice de routage par établissement, le
   superadministrateur sur toutes les demandes de son établissement, les
   notifications push/email idempotentes et le SMS limité par consentement et budget.
+- [ ] T069 Construire avec données fictives les parcours ENT inactif et actif,
+  cantine, Koxo et messagerie académique : preuve sur coordonnée officielle,
+  composant sécurisé, aucun secret dans le modèle ou les journaux, et formulaire
+  humain en cas d'échec. L'import réel reste fermé jusqu'à la recette du coffre.
+- [ ] T070 Ajouter les documents versionnés téléchargeables et leur retour depuis
+  l'assistant, avec routage générale/technologique vers l'administration et
+  professionnel vers la DDFPT.
+- [ ] T071 Concevoir les informations flash proposées par un compte vérifié,
+  validées et modifiables par le référent numérique ou la DDFPT. Versionner le
+  texte, l'audience, l'importance, les canaux et l'expiration, puis faire valider
+  la règle de notification d'une correction après publication.
+- [ ] T072 Prototyper la dictée navigateur en texte éditable dans le chat, les
+  formulaires et les informations flash : langue automatique corrigeable,
+  segments de deux minutes, reprise manuelle et aucune conservation audio.
