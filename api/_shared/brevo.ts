@@ -40,6 +40,7 @@ export async function sendTransactionalEmail(
   const senderName = process.env.SUPPORT_FROM_NAME ?? "Lycée Blaise Cendrars";
   const response = await fetch(BREVO_ENDPOINT, {
     method: "POST",
+    signal: AbortSignal.timeout(15_000),
     headers: {
       accept: "application/json",
       "api-key": apiKey,
@@ -74,6 +75,7 @@ export async function sendTransactionalEmail(
   }
 
   const error = new Error(payload.code || `brevo_http_${response.status}`);
-  error.name = "BrevoError";
+  error.name = response.status >= 400 && response.status < 500 && response.status !== 408
+    ? "BrevoRejectedError" : "BrevoError";
   throw error;
 }

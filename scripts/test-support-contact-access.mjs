@@ -22,7 +22,7 @@ const hash = (value) => createHash("sha256").update(value).digest("hex");
 const token = "a".repeat(43);
 const secret = "fictional-access-code-secret-".repeat(3);
 const names = ["supportRequests", "supportContacts", "supportMagicTokens", "supportDeviceSessions",
-  "supportSessionRequests", "supportEvents", "supportMessages", "supportAttachments", "supportQueuedJobs", "supportFailedJobs"];
+  "supportSessionRequests", "supportEvents", "supportMessages", "supportAttachments", "supportQueuedJobs", "supportFailedJobs", "supportEmailDispatches"];
 const schema = Object.fromEntries(names.map((name) => [name, new Proxy({ name }, {
   get: (target, property) => property === "name" ? target.name : { table: target.name, column: property },
 })]));
@@ -64,6 +64,11 @@ function database(initial, { failQueue = false, failEvent = false } = {}) {
   function client(state) {
     return {
       async execute(value) {
+        if (value.strings.join(" ").includes("from public.support_email_dispatches")) {
+          assert.equal(value.values.length, 2);
+          return state.supportEmailDispatches.filter(row => row.institutionId === value.values[0]
+            && row.jobId === value.values[1] && ['dispatching','sent','uncertain'].includes(row.state));
+        }
         assert.match(value.strings.join("?").replace(/\s+/g, " ").trim(), /^select pgmq.send\('support_jobs', \?::jsonb\)$/);
         if (failQueue) throw new Error("fictitious-queue-failure-with-secret");
         state.supportQueuedJobs.push(JSON.parse(value.values[0]));
@@ -291,7 +296,8 @@ function deliveryFixture(mutate = () => {}, { reservedAddress = false } = {}) {
     "../../shared/support-email-job-policy.js": {}, "../_shared/institution-context.js": {},
     "../../shared/support-access-code.mjs": { supportAccessCodeFromToken },
     "../../shared/support-access-recovery-email.mjs": { buildSupportAccessRecoveryEmail },
-  }, { process: { env: { SUPPORT_FROM_EMAIL: "support@example.org" } } }, ["deliver"]);
+    "../../shared/support-email-dispatch.mjs": { dispatchSupportEmail: async (_db, job, send) => send(job.job_id), assertSupportEmailAccess: async () => {} },
+  }, { process: { env: { SUPPORT_FROM_EMAIL: "support@example.org", SUPPORT_ACCESS_CODE_SECRET: secret } } }, ["deliver"]);
   const job = { job_type: "send_requester_reply", job_id: "job-a", request_id: "request-a", institution_id: "school-a",
     contact_id: "contact-a", message_id: "message-a", access_token: token };
   return { storage, sent, deliver, job };
@@ -366,7 +372,7 @@ test("Vercel still suppresses notifications to agents for reserved test requests
 function vpsDelivery({ contactAvailable = true, messageAvailable = true, reservedAddress = false } = {}) {
   const source = read("workers/support-email-worker.mjs");
   const ast = ts.createSourceFile("worker.mjs", source, ts.ScriptTarget.Latest, true, ts.ScriptKind.JS);
-  const declarations = ast.statements.filter((node) => ts.isFunctionDeclaration(node) && node.name.text !== "sendEmail");
+  const declarations = ast.statements.filter((node) => ts.isFunctionDeclaration(node) && node.name.text !== "sendProviderEmail");
   const sent = [], queries = [];
   const sql = async (strings, ...values) => {
     const query = strings.join("?").replace(/\s+/g, " ").trim(); queries.push({ query, values });
@@ -396,9 +402,11 @@ function vpsDelivery({ contactAvailable = true, messageAvailable = true, reserve
     assert.fail(`Unexpected SQL: ${query}`);
   };
   const context = {
-    sql, process: { env: {} }, senderName: "Test", senderEmail: "support@example.org",
+    sql, process: { env: { SUPPORT_ACCESS_CODE_SECRET: secret } }, senderName: "Test", senderEmail: "support@example.org",
     publicUrl: "https://example.org/prototype", agentUrl: "https://example.org/prototype", agentEmail: "agent@example.org",
-    sendEmail: async (value) => { sent.push(value); return "fictitious-provider-id"; },
+    sendProviderEmail: async (value) => { sent.push(value); return "fictitious-provider-id"; },
+    dispatchSupportEmail: async (_db, job, send) => send(job.job_id), assertSupportEmailAccess: async () => {},
+    supportAccessCodeFromToken, resolveSupportNotificationTarget: () => ({email:'agent@example.org',name:'Test'}),
     exports: {}, reservedAddress, buildSupportAccessRecoveryEmail,
   };
   vm.runInNewContext(declarations.map((node) => node.getText(ast)).join("\n")
@@ -718,6 +726,7 @@ test("manual recovery retry atomically rotates its exact contact link once witho
 });
 
 for (const [label, mutate, status] of [
+  ["uncertain provider result", (rows) => { rows.supportEmailDispatches.push({institutionId:'school-a',jobId:rows.supportFailedJobs[0].jobId,state:'uncertain'}); }, 409],
   ["missing bound contact", (rows) => { rows.supportFailedJobs[0].payloadRedacted.contactId = null; }, 409],
   ["disabled contact", (rows) => { rows.supportContacts[0].disabledAt = new Date(); }, 409],
   ["contact in another dossier", (rows) => { rows.supportContacts[0].requestId = "request-b"; }, 409],

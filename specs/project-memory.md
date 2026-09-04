@@ -5663,3 +5663,18 @@ taches et analyse de coherence avant une automatisation sensible.
 - Choix métier demandé : information de cantine adressée au responsable
   désigné, à l'élève ou aux deux. Ne pas inventer la relation destinataire.
 - Preuves et état de reprise : `docs/operations/REPRISE_NOMINATIVE_2026-09-04.md`.
+
+## Réparation du guichet email — 4 septembre 2026
+
+- Priorité donnée par Adel : demandes opérationnelles, fin des confirmations
+  répétées et réception du code de suivi, puis remise à zéro et affiche QR.
+- Cause confirmée sur le VPS : programme du 25 août incompatible avec l'index
+  institutionnel du journal ; email envoyé puis écriture échouée ; six travaux
+  relus jusqu'à 1 192 fois. Code de suivi absent du programme et de son env.
+- Timer arrêté, sauvegarde privée vérifiée, six travaux isolés sans supprimer
+  les demandes. Nouvelle réservation durable anti-renvoi, code obligatoire,
+  timeout et protection des relances partagés VPS/Vercel. Migration additive
+  `20260904102111` appliquée au pilote ; base de production historique intacte.
+- Recette du vrai worker local avec transport fictif : deux travaux donnent
+  un seul email contenant le code et le lien. 20 assertions de reprise DB et
+  93 contrôles de contacts. Suivi : `SUPPORT_EMAIL_REPAIR_2026-09-04.md`.

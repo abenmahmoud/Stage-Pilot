@@ -16,6 +16,7 @@ const expectedTables = [
   "support_attachments",
   "support_events",
   "support_job_runs",
+  "support_email_dispatches",
   "support_failed_jobs",
   "support_delivery_events",
   "support_webhook_receipts",
@@ -40,6 +41,13 @@ assert.deepEqual(
 );
 
 for (const table of expectedTables) {
+  if (table === "support_email_dispatches") {
+    const guard = await readFile(new URL("20260904102111_support_email_dispatch_guard.sql", migrationsUrl), "utf8");
+    assert.match(guard, /support_email_dispatches enable row level security/i);
+    assert.match(guard, /support_email_dispatches force row level security/i);
+    assert.match(guard, /revoke all on public.support_email_dispatches from public, anon, authenticated/i);
+    continue;
+  }
   assert.match(migration, new RegExp(`['\"]${table}['\"]`), `${table} must be listed`);
 }
 

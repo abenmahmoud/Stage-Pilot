@@ -16,7 +16,7 @@ if (!connectionString) {
   );
 }
 
-const client = postgres(connectionString, {
+export const client = postgres(connectionString, {
   prepare: false,
   max: 1, // 1 connexion par instance Lambda = sain pour serverless
   idle_timeout: 20,

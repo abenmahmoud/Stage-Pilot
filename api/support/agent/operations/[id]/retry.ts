@@ -63,6 +63,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const newJobId = randomUUID();
     const correlationId = randomUUID();
     const confirmedAt = await db.transaction(async (tx) => {
+      const [dispatch] = await tx.execute(sql`
+        select state from public.support_email_dispatches
+        where institution_id = ${context.institutionId}::uuid and job_id = ${failure.jobId}::uuid
+          and state in ('dispatching', 'sent', 'uncertain') limit 1
+      `);
+      if (dispatch) throw new HttpError(409, "Cet email a déjà été envoyé ou son résultat doit être vérifié avant une relance.");
       const [claimed] = await tx
         .update(supportFailedJobs)
         .set({ retriedBy: context.user.id, retriedAt: new Date() })

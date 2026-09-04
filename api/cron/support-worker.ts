@@ -1,6 +1,6 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { and, eq, isNull, sql } from "drizzle-orm";
-import { db } from "../../db/index.js";
+import { db, client } from "../../db/index.js";
 import {
   supportAttachments,
   supportContacts,
@@ -9,7 +9,8 @@ import {
   supportMessages,
   supportRequests,
 } from "../../db/schema.js";
-import { escapeHtml, sendTransactionalEmail } from "../_shared/brevo.js";
+import { escapeHtml, sendTransactionalEmail, type TransactionalEmail } from "../_shared/brevo.js";
+import { dispatchSupportEmail, supportEmailErrorCode, assertSupportEmailAccess } from "../../shared/support-email-dispatch.mjs";
 import { HttpError, secretMatches } from "../_shared/auth.js";
 import { handleApi, methodNotAllowed } from "../_shared/response.js";
 import { resolveSupportNotificationTarget } from "../../shared/support-notification-routing.js";
@@ -91,7 +92,7 @@ function trackingUrl(accessToken: string | undefined): string {
 
 function requesterAccessCode(job: SupportEmailQueueJob): string | null {
   const secret = process.env.SUPPORT_ACCESS_CODE_SECRET;
-  if (!secret || !job.contact_id) return null;
+  if (!secret || !job.contact_id) throw new Error("support_access_code_unavailable");
   if (!job.access_token) throw new Error("access_token_missing");
   return supportAccessCodeFromToken({ token: job.access_token, secret });
 }
@@ -109,6 +110,10 @@ function requesterReplyAddress(publicCode: string): string {
 }
 
 async function deliver(job: SupportEmailQueueJob, institutionId: string): Promise<string> {
+  const sendEmail = async (email: TransactionalEmail) => ({
+    messageId: await dispatchSupportEmail(client, job, async (key) =>
+      (await sendTransactionalEmail({ ...email, idempotencyKey: key })).messageId),
+  });
   const requesterJob = ["notify_requester_request_created", "send_requester_reply", "send_requester_access_link"].includes(job.job_type);
   if (requesterJob && !job.contact_id) throw new Error("requester_contact_unavailable");
   const context = await loadEmailContext(institutionId, job.request_id, job.contact_id);
@@ -116,6 +121,7 @@ async function deliver(job: SupportEmailQueueJob, institutionId: string): Promis
   if (requesterJob && !context.email) {
     throw new Error("requester_contact_unavailable");
   }
+  if (requesterJob) await assertSupportEmailAccess(client, job);
   const requesterName = `${context.request.requesterFirstName} ${context.request.requesterLastName}`;
   const senderEmail = process.env.SUPPORT_FROM_EMAIL;
   if (!senderEmail) throw new Error("support_from_email_missing");
@@ -123,7 +129,7 @@ async function deliver(job: SupportEmailQueueJob, institutionId: string): Promis
 
   if (job.job_type === "send_requester_access_link") {
     if (!context.email) throw new Error("requester_contact_unavailable");
-    const result = await sendTransactionalEmail({
+    const result = await sendEmail({
       to: { email: context.email },
       ...buildSupportAccessRecoveryEmail({
         publicCode: context.request.publicCode,
@@ -143,7 +149,7 @@ async function deliver(job: SupportEmailQueueJob, institutionId: string): Promis
     const accessCode = requesterAccessCode(job);
     const accessCodeText = accessCode ? `\nCode à usage unique : ${accessCode}` : "";
     const accessCodeHtml = accessCode ? `<p>Code à usage unique : <strong>${accessCode}</strong></p>` : "";
-    const result = await sendTransactionalEmail({
+    const result = await sendEmail({
       to: { email: context.email, name: requesterName },
       subject: `${context.request.publicCode} - Votre demande a été reçue`,
       textContent: `Bonjour ${requesterName},\n\nVotre demande « ${context.request.subject} » a bien été reçue.\nNuméro : ${context.request.publicCode}${accessCodeText}\nSuivi sécurisé : ${link}\n\nLe code et le lien expirent après 30 minutes. Aucun mot de passe ne vous sera demandé.`,
@@ -160,7 +166,7 @@ async function deliver(job: SupportEmailQueueJob, institutionId: string): Promis
     if (!target) throw new Error("support_agent_email_missing");
     const isMessage = job.job_type === "notify_agent_message_received";
     const agentUrl = (process.env.SUPPORT_AGENT_URL ?? process.env.SUPPORT_PUBLIC_URL ?? "https://app.lycee-blaise-cendrars-sevran.fr/prototype").replace(/\/$/, "");
-    const result = await sendTransactionalEmail({
+    const result = await sendEmail({
       to: { email: target.email, name: target.name },
       subject: `${isMessage ? "Nouveau message" : "Nouvelle demande"} ${context.request.publicCode} - ${context.request.subject}`,
       textContent: `${isMessage ? "Un nouveau message est arrivé" : "Une nouvelle demande a été créée"}.\nDossier : ${context.request.publicCode}\nDemandeur : ${requesterName} (${context.request.requesterType})\nCatégorie : ${context.request.category}\nObjet : ${context.request.subject}\n\nOuvrir : ${agentUrl}?agent_request=${context.request.publicCode}`,
@@ -207,7 +213,7 @@ async function deliver(job: SupportEmailQueueJob, institutionId: string): Promis
     const accessCode = requesterAccessCode(job);
     const accessCodeText = accessCode ? `\nCode à usage unique : ${accessCode}` : "";
     const accessCodeHtml = accessCode ? `<p>Code à usage unique : <strong>${accessCode}</strong></p>` : "";
-    const result = await sendTransactionalEmail({
+    const result = await sendEmail({
       to: { email: context.email, name: requesterName },
       subject: `${context.request.publicCode} - Réponse du lycée`,
       textContent: `Bonjour ${requesterName},\n\n${message.bodyText}${attachmentText}${accessCodeText}\n\nRépondre et suivre : ${link}\n\nLe code et le lien expirent après 30 minutes.`,
@@ -257,6 +263,7 @@ async function processRow(
 
   const startedAt = Date.now();
   try {
+    if (row.read_ct > 5) throw new Error("email_retry_limit_reached");
     const providerReference = await deliver(job, institutionId);
     await db.transaction(async (tx) => {
       await tx
@@ -276,7 +283,7 @@ async function processRow(
     });
     return "processed";
   } catch (error) {
-    const errorCode = error instanceof Error ? error.message.slice(0, 120) : "unknown_error";
+    const errorCode = supportEmailErrorCode(error);
     await db
       .insert(supportJobRuns)
       .values({
@@ -291,7 +298,7 @@ async function processRow(
       })
       .onConflictDoNothing();
 
-    if (supportEmailFailureDisposition(row.read_ct) === "dead_letter") {
+    if (["email_delivery_uncertain", "support_access_expired"].includes(errorCode) || supportEmailFailureDisposition(row.read_ct) === "dead_letter") {
       await db.transaction(async (tx) => {
         await tx
           .insert(supportFailedJobs)
@@ -333,7 +340,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     await assertLegacySingleInstitutionMode(institution.id);
     const result = await db.execute(sql<QueueRow>`
       select msg_id, read_ct, message
-      from pgmq.read('support_jobs', 120, 25)
+      from pgmq.read('support_jobs', 120, 5)
     `);
     const rows = Array.from(result as unknown as QueueRow[]);
     const outcomes: Array<"processed" | "retried" | "failed"> = [];

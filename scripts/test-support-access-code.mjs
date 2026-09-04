@@ -104,9 +104,9 @@ test("validates the minimal response before issuing the session cookie", () => {
   assert.doesNotMatch(route.slice(payload, returned), /tokenHash|contactId|newSessionToken[,:]/);
 });
 
-test("adds codes only to requester emails when the secret and contact exist", () => {
+test("requires codes in requester emails and fails closed when configuration is missing", () => {
   for (const worker of [vercelWorker, vpsWorker]) {
-    assert.match(worker, /if \(!secret \|\| !job\.contact_id\) return null/);
+    assert.match(worker, /if \(!secret \|\| !job\.contact_id\) throw new Error\("support_access_code_unavailable"\)/);
     assert.match(worker, /supportAccessCodeFromToken/);
     assert.match(worker, /Code (à|a) usage unique/);
     const agentStart = worker.indexOf('job.job_type === "notify_agent_request_created"');

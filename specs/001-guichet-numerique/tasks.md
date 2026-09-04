@@ -128,6 +128,13 @@ quarantaine. Une panne d'envoi externe n'affecte pas le dossier.
 - [x] **T020** Installer `pgmq`, la Basic Queue transactionnelle, le worker et la
   file d'échec administrable.
 - [x] **T021** Implémenter l'envoi Brevo avec idempotence et `Reply-To` dossier.
+- [x] **T021A** Protéger les envois par une réservation durable, commune aux
+  workers VPS et Vercel. Réserver avant transport ; un résultat inconnu exige
+  un contrôle avant relance. Codes de suivi obligatoires dans les emails,
+  configuration absente bloquante, liens expirés non renvoyés. Recette locale
+  avec PostgreSQL et vrai bundle VPS : deux travaux équivalents donnent un
+  seul appel au faux fournisseur, contenant code et lien. Voir
+  `docs/operations/SUPPORT_EMAIL_REPAIR_2026-09-04.md`.
   La file lie explicitement le destinataire et le jeton au même contact.
 - [x] **T022** Recevoir les événements Brevo livré/rejeté/différé/spam.
 - [x] **T022A** Router les alertes internes vers le service affecté, avec repli

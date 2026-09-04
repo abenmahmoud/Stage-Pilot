@@ -1,4 +1,7 @@
-import { randomUUID } from "node:crypto";
+import { supportAccessCodeSecret } from "../shared/support-access-code.mjs";
+import { dispatchSupportEmail, supportEmailErrorCode, assertSupportEmailAccess } from "../shared/support-email-dispatch.mjs";
+import { parseSupportEmailQueueJob, supportEmailFailureDisposition } from "../shared/support-email-job-policy.ts";
+import { resolveSupportNotificationTarget } from "../shared/support-notification-routing.ts";
 import postgres from "postgres";
 import { readBoundedJsonResponse } from "./bounded-download.mjs";
 import { supportAccessCodeFromToken } from "../shared/support-access-code.mjs";
@@ -44,7 +47,7 @@ function trackingUrl(accessToken) {
 
 function requesterAccessCode(job) {
   const secret = process.env.SUPPORT_ACCESS_CODE_SECRET;
-  if (!secret || !job.contact_id) return null;
+  if (!secret || !job.contact_id) throw new Error("support_access_code_unavailable");
   if (!job.access_token) throw new Error("access_token_missing");
   return supportAccessCodeFromToken({ token: job.access_token, secret });
 }
@@ -55,9 +58,10 @@ function requesterReplyAddress(publicCode) {
   return process.env.SUPPORT_REPLY_TO_EMAIL ?? senderEmail;
 }
 
-async function sendEmail({ to, subject, textContent, htmlContent, idempotencyKey, replyTo, tags }) {
+async function sendProviderEmail({ to, subject, textContent, htmlContent, idempotencyKey, replyTo, tags }) {
   const response = await fetch(brevoEndpoint, {
     method: "POST",
+    signal: AbortSignal.timeout(15_000),
     headers: {
       accept: "application/json",
       "api-key": brevoApiKey,
@@ -77,7 +81,10 @@ async function sendEmail({ to, subject, textContent, htmlContent, idempotencyKey
   const payload = await readBoundedJsonResponse(response, brevoResponseMaxBytes).catch(() => ({}));
   if (response.ok && payload.messageId) return payload.messageId;
   if (payload.code === "duplicate_parameter") return `duplicate:${idempotencyKey}`;
-  throw new Error(payload.code || `brevo_http_${response.status}`);
+  const error = new Error(payload.code || `brevo_http_${response.status}`);
+  error.name = response.status >= 400 && response.status < 500 && response.status !== 408
+    ? "BrevoRejectedError" : "BrevoError";
+  throw error;
 }
 
 async function requireConfiguredInstitution() {
@@ -100,7 +107,7 @@ async function requireConfiguredInstitution() {
 async function loadContext(institutionId, requestId, contactId) {
   const [request] = await sql`
     select id, public_code, requester_type, requester_first_name,
-           requester_last_name, category, subject
+           requester_last_name, category, subject, assigned_team
     from public.support_requests
     where id = ${requestId} and institution_id = ${institutionId}
     limit 1
@@ -121,6 +128,8 @@ async function loadContext(institutionId, requestId, contactId) {
 }
 
 async function deliver(job, institutionId) {
+  const sendEmail = (email) => dispatchSupportEmail(sql, job,
+    (key) => sendProviderEmail({ ...email, idempotencyKey: key }));
   if (job.institution_id !== institutionId) throw new Error("institution_mismatch");
   const requesterJob = ["notify_requester_request_created", "send_requester_reply", "send_requester_access_link"].includes(job.job_type);
   if (requesterJob && !job.contact_id) throw new Error("requester_contact_unavailable");
@@ -129,6 +138,7 @@ async function deliver(job, institutionId) {
   if (requesterJob && !context.email) {
     throw new Error("requester_contact_unavailable");
   }
+  if (requesterJob) await assertSupportEmailAccess(sql, job);
   const request = context.request;
   const requesterName = `${request.requester_first_name} ${request.requester_last_name}`;
 
@@ -162,10 +172,11 @@ async function deliver(job, institutionId) {
   }
 
   if (job.job_type === "notify_agent_request_created" || job.job_type === "notify_agent_message_received") {
-    if (!agentEmail) throw new Error("support_agent_email_missing");
+    const target = resolveSupportNotificationTarget(request.assigned_team, process.env);
+    if (!target) throw new Error("support_agent_email_missing");
     const isMessage = job.job_type === "notify_agent_message_received";
     return sendEmail({
-      to: { email: agentEmail, name: "Equipe support du lycee" },
+      to: { email: target.email, name: target.name },
       subject: `${isMessage ? "Nouveau message" : "Nouvelle demande"} ${request.public_code} - ${request.subject}`,
       textContent: `${isMessage ? "Un nouveau message est arrive" : "Une nouvelle demande a ete creee"}.\nDossier : ${request.public_code}\nDemandeur : ${requesterName} (${request.requester_type})\nCategorie : ${request.category}\nObjet : ${request.subject}\n\nOuvrir : ${agentUrl}?view=agent`,
       htmlContent: `<p><strong>${isMessage ? "Un nouveau message est arrive" : "Une nouvelle demande a ete creee"}.</strong></p><p>Dossier : ${escapeHtml(request.public_code)}<br>Demandeur : ${escapeHtml(requesterName)} (${escapeHtml(request.requester_type)})<br>Categorie : ${escapeHtml(request.category)}<br>Objet : ${escapeHtml(request.subject)}</p><p><a href="${escapeHtml(`${agentUrl}?view=agent`)}">Ouvrir les demandes</a></p>`,
@@ -226,11 +237,13 @@ async function deliver(job, institutionId) {
 }
 
 async function processRow(row, institutionId) {
-  const job = typeof row.message === "string" ? JSON.parse(row.message) : row.message;
-  if (!job?.job_id || !job?.job_type || !job?.institution_id || !job?.request_id) {
-    throw new Error("invalid_queue_payload");
+  let job;
+  try {
+    job = parseSupportEmailQueueJob(row.message, institutionId);
+  } catch {
+    await sql`select pgmq.archive('support_jobs', ${row.msg_id}::bigint)`;
+    return "failed";
   }
-  if (job.institution_id !== institutionId) throw new Error("institution_mismatch");
   const [done] = await sql`
     select id from public.support_job_runs
     where institution_id = ${institutionId}
@@ -245,6 +258,7 @@ async function processRow(row, institutionId) {
 
   const startedAt = Date.now();
   try {
+    if (row.read_ct > 5) throw new Error("email_retry_limit_reached");
     const providerReference = await deliver(job, institutionId);
     await sql.begin(async (transaction) => {
       await transaction`
@@ -260,7 +274,7 @@ async function processRow(row, institutionId) {
     });
     return "processed";
   } catch (error) {
-    const errorCode = error instanceof Error ? error.message.slice(0, 120) : "unknown_error";
+    const errorCode = supportEmailErrorCode(error);
     await sql`
       insert into public.support_job_runs (
         institution_id, job_id, job_type, request_id, attempt, status,
@@ -270,7 +284,7 @@ async function processRow(row, institutionId) {
         'failure', ${errorCode}, ${Date.now() - startedAt}
       ) on conflict (institution_id, job_id, attempt) do nothing
     `;
-    if (row.read_ct >= 5) {
+    if (["email_delivery_uncertain", "support_access_expired"].includes(errorCode) || supportEmailFailureDisposition(row.read_ct) === "dead_letter") {
       await sql.begin(async (transaction) => {
         await transaction`
           insert into public.support_failed_jobs (
@@ -291,19 +305,23 @@ async function processRow(row, institutionId) {
 }
 
 async function main() {
+  supportAccessCodeSecret(process.env.SUPPORT_ACCESS_CODE_SECRET);
   const institutionId = await requireConfiguredInstitution();
-  const rows = await sql`
-    select msg_id, read_ct, message
-    from pgmq.read('support_jobs', 120, 25)
-  `;
   const outcomes = [];
-  for (const row of rows) outcomes.push(await processRow(row, institutionId));
-  console.log(JSON.stringify({ claimed: rows.length, outcomes }));
+  // Claim immediately before processing; never leave a batch aging in memory.
+  for (let index = 0; index < 25; index++) {
+    const [row] = await sql`
+      select msg_id, read_ct, message from pgmq.read('support_jobs', 120, 1)
+    `;
+    if (!row) break;
+    outcomes.push(await processRow(row, institutionId));
+  }
+  console.log(JSON.stringify({ version: "2026-09-04", claimed: outcomes.length, outcomes }));
   await sql.end();
 }
 
 main().catch(async (error) => {
-  console.error(error instanceof Error ? error.message : "email_worker_failed");
+  console.error(supportEmailErrorCode(error));
   await sql.end({ timeout: 1 });
   process.exitCode = 1;
 });

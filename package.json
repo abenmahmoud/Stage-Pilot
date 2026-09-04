@@ -309,7 +309,9 @@
     "test:nominative-boundaries": "node --import ./scripts/ts-test-resolver.mjs --experimental-strip-types scripts/test-nominative-import-boundaries.mjs && node --import ./scripts/ts-test-resolver.mjs --experimental-strip-types scripts/test-nominative-private-store.mjs",
     "recipe:local-nominative-persistence": "node --import ./scripts/ts-test-resolver.mjs --experimental-strip-types scripts/test-local-nominative-persistence.mjs --local-stack-only",
     "test:nominative-send-mode": "node --import ./scripts/ts-test-resolver.mjs --experimental-strip-types scripts/test-nominative-send-mode.mjs",
-    "test:agent-context-window": "node --import ./scripts/ts-test-resolver.mjs --experimental-strip-types scripts/test-agent-context-window.mjs"
+    "test:agent-context-window": "node --import ./scripts/ts-test-resolver.mjs --experimental-strip-types scripts/test-agent-context-window.mjs",
+    "recipe:local-support-email-dispatch": "node scripts/test-local-support-email-dispatch.mjs --local-stack-only",
+    "recipe:local-support-email-worker": "node scripts/test-local-support-email-worker.mjs --local-stack-only"
   },
   "license": "ISC",
   "dependencies": {
