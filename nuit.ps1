@@ -14,19 +14,27 @@ if (Test-Path $lockFile) {
 }
 "$PID $stamp" | Set-Content -LiteralPath $lockFile
 
+$plan = 'docs/operations/NIGHT_PLAN_FLASH_2026-09-05.md'
+
 $lots = @(
-  @{ n = 1; t = 'Rejeu des 94 migrations' },
-  @{ n = 2; t = 'Repetition promotion production 3 vers 94' },
-  @{ n = 3; t = 'Etat editorial des 28 contenus' },
-  @{ n = 4; t = 'Redirections, liens, responsive' },
-  @{ n = 5; t = 'Dossier de bascule vendredi' }
+  @{ n = 1; t = 'Modele de donnees flash' },
+  @{ n = 2; t = 'Logique pure testee' },
+  @{ n = 3; t = 'Ecran de proposition' },
+  @{ n = 4; t = 'Ecran de validation et correction' },
+  @{ n = 5; t = 'Recette adverse' }
 )
+
+# Verrous Git residuels : le shell distant ne peut pas les supprimer, ici si.
+foreach ($v in @('.git\HEAD.lock', '.git\index.lock', '.git\refs\heads\codex\lycee-connect-prototype.lock')) {
+  $c = Join-Path $PSScriptRoot $v
+  if (Test-Path $c) { Remove-Item -LiteralPath $c -Force -ErrorAction SilentlyContinue; Write-Host "Verrou retire : $v" -ForegroundColor Yellow }
+}
 
 function Invoke-Lot([int]$n, [string]$titre) {
   $log = Join-Path $logDir "$stamp-LOT$n.log"
   $rapport = Join-Path $logDir "LOT$n.md"
   $avant = if (Test-Path $rapport) { (Get-Item $rapport).LastWriteTime } else { [datetime]::MinValue }
-  $prompt = "Execute UNIQUEMENT le LOT $n du fichier docs/operations/NIGHT_PLAN_2026-09-03.md. " +
+  $prompt = "Execute UNIQUEMENT le LOT $n du fichier $plan. " +
             "Respecte strictement CLAUDE.md et les regles communes du plan. " +
             "Ne lis pas specs/project-memory.md en entier : utilise grep sur la section utile. " +
             "Termine OBLIGATOIREMENT en ecrivant ton compte rendu dans docs/operations/night-logs/LOT$n.md " +
@@ -51,7 +59,7 @@ foreach ($l in $lots) {
 
 $log6 = Join-Path $logDir "$stamp-LOT6.log"
 $ctx = if ($echec) { "Le LOT $echec n'a pas abouti : documente l'erreur exacte sans la masquer." } else { "Tous les lots demandes sont passes." }
-$prompt6 = "Execute UNIQUEMENT le LOT 6 (cloture) du fichier docs/operations/NIGHT_PLAN_2026-09-03.md. " +
+$prompt6 = "Execute UNIQUEMENT le LOT 6 (cloture) du fichier $plan. " +
            "$ctx Respecte strictement CLAUDE.md. Ne declare prouve que ce qui l'est reellement."
 Write-Host "=== LOT 6 : cloture === $(Get-Date -Format 'HH:mm:ss')" -ForegroundColor Cyan
 & claude -p $prompt6 --model sonnet --permission-mode bypassPermissions *>&1 | Tee-Object -FilePath $log6
