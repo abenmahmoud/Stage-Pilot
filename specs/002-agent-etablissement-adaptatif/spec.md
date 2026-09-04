@@ -299,6 +299,19 @@ leur date, leur responsable et leur état de validité.
 - 100 % des réponses personnalisées d'emploi du temps indiquent une version de source et respectent le périmètre de l'utilisateur.
 - Une panne du modèle laisse disponibles le site public, le formulaire et le suivi des demandes.
 
+## Précision du 4 septembre 2026 : actualité et informations pratiques
+
+La date courante vient de l'horloge serveur et du fuseau Europe/Paris, recalculée
+à chaque réponse. Les horaires et procédures viennent des sources validées,
+jamais d'une date déduite, d'un visiteur ou d'une ancienne réponse de l'assistant.
+Une demande courante déjà compréhensible ouvre rapidement le formulaire ; une
+question de date ou d'horaires seule ne nécessite pas de dossier. Les contrôles
+de sécurité et l'envoi explicite par l'usager restent prioritaires.
+
+Adel demande de fixer l'ensemble des informations pratiques dans une revue
+commune, pas par ajouts successifs. La fiche de référence est un brouillon de
+travail jusqu'à cette validation ; aucune nouvelle plage horaire n'est inventée.
+
 ## Hors périmètre initial
 
 - Remplacer l'interface complète de PRONOTE ou des téléservices nationaux.

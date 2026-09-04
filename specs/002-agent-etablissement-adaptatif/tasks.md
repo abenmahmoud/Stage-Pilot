@@ -439,6 +439,14 @@
   exposés ; aucun modèle ne peut fabriquer la liste affichée et une réponse de
   repli ne présente aucune source.
 - [x] T026 Imposer une question essentielle à la fois et dix tours maximum par session.
+- [x] T026A Fournir à chaque réponse l'horloge serveur en Europe/Paris et répondre
+  sans modèle aux questions explicites sur la date courante. Les propos d'un
+  visiteur ne remplacent ni cette horloge ni les sources validées ; sans source,
+  les horaires d'accueil restent inconnus. Accélérer les demandes courantes
+  compréhensibles vers le formulaire sans collecte d'identité dans le dialogue.
+- [ ] T026B Faire une revue commune des informations pratiques avec Adel et les
+  services : fiche unique, horaires distincts, contacts, démarches, documents,
+  validité et responsables. Aligner ensuite site et sources approuvées de l'agent.
 - [x] T027 Créer ou compléter automatiquement un dossier `001` lors d'un transfert
   humain, en conservant le dialogue utile et les pièces sans demander de ressaisie.
 - [x] T027D Rejouer la recette navigateur complète après le jalon du registre.

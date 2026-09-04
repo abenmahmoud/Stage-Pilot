@@ -5743,3 +5743,21 @@ taches et analyse de coherence avant une automatisation sensible.
   publication n’est forcé ; validation des services et trois médias manquants
   restent ouverts. La liste préparée avec Claude et les codes sont hors de ce lot.
 - Preuve et retour arrière : `docs/operations/FINITION_SITE_PUBLIC_2026-09-04.md`.
+
+### Contexte fiable de l'assistant et revue commune — 4 septembre 2026
+
+- Adel demande la date courante fiable, des réponses plus directes et une entrée
+  plus rapide dans le formulaire. Le moteur reçoit l'horloge serveur Europe/Paris ;
+  les questions explicites de date sont traitées sans modèle. Les conversations
+  ne remplacent ni cette horloge ni les sources officielles approuvées.
+- Les demandes courantes déjà claires ouvrent le formulaire ; sans source
+  d'horaires, l'assistant explique l'information manquante. Aucun horaire inventé,
+  aucun import réel, aucun dossier ou email créé pendant ces essais.
+- Adel refuse les ajouts d'informations pratiques au fil de questions isolées :
+  utiliser `docs/operations/FICHE_REFERENCE_LYCEE_A_VALIDER.md` pour une seule revue
+  avec les services, puis aligner site et connaissances sur la version approuvée.
+  T026B reste ouverte. La liste préparée avec Claude attend son retour.
+- 24 tests du moteur/contexte et 26 tests de politique passent. Huit scénarios
+  navigateur à 320 et 1440 px vérifient date, horaires absents, demande claire et
+  clarification, sans création de demande ni appel au fournisseur.
+- Détail : `docs/operations/ASSISTANT_CONTEXTE_2026-09-04.md`.

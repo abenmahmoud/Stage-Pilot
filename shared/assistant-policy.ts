@@ -96,7 +96,7 @@ function isThirdPartySchoolDataRequest(content: string): boolean {
   const asksForSchoolData = /\b(emploi du temps|salles?|classes?|absences?|retards?|notes?|bulletins?|resultats?|sanctions?|dossiers? scolaires?)\b/.test(
     text
   );
-  const namesAnotherPerson = /\b(mon enfant|mon fils|ma fille|un autre eleve|une autre eleve|l[' ]eleve|d[' ]un eleve|d[' ]une eleve|ce professeur|cet enseignant|cette personne)\b/.test(
+  const namesAnotherPerson = /\b(mon enfant|mon fils|ma fille|un autre eleve|une autre eleve|l['’ ]eleve|d['’ ]un eleve|d['’ ]une eleve|ce professeur|cet enseignant|cette personne)\b/.test(
     text
   );
   return asksForSchoolData && namesAnotherPerson;
@@ -114,7 +114,7 @@ function explicitScope(content: string): AssistantScope {
   }
 
   if (
-    /\b(recuperer|extraire|telecharger|donner|voir|chercher)\b.{0,45}\b(donnees de l.application|base de donnees|liste des eleves|liste des professeurs|annuaire complet|coordonnees personnelles)\b/.test(
+    /\b(recuperer|recupere|recuperez|extraire|extrais|extrayez|telecharger|telecharge|telechargez|donner|donne|donnez|voir|chercher|cherche|cherchez)\b.{0,45}\b(donnees de l.application|base de donnees|liste des eleves|liste des professeurs|annuaire complet|coordonnees personnelles)\b/.test(
       text
     ) ||
     (/\b(numero|telephone|email|adresse|coordonnees)\b/.test(text) &&
@@ -134,7 +134,7 @@ function explicitScope(content: string): AssistantScope {
   }
 
   if (
-    /\b(lycee|direction|proviseur|proviseure|accueil|secretariat|ent|educonnect|pronote|webmail|zimbra|email academique|mot de passe academique|inscription|reinscription|classe|affectation|emploi du temps|document|dossier|justificatif|ordinateur|pc portable|tablette|wifi|logiciel|cantine|restauration|bourse|intendance|orientation|parcoursup|formation|specialite|absence|retard|vie scolaire|cpe|stage|grand oral)\b/.test(
+    /\b(lycee|direction|proviseur|proviseure|accueil|secretariat|ent|educonnect|pronote|webmail|zimbra|email academique|mot de passe academique|inscription|reinscription|classe|affectation|emploi du temps|document|dossier|formulaire|certificat|attestation|badge|justificatif|ordinateur|pc portable|tablette|wifi|logiciel|cantine|restauration|bourse|intendance|orientation|parcoursup|formation|specialite|absence|retard|vie scolaire|cpe|stage|grand oral)\b/.test(
       text
     )
   ) {

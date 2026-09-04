@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { PublicPortalFooter } from "../../components/PublicPortalFooter";
 import { publicPortalView, PUBLIC_PORTAL_TITLES, type PublicPortalView as View } from "../../../shared/public-portal-navigation";
+import { MISSING_OPENING_HOURS_REPLY, schoolInformationIntent, supportFormReady } from "../../../shared/assistant-school-context";
 import {
   ArrowLeft,
   ArrowRightLeft,
@@ -1230,7 +1231,7 @@ function inferSupportCategory(text: string): SupportCategory {
   if (/\b(certificat|attestation|document|pièce|piece|dossier|justificatif|manque)\b/i.test(text)) return "documents_scolarite";
   if (/\b(pc|ordinateur|portable|tablette|chargeur)\b/i.test(text)) return "ordinateur";
   if (/\b(logiciel|application|wifi|réseau|reseau)\b/i.test(text)) return "logiciel";
-  if (/\b(cantine|restauration|bourse|internat|hébergement scolaire|hebergement scolaire|intendance|paiement)\b/i.test(text)) return "restauration_bourse";
+  if (/\b(cantine|badge|restauration|bourse|internat|hébergement scolaire|hebergement scolaire|intendance|paiement)\b/i.test(text)) return "restauration_bourse";
   if (/\b(orientation|formation|spécialité|specialite|parcoursup)\b/i.test(text)) return "orientation_formation";
   if (/\b(absence|retard|vie scolaire|cpe|surveillant)\b/i.test(text)) return "vie_scolaire";
   if (/\b(rendez[- ]?vous|rdv|être reçu|etre recu|rencontrer)\b/i.test(text)) return "autre";
@@ -1254,15 +1255,18 @@ function localAssistantFallback(messages: AssistantChatMessage[], files: File[])
         : /\b(personnel|agent|administration)\b/.test(normalizedText)
           ? "personnel"
           : "inconnu";
-  const readyToCreate = policy.readyToCreate ?? laptopIntake?.readyToCreate ?? text.trim().length >= 35;
+  const informationIntent = schoolInformationIntent(messages);
+  const readyToCreate = policy.readyToCreate ?? laptopIntake?.readyToCreate ?? supportFormReady(messages, policy.scope);
   const action = resolveAssistantAction({
     policyAction: laptopIntake?.action ?? policy.action,
     readyToCreate,
     scope: policy.scope,
   });
   return {
-    reply: policy.deterministicReply ?? laptopIntake?.reply ?? (scheduleQuestion
-      ? "Je peux rechercher votre prochain cours et sa salle, mais une classe écrite librement ne suffit pas pour ouvrir un emploi du temps réel. Le lycée doit d’abord confirmer votre identité scolaire et votre lien avec la classe ou le groupe. La version reçue le 25 août 2026 pourra ensuite être consultée avec sa date de mise à jour ; en cas de doute, la vie scolaire vérifiera avant de répondre."
+    reply: policy.deterministicReply ?? laptopIntake?.reply ?? (informationIntent === "opening_hours" ? MISSING_OPENING_HOURS_REPLY
+      : informationIntent === "clock" ? "L’horloge du service est momentanément indisponible. Je ne peux pas confirmer la date et l’heure du lycée."
+      : scheduleQuestion
+      ? "Une classe écrite librement ne suffit pas pour ouvrir un emploi du temps réel. Le lycée doit d’abord confirmer votre identité scolaire et votre lien avec la classe ou le groupe, puis consulter une version validée et à jour. En cas de doute, la vie scolaire vérifiera avant de répondre."
       : readyToCreate
         ? `J’ai compris. Je classe votre besoin dans « ${label} ». ${files.length ? `Je vois aussi ${files.length} fichier${files.length > 1 ? "s" : ""} à joindre au dossier. ` : ""}La demande est prête : vérifiez vos coordonnées puis transmettez-la au lycée.`
         : `J’ai compris. Je classe votre besoin dans « ${label} ». ${files.length ? `Je vois aussi ${files.length} fichier${files.length > 1 ? "s" : ""} à joindre au dossier. ` : ""}Précisez ce qui bloque et ce que vous avez déjà essayé.`),
@@ -1958,7 +1962,7 @@ function HelpDeskView({
           {insight ? (
             <div className="lycee-live-analysis">
               <WandSparkles aria-hidden="true" />
-              <span><strong>{selectedCategory?.label}</strong><small>{insight.urgency === "urgente" ? "Blocage ou échéance proche signalé" : "Demande comprise"}</small></span>
+              <span><strong>{schoolInformationIntent(chatMessages) ? "Information du lycée" : selectedCategory?.label}</strong><small>{insight.urgency === "urgente" ? "Blocage ou échéance proche signalé" : insight.readyToCreate ? "Prêt pour le formulaire" : "Réponse de l’assistant"}</small></span>
               {insight.suggestedDocuments.length > 0 ? <em>{insight.suggestedDocuments.length} {insight.suggestedDocuments.length > 1 ? "pièces suggérées" : "pièce suggérée"}</em> : null}
             </div>
           ) : null}
