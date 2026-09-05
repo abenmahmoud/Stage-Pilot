@@ -7,6 +7,7 @@ import { isAgentRole } from "./lib/auth-policy";
 import {
   ADMINISTRATION_ROLES,
   CONTENT_MANAGER_ROLES,
+  FLASH_PROPOSAL_ROLES,
   roleIsAllowed,
 } from "../shared/role-access";
 import type { LyceeGestRole } from "../shared/role-access";
@@ -40,6 +41,7 @@ const ScheduleImportPage = lazy(() => import("./pages/admin/ScheduleImportPage")
 const AgentApprovalsPage = lazy(() => import("./pages/admin/AgentApprovalsPage"));
 const CommunicationsPage = lazy(() => import("./pages/admin/CommunicationsPage"));
 const EnvoisNominatifsPage = lazy(() => import("./pages/admin/EnvoisNominatifsPage"));
+const FlashProposalPage = lazy(() => import("./pages/admin/FlashProposalPage"));
 
 function PageFallback() {
   return (
@@ -237,6 +239,14 @@ export default function App() {
             element={
               <RoleRoute allowedRoles={CONTENT_MANAGER_ROLES}>
                 <EnvoisNominatifsPage />
+              </RoleRoute>
+            }
+          />
+          <Route
+            path="admin/informations-flash/proposer"
+            element={
+              <RoleRoute allowedRoles={FLASH_PROPOSAL_ROLES}>
+                <FlashProposalPage />
               </RoleRoute>
             }
           />

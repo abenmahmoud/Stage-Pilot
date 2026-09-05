@@ -316,6 +316,7 @@
     "test:flash-audience-correction": "node --import ./scripts/ts-test-resolver.mjs --experimental-strip-types scripts/test-flash-audience-correction.mjs",
     "test:flash-expiration": "node --import ./scripts/ts-test-resolver.mjs --experimental-strip-types scripts/test-flash-expiration.mjs",
     "test:flash": "npm run test:flash-transitions && npm run test:flash-version-diff && npm run test:flash-audience-correction && npm run test:flash-expiration",
+    "test:flash-proposal-page": "node --import ./scripts/ts-test-resolver.mjs --experimental-strip-types scripts/test-flash-proposal-page.mjs",
     "test:agent-context-window": "node --import ./scripts/ts-test-resolver.mjs --experimental-strip-types scripts/test-agent-context-window.mjs",
     "recipe:local-support-email-dispatch": "node scripts/test-local-support-email-dispatch.mjs --local-stack-only",
     "recipe:local-support-email-worker": "node scripts/test-local-support-email-worker.mjs --local-stack-only",

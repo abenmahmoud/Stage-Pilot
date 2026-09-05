@@ -25,6 +25,17 @@ export const CONTENT_MANAGER_ROLES: readonly LyceeGestRole[] = [
   "proviseur",
 ];
 
+// §13 de la politique operationnelle (informations flash) : « un personnel ou
+// professeur verifie propose ». Distinct de CONTENT_MANAGER_ROLES, qui ne
+// couvre pas "professeur"/"pp".
+export const FLASH_PROPOSAL_ROLES: readonly LyceeGestRole[] = [
+  "superadmin",
+  "administration",
+  "proviseur",
+  "professeur",
+  "pp",
+];
+
 export function roleIsAllowed(
   role: LyceeGestRole,
   allowedRoles: readonly LyceeGestRole[]
