@@ -49,6 +49,19 @@ const FLASH_VALIDATION_ACCESS_PAYLOAD_FIELDS = new Set([
   "reason",
 ]);
 
+/**
+ * LOT 5 du plan de publication (T071E) : ce que reçoit `GET
+ * /api/flash/validation/screen-access`, seule information nécessaire pour
+ * décider si l'écran de validation doit s'afficher. Volontairement plus
+ * étroit que FLASH_VALIDATION_ACCESS_PAYLOAD_FIELDS ci-dessus (qui répond
+ * "puis-je décider CETTE proposition") : ni `selfValidated` ni `reason`, un
+ * `reason` texte n'a pas de sens avant même qu'une file soit chargée.
+ */
+const FLASH_VALIDATION_SCREEN_ACCESS_PAYLOAD_FIELDS = new Set([
+  "allowed",
+  "grantedByService",
+]);
+
 const FLASH_AUDIENCE_TREATMENT_PAYLOAD_FIELDS = new Set([
   "maintained",
   "removed",
@@ -103,6 +116,11 @@ export type FlashValidationAccessPayload = {
   selfValidated: boolean;
   grantedByService: string | null;
   reason: string | null;
+};
+
+export type FlashValidationScreenAccessPayload = {
+  allowed: boolean;
+  grantedByService: string | null;
 };
 
 export type FlashAudienceTreatmentPayload = {
@@ -228,6 +246,21 @@ export function isValidFlashValidationAccessPayload(
   if (value.grantedByService !== null && typeof value.grantedByService !== "string") return false;
   if (value.reason !== null && typeof value.reason !== "string") return false;
   if (value.allowed === (value.reason !== null)) return false;
+  return true;
+}
+
+/**
+ * Meme invariant que `isValidFlashValidationAccessPayload` ci-dessus, appliqué
+ * à `grantedByService` plutôt qu'à `reason` : `allowed` est vrai si et
+ * seulement si un service (ou le superadmin) a réellement ouvert l'écran.
+ */
+export function isValidFlashValidationScreenAccessPayload(
+  value: unknown
+): value is FlashValidationScreenAccessPayload {
+  if (!isRecord(value) || !hasExactFields(value, FLASH_VALIDATION_SCREEN_ACCESS_PAYLOAD_FIELDS)) return false;
+  if (typeof value.allowed !== "boolean") return false;
+  if (value.grantedByService !== null && typeof value.grantedByService !== "string") return false;
+  if (value.allowed === (value.grantedByService === null)) return false;
   return true;
 }
 

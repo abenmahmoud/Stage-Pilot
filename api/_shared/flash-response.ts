@@ -9,12 +9,14 @@ import type { FlashNotificationChannel } from "../../shared/flash-audience-corre
 import {
   isValidFlashInfoVersionPayload,
   isValidFlashValidationAccessPayload,
+  isValidFlashValidationScreenAccessPayload,
   isValidFlashAudienceTreatmentPayload,
   isValidFlashAudiencePayload,
   isValidFlashAuthorNamePayload,
   isValidFlashPublicItemPayload,
   type FlashInfoVersionPayload,
   type FlashValidationAccessPayload,
+  type FlashValidationScreenAccessPayload,
   type FlashAudienceTreatmentPayload,
   type FlashPublicItemPayload,
 } from "../../shared/flash-payload-policy.js";
@@ -77,6 +79,23 @@ export function toFlashValidationAccessPayload(
   };
   if (!isValidFlashValidationAccessPayload(payload)) {
     throw new HttpError(500, "L'autorisation de validation flash ne respecte pas le contrat de réponse.");
+  }
+  return payload;
+}
+
+/**
+ * LOT 5 (T071E) : ce que reçoit la porte de l'écran de validation elle-même
+ * (`GET /api/flash/validation/screen-access`), avant même de charger une
+ * file. `grantedByService` vient de `grantedFlashValidationService`, jamais
+ * du rôle applicatif ni des `serviceCodes` bruts — l'écran n'a besoin que de
+ * savoir s'il doit s'afficher, pas de recalculer la règle lui-même.
+ */
+export function toFlashValidationScreenAccessPayload(
+  grantedByService: string | null
+): FlashValidationScreenAccessPayload {
+  const payload = { allowed: grantedByService !== null, grantedByService };
+  if (!isValidFlashValidationScreenAccessPayload(payload)) {
+    throw new HttpError(500, "L'autorisation d'accès à l'écran de validation flash ne respecte pas le contrat de réponse.");
   }
   return payload;
 }

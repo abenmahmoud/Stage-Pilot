@@ -1,7 +1,8 @@
-import { lazy, Suspense } from "react";
+import { lazy, Suspense, useEffect, useState } from "react";
 import { Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { AuthProvider } from "./components/AuthProvider";
 import { useAuth } from "./lib/auth-context";
+import { apiFetch } from "./lib/api";
 import { ROLE_HOME } from "./lib/types";
 import { isAgentRole } from "./lib/auth-policy";
 import {
@@ -11,6 +12,11 @@ import {
   roleIsAllowed,
 } from "../shared/role-access";
 import type { LyceeGestRole } from "../shared/role-access";
+import { isValidFlashValidationScreenAccessPayload } from "../shared/flash-payload-policy";
+import {
+  decideFlashValidationRoute,
+  type FlashValidationScreenAccessState,
+} from "../shared/flash-validation-route";
 
 const LyceeConnectPrototype = lazy(() => import("./pages/prototype/LyceeConnectPrototype"));
 const PublicContentPage = lazy(() => import("./pages/prototype/PublicContentPage"));
@@ -112,6 +118,51 @@ function RoleRoute({
   if (!roleIsAllowed(user.role, allowedRoles)) {
     return <Navigate to={ROLE_HOME[user.role]} replace />;
   }
+  return <>{children}</>;
+}
+
+// T071E (LOT 5 du plan de publication publique) : la porte de l'écran de
+// validation des informations flash repose sur le service réellement
+// accordé (`referent_numerique`/`ddfpt`, ou superadmin), jamais sur le rôle
+// applicatif — même règle que la file et les décisions serveur
+// (`assertFlashValidationQueueAccess`/`assertFlashValidationAccess`,
+// api/_shared/flash-access.ts). Le serveur reste seul à décider
+// (`GET /api/flash/validation/screen-access`) : cette route ne fait
+// qu'attendre sa réponse et choisir quoi afficher pendant/après, via la
+// fonction pure `decideFlashValidationRoute` (shared/flash-validation-route.ts).
+// Une réponse invalide ou une erreur réseau ferme l'écran (échec fermé),
+// elle ne l'ouvre jamais.
+function FlashValidationRoute({ children }: { children: React.ReactNode }) {
+  const { user, loading } = useAuth();
+  const [access, setAccess] = useState<FlashValidationScreenAccessState>({ status: "loading" });
+
+  useEffect(() => {
+    if (!user) return;
+    let cancelled = false;
+    setAccess({ status: "loading" });
+    apiFetch<unknown>("flash/validation/screen-access")
+      .then((payload) => {
+        if (cancelled) return;
+        const allowed = isValidFlashValidationScreenAccessPayload(payload) && payload.allowed;
+        setAccess({ status: "checked", allowed });
+      })
+      .catch(() => {
+        if (!cancelled) setAccess({ status: "checked", allowed: false });
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [user]);
+
+  const decision = decideFlashValidationRoute({
+    user,
+    authLoading: loading,
+    access,
+    roleHome: ROLE_HOME,
+  });
+
+  if (decision.kind === "wait") return <PageFallback />;
+  if (decision.kind === "redirect") return <Navigate to={decision.to} replace />;
   return <>{children}</>;
 }
 
@@ -263,9 +314,9 @@ export default function App() {
           <Route
             path="admin/informations-flash/valider"
             element={
-              <RoleRoute allowedRoles={CONTENT_MANAGER_ROLES}>
+              <FlashValidationRoute>
                 <FlashValidationPage />
-              </RoleRoute>
+              </FlashValidationRoute>
             }
           />
           <Route

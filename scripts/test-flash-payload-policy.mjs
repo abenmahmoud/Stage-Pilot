@@ -4,6 +4,7 @@ import test from "node:test";
 import {
   isValidFlashInfoVersionPayload,
   isValidFlashValidationAccessPayload,
+  isValidFlashValidationScreenAccessPayload,
   isValidFlashAudienceTreatmentPayload,
   isValidFlashExpirationCheckPayload,
   isValidFlashAudiencePayload,
@@ -151,6 +152,41 @@ test("refuse un booléen porté par null", () => {
       grantedByService: null,
       reason: "service_not_granted",
     }),
+    false
+  );
+});
+
+test("accepte une porte d'écran ouverte par un service", () => {
+  assert.equal(
+    isValidFlashValidationScreenAccessPayload({ allowed: true, grantedByService: "ddfpt" }),
+    true
+  );
+});
+
+test("accepte une porte d'écran fermée sans service", () => {
+  assert.equal(
+    isValidFlashValidationScreenAccessPayload({ allowed: false, grantedByService: null }),
+    true
+  );
+});
+
+test("refuse une porte d'écran ouverte sans service accordé", () => {
+  assert.equal(
+    isValidFlashValidationScreenAccessPayload({ allowed: true, grantedByService: null }),
+    false
+  );
+});
+
+test("refuse une porte d'écran fermée qui porte quand même un service", () => {
+  assert.equal(
+    isValidFlashValidationScreenAccessPayload({ allowed: false, grantedByService: "referent_numerique" }),
+    false
+  );
+});
+
+test("refuse un champ inconnu sur la porte d'écran (ex: reason recopié par erreur)", () => {
+  assert.equal(
+    isValidFlashValidationScreenAccessPayload({ allowed: false, grantedByService: null, reason: "service_not_granted" }),
     false
   );
 });

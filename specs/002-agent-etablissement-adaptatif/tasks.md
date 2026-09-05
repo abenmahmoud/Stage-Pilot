@@ -1192,7 +1192,7 @@
   correction après publication branchée à l'écran. Recette PostgreSQL réelle
   et recette navigateur réelle (Chromium, clic réel) sur les sept scénarios
   du LOT 4, sans aucune transition forcée en SQL.
-- [ ] T071E Ouvrir la validation par le service `referent_numerique` ou `ddfpt`
+- [x] T071E Ouvrir la validation par le service `referent_numerique` ou `ddfpt`
   porté par l'appartenance à l'établissement, jamais par le rôle applicatif.
   Un compte d'administration sans ce service ne valide pas. L'auto-validation
   est autorisée tant qu'une seule personne porte le service, enregistrée avec
@@ -1212,6 +1212,32 @@
   service voit encore l'écran (boutons désactivés côté serveur, pas d'accès
   refusé à la porte). Pas cochée pour cette seule raison, vérifiée par lecture
   de `src/App.tsx` pendant ce lot de clôture.
+  Clôturée le 5 septembre 2026 (LOT 5 du plan de publication publique) :
+  nouvelle route `GET /api/flash/validation/screen-access` qui ne fait que
+  remonter `grantedFlashValidationService(role, serviceCodes)` — jamais les
+  `serviceCodes` bruts ni le rôle — via le contrat strict
+  `FlashValidationScreenAccessPayload`
+  (`shared/flash-payload-policy.ts`). Côté client, `RoleRoute
+  allowedRoles={CONTENT_MANAGER_ROLES}` est remplacé par `FlashValidationRoute`
+  (`src/App.tsx`), qui attend cette réponse puis applique la fonction pure
+  `decideFlashValidationRoute` (`shared/flash-validation-route.ts`) : un compte
+  sans le service est redirigé vers son propre accueil de rôle, jamais vers
+  l'écran ; une erreur réseau ou une réponse invalide ferme l'écran (échec
+  fermé), elle ne l'ouvre jamais. Le serveur reste seul à décider — la
+  fonction cliente ne fait que choisir quoi afficher pendant/après sa
+  réponse. Preuve exécutée : `npm run test:flash-validation-route` (décision
+  pure sur tous les rôles, plus lecture de `src/App.tsx` confirmant l'appel
+  réel et l'absence de `RoleRoute` sur cette route),
+  `npm run test:flash-payload-policy` (contrat étroit du nouveau payload,
+  y compris l'invariant `allowed <=> grantedByService non nul`),
+  `npm run test:flash-recette` au complet (aucune régression sur les données
+  déjà servies aux files et décisions), `node node_modules/typescript/bin/tsc
+  --noEmit` et `npm run build` (les deux verts). Reste supposé, non prouvé
+  par ce lot : le comportement réel dans un navigateur avec un compte
+  `administration` sans service, faute de pile Supabase locale démarrée ici
+  (Docker Desktop indisponible) — seule une preuve statique (lecture de
+  code + décision pure testée) a été apportée, pas une recette navigateur
+  réelle. À rejouer au LOT 6 (recette PostgreSQL + navigateur réelle).
 - [x] T071C Traiter l'information flash comme un canal supplémentaire et non
   comme le canal d'urgence. Aucune publication ni notification sans validation
   du référent numérique ou de la DDFPT, sans exception d'horaire. L'écran de
