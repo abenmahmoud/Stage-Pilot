@@ -106,3 +106,59 @@ test("un canal inconnu dans previousNotifiedChannels est refuse", () => {
     (error) => error instanceof FlashAudienceError
   );
 });
+
+// Regression trouvee le 5 septembre 2026 en testant un cas absent de la
+// recette : la version precedente avait REELLEMENT notifie, puis l'importance
+// est ramenee a « normale ». L'ancienne implementation renvoyait trois
+// ensembles vides et correctionPossible=false : les familles deja prevenues
+// gardaient une information perimee sans jamais etre detrompees.
+test("une flash deja notifiee puis ramenee a normale doit toujours corriger les personnes prevenues", () => {
+  const treatment = resolveFlashAudienceTreatment({
+    previousAudience: ["classe:2nde4", "classe:2nde5"],
+    nextAudience: ["classe:2nde4"],
+    previousNotifiedChannels: ["push", "email"],
+    nextImportance: "normale",
+  });
+  assert.equal(treatment.correctionPossible, true, "la correction reste due");
+  assert.deepEqual(treatment.maintained, ["classe:2nde4"]);
+  assert.deepEqual(treatment.removed, ["classe:2nde5"], "le groupe retire doit etre detrompe");
+  assert.deepEqual(treatment.eligibleChannels, ["email", "push"]);
+});
+
+test("ramener a normale n'ouvre aucun envoi vers les ajoutes, qui n'ont jamais rien recu", () => {
+  const treatment = resolveFlashAudienceTreatment({
+    previousAudience: ["classe:2nde4"],
+    nextAudience: ["classe:2nde4", "classe:1ere2"],
+    previousNotifiedChannels: ["push"],
+    nextImportance: "normale",
+  });
+  assert.equal(treatment.correctionPossible, true);
+  assert.deepEqual(treatment.maintained, ["classe:2nde4"]);
+  assert.deepEqual(treatment.added, [], "une version normale ne notifie personne de neuf");
+});
+
+test("une version deja notifiee qui reste urgente traite bien les trois ensembles", () => {
+  const treatment = resolveFlashAudienceTreatment({
+    previousAudience: ["classe:2nde4", "classe:2nde5"],
+    nextAudience: ["classe:2nde4", "classe:1ere2"],
+    previousNotifiedChannels: ["email"],
+    nextImportance: "urgente",
+  });
+  assert.equal(treatment.correctionPossible, true);
+  assert.deepEqual(treatment.maintained, ["classe:2nde4"]);
+  assert.deepEqual(treatment.removed, ["classe:2nde5"]);
+  assert.deepEqual(treatment.added, ["classe:1ere2"]);
+});
+
+test("aucune notification anterieure et version normale : rien a faire, le site suffit", () => {
+  const treatment = resolveFlashAudienceTreatment({
+    previousAudience: ["parents:cantine"],
+    nextAudience: ["parents:cantine", "personnel:administratif"],
+    previousNotifiedChannels: [],
+    nextImportance: "normale",
+  });
+  assert.equal(treatment.correctionPossible, false);
+  assert.deepEqual(treatment.maintained, []);
+  assert.deepEqual(treatment.removed, []);
+  assert.deepEqual(treatment.added, []);
+});

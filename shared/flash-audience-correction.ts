@@ -11,6 +11,11 @@
 // proposer), soit elle notifie pour la premiere fois et tout le monde recoit
 // une information NEUVE, jamais une correction (§13 : « un passage de normale
 // a importante ou urgente place tout le public dans les ajoutes »).
+//
+// La reciproque compte autant, et elle avait ete manquee : quand la version
+// precedente A notifie, la correction reste due meme si la nouvelle version
+// est ramenee a « normale ». Sinon il suffirait de baisser l'importance pour
+// laisser des familles sur une information perimee sans jamais les detromper.
 
 import { FLASH_IMPORTANCE_LEVELS, type FlashImportance } from "./flash-version-diff.js";
 
@@ -75,9 +80,11 @@ export type FlashAudienceTreatment = {
 /**
  * `previousNotifiedChannels` vient de `flash_notification_dispatches` filtre
  * sur `status = 'sent'` pour la version PRECEDENTE, jamais sur son importance
- * declaree. `nextImportance` est l'importance de la nouvelle version : une
- * version normale ne notifie jamais (contrainte SQL `channels`), donc si elle
- * reste normale, rien n'est propose.
+ * declaree. C'est cette trace, et elle seule, qui ouvre la correction :
+ * ramener une flash urgente deja notifiee a « normale » ne fait pas
+ * disparaitre les messages deja partis ni le devoir de les corriger.
+ * `nextImportance` ne sert qu'a decider du sort des AJOUTES, qui n'ont encore
+ * rien recu.
  */
 export function resolveFlashAudienceTreatment(input: {
   previousAudience: unknown;
@@ -97,33 +104,43 @@ export function resolveFlashAudienceTreatment(input: {
   const nextSet = new Set(nextList);
 
   const nextWillNotify = nextImportance !== "normale";
-  if (!nextWillNotify) {
-    // La nouvelle version reste normale : seul le site change, aucun message
-    // de correction n'est propose (§13).
-    return { maintained: [], removed: [], added: [], eligibleChannels: [], correctionPossible: false };
-  }
 
-  if (previousNotifiedChannels.length === 0) {
-    // Personne n'a ete reellement prevenu avant (ex. normale -> urgente) :
-    // ce n'est pas une correction, c'est la premiere notification reelle.
+  // La question qui decide n'est PAS l'importance de la nouvelle version, mais
+  // si la precedente a REELLEMENT notifie. Une flash urgente qui a prevenu des
+  // familles, puis ramenee a « normale », laisse ces familles avec une
+  // information perimee : la corriger n'est pas une nouvelle diffusion, c'est
+  // la reparation d'un message deja parti. « Normale = site seulement »
+  // gouverne les nouvelles notifications, jamais la reparation des anciennes.
+  if (previousNotifiedChannels.length > 0) {
+    const maintained = [...previousSet].filter((ref) => nextSet.has(ref)).sort();
+    const removed = [...previousSet].filter((ref) => !nextSet.has(ref)).sort();
+    // Les ajoutes n'ont jamais rien recu. Si la nouvelle version ne notifie
+    // pas, il n'y a rien a leur envoyer ; sinon ils recoivent une information
+    // neuve, jamais une correction.
+    const added = nextWillNotify
+      ? [...nextSet].filter((ref) => !previousSet.has(ref)).sort()
+      : [];
     return {
-      maintained: [],
-      removed: [],
-      added: [...nextSet].sort(),
-      eligibleChannels: [],
-      correctionPossible: false,
+      maintained,
+      removed,
+      added,
+      eligibleChannels: previousNotifiedChannels,
+      correctionPossible: true,
     };
   }
 
-  const maintained = [...previousSet].filter((ref) => nextSet.has(ref)).sort();
-  const removed = [...previousSet].filter((ref) => !nextSet.has(ref)).sort();
-  const added = [...nextSet].filter((ref) => !previousSet.has(ref)).sort();
+  if (!nextWillNotify) {
+    // Rien n'a jamais notifie et rien ne notifiera : seul le site change.
+    return { maintained: [], removed: [], added: [], eligibleChannels: [], correctionPossible: false };
+  }
 
+  // Personne n'a ete reellement prevenu avant (ex. normale -> urgente) :
+  // ce n'est pas une correction, c'est la premiere notification reelle.
   return {
-    maintained,
-    removed,
-    added,
-    eligibleChannels: previousNotifiedChannels,
-    correctionPossible: true,
+    maintained: [],
+    removed: [],
+    added: [...nextSet].sort(),
+    eligibleChannels: [],
+    correctionPossible: false,
   };
 }

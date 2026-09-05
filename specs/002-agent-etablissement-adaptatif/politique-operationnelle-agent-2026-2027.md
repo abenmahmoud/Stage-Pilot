@@ -319,6 +319,13 @@ normale n'a prévenu personne : seul le site est mis à jour et aucun message de
 correction n'est proposé. Un passage de normale à importante ou urgente place
 tout le public dans les ajoutés.
 
+La réciproque vaut aussi, et elle est la plus facile à oublier : dès lors qu'une
+version a réellement notifié, la correction reste due même si l'importance est
+ensuite ramenée à normale. Baisser le niveau ne rappelle pas les messages déjà
+partis. « Normale égale site seulement » gouverne les nouvelles notifications,
+jamais la réparation des anciennes. Seuls les ajoutés, qui n'ont encore rien
+reçu, ne sont pas contactés lorsque la nouvelle version ne notifie pas.
+
 Avant l'envoi, l'interface affiche les trois effectifs et les trois textes. Le
 référent numérique ou la DDFPT confirme, ensemble par ensemble.
 

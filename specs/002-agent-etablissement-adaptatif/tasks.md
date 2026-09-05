@@ -1204,7 +1204,9 @@
   les trois effectifs et les trois textes pour confirmation ensemble par
   ensemble. N'emprunter que les canaux ayant réellement notifié : une flash
   normale ne déclenche aucune correction, et un passage de normale à importante
-  ou urgente place tout le public dans les ajoutés. Tester en priorité le cas
+  ou urgente place tout le public dans les ajoutés. Réciproquement, une version
+  qui a réellement notifié reste corrigible même ramenée à normale : baisser
+  l'importance ne rappelle pas les messages déjà partis. Tester en priorité le cas
   des retirés, qui est celui qui fait agir quelqu'un sur une information
   périmée.
 - [ ] T072C Utiliser la reconnaissance vocale native du navigateur, sans
