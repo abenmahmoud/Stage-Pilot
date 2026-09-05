@@ -11,9 +11,10 @@ const consumers = [
   "../api/_shared/support-translation.ts",
   "../api/content/admin/assist.ts",
   "../api/communications/admin/assist.ts",
+  "../api/content/admin/weekly-assist.ts",
 ];
 
-test("borne toutes les réponses des quatre parcours IA", () => {
+test("borne toutes les réponses des cinq parcours IA", () => {
   for (const file of consumers) {
     const source = readFileSync(new URL(file, import.meta.url), "utf8");
     assert.match(source, /readAiProviderJsonResponse/);

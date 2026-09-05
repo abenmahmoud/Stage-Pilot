@@ -594,3 +594,33 @@ son bénéficiaire.
 - [ ] T043 Mise en service réelle. Cible, fichier et version, public, modèle,
   nombre prêt et exclusions présentés à l'administration avant toute ouverture
   de drapeau. Aucun envoi sans cette validation sur un lot concret.
+
+## Atelier Hebdo vers À la une — 5 septembre 2026
+
+- [x] T044 Lire le PDF dans le navigateur sans téléverser le document brut,
+  borner à 10 Mo et 40 pages, puis filtrer les lignes internes, les consignes
+  injectées, les contacts et les secrets avant l'appel IA. Le serveur répète le
+  filtrage et refuse une source insuffisante.
+- [x] T045 Produire une réponse IA stricte de huit cartes au maximum et trois
+  mises à la une au maximum. Chaque carte conserve un extrait de la source,
+  une date explicite, une expiration, les points à confirmer, un public et une
+  combinaison importance/canaux conforme à la politique flash.
+- [x] T046 Fournir à `/admin/hebdo` un parcours responsive : dépôt, préparation,
+  modification, aperçu des cartes, choix du public, de l'importance, des canaux
+  et de la mise à la une. Une question ouverte bloque l'enregistrement jusqu'à
+  sa vérification explicite.
+- [x] T047 Créer uniquement des brouillons dans le gestionnaire de contenus et,
+  pour les cartes importantes ou urgentes, des propositions idempotentes dans
+  la file flash. Les brouillons sont publics après validation ; le choix
+  élèves/parents/tous cible la notification sans masquer l'article du site.
+  Aucun appel de publication ou d'envoi n'est exposé par cet écran. Recette
+  Chromium locale avec le vrai `Hebdo 07 septembre.pdf` : une
+  page extraite, six cartes fictives rendues à 1440 et 390 px, aucune erreur
+  console et aucune écriture distante. Preuve logique :
+  `npm run test:weekly-brief`.
+- [ ] T048 Faire la recette authentifiée en preview avec une réponse IA réelle,
+  des brouillons fictifs supprimables et un fournisseur de notification fermé ;
+  puis ouvrir `VITE_WEEKLY_BRIEF_UI_ENABLED` après validation de l'administration.
+- [ ] T049 Raccorder l'archivage privé optionnel de la source Hebdo au dépôt/NAS.
+  Le premier lot conserve le PDF sur le poste et n'envoie au serveur que le
+  texte public filtré.

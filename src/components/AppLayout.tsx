@@ -26,12 +26,14 @@ import {
   Inbox,
   MessagesSquare,
   Zap,
+  WandSparkles,
 } from "lucide-react";
 import {
   COMMUNICATIONS_UI_ENABLED,
   FLASH_INFO_UI_ENABLED,
   FLASH_VALIDATION_UI_ENABLED,
   NOMINATIVE_SEND_UI_ENABLED,
+  WEEKLY_BRIEF_UI_ENABLED,
 } from "../lib/feature-flags";
 
 const navCls = ({ isActive }: { isActive: boolean }) =>
@@ -220,6 +222,12 @@ export default function AppLayout() {
               <Newspaper className="w-4 h-4" />
               Contenus du site
             </NavLink>
+            {WEEKLY_BRIEF_UI_ENABLED && (
+              <NavLink to="/admin/hebdo" className={navCls}>
+                <WandSparkles className="w-4 h-4" />
+                Hebdo vers À la une
+              </NavLink>
+            )}
             {COMMUNICATIONS_UI_ENABLED && (
               <NavLink to="/admin/communications" className={navCls}>
                 <MessagesSquare className="w-4 h-4" />

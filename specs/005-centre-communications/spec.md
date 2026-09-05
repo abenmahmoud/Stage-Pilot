@@ -112,12 +112,19 @@ les informations explicitement marquées publiques alimentent le site public.
   est indisponible.
 - **FR-018** : cibler uniquement les contacts actifs et validés pour ce canal ;
   un retrait ou une désactivation les exclut des futures diffusions.
+- **FR-019** : offrir un atelier hebdomadaire qui lit localement un PDF `Hebdo`,
+  écarte les lignes internes et données détectées, puis propose au plus huit
+  cartes éditables avec public, importance, canaux, date et expiration.
+- **FR-020** : créer séparément les brouillons du site et les propositions de
+  notification retenues. Aucune carte n'est publiée et aucun canal n'est envoyé
+  depuis l'atelier ; les files de validation existantes restent obligatoires.
 
 ## 7. Règles IA
 
 - L'IA prépare, résume, corrige et classe ; elle ne publie ni n'envoie.
-- Les documents sont d'abord extraits et filtrés côté serveur. Aucun document
-  brut ni liste de destinataires n'est transmis au modèle externe.
+- Dans l'atelier hebdomadaire, le PDF est extrait et filtré dans le navigateur,
+  puis le serveur répète le filtrage. Aucun document brut ni liste de
+  destinataires n'est transmis au modèle externe.
 - Les données personnelles détectées sont masquées avant l'aide à la rédaction.
 - Les dates et consignes extraites sont présentées comme éléments à confirmer.
 - Une faible confiance laisse le brouillon intact et demande une relecture.

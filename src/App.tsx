@@ -43,6 +43,7 @@ const CommunicationsPage = lazy(() => import("./pages/admin/CommunicationsPage")
 const EnvoisNominatifsPage = lazy(() => import("./pages/admin/EnvoisNominatifsPage"));
 const FlashProposalPage = lazy(() => import("./pages/admin/FlashProposalPage"));
 const FlashValidationPage = lazy(() => import("./pages/admin/FlashValidationPage"));
+const WeeklyBriefPage = lazy(() => import("./pages/admin/WeeklyBriefPage"));
 
 function PageFallback() {
   return (
@@ -224,6 +225,14 @@ export default function App() {
             element={
               <RoleRoute allowedRoles={CONTENT_MANAGER_ROLES}>
                 <ContentManagerPage />
+              </RoleRoute>
+            }
+          />
+          <Route
+            path="admin/hebdo"
+            element={
+              <RoleRoute allowedRoles={CONTENT_MANAGER_ROLES}>
+                <WeeklyBriefPage />
               </RoleRoute>
             }
           />

@@ -331,7 +331,8 @@
     "test:flash-decision-input": "node --import ./scripts/ts-test-resolver.mjs --experimental-strip-types scripts/test-flash-decision-input.mjs",
     "test:flash-correction": "node --import ./scripts/ts-test-resolver.mjs --experimental-strip-types scripts/test-flash-correction.mjs",
     "test:flash-expiry-cron": "node --import ./scripts/ts-test-resolver.mjs --experimental-strip-types scripts/test-flash-expiry-cron.mjs",
-    "test:flash-expired-queue": "node --import ./scripts/ts-test-resolver.mjs --experimental-strip-types scripts/test-flash-expired-queue.mjs"
+    "test:flash-expired-queue": "node --import ./scripts/ts-test-resolver.mjs --experimental-strip-types scripts/test-flash-expired-queue.mjs",
+    "test:weekly-brief": "node --import ./scripts/ts-test-resolver.mjs --experimental-strip-types scripts/test-weekly-brief.mjs"
   },
   "license": "ISC",
   "dependencies": {
@@ -341,6 +342,7 @@
     "drizzle-orm": "^0.45.2",
     "lucide-react": "^0.469.0",
     "papaparse": "^5.5.3",
+    "pdfjs-dist": "6.3.289",
     "postgres": "^3.4.5",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",

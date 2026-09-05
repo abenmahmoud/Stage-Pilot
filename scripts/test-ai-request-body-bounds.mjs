@@ -27,9 +27,17 @@ const routes = [
     "await enforceSupportRateLimit",
     'fetch("https://api.openai.com/v1/responses"',
   ],
+  [
+    "atelier hebdo",
+    "../api/content/admin/weekly-assist.ts",
+    "128kb",
+    "parseWeeklyBriefAssistInput(req.body)",
+    "await enforceSupportRateLimit",
+    'fetch("https://api.openai.com/v1/responses"',
+  ],
 ];
 
-test("borne explicitement le corps HTTP des trois routes IA", () => {
+test("borne explicitement le corps HTTP des quatre routes IA", () => {
   for (const [label, relativePath, limit] of routes) {
     const source = readFileSync(new URL(relativePath, import.meta.url), "utf8");
     assert.match(

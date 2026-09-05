@@ -5794,3 +5794,21 @@ taches et analyse de coherence avant une automatisation sensible.
   la source d'emploi du temps et les fournisseurs de notifications restent
   fermés. Leur architecture et leurs critères d'activation sont documentés ;
   aucune valeur réelle ni secret n'a été placé dans Git ou dans un prompt.
+
+### Atelier Hebdo vers À la une — 5 septembre 2026
+
+- L'administration dispose d'un nouvel atelier `/admin/hebdo`, fermé dans la
+  navigation par `VITE_WEEKLY_BRIEF_UI_ENABLED`. Le PDF brut est lu localement ;
+  seules les lignes publiques filtrées peuvent atteindre l'aide IA, après un
+  second contrôle serveur.
+- L'IA prépare au plus huit cartes modifiables avec aperçu ordinateur/mobile,
+  public, importance, canaux, date, expiration, extrait source et questions de
+  revue. Elle ne publie ni n'envoie et ne reçoit aucun destinataire.
+- L'action finale crée des brouillons du site. Les cartes importantes ou
+  urgentes créent aussi une proposition flash idempotente. Les brouillons
+  restent publics après validation ; élèves/parents/tous cible la notification.
+  Les validations de contenu et de notification restent séparées et humaines.
+- Recette locale du vrai `Hebdo 07 septembre.pdf` : lecture PDF réussie, six
+  cartes fictives inspectées à 1440 et 390 px, zéro erreur console et aucune
+  mutation distante. L'archivage privé du PDF, la réponse IA réelle en preview,
+  l'envoi des notifications et l'ouverture du drapeau restent à faire.

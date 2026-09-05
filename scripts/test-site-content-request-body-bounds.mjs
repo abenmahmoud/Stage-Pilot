@@ -9,6 +9,7 @@ const boundedRoutes = [
   ["action", "../api/content/admin/[id]/action.ts", "8kb", "requireSite"],
   ["média", "../api/content/admin/assets.ts", "4kb", "requireSiteEditor"],
   ["reprise", "../api/content/admin/legacy-import.ts", "4kb", "requireSiteEditor"],
+  ["atelier hebdo", "../api/content/admin/weekly-assist.ts", "128kb", "requireSiteEditor"],
 ];
 
 test("borne les mutations de gestion du contenu", () => {

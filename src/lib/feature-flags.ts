@@ -33,3 +33,8 @@ export const FLASH_INFO_UI_ENABLED =
 // cet ecran non plus : simulation sur propositions fictives uniquement.
 export const FLASH_VALIDATION_UI_ENABLED =
   import.meta.env.VITE_FLASH_VALIDATION_UI_ENABLED === "true";
+
+// Atelier hebdomadaire : le PDF est lu localement, les contenus restent des
+// brouillons et les notifications restent soumises à validation humaine.
+export const WEEKLY_BRIEF_UI_ENABLED =
+  import.meta.env.VITE_WEEKLY_BRIEF_UI_ENABLED === "true";

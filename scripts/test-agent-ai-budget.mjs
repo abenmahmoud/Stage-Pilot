@@ -80,13 +80,14 @@ test("l’assistant ne joint pas le fournisseur quand le budget est indisponible
   }
 });
 
-test("utilise un compteur quotidien privé et atomique partagé par les trois routes IA", async () => {
-  const [migration, store, assistant, content, communications] = await Promise.all([
+test("utilise un compteur quotidien privé et atomique partagé par les quatre routes IA", async () => {
+  const [migration, store, assistant, content, communications, weekly] = await Promise.all([
     readFile(new URL("../supabase/migrations/20260901225812_create_agent_ai_budget_days.sql", import.meta.url), "utf8"),
     readFile(new URL("../api/_shared/agent-ai-budget.ts", import.meta.url), "utf8"),
     readFile(new URL("../api/support/assistant.ts", import.meta.url), "utf8"),
     readFile(new URL("../api/content/admin/assist.ts", import.meta.url), "utf8"),
     readFile(new URL("../api/communications/admin/assist.ts", import.meta.url), "utf8"),
+    readFile(new URL("../api/content/admin/weekly-assist.ts", import.meta.url), "utf8"),
   ]);
   assert.match(migration, /primary key \(budget_key, budget_day\)/i);
   assert.match(migration, /reserved_micros >= 0 and reserved_micros <= limit_micros/i);
@@ -102,7 +103,8 @@ test("utilise un compteur quotidien privé et atomique partagé par les trois ro
   assert.match(assistant, /reserveAgentAiDailyBudget\("support_assistant"\)/);
   assert.match(content, /reserveAgentAiDailyBudget\("content_assist"\)/);
   assert.match(communications, /reserveAgentAiDailyBudget\("communication_assist"\)/);
-  for (const source of [content, communications]) {
+  assert.match(weekly, /reserveAgentAiDailyBudget\("content_assist"\)/);
+  for (const source of [content, communications, weekly]) {
     assert.ok(source.indexOf("reserveAgentAiDailyBudget") < source.indexOf('fetch("https://api.openai.com/v1/responses"'));
   }
 });
