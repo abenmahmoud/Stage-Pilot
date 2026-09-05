@@ -1176,7 +1176,7 @@
 - [ ] T070 Ajouter les documents versionnés téléchargeables et leur retour depuis
   l'assistant, avec routage générale/technologique vers l'administration et
   professionnel vers la DDFPT.
-- [ ] T071F Écrire la transition `validee` -> `publiee` comme un geste humain
+- [x] T071F Écrire la transition `validee` -> `publiee` comme un geste humain
   distinct, ouvert par le même service que la validation. C'est ce geste qui
   rend l'information visible publiquement et qui ouvre les notifications ;
   jusque-là une information validée n'affiche et n'envoie rien. Sans cette
@@ -1184,6 +1184,14 @@
   usage réel : le plan de persistance a dû forcer la transition en SQL pour
   la recetter. Prévoir aussi l'expiration d'une information validée mais
   jamais publiée, avec le même avis factuel à son auteur que T071D.
+  Clôturée le 5 septembre 2026 (plan de publication, LOT 1/2/3) : route
+  `POST /api/flash/proposals/[id]/publication`, même service que la
+  validation, idempotente, verrouillée, refusant une échéance dépassée ;
+  expiration d'une version validée jamais publiée détectée séparément
+  (`expiree_sans_publication`) avec le même avis factuel qu'à T071D ;
+  correction après publication branchée à l'écran. Recette PostgreSQL réelle
+  et recette navigateur réelle (Chromium, clic réel) sur les sept scénarios
+  du LOT 4, sans aucune transition forcée en SQL.
 - [ ] T071E Ouvrir la validation par le service `referent_numerique` ou `ddfpt`
   porté par l'appartenance à l'établissement, jamais par le rôle applicatif.
   Un compte d'administration sans ce service ne valide pas. L'auto-validation
@@ -1192,28 +1200,62 @@
   Le module `shared/flash-validation-access.ts` porte la décision ; il reste à
   l'appliquer côté serveur et à faire remonter `serviceCodes` jusqu'à l'écran,
   qui est encore protégé par les rôles de publication.
-- [ ] T071C Traiter l'information flash comme un canal supplémentaire et non
+  État au 5 septembre 2026 (clôture du plan de publication, non cochée) :
+  la décision est désormais appliquée côté serveur sur les trois routes qui
+  mutent une version (`decision.ts`, `correction.ts`, `publication.ts`, toutes
+  via `assertFlashValidationAccess`), et `FlashValidationPage.tsx` affiche
+  bien un `access.allowed`/`reason`/`selfValidated` calculé par service pour
+  chaque ligne. Ce qui reste vrai et non résolu, littéralement demandé par la
+  tâche : la route `/admin/informations-flash/valider` elle-même est encore
+  gardée par `RoleRoute allowedRoles={CONTENT_MANAGER_ROLES}` (`src/App.tsx`)
+  et non par le service — un compte `administration`/`proviseur` sans le
+  service voit encore l'écran (boutons désactivés côté serveur, pas d'accès
+  refusé à la porte). Pas cochée pour cette seule raison, vérifiée par lecture
+  de `src/App.tsx` pendant ce lot de clôture.
+- [x] T071C Traiter l'information flash comme un canal supplémentaire et non
   comme le canal d'urgence. Aucune publication ni notification sans validation
   du référent numérique ou de la DDFPT, sans exception d'horaire. L'écran de
   proposition doit dire clairement qu'une proposition en attente n'a prévenu
   personne et renvoyer vers la messagerie ENT et les canaux existants lorsque
   la personne doit joindre son public tout de suite.
+  Vérifiée le 5 septembre 2026 : bandeau et lien de messagerie testés en dur
+  (`scripts/test-flash-proposal-page.mjs`), graphe de transitions interdisant
+  toute publication sans passage par `validee` (`shared/flash-transitions.ts`),
+  et publication elle-même ouverte par le même service que la validation
+  (T071F). Le lien pointe vers le Webmail du lycée (`WEBMAIL_URL`), pas vers
+  un lien ENT distinct — accepté comme « messagerie ENT/canaux existants » au
+  sens large de la tâche, à confirmer par Adel si un lien ENT séparé existe.
 - [x] T071D Prévenir l'auteur d'une proposition qui expire sans validation :
   message factuel indiquant qu'elle n'a pas été publiée et que personne n'a été
   informé, sans mettre en cause un valideur ni ajouter de motif. Conserver la
   proposition dans cet état et rendre le compte de ces échecs consultable, pour
   ajuster ensuite les délais ou le nombre de valideurs.
-- [ ] T071 Concevoir les informations flash proposées par un compte vérifié,
+- [x] T071 Concevoir les informations flash proposées par un compte vérifié,
   validées et modifiables par le référent numérique ou la DDFPT. Versionner le
   texte, l'audience, l'importance, les canaux et l'expiration.
-- [ ] T071A Implémenter la règle de correction décidée le 5 septembre 2026 :
+  Clôturée le 5 septembre 2026 : proposition par un compte vérifié
+  (`requireFlashActor`, appartenance réelle à l'établissement), validation et
+  correction ouvertes par le service `referent_numerique`/`ddfpt` et non par
+  le rôle applicatif sur les trois routes qui mutent une version
+  (`assertFlashValidationAccess`), texte/audience/importance/canaux/échéance
+  versionnés dans `flash_info_versions`. Limite assumée, partagée avec T071E :
+  l'accès à l'écran de validation reste gardé par rôle, pas par service ;
+  n'invalide pas la conception ni l'application réelle côté serveur.
+- [x] T071A Implémenter la règle de correction décidée le 5 septembre 2026 :
   aucune notification automatique après publication. Comparer les deux versions,
   proposer une notification quand la date, l'heure, le lieu, l'annulation, le
   public concerné ou le niveau d'urgence change, ne rien proposer par défaut sur
   une correction de forme, et exiger dans tous les cas la confirmation du
   référent numérique ou de la DDFPT avant l'envoi. Conserver avec la version
   l'écart analysé, la proposition et la décision humaine.
-- [ ] T071B Traiter le changement de public dans une correction. Calculer les
+  Clôturée le 5 septembre 2026 : `shared/flash-version-diff.ts` calcule
+  décisif/forme, `correction.ts` exige `assertFlashValidationAccess` avant
+  toute confirmation, aucune route n'écrit dans
+  `flash_notification_dispatches`, et `flash_correction_decisions` conserve
+  `gapKind`, les trois effectifs et la décision, liée à `versionId`. Recette
+  réelle (PostgreSQL + navigateur, LOT 4 du plan de publication) sur une
+  correction de titre après publication, sans transition forcée en SQL.
+- [x] T071B Traiter le changement de public dans une correction. Calculer les
   maintenus, les retirés et les ajoutés à partir des deux versions, préparer un
   texte par ensemble — information corrigée, ligne sans détail signalant que
   l'information ne concerne plus la personne, information neuve — puis afficher
@@ -1225,6 +1267,22 @@
   l'importance ne rappelle pas les messages déjà partis. Tester en priorité le cas
   des retirés, qui est celui qui fait agir quelqu'un sur une information
   périmée.
+  Clôturée le 5 septembre 2026 : `shared/flash-audience-correction.ts` calcule
+  les trois ensembles, testé de façon adverse avec le cas des retirés en
+  priorité (`scripts/test-flash-audience-correction.mjs`) ; les canaux
+  réellement notifiés viennent d'une lecture directe de
+  `flash_notification_dispatches` filtrée sur `status = 'sent'`
+  (`correction.ts`), jamais d'une supposition depuis l'importance déclarée.
+  `FlashValidationPage.tsx` affiche les trois effectifs et les trois textes
+  après confirmation (LOT 3 du plan de publication). Limite assumée, écrite
+  dans le compte rendu du LOT 3 : aucun aperçu des trois ensembles avant le
+  clic de confirmation (un aperçu fidèle exigerait une route de simulation
+  dédiée, non écrite) ; et comme aucune route n'écrit encore dans
+  `flash_notification_dispatches` en usage réel, `previousNotifiedChannels`
+  vaut toujours `[]` tant qu'aucun envoi n'a jamais eu lieu — la règle est
+  vraie et testée, mais son cas non trivial (canaux déjà notifiés) reste à
+  observer sur une vraie notification envoyée, pas encore possible tant que
+  les drapeaux d'envoi sont fermés.
 - [ ] T072C Utiliser la reconnaissance vocale native du navigateur, sans
   fournisseur payant. Écrire dans les mentions de confidentialité que l'audio
   est transmis à l'éditeur du navigateur pour transcription, informer la
