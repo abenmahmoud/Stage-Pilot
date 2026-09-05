@@ -20,12 +20,19 @@
     },
     "api/cron/knowledge-expiry.ts": {
       "maxDuration": 60
+    },
+    "api/cron/flash-expiry.ts": {
+      "maxDuration": 60
     }
   },
   "crons": [
     {
       "path": "/api/cron/knowledge-expiry",
       "schedule": "15 2 * * *"
+    },
+    {
+      "path": "/api/cron/flash-expiry",
+      "schedule": "*/15 * * * *"
     }
   ],
   "headers": [

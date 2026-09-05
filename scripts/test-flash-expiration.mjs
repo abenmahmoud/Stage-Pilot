@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import {
+  buildFlashExpirationAuthorNotice,
   checkFlashProposalExpiration,
   FlashExpirationError,
   selectExpiredFlashProposals,
@@ -66,4 +67,30 @@ test("le filtre ne retient que les propositions reellement expirees", () => {
   ];
   const expired = selectExpiredFlashProposals(proposals, NOW);
   assert.deepEqual(expired.map((proposal) => proposal.id), ["a"]);
+});
+
+// T071D (LOT 5) : le message a l'auteur est factuel — il dit ce qui s'est
+// passe (pas publiee, personne informe), jamais qui aurait du valider ni
+// pourquoi la decision n'est pas venue.
+test("l'avis a l'auteur est factuel : aucun valideur nomme, aucun motif ajoute", () => {
+  const notice = buildFlashExpirationAuthorNotice({
+    title: "Sortie pédagogique reportée",
+    expiresAt: new Date("2026-09-05T21:00:00.000Z"),
+  });
+  assert.equal(notice.status, "a_emettre");
+  assert.match(notice.message, /sans avoir été validée/);
+  assert.match(notice.message, /n'a pas été publiée et personne n'a été informé/);
+  assert.match(notice.message, /Sortie pédagogique reportée/);
+  assert.doesNotMatch(notice.message, /referent|référent|valideur|ddfpt/i);
+});
+
+test("l'avis a l'auteur refuse un titre ou une date invalides", () => {
+  assert.throws(
+    () => buildFlashExpirationAuthorNotice({ title: "  ", expiresAt: new Date("2026-09-05T21:00:00.000Z") }),
+    (error) => error instanceof FlashExpirationError && error.reason === "title_invalid"
+  );
+  assert.throws(
+    () => buildFlashExpirationAuthorNotice({ title: "Titre valide", expiresAt: new Date("invalide") }),
+    (error) => error instanceof FlashExpirationError && error.reason === "expires_at_invalid"
+  );
 });

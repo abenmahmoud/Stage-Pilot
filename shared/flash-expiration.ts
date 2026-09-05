@@ -1,14 +1,15 @@
-// Detection d'une proposition d'information flash expiree sans validation.
+// Detection d'une proposition d'information flash expiree sans validation,
+// et preparation du message factuel a son auteur (T071D, LOT 5 du plan de
+// persistance).
 //
 // §13 : « Une proposition qui atteint son expiration sans avoir ete validee
-// n'est jamais fermee en silence. » Ce module se limite a la DETECTION pure
-// (aucune horloge, aucun envoi) : le message factuel a l'auteur et le
-// comptage des echecs (T071D) relevent de l'ecran de validation (LOT 4) et de
-// la recette (LOT 5), pas de ce lot.
+// n'est jamais fermee en silence. »
 //
 // La transition legale correspondante (`proposee` -> `expiree_sans_validation`)
-// est deja verifiee par `flash-transitions.ts` ; ce module decide seulement
-// QUAND l'appliquer.
+// est deja verifiee par `flash-transitions.ts` ; ce module decide QUAND
+// l'appliquer et QUEL message factuel preparer pour l'auteur. Il ne l'envoie
+// jamais : c'est au serveur (LOT 5, `api/cron/flash-expiry.ts`) d'enregistrer
+// ce message comme "a emettre", jamais comme emis.
 
 import { type FlashVersionStatus } from "./flash-transitions.js";
 
@@ -70,4 +71,32 @@ export function selectExpiredFlashProposals<T extends { status: unknown; expires
   return proposals.filter(
     (proposal) => checkFlashProposalExpiration({ status: proposal.status, expiresAt: proposal.expiresAt, now }).isExpiredWithoutValidation
   );
+}
+
+export type FlashExpirationAuthorNotice = {
+  /** Toujours "a_emettre" : ce module prepare le message, il ne l'emet jamais. */
+  status: "a_emettre";
+  message: string;
+};
+
+/**
+ * Message factuel prepare pour l'auteur d'une proposition expiree sans
+ * validation (T071D) : dit seulement qu'elle n'a pas ete publiee et que
+ * personne n'a ete informe. Ne nomme jamais de valideur, n'ajoute jamais de
+ * motif — la proposition a simplement atteint son expiration sans decision.
+ */
+export function buildFlashExpirationAuthorNotice(input: { title: unknown; expiresAt: unknown }): FlashExpirationAuthorNotice {
+  if (typeof input.title !== "string" || input.title.trim().length === 0) {
+    throw new FlashExpirationError("title_invalid");
+  }
+  if (!(input.expiresAt instanceof Date) || Number.isNaN(input.expiresAt.getTime())) {
+    throw new FlashExpirationError("expires_at_invalid");
+  }
+  return {
+    status: "a_emettre",
+    message:
+      `Votre proposition d'information flash « ${input.title} » a expiré ` +
+      `(${input.expiresAt.toISOString()}) sans avoir été validée : elle n'a pas ` +
+      "été publiée et personne n'a été informé.",
+  };
 }
