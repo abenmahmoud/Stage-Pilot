@@ -62,6 +62,8 @@ import type { FlashValidationDecision } from "../../../../shared/flash-validatio
 import { resolveFlashDispatchPlan } from "../../../../shared/flash-dispatch-plan.js";
 import type { FlashNotificationChannel } from "../../../../shared/flash-audience-correction.js";
 import type { FlashImportance } from "../../../../shared/flash-version-diff.js";
+import { buildFlashCommunicationBridgeRequest } from "../../../../shared/flash-communication-bridge.js";
+import { persistFlashCommunicationBridge } from "../../../_shared/flash-communication-bridge-persistence.js";
 
 const VERSION_COLUMNS = {
   id: flashInfoVersions.id,
@@ -204,6 +206,26 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           .onConflictDoNothing();
       }
 
+      // LOT 4 du plan de publication publique : raccorder le canal email du
+      // plan d'envoi a la file durable existante du centre de communication
+      // (spec 005), jamais une seconde file (regle commune n4). Reste inerte
+      // tant que `communication_settings.module_enabled` est faux (defaut,
+      // voir api/_shared/flash-communication-bridge-persistence.ts) — aucun
+      // drapeau n'est ouvert par cette route.
+      const communicationBridgeRequest = buildFlashCommunicationBridgeRequest({
+        flashInfoVersionId: updated.id,
+        title: updated.title,
+        bodyMarkdown: updated.bodyMarkdown,
+        dispatchTargets: dispatchPlan,
+      });
+      const communicationBridgeOutcome = await persistFlashCommunicationBridge({
+        tx,
+        institutionId: actor.institutionId,
+        actorUserId: actor.user.id,
+        request: communicationBridgeRequest,
+        idempotencySecret: process.env.FLASH_COMMUNICATION_BRIDGE_HMAC_SECRET,
+      });
+
       await tx.insert(flashInfoEvents).values({
         institutionId: actor.institutionId,
         flashInfoId: current.flashInfoId,
@@ -217,6 +239,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           grantedByService: access.grantedByService,
           validatedBy: current.validatedBy,
           simulatedDispatchCount: dispatchPlan.length,
+          communicationBridgeEnqueued: communicationBridgeOutcome.enqueued,
+          communicationBridgeReason: communicationBridgeOutcome.enqueued
+            ? null
+            : communicationBridgeOutcome.reason,
         },
       });
 
