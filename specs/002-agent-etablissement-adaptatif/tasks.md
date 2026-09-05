@@ -1176,6 +1176,15 @@
 - [ ] T070 Ajouter les documents versionnés téléchargeables et leur retour depuis
   l'assistant, avec routage générale/technologique vers l'administration et
   professionnel vers la DDFPT.
+- [ ] T071G Rendre une correction publiable, et ne jamais faire disparaître une
+  information en la corrigeant. Aujourd'hui `modifiee` est un état terminal et
+  la route publique ne sert que `publiee` : corriger une information visible la
+  retire du site, ce qui retourne exactement l'intention de la règle de
+  correction. Ouvrir `modifiee` -> `publiee` par le même geste humain que la
+  première parution, garder la version publiée précédente affichée jusque-là,
+  et rappeler à l'enregistrement de la correction qu'il faut publier pour
+  qu'elle prenne effet. L'écran doit dire que le public voit encore l'ancienne
+  version. Décision d'Adel du 5 septembre 2026.
 - [x] T071F Écrire la transition `validee` -> `publiee` comme un geste humain
   distinct, ouvert par le même service que la validation. C'est ce geste qui
   rend l'information visible publiquement et qui ouvre les notifications ;

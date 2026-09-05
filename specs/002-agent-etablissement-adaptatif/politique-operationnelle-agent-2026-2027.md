@@ -291,6 +291,18 @@ pour la file support. C'est le service qui ouvre la validation, jamais le rôle.
 Un compte d'administration qui ne porte pas ce service ne valide pas, et la
 matrice reste configurable par établissement sans modifier le code.
 
+Une correction se publie comme le reste. Enregistrer une correction ne la rend
+pas visible : au moment de l'enregistrement, l'écran rappelle qu'il faut publier
+pour qu'elle prenne effet. Le geste de publication est le même que pour une
+première parution, et c'est lui seul qui change ce que le public voit.
+
+Entre l'enregistrement d'une correction et sa publication, **la version publiée
+précédente reste affichée**. Elle est périmée, mais elle est ce que les gens ont
+déjà lu ; la retirer en silence les laisserait sans rien, ce qui est pire que de
+les laisser avec une version que l'on sait fausse et que l'on s'apprête à
+corriger. L'écran d'administration signale clairement que le public voit encore
+l'ancienne version tant que la correction n'est pas publiée.
+
 Valider n'est pas publier. Ce sont deux gestes humains distincts : la
 validation arrête le contenu et le périmètre, la publication décide du moment
 où l'information devient visible. Une information validée attend, sans rien
