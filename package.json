@@ -319,11 +319,12 @@
     "test:flash-proposal-page": "node --import ./scripts/ts-test-resolver.mjs --experimental-strip-types scripts/test-flash-proposal-page.mjs",
     "test:flash-validation-page": "node --import ./scripts/ts-test-resolver.mjs --experimental-strip-types scripts/test-flash-validation-page.mjs",
     "test:flash-recette-adverse": "node --import ./scripts/ts-test-resolver.mjs --experimental-strip-types scripts/test-flash-recette-adverse.mjs",
-    "test:flash-recette": "npm run test:flash && npm run test:flash-proposal-page && npm run test:flash-validation-page && npm run test:flash-recette-adverse",
+    "test:flash-recette": "npm run test:flash && npm run test:flash-proposal-page && npm run test:flash-validation-page && npm run test:flash-recette-adverse && npm run test:flash-validation-access",
     "test:agent-context-window": "node --import ./scripts/ts-test-resolver.mjs --experimental-strip-types scripts/test-agent-context-window.mjs",
     "recipe:local-support-email-dispatch": "node scripts/test-local-support-email-dispatch.mjs --local-stack-only",
     "recipe:local-support-email-worker": "node scripts/test-local-support-email-worker.mjs --local-stack-only",
-    "build:support-email-worker": "node scripts/build-support-email-worker.mjs"
+    "build:support-email-worker": "node scripts/build-support-email-worker.mjs",
+    "test:flash-validation-access": "node --import ./scripts/ts-test-resolver.mjs --experimental-strip-types scripts/test-flash-validation-access.mjs"
   },
   "license": "ISC",
   "dependencies": {

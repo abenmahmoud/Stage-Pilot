@@ -283,7 +283,19 @@ serve à ajuster les délais ou le nombre de valideurs.
 Un personnel ou professeur vérifié peut proposer une information flash avec une
 expiration obligatoire. Le référent numérique ou la DDFPT valide et peut
 modifier, y compris après publication, le texte, le public, l'importance, les
-canaux et l'expiration. Chaque modification conserve une version et sa trace de
+canaux et l'expiration.
+
+« Référent numérique » et « DDFPT » ne sont pas des rôles applicatifs : ce sont
+des services portés par l'appartenance d'un membre à son établissement, comme
+pour la file support. C'est le service qui ouvre la validation, jamais le rôle.
+Un compte d'administration qui ne porte pas ce service ne valide pas, et la
+matrice reste configurable par établissement sans modifier le code.
+
+Tant qu'une seule personne porte le service dans l'établissement, elle peut
+valider sa propre proposition : exiger une seconde personne bloquerait toute
+publication. Cette auto-validation n'est jamais silencieuse — elle est
+enregistrée avec la version et visible au journal — et un seul réglage la
+ferme le jour où un second référent est nommé. Chaque modification conserve une version et sa trace de
 validation. L'agent propose le niveau, mais l'humain décide :
 
 - normale : affichage sur le site sans notification ;

@@ -1176,6 +1176,14 @@
 - [ ] T070 Ajouter les documents versionnés téléchargeables et leur retour depuis
   l'assistant, avec routage générale/technologique vers l'administration et
   professionnel vers la DDFPT.
+- [ ] T071E Ouvrir la validation par le service `referent_numerique` ou `ddfpt`
+  porté par l'appartenance à l'établissement, jamais par le rôle applicatif.
+  Un compte d'administration sans ce service ne valide pas. L'auto-validation
+  est autorisée tant qu'une seule personne porte le service, enregistrée avec
+  la version et visible au journal ; un réglage la ferme sans toucher au code.
+  Le module `shared/flash-validation-access.ts` porte la décision ; il reste à
+  l'appliquer côté serveur et à faire remonter `serviceCodes` jusqu'à l'écran,
+  qui est encore protégé par les rôles de publication.
 - [ ] T071C Traiter l'information flash comme un canal supplémentaire et non
   comme le canal d'urgence. Aucune publication ni notification sans validation
   du référent numérique ou de la DDFPT, sans exception d'horaire. L'écran de
