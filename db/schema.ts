@@ -2439,3 +2439,91 @@ export const flashInfoEvents = pgTable(
       .where(sql`${table.actorUserId} is not null`),
   ]
 );
+
+// LOT 2 du plan du coffre de codes (2026-09-05) : schéma chiffré, séparé du
+// registre de connaissances. `codeVaultAssignments` ne porte jamais la valeur
+// du code ; elle vit uniquement, chiffrée, dans `codeVaultPrivateRows`.
+export const codeVaultAssignments = pgTable(
+  "code_vault_assignments",
+  {
+    id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+    institutionId: uuid("institution_id")
+      .notNull()
+      .references(() => institutions.id, { onDelete: "restrict" }),
+    personRef: text("person_ref").notNull(),
+    service: text("service").notNull(),
+    schoolYear: text("school_year").notNull(),
+    version: integer("version").notNull(),
+    status: text("status").notNull().default("disponible"),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    uniqueIndex("code_vault_assignments_quadruplet_uidx").on(
+      table.institutionId,
+      table.personRef,
+      table.service,
+      table.schoolYear,
+      table.version
+    ),
+    index("code_vault_assignments_scope_person_idx").on(
+      table.institutionId,
+      table.personRef,
+      table.service
+    ),
+    index("code_vault_assignments_scope_status_idx").on(table.institutionId, table.status),
+  ]
+);
+
+export const codeVaultPrivateRows = pgTable(
+  "code_vault_private_rows",
+  {
+    id: bigint("id", { mode: "number" }).primaryKey().generatedAlwaysAsIdentity(),
+    institutionId: uuid("institution_id")
+      .notNull()
+      .references(() => institutions.id, { onDelete: "restrict" }),
+    assignmentId: uuid("assignment_id")
+      .notNull()
+      .references(() => codeVaultAssignments.id, { onDelete: "restrict" }),
+    keyVersion: text("key_version").notNull(),
+    payloadSchema: integer("payload_schema").notNull().default(1),
+    iv: text("iv").notNull(),
+    authTag: text("auth_tag").notNull(),
+    ciphertext: text("ciphertext").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    uniqueIndex("code_vault_private_rows_assignment_scope_uidx").on(
+      table.assignmentId,
+      table.institutionId
+    ),
+    index("code_vault_private_rows_scope_idx").on(table.institutionId, table.assignmentId),
+  ]
+);
+
+export const codeVaultAccessEvents = pgTable(
+  "code_vault_access_events",
+  {
+    id: bigint("id", { mode: "number" }).primaryKey().generatedAlwaysAsIdentity(),
+    institutionId: uuid("institution_id")
+      .notNull()
+      .references(() => institutions.id, { onDelete: "restrict" }),
+    assignmentId: uuid("assignment_id"),
+    actorPersonRef: text("actor_person_ref"),
+    actorProfile: text("actor_profile").notNull(),
+    eventType: text("event_type").notNull(),
+    refusalReason: text("refusal_reason"),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    index("code_vault_access_events_scope_created_idx").on(
+      table.institutionId,
+      table.assignmentId,
+      table.createdAt
+    ),
+    index("code_vault_access_events_denied_idx")
+      .on(table.institutionId, table.createdAt)
+      .where(sql`${table.eventType} = 'access_denied'`),
+  ]
+);
