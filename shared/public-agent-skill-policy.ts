@@ -2,9 +2,14 @@ import type {
   AgentIdentityLevel,
   AgentInstitutionRole,
 } from "./agent-identity-policy.js";
-import { authorizeIdentityRoleAction } from "./identity-access-policy.js";
 import type { KnowledgeActor } from "./skill-registry-policy.js";
 import { knowledgeQueryTokens } from "./knowledge-query.js";
+import {
+  classificationIsPromptSafe,
+  decideKnowledgeSourceUsage,
+  type KnowledgeSourceProvenanceStatus,
+  type KnowledgeSourceUsePolicy,
+} from "./knowledge-use-policy.js";
 
 export type PublicAgentSkillSource = {
   id: string;
@@ -13,6 +18,8 @@ export type PublicAgentSkillSource = {
   status: "draft" | "published" | "expired" | "revoked";
   classification: "public" | "internal" | "personal" | "sensitive";
   serviceCodes: string[];
+  provenanceStatus: KnowledgeSourceProvenanceStatus;
+  usePolicy: KnowledgeSourceUsePolicy;
   validFrom: string;
   expiresAt: string | null;
   required: boolean;
@@ -64,51 +71,23 @@ function tokens(value: string): string[] {
   return knowledgeQueryTokens(value);
 }
 
-const INTERNAL_ROLES = new Set<AgentInstitutionRole>([
-  "agent",
-  "service_manager",
-  "admin",
-]);
-
-export function classificationIsPromptSafe(
-  classification: PublicAgentSkillCandidate["dataClassification"],
-  actor: KnowledgeActor,
-  serviceCodes: string[] = []
-): boolean {
-  if (classification !== "internal") return false;
-  return authorizeIdentityRoleAction({
-    actor: {
-      ...actor,
-      relationshipConfirmed: false,
-      authenticatorLevel: actor.identityLevel === "I4" ? "aal2" : "aal1",
-    },
-    requirement: {
-      institutionId: actor.institutionId,
-      requiredIdentity: "I3",
-      allowedRoles: [...INTERNAL_ROLES],
-      serviceCodes,
-      relationshipRequired: false,
-      mfaRequired: false,
-    },
-  }).ok;
-}
-
+// LOT 3 du plan de connaissance OB1 (2026-09-05) : une source requise ne peut
+// justifier une consigne (`instructions`) que si `decideKnowledgeSourceUsage`
+// (LOT 2) la classe explicitement `instruction`. Une source `can_use_as_evidence`
+// (ou toute autre decision) echoue ici : elle ne doit jamais atteindre le
+// registre de consignes, seulement la partie preuves du contexte (cablee dans
+// `api/_shared/public-knowledge-context.ts`).
 function sourceIsAuthorizedAndCurrent(
   source: PublicAgentSkillSource,
   actor: KnowledgeActor,
   now: number
 ): boolean {
-  const validFrom = timestamp(source.validFrom);
-  const expiresAt = source.expiresAt ? timestamp(source.expiresAt) : Number.POSITIVE_INFINITY;
-  return (
-    source.institutionId === actor.institutionId &&
-    source.status === "published" &&
-    (source.classification === "public"
-      || classificationIsPromptSafe(source.classification, actor, source.serviceCodes)) &&
-    Number.isFinite(validFrom) &&
-    validFrom <= now &&
-    expiresAt >= now
-  );
+  const decision = decideKnowledgeSourceUsage({
+    source,
+    actor,
+    now: new Date(now).toISOString(),
+  });
+  return decision.decision === "instruction";
 }
 
 function skillIsAuthorizedAndCurrent(

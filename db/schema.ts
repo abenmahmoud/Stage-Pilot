@@ -689,6 +689,15 @@ export const knowledgeSources = pgTable(
     expiresAt: timestamp("expires_at", { withTimezone: true }),
     status: text("status").notNull().default("draft"),
     checksum: text("checksum").notNull(),
+    // LOT 1 du plan de connaissance OB1 (2026-09-05, migration
+    // 20260906010000) : provenance et politique d'usage. Defauts alignes sur
+    // la migration pour preserver le comportement historique (source
+    // importee, utilisable comme instruction). `superseded_by`,
+    // `review_comment`, `reviewed_by` et `reviewed_at` existent aussi en base
+    // mais ne sont pas repris ici : aucune requete de ce depot n'en a besoin
+    // pour l'instant (LOT 2/LOT 3 ne portent que sur ces deux colonnes).
+    provenanceStatus: text("provenance_status").notNull().default("imported"),
+    usePolicy: text("use_policy").notNull().default("can_use_as_instruction"),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
   },

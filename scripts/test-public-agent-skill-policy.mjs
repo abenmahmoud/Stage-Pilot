@@ -169,6 +169,30 @@ test("allows an internal skill only for persisted staff in the source service", 
   }), []);
 });
 
+test("LOT 3: a required source switched to can_use_as_evidence stops backing the skill's instructions", () => {
+  assert.deepEqual(select({
+    sources: [{ ...source, usePolicy: "can_use_as_evidence" }],
+  }), []);
+});
+
+test("LOT 3: a required source excluded by provenance (superseded/disputed) stops backing the skill's instructions", () => {
+  assert.deepEqual(select({
+    sources: [{ ...source, provenanceStatus: "superseded" }],
+  }), []);
+  assert.deepEqual(select({
+    sources: [{ ...source, provenanceStatus: "disputed" }],
+  }), []);
+});
+
+test("LOT 3: a required source held for human confirmation or blocked from automatic injection stops backing the skill's instructions", () => {
+  assert.deepEqual(select({
+    sources: [{ ...source, usePolicy: "requires_human_confirmation" }],
+  }), []);
+  assert.deepEqual(select({
+    sources: [{ ...source, usePolicy: "do_not_inject_automatically" }],
+  }), []);
+});
+
 test("never injects personal or sensitive procedures directly into the prompt", () => {
   for (const classification of ["personal", "sensitive"]) {
     assert.deepEqual(selectAuthorizedAgentSkillContext({

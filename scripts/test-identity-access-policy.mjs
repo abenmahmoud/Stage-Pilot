@@ -218,14 +218,28 @@ test("uses one identity-role-action decision before AI context and every tool", 
     { ok: false, reason: "mfa_required" }
   );
 
+  // Depuis le LOT 3 du plan de connaissance OB1 (2026-09-05),
+  // `classificationIsPromptSafe` (seul appelant de `authorizeIdentityRoleAction`
+  // pour la connaissance) vit dans `knowledge-use-policy.ts`, pour que
+  // `public-agent-skill-policy.ts` puisse y cabler `decideKnowledgeSourceUsage`
+  // sans dependance circulaire. La garantie reste la meme (une seule decision
+  // identite/role, jamais reimplementee) : verifiee ici transitivement.
   const knowledgePolicy = readFileSync(
     new URL("../shared/public-agent-skill-policy.ts", import.meta.url),
+    "utf8"
+  );
+  const knowledgeUsePolicy = readFileSync(
+    new URL("../shared/knowledge-use-policy.ts", import.meta.url),
     "utf8"
   );
   const toolPolicy = readFileSync(
     new URL("../shared/agent-tool-policy.ts", import.meta.url),
     "utf8"
   );
-  assert.match(knowledgePolicy, /authorizeIdentityRoleAction\(/);
+  assert.match(knowledgePolicy, /classificationIsPromptSafe/);
+  assert.match(knowledgePolicy, /decideKnowledgeSourceUsage/);
+  assert.match(knowledgePolicy, /from "\.\/knowledge-use-policy\.js"/);
+  assert.doesNotMatch(knowledgePolicy, /authorizeIdentityRoleAction\(/);
+  assert.match(knowledgeUsePolicy, /authorizeIdentityRoleAction\(/);
   assert.match(toolPolicy, /authorizeIdentityRoleAction\(/);
 });

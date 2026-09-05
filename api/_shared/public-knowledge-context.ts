@@ -18,6 +18,10 @@ import {
   formatKnowledgeExcerptContext,
   selectKnowledgeExcerpts,
 } from "../../shared/knowledge-excerpts.js";
+import {
+  decideKnowledgeSourceUsage,
+  formatKnowledgeEvidenceCitations,
+} from "../../shared/knowledge-use-policy.js";
 import type { KnowledgeActor } from "../../shared/skill-registry-policy.js";
 
 const DEFAULT_INSTITUTION_SLUG = "blaise-cendrars-sevran";
@@ -117,6 +121,8 @@ export async function loadPublicKnowledgeContext(input: {
       status: knowledgeSources.status,
       classification: knowledgeSources.classification,
       serviceCodes: knowledgeSources.serviceCodes,
+      provenanceStatus: knowledgeSources.provenanceStatus,
+      usePolicy: knowledgeSources.usePolicy,
       validFrom: knowledgeSources.validFrom,
       expiresAt: knowledgeSources.expiresAt,
       updatedAt: knowledgeSources.updatedAt,
@@ -156,6 +162,8 @@ export async function loadPublicKnowledgeContext(input: {
           status: source.status as PublicAgentSkillCandidate["sources"][number]["status"],
           classification: source.classification as PublicAgentSkillCandidate["sources"][number]["classification"],
           serviceCodes: source.serviceCodes,
+          provenanceStatus: source.provenanceStatus as PublicAgentSkillCandidate["sources"][number]["provenanceStatus"],
+          usePolicy: source.usePolicy as PublicAgentSkillCandidate["sources"][number]["usePolicy"],
           validFrom: source.validFrom.toISOString(),
           expiresAt: source.expiresAt?.toISOString() ?? null,
           required: source.required,
@@ -206,26 +214,70 @@ export async function loadPublicKnowledgeContext(input: {
   });
   const excerptContext = formatKnowledgeExcerptContext(selectedExcerpts);
   const skillContext = formatPublicAgentSkillContext(selected);
+
+  // LOT 3 du plan de connaissance OB1 (2026-09-05) : une source
+  // `can_use_as_evidence` doit atteindre le contexte comme element cite
+  // (titre, date, statut), jamais comme consigne. Elle est evaluee ici
+  // independamment de l'autorisation d'un skill (`selected`) : une source
+  // requise devenue `evidence` fait echouer son skill (LOT 3,
+  // `sourceIsAuthorizedAndCurrent`) et disparait donc du registre de
+  // consignes, mais reste citee ici tant qu'elle est publiee, courante et
+  // sure pour cet acteur.
+  const nowIso = now.toISOString();
+  const evidenceSourceRows = [
+    ...new Map(sourceRows.map((source) => [source.id, source])).values(),
+  ].filter(
+    (source) =>
+      decideKnowledgeSourceUsage({
+        source: {
+          id: source.id,
+          institutionId: source.institutionId,
+          serviceCodes: source.serviceCodes,
+          status: source.status as PublicAgentSkillCandidate["sources"][number]["status"],
+          classification: source.classification as PublicAgentSkillCandidate["sources"][number]["classification"],
+          provenanceStatus: source.provenanceStatus as PublicAgentSkillCandidate["sources"][number]["provenanceStatus"],
+          usePolicy: source.usePolicy as PublicAgentSkillCandidate["sources"][number]["usePolicy"],
+          validFrom: source.validFrom.toISOString(),
+          expiresAt: source.expiresAt?.toISOString() ?? null,
+        },
+        actor,
+        now: nowIso,
+      }).decision === "evidence"
+  );
+  const evidenceContext = formatKnowledgeEvidenceCitations(
+    evidenceSourceRows.map((source) => ({
+      title: source.title,
+      status: source.status as PublicAgentSkillCandidate["sources"][number]["status"],
+      expiresAt: source.expiresAt?.toISOString() ?? null,
+    }))
+  );
+
+  const instructions = [skillContext, excerptContext, evidenceContext]
+    .filter((part) => part.length > 0)
+    .join("\n\n");
+
+  const citedSourceIds = new Set([
+    ...selectedExcerpts.map((excerpt) => excerpt.sourceId),
+    ...evidenceSourceRows.map((source) => source.id),
+  ]);
   return {
-    instructions: excerptContext ? `${skillContext}\n\n${excerptContext}` : skillContext,
+    instructions,
     versions: selected.map((skill) => ({
       institutionId: skill.institutionId,
       versionId: skill.versionId,
       allowedTools: skill.allowedTools,
     })),
-    sources: [...new Set(selectedExcerpts.map((excerpt) => excerpt.sourceId))].flatMap(
-      (sourceId) => {
-        const source = sourceRows.find((candidate) => candidate.id === sourceId);
-        return source
-          ? [{
-              institutionId: institution.id,
-              sourceId,
-              title: source.title,
-              updatedAt: source.updatedAt.toISOString(),
-            }]
-          : [];
-      }
-    ),
+    sources: [...citedSourceIds].flatMap((sourceId) => {
+      const source = sourceRows.find((candidate) => candidate.id === sourceId);
+      return source
+        ? [{
+            institutionId: institution.id,
+            sourceId,
+            title: source.title,
+            updatedAt: source.updatedAt.toISOString(),
+          }]
+        : [];
+    }),
   };
 }
 

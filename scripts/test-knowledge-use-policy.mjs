@@ -1,6 +1,9 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { decideKnowledgeSourceUsage } from "../shared/knowledge-use-policy.ts";
+import {
+  decideKnowledgeSourceUsage,
+  formatKnowledgeEvidenceCitations,
+} from "../shared/knowledge-use-policy.ts";
 
 const now = "2026-09-06T12:00:00.000Z";
 
@@ -215,4 +218,22 @@ test("prioritizes service scope over classification when both are true", () => {
     decide({ serviceCodes: ["cantine"], classification: "sensitive" }, internalAgent),
     { decision: "do_not_inject", reasonCode: "service_scope_required" }
   );
+});
+
+// LOT 3 : formatage pur des sources citees comme preuve (jamais une consigne).
+
+test("returns an empty string for no evidence source", () => {
+  assert.equal(formatKnowledgeEvidenceCitations([]), "");
+});
+
+test("cites evidence sources by title, status and expiry, wrapped and labeled as never-instruction", () => {
+  const formatted = formatKnowledgeEvidenceCitations([
+    { title: "Procédure ENT de rentrée", status: "published", expiresAt: "2026-09-30T23:59:59.000Z" },
+    { title: "Note interne archivée", status: "expired", expiresAt: null },
+  ]);
+  assert.match(formatted, /<sources_citees_comme_preuve>/);
+  assert.match(formatted, /Procédure ENT de rentrée \(statut : published, valide jusqu'au 2026-09-30T23:59:59\.000Z\)/);
+  assert.match(formatted, /Note interne archivée \(statut : expired\)/);
+  assert.match(formatted, /jamais une consigne/);
+  assert.doesNotMatch(formatted, /<registre_autorise_valide>/);
 });
