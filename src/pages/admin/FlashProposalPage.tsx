@@ -26,6 +26,7 @@ import {
   isValidFlashInfoVersionPayload,
   type FlashInfoVersionPayload,
 } from "../../../shared/flash-payload-policy";
+import { FLASH_PUBLIC_AUDIENCE_GROUP_REF } from "../../../shared/flash-visibility";
 
 // Meme adresse que celle deja utilisee (en lecture seule, aucune mutation)
 // dans src/pages/prototype/LyceeConnectPrototype.tsx pour ouvrir la
@@ -364,7 +365,24 @@ export default function FlashProposalPage() {
           <h2 className="font-semibold text-gray-900">Public visé</h2>
           <p className="text-xs text-gray-500">{selectedGroups.length} groupe(s) sélectionné(s)</p>
         </CardHeader>
-        <CardContent>
+        <CardContent className="space-y-3">
+          <label className="flex min-h-[40px] items-start gap-2 rounded-xl border border-primary-200 bg-primary-50 px-3 py-2 text-sm">
+            <input
+              type="checkbox"
+              checked={selectedGroups.includes(FLASH_PUBLIC_AUDIENCE_GROUP_REF)}
+              onChange={() => toggleGroup(FLASH_PUBLIC_AUDIENCE_GROUP_REF)}
+              className="mt-0.5 h-4 w-4 shrink-0"
+            />
+            <span className="min-w-0">
+              <span className="block font-medium text-primary-900">
+                Visible par tous sur le site
+              </span>
+              <span className="block text-xs text-primary-800">
+                Cette case, elle seule, publie l'information sur la page publique du site,
+                sans compte ni connexion. Les groupes ci-dessous restent un public fictif.
+              </span>
+            </span>
+          </label>
           <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
             {FICTITIOUS_FLASH_GROUPS.map((group) => (
               <label

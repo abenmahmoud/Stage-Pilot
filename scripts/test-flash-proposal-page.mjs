@@ -72,6 +72,29 @@ test("garde des cibles tactiles d'au moins 40 pixels sur les champs a cocher", (
   assert.match(page, /min-h-\[40px\]/);
 });
 
+// LOT 3 du plan de correction visible
+// (docs/operations/PLAN_FLASH_CORRECTION_VISIBLE_2026-09-05.md) : avant ce
+// lot, FLASH_PUBLIC_AUDIENCE_GROUP_REF n'avait aucun chemin depuis l'ecran,
+// donc aucune flash proposee ne pouvait jamais atteindre la route publique
+// par un usage normal.
+
+test("offre un choix explicite pour rendre une information visible par tous sur le site, sans exposer le code technique", () => {
+  assert.match(
+    page,
+    /import \{ FLASH_PUBLIC_AUDIENCE_GROUP_REF \} from "\.\.\/\.\.\/\.\.\/shared\/flash-visibility"/
+  );
+  assert.match(page, /Visible par tous sur le site/);
+  assert.match(
+    page,
+    /checked=\{selectedGroups\.includes\(FLASH_PUBLIC_AUDIENCE_GROUP_REF\)\}/
+  );
+  assert.match(
+    page,
+    /onChange=\{\(\) => toggleGroup\(FLASH_PUBLIC_AUDIENCE_GROUP_REF\)\}/
+  );
+  assert.doesNotMatch(page, /public:site/);
+});
+
 test("les references de groupes fictifs respectent le meme filtre que la base (group_ref, LOT 1/LOT 2)", () => {
   const refs = [...page.matchAll(/ref: "([a-z0-9:_-]+)"/g)].map((match) => match[1]);
   assert.ok(refs.length >= 6, "au moins les groupes et contacts fictifs attendus");
