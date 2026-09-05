@@ -320,6 +320,8 @@
     "test:flash-validation-page": "node --import ./scripts/ts-test-resolver.mjs --experimental-strip-types scripts/test-flash-validation-page.mjs",
     "test:flash-recette-adverse": "node --import ./scripts/ts-test-resolver.mjs --experimental-strip-types scripts/test-flash-recette-adverse.mjs",
     "test:flash-recette": "npm run test:flash && npm run test:flash-proposal-page && npm run test:flash-validation-page && npm run test:flash-recette-adverse && npm run test:flash-validation-access && npm run test:flash-access && npm run test:flash-payload-policy && npm run test:flash-proposal-input && npm run test:flash-decision-input && npm run test:flash-correction && npm run test:flash-expiry-cron && npm run test:flash-expired-queue && npm run test:flash-expired-after-validation-queue && npm run test:flash-author && npm run test:flash-publishable-queue && npm run test:flash-published-queue",
+    "recipe:local-flash-publication": "node --import ./scripts/ts-test-resolver.mjs --experimental-transform-types scripts/test-local-flash-publication-recette.mjs --local-stack-only",
+    "recipe:local-flash-publication-browser": "node --import ./scripts/ts-test-resolver.mjs --experimental-transform-types scripts/test-flash-publication-browser-recette.mjs --local-stack-only",
     "test:agent-context-window": "node --import ./scripts/ts-test-resolver.mjs --experimental-strip-types scripts/test-agent-context-window.mjs",
     "recipe:local-support-email-dispatch": "node scripts/test-local-support-email-dispatch.mjs --local-stack-only",
     "recipe:local-support-email-worker": "node scripts/test-local-support-email-worker.mjs --local-stack-only",
