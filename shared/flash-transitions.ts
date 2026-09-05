@@ -6,6 +6,17 @@
 // remplacement de ce garde-fou, c'est le meme graphe rejoue en TypeScript pur,
 // pour pouvoir le tester sans base et le reutiliser cote agent/UI avant meme
 // d'ecrire en base.
+//
+// LOT 1 du plan de correction visible
+// (docs/operations/PLAN_FLASH_CORRECTION_VISIBLE_2026-09-05.md) ouvre
+// `modifiee -> publiee` : une correction redevient publiable par le meme
+// service et le meme geste que la premiere publication (meme route,
+// `assertFlashValidationAccess`), au lieu de rester bloquee a l'etat terminal.
+// ECART CONNU, NON CORRIGE PAR CE LOT : le trigger `flash_guard_version` cote
+// base n'autorise encore que `old.status = 'publiee' and new.status =
+// 'modifiee'` ; il refusera `modifiee -> publiee` tant qu'une migration ne
+// l'aura pas mis a jour. Ce module et le trigger divergent donc jusqu'a cette
+// migration (voir le compte rendu du lot).
 
 export const FLASH_VERSION_STATUSES = [
   "proposee",
@@ -38,7 +49,7 @@ const LEGAL_TRANSITIONS: Readonly<Record<FlashVersionStatus, readonly FlashVersi
   proposee: ["validee", "refusee", "expiree_sans_validation"],
   validee: ["publiee", "expiree_sans_publication"],
   publiee: ["modifiee"],
-  modifiee: [],
+  modifiee: ["publiee"],
   expiree_sans_validation: [],
   expiree_sans_publication: [],
   refusee: [],

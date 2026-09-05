@@ -158,3 +158,35 @@ export function selectVisibleFlashVersions<T extends FlashVisibilityVersionCandi
     })
   );
 }
+
+// LOT 1 du plan de correction visible
+// (docs/operations/PLAN_FLASH_CORRECTION_VISIBLE_2026-09-05.md) : depuis que
+// `modifiee -> publiee` est une transition legale (flash-transitions.ts), une
+// meme information flash peut avoir plusieurs versions dans l'historique
+// passe par `publiee` (premiere publication, puis chaque republication apres
+// correction). `selectVisibleFlashVersions` ci-dessus reste la seule autorite
+// sur CE QUI est visible ; ce qui suit ne fait qu'empecher, en defense en
+// profondeur pure, que deux versions de la MEME information se retrouvent
+// visibles en meme temps a l'affichage (doublon), en ne gardant que la plus
+// recente (`version` la plus grande). La persistance ne doit jamais laisser
+// deux versions `publiee` simultanees pour une meme information — ce module
+// ne le suppose pas, il s'en protege quand meme.
+export type FlashVisibilityFlashCandidate = FlashVisibilityVersionCandidate & {
+  flashInfoId: string;
+  version: number;
+};
+
+export function selectLatestVisibleFlashVersionPerInfo<T extends FlashVisibilityFlashCandidate>(
+  versions: readonly T[],
+  input: { now: Date; viewerGroupRefs: string[] | null }
+): T[] {
+  const visible = selectVisibleFlashVersions(versions, input);
+  const latestByFlashInfoId = new Map<string, T>();
+  for (const version of visible) {
+    const current = latestByFlashInfoId.get(version.flashInfoId);
+    if (!current || version.version > current.version) {
+      latestByFlashInfoId.set(version.flashInfoId, version);
+    }
+  }
+  return [...latestByFlashInfoId.values()];
+}

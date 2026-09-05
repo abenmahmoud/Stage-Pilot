@@ -6,6 +6,7 @@ import {
   FlashVisibilityError,
   checkFlashVersionVisibility,
   isFlashVersionVisible,
+  selectLatestVisibleFlashVersionPerInfo,
   selectVisibleFlashVersions,
 } from "../shared/flash-visibility.ts";
 
@@ -136,6 +137,167 @@ test("version corrigee puis version d'origine : seule la version publiee courant
     false,
     "l'ancienne version reste modifiee, jamais publiee : elle ne redevient jamais visible"
   );
+});
+
+// LOT 1 du plan de correction visible
+// (docs/operations/PLAN_FLASH_CORRECTION_VISIBLE_2026-09-05.md) : les quatre
+// scenarios demandes par le plan, avec `selectLatestVisibleFlashVersionPerInfo`
+// (defense en profondeur qui ne garde que la version la plus recente d'une
+// meme information, en plus du filtre de visibilite deja teste ci-dessus).
+
+test("correction enregistree puis non publiee : l'ancienne version publiee reste servie", () => {
+  const published = {
+    flashInfoId: "flash-1",
+    version: 1,
+    status: "publiee",
+    expiresAt: new Date("2026-09-05T18:00:00.000Z"),
+    audience: [FLASH_PUBLIC_AUDIENCE_GROUP_REF],
+  };
+  const pendingCorrection = {
+    flashInfoId: "flash-1",
+    version: 2,
+    status: "modifiee",
+    expiresAt: new Date("2026-09-06T18:00:00.000Z"),
+    audience: [FLASH_PUBLIC_AUDIENCE_GROUP_REF],
+  };
+
+  const visible = selectLatestVisibleFlashVersionPerInfo([published, pendingCorrection], {
+    now: NOW,
+    viewerGroupRefs: null,
+  });
+
+  assert.equal(visible.length, 1);
+  assert.equal(visible[0].version, 1, "la correction n'est pas encore publiee : l'ancienne version reste affichee");
+});
+
+test("correction publiee : la nouvelle version remplace l'ancienne", () => {
+  const original = {
+    flashInfoId: "flash-1",
+    version: 1,
+    status: "modifiee",
+    expiresAt: new Date("2026-09-05T18:00:00.000Z"),
+    audience: [FLASH_PUBLIC_AUDIENCE_GROUP_REF],
+  };
+  const republished = {
+    flashInfoId: "flash-1",
+    version: 2,
+    status: "publiee",
+    expiresAt: new Date("2026-09-06T18:00:00.000Z"),
+    audience: [FLASH_PUBLIC_AUDIENCE_GROUP_REF],
+  };
+
+  const visible = selectLatestVisibleFlashVersionPerInfo([original, republished], {
+    now: NOW,
+    viewerGroupRefs: null,
+  });
+
+  assert.equal(visible.length, 1);
+  assert.equal(visible[0].version, 2, "la correction publiee remplace l'ancienne version");
+});
+
+test("correction publiee mais deja expiree : rien n'est servi, la page publique n'affiche jamais l'ancienne perimee non plus", () => {
+  const original = {
+    flashInfoId: "flash-1",
+    version: 1,
+    status: "modifiee",
+    expiresAt: new Date("2026-09-05T18:00:00.000Z"),
+    audience: [FLASH_PUBLIC_AUDIENCE_GROUP_REF],
+  };
+  const expiredCorrection = {
+    flashInfoId: "flash-1",
+    version: 2,
+    status: "publiee",
+    expiresAt: new Date("2026-09-05T06:00:00.000Z"),
+    audience: [FLASH_PUBLIC_AUDIENCE_GROUP_REF],
+  };
+
+  const visible = selectLatestVisibleFlashVersionPerInfo([original, expiredCorrection], {
+    now: NOW,
+    viewerGroupRefs: null,
+  });
+
+  assert.equal(visible.length, 0);
+});
+
+test("deux corrections successives : seule la toute derniere version publiee est visible", () => {
+  const first = {
+    flashInfoId: "flash-1",
+    version: 1,
+    status: "modifiee",
+    expiresAt: new Date("2026-09-05T18:00:00.000Z"),
+    audience: [FLASH_PUBLIC_AUDIENCE_GROUP_REF],
+  };
+  const second = {
+    flashInfoId: "flash-1",
+    version: 2,
+    status: "modifiee",
+    expiresAt: new Date("2026-09-06T18:00:00.000Z"),
+    audience: [FLASH_PUBLIC_AUDIENCE_GROUP_REF],
+  };
+  const third = {
+    flashInfoId: "flash-1",
+    version: 3,
+    status: "publiee",
+    expiresAt: new Date("2026-09-07T18:00:00.000Z"),
+    audience: [FLASH_PUBLIC_AUDIENCE_GROUP_REF],
+  };
+
+  const visible = selectLatestVisibleFlashVersionPerInfo([first, second, third], {
+    now: NOW,
+    viewerGroupRefs: null,
+  });
+
+  assert.equal(visible.length, 1);
+  assert.equal(visible[0].version, 3);
+});
+
+test("deux informations distinctes n'interferent jamais l'une avec l'autre", () => {
+  const flashOne = {
+    flashInfoId: "flash-1",
+    version: 1,
+    status: "publiee",
+    expiresAt: new Date("2026-09-05T18:00:00.000Z"),
+    audience: [FLASH_PUBLIC_AUDIENCE_GROUP_REF],
+  };
+  const flashTwo = {
+    flashInfoId: "flash-2",
+    version: 5,
+    status: "publiee",
+    expiresAt: new Date("2026-09-05T18:00:00.000Z"),
+    audience: [FLASH_PUBLIC_AUDIENCE_GROUP_REF],
+  };
+
+  const visible = selectLatestVisibleFlashVersionPerInfo([flashOne, flashTwo], {
+    now: NOW,
+    viewerGroupRefs: null,
+  });
+
+  assert.equal(visible.length, 2);
+});
+
+test("defense en profondeur : si deux versions de la meme information sont visibles a la fois, seule la plus recente est retenue", () => {
+  const olderPublished = {
+    flashInfoId: "flash-1",
+    version: 1,
+    status: "publiee",
+    expiresAt: new Date("2026-09-05T18:00:00.000Z"),
+    audience: [FLASH_PUBLIC_AUDIENCE_GROUP_REF],
+  };
+  const newerPublished = {
+    flashInfoId: "flash-1",
+    version: 2,
+    status: "publiee",
+    expiresAt: new Date("2026-09-06T18:00:00.000Z"),
+    audience: [FLASH_PUBLIC_AUDIENCE_GROUP_REF],
+  };
+
+  const visible = selectLatestVisibleFlashVersionPerInfo([olderPublished, newerPublished], {
+    now: NOW,
+    viewerGroupRefs: null,
+  });
+
+  assert.equal(visible.length, 1);
+  assert.equal(visible[0].version, 2);
 });
 
 test("statut inconnu refuse", () => {
