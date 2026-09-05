@@ -2256,12 +2256,14 @@ export const flashInfos = pgTable(
     status: text("status").notNull().default("draft"),
     currentVersion: integer("current_version").notNull().default(1),
     createdBy: uuid("created_by").notNull(),
+    idempotencyKeyHash: text("idempotency_key_hash").notNull(),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
   },
   (table) => [
     index("flash_infos_scope_status_idx").on(table.institutionId, table.status, table.updatedAt),
     index("flash_infos_created_by_idx").on(table.createdBy, table.createdAt),
+    uniqueIndex("flash_infos_institution_idempotency_uidx").on(table.institutionId, table.idempotencyKeyHash),
   ]
 );
 
