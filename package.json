@@ -328,6 +328,8 @@
     "recipe:local-flash-publication-browser": "node --import ./scripts/ts-test-resolver.mjs --experimental-transform-types scripts/test-flash-publication-browser-recette.mjs --local-stack-only",
     "recipe:local-flash-public": "node --import ./scripts/ts-test-resolver.mjs --experimental-transform-types scripts/test-local-flash-public-recette.mjs --local-stack-only",
     "recipe:local-flash-public-browser": "node --import ./scripts/ts-test-resolver.mjs --experimental-transform-types scripts/test-flash-public-browser-recette.mjs --local-stack-only",
+    "recipe:local-flash-correction": "node --import ./scripts/ts-test-resolver.mjs --experimental-transform-types scripts/test-flash-correction-recette.mjs --local-stack-only",
+    "recipe:local-flash-correction-browser": "node --import ./scripts/ts-test-resolver.mjs --experimental-transform-types scripts/test-flash-correction-browser-recette.mjs --local-stack-only",
     "test:agent-context-window": "node --import ./scripts/ts-test-resolver.mjs --experimental-strip-types scripts/test-agent-context-window.mjs",
     "recipe:local-support-email-dispatch": "node scripts/test-local-support-email-dispatch.mjs --local-stack-only",
     "recipe:local-support-email-worker": "node scripts/test-local-support-email-worker.mjs --local-stack-only",
