@@ -2455,6 +2455,16 @@ export const codeVaultAssignments = pgTable(
     schoolYear: text("school_year").notNull(),
     version: integer("version").notNull(),
     status: text("status").notNull().default("disponible"),
+    // LOT 3 (2026-09-05) : attribution et remise. Voir
+    // shared/code-vault-policy.ts pour le quota (VAULT_MAX_DAILY_DISPLAYS) et
+    // la fenêtre de visibilité (VAULT_DISPLAY_VISIBILITY_SECONDS).
+    revealedAt: timestamp("revealed_at", { withTimezone: true }),
+    displayCount: integer("display_count").notNull().default(0),
+    displayCountDate: date("display_count_date"),
+    defectiveFlaggedAt: timestamp("defective_flagged_at", { withTimezone: true }),
+    defectiveReason: text("defective_reason"),
+    defectiveFlaggedBy: text("defective_flagged_by"),
+    replacedByAssignmentId: uuid("replaced_by_assignment_id"),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
   },
@@ -2472,6 +2482,10 @@ export const codeVaultAssignments = pgTable(
       table.service
     ),
     index("code_vault_assignments_scope_status_idx").on(table.institutionId, table.status),
+    index("code_vault_assignments_display_window_idx").on(
+      table.institutionId,
+      table.displayCountDate
+    ),
   ]
 );
 
