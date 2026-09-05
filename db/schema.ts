@@ -2245,3 +2245,165 @@ export const communicationSourceEvents = pgTable(
     index("communication_source_events_actor_idx").on(table.actorUserId, table.createdAt),
   ]
 );
+
+export const flashInfos = pgTable(
+  "flash_infos",
+  {
+    id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+    institutionId: uuid("institution_id")
+      .notNull()
+      .references(() => institutions.id, { onDelete: "restrict" }),
+    status: text("status").notNull().default("draft"),
+    currentVersion: integer("current_version").notNull().default(1),
+    createdBy: uuid("created_by").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    index("flash_infos_scope_status_idx").on(table.institutionId, table.status, table.updatedAt),
+    index("flash_infos_created_by_idx").on(table.createdBy, table.createdAt),
+  ]
+);
+
+export const flashInfoVersions = pgTable(
+  "flash_info_versions",
+  {
+    id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+    institutionId: uuid("institution_id")
+      .notNull()
+      .references(() => institutions.id, { onDelete: "restrict" }),
+    flashInfoId: uuid("flash_info_id")
+      .notNull()
+      .references(() => flashInfos.id, { onDelete: "restrict" }),
+    version: integer("version").notNull(),
+    previousVersionId: uuid("previous_version_id"),
+    status: text("status").notNull().default("proposee"),
+    title: text("title").notNull(),
+    bodyMarkdown: text("body_markdown").notNull(),
+    importance: text("importance").notNull().default("normale"),
+    channels: jsonb("channels").notNull().default([]),
+    expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+    proposedBy: uuid("proposed_by").notNull(),
+    validatedBy: uuid("validated_by"),
+    validatedAt: timestamp("validated_at", { withTimezone: true }),
+    publishedAt: timestamp("published_at", { withTimezone: true }),
+    supersededAt: timestamp("superseded_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    uniqueIndex("flash_info_versions_flash_info_version_uidx").on(table.flashInfoId, table.version),
+    index("flash_info_versions_scope_status_idx").on(table.institutionId, table.flashInfoId, table.status, table.version),
+    index("flash_info_versions_proposed_by_idx").on(table.proposedBy, table.createdAt),
+    index("flash_info_versions_validated_by_idx")
+      .on(table.validatedBy, table.validatedAt)
+      .where(sql`${table.validatedBy} is not null`),
+    index("flash_info_versions_expiration_pending_idx")
+      .on(table.expiresAt)
+      .where(sql`${table.status} = 'proposee'`),
+  ]
+);
+
+export const flashInfoAudiences = pgTable(
+  "flash_info_audiences",
+  {
+    id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+    institutionId: uuid("institution_id")
+      .notNull()
+      .references(() => institutions.id, { onDelete: "restrict" }),
+    versionId: uuid("version_id")
+      .notNull()
+      .references(() => flashInfoVersions.id, { onDelete: "restrict" }),
+    groupRef: text("group_ref").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    uniqueIndex("flash_info_audiences_version_group_uidx").on(table.versionId, table.groupRef),
+    index("flash_info_audiences_version_scope_idx").on(table.versionId, table.institutionId),
+    index("flash_info_audiences_scope_group_idx").on(table.institutionId, table.groupRef),
+  ]
+);
+
+export const flashNotificationDispatches = pgTable(
+  "flash_notification_dispatches",
+  {
+    id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+    institutionId: uuid("institution_id")
+      .notNull()
+      .references(() => institutions.id, { onDelete: "restrict" }),
+    versionId: uuid("version_id")
+      .notNull()
+      .references(() => flashInfoVersions.id, { onDelete: "restrict" }),
+    channel: text("channel").notNull(),
+    groupRef: text("group_ref"),
+    contactRef: text("contact_ref"),
+    status: text("status").notNull().default("sent"),
+    sentAt: timestamp("sent_at", { withTimezone: true }).notNull().defaultNow(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    index("flash_notification_dispatches_version_scope_idx").on(table.versionId, table.institutionId, table.channel, table.status),
+    index("flash_notification_dispatches_scope_status_idx").on(table.institutionId, table.status, table.sentAt),
+  ]
+);
+
+export const flashCorrectionDecisions = pgTable(
+  "flash_correction_decisions",
+  {
+    id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+    institutionId: uuid("institution_id")
+      .notNull()
+      .references(() => institutions.id, { onDelete: "restrict" }),
+    flashInfoId: uuid("flash_info_id")
+      .notNull()
+      .references(() => flashInfos.id, { onDelete: "restrict" }),
+    versionId: uuid("version_id")
+      .notNull()
+      .references(() => flashInfoVersions.id, { onDelete: "restrict" })
+      .unique(),
+    gapKind: text("gap_kind").notNull(),
+    initiatedBy: text("initiated_by").notNull().default("agent"),
+    decision: text("decision").notNull().default("en_attente"),
+    maintainedCount: integer("maintained_count").notNull().default(0),
+    removedCount: integer("removed_count").notNull().default(0),
+    addedCount: integer("added_count").notNull().default(0),
+    eligibleChannels: jsonb("eligible_channels").notNull().default([]),
+    requestedBy: uuid("requested_by"),
+    decidedBy: uuid("decided_by"),
+    decidedAt: timestamp("decided_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    index("flash_correction_decisions_scope_idx").on(table.institutionId, table.flashInfoId, table.createdAt),
+    index("flash_correction_decisions_pending_idx")
+      .on(table.institutionId, table.decision)
+      .where(sql`${table.decision} = 'en_attente'`),
+  ]
+);
+
+export const flashInfoEvents = pgTable(
+  "flash_info_events",
+  {
+    id: bigint("id", { mode: "number" }).primaryKey().generatedAlwaysAsIdentity(),
+    institutionId: uuid("institution_id")
+      .notNull()
+      .references(() => institutions.id, { onDelete: "restrict" }),
+    flashInfoId: uuid("flash_info_id")
+      .notNull()
+      .references(() => flashInfos.id, { onDelete: "restrict" }),
+    resourceType: text("resource_type").notNull(),
+    resourceId: uuid("resource_id").notNull(),
+    eventType: text("event_type").notNull(),
+    actorUserId: uuid("actor_user_id"),
+    actorType: text("actor_type").notNull(),
+    summary: jsonb("summary").notNull().default({}),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    index("flash_info_events_scope_created_idx").on(table.institutionId, table.flashInfoId, table.createdAt),
+    index("flash_info_events_resource_created_idx").on(table.resourceType, table.resourceId, table.createdAt),
+    index("flash_info_events_actor_idx")
+      .on(table.actorUserId, table.createdAt)
+      .where(sql`${table.actorUserId} is not null`),
+  ]
+);
