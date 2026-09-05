@@ -54,12 +54,46 @@ Drizzle, NULL pris pour un booléen strict, test de schéma pris pour une preuve
   l'ancienne version, et laquelle.
 - Le bouton de publication est immédiatement accessible depuis ce rappel.
 
-## LOT 3 — Choisir l'audience publique depuis l'écran
+## LOT 3 — Audience publique, puis plafond de budget IA
+
+### 3a. Choisir l'audience publique depuis l'écran
 
 Aujourd'hui `FLASH_PUBLIC_AUDIENCE_GROUP_REF = "public:site"` n'a aucun chemin
 depuis l'interface : aucune flash ne peut atteindre la route publique par un
 usage normal. Ajouter ce choix à l'écran de proposition, et le rendre explicite
 — « visible par tous sur le site » — plutôt qu'un code technique.
+
+### 3b. Rendre le plafond de budget IA utilisable et prouvé
+
+Décision d'Adel du 5 septembre 2026 : il crédite **50 $ d'API** pour le pilote
+et la rentrée, et le plafond quotidien est posé **avant** le crédit, pas après.
+Le garde-fou existe déjà (`shared/agent-ai-budget.ts`, table
+`agent_ai_budget_days`) mais il est désactivé et aucune valeur n'est documentée.
+
+Travail attendu, sans jamais écrire de clé ni de secret dans le dépôt :
+
+- Documenter dans `.env.local.example` les quatre variables réellement lues par
+  le code, avec les valeurs recommandées pour le pilote, en euros canoniques :
+  `OPENAI_BUDGET_GUARD_ENABLED=true`, `OPENAI_DAILY_BUDGET_EUR=1`,
+  `OPENAI_SUPPORT_MAX_CALL_EUR`, `OPENAI_CONTENT_MAX_CALL_EUR` et
+  `OPENAI_COMMUNICATION_MAX_CALL_EUR`. Proposer une réserve par appel
+  cohérente avec un plafond d'un euro par jour, et expliquer en une phrase
+  ce que chaque variable protège.
+- Vérifier que les trois opérations déclarées — `support_assistant`,
+  `content_assist`, `communication_assist` — passent bien par la réservation.
+  Signaler toute route qui appelle un modèle **sans** garde-fou : c'est le
+  seul chemin par lequel une facture peut déraper.
+- Prouver par un test que, plafond atteint, l'assistant **ne contacte pas le
+  fournisseur** et rend sa réponse sans IA. Un plafond qui laisse encore
+  passer un appel ne protège rien.
+- Prouver aussi le cas d'une configuration invalide : réserve par appel
+  supérieure au plafond du jour, ou valeur mal écrite. Le comportement doit
+  être de refuser l'appel au modèle, jamais de l'autoriser par défaut.
+- Rendre la consommation du jour lisible par le référent, sans exposer de
+  montant ailleurs que dans l'espace administratif.
+
+Ne pas activer les variables dans un environnement réel : ce lot documente,
+vérifie et prouve. C'est Adel qui les pose.
 
 ## LOT 4 — Recette
 
