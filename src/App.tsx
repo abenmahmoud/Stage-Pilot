@@ -42,6 +42,7 @@ const AgentApprovalsPage = lazy(() => import("./pages/admin/AgentApprovalsPage")
 const CommunicationsPage = lazy(() => import("./pages/admin/CommunicationsPage"));
 const EnvoisNominatifsPage = lazy(() => import("./pages/admin/EnvoisNominatifsPage"));
 const FlashProposalPage = lazy(() => import("./pages/admin/FlashProposalPage"));
+const FlashValidationPage = lazy(() => import("./pages/admin/FlashValidationPage"));
 
 function PageFallback() {
   return (
@@ -247,6 +248,14 @@ export default function App() {
             element={
               <RoleRoute allowedRoles={FLASH_PROPOSAL_ROLES}>
                 <FlashProposalPage />
+              </RoleRoute>
+            }
+          />
+          <Route
+            path="admin/informations-flash/valider"
+            element={
+              <RoleRoute allowedRoles={CONTENT_MANAGER_ROLES}>
+                <FlashValidationPage />
               </RoleRoute>
             }
           />

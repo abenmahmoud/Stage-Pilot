@@ -25,3 +25,11 @@ export const NOMINATIVE_SEND_UI_ENABLED =
 // ecran de toute facon : il ne fait que preparer un apercu local.
 export const FLASH_INFO_UI_ENABLED =
   import.meta.env.VITE_FLASH_INFO_UI_ENABLED === "true";
+
+// Ecran de validation/modification des informations flash (§13, LOT 4). Ferme
+// par defaut, meme motif que FLASH_INFO_UI_ENABLED : la page reste atteignable
+// par son adresse pour la relecture, mais n'apparait dans la navigation que
+// lorsque l'administration ouvre ce drapeau. Aucune ecriture serveur derriere
+// cet ecran non plus : simulation sur propositions fictives uniquement.
+export const FLASH_VALIDATION_UI_ENABLED =
+  import.meta.env.VITE_FLASH_VALIDATION_UI_ENABLED === "true";

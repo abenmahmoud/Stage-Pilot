@@ -30,6 +30,7 @@ import {
 import {
   COMMUNICATIONS_UI_ENABLED,
   FLASH_INFO_UI_ENABLED,
+  FLASH_VALIDATION_UI_ENABLED,
   NOMINATIVE_SEND_UI_ENABLED,
 } from "../lib/feature-flags";
 
@@ -235,6 +236,12 @@ export default function AppLayout() {
               <NavLink to="/admin/informations-flash/proposer" className={navCls}>
                 <Zap className="w-4 h-4" />
                 Information flash
+              </NavLink>
+            )}
+            {FLASH_VALIDATION_UI_ENABLED && (
+              <NavLink to="/admin/informations-flash/valider" className={navCls}>
+                <ShieldCheck className="w-4 h-4" />
+                Valider les flash
               </NavLink>
             )}
             {(user.role === "superadmin" || isProviseur) && (
