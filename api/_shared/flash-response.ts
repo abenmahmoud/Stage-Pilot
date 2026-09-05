@@ -12,9 +12,11 @@ import {
   isValidFlashAudienceTreatmentPayload,
   isValidFlashAudiencePayload,
   isValidFlashAuthorNamePayload,
+  isValidFlashPublicItemPayload,
   type FlashInfoVersionPayload,
   type FlashValidationAccessPayload,
   type FlashAudienceTreatmentPayload,
+  type FlashPublicItemPayload,
 } from "../../shared/flash-payload-policy.js";
 import type { FlashValidationDecision } from "../../shared/flash-validation-access.js";
 import type { FlashAudienceTreatment } from "../../shared/flash-audience-correction.js";
@@ -124,4 +126,34 @@ export function toFlashAuthorNamePayload(name: string | null): string | null {
     throw new HttpError(500, "Le nom de l'auteur de l'information flash ne respecte pas le contrat de réponse.");
   }
   return name;
+}
+
+export type FlashPublicItemRow = {
+  id: string;
+  title: string;
+  bodyMarkdown: string;
+  importance: string;
+  publishedAt: Date;
+  expiresAt: Date;
+};
+
+/**
+ * LOT 2 du plan de publication publique : charge renvoyée par
+ * `api/content/flash/public.ts`. Ne reçoit jamais `flashInfoId`, `proposedBy`,
+ * `validatedBy`/`publishedBy` ni l'audience brute — voir le commentaire de
+ * `FLASH_PUBLIC_ITEM_PAYLOAD_FIELDS` (shared/flash-payload-policy.ts).
+ */
+export function toPublicFlashItemPayload(row: FlashPublicItemRow): FlashPublicItemPayload {
+  const payload = {
+    id: row.id,
+    title: row.title,
+    bodyMarkdown: row.bodyMarkdown,
+    importance: row.importance as FlashImportance,
+    publishedAt: row.publishedAt.toISOString(),
+    expiresAt: row.expiresAt.toISOString(),
+  };
+  if (!isValidFlashPublicItemPayload(payload)) {
+    throw new HttpError(500, "L'information flash publique ne respecte pas le contrat de réponse.");
+  }
+  return payload;
 }

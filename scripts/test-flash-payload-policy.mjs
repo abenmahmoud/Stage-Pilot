@@ -8,6 +8,7 @@ import {
   isValidFlashExpirationCheckPayload,
   isValidFlashAudiencePayload,
   isValidFlashAuthorNamePayload,
+  isValidFlashPublicItemPayload,
 } from "../shared/flash-payload-policy.ts";
 
 const UUID_A = "11111111-1111-4111-8111-111111111111";
@@ -240,4 +241,51 @@ test("refuse une chaîne vide à la place de null pour un nom d'auteur non réso
   assert.equal(isValidFlashAuthorNamePayload(""), false);
   assert.equal(isValidFlashAuthorNamePayload(undefined), false);
   assert.equal(isValidFlashAuthorNamePayload(42), false);
+});
+
+function validPublicItemPayload(overrides = {}) {
+  return {
+    id: UUID_A,
+    title: "Portes ouvertes reportées",
+    bodyMarkdown: "Les portes ouvertes sont reportées au 20 septembre.",
+    importance: "importante",
+    publishedAt: "2026-09-05T08:00:00.000Z",
+    expiresAt: "2026-09-06T08:00:00.000Z",
+    ...overrides,
+  };
+}
+
+test("accepte une information publique conforme au contrat étroit", () => {
+  assert.equal(isValidFlashPublicItemPayload(validPublicItemPayload()), true);
+});
+
+test("refuse un identifiant de proposition (flashInfoId) glissé dans la charge publique", () => {
+  assert.equal(
+    isValidFlashPublicItemPayload({ ...validPublicItemPayload(), flashInfoId: UUID_B }),
+    false
+  );
+});
+
+test("refuse un champ d'auteur, de valideur ou d'audience brute dans la charge publique", () => {
+  assert.equal(
+    isValidFlashPublicItemPayload({ ...validPublicItemPayload(), proposedBy: UUID_B }),
+    false
+  );
+  assert.equal(
+    isValidFlashPublicItemPayload({ ...validPublicItemPayload(), validatedBy: UUID_B }),
+    false
+  );
+  assert.equal(
+    isValidFlashPublicItemPayload({ ...validPublicItemPayload(), audience: ["classe:2ndea"] }),
+    false
+  );
+});
+
+test("refuse une importance hors liste connue", () => {
+  assert.equal(isValidFlashPublicItemPayload(validPublicItemPayload({ importance: "critique" })), false);
+});
+
+test("refuse une date de publication ou d'expiration invalide", () => {
+  assert.equal(isValidFlashPublicItemPayload(validPublicItemPayload({ publishedAt: "" })), false);
+  assert.equal(isValidFlashPublicItemPayload(validPublicItemPayload({ expiresAt: "pas-une-date" })), false);
 });

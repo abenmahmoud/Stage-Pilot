@@ -59,6 +59,26 @@ const FLASH_AUDIENCE_TREATMENT_PAYLOAD_FIELDS = new Set([
 
 const FLASH_EXPIRATION_CHECK_PAYLOAD_FIELDS = new Set(["isExpiredWithoutValidation", "reason"]);
 
+/**
+ * LOT 2 du plan de publication publique : ce que reçoit le site anonyme
+ * (`GET /api/content/flash/public`). Volontairement beaucoup plus étroit que
+ * FLASH_VERSION_PAYLOAD_FIELDS ci-dessus — aucun champ interne : ni auteur
+ * (`proposedBy`), ni valideur (`validatedBy`/`publishedBy`), ni audience brute
+ * (`flash_info_audiences`), ni identifiant de proposition (`flashInfoId`, le
+ * fil qui traverse les corrections côté admin). `id` ici est celui de la
+ * VERSION affichée, pas de la proposition : une correction publie une
+ * nouvelle version avec un nouvel id, ce qui suffit à remplacer l'affichage
+ * sans exposer le fil de gestion interne.
+ */
+const FLASH_PUBLIC_ITEM_PAYLOAD_FIELDS = new Set([
+  "id",
+  "title",
+  "bodyMarkdown",
+  "importance",
+  "publishedAt",
+  "expiresAt",
+]);
+
 export type FlashInfoVersionPayload = {
   id: string;
   flashInfoId: string;
@@ -96,6 +116,15 @@ export type FlashAudienceTreatmentPayload = {
 export type FlashExpirationCheckPayload = {
   isExpiredWithoutValidation: boolean;
   reason: FlashExpirationReason;
+};
+
+export type FlashPublicItemPayload = {
+  id: string;
+  title: string;
+  bodyMarkdown: string;
+  importance: FlashImportance;
+  publishedAt: string;
+  expiresAt: string;
 };
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -219,4 +248,14 @@ export function isValidFlashExpirationCheckPayload(
   if (!isRecord(value) || !hasExactFields(value, FLASH_EXPIRATION_CHECK_PAYLOAD_FIELDS)) return false;
   return typeof value.isExpiredWithoutValidation === "boolean"
     && isKnownValue(value.reason, FLASH_EXPIRATION_REASONS);
+}
+
+export function isValidFlashPublicItemPayload(value: unknown): value is FlashPublicItemPayload {
+  if (!isRecord(value) || !hasExactFields(value, FLASH_PUBLIC_ITEM_PAYLOAD_FIELDS)) return false;
+  return isUuid(value.id)
+    && isBoundedText(value.title, 180)
+    && isBoundedText(value.bodyMarkdown, 20000)
+    && isKnownValue(value.importance, FLASH_IMPORTANCE_LEVELS)
+    && isIsoDate(value.publishedAt)
+    && isIsoDate(value.expiresAt);
 }

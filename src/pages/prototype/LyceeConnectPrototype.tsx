@@ -61,6 +61,7 @@ import {
 import { supabase } from "../../lib/supabase-browser";
 import { apiFetch } from "../../lib/api";
 import { PublicContentMarkdown } from "../../components/PublicContentMarkdown";
+import { FlashPublicBulletin } from "../../components/FlashPublicBulletin";
 import { SupportAccessRecovery } from "./SupportAccessRecovery";
 import {
   clearPendingRequesterUpload,
@@ -765,6 +766,8 @@ export default function LyceeConnectPrototype() {
           <span>Portail numérique officiel du Lycée Blaise Cendrars</span>
           <strong>En ligne</strong>
         </div>
+
+        {view !== "agent" ? <FlashPublicBulletin /> : null}
 
         {view === "home" && (
           <>
