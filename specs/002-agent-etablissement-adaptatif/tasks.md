@@ -1176,6 +1176,14 @@
 - [ ] T070 Ajouter les documents versionnés téléchargeables et leur retour depuis
   l'assistant, avec routage générale/technologique vers l'administration et
   professionnel vers la DDFPT.
+- [ ] T071F Écrire la transition `validee` -> `publiee` comme un geste humain
+  distinct, ouvert par le même service que la validation. C'est ce geste qui
+  rend l'information visible publiquement et qui ouvre les notifications ;
+  jusque-là une information validée n'affiche et n'envoie rien. Sans cette
+  route, la correction après publication (T071B) est inatteignable par un
+  usage réel : le plan de persistance a dû forcer la transition en SQL pour
+  la recetter. Prévoir aussi l'expiration d'une information validée mais
+  jamais publiée, avec le même avis factuel à son auteur que T071D.
 - [ ] T071E Ouvrir la validation par le service `referent_numerique` ou `ddfpt`
   porté par l'appartenance à l'établissement, jamais par le rôle applicatif.
   Un compte d'administration sans ce service ne valide pas. L'auto-validation

@@ -291,6 +291,17 @@ pour la file support. C'est le service qui ouvre la validation, jamais le rôle.
 Un compte d'administration qui ne porte pas ce service ne valide pas, et la
 matrice reste configurable par établissement sans modifier le code.
 
+Valider n'est pas publier. Ce sont deux gestes humains distincts : la
+validation arrête le contenu et le périmètre, la publication décide du moment
+où l'information devient visible. Une information validée attend, sans rien
+afficher ni notifier, jusqu'à ce qu'une personne habilitée la publie. C'est ce
+second geste qui rend la page publique et qui ouvre l'envoi des notifications
+prévues par le niveau d'importance.
+
+Une information validée mais jamais publiée finit par atteindre son expiration.
+Elle n'est pas fermée en silence : son auteur est prévenu qu'elle n'a pas été
+publiée, comme pour une proposition jamais validée.
+
 Tant qu'une seule personne porte le service dans l'établissement, elle peut
 valider sa propre proposition : exiger une seconde personne bloquerait toute
 publication. Cette auto-validation n'est jamais silencieuse — elle est
