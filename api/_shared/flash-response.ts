@@ -9,10 +9,13 @@ import type { FlashNotificationChannel } from "../../shared/flash-audience-corre
 import {
   isValidFlashInfoVersionPayload,
   isValidFlashValidationAccessPayload,
+  isValidFlashAudienceTreatmentPayload,
   type FlashInfoVersionPayload,
   type FlashValidationAccessPayload,
+  type FlashAudienceTreatmentPayload,
 } from "../../shared/flash-payload-policy.js";
 import type { FlashValidationDecision } from "../../shared/flash-validation-access.js";
+import type { FlashAudienceTreatment } from "../../shared/flash-audience-correction.js";
 import { HttpError } from "./auth.js";
 
 export type FlashVersionRow = {
@@ -68,6 +71,29 @@ export function toFlashValidationAccessPayload(
   };
   if (!isValidFlashValidationAccessPayload(payload)) {
     throw new HttpError(500, "L'autorisation de validation flash ne respecte pas le contrat de réponse.");
+  }
+  return payload;
+}
+
+/**
+ * LOT 4 : les trois ensembles (maintenus/retirés/ajoutés) et l'éligibilité des
+ * canaux d'une correction, calculés par `resolveFlashAudienceTreatment`
+ * (shared/flash-audience-correction.ts, §13). Même garde qu'ailleurs dans ce
+ * fichier : la route ne répond jamais ce résultat sans repasser par le
+ * contrat strict de LOT 1.
+ */
+export function toFlashAudienceTreatmentPayload(
+  treatment: FlashAudienceTreatment
+): FlashAudienceTreatmentPayload {
+  const payload = {
+    maintained: treatment.maintained,
+    removed: treatment.removed,
+    added: treatment.added,
+    eligibleChannels: treatment.eligibleChannels,
+    correctionPossible: treatment.correctionPossible,
+  };
+  if (!isValidFlashAudienceTreatmentPayload(payload)) {
+    throw new HttpError(500, "Le traitement d'audience de correction flash ne respecte pas le contrat de réponse.");
   }
   return payload;
 }
