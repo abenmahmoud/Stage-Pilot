@@ -94,3 +94,40 @@ test("reste mobile-first : pas de largeur fixe superieure a 320 px qui casserait
 test("garde des cibles tactiles d'au moins 40 pixels sur les actions", () => {
   assert.match(page, /min-h-\[40px\]/);
 });
+
+// LOT 2 du plan de correction visible
+// (docs/operations/PLAN_FLASH_CORRECTION_VISIBLE_2026-09-05.md) : a la
+// confirmation d'une correction, l'ecran doit rappeler qu'elle n'est pas
+// encore visible, dire quelle ancienne version le public voit toujours, et
+// offrir un bouton de publication immediatement accessible depuis ce rappel.
+
+test("capture le titre et le texte de la version encore publiee AVANT toute frappe dans le formulaire de correction", () => {
+  assert.match(
+    page,
+    /setCorrectionBeforeVersion\(\{ title: item\.version\.title, bodyMarkdown: item\.version\.bodyMarkdown \}\)/
+  );
+  // Capturee dans openCorrection, pas relue depuis les champs modifiables
+  // (correctionTitle/correctionBody), sans quoi le rappel afficherait le
+  // nouveau texte au lieu de l'ancien.
+  assert.doesNotMatch(page, /previousVersion: \{ title: correctionTitle/);
+});
+
+test("le rappel de non-visibilite nomme explicitement l'ancienne version encore servie", () => {
+  assert.match(page, /pas visible : il faut la publier pour qu'elle/);
+  assert.match(
+    page,
+    /le public voit toujours l'ancienne\s*\n?\s*version : « \{correctionResult\.previousVersion\.title\} »/
+  );
+});
+
+test("le bouton de publication du rappel appelle la meme fonction publish(), sans nouvelle route ni recalcul", () => {
+  assert.match(page, /onClick=\{\(\) => void publish\(correctionResult\.version\.flashInfoId\)\}/);
+  assert.match(page, /Publier la correction maintenant/);
+});
+
+test("le rappel disparait une fois cette meme information reellement republiee, jamais avant", () => {
+  assert.match(
+    page,
+    /previous && previous\.version\.flashInfoId === flashInfoId \? null : previous/
+  );
+});

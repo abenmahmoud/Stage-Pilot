@@ -213,10 +213,18 @@ export default function FlashValidationPage() {
   const [correctionExpiresAt, setCorrectionExpiresAt] = useState("");
   const [correctionSubmitting, setCorrectionSubmitting] = useState(false);
   const [correctionError, setCorrectionError] = useState("");
+  // Capturée à l'ouverture du formulaire (openCorrection), avant toute
+  // frappe : c'est le titre réellement encore servi au public tant que la
+  // correction n'est pas republiée (LOT 2 du plan de correction visible).
+  const [correctionBeforeVersion, setCorrectionBeforeVersion] = useState<{
+    title: string;
+    bodyMarkdown: string;
+  } | null>(null);
   const [correctionResult, setCorrectionResult] = useState<{
     version: FlashInfoVersionPayload;
     audienceTreatment: FlashAudienceTreatmentPayload;
     gapKind: FlashGapKind;
+    previousVersion: { title: string; bodyMarkdown: string };
   } | null>(null);
 
   const load = useCallback(async () => {
@@ -305,6 +313,12 @@ export default function FlashValidationPage() {
           ? "Cette information était déjà publiée : aucune seconde publication n'a eu lieu."
           : "Publication enregistrée : l'information est désormais visible. Aucun envoi n'est déclenché, les canaux de notification restent fermés."
       );
+      // Le rappel « pas encore visible » n'a plus lieu d'être une fois cette
+      // même information réellement republiée (LOT 2 du plan de correction
+      // visible) : il disparaît, le bandeau de succès ci-dessus suffit.
+      setCorrectionResult((previous) =>
+        previous && previous.version.flashInfoId === flashInfoId ? null : previous
+      );
       await load();
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : "La publication n'a pas pu être enregistrée.");
@@ -318,6 +332,7 @@ export default function FlashValidationPage() {
     setCorrectionError("");
     setCorrectionResult(null);
     setCorrectingId(item.version.flashInfoId);
+    setCorrectionBeforeVersion({ title: item.version.title, bodyMarkdown: item.version.bodyMarkdown });
     setCorrectionTitle(item.version.title);
     setCorrectionBody(item.version.bodyMarkdown);
     setCorrectionImportance(item.version.importance);
@@ -342,7 +357,7 @@ export default function FlashValidationPage() {
   // ensembles depuis l'audience et les envois RÉELS ; rien de tout ça n'est
   // recalculé côté client (même règle que pour `decide`).
   async function submitCorrection() {
-    if (!correctingId) return;
+    if (!correctingId || !correctionBeforeVersion) return;
     setCorrectionError("");
     let groupRefs: string[];
     let trimmedTitle: string;
@@ -397,7 +412,7 @@ export default function FlashValidationPage() {
       if (!isFlashCorrectionResultPayload(confirmation)) {
         throw new Error("La confirmation de la correction n'a pas pu être lue.");
       }
-      setCorrectionResult(confirmation);
+      setCorrectionResult({ ...confirmation, previousVersion: correctionBeforeVersion });
       setCorrectingId(null);
       await load();
     } catch (caught) {
@@ -789,7 +804,32 @@ export default function FlashValidationPage() {
           <CardHeader>
             <h2 className="font-semibold text-gray-900">Correction confirmée : {correctionResult.version.title}</h2>
           </CardHeader>
-          <CardContent className="space-y-2">
+          <CardContent className="space-y-3">
+            <div className="space-y-2 rounded-xl border border-amber-200 bg-amber-50 p-3 text-xs text-amber-900">
+              <p className="flex items-start gap-1.5 font-medium">
+                <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+                Correction enregistrée, mais pas visible : il faut la publier pour qu'elle
+                remplace ce que le public voit encore.
+              </p>
+              <p>
+                Tant que cette publication n'a pas eu lieu, le public voit toujours l'ancienne
+                version : « {correctionResult.previousVersion.title} ».
+              </p>
+              <button
+                type="button"
+                onClick={() => void publish(correctionResult.version.flashInfoId)}
+                disabled={publishingId === correctionResult.version.flashInfoId}
+                className="inline-flex min-h-[40px] items-center gap-1.5 rounded-lg bg-primary-600 px-3 py-2 text-xs font-medium text-white disabled:opacity-50"
+              >
+                {publishingId === correctionResult.version.flashInfoId ? (
+                  <LoaderCircle className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Send className="h-4 w-4" />
+                )}
+                Publier la correction maintenant
+              </button>
+            </div>
+
             <div className="space-y-2 rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-xs text-emerald-900">
               <p className="flex items-start gap-1.5 font-medium">
                 <CheckCircle2 className="mt-0.5 h-3.5 w-3.5 shrink-0" />
