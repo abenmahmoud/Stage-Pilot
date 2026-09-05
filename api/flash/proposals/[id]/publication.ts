@@ -1,20 +1,34 @@
 // POST /api/flash/proposals/[id]/publication — LOT 1 du plan de publication
-// flash (docs/operations/PLAN_FLASH_PUBLICATION_2026-09-05.md).
+// flash (docs/operations/PLAN_FLASH_PUBLICATION_2026-09-05.md), complétée par
+// le LOT 3 du plan de publication publique
+// (docs/operations/PLAN_FLASH_PUBLIC_2026-09-05.md).
 //
 // Transition `validee` -> `publiee`, ouverte par le MÊME service que la
 // validation (`assertFlashValidationAccess`, `decideFlashValidationAccess`),
 // jamais par le rôle applicatif seul. Décision d'Adel (§13, T071F) : valider
-// n'est pas publier, ce sont deux gestes humains distincts. Cette route
-// n'écrit donc jamais `flash_notification_dispatches` et ne fait aucun appel
-// externe ; les drapeaux d'envoi restent fermés (règle commune n°3 du plan).
+// n'est pas publier, ce sont deux gestes humains distincts.
+//
+// Depuis le LOT 3 du plan de publication publique, cette route écrit la
+// TRACE des envois dans `flash_notification_dispatches` (via le module pur
+// `shared/flash-dispatch-plan.ts`, jamais une règle réécrite ici) mais ne
+// fait toujours aucun appel externe : chaque ligne naît au statut
+// `simulated`, jamais `sent`, tant que les drapeaux d'envoi restent fermés
+// (règle commune n°3 du plan). Écrire `sent` ici mentirait sur ce qui a
+// réellement notifié quelqu'un et fausserait silencieusement le calcul des
+// trois ensembles d'une future correction (shared/flash-audience-correction.ts
+// ne compte que `sent`) — c'est le point le plus délicat du LOT 3, prouvé par
+// scripts/test-flash-dispatch-plan.mjs et scripts/test-flash-notification-dispatch.mjs.
 //
 // La légalité de la transition passe par `shared/flash-transitions.ts`, pas
 // par une condition écrite ici (règle commune n°4). Un seul cas y échappe
 // nécessairement : rester sur `publiee` n'est pas une transition légale selon
 // ce graphe (`from === to` est refusé), donc l'idempotence — deux clics ne
 // publient qu'une fois, la seconde réponse dit que c'était déjà publié
-// plutôt que d'échouer — est traitée avant d'appeler
-// `assertLegalFlashVersionTransition`, pas en réinterprétant son refus.
+// plutôt que d'échouer, SANS rejouer l'écriture des lignes d'envoi — est
+// traitée avant d'appeler `assertLegalFlashVersionTransition`, pas en
+// réinterprétant son refus. Défense en profondeur côté base : deux index
+// uniques partiels (migration 20260905150000) refusent toute ligne en double
+// même si ce garde applicatif était un jour contourné.
 //
 // Verrou : même motif que decision.ts et correction.ts, un seul
 // `SELECT ... FOR UPDATE` protège contre deux publications simultanées ; la
@@ -27,7 +41,14 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { and, eq } from "drizzle-orm";
 import { db } from "../../../../db/index.js";
-import { flashInfoEvents, flashInfoVersions, flashInfos } from "../../../../db/schema.js";
+import {
+  flashInfoAudiences,
+  flashInfoEvents,
+  flashInfoSmsContacts,
+  flashInfoVersions,
+  flashInfos,
+  flashNotificationDispatches,
+} from "../../../../db/schema.js";
 import { handleApi, methodNotAllowed } from "../../../_shared/response.js";
 import { HttpError } from "../../../_shared/auth.js";
 import {
@@ -38,6 +59,9 @@ import {
 import { toFlashValidationAccessPayload, toFlashVersionPayload, type FlashVersionRow } from "../../../_shared/flash-response.js";
 import { assertLegalFlashVersionTransition, FlashTransitionError } from "../../../../shared/flash-transitions.js";
 import type { FlashValidationDecision } from "../../../../shared/flash-validation-access.js";
+import { resolveFlashDispatchPlan } from "../../../../shared/flash-dispatch-plan.js";
+import type { FlashNotificationChannel } from "../../../../shared/flash-audience-correction.js";
+import type { FlashImportance } from "../../../../shared/flash-version-diff.js";
 
 const VERSION_COLUMNS = {
   id: flashInfoVersions.id,
@@ -128,6 +152,58 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         throw new HttpError(409, "Cette information vient d'être publiée par quelqu'un d'autre.");
       }
 
+      // LOT 3 du plan de publication publique : écrire la trace des envois,
+      // calculée par le module pur (jamais recalculée ici) à partir de
+      // l'audience et des contacts SMS RÉELS de cette version — jamais d'une
+      // audience redemandée au client.
+      const [audienceRows, smsContactRows] = await Promise.all([
+        tx
+          .select({ groupRef: flashInfoAudiences.groupRef })
+          .from(flashInfoAudiences)
+          .where(
+            and(
+              eq(flashInfoAudiences.versionId, current.id),
+              eq(flashInfoAudiences.institutionId, actor.institutionId)
+            )
+          ),
+        tx
+          .select({ contactRef: flashInfoSmsContacts.contactRef })
+          .from(flashInfoSmsContacts)
+          .where(
+            and(
+              eq(flashInfoSmsContacts.versionId, current.id),
+              eq(flashInfoSmsContacts.institutionId, actor.institutionId)
+            )
+          ),
+      ]);
+
+      const dispatchPlan = resolveFlashDispatchPlan({
+        importance: updated.importance as FlashImportance,
+        channels: updated.channels as FlashNotificationChannel[],
+        groupRefs: audienceRows.map((row) => row.groupRef),
+        smsContactRefs: smsContactRows.map((row) => row.contactRef),
+      });
+
+      if (dispatchPlan.length > 0) {
+        // État `simulated`, jamais `sent`, tant que les drapeaux d'envoi sont
+        // fermés (voir l'en-tête du fichier). `onConflictDoNothing` sans
+        // cible retombe sur les deux index uniques partiels de la migration
+        // 20260905150000, quel que soit le canal de la ligne.
+        await tx
+          .insert(flashNotificationDispatches)
+          .values(
+            dispatchPlan.map((target) => ({
+              institutionId: actor.institutionId,
+              versionId: current.id,
+              channel: target.channel,
+              groupRef: target.groupRef,
+              contactRef: target.contactRef,
+              status: "simulated" as const,
+            }))
+          )
+          .onConflictDoNothing();
+      }
+
       await tx.insert(flashInfoEvents).values({
         institutionId: actor.institutionId,
         flashInfoId: current.flashInfoId,
@@ -140,6 +216,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           selfValidated: access.selfValidated,
           grantedByService: access.grantedByService,
           validatedBy: current.validatedBy,
+          simulatedDispatchCount: dispatchPlan.length,
         },
       });
 

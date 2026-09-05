@@ -251,6 +251,7 @@ export default function FlashProposalPage() {
           importance: importanceValue,
           channels,
           groupRefs,
+          smsContactRefs: smsContacts,
           expiresAt: expiresAtDate.toISOString(),
         }),
       });

@@ -18,6 +18,7 @@
 import { FLASH_IMPORTANCE_LEVELS, type FlashImportance } from "./flash-version-diff.js";
 import {
   FLASH_NOTIFICATION_CHANNELS,
+  parseFlashContactRef,
   parseFlashGroupRef,
   type FlashNotificationChannel,
 } from "./flash-audience-correction.js";
@@ -37,10 +38,28 @@ export type FlashProposalInput = {
   importance: FlashImportance;
   channels: FlashNotificationChannel[];
   groupRefs: string[];
+  /**
+   * Personnes choisies pour le canal SMS (§13 : « SMS aux seules personnes
+   * choisies, jamais a un groupe »), jamais devinees depuis `groupRefs`.
+   * Optionnel dans le corps de la requete : absent vaut liste vide. Doit
+   * rester vide si `sms` n'est pas dans `channels`, et non vide si `sms` y
+   * est -- c'est la meme regle que celle deja affichee par
+   * FlashProposalPage.tsx (le canal n'est ajoute que si une personne est
+   * cochee), revalidee ici cote serveur.
+   */
+  smsContactRefs: string[];
   expiresAt: Date;
 };
 
-const ALLOWED_FIELDS = new Set(["title", "bodyMarkdown", "importance", "channels", "groupRefs", "expiresAt"]);
+const ALLOWED_FIELDS = new Set([
+  "title",
+  "bodyMarkdown",
+  "importance",
+  "channels",
+  "groupRefs",
+  "smsContactRefs",
+  "expiresAt",
+]);
 
 const ALLOWED_CHANNELS_BY_IMPORTANCE: Readonly<Record<FlashImportance, readonly FlashNotificationChannel[]>> = {
   normale: [],
@@ -73,6 +92,31 @@ function parseChannels(value: unknown, importance: FlashImportance): FlashNotifi
     throw new FlashProposalInputError("channels_missing_required");
   }
   return channels;
+}
+
+function parseSmsContactRefs(value: unknown, channels: readonly FlashNotificationChannel[]): string[] {
+  const wantsSms = channels.includes("sms");
+  if (value === undefined) {
+    if (wantsSms) throw new FlashProposalInputError("sms_contact_refs_required");
+    return [];
+  }
+  if (!Array.isArray(value)) throw new FlashProposalInputError("sms_contact_refs_invalid");
+  let contactRefs: string[];
+  try {
+    contactRefs = value.map((ref) => parseFlashContactRef(ref));
+  } catch {
+    throw new FlashProposalInputError("sms_contact_refs_invalid");
+  }
+  if (new Set(contactRefs).size !== contactRefs.length) {
+    throw new FlashProposalInputError("sms_contact_refs_duplicate");
+  }
+  if (wantsSms && contactRefs.length === 0) {
+    throw new FlashProposalInputError("sms_contact_refs_required");
+  }
+  if (!wantsSms && contactRefs.length > 0) {
+    throw new FlashProposalInputError("sms_contact_refs_unexpected");
+  }
+  return contactRefs;
 }
 
 function parseGroupRefs(value: unknown): string[] {
@@ -123,6 +167,7 @@ export function parseFlashProposalInput(value: unknown): FlashProposalInput {
 
   const channels = parseChannels(input.channels, importance);
   const groupRefs = parseGroupRefs(input.groupRefs);
+  const smsContactRefs = parseSmsContactRefs(input.smsContactRefs, channels);
 
   if (typeof input.expiresAt !== "string" || input.expiresAt.length > 40) {
     throw new FlashProposalInputError("expires_at_invalid");
@@ -138,6 +183,7 @@ export function parseFlashProposalInput(value: unknown): FlashProposalInput {
     importance,
     channels,
     groupRefs,
+    smsContactRefs,
     expiresAt,
   };
 }

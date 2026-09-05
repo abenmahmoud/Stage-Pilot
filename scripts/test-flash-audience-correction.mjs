@@ -3,6 +3,7 @@ import test from "node:test";
 
 import {
   FlashAudienceError,
+  parseFlashContactRef,
   parseFlashGroupRef,
   resolveFlashAudienceTreatment,
 } from "../shared/flash-audience-correction.ts";
@@ -15,6 +16,17 @@ test("groupRef refuse un format invalide (email, trop court, caractere interdit)
   assert.throws(() => parseFlashGroupRef("a@b"), (error) => error instanceof FlashAudienceError);
   assert.throws(() => parseFlashGroupRef("ab"), (error) => error instanceof FlashAudienceError);
   assert.equal(parseFlashGroupRef(CLASSE_A), CLASSE_A);
+});
+
+// LOT 3 du plan de publication publique : le SMS n'accepte qu'une reference
+// de personne, jamais de groupe -- meme motif, mais plus longue qu'un
+// group_ref (7 a 119 caracteres apres le premier), pour rester distincte au
+// premier coup d'oeil.
+test("contactRef refuse un format invalide (email, trop court, caractere interdit)", () => {
+  assert.throws(() => parseFlashContactRef("a@b"), (error) => error instanceof FlashAudienceError);
+  assert.throws(() => parseFlashContactRef("court"), (error) => error instanceof FlashAudienceError);
+  const CONTACT = "contact:cpe-fictif-1234567";
+  assert.equal(parseFlashContactRef(CONTACT), CONTACT);
 });
 
 test("audience reduite : un retire recoit la ligne, aucun ajoute", () => {

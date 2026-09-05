@@ -10,7 +10,13 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { and, eq } from "drizzle-orm";
 import { db } from "../../../db/index.js";
-import { flashInfoAudiences, flashInfoEvents, flashInfoVersions, flashInfos } from "../../../db/schema.js";
+import {
+  flashInfoAudiences,
+  flashInfoEvents,
+  flashInfoSmsContacts,
+  flashInfoVersions,
+  flashInfos,
+} from "../../../db/schema.js";
 import { handleApi, methodNotAllowed } from "../../_shared/response.js";
 import { HttpError } from "../../_shared/auth.js";
 import { requireFlashActor } from "../../_shared/flash-access.js";
@@ -127,6 +133,19 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             groupRef,
           }))
         );
+
+        // Personnes choisies pour le SMS (§13), jamais devinees depuis
+        // `groupRefs` : table separee, ecrite seulement si le canal est
+        // choisi (shared/flash-proposal-input.ts l'impose deja).
+        if (input.smsContactRefs.length > 0) {
+          await tx.insert(flashInfoSmsContacts).values(
+            input.smsContactRefs.map((contactRef) => ({
+              institutionId: actor.institutionId,
+              versionId: version.id,
+              contactRef,
+            }))
+          );
+        }
 
         await tx.insert(flashInfoEvents).values({
           institutionId: actor.institutionId,

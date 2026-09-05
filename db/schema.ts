@@ -2330,6 +2330,32 @@ export const flashInfoAudiences = pgTable(
   ]
 );
 
+// LOT 3 du plan de publication publique : personnes choisies pour le canal
+// SMS d'une version (§13, « SMS aux seules personnes choisies, jamais a un
+// groupe »). Table separee de `flashInfoAudiences` a dessein : l'audience
+// gouverne la visibilite (qui voit la flash) et les canaux de groupe
+// (push/email) ; ceci ne gouverne que la liste, distincte, des destinataires
+// individuels du SMS.
+export const flashInfoSmsContacts = pgTable(
+  "flash_info_sms_contacts",
+  {
+    id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+    institutionId: uuid("institution_id")
+      .notNull()
+      .references(() => institutions.id, { onDelete: "restrict" }),
+    versionId: uuid("version_id")
+      .notNull()
+      .references(() => flashInfoVersions.id, { onDelete: "restrict" }),
+    contactRef: text("contact_ref").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    uniqueIndex("flash_info_sms_contacts_version_contact_uidx").on(table.versionId, table.contactRef),
+    index("flash_info_sms_contacts_version_scope_idx").on(table.versionId, table.institutionId),
+    index("flash_info_sms_contacts_scope_contact_idx").on(table.institutionId, table.contactRef),
+  ]
+);
+
 export const flashNotificationDispatches = pgTable(
   "flash_notification_dispatches",
   {

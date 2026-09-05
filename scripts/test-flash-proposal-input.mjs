@@ -94,11 +94,16 @@ test("une flash urgente sans email est refusee : push et email sont obligatoires
   );
 });
 
-test("une flash urgente avec push, email et sms est acceptee", () => {
+test("une flash urgente avec push, email et sms est acceptee, avec au moins une personne choisie pour le sms", () => {
   const parsed = parseFlashProposalInput(
-    validBase({ importance: "urgente", channels: ["push", "email", "sms"] })
+    validBase({
+      importance: "urgente",
+      channels: ["push", "email", "sms"],
+      smsContactRefs: ["contact:cpe-fictif-1234567"],
+    })
   );
   assert.deepEqual(parsed.channels, ["push", "email", "sms"]);
+  assert.deepEqual(parsed.smsContactRefs, ["contact:cpe-fictif-1234567"]);
 });
 
 test("un canal duplique est refuse", () => {
@@ -137,6 +142,86 @@ test("une expiration absente ou passee est refusee : l'expiration est obligatoir
   assert.throws(
     () => parseFlashProposalInput(validBase({ expiresAt: new Date(Date.now() - 1000).toISOString() })),
     (error) => error instanceof FlashProposalInputError && error.reason === "expires_at_invalid"
+  );
+});
+
+test("smsContactRefs absent vaut liste vide quand sms n'est pas choisi", () => {
+  const parsed = parseFlashProposalInput(
+    validBase({ importance: "urgente", channels: ["push", "email"] })
+  );
+  assert.deepEqual(parsed.smsContactRefs, []);
+});
+
+test("sms choisi sans aucun contact est refuse : la personne choisie est obligatoire", () => {
+  assert.throws(
+    () =>
+      parseFlashProposalInput(
+        validBase({ importance: "urgente", channels: ["push", "email", "sms"], smsContactRefs: [] })
+      ),
+    (error) => error instanceof FlashProposalInputError && error.reason === "sms_contact_refs_required"
+  );
+  assert.throws(
+    () =>
+      parseFlashProposalInput(
+        validBase({ importance: "urgente", channels: ["push", "email", "sms"] })
+      ),
+    (error) => error instanceof FlashProposalInputError && error.reason === "sms_contact_refs_required"
+  );
+});
+
+test("un contact choisi alors que sms n'est pas dans les canaux est refuse", () => {
+  assert.throws(
+    () =>
+      parseFlashProposalInput(
+        validBase({
+          importance: "urgente",
+          channels: ["push", "email"],
+          smsContactRefs: ["contact:cpe-fictif-1234567"],
+        })
+      ),
+    (error) => error instanceof FlashProposalInputError && error.reason === "sms_contact_refs_unexpected"
+  );
+});
+
+test("sms choisi avec des personnes valides est accepte", () => {
+  const parsed = parseFlashProposalInput(
+    validBase({
+      importance: "urgente",
+      channels: ["push", "email", "sms"],
+      smsContactRefs: ["contact:cpe-fictif-1234567"],
+    })
+  );
+  assert.deepEqual(parsed.smsContactRefs, ["contact:cpe-fictif-1234567"]);
+});
+
+test("une reference de contact invalide (trop courte, email) est refusee", () => {
+  assert.throws(
+    () =>
+      parseFlashProposalInput(
+        validBase({ importance: "urgente", channels: ["push", "email", "sms"], smsContactRefs: ["a@b"] })
+      ),
+    (error) => error instanceof FlashProposalInputError && error.reason === "sms_contact_refs_invalid"
+  );
+  assert.throws(
+    () =>
+      parseFlashProposalInput(
+        validBase({ importance: "urgente", channels: ["push", "email", "sms"], smsContactRefs: ["court"] })
+      ),
+    (error) => error instanceof FlashProposalInputError && error.reason === "sms_contact_refs_invalid"
+  );
+});
+
+test("une reference de contact dupliquee est refusee", () => {
+  assert.throws(
+    () =>
+      parseFlashProposalInput(
+        validBase({
+          importance: "urgente",
+          channels: ["push", "email", "sms"],
+          smsContactRefs: ["contact:cpe-fictif-1234567", "contact:cpe-fictif-1234567"],
+        })
+      ),
+    (error) => error instanceof FlashProposalInputError && error.reason === "sms_contact_refs_duplicate"
   );
 });
 

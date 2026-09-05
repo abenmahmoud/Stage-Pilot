@@ -54,12 +54,12 @@ test("rend l'expiration obligatoire et l'importance decidee par la personne, pas
   assert.match(page, /Choisissez l'importance : la suggestion de l'agent n'est pas une décision\./);
 });
 
-test("le SMS reste rattache a des personnes choisies, jamais a un groupe, et n'est pas envoye au serveur (pas de champ dans le contrat LOT 1)", () => {
+test("le SMS reste rattache a des personnes choisies, jamais a un groupe, et est desormais envoye au serveur sous smsContactRefs (LOT 3 du plan de publication publique, contrat etendu depuis le LOT 1)", () => {
   assert.match(page, /FICTITIOUS_FLASH_SMS_CONTACTS/);
   assert.match(page, /jamais à un groupe/);
   const bodyMatch = page.match(/body: JSON\.stringify\(\{([\s\S]*?)\}\),/);
   assert.ok(bodyMatch, "le corps de la requete POST doit etre identifiable");
-  assert.doesNotMatch(bodyMatch[1], /smsContacts/);
+  assert.match(bodyMatch[1], /smsContactRefs:\s*smsContacts/);
 });
 
 test("reste mobile-first : pas de largeur fixe superieure a 320 px qui casserait l'ecran le plus etroit", () => {

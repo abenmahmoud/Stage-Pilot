@@ -43,6 +43,22 @@ export function parseFlashGroupRef(value: unknown): string {
   return value;
 }
 
+// Meme motif que `flash_notification_dispatches.contact_ref` (migration LOT 1
+// du plan de persistance) : pas de '@', alphabet identique, mais plus long
+// qu'un group_ref (7 a 119 caracteres apres le premier) pour rester distinct
+// des references de groupe au premier coup d'oeil. C'est aussi la seule
+// reference que le canal SMS accepte : jamais un group_ref (§13, LOT 3 du plan
+// de publication publique, « SMS aux seules personnes choisies, jamais a un
+// groupe »).
+const CONTACT_REF_PATTERN = /^[a-zA-Z0-9][a-zA-Z0-9:_-]{7,119}$/;
+
+export function parseFlashContactRef(value: unknown): string {
+  if (typeof value !== "string" || !CONTACT_REF_PATTERN.test(value) || value.includes("@")) {
+    throw new FlashAudienceError("contact_ref_invalid");
+  }
+  return value;
+}
+
 function parseGroupRefList(value: unknown, field: string): string[] {
   if (!Array.isArray(value)) throw new FlashAudienceError(field + "_invalid");
   try {
