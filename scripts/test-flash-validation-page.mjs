@@ -1,50 +1,56 @@
-// Verifications statiques de l'ecran de validation/modification des
-// informations flash (LOT 4). Pas de rendu reel dans un navigateur : ce
-// script relit le code source et verifie par expressions regulieres
-// l'absence de tout appel serveur, la presence des garanties exigees par le
-// plan de nuit (correction affichee seulement si decisive, trois ensembles
-// avec confirmation ensemble par ensemble, message factuel T071D, refus de
-// transition illegale) et la disposition mobile-first.
+// Verifications statiques de l'ecran de validation des informations flash
+// (LOT 6 : branchement sur /api/flash/validation/queue,
+// /api/flash/validation/expired et /api/flash/proposals/[id]/decision). Pas
+// de rendu reel dans un navigateur : ce script relit le code source et
+// verifie l'appel reel via `apiFetch`, la verification stricte des contrats
+// de reponse (LOT 1) avant affichage, l'autorisation par service remontee
+// jusqu'a l'ecran (T071E, `access.allowed`/`access.reason`) plutot que
+// recalculee par role cote client, le message factuel T071D, et la
+// disposition mobile-first.
+//
+// La correction apres publication (LOT 4) et la modification du texte avant
+// validation (LOT 3, decision avec `content`) restent hors de cet ecran :
+// aucune route ne renvoie la version precedente ni l'audience necessaires a
+// cet affichage (voir le compte rendu du LOT 6, "Ce qui reste a brancher").
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import test from "node:test";
-import { parseFlashGroupRef, FlashAudienceError } from "../shared/flash-audience-correction.ts";
 
 const page = readFileSync(
   new URL("../src/pages/admin/FlashValidationPage.tsx", import.meta.url),
   "utf8"
 );
 
-test("n'effectue aucun appel reseau ni ecriture serveur", () => {
-  assert.doesNotMatch(page, /fetch\(/);
+test("lit la file et les expirations via apiFetch, jamais un appel direct au reseau ou a supabase", () => {
+  assert.match(page, /import \{ apiFetch \} from "\.\.\/\.\.\/lib\/api"/);
+  assert.match(page, /apiFetch<unknown>\("flash\/validation\/queue"\)/);
+  assert.match(page, /apiFetch<unknown>\("flash\/validation\/expired"\)/);
+  assert.doesNotMatch(page, /(?<!api)[Ff]etch\(/);
   assert.doesNotMatch(page, /supabase/i);
   assert.doesNotMatch(page, /axios/i);
   assert.doesNotMatch(page, /XMLHttpRequest/);
-  assert.doesNotMatch(page, /\.insert\(/);
-  assert.doesNotMatch(page, /\.from\(/);
 });
 
-test("reutilise les modules purs du LOT 2 plutot que de reinventer les regles", () => {
-  assert.match(page, /analyzeFlashVersionGap/);
-  assert.match(page, /resolveFlashAudienceTreatment/);
-  assert.match(page, /assertLegalFlashVersionTransition/);
-  assert.match(page, /checkFlashProposalExpiration/);
+test("decide via POST /api/flash/proposals/[id]/decision, sans recalculer la transition cote client", () => {
+  assert.match(page, /apiFetch<unknown>\(`flash\/proposals\/\$\{flashInfoId\}\/decision`/);
+  assert.match(page, /method: "POST"/);
+  assert.match(page, /decision: target, content: null/);
 });
 
-test("n'affiche la proposition de correction que lorsque l'ecart est decisif (ou demande quand meme)", () => {
-  assert.match(page, /analysis\.isDecisive \|\| forcedCorrection/);
-  assert.match(page, /Correction de forme : aucune proposition de correction par défaut\./);
-  assert.match(page, /Demander quand même une correction/);
-  assert.match(page, /Refuser la correction/);
+test("verifie les contrats de reponse stricts (LOT 1) avant d'afficher la file, les expirations ou une decision", () => {
+  assert.match(page, /isValidFlashInfoVersionPayload/);
+  assert.match(page, /isValidFlashValidationAccessPayload/);
+  assert.match(page, /isFlashValidationQueuePayload/);
+  assert.match(page, /isFlashExpiredListPayload/);
+  assert.match(page, /isFlashDecisionConfirmationPayload/);
 });
 
-test("affiche les trois ensembles avec confirmation ensemble par ensemble", () => {
-  assert.match(page, /"maintained", "removed", "added"/);
-  assert.match(page, /Maintenus/);
-  assert.match(page, /Retirés/);
-  assert.match(page, /Ajoutés/);
-  assert.match(page, /Cette information ne vous concerne plus\./);
-  assert.match(page, /Confirmer/);
+test("l'autorisation de decider vient de l'access renvoye par le serveur (T071E), pas d'un role recalcule a l'ecran", () => {
+  assert.match(page, /access\.allowed/);
+  assert.match(page, /access\.selfValidated/);
+  assert.match(page, /ACCESS_REASON_LABEL/);
+  assert.doesNotMatch(page, /user\.role\s*===/);
+  assert.doesNotMatch(page, /decideFlashValidationAccess/);
 });
 
 test("previent factuellement l'auteur d'une proposition expiree sans validation, sans mettre en cause un valideur", () => {
@@ -54,32 +60,15 @@ test("previent factuellement l'auteur d'une proposition expiree sans validation,
   assert.match(page, /Échecs comptés et consultables/);
 });
 
-test("aucun envoi : les boutons ne font que preparer et afficher un apercu local", () => {
-  assert.match(page, /Préparer la notification de correction \(simulation\)/);
-  assert.match(page, /rien n'a été envoyé/);
-  assert.match(page, /Mode simulation/);
-});
-
-test("respecte le graphe de transitions du LOT 2 (proposee -> validee\\|refusee), refuse le reste", () => {
-  assert.match(page, /FlashTransitionError/);
-  assert.match(page, /Transition refusée : \{transitionError\}/);
+test("signale explicitement que la modification avant validation et la correction apres publication ne sont pas branchees", () => {
+  assert.match(page, /modification du texte avant\s*\n?\s*validation et la correction après publication ne sont pas branchées/);
 });
 
 test("reste mobile-first : pas de largeur fixe superieure a 320 px qui casserait l'ecran le plus etroit", () => {
   assert.doesNotMatch(page, /min-w-\[(3[3-9]\d|[4-9]\d{2}|\d{4,})px\]/);
   assert.doesNotMatch(page, /<table/);
-  assert.match(page, /grid-cols-1 gap-3 sm:grid-cols-2/);
 });
 
 test("garde des cibles tactiles d'au moins 40 pixels sur les actions", () => {
   assert.match(page, /min-h-\[40px\]/);
-});
-
-test("les references de groupes fictifs respectent le meme filtre que la base (group_ref, LOT 1/LOT 2)", () => {
-  const refs = [...page.matchAll(/ref: "([a-z0-9:_-]+)"/g)].map((match) => match[1]);
-  assert.ok(refs.length >= 6, "au moins les groupes fictifs attendus");
-  for (const ref of refs) {
-    assert.doesNotThrow(() => parseFlashGroupRef(ref), `${ref} devrait rester un group_ref valide`);
-  }
-  assert.throws(() => parseFlashGroupRef("nom@exemple.invalid"), FlashAudienceError);
 });

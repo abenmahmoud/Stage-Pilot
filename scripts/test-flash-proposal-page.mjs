@@ -1,9 +1,11 @@
 // Verifications statiques de l'ecran de proposition d'information flash
-// (LOT 3). Pas de rendu reel dans un navigateur : ce script relit le code
-// source et verifie par expressions regulieres l'absence de tout appel
-// serveur et la presence des garanties exigees par le plan de nuit
-// (avertissement "n'a prevenu personne", expiration obligatoire, disposition
-// mobile-first sans largeur fixe qui casserait a 320 px).
+// (LOT 6 : branchement sur /api/flash/proposals). Pas de rendu reel dans un
+// navigateur : ce script relit le code source et verifie par expressions
+// regulieres l'envoi reel via `apiFetch` (jamais un appel direct a supabase/
+// axios/XMLHttpRequest depuis l'ecran), la presence des garanties exigees par
+// le plan de nuit (avertissement "n'a prevenu personne", expiration
+// obligatoire, disposition mobile-first sans largeur fixe qui casserait a
+// 320 px).
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import test from "node:test";
@@ -17,13 +19,25 @@ const page = readFileSync(
   "utf8"
 );
 
-test("n'effectue aucun appel reseau ni ecriture serveur", () => {
-  assert.doesNotMatch(page, /fetch\(/);
+test("envoie la proposition via apiFetch, jamais un appel direct au reseau ou a supabase", () => {
+  assert.match(page, /import \{ apiFetch \} from "\.\.\/\.\.\/lib\/api"/);
+  assert.match(page, /apiFetch<unknown>\("flash\/proposals"/);
+  assert.match(page, /method: "POST"/);
+  assert.match(page, /"Idempotency-Key": idempotencyKeyRef\.current/);
+  assert.doesNotMatch(page, /(?<!api)[Ff]etch\(/);
   assert.doesNotMatch(page, /supabase/i);
   assert.doesNotMatch(page, /axios/i);
   assert.doesNotMatch(page, /XMLHttpRequest/);
   assert.doesNotMatch(page, /\.insert\(/);
-  assert.doesNotMatch(page, /\.from\(/);
+});
+
+test("regenere la cle d'idempotence apres un envoi reussi", () => {
+  assert.match(page, /idempotencyKeyRef\.current = crypto\.randomUUID\(\)/);
+});
+
+test("verifie le contrat de reponse avant d'afficher la confirmation", () => {
+  assert.match(page, /isValidFlashInfoVersionPayload/);
+  assert.match(page, /isFlashProposalSubmissionPayload/);
 });
 
 test("previent explicitement qu'une proposition en attente n'a prevenu personne", () => {
@@ -40,9 +54,12 @@ test("rend l'expiration obligatoire et l'importance decidee par la personne, pas
   assert.match(page, /Choisissez l'importance : la suggestion de l'agent n'est pas une décision\./);
 });
 
-test("le SMS reste rattache a des personnes choisies, jamais a un groupe", () => {
+test("le SMS reste rattache a des personnes choisies, jamais a un groupe, et n'est pas envoye au serveur (pas de champ dans le contrat LOT 1)", () => {
   assert.match(page, /FICTITIOUS_FLASH_SMS_CONTACTS/);
   assert.match(page, /jamais à un groupe/);
+  const bodyMatch = page.match(/body: JSON\.stringify\(\{([\s\S]*?)\}\),/);
+  assert.ok(bodyMatch, "le corps de la requete POST doit etre identifiable");
+  assert.doesNotMatch(bodyMatch[1], /smsContacts/);
 });
 
 test("reste mobile-first : pas de largeur fixe superieure a 320 px qui casserait l'ecran le plus etroit", () => {

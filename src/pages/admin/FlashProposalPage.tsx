@@ -1,9 +1,10 @@
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   AlertTriangle,
   ArrowLeft,
   CheckCircle2,
+  LoaderCircle,
   Lock,
   Mail,
   MessageSquareWarning,
@@ -11,6 +12,7 @@ import {
   Zap,
 } from "lucide-react";
 import { Card, CardContent, CardHeader } from "../../components/ui/Card";
+import { apiFetch } from "../../lib/api";
 import {
   FLASH_IMPORTANCE_LEVELS,
   type FlashImportance,
@@ -20,6 +22,10 @@ import {
   parseFlashGroupRef,
   type FlashNotificationChannel,
 } from "../../../shared/flash-audience-correction";
+import {
+  isValidFlashInfoVersionPayload,
+  type FlashInfoVersionPayload,
+} from "../../../shared/flash-payload-policy";
 
 // Meme adresse que celle deja utilisee (en lecture seule, aucune mutation)
 // dans src/pages/prototype/LyceeConnectPrototype.tsx pour ouvrir la
@@ -131,15 +137,20 @@ function suggestFlashImportance(title: string, body: string): { importance: Flas
   return { importance: "normale", reason: "Aucun mot-clé de changement décisif détecté." };
 }
 
-type PreparedFlashProposal = {
-  title: string;
-  body: string;
-  groupRefs: string[];
-  importance: FlashImportance;
-  channels: FlashNotificationChannel[];
-  smsContacts: string[];
-  expiresAtLabel: string;
+type SubmittedFlashProposal = {
+  version: FlashInfoVersionPayload;
+  duplicate: boolean;
 };
+
+function isFlashProposalSubmissionPayload(
+  value: unknown
+): value is { version: FlashInfoVersionPayload; duplicate: boolean } {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return false;
+  const record = value as Record<string, unknown>;
+  return (
+    isValidFlashInfoVersionPayload(record.version) && typeof record.duplicate === "boolean"
+  );
+}
 
 export default function FlashProposalPage() {
   const navigate = useNavigate();
@@ -151,38 +162,45 @@ export default function FlashProposalPage() {
   const [smsContacts, setSmsContacts] = useState<string[]>([]);
   const [expiresAt, setExpiresAt] = useState("");
   const [error, setError] = useState("");
-  const [prepared, setPrepared] = useState<PreparedFlashProposal | null>(null);
+  const [submitting, setSubmitting] = useState(false);
+  const [submitted, setSubmitted] = useState<SubmittedFlashProposal | null>(null);
+  const idempotencyKeyRef = useRef<string>(crypto.randomUUID());
 
   const suggestion = useMemo(() => suggestFlashImportance(title, body), [title, body]);
   const requirement = importance ? flashChannelRequirement(importance) : null;
 
   function toggleGroup(ref: string) {
-    setPrepared(null);
+    setSubmitted(null);
     setSelectedGroups((previous) =>
       previous.includes(ref) ? previous.filter((item) => item !== ref) : [...previous, ref]
     );
   }
 
   function toggleSmsContact(ref: string) {
-    setPrepared(null);
+    setSubmitted(null);
     setSmsContacts((previous) =>
       previous.includes(ref) ? previous.filter((item) => item !== ref) : [...previous, ref]
     );
   }
 
   function chooseImportance(next: FlashImportance) {
-    setPrepared(null);
+    setSubmitted(null);
     setImportance(next);
     if (next !== "importante") setEmailOptIn(false);
     if (next !== "urgente") setSmsContacts([]);
   }
 
-  function prepareProposal() {
+  async function submitProposal() {
     setError("");
-    setPrepared(null);
+    setSubmitted(null);
+    let groupRefs: string[];
+    let importanceValue: FlashImportance;
+    let expiresAtDate: Date;
+    let trimmedTitle: string;
+    let trimmedBody: string;
     try {
-      const trimmedTitle = title.trim();
-      const trimmedBody = body.trim();
+      trimmedTitle = title.trim();
+      trimmedBody = body.trim();
       if (trimmedTitle.length < 2 || trimmedTitle.length > 180) {
         throw new Error("Le titre doit contenir entre 2 et 180 caractères.");
       }
@@ -192,38 +210,55 @@ export default function FlashProposalPage() {
       if (selectedGroups.length === 0) {
         throw new Error("Choisissez au moins un public.");
       }
-      const groupRefs = selectedGroups.map((ref) => parseFlashGroupRef(ref));
+      groupRefs = selectedGroups.map((ref) => parseFlashGroupRef(ref));
       if (!importance) {
         throw new Error("Choisissez l'importance : la suggestion de l'agent n'est pas une décision.");
       }
+      importanceValue = importance;
       if (!expiresAt) {
         throw new Error("L'expiration est obligatoire : aucune information flash ne peut en être dépourvue.");
       }
-      const expiresAtDate = new Date(expiresAt);
+      expiresAtDate = new Date(expiresAt);
       if (Number.isNaN(expiresAtDate.getTime()) || expiresAtDate.getTime() <= Date.now()) {
         throw new Error("L'expiration doit être une date future.");
       }
-
-      const channels: FlashNotificationChannel[] = [];
-      if (importance === "importante") {
-        channels.push("push");
-        if (emailOptIn) channels.push("email");
-      } else if (importance === "urgente") {
-        channels.push("push", "email");
-        if (smsContacts.length > 0) channels.push("sms");
-      }
-
-      setPrepared({
-        title: trimmedTitle,
-        body: trimmedBody,
-        groupRefs,
-        importance,
-        channels,
-        smsContacts: [...smsContacts],
-        expiresAtLabel: expiresAtDate.toLocaleString("fr-FR"),
-      });
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : "Proposition invalide");
+      return;
+    }
+
+    const channels: FlashNotificationChannel[] = [];
+    if (importanceValue === "importante") {
+      channels.push("push");
+      if (emailOptIn) channels.push("email");
+    } else if (importanceValue === "urgente") {
+      channels.push("push", "email");
+      if (smsContacts.length > 0) channels.push("sms");
+    }
+
+    setSubmitting(true);
+    try {
+      const payload = await apiFetch<unknown>("flash/proposals", {
+        method: "POST",
+        headers: { "Idempotency-Key": idempotencyKeyRef.current },
+        body: JSON.stringify({
+          title: trimmedTitle,
+          bodyMarkdown: trimmedBody,
+          importance: importanceValue,
+          channels,
+          groupRefs,
+          expiresAt: expiresAtDate.toISOString(),
+        }),
+      });
+      if (!isFlashProposalSubmissionPayload(payload)) {
+        throw new Error("La confirmation de la proposition est invalide.");
+      }
+      setSubmitted(payload);
+      idempotencyKeyRef.current = crypto.randomUUID();
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : "La proposition n'a pas pu être enregistrée.");
+    } finally {
+      setSubmitting(false);
     }
   }
 
@@ -242,8 +277,9 @@ export default function FlashProposalPage() {
           Proposer une information flash
         </h1>
         <p className="text-sm text-gray-500">
-          Un canal supplémentaire, jamais le canal d'urgence. Cet écran fonctionne en
-          simulation, avec des données fictives : rien n'est enregistré ni envoyé.
+          Un canal supplémentaire, jamais le canal d'urgence. Le texte, l'importance et
+          l'expiration sont enregistrés sur le serveur ; le public visé reste un jeu d'essai
+          fictif. Rien n'est envoyé sans validation.
         </p>
       </div>
 
@@ -272,9 +308,8 @@ export default function FlashProposalPage() {
       <div className="flex items-start gap-2 rounded-xl border border-gray-200 bg-gray-50 p-3 text-xs text-gray-600">
         <Lock className="mt-0.5 h-4 w-4 shrink-0" />
         <p>
-          Mode simulation : aucune requête serveur n'est envoyée depuis cet écran, le public
-          est un jeu d'essai fictif, et le bouton en bas de page ne fait qu'afficher un aperçu
-          local de la proposition.
+          Le public visé (groupes ci-dessous) est un jeu d'essai fictif, non branché à un
+          annuaire réel. Le bouton en bas de page envoie une vraie requête au serveur.
         </p>
       </div>
 
@@ -295,7 +330,7 @@ export default function FlashProposalPage() {
             <input
               value={title}
               onChange={(event) => {
-                setPrepared(null);
+                setSubmitted(null);
                 setTitle(event.target.value);
               }}
               maxLength={180}
@@ -308,7 +343,7 @@ export default function FlashProposalPage() {
             <textarea
               value={body}
               onChange={(event) => {
-                setPrepared(null);
+                setSubmitted(null);
                 setBody(event.target.value);
               }}
               rows={4}
@@ -430,7 +465,7 @@ export default function FlashProposalPage() {
                           type="checkbox"
                           checked={emailOptIn}
                           onChange={(event) => {
-                            setPrepared(null);
+                            setSubmitted(null);
                             setEmailOptIn(event.target.checked);
                           }}
                           className="h-4 w-4"
@@ -480,7 +515,7 @@ export default function FlashProposalPage() {
               type="datetime-local"
               value={expiresAt}
               onChange={(event) => {
-                setPrepared(null);
+                setSubmitted(null);
                 setExpiresAt(event.target.value);
               }}
               required
@@ -494,16 +529,20 @@ export default function FlashProposalPage() {
       </Card>
 
       <button
-        onClick={prepareProposal}
-        className="w-full rounded-xl bg-primary-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-primary-700"
+        onClick={() => void submitProposal()}
+        disabled={submitting}
+        className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-primary-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-primary-700 disabled:opacity-50"
       >
-        Préparer la proposition (simulation)
+        {submitting ? <LoaderCircle className="h-4 w-4 animate-spin" /> : null}
+        {submitting ? "Envoi en cours…" : "Envoyer la proposition"}
       </button>
 
-      {prepared && (
+      {submitted && (
         <Card>
           <CardHeader>
-            <h2 className="font-semibold text-gray-900">Proposition préparée (simulation)</h2>
+            <h2 className="font-semibold text-gray-900">
+              {submitted.duplicate ? "Proposition déjà enregistrée" : "Proposition enregistrée"}
+            </h2>
           </CardHeader>
           <CardContent className="space-y-3">
             <div className="flex items-start gap-2 rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-800">
@@ -513,8 +552,10 @@ export default function FlashProposalPage() {
                   En attente de validation par le référent numérique ou la DDFPT.
                 </p>
                 <p className="text-xs">
-                  Personne n'a été prévenu. Cette proposition n'existe que dans cette page ;
-                  rien n'a été enregistré, rien n'a été envoyé.
+                  Personne n'a été prévenu : une proposition en attente ne notifie jamais son
+                  public. {submitted.duplicate
+                    ? "Ce renvoi correspond à une proposition déjà enregistrée : aucune seconde entrée n'a été créée."
+                    : "Rien n'est envoyé tant que la validation n'a pas eu lieu."}
                 </p>
               </div>
             </div>
@@ -522,42 +563,29 @@ export default function FlashProposalPage() {
             <dl className="space-y-1 text-sm">
               <div className="flex flex-wrap gap-x-2">
                 <dt className="font-medium text-gray-700">Titre :</dt>
-                <dd className="text-gray-900">{prepared.title}</dd>
+                <dd className="text-gray-900">{submitted.version.title}</dd>
               </div>
               <div className="flex flex-wrap gap-x-2">
-                <dt className="font-medium text-gray-700">Importance proposée :</dt>
-                <dd className="text-gray-900">{IMPORTANCE_LABEL[prepared.importance]}</dd>
+                <dt className="font-medium text-gray-700">Importance :</dt>
+                <dd className="text-gray-900">{IMPORTANCE_LABEL[submitted.version.importance]}</dd>
               </div>
               <div className="flex flex-wrap gap-x-2">
-                <dt className="font-medium text-gray-700">Public :</dt>
-                <dd className="text-gray-900">
-                  {prepared.groupRefs
-                    .map((ref) => FICTITIOUS_FLASH_GROUPS.find((group) => group.ref === ref)?.label ?? ref)
-                    .join(", ")}
-                </dd>
+                <dt className="font-medium text-gray-700">Statut :</dt>
+                <dd className="text-gray-900">{submitted.version.status}</dd>
               </div>
               <div className="flex flex-wrap gap-x-2">
                 <dt className="font-medium text-gray-700">Canaux :</dt>
                 <dd className="text-gray-900">
-                  {prepared.channels.length > 0 ? prepared.channels.join(", ") : "aucun (site seul)"}
+                  {submitted.version.channels.length > 0
+                    ? submitted.version.channels.join(", ")
+                    : "aucun (site seul)"}
                 </dd>
               </div>
-              {prepared.smsContacts.length > 0 && (
-                <div className="flex flex-wrap gap-x-2">
-                  <dt className="font-medium text-gray-700">SMS à :</dt>
-                  <dd className="text-gray-900">
-                    {prepared.smsContacts
-                      .map(
-                        (ref) =>
-                          FICTITIOUS_FLASH_SMS_CONTACTS.find((contact) => contact.ref === ref)?.label ?? ref
-                      )
-                      .join(", ")}
-                  </dd>
-                </div>
-              )}
               <div className="flex flex-wrap gap-x-2">
                 <dt className="font-medium text-gray-700">Expire le :</dt>
-                <dd className="text-gray-900">{prepared.expiresAtLabel}</dd>
+                <dd className="text-gray-900">
+                  {new Date(submitted.version.expiresAt).toLocaleString("fr-FR")}
+                </dd>
               </div>
             </dl>
 

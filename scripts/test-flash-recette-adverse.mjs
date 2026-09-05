@@ -1,13 +1,20 @@
 // LOT 5 — Recette : fixtures adverses et preuves executees pour les
 // informations flash, rejouant les huit scenarios du plan de nuit
 // (docs/operations/NIGHT_PLAN_FLASH_2026-09-05.md, section "LOT 5") contre
-// les fonctions pures reellement utilisees par l'ecran (LOT 2), pas contre un
-// jeu d'essai illustratif. Chaque scenario reproduit la formule exacte de
-// decision de `FlashValidationPage.tsx` (`analyzeProposal`) : ce module
-// n'exporte pas cette fonction, donc ce script la rejoue a l'identique ici et
-// verifie par une expression reguliere que le code source utilise bien la
-// meme formule, pour ne pas prouver un comportement que l'ecran n'implemente
-// pas reellement.
+// les fonctions pures du LOT 2 (`flash-version-diff`, `flash-audience-
+// correction`, `flash-transitions`, `flash-expiration`), qui restent
+// inchangees et testees en dehors de tout ecran.
+//
+// Mise a jour LOT 6 : `FlashValidationPage.tsx` a ete rebranche sur les
+// routes reelles (`/api/flash/validation/queue`, `/decision`) ; la demo
+// locale qui composait ces memes fonctions pures sur un jeu d'essai fictif
+// (`analyzeProposal`, la comparaison previous/next, le recalcul client de la
+// transition) a ete retiree de l'ecran, puisque la file reelle ne renvoie pas
+// de version precedente ni d'audience et que le serveur tranche deja la
+// legalite de la transition. Les assertions qui relisaient le SOURCE de
+// l'ecran pour cette demo ont donc ete retirees ci-dessous ; les scenarios
+// eux-memes continuent de prouver le comportement des modules purs, qui n'ont
+// pas change.
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import test from "node:test";
@@ -62,10 +69,6 @@ function analyzeProposalLikeScreen(previous, next) {
     audienceTreatment,
   };
 }
-
-test("preuve de wiring : l'ecran utilise bien la formule isDecisive = gap decisif OU audience changee", () => {
-  assert.match(validationPage, /isDecisive:\s*gap\.kind === "decisif" \|\| audienceChanged,/);
-});
 
 // 1. Correction de forme sur une flash URGENTE -> aucune proposition de
 // correction par defaut. Cas adverse : une importance elevee ne doit pas, a
@@ -133,9 +136,6 @@ test("3. audience reduite : le groupe retire recoit la ligne factuelle 'ne vous 
   });
   assert.deepEqual(treatment.removed, ["personnel:enseignants"]);
   assert.equal(treatment.correctionPossible, true);
-  // Le texte affiche a l'ecran pour "removed" est une constante fixe, sans
-  // detail, jamais derivee du contenu de la nouvelle version.
-  assert.match(validationPage, /"Cette information ne vous concerne plus\."/);
 });
 
 // 4. Audience elargie -> l'ajoute recoit une information NEUVE, jamais
@@ -150,10 +150,6 @@ test("4. audience elargie : le groupe ajoute recoit une information neuve, pas u
   assert.deepEqual(treatment.added, ["classe:2ndeb"]);
   assert.deepEqual(treatment.maintained, ["classe:2ndea"]);
   assert.equal(treatment.correctionPossible, true);
-  assert.match(
-    validationPage,
-    /`Nouvelle information \(pas une correction\) : \$\{proposal\.next\.content\.title\}`/
-  );
 });
 
 // 5. Flash NORMALE modifiee -> aucune correction possible, seul le site
@@ -186,10 +182,6 @@ test("5. flash normale modifiee, meme avec un public reellement different : aucu
   assert.deepEqual(analysis.audienceTreatment.maintained, []);
   assert.deepEqual(analysis.audienceTreatment.removed, []);
   assert.deepEqual(analysis.audienceTreatment.added, [], "aucun ensemble fantome malgre le changement reel de public");
-  assert.match(
-    validationPage,
-    /La nouvelle version reste normale : seul le site est mis à jour, aucun envoi n'est possible\./
-  );
 });
 
 // 6. Normale -> urgente -> tout le public passe en ajoutes (information
@@ -207,10 +199,6 @@ test("6. passage normale -> urgente : tout le public passe en ajoutes (dedupliqu
   assert.deepEqual(treatment.removed, []);
   assert.deepEqual(treatment.added, ["classe:2ndea", "classe:2ndeb"]);
   assert.equal(treatment.correctionPossible, false);
-  assert.match(
-    validationPage,
-    /ceci n'est pas une correction,\s*\n?\s*c'est une information neuve pour tout le public visé/
-  );
 });
 
 // 7. Proposition expiree sans validation -> auteur prevenu, echec compte.
@@ -283,9 +271,6 @@ test("8. transitions illegales refusees : retour en arriere, etat terminal, non-
     () => assertLegalFlashVersionTransition("validee", "annulee"),
     (error) => error instanceof FlashTransitionError && error.reason === "to_status_invalid"
   );
-
-  assert.match(validationPage, /assertLegalFlashVersionTransition\(from, target\)/);
-  assert.match(validationPage, /Transition refusée : \{transitionError\}/);
 });
 
 // Verification transverse demandee par le plan : "verifier aussi que la
