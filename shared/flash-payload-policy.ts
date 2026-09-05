@@ -37,6 +37,7 @@ const FLASH_VERSION_PAYLOAD_FIELDS = new Set([
   "validatedBy",
   "validatedAt",
   "publishedAt",
+  "publishedBy",
   "createdAt",
   "updatedAt",
 ]);
@@ -72,6 +73,7 @@ export type FlashInfoVersionPayload = {
   validatedBy: string | null;
   validatedAt: string | null;
   publishedAt: string | null;
+  publishedBy: string | null;
   createdAt: string;
   updatedAt: string;
 };
@@ -159,6 +161,7 @@ export function isValidFlashInfoVersionPayload(value: unknown): value is FlashIn
     && isNullableUuid(value.validatedBy)
     && isNullableIsoDate(value.validatedAt)
     && isNullableIsoDate(value.publishedAt)
+    && isNullableUuid(value.publishedBy)
     && isIsoDate(value.createdAt)
     && isIsoDate(value.updatedAt);
 }

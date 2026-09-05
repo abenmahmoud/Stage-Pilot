@@ -32,6 +32,7 @@ export type FlashVersionRow = {
   validatedBy: string | null;
   validatedAt: Date | null;
   publishedAt: Date | null;
+  publishedBy: string | null;
   createdAt: Date;
   updatedAt: Date;
 };
@@ -51,6 +52,7 @@ export function toFlashVersionPayload(row: FlashVersionRow): FlashInfoVersionPay
     validatedBy: row.validatedBy,
     validatedAt: row.validatedAt ? row.validatedAt.toISOString() : null,
     publishedAt: row.publishedAt ? row.publishedAt.toISOString() : null,
+    publishedBy: row.publishedBy,
     createdAt: row.createdAt.toISOString(),
     updatedAt: row.updatedAt.toISOString(),
   };

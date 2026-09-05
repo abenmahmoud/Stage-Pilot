@@ -40,6 +40,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         validatedBy: flashInfoVersions.validatedBy,
         validatedAt: flashInfoVersions.validatedAt,
         publishedAt: flashInfoVersions.publishedAt,
+        publishedBy: flashInfoVersions.publishedBy,
         createdAt: flashInfoVersions.createdAt,
         updatedAt: flashInfoVersions.updatedAt,
       })

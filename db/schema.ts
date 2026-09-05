@@ -2289,6 +2289,7 @@ export const flashInfoVersions = pgTable(
     validatedBy: uuid("validated_by"),
     validatedAt: timestamp("validated_at", { withTimezone: true }),
     publishedAt: timestamp("published_at", { withTimezone: true }),
+    publishedBy: uuid("published_by"),
     supersededAt: timestamp("superseded_at", { withTimezone: true }),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),

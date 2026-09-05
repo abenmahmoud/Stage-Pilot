@@ -26,6 +26,7 @@ function validVersionPayload(overrides = {}) {
     validatedBy: null,
     validatedAt: null,
     publishedAt: null,
+    publishedBy: null,
     createdAt: "2026-09-05T08:00:00.000Z",
     updatedAt: "2026-09-05T08:00:00.000Z",
     ...overrides,
@@ -70,6 +71,25 @@ test("accepte une version déjà validée avec ses dates renseignées", () => {
     ),
     true
   );
+});
+
+test("accepte une version publiée avec publishedBy renseigné, distinct de validatedBy", () => {
+  assert.equal(
+    isValidFlashInfoVersionPayload(
+      validVersionPayload({
+        status: "publiee",
+        validatedBy: UUID_A,
+        validatedAt: "2026-09-05T09:00:00.000Z",
+        publishedAt: "2026-09-05T09:05:00.000Z",
+        publishedBy: UUID_B,
+      })
+    ),
+    true
+  );
+});
+
+test("refuse un publishedBy qui n'est pas un identifiant", () => {
+  assert.equal(isValidFlashInfoVersionPayload(validVersionPayload({ publishedBy: "pas-un-uuid" })), false);
 });
 
 test("accepte une décision de validation autorisée sans motif résiduel", () => {

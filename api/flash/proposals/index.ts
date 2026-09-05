@@ -32,6 +32,7 @@ const VERSION_COLUMNS = {
   validatedBy: flashInfoVersions.validatedBy,
   validatedAt: flashInfoVersions.validatedAt,
   publishedAt: flashInfoVersions.publishedAt,
+  publishedBy: flashInfoVersions.publishedBy,
   createdAt: flashInfoVersions.createdAt,
   updatedAt: flashInfoVersions.updatedAt,
 };
