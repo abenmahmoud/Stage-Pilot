@@ -3,9 +3,12 @@ import test from "node:test";
 
 import {
   buildFlashExpirationAuthorNotice,
+  buildFlashValidatedExpirationAuthorNotice,
   checkFlashProposalExpiration,
+  checkFlashValidatedProposalExpiration,
   FlashExpirationError,
   selectExpiredFlashProposals,
+  selectExpiredValidatedFlashProposals,
 } from "../shared/flash-expiration.ts";
 
 const NOW = new Date("2026-09-05T22:00:00.000Z");
@@ -91,6 +94,90 @@ test("l'avis a l'auteur refuse un titre ou une date invalides", () => {
   );
   assert.throws(
     () => buildFlashExpirationAuthorNotice({ title: "Titre valide", expiresAt: new Date("invalide") }),
+    (error) => error instanceof FlashExpirationError && error.reason === "expires_at_invalid"
+  );
+});
+
+// LOT 2 (plan de publication, T071F) : une proposition deja VALIDEE mais
+// jamais publiee avant son expiration est une catégorie distincte de T071D
+// ("jamais validee"). checkFlashProposalExpiration (ci-dessus) reste
+// muet sur ce cas (il renvoie "not_applicable" pour "validee", verifie plus
+// haut) : c'est checkFlashValidatedProposalExpiration qui le couvre, jamais
+// le meme compteur.
+test("expiration apres validation : validee et expires_at depasse", () => {
+  const result = checkFlashValidatedProposalExpiration({
+    status: "validee",
+    expiresAt: new Date("2026-09-05T21:00:00.000Z"),
+    now: NOW,
+  });
+  assert.equal(result.isExpiredAfterValidationWithoutPublication, true);
+  assert.equal(result.reason, "expired_after_validation_without_publication");
+});
+
+test("une version validee encore dans les temps attend toujours sa publication", () => {
+  const result = checkFlashValidatedProposalExpiration({
+    status: "validee",
+    expiresAt: new Date("2026-09-06T08:00:00.000Z"),
+    now: NOW,
+  });
+  assert.equal(result.isExpiredAfterValidationWithoutPublication, false);
+  assert.equal(result.reason, "still_awaiting_publication");
+});
+
+test("checkFlashValidatedProposalExpiration ne concerne que le statut validee", () => {
+  for (const status of ["proposee", "publiee", "modifiee", "refusee", "expiree_sans_validation", "expiree_sans_publication"]) {
+    const result = checkFlashValidatedProposalExpiration({
+      status,
+      expiresAt: new Date("2026-09-05T21:00:00.000Z"),
+      now: NOW,
+    });
+    assert.equal(result.isExpiredAfterValidationWithoutPublication, false, status);
+    assert.equal(result.reason, "not_applicable", status);
+  }
+});
+
+test("des dates invalides sont refusees explicitement (version validee)", () => {
+  assert.throws(
+    () => checkFlashValidatedProposalExpiration({ status: "validee", expiresAt: "hier", now: NOW }),
+    (error) => error instanceof FlashExpirationError && error.reason === "expires_at_invalid"
+  );
+  assert.throws(
+    () => checkFlashValidatedProposalExpiration({ status: "validee", expiresAt: NOW, now: new Date("invalide") }),
+    (error) => error instanceof FlashExpirationError && error.reason === "now_invalid"
+  );
+});
+
+test("le filtre validee ne retient que les propositions reellement expirees, jamais celles jamais validees", () => {
+  const proposals = [
+    { id: "a", status: "validee", expiresAt: new Date("2026-09-05T21:00:00.000Z") },
+    { id: "b", status: "validee", expiresAt: new Date("2026-09-06T08:00:00.000Z") },
+    { id: "c", status: "proposee", expiresAt: new Date("2026-09-01T00:00:00.000Z") },
+  ];
+  const expired = selectExpiredValidatedFlashProposals(proposals, NOW);
+  assert.deepEqual(expired.map((proposal) => proposal.id), ["a"]);
+});
+
+test("l'avis a l'auteur d'une version validee jamais publiee est factuel, sans blame ni fausse affirmation", () => {
+  const notice = buildFlashValidatedExpirationAuthorNotice({
+    title: "Sortie pédagogique reportée",
+    expiresAt: new Date("2026-09-05T21:00:00.000Z"),
+  });
+  assert.equal(notice.status, "a_emettre");
+  assert.match(notice.message, /personne n'a été informé/);
+  assert.match(notice.message, /Sortie pédagogique reportée/);
+  // A la difference de T071D, cette proposition A ete validee : le message
+  // ne doit jamais pretendre le contraire.
+  assert.doesNotMatch(notice.message, /sans avoir été validée/);
+  assert.doesNotMatch(notice.message, /referent|référent|valideur|ddfpt/i);
+});
+
+test("l'avis a l'auteur (version validee) refuse un titre ou une date invalides", () => {
+  assert.throws(
+    () => buildFlashValidatedExpirationAuthorNotice({ title: "  ", expiresAt: new Date("2026-09-05T21:00:00.000Z") }),
+    (error) => error instanceof FlashExpirationError && error.reason === "title_invalid"
+  );
+  assert.throws(
+    () => buildFlashValidatedExpirationAuthorNotice({ title: "Titre valide", expiresAt: new Date("invalide") }),
     (error) => error instanceof FlashExpirationError && error.reason === "expires_at_invalid"
   );
 });

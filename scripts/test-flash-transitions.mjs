@@ -13,6 +13,7 @@ test("les transitions legales sont acceptees", () => {
   assert.equal(isLegalFlashVersionTransition("proposee", "refusee"), true);
   assert.equal(isLegalFlashVersionTransition("proposee", "expiree_sans_validation"), true);
   assert.equal(isLegalFlashVersionTransition("validee", "publiee"), true);
+  assert.equal(isLegalFlashVersionTransition("validee", "expiree_sans_publication"), true);
   assert.equal(isLegalFlashVersionTransition("publiee", "modifiee"), true);
 });
 
@@ -46,13 +47,30 @@ test("un etat inconnu est refuse explicitement", () => {
   );
 });
 
-test("modifiee, refusee et expiree_sans_validation sont terminaux", () => {
+test("modifiee, refusee, expiree_sans_validation et expiree_sans_publication sont terminaux", () => {
   assert.equal(isFlashVersionStatusTerminal("modifiee"), true);
   assert.equal(isFlashVersionStatusTerminal("refusee"), true);
   assert.equal(isFlashVersionStatusTerminal("expiree_sans_validation"), true);
+  assert.equal(isFlashVersionStatusTerminal("expiree_sans_publication"), true);
   assert.equal(isFlashVersionStatusTerminal("proposee"), false);
   assert.equal(isFlashVersionStatusTerminal("validee"), false);
   assert.equal(isFlashVersionStatusTerminal("publiee"), false);
+});
+
+// LOT 2 (plan de publication) : une version validee mais jamais publiee
+// avant son expiration doit pouvoir sortir du balayage sans jamais pouvoir
+// etre publiee ni redecidee ensuite (etat terminal, symetrique de
+// expiree_sans_validation).
+test("une version validee qui expire sans publication ne peut plus etre transitee", () => {
+  const status = assertLegalFlashVersionTransition("validee", "expiree_sans_publication");
+  assert.equal(status, "expiree_sans_publication");
+  for (const target of ["publiee", "validee", "refusee", "expiree_sans_validation"]) {
+    assert.throws(
+      () => assertLegalFlashVersionTransition("expiree_sans_publication", target),
+      (error) => error instanceof FlashTransitionError,
+      target
+    );
+  }
 });
 
 test("double modification successive : la chaine complete reste legale a chaque etape", () => {

@@ -13,16 +13,23 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import test from "node:test";
 
-import { selectExpiredFlashProposals, buildFlashExpirationAuthorNotice, FlashExpirationError } from "../shared/flash-expiration.ts";
+import {
+  selectExpiredFlashProposals,
+  selectExpiredValidatedFlashProposals,
+  buildFlashExpirationAuthorNotice,
+  buildFlashValidatedExpirationAuthorNotice,
+  FlashExpirationError,
+} from "../shared/flash-expiration.ts";
 import { assertLegalFlashVersionTransition, FlashTransitionError } from "../shared/flash-transitions.ts";
 
 const routeSource = readFileSync(new URL("../api/cron/flash-expiry.ts", import.meta.url), "utf8");
 
 test("preuve de wiring : la route importe les modules purs réels, ne les réimplémente pas", () => {
-  assert.match(
-    routeSource,
-    /import \{ selectExpiredFlashProposals, buildFlashExpirationAuthorNotice \} from "\.\.\/\.\.\/shared\/flash-expiration\.js";/
-  );
+  assert.match(routeSource, /selectExpiredFlashProposals,/);
+  assert.match(routeSource, /selectExpiredValidatedFlashProposals,/);
+  assert.match(routeSource, /buildFlashExpirationAuthorNotice,/);
+  assert.match(routeSource, /buildFlashValidatedExpirationAuthorNotice,/);
+  assert.match(routeSource, /\} from "\.\.\/\.\.\/shared\/flash-expiration\.js";/);
   assert.match(
     routeSource,
     /import \{ assertLegalFlashVersionTransition \} from "\.\.\/\.\.\/shared\/flash-transitions\.js";/
@@ -47,6 +54,14 @@ test("preuve de wiring : aucun envoi — l'avis est enregistré comme à émettr
 test("preuve de wiring : le SQL ne filtre que sur le statut, la décision d'expiration vient de la fonction pure", () => {
   assert.match(routeSource, /eq\(flashInfoVersions\.status, "proposee"\)/);
   assert.match(routeSource, /selectExpiredFlashProposals\(pending, now\)/);
+});
+
+test("preuve de wiring : la deuxième catégorie (validée jamais publiée) est détectée et comptée séparément", () => {
+  assert.match(routeSource, /eq\(flashInfoVersions\.status, "validee"\)/);
+  assert.match(routeSource, /selectExpiredValidatedFlashProposals\(pendingValidated, now\)/);
+  assert.match(routeSource, /"expiree_sans_publication"/);
+  assert.match(routeSource, /expiredAfterValidationCount: validatedNotices\.length/);
+  assert.match(routeSource, /expiredCount: notices\.length/);
 });
 
 // Rejeu, avec les fonctions réellement importées, de la composition exacte de
@@ -94,6 +109,58 @@ test("une proposition déjà décidée ne peut pas être transitée une seconde 
   for (const status of ["validee", "publiee", "modifiee", "refusee", "expiree_sans_validation"]) {
     assert.throws(
       () => assertLegalFlashVersionTransition(status, "expiree_sans_validation"),
+      (error) => error instanceof FlashTransitionError,
+      status
+    );
+  }
+});
+
+// LOT 2 : rejeu de la composition exacte de la deuxième catégorie (validée
+// mais jamais publiée), avec les mêmes fonctions réellement importées par la
+// route, séparément de la première catégorie ci-dessus.
+test("composition réelle : une version validée jamais publiée qui expire est transitée et reçoit son propre avis", () => {
+  const now = new Date("2026-09-05T22:00:00.000Z");
+  const pendingValidated = [
+    {
+      id: "v3",
+      institutionId: "inst-1",
+      flashInfoId: "flash-3",
+      status: "validee",
+      title: "Grève transports validée",
+      expiresAt: new Date("2026-09-05T21:00:00.000Z"),
+      proposedBy: "user-3",
+    },
+    {
+      id: "v4",
+      institutionId: "inst-1",
+      flashInfoId: "flash-4",
+      status: "validee",
+      title: "Encore en attente de publication",
+      expiresAt: new Date("2026-09-06T08:00:00.000Z"),
+      proposedBy: "user-4",
+    },
+  ];
+
+  const expiredValidated = selectExpiredValidatedFlashProposals(pendingValidated, now);
+  assert.deepEqual(expiredValidated.map((proposal) => proposal.id), ["v3"]);
+
+  const validatedNotices = expiredValidated.map((proposal) => ({
+    proposal,
+    toStatus: assertLegalFlashVersionTransition(proposal.status, "expiree_sans_publication"),
+    notice: buildFlashValidatedExpirationAuthorNotice({ title: proposal.title, expiresAt: proposal.expiresAt }),
+  }));
+
+  assert.equal(validatedNotices.length, 1);
+  assert.equal(validatedNotices[0].toStatus, "expiree_sans_publication");
+  assert.equal(validatedNotices[0].notice.status, "a_emettre");
+  assert.match(validatedNotices[0].notice.message, /Grève transports validée/);
+  assert.doesNotMatch(validatedNotices[0].notice.message, /sans avoir été validée/);
+});
+
+test("une version déjà expirée après validation ne peut pas être transitée une seconde fois", () => {
+  for (const status of ["proposee", "publiee", "modifiee", "refusee", "expiree_sans_validation", "expiree_sans_publication"]) {
+    assert.throws(
+      () => assertLegalFlashVersionTransition(status, "expiree_sans_publication"),
       (error) => error instanceof FlashTransitionError,
       status
     );

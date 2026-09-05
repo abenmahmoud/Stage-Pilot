@@ -2304,6 +2304,9 @@ export const flashInfoVersions = pgTable(
     index("flash_info_versions_expiration_pending_idx")
       .on(table.expiresAt)
       .where(sql`${table.status} = 'proposee'`),
+    index("flash_info_versions_validee_expiration_pending_idx")
+      .on(table.expiresAt)
+      .where(sql`${table.status} = 'validee'`),
   ]
 );
 

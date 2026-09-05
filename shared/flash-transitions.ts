@@ -13,6 +13,7 @@ export const FLASH_VERSION_STATUSES = [
   "publiee",
   "modifiee",
   "expiree_sans_validation",
+  "expiree_sans_publication",
   "refusee",
 ] as const;
 
@@ -35,10 +36,11 @@ export class FlashTransitionError extends Error {
  */
 const LEGAL_TRANSITIONS: Readonly<Record<FlashVersionStatus, readonly FlashVersionStatus[]>> = {
   proposee: ["validee", "refusee", "expiree_sans_validation"],
-  validee: ["publiee"],
+  validee: ["publiee", "expiree_sans_publication"],
   publiee: ["modifiee"],
   modifiee: [],
   expiree_sans_validation: [],
+  expiree_sans_publication: [],
   refusee: [],
 };
 
