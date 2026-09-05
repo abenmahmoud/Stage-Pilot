@@ -164,6 +164,69 @@ export function decideKnowledgeSourceUsage(input: {
   return { decision: "instruction", reasonCode: "policy_allows_instruction" };
 }
 
+// LOT 4 du plan de connaissance OB1 (2026-09-05) : duree minimale de
+// conservation de la trace de rappel (`agent_skill_audit`, action
+// `consult_public`). Aucune donnee personnelle n'y entre : seuls des
+// identifiants, un hash de session et des codes de decision stables y
+// figurent (verifie par balayage sur la recette locale, pas par relecture).
+// C'est un plancher, pas un plafond : aucune purge n'existe aujourd'hui pour
+// cette table, et aucune ne doit en retirer des lignes plus tot sans
+// decision explicite.
+export const KNOWLEDGE_RECALL_TRACE_MIN_RETENTION_DAYS = 180;
+
+export type KnowledgeRecallOutcome = "retained" | "rejected";
+
+export type KnowledgeRecallSourceEntry = {
+  sourceId: string;
+  institutionId: string;
+  outcome: KnowledgeRecallOutcome;
+  // Toujours le code stable du LOT 2 (`decideKnowledgeSourceUsage`), jamais
+  // invente. Pour une source retenue, c'est le motif qui a autorise l'usage
+  // (`policy_allows_instruction` / `policy_allows_cited_evidence`). Pour une
+  // source ecartee par LOT 2 lui-meme, c'est son motif d'exclusion. Cas
+  // limite documente : une source dont la decision LOT 2 autorise l'usage
+  // peut malgre tout ne pas etre retenue dans le contexte final si la
+  // competence qui la requiert echoue pour une autre raison (ex. une autre
+  // source requise exclue) ; le motif reste alors celui de LOT 2 (necessaire
+  // mais pas suffisant), ce n'est pas un motif d'exclusion invente.
+  reasonCode: KnowledgeUsageReasonCode;
+  usePolicy: KnowledgeSourceUsePolicy;
+  // Empreinte de contenu de la source au moment du rappel (`checksum`),
+  // reprise telle quelle : c'est deja l'identifiant de version utilise
+  // ailleurs dans le registre (cf. `api/knowledge/admin/sources/[id]/action.ts`).
+  sourceVersion: string;
+};
+
+/**
+ * Assemble, pour un rappel, le motif LOT 2 de chaque source candidate :
+ * proposee, retenue dans le contexte reellement construit, ou ecartee.
+ * `retainedSourceIds` est fourni par l'appelant (les sources reellement
+ * citees dans le contexte construit par `api/_shared/public-knowledge-context.ts`),
+ * pas recalcule ici : ce module reste pur, sans base ni reseau.
+ */
+export function buildKnowledgeRecallTrace(input: {
+  sources: Array<KnowledgeUsageCandidateSource & { checksum: string }>;
+  retainedSourceIds: ReadonlySet<string>;
+  actor: KnowledgeActor;
+  now: string;
+}): KnowledgeRecallSourceEntry[] {
+  return input.sources.map((source) => {
+    const decision = decideKnowledgeSourceUsage({
+      source,
+      actor: input.actor,
+      now: input.now,
+    });
+    return {
+      sourceId: source.id,
+      institutionId: source.institutionId,
+      outcome: input.retainedSourceIds.has(source.id) ? "retained" : "rejected",
+      reasonCode: decision.reasonCode,
+      usePolicy: source.usePolicy,
+      sourceVersion: source.checksum,
+    };
+  });
+}
+
 export type KnowledgeEvidenceSourceCitation = {
   title: string;
   status: KnowledgeUsageCandidateSource["status"];

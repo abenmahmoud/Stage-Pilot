@@ -203,9 +203,28 @@ async function exerciseAgent(context) {
   `;
   assert.equal(audits.length, 2, "The successful answer did not audit source and version usage");
   assert.deepEqual(audits.map((row) => row.resource_type), ["source", "version"]);
+  const sourceAudit = audits.find((row) => row.resource_type === "source");
+  const versionAudit = audits.find((row) => row.resource_type === "version");
   for (const audit of audits) {
     assert.equal(audit.actor_id, null);
-    assert.deepEqual(Object.keys(audit.summary).sort(), ["channel", "model", "sessionHash", "turnCount"]);
+  }
+  // LOT 4 du plan de connaissance OB1 (2026-09-05) : la trace d'une source
+  // porte desormais son devenir, le motif LOT 2, la politique qui a autorise
+  // l'usage et sa version (empreinte de contenu) ; la trace d'une version de
+  // compétence reste inchangée (LOT 4 ne porte que sur les sources).
+  assert.deepEqual(
+    Object.keys(versionAudit.summary).sort(),
+    ["channel", "model", "sessionHash", "turnCount"]
+  );
+  assert.deepEqual(
+    Object.keys(sourceAudit.summary).sort(),
+    ["channel", "model", "outcome", "reasonCode", "sessionHash", "sourceVersion", "turnCount", "usePolicy"]
+  );
+  assert.equal(sourceAudit.summary.outcome, "retained");
+  assert.equal(sourceAudit.summary.reasonCode, "policy_allows_instruction");
+  assert.equal(sourceAudit.summary.usePolicy, "can_use_as_instruction");
+  assert.equal(sourceAudit.summary.sourceVersion, hash(excerpt));
+  for (const audit of audits) {
     assert.doesNotMatch(JSON.stringify(audit.summary), /élève|adresse|mot de passe|@/i);
   }
   return { loaded, audits };

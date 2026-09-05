@@ -19,8 +19,10 @@ import {
   selectKnowledgeExcerpts,
 } from "../../shared/knowledge-excerpts.js";
 import {
+  buildKnowledgeRecallTrace,
   decideKnowledgeSourceUsage,
   formatKnowledgeEvidenceCitations,
+  type KnowledgeRecallSourceEntry,
 } from "../../shared/knowledge-use-policy.js";
 import type { KnowledgeActor } from "../../shared/skill-registry-policy.js";
 
@@ -44,12 +46,16 @@ export type LoadedPublicKnowledgeContext = {
   instructions: string;
   versions: PublicKnowledgeVersionRef[];
   sources: PublicKnowledgeSourceRef[];
+  // LOT 4 du plan de connaissance OB1 (2026-09-05) : motif LOT 2 de chaque
+  // source candidate a ce rappel (proposee, retenue ou ecartee).
+  recalledSources: KnowledgeRecallSourceEntry[];
 };
 
 const EMPTY_CONTEXT: LoadedPublicKnowledgeContext = {
   instructions: "",
   versions: [],
   sources: [],
+  recalledSources: [],
 };
 
 function definitionFields(value: unknown): { instructions: string; allowedTools: string[] } {
@@ -126,6 +132,7 @@ export async function loadPublicKnowledgeContext(input: {
       validFrom: knowledgeSources.validFrom,
       expiresAt: knowledgeSources.expiresAt,
       updatedAt: knowledgeSources.updatedAt,
+      checksum: knowledgeSources.checksum,
     })
     .from(skillSourceLinks)
     .innerJoin(knowledgeSources, eq(skillSourceLinks.sourceId, knowledgeSources.id))
@@ -224,9 +231,10 @@ export async function loadPublicKnowledgeContext(input: {
   // consignes, mais reste citee ici tant qu'elle est publiee, courante et
   // sure pour cet acteur.
   const nowIso = now.toISOString();
-  const evidenceSourceRows = [
+  const dedupedSourceRows = [
     ...new Map(sourceRows.map((source) => [source.id, source])).values(),
-  ].filter(
+  ];
+  const evidenceSourceRows = dedupedSourceRows.filter(
     (source) =>
       decideKnowledgeSourceUsage({
         source: {
@@ -260,6 +268,27 @@ export async function loadPublicKnowledgeContext(input: {
     ...selectedExcerpts.map((excerpt) => excerpt.sourceId),
     ...evidenceSourceRows.map((source) => source.id),
   ]);
+  // LOT 4 du plan de connaissance OB1 (2026-09-05) : motif LOT 2 de chaque
+  // source proposee a ce rappel (`dedupedSourceRows`), qu'elle finisse
+  // retenue (`citedSourceIds`) ou ecartee. Pure ; sans base ni reseau au-dela
+  // des lignes deja chargees ci-dessus.
+  const recalledSources = buildKnowledgeRecallTrace({
+    sources: dedupedSourceRows.map((source) => ({
+      id: source.id,
+      institutionId: source.institutionId,
+      serviceCodes: source.serviceCodes,
+      status: source.status as PublicAgentSkillCandidate["sources"][number]["status"],
+      classification: source.classification as PublicAgentSkillCandidate["sources"][number]["classification"],
+      provenanceStatus: source.provenanceStatus as PublicAgentSkillCandidate["sources"][number]["provenanceStatus"],
+      usePolicy: source.usePolicy as PublicAgentSkillCandidate["sources"][number]["usePolicy"],
+      validFrom: source.validFrom.toISOString(),
+      expiresAt: source.expiresAt?.toISOString() ?? null,
+      checksum: source.checksum,
+    })),
+    retainedSourceIds: citedSourceIds,
+    actor,
+    now: nowIso,
+  });
   return {
     instructions,
     versions: selected.map((skill) => ({
@@ -278,12 +307,18 @@ export async function loadPublicKnowledgeContext(input: {
           }]
         : [];
     }),
+    recalledSources,
   };
 }
 
 export async function recordPublicKnowledgeUsage(input: {
   versions: PublicKnowledgeVersionRef[];
-  sources?: Array<Pick<PublicKnowledgeSourceRef, "institutionId" | "sourceId">>;
+  // LOT 4 du plan de connaissance OB1 (2026-09-05) : sources proposees a ce
+  // rappel, avec leur devenir (`outcome`), le motif LOT 2 (`reasonCode`), la
+  // politique qui a autorise l'usage (`usePolicy`) et l'empreinte de contenu
+  // de la source (`sourceVersion`). Remplace l'ancien parametre `sources`
+  // (institutionId/sourceId seuls) : ce dernier ne portait aucun motif.
+  recalledSources?: KnowledgeRecallSourceEntry[];
   sessionHash: string;
   model: string;
   turnCount: number;
@@ -294,13 +329,13 @@ export async function recordPublicKnowledgeUsage(input: {
       version,
     ])
   ).values()];
-  const sources = [...new Map(
-    (input.sources ?? []).map((source) => [
+  const recalledSources = [...new Map(
+    (input.recalledSources ?? []).map((source) => [
       `${source.institutionId}:${source.sourceId}`,
       source,
     ])
   ).values()];
-  if (versions.length === 0 && sources.length === 0) return;
+  if (versions.length === 0 && recalledSources.length === 0) return;
   const summary = {
     channel: "support_assistant",
     sessionHash: input.sessionHash,
@@ -317,13 +352,19 @@ export async function recordPublicKnowledgeUsage(input: {
         actorId: null,
         summary,
       })),
-      ...sources.map((source) => ({
+      ...recalledSources.map((source) => ({
         institutionId: source.institutionId,
         resourceType: "source",
         resourceId: source.sourceId,
         action: "consult_public",
         actorId: null,
-        summary,
+        summary: {
+          ...summary,
+          outcome: source.outcome,
+          reasonCode: source.reasonCode,
+          usePolicy: source.usePolicy,
+          sourceVersion: source.sourceVersion,
+        },
       })),
     ]
   );

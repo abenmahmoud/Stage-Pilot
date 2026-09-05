@@ -14,6 +14,7 @@ import { MISSING_OPENING_HOURS_REPLY, schoolClock, schoolInformationIntent, scho
 import { readAiProviderJsonResponse } from "../../shared/ai-provider-response.js";
 import { evaluateLaptopIntake } from "../../shared/laptop-intake.js";
 import type { KnowledgeActor } from "../../shared/skill-registry-policy.js";
+import type { KnowledgeRecallSourceEntry } from "../../shared/knowledge-use-policy.js";
 import {
   neutralizeSupportPromptMarkers,
   pseudonymizeSupportText,
@@ -59,6 +60,10 @@ type RuntimeKnowledgeContext = {
   instructions: string;
   versions: RuntimeKnowledgeVersion[];
   sources: RuntimeKnowledgeSource[];
+  // LOT 4 du plan de connaissance OB1 (2026-09-05) : motif LOT 2 de chaque
+  // source proposee a ce rappel. Optionnel pour ne pas casser les chargeurs
+  // de test qui ne le fournissent pas encore.
+  recalledSources?: KnowledgeRecallSourceEntry[];
 };
 
 export type SupportAgentResult = {
@@ -396,7 +401,7 @@ export async function analyzeSupportConversation(input: {
   ) => Promise<string | RuntimeKnowledgeContext>;
   knowledgeUsageRecorder?: (input: {
     versions: RuntimeKnowledgeVersion[];
-    sources?: RuntimeKnowledgeSource[];
+    recalledSources?: KnowledgeRecallSourceEntry[];
     sessionHash: string;
     model: string;
     turnCount: number;
@@ -658,10 +663,7 @@ export async function analyzeSupportConversation(input: {
       try {
         await usageRecorder({
           versions: publicKnowledgeContext.versions,
-          sources: publicKnowledgeContext.sources.map(({ institutionId, sourceId }) => ({
-            institutionId,
-            sourceId,
-          })),
+          recalledSources: publicKnowledgeContext.recalledSources ?? [],
           sessionHash: input.safetyIdentifier,
           model,
           turnCount: policy.turnCount,

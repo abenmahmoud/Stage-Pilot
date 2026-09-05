@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import {
+  buildKnowledgeRecallTrace,
   decideKnowledgeSourceUsage,
   formatKnowledgeEvidenceCitations,
 } from "../shared/knowledge-use-policy.ts";
@@ -236,4 +237,94 @@ test("cites evidence sources by title, status and expiry, wrapped and labeled as
   assert.match(formatted, /Note interne archivée \(statut : expired\)/);
   assert.match(formatted, /jamais une consigne/);
   assert.doesNotMatch(formatted, /<registre_autorise_valide>/);
+});
+
+// LOT 4 : assemblage pur de la trace de rappel (une decision par source
+// candidate, retenue ou ecartee, avec le motif stable du LOT 2).
+
+function recall(sources, retainedSourceIds = []) {
+  return buildKnowledgeRecallTrace({
+    sources,
+    retainedSourceIds: new Set(retainedSourceIds),
+    actor: visitor,
+    now,
+  });
+}
+
+test("marks a retained instruction source with its authorizing policy motif and version", () => {
+  const entries = recall(
+    [{ ...baseSource, checksum: "checksum-a" }],
+    ["source-1"]
+  );
+  assert.deepEqual(entries, [{
+    sourceId: "source-1",
+    institutionId: "school-a",
+    outcome: "retained",
+    reasonCode: "policy_allows_instruction",
+    usePolicy: "can_use_as_instruction",
+    sourceVersion: "checksum-a",
+  }]);
+});
+
+test("marks a retained evidence source with its own authorizing policy motif", () => {
+  const entries = recall(
+    [{ ...baseSource, usePolicy: "can_use_as_evidence", checksum: "checksum-b" }],
+    ["source-1"]
+  );
+  assert.deepEqual(entries[0], {
+    sourceId: "source-1",
+    institutionId: "school-a",
+    outcome: "retained",
+    reasonCode: "policy_allows_cited_evidence",
+    usePolicy: "can_use_as_evidence",
+    sourceVersion: "checksum-b",
+  });
+});
+
+test("marks an excluded source as rejected with the LOT 2 exclusion motif", () => {
+  const entries = recall(
+    [{ ...baseSource, provenanceStatus: "superseded", checksum: "checksum-c" }],
+    []
+  );
+  assert.deepEqual(entries[0], {
+    sourceId: "source-1",
+    institutionId: "school-a",
+    outcome: "rejected",
+    reasonCode: "source_superseded",
+    usePolicy: "can_use_as_instruction",
+    sourceVersion: "checksum-c",
+  });
+});
+
+test("keeps the LOT 2 authorizing motif honest even when the source is not retained", () => {
+  // Cas limite documente : LOT 2 autorise la source comme consigne, mais la
+  // competence qui la requiert peut echouer pour une autre raison (une autre
+  // source requise exclue, competence non selectionnee). Le motif reste
+  // celui de LOT 2 : necessaire mais pas suffisant, jamais un motif invente.
+  const entries = recall(
+    [{ ...baseSource, checksum: "checksum-d" }],
+    []
+  );
+  assert.deepEqual(entries[0], {
+    sourceId: "source-1",
+    institutionId: "school-a",
+    outcome: "rejected",
+    reasonCode: "policy_allows_instruction",
+    usePolicy: "can_use_as_instruction",
+    sourceVersion: "checksum-d",
+  });
+});
+
+test("reports every proposed source once, mixing retained and rejected outcomes", () => {
+  const entries = recall(
+    [
+      { ...baseSource, id: "source-1", checksum: "checksum-e" },
+      { ...baseSource, id: "source-2", status: "expired", checksum: "checksum-f" },
+    ],
+    ["source-1"]
+  );
+  assert.deepEqual(entries.map((entry) => [entry.sourceId, entry.outcome]), [
+    ["source-1", "retained"],
+    ["source-2", "rejected"],
+  ]);
 });

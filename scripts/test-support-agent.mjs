@@ -390,6 +390,14 @@ test("adds only the server-selected public registry context to model instruction
             title: "Procédure ENT de rentrée",
             updatedAt: "2026-08-27T10:00:00.000Z",
           }],
+          recalledSources: [{
+            institutionId: "00000000-0000-4000-8000-000000000001",
+            sourceId: "00000000-0000-4000-8000-000000000003",
+            outcome: "retained",
+            reasonCode: "policy_allows_instruction",
+            usePolicy: "can_use_as_instruction",
+            sourceVersion: "fictif-checksum-source-3",
+          }],
         };
       },
       knowledgeUsageRecorder: async (record) => { usageRecord = record; },
@@ -408,9 +416,13 @@ test("adds only the server-selected public registry context to model instruction
         institutionId: "00000000-0000-4000-8000-000000000001",
         versionId: "00000000-0000-4000-8000-000000000002",
       }],
-      sources: [{
+      recalledSources: [{
         institutionId: "00000000-0000-4000-8000-000000000001",
         sourceId: "00000000-0000-4000-8000-000000000003",
+        outcome: "retained",
+        reasonCode: "policy_allows_instruction",
+        usePolicy: "can_use_as_instruction",
+        sourceVersion: "fictif-checksum-source-3",
       }],
       sessionHash: "test-session",
       model: "gpt-5.6-luna",

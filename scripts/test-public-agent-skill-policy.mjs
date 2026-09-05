@@ -115,8 +115,18 @@ test("loads the registry dynamically and falls back when it is unavailable", () 
 test("never selects private source locators or ownership fields for the model", () => {
   const loader = readFileSync(new URL("../api/_shared/public-knowledge-context.ts", import.meta.url), "utf8");
   assert.doesNotMatch(loader, /uri:\s*knowledgeSources\.uri/);
-  assert.doesNotMatch(loader, /checksum:\s*knowledgeSources\.checksum/);
   assert.doesNotMatch(loader, /ownerUserId:\s*knowledgeSources\.ownerUserId/);
+  // LOT 4 du plan de connaissance OB1 (2026-09-05) : `checksum` est desormais
+  // selectionne en base (empreinte de contenu utilisee comme "version de
+  // source" dans la trace de rappel, jamais envoyee au modele). La garantie
+  // devient donc precise a l'endroit qui alimente reellement le registre de
+  // consignes du modele : ce mapping ne doit jamais porter `checksum`.
+  const candidateSourcesMappingStart = loader.indexOf("sources: sourceRows");
+  assert.ok(candidateSourcesMappingStart >= 0);
+  const candidateSourcesMappingEnd = loader.indexOf("})),", candidateSourcesMappingStart);
+  assert.ok(candidateSourcesMappingEnd > candidateSourcesMappingStart);
+  const candidateSourcesMapping = loader.slice(candidateSourcesMappingStart, candidateSourcesMappingEnd);
+  assert.doesNotMatch(candidateSourcesMapping, /checksum/);
 });
 
 test("keeps usage audit metadata free of messages and contact data", () => {
