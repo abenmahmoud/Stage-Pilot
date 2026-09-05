@@ -6,6 +6,8 @@ import {
   isValidFlashValidationAccessPayload,
   isValidFlashAudienceTreatmentPayload,
   isValidFlashExpirationCheckPayload,
+  isValidFlashAudiencePayload,
+  isValidFlashAuthorNamePayload,
 } from "../shared/flash-payload-policy.ts";
 
 const UUID_A = "11111111-1111-4111-8111-111111111111";
@@ -216,4 +218,26 @@ test("refuse un motif d'expiration hors liste", () => {
     }),
     false
   );
+});
+
+test("accepte une audience triée sans doublon, y compris vide", () => {
+  assert.equal(isValidFlashAudiencePayload([]), true);
+  assert.equal(isValidFlashAudiencePayload(["classe:2ndea", "niveau:terminale"]), true);
+});
+
+test("refuse une audience avec un doublon ou un élément vide", () => {
+  assert.equal(isValidFlashAudiencePayload(["classe:2ndea", "classe:2ndea"]), false);
+  assert.equal(isValidFlashAudiencePayload(["classe:2ndea", ""]), false);
+  assert.equal(isValidFlashAudiencePayload("classe:2ndea"), false);
+});
+
+test("accepte un nom d'auteur résolu ou l'absence explicite (null)", () => {
+  assert.equal(isValidFlashAuthorNamePayload("Claire Martin"), true);
+  assert.equal(isValidFlashAuthorNamePayload(null), true);
+});
+
+test("refuse une chaîne vide à la place de null pour un nom d'auteur non résolu", () => {
+  assert.equal(isValidFlashAuthorNamePayload(""), false);
+  assert.equal(isValidFlashAuthorNamePayload(undefined), false);
+  assert.equal(isValidFlashAuthorNamePayload(42), false);
 });

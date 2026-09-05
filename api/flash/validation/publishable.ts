@@ -1,15 +1,15 @@
-// GET /api/flash/validation/queue — LOT 3 du plan de persistance flash.
+// GET /api/flash/validation/publishable — LOT 3 du plan de publication flash
+// (docs/operations/PLAN_FLASH_PUBLICATION_2026-09-05.md).
 //
-// File des propositions en attente (`status = 'proposee'`), ouverte par le
-// service `referent_numerique`/`ddfpt` (ou superadmin), jamais par le rôle
-// applicatif (§13, `assertFlashValidationQueueAccess`). Pour chaque
-// proposition, l'autorisation de DÉCIDER (`FlashValidationAccessPayload`,
-// LOT 1) est recalculée par proposition : voir une proposition dans la file
-// ne veut pas dire pouvoir la décider (auto-validation éventuellement fermée).
-//
-// LOT 3 du plan de publication : `proposedByName` est ajouté, résolu par
-// `resolveFlashAuthorNames` (api/_shared/flash-author.js) — `null` quand
-// l'auteur n'a pas de fiche `professeurs` liée à son compte (voir ce module).
+// File des versions validées (`status = 'validee'`), en attente de la
+// transition `validee -> publiee` (LOT 1, `POST .../publication`). Jumelle
+// exacte de `api/flash/validation/queue.ts` : même accès
+// (`assertFlashValidationQueueAccess`), même recalcul par item de
+// l'autorisation de DÉCIDER via `decideFlashValidationAccess` — publier suit
+// exactement la même règle que valider (§13, même service, jamais le rôle
+// applicatif). Sans cette file, aucun écran ne peut jamais afficher le
+// bouton de publication du LOT 1 : rien ne permettait jusqu'ici de savoir
+// quelles versions attendent une publication.
 
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { and, asc, eq } from "drizzle-orm";
@@ -22,7 +22,7 @@ import { toFlashAuthorNamePayload, toFlashValidationAccessPayload, toFlashVersio
 import { decideFlashValidationAccess } from "../../../shared/flash-validation-access.js";
 import { resolveFlashAuthorNames } from "../../_shared/flash-author.js";
 
-const FLASH_VALIDATION_QUEUE_LIMIT = 200;
+const FLASH_PUBLISHABLE_QUEUE_LIMIT = 200;
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== "GET") {
@@ -63,16 +63,16 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       .where(
         and(
           eq(flashInfos.institutionId, actor.institutionId),
-          eq(flashInfoVersions.status, "proposee")
+          eq(flashInfoVersions.status, "validee")
         )
       )
       .orderBy(asc(flashInfoVersions.expiresAt))
-      .limit(FLASH_VALIDATION_QUEUE_LIMIT + 1);
+      .limit(FLASH_PUBLISHABLE_QUEUE_LIMIT + 1);
 
-    if (rows.length > FLASH_VALIDATION_QUEUE_LIMIT) {
+    if (rows.length > FLASH_PUBLISHABLE_QUEUE_LIMIT) {
       throw new HttpError(
         409,
-        "Trop de propositions en attente pour afficher une file complète. Aucune liste partielle n'a été affichée."
+        "Trop de versions validées pour afficher une file complète. Aucune liste partielle n'a été affichée."
       );
     }
 

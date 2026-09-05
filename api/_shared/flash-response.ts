@@ -10,6 +10,8 @@ import {
   isValidFlashInfoVersionPayload,
   isValidFlashValidationAccessPayload,
   isValidFlashAudienceTreatmentPayload,
+  isValidFlashAudiencePayload,
+  isValidFlashAuthorNamePayload,
   type FlashInfoVersionPayload,
   type FlashValidationAccessPayload,
   type FlashAudienceTreatmentPayload,
@@ -98,4 +100,28 @@ export function toFlashAudienceTreatmentPayload(
     throw new HttpError(500, "Le traitement d'audience de correction flash ne respecte pas le contrat de réponse.");
   }
   return payload;
+}
+
+/**
+ * LOT 3 du plan de publication : audience (group_ref) d'une version publiée,
+ * pour préremplir l'écran de correction avec le public RÉEL de la version en
+ * cours plutôt que de le lui faire ressaisir.
+ */
+export function toFlashAudiencePayload(groupRefs: string[]): string[] {
+  const payload = [...new Set(groupRefs)].sort();
+  if (!isValidFlashAudiencePayload(payload)) {
+    throw new HttpError(500, "L'audience de l'information flash ne respecte pas le contrat de réponse.");
+  }
+  return payload;
+}
+
+/**
+ * LOT 3 du plan de publication : nom d'affichage de l'auteur, résolu par
+ * `api/_shared/flash-author.ts`. `null` si non résolu (jamais deviné).
+ */
+export function toFlashAuthorNamePayload(name: string | null): string | null {
+  if (!isValidFlashAuthorNamePayload(name)) {
+    throw new HttpError(500, "Le nom de l'auteur de l'information flash ne respecte pas le contrat de réponse.");
+  }
+  return name;
 }

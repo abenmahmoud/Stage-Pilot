@@ -38,8 +38,10 @@ type FictitiousGroup = { ref: string; label: string };
 type FictitiousContact = { ref: string; label: string };
 
 // Public fictif pour cet ecran de proposition (aucune donnee reelle, aucun
-// nom d'eleve, de parent ou de personnel).
-const FICTITIOUS_FLASH_GROUPS: readonly FictitiousGroup[] = [
+// nom d'eleve, de parent ou de personnel). Exporte pour etre reutilise tel
+// quel par l'ecran de correction (FlashValidationPage.tsx, LOT 3 du plan de
+// publication) : le meme jeu d'essai fictif, jamais un second invente.
+export const FICTITIOUS_FLASH_GROUPS: readonly FictitiousGroup[] = [
   { ref: "classe:2ndea", label: "Seconde A" },
   { ref: "classe:1stmga", label: "Première STMG A" },
   { ref: "niveau:terminale", label: "Tout le niveau terminale" },
@@ -68,16 +70,18 @@ const IMPORTANCE_HELP: Record<FlashImportance, string> = {
   urgente: "Push et email obligatoires, SMS possible aux personnes choisies.",
 };
 
-type ChannelRequirement = "obligatoire" | "facultatif" | "indisponible";
+export type ChannelRequirement = "obligatoire" | "facultatif" | "indisponible";
 
 /**
  * Traduit en exigence d'ecran la contrainte SQL `channels` du LOT 1
  * (`flash_info_versions`) : normale = aucun canal, importante = push
  * obligatoire + email facultatif, urgente = push et email obligatoires + sms
  * facultatif. Cette fonction ne fait que refleter cette regle deja actee ;
- * elle n'invente rien.
+ * elle n'invente rien. Exportee pour l'ecran de correction (LOT 3 du plan de
+ * publication) : la meme regle de canaux s'applique a une correction, ce
+ * n'est pas une regle nouvelle a reecrire.
  */
-function flashChannelRequirement(
+export function flashChannelRequirement(
   importance: FlashImportance
 ): Record<FlashNotificationChannel, ChannelRequirement> {
   if (importance === "normale") {

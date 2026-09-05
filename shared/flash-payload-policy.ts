@@ -146,6 +146,25 @@ function isGroupRefList(value: unknown): value is string[] {
   return Array.isArray(value) && value.every((item) => typeof item === "string" && item.length > 0);
 }
 
+/**
+ * LOT 3 du plan de publication : audience (liste de `group_ref`) d'une
+ * version, renvoyée telle quelle par `api/flash/validation/published.ts`.
+ * Même forme que `channels`/`maintained` ci-dessus : pas de doublon.
+ */
+export function isValidFlashAudiencePayload(value: unknown): value is string[] {
+  return isUniqueStringArray(value) && isGroupRefList(value);
+}
+
+/**
+ * LOT 3 du plan de publication : nom d'affichage de l'auteur d'une
+ * proposition, quand il a pu être résolu (voir `api/_shared/flash-author.ts` —
+ * seuls les comptes liés à une fiche `professeurs` ont un nom dans ce schéma).
+ * `null` veut dire « non résolu », jamais une chaîne vide.
+ */
+export function isValidFlashAuthorNamePayload(value: unknown): value is string | null {
+  return value === null || isBoundedText(value, 160);
+}
+
 export function isValidFlashInfoVersionPayload(value: unknown): value is FlashInfoVersionPayload {
   if (!isRecord(value) || !hasExactFields(value, FLASH_VERSION_PAYLOAD_FIELDS)) return false;
   return isUuid(value.id)

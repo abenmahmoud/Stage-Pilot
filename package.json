@@ -319,7 +319,7 @@
     "test:flash-proposal-page": "node --import ./scripts/ts-test-resolver.mjs --experimental-strip-types scripts/test-flash-proposal-page.mjs",
     "test:flash-validation-page": "node --import ./scripts/ts-test-resolver.mjs --experimental-strip-types scripts/test-flash-validation-page.mjs",
     "test:flash-recette-adverse": "node --import ./scripts/ts-test-resolver.mjs --experimental-strip-types scripts/test-flash-recette-adverse.mjs",
-    "test:flash-recette": "npm run test:flash && npm run test:flash-proposal-page && npm run test:flash-validation-page && npm run test:flash-recette-adverse && npm run test:flash-validation-access && npm run test:flash-access && npm run test:flash-payload-policy && npm run test:flash-proposal-input && npm run test:flash-decision-input && npm run test:flash-correction && npm run test:flash-expiry-cron && npm run test:flash-expired-queue && npm run test:flash-expired-after-validation-queue",
+    "test:flash-recette": "npm run test:flash && npm run test:flash-proposal-page && npm run test:flash-validation-page && npm run test:flash-recette-adverse && npm run test:flash-validation-access && npm run test:flash-access && npm run test:flash-payload-policy && npm run test:flash-proposal-input && npm run test:flash-decision-input && npm run test:flash-correction && npm run test:flash-expiry-cron && npm run test:flash-expired-queue && npm run test:flash-expired-after-validation-queue && npm run test:flash-author && npm run test:flash-publishable-queue && npm run test:flash-published-queue",
     "test:agent-context-window": "node --import ./scripts/ts-test-resolver.mjs --experimental-strip-types scripts/test-agent-context-window.mjs",
     "recipe:local-support-email-dispatch": "node scripts/test-local-support-email-dispatch.mjs --local-stack-only",
     "recipe:local-support-email-worker": "node scripts/test-local-support-email-worker.mjs --local-stack-only",
@@ -333,6 +333,9 @@
     "test:flash-expiry-cron": "node --import ./scripts/ts-test-resolver.mjs --experimental-strip-types scripts/test-flash-expiry-cron.mjs",
     "test:flash-expired-queue": "node --import ./scripts/ts-test-resolver.mjs --experimental-strip-types scripts/test-flash-expired-queue.mjs",
     "test:flash-expired-after-validation-queue": "node --import ./scripts/ts-test-resolver.mjs --experimental-strip-types scripts/test-flash-expired-after-validation-queue.mjs",
+    "test:flash-author": "node --import ./scripts/ts-test-resolver.mjs --experimental-strip-types scripts/test-flash-author.mjs",
+    "test:flash-publishable-queue": "node --import ./scripts/ts-test-resolver.mjs --experimental-strip-types scripts/test-flash-publishable-queue.mjs",
+    "test:flash-published-queue": "node --import ./scripts/ts-test-resolver.mjs --experimental-strip-types scripts/test-flash-published-queue.mjs",
     "test:weekly-brief": "node --import ./scripts/ts-test-resolver.mjs --experimental-strip-types scripts/test-weekly-brief.mjs"
   },
   "license": "ISC",
