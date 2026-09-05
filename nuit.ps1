@@ -14,15 +14,13 @@ if (Test-Path $lockFile) {
 }
 "$PID $stamp" | Set-Content -LiteralPath $lockFile
 
-$plan = 'docs/operations/PLAN_FLASH_PUBLIC_2026-09-05.md'
+$plan = 'docs/operations/PLAN_FLASH_CORRECTION_VISIBLE_2026-09-05.md'
 
 $lots = @(
-  @{ n = 1; t = 'Regle de visibilite pure et testee' },
-  @{ n = 2; t = 'Route publique et affichage' },
-  @{ n = 3; t = 'Ecrire les envois sans envoyer' },
-  @{ n = 4; t = 'Raccorder a la file durable existante' },
-  @{ n = 5; t = 'Fermer T071E' },
-  @{ n = 6; t = 'Recette base reelle et navigateur public' }
+  @{ n = 1; t = 'Ouvrir la transition et proteger l affichage' },
+  @{ n = 2; t = 'Le rappel a l enregistrement' },
+  @{ n = 3; t = 'Choisir l audience publique depuis l ecran' },
+  @{ n = 4; t = 'Recette base reelle et navigateur' }
 )
 
 # Verrous Git residuels : le shell distant ne peut pas les supprimer, ici si.
@@ -33,12 +31,12 @@ foreach ($v in @('.git\HEAD.lock', '.git\index.lock', '.git\refs\heads\codex\lyc
 
 function Invoke-Lot([int]$n, [string]$titre) {
   $log = Join-Path $logDir "$stamp-LOT$n.log"
-  $rapport = Join-Path $logDir "PUBLIC-LOT$n.md"
+  $rapport = Join-Path $logDir "CORR-LOT$n.md"
   $avant = if (Test-Path $rapport) { (Get-Item $rapport).LastWriteTime } else { [datetime]::MinValue }
   $prompt = "Execute UNIQUEMENT le LOT $n du fichier $plan. " +
             "Respecte strictement CLAUDE.md et les regles communes du plan. " +
             "Ne lis pas specs/project-memory.md en entier : utilise grep sur la section utile. " +
-            "Termine OBLIGATOIREMENT en ecrivant ton compte rendu dans docs/operations/night-logs/PUBLIC-LOT$n.md " +
+            "Termine OBLIGATOIREMENT en ecrivant ton compte rendu dans docs/operations/night-logs/CORR-LOT$n.md " +
             "puis fais un commit local. Ne fais rien d'autre."
   Write-Host "=== LOT $n : $titre === $(Get-Date -Format 'HH:mm:ss')" -ForegroundColor Cyan
   & claude -p $prompt --model sonnet --permission-mode bypassPermissions *>&1 | Tee-Object -FilePath $log
@@ -58,11 +56,11 @@ foreach ($l in $lots) {
   Write-Host "LOT $($l.n) OK." -ForegroundColor Green
 }
 
-$log6 = Join-Path $logDir "$stamp-PUBLIC-LOT7.log"
+$log6 = Join-Path $logDir "$stamp-CORR-LOT5.log"
 $ctx = if ($echec) { "Le LOT $echec n'a pas abouti : documente l'erreur exacte sans la masquer." } else { "Tous les lots demandes sont passes." }
-$prompt6 = "Execute UNIQUEMENT le LOT 7 (cloture) du fichier $plan. " +
+$prompt6 = "Execute UNIQUEMENT le LOT 5 (cloture) du fichier $plan. " +
            "$ctx Respecte strictement CLAUDE.md. Ne declare prouve que ce qui l'est reellement."
-Write-Host "=== LOT 7 : cloture === $(Get-Date -Format 'HH:mm:ss')" -ForegroundColor Cyan
+Write-Host "=== LOT 5 : cloture === $(Get-Date -Format 'HH:mm:ss')" -ForegroundColor Cyan
 & claude -p $prompt6 --model sonnet --permission-mode bypassPermissions *>&1 | Tee-Object -FilePath $log6
 
 Remove-Item -LiteralPath $lockFile -ErrorAction SilentlyContinue
