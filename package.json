@@ -207,6 +207,7 @@
     "recipe:local-production-shape-migration": "node scripts/test-local-production-shape-migration.mjs --local-container-only",
     "test:knowledge-expiry": "node --experimental-strip-types scripts/test-knowledge-expiry-policy.mjs",
     "test:public-skill-context": "node --import ./scripts/ts-test-resolver.mjs --experimental-strip-types scripts/test-public-agent-skill-policy.mjs",
+    "test:knowledge-use-policy": "node --import ./scripts/ts-test-resolver.mjs --experimental-strip-types scripts/test-knowledge-use-policy.mjs",
     "test:agent-source-references-ui": "node scripts/test-agent-source-references-ui.mjs",
     "test:preview-public-knowledge-flow": "node --import ./scripts/ts-test-resolver.mjs --experimental-strip-types scripts/test-preview-public-knowledge-flow.mjs --preview-only",
     "test:knowledge-actor": "node --experimental-strip-types scripts/test-knowledge-actor-policy.mjs",

@@ -70,7 +70,7 @@ const INTERNAL_ROLES = new Set<AgentInstitutionRole>([
   "admin",
 ]);
 
-function classificationIsPromptSafe(
+export function classificationIsPromptSafe(
   classification: PublicAgentSkillCandidate["dataClassification"],
   actor: KnowledgeActor,
   serviceCodes: string[] = []
