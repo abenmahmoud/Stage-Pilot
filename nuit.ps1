@@ -1,4 +1,4 @@
-param([int]$From = 1)
+﻿param([int]$From = 1)
 # Lance la nuit de travail Claude Code, un lot par session fraiche.
 $ErrorActionPreference = 'Continue'
 Set-Location -LiteralPath $PSScriptRoot
@@ -14,15 +14,16 @@ if (Test-Path $lockFile) {
 }
 "$PID $stamp" | Set-Content -LiteralPath $lockFile
 
-$plan = 'docs/operations/PLAN_COFFRE_CODES_2026-09-05.md'
+$plan = 'docs/operations/PLAN_CONNAISSANCE_OB1_2026-09-05.md'
 
 $lots = @(
-  @{ n = 1; t = 'Contrat du coffre, pur et teste' },
-  @{ n = 2; t = 'Schema chiffre' },
-  @{ n = 3; t = 'Attribution et remise' },
-  @{ n = 4; t = 'Composant securise d affichage' },
-  @{ n = 5; t = 'Les quatre parcours en donnees fictives' },
-  @{ n = 6; t = 'Recette adverse PostgreSQL reel' }
+  @{ n = 1; t = 'Migration additive et reversible' },
+  @{ n = 2; t = 'Module pur de politique d usage' },
+  @{ n = 3; t = 'Brancher le filtre serveur' },
+  @{ n = 4; t = 'Trace de rappel' },
+  @{ n = 5; t = 'File de validation et publie vers connaissance' },
+  @{ n = 6; t = 'Heure de Paris et controles de fraicheur' },
+  @{ n = 7; t = 'Tests adverses obligatoires' }
 )
 
 # Verrous Git residuels : le shell distant ne peut pas les supprimer, ici si.
@@ -33,12 +34,12 @@ foreach ($v in @('.git\HEAD.lock', '.git\index.lock', '.git\refs\heads\codex\lyc
 
 function Invoke-Lot([int]$n, [string]$titre) {
   $log = Join-Path $logDir "$stamp-LOT$n.log"
-  $rapport = Join-Path $logDir "COFFRE-LOT$n.md"
+  $rapport = Join-Path $logDir "OB1-LOT$n.md"
   $avant = if (Test-Path $rapport) { (Get-Item $rapport).LastWriteTime } else { [datetime]::MinValue }
   $prompt = "Execute UNIQUEMENT le LOT $n du fichier $plan. " +
             "Respecte strictement CLAUDE.md et les regles communes du plan. " +
             "Ne lis pas specs/project-memory.md en entier : utilise grep sur la section utile. " +
-            "Termine OBLIGATOIREMENT en ecrivant ton compte rendu dans docs/operations/night-logs/COFFRE-LOT$n.md " +
+            "Termine OBLIGATOIREMENT en ecrivant ton compte rendu dans docs/operations/night-logs/OB1-LOT$n.md " +
             "puis fais un commit local. Ne fais rien d'autre."
   Write-Host "=== LOT $n : $titre === $(Get-Date -Format 'HH:mm:ss')" -ForegroundColor Cyan
   & claude -p $prompt --model sonnet --permission-mode bypassPermissions *>&1 | Tee-Object -FilePath $log
@@ -58,11 +59,11 @@ foreach ($l in $lots) {
   Write-Host "LOT $($l.n) OK." -ForegroundColor Green
 }
 
-$log6 = Join-Path $logDir "$stamp-COFFRE-LOT7.log"
+$log6 = Join-Path $logDir "$stamp-OB1-LOT8.log"
 $ctx = if ($echec) { "Le LOT $echec n'a pas abouti : documente l'erreur exacte sans la masquer." } else { "Tous les lots demandes sont passes." }
-$prompt6 = "Execute UNIQUEMENT le LOT 7 (cloture) du fichier $plan. " +
+$prompt6 = "Execute UNIQUEMENT le LOT 8 (cloture) du fichier $plan. " +
            "$ctx Respecte strictement CLAUDE.md. Ne declare prouve que ce qui l'est reellement."
-Write-Host "=== LOT 7 : cloture === $(Get-Date -Format 'HH:mm:ss')" -ForegroundColor Cyan
+Write-Host "=== LOT 8 : cloture === $(Get-Date -Format 'HH:mm:ss')" -ForegroundColor Cyan
 & claude -p $prompt6 --model sonnet --permission-mode bypassPermissions *>&1 | Tee-Object -FilePath $log6
 
 Remove-Item -LiteralPath $lockFile -ErrorAction SilentlyContinue
