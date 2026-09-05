@@ -40,6 +40,22 @@ Recette : `npm run test:nominatif`. Spec : 005, taches T034 a T043.
 Reste a brancher : T041 (route d'import privee, stockage chiffre, ordre Webmail)
 et T042 (recette PostgreSQL reel). Drapeaux tous fermes.
 
+## Informations flash — persistance (5 septembre 2026)
+Parcours `/admin/informations-flash/{proposer,valider}`, sur routes serveur
+réelles (LOT 1 à 6 : `api/flash/**`, `api/cron/flash-expiry.ts`). Plan :
+`docs/operations/PLAN_FLASH_PERSISTANCE_2026-09-05.md`. Clôture :
+`docs/operations/night-logs/PERSIST-LOT9.md` (lire en premier, résume les
+huit lots précédents). Recette PostgreSQL réelle jetable et recette
+navigateur Chromium réelle faites (LOT 7, LOT 8) — non rejouées depuis, à
+refaire si un délai significatif s'est écoulé.
+**Trou bloquant, à trancher avec Adel avant tout nouveau lot sur ce
+domaine** : aucune route ne fait jamais passer une version de `validee` à
+`publiee`. Conséquence : la correction après publication (LOT 4, T071A/B)
+est fonctionnelle et testée en base réelle mais inatteignable par un usage
+normal aujourd'hui. Seule T071D est cochée (§`tasks.md`, spec 002) ; T071,
+T071A, T071B, T071C, T071E restent ouvertes pour des raisons précises
+détaillées dans `PERSIST-LOT9.md`. Drapeaux tous fermés.
+
 ## État au 3 septembre 2026
 Tâche ouverte : `002/T010B4B` (identité email sur appareil). Drapeaux
 `IDENTITY_DEVICE_ACCESS_ENABLED` et `VITE_IDENTITY_DEVICE_ACCESS_ENABLED` à `false`.
