@@ -1,205 +1,165 @@
-# LOT 2 — Répétition de la promotion production 3 → 94
+# LOT 2 — Logique pure, testée, informations flash (5 septembre 2026)
 
-Date : 2026-09-03 (nuit), branche `codex/lycee-connect-prototype`, HEAD `1687c2d`.
-Pile Supabase locale jetable héritée du LOT 1 (conteneurs Docker déjà démarrés,
-Postgres réel, `127.0.0.1:54322`). Aucune action distante, aucune donnée
-réelle, aucun drapeau activé.
+Périmètre exécuté : uniquement le LOT 2 du plan
+`docs/operations/NIGHT_PLAN_FLASH_2026-09-05.md`. Aucune ligne de LOT 1, 3, 4,
+5 ou 6 touchée. `src/pages/prototype/lycee-connect.css` non modifié (vérifié
+par `git status` avant et après : absent des fichiers changés). `.nuit.lock`
+préexistant, laissé tel quel.
 
-## Résultat en un mot
+## Sources lues avant d'écrire une ligne
 
-**GO conditionnel.** La promotion de schéma 3 → 94 migrations est **PROUVÉE**
-saine sur pile locale jetable : aucun échec SQL, tables éditoriales présentes,
-code de production actuel et code de la branche courante compilent et
-passent la porte de sécurité contre le schéma final. Le blocage réel n'est
-pas le schéma : c'est que **le code déployé en production (`a9cf32e`) est
-déjà en avance de 19 migrations sur sa propre base**, ce qui suffit à
-expliquer le `500` connu sans qu'aucune incompatibilité de code n'ait été
-trouvée. Voir « Constat inattendu » ci-dessous avant toute décision.
+- `specs/002-agent-etablissement-adaptatif/politique-operationnelle-agent-2026-2027.md`
+  §13 (lu en entier via l'offset ciblé par `grep` sur `flash`, pas le fichier
+  complet).
+- `specs/002-agent-etablissement-adaptatif/tasks.md`, tâches T071, T071A,
+  T071B, T071C, T071D (`grep` sur `T071`).
+- `specs/project-memory.md` **non lu en entier**, conformément à la règle
+  commune n°9 — pas eu besoin d'y recourir : tout le contexte nécessaire
+  (schéma, contraintes SQL, décisions de conception) était déjà dans
+  `docs/operations/night-logs/LOT1.md`, `db/schema.ts` et la migration du
+  LOT 1.
+- `docs/operations/night-logs/LOT1.md` en entier (c'est le compte rendu du lot
+  précédent, pas `project-memory.md`).
+- `supabase/migrations/20260905013000_create_flash_info_foundation.sql` en
+  entier, pour rejouer exactement le même graphe de transitions et les mêmes
+  contraintes côté TypeScript (double filet, pas un remplacement).
+- Style suivi à l'identique : `shared/nominative-merge.ts`,
+  `shared/nominative-send-mode.ts`, `shared/nominative-value-policy.ts`,
+  `shared/nominative-batch.ts` et leurs tests dans `scripts/test-nominative-*.mjs`
+  (classes d'erreur avec `reason`, validation de champs par `Set`, fonctions
+  pures, sorties triées et déterministes).
 
-## Étapes exécutées
+## Ce qui a été livré
 
-### 1. Retour à la forme de production (3 migrations)
+Quatre modules `shared/flash-*.ts`, sans base ni réseau, et quatre fichiers de
+test `scripts/test-flash-*.mjs`, agrégés dans `npm run test:flash` :
 
-```
-npx --yes supabase@2.116.0 db reset --local --no-seed --version 20260518073508
-```
+1. **`shared/flash-transitions.ts`** — transitions d'état légales
+   (`isLegalFlashVersionTransition`, `assertLegalFlashVersionTransition`,
+   `isFlashVersionStatusTerminal`). Rejoue exactement le graphe du trigger
+   `flash_guard_version()` du LOT 1 : `proposee → validee|refusee|expiree_sans_validation`,
+   `validee → publiee`, `publiee → modifiee`. Rester sur le même état n'est
+   pas une transition (refusé explicitement, avec une raison distincte d'un
+   état inconnu).
+2. **`shared/flash-version-diff.ts`** — écart décisif/forme entre deux
+   versions (`analyzeFlashVersionGap`). Un changement d'importance est
+   toujours décisif. Le texte (titre + corps) est normalisé (espaces,
+   ponctuation, casse retirés) ; identique après normalisation → « forme »,
+   différent → « décisif » par défaut.
+3. **`shared/flash-audience-correction.ts`** — les trois ensembles
+   (maintenus/retirés/ajoutés) et l'éligibilité des canaux
+   (`resolveFlashAudienceTreatment`), à partir de l'audience des deux versions
+   et des canaux ayant *réellement* notifié la version précédente (jamais son
+   importance déclarée).
+4. **`shared/flash-expiration.ts`** — détection d'une proposition expirée sans
+   validation (`checkFlashProposalExpiration`, `selectExpiredFlashProposals`),
+   limitée à la détection pure (pas de message à l'auteur, pas de comptage :
+   voir "Hors périmètre assumé" plus bas).
 
-→ exit code 0. Log : `docs/operations/night-logs/LOT2-01-reset-to-3.log`.
+## Décision de conception à signaler : le découpage décisif/forme est un parti pris assumé, pas une preuve
 
-Contrôle après reset :
-- `select count(*) from supabase_migrations.schema_migrations;` → **3**
-- `to_regclass('public.site_content_items')` → **NULL** (absente, conforme à
-  la forme de production réelle)
-- `to_regclass('public.professeurs')` → présente
+§13 définit « décisif » par une liste fermée de faits (date, heure, lieu,
+annulation, public, importance) et « forme » comme une reformulation SANS
+changement de sens. Le schéma du LOT 1 ne porte que `title`/`body_markdown`
+en texte libre et `importance` en champ structuré — aucune colonne
+date/heure/lieu/annulation séparée. Une fonction pure ne peut donc pas
+vérifier un SENS, seulement un TEXTE.
 
-### 2. Rejeu des 91 migrations manquantes, dans l'ordre
+Le choix retenu, documenté en commentaire dans
+`shared/flash-version-diff.ts` : un texte identique après normalisation
+(espaces, ponctuation, casse) est classé « forme » ; tout le reste — y
+compris une reformulation réelle sans changement de sens qu'un humain
+reconnaîtrait — est classé « décisif » par défaut. Le risque tenu est de
+proposer une correction de trop (l'humain peut la refuser, §13 : « peut
+demander une notification même sur une correction de forme, ou la refuser sur
+un changement décisif »), jamais de laisser passer un changement de date ou
+de lieu sans le signaler. **Ce n'est pas prouvé conforme à l'intention
+métier ligne à ligne** : à valider avec Adel, en particulier le cas d'une
+vraie reformulation longue (paraphrase) qui serait aujourd'hui classée
+décisif par excès de prudence plutôt que forme.
 
-```
-npx --yes supabase@2.116.0 migration up --local
-```
+## Décision de conception : généralisation du cas « normale → urgente »
 
-→ exit code 0, 51 secondes (07:53:50 → 07:54:41). Log complet avec chaque
-ligne `Applying migration ...` dans l'ordre chronologique :
-`docs/operations/night-logs/LOT2-02-promote-91.log`.
+§13 ne donne qu'un exemple explicite : « un passage de normale à importante
+ou urgente place tout le public dans les ajoutés ». `resolveFlashAudienceTreatment`
+généralise ce principe à partir de la trace réelle (cohérent avec la
+documentation de LOT 1 sur `flash_notification_dispatches.status`) : si
+`previousNotifiedChannels` est vide (personne n'a réellement été notifié pour
+la version précédente, quelle qu'en soit la raison déclarée) ET que la
+nouvelle version notifie (importance ≠ normale), alors tout le public de la
+nouvelle version est traité comme « ajouté », pas comme une correction.
+Le cas concret testé et couvert par le plan (`normale → urgente`) fonctionne
+par construction, puisqu'une flash normale n'a jamais de canal réel. La
+généralisation au-delà de ce cas précis (ex. tous les envois ont échoué côté
+fournisseur) est une extrapolation logique, **pas un scénario du plan, pas
+testé isolément** — à signaler si un lot futur en dépend.
 
-- 91 lignes `Applying migration` comptées (`grep -c` = 91), conforme à
-  94 − 3 = 91.
-- Aucune occurrence de `error`, `fail` ou `panic` dans le log complet.
-- Le CLI Supabase applique les migrations une à une, dans l'ordre du nom de
-  fichier (donc chronologique), et s'arrête à la première erreur : l'absence
-  totale d'erreur sur les 91 constitue la preuve qu'aucune ne casse,
-  individuellement, dans cet ordre.
+## Hors périmètre assumé (à ne pas confondre avec « fait »)
 
-### 3. Vérification post-promotion
+- **Le message factuel à l'auteur d'une proposition expirée (T071D)** n'est
+  pas composé ici : le plan LOT 2 demande la « détection », pas le texte du
+  message. `checkFlashProposalExpiration` détecte ; la formulation du message
+  et le comptage des échecs consultables relèvent de LOT 4/LOT 5.
+- **Aucune notion de délai ou de nombre de valideurs** n'est implémentée :
+  hors périmètre du LOT 2.
+- **La distinction sémantique fine forme/décisif** (paraphrase réelle sans
+  changement de sens) n'est pas simulée ; voir section précédente.
 
-```sql
-select count(*) from supabase_migrations.schema_migrations;  -- 94
-select to_regclass('public.site_content_items'), to_regclass('public.institutions'),
-       to_regclass('public.institution_memberships'), to_regclass('public.knowledge_documents'),
-       to_regclass('public.support_requests');
-```
+## Preuves réellement exécutées
 
-→ **94** migrations, les 5 tables pilotes toutes présentes
-(`site_content_items`, `institutions`, `institution_memberships`,
-`knowledge_documents`, `support_requests`).
+Toutes les commandes ci-dessous ont été lancées dans cette session, pas
+supposées :
 
-Colonnes de `site_content_items` contrôlées une à une (32 colonnes) :
-présentes et conformes à ce qu'attend le code applicatif (voir étape 4).
+1. `npm run test:flash` (agrégat des 4 nouveaux fichiers) → **succès**, 27
+   tests, 0 échec :
+   - `test:flash-transitions` : 6/6.
+   - `test:flash-version-diff` : 7/7.
+   - `test:flash-audience-correction` : 8/8.
+   - `test:flash-expiration` : 6/6.
+   Les neuf scénarios minimums du plan sont couverts : correction de forme
+   seule, changement d'heure seul, audience réduite, audience élargie,
+   audience remplacée entièrement, flash normale modifiée, passage
+   normale → urgente, expiration sans validation, double modification
+   successive.
+2. `node node_modules/typescript/bin/tsc --noEmit` → **succès**, aucune sortie
+   d'erreur (les 4 nouveaux modules compilent, aucune régression ailleurs).
+3. `npm run build` (`tsc --noEmit && vite build`) → **succès**, build terminé
+   en 9.13s. Seul avertissement : chunks > 500 kB, préexistant et documenté
+   dans LOT 1, sans rapport avec ce lot.
+4. `npm run test:preview-security-gate` → **succès**, code de sortie 0
+   capturé explicitement (`REAL_EXIT_CODE=0`), suite complète exécutée
+   jusqu'à `test:migration-integrity` inclus (`{"migrations":97,"uniqueVersions":97,...}`).
+5. `git status --porcelain` avant de committer → confirme que seuls les
+   fichiers de ce lot ont changé (`package.json` modifié pour ajouter les
+   scripts `test:flash*`, 4 nouveaux `shared/flash-*.ts`, 4 nouveaux
+   `scripts/test-flash-*.mjs`) ; `src/pages/prototype/lycee-connect.css`
+   absent de la liste ; `.nuit.lock` présent avant ce lot, non touché.
 
-### 4. Code de production (`a9cf32e`) contre le schéma final
+Aucune commande n'a échoué. Rien à noter comme « échec préexistant à
+masquer ».
 
-Méthode : `git worktree add ../lyceegest-prod-a9cf32e a9cf32e` (local, pas de
-clone distant), `node_modules` réutilisé par lien symbolique local
-(`package-lock.json` identique entre `a9cf32e` et HEAD, donc mêmes
-dépendances). `npm run build` exécuté dans ce worktree, contre le même
-schéma final que ci-dessus.
+## Ce qui reste supposé, pas prouvé
 
-→ exit code 0, build réussi en 21.68 s. Log :
-`docs/operations/night-logs/LOT2-03-build-prod-code.log`.
+- La pertinence métier exacte du seuil décisif/forme (voir plus haut) n'est
+  pas validée par Adel ligne à ligne — seulement cohérente avec une lecture
+  prudente de §13.
+- La généralisation « previousNotifiedChannels vide → tout en ajoutés » au-delà
+  du cas normale→urgente n'est pas un scénario explicitement demandé.
+- Aucun test d'intégration avec les données réelles du LOT 1 (les modules ne
+  lisent aucune ligne de `flash_info_versions` ou `flash_notification_dispatches` :
+  ce sont des fonctions pures qui attendent des valeurs déjà extraites par
+  l'appelant de LOT 3/4).
 
-**Constat inattendu (PROUVÉ, pas dans le plan initial) :** le commit
-`a9cf32e` contient déjà **22 fichiers** de migrations dans son propre arbre
-(`git ls-tree -r a9cf32e -- supabase/migrations`), alors que la base de
-production réelle n'en a que 3 appliquées. Autrement dit, le code
-actuellement déployé en production **attend déjà** un schéma que sa propre
-base n'a jamais reçu — 19 migrations de retard sur son propre code, avant
-même de compter les 72 migrations supplémentaires écrites depuis.
+## Pour la suite (LOT 3 à LOT 6, à lire avant de coder)
 
-Le fichier `api/content/public.ts` de `a9cf32e` interroge directement
-`siteContentItems`, `siteContentVersions`, `siteContentAssets` (table créée
-par `20260826135759_create_site_content_management.sql`, l'une des 19
-migrations de son propre code jamais appliquées en production). C'est très
-précisément et suffisamment l'explication du `500` connu sur le flux de
-contenus public : `relation "site_content_items" does not exist` côté
-Postgres production, wrappé en `500` par `handleApi`. Aucune incompatibilité
-de code trouvée par ailleurs : une fois les tables présentes (schéma final,
-94 migrations), les colonnes lues par `a9cf32e`
-(`publishedVersion`, `status`, `slug`, `featured`, `publishedAt`, etc.)
-existent toutes et correspondent au type attendu par Drizzle.
-
-Worktree nettoyé après contrôle (`git worktree remove --force`), aucune
-modification laissée hors du dépôt principal.
-
-### 5. Code de la branche courante contre le schéma final
-
-```
-npm run build
-npm run test:preview-security-gate
-```
-
-→ `build` : exit code 0, succès en 12.73 s. Log :
-`docs/operations/night-logs/LOT2-04-build-head.log`.
-
-→ `test:preview-security-gate` : exit code 0, toutes les sous-suites au vert
-(115 blocs `fail 0`, aucun `fail` non nul). Inclut
-`test:migration-integrity` en fin de chaîne, qui confirme sur le schéma
-final : `{"migrations":94,"uniqueVersions":94,"checkedReferences":77}`. Log :
-`docs/operations/night-logs/LOT2-05-security-gate.log`.
-
-Diff ciblé `git diff a9cf32e HEAD -- api/content/public.ts` : le code actuel
-a fait évoluer l'endpoint public (pagination par curseur, filtre audience,
-gestion d'expiration) mais reste sur les mêmes tables et colonnes de base.
-Aucune régression de compatibilité schéma trouvée entre `a9cf32e` et HEAD.
-
-## Ce qui est PROUVÉ
-
-- Le rejeu 3 → 94 sur pile locale jetable se fait sans aucune erreur SQL,
-  migration par migration, dans l'ordre chronologique.
-- Les tables éditoriales et pilotes (`site_content_items`, `institutions`,
-  `institution_memberships`, `knowledge_documents`, `support_requests`)
-  existent toutes après promotion.
-- Le code de production actuel (`a9cf32e`) compile et, structurellement,
-  fonctionne contre le schéma final (colonnes lues toutes présentes).
-- Le code de la branche courante compile et passe l'intégralité de la porte
-  de sécurité (`test:preview-security-gate`, 115 sous-suites) contre le
-  schéma final.
-- Le `500` connu en production s'explique précisément par l'absence des
-  tables de `site_content_items` et alliées sur la base réelle — pas par un
-  défaut de code.
-
-## Ce qui est SUPPOSÉ
-
-- Que le comportement du CLI Supabase local (conteneurs Docker) est
-  représentatif du comportement du Postgres managé de production sur cette
-  même séquence de migrations. Plausible (même moteur Postgres, mêmes
-  fichiers SQL) mais non vérifié sur l'infrastructure réelle — c'est
-  strictement hors périmètre de cette nuit (« aucune action distante »).
-- Que `a9cf32e` est bien le dernier commit réellement déployé en production
-  aujourd'hui. Cette information vient de la consigne du plan de nuit, non
-  reconfirmée ici auprès de Vercel (action distante interdite).
-- Que le `500` réel en production n'a pas d'autre cause concurrente
-  (permissions RLS, variable d'environnement manquante, etc.) : seule la
-  cause « table absente » a été testée et confirmée comme suffisante.
-
-## Liste ordonnée des opérations de promotion (à exécuter par le propriétaire)
-
-1. **Sauvegarde complète de la production avant toute migration**
-   (`pg_dump` logique complet ou export Supabase — voir LOT 5 pour la
-   procédure détaillée). Aucun outil de sauvegarde automatisé n'existe
-   aujourd'hui dans ce dépôt (`package.json` ne contient aucun script
-   `backup`/`pg_dump`) : à créer ou à faire manuellement avant de continuer.
-2. Vérifier que la sauvegarde est restaurable (test de restauration sur un
-   projet Supabase séparé, jamais sur la production).
-3. Appliquer les 91 migrations manquantes sur la production, dans l'ordre
-   chronologique des noms de fichiers (identique à l'étape 2 ci-dessus),
-   avec le CLI Supabase pointé sur le projet production — **hors périmètre
-   de cette nuit**, à faire par le propriétaire.
-4. Contrôler immédiatement après : `count(*)` sur
-   `supabase_migrations.schema_migrations` = 94, présence des tables
-   pilotes (même requête que l'étape 3 ci-dessus).
-5. Déployer le code de la branche courante (pas `a9cf32e`, qui est déjà en
-   retard sur ses propres migrations) une fois le schéma confirmé à 94.
-6. Contrôler le flux de contenus public en `200` (pas seulement en local :
-   en conditions réelles, après déploiement).
-
-## Procédure de retour arrière
-
-Les migrations de ce dépôt sont **à sens unique** : aucun fichier de
-« down migration » n'a été trouvé (recherche sur `DOWN`/`rollback` dans
-`supabase/migrations/*.sql` : seules 8 mentions du mot dans des commentaires,
-aucun script de restauration inverse). En conséquence, le retour arrière
-réel en cas d'échec de promotion ne peut reposer **que** sur la sauvegarde
-prise à l'étape 1 :
-
-1. Arrêter immédiatement toute écriture applicative sur la base de
-   production (mode maintenance / bascule du trafic si possible).
-2. Restaurer la base de production depuis la sauvegarde `pg_dump` prise
-   avant promotion (ou le point de restauration Supabase équivalent).
-3. Revenir au déploiement du code précédent (celui qui correspondait à 3
-   migrations, c'est-à-dire l'état déployé avant cette opération — **pas**
-   `a9cf32e`, qui attend déjà un schéma plus récent que 3 migrations).
-4. Contrôler que le flux public repasse en `200` sur le schéma restauré.
-5. Documenter l'échec précis (message SQL, migration en cause) avant tout
-   nouvel essai.
-
-## État de la pile en sortie de lot
-
-Pile Supabase locale jetable laissée allumée, au schéma final (94
-migrations), conforme à la consigne « aucune action distante » :
-- Postgres : `127.0.0.1:54322`
-- API : `127.0.0.1:54321`
-- Studio : `127.0.0.1:54323`
-
-Aucune donnée réelle, aucun email, aucun drapeau activé. Worktree temporaire
-`../lyceegest-prod-a9cf32e` créé et supprimé au cours du lot, aucune trace
-laissée hors du dépôt.
+- LOT 3/4 doivent extraire `previousNotifiedChannels` de
+  `flash_notification_dispatches` filtré sur `status = 'sent'`, dédupliqué par
+  canal, avant d'appeler `resolveFlashAudienceTreatment` — jamais déduire les
+  canaux de l'importance déclarée.
+- LOT 4 doit composer le texte des trois ensembles et le message factuel de
+  proposition expirée (T071D) ; LOT 2 ne fournit que la détection et le
+  calcul des ensembles/canaux, pas le texte affiché.
+- Si un scénario de LOT 5 révèle qu'une reformulation raisonnable est
+  aujourd'hui classée à tort « décisive » par excès de prudence, ce lot
+  (`shared/flash-version-diff.ts`) devra être ajusté avec Adel plutôt que
+  contourné ailleurs.
