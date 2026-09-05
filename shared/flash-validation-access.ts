@@ -55,6 +55,25 @@ function serviceList(value: unknown): SupportService[] {
 }
 
 /**
+ * Le service (ou le superadmin) par lequel la validation est ouverte pour ce
+ * role/ces services, independamment de toute proposition precise. Extrait de
+ * `decideFlashValidationAccess` pour etre reutilise tel quel par la file de
+ * validation (LOT 3) : savoir si un compte peut voir la file est une question
+ * plus large que savoir s'il peut decider UNE proposition (qui depend en plus
+ * de `selfValidated`).
+ */
+export function grantedFlashValidationService(
+  role: unknown,
+  serviceCodes: unknown
+): SupportService | "superadmin" | null {
+  if (typeof role !== "string" || role.length === 0) {
+    throw new FlashValidationAccessError("role_invalid");
+  }
+  const services = serviceList(serviceCodes);
+  return role === "superadmin" ? "superadmin" : services[0] ?? null;
+}
+
+/**
  * Auto-validation : decidee par Adel le 5 septembre 2026, autorisee.
  *
  * Il est aujourd'hui le seul referent numerique de l'etablissement ; exiger une
@@ -85,13 +104,7 @@ export function decideFlashValidationAccess(input: {
     grantedByService: null,
   });
 
-  if (typeof input.role !== "string" || input.role.length === 0) {
-    throw new FlashValidationAccessError("role_invalid");
-  }
-
-  const services = serviceList(input.serviceCodes);
-  const granted: SupportService | "superadmin" | null =
-    input.role === "superadmin" ? "superadmin" : services[0] ?? null;
+  const granted = grantedFlashValidationService(input.role, input.serviceCodes);
 
   if (!granted) return refuse("service_not_granted");
   if (selfValidated && !selfValidationAllowed) return refuse("self_validation_forbidden");

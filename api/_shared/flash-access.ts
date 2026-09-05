@@ -16,8 +16,11 @@ import { HttpError, requireUser } from "./auth.js";
 import { requireConfiguredInstitution } from "./institution-context.js";
 import {
   decideFlashValidationAccess,
+  grantedFlashValidationService,
   type FlashValidationDecision,
 } from "../../shared/flash-validation-access.js";
+
+const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
 /** Comptes susceptibles de proposer ou de valider une information flash. */
 export const FLASH_ACTOR_ROLES = [
@@ -117,4 +120,33 @@ export function assertFlashValidationAccess(
     throw new HttpError(403, "Cette validation n'est pas ouverte à ce compte.");
   }
   return decision;
+}
+
+/**
+ * Ouvre la file de validation (LOT 3) : question plus large que decider d'UNE
+ * proposition (`assertFlashValidationAccess`), qui depend en plus de
+ * `selfValidated`. Un compte sans le service `referent_numerique`/`ddfpt`, ni
+ * superadmin, ne doit meme pas voir la file (§13 : ouverte par le service,
+ * jamais par le role).
+ */
+export function assertFlashValidationQueueAccess(actor: FlashActorContext): void {
+  const granted = grantedFlashValidationService(actor.user.role, actor.serviceCodes);
+  if (!granted) {
+    throw new HttpError(403, "La file de validation n'est pas ouverte à ce compte.");
+  }
+}
+
+/**
+ * Identifiant de route `[id]` d'une information flash. Duplique le motif de
+ * `api/_shared/agent-approvals.ts` (`agentApprovalRouteId`) plutot que de
+ * l'importer, pour ne pas coupler le domaine flash au domaine support (meme
+ * choix que `flash-idempotency.ts` au LOT 2).
+ */
+export function flashProposalRouteId(req: VercelRequest): string {
+  const raw = req.query.id;
+  const value = Array.isArray(raw) ? raw[0] : raw;
+  if (typeof value !== "string" || !UUID_PATTERN.test(value)) {
+    throw new HttpError(400, "Identifiant d'information flash invalide.");
+  }
+  return value;
 }
