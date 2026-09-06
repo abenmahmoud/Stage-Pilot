@@ -66,6 +66,16 @@ const report = {
     rejectedRowCount: 0,
     validationSummary: { warningRowCount: 0, issueCounts: {} },
   },
+  classSummary: {
+    personTypeCounts: { student: 1 },
+    classRefs: ["2GT-TEST"],
+  },
+  comparedToActiveImport: {
+    activeImportId: null,
+    personTypeCounts: {},
+    classRefsAdded: ["2GT-TEST"],
+    classRefsRemoved: [],
+  },
   rows: [row],
   pagination: { page: 1, pageSize: 100, total: 1 },
 };
@@ -133,6 +143,46 @@ test("accepts only the expected action acknowledgement", () => {
 
 test("accepts one exact redacted report", () => {
   assert.equal(isIdentityDirectoryReportPayload(report, importId, 1), true);
+});
+
+test("accepts a report compared against an active version", () => {
+  assert.equal(isIdentityDirectoryReportPayload({
+    ...report,
+    comparedToActiveImport: {
+      activeImportId: secondId,
+      personTypeCounts: { student: 3 },
+      classRefsAdded: ["3GT-TEST"],
+      classRefsRemoved: ["1GT-OLD"],
+    },
+  }, importId, 1), true);
+});
+
+test("rejects class summary and comparison leaks, overlaps and bad shapes", () => {
+  assert.equal(isIdentityDirectoryReportPayload({
+    ...report,
+    classSummary: { ...report.classSummary, extra: "hidden" },
+  }, importId, 1), false);
+  assert.equal(isIdentityDirectoryReportPayload({
+    ...report,
+    classSummary: { ...report.classSummary, personTypeCounts: { student: 1, alien: 2 } },
+  }, importId, 1), false);
+  assert.equal(isIdentityDirectoryReportPayload({
+    ...report,
+    classSummary: { ...report.classSummary, classRefs: ["b-class", "a-class"] },
+  }, importId, 1), false);
+  assert.equal(isIdentityDirectoryReportPayload({
+    ...report,
+    comparedToActiveImport: { ...report.comparedToActiveImport, activeImportId: importId },
+  }, importId, 1), false);
+  assert.equal(isIdentityDirectoryReportPayload({
+    ...report,
+    comparedToActiveImport: {
+      activeImportId: secondId,
+      personTypeCounts: {},
+      classRefsAdded: ["2GT-TEST"],
+      classRefsRemoved: ["2GT-TEST"],
+    },
+  }, importId, 1), false);
 });
 
 test("rejects report leaks, malformed rows and incoherent pagination", () => {
@@ -232,7 +282,11 @@ test("projects and validates minimal server payloads", () => {
   assert.match(view, /identityDirectoryListView/);
   assert.match(view, /identityDirectoryActionView/);
   assert.match(view, /identityDirectoryReportImportView/);
+  assert.match(view, /identityDirectoryClassSummaryView/);
+  assert.match(view, /identityDirectoryActiveComparisonView/);
   assert.doesNotMatch(view, /storagePath:/);
   assert.doesNotMatch(view, /storageBucket:/);
   assert.doesNotMatch(view, /checksum:/);
+
+  assert.match(sources[2], /ne\(identityDirectoryImports\.id, id\)/);
 });

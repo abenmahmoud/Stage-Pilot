@@ -17,6 +17,22 @@ import {
   isIdentityDirectoryReportPayload,
 } from "../../../shared/identity-directory-admin-payload-policy";
 
+const PERSON_TYPE_LABELS: Record<string, string> = {
+  student: "élèves",
+  guardian: "responsables",
+  staff: "personnels",
+};
+
+function personTypeCount(counts: Partial<Record<string, number>>, type: string): number {
+  return counts[type] ?? 0;
+}
+
+function formatDelta(current: number, previous: number): string {
+  const delta = current - previous;
+  if (delta === 0) return "±0";
+  return delta > 0 ? `+${delta}` : `${delta}`;
+}
+
 const ISSUE_LABELS: Record<string, string> = {
   duplicate_person_ref: "Référence de personne en double",
   duplicate_relationship: "Relation en double",
@@ -204,6 +220,60 @@ export default function IdentityDirectoryReport({
         <div className="border-l-4 border-emerald-600 bg-white p-3"><strong className="block text-xl">{report.import.validRowCount ?? 0}</strong><span className="text-xs text-slate-500">lignes utilisables</span></div>
         <div className="border-l-4 border-amber-500 bg-white p-3"><strong className="block text-xl">{summary.warningRowCount ?? 0}</strong><span className="text-xs text-slate-500">lignes à surveiller</span></div>
         <div className="border-l-4 border-red-600 bg-white p-3"><strong className="block text-xl">{report.import.rejectedRowCount ?? 0}</strong><span className="text-xs text-slate-500">lignes refusées</span></div>
+      </div>
+
+      <div className="bg-white p-4">
+        <h4 className="text-sm font-bold text-slate-900">Personnes et classes de cette version</h4>
+        <div className="mt-3 flex flex-wrap gap-2">
+          {(["student", "guardian", "staff"] as const).map((type) => (
+            <span key={type} className="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-800">
+              {personTypeCount(report.classSummary.personTypeCounts, type)} {PERSON_TYPE_LABELS[type]}
+            </span>
+          ))}
+        </div>
+        {report.classSummary.classRefs.length > 0 ? (
+          <p className="mt-3 break-words text-xs text-slate-600">
+            {report.classSummary.classRefs.length} classe(s) concernée(s) : {report.classSummary.classRefs.join(", ")}
+          </p>
+        ) : (
+          <p className="mt-3 text-xs text-slate-500">Aucune classe référencée dans cette version.</p>
+        )}
+      </div>
+
+      <div className="bg-white p-4">
+        <h4 className="text-sm font-bold text-slate-900">Changement par rapport à la version active</h4>
+        {report.comparedToActiveImport.activeImportId === null ? (
+          <p className="mt-2 text-xs text-slate-600">
+            Aucune version active pour l’instant : ce sera la première version active du répertoire.
+          </p>
+        ) : (
+          <>
+            <div className="mt-3 flex flex-wrap gap-2">
+              {(["student", "guardian", "staff"] as const).map((type) => (
+                <span key={type} className="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-800">
+                  {PERSON_TYPE_LABELS[type]} : {formatDelta(
+                    personTypeCount(report.classSummary.personTypeCounts, type),
+                    personTypeCount(report.comparedToActiveImport.personTypeCounts, type)
+                  )}
+                </span>
+              ))}
+            </div>
+            {report.comparedToActiveImport.classRefsAdded.length > 0 ? (
+              <p className="mt-3 break-words text-xs text-emerald-700">
+                Classes ajoutées : {report.comparedToActiveImport.classRefsAdded.join(", ")}
+              </p>
+            ) : null}
+            {report.comparedToActiveImport.classRefsRemoved.length > 0 ? (
+              <p className="mt-2 break-words text-xs text-red-700">
+                Classes retirées : {report.comparedToActiveImport.classRefsRemoved.join(", ")}
+              </p>
+            ) : null}
+            {report.comparedToActiveImport.classRefsAdded.length === 0
+              && report.comparedToActiveImport.classRefsRemoved.length === 0 ? (
+              <p className="mt-3 text-xs text-slate-500">Aucun changement de classes par rapport à la version active.</p>
+            ) : null}
+          </>
+        )}
       </div>
 
       {summary.issueCounts && Object.keys(summary.issueCounts).length > 0 ? (

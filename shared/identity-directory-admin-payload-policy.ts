@@ -67,7 +67,14 @@ const ACTION_VIEW_FIELDS = new Set(["id", "status", "updatedAt"]);
 const ACTION_FIELDS = new Set(["import", "duplicate"]);
 const RESERVATION_FIELDS = new Set(["import", "upload"]);
 const UPLOAD_FIELDS = new Set(["bucket", "path", "token"]);
-const REPORT_FIELDS = new Set(["import", "rows", "pagination"]);
+const REPORT_FIELDS = new Set(["import", "classSummary", "comparedToActiveImport", "rows", "pagination"]);
+const CLASS_SUMMARY_FIELDS = new Set(["personTypeCounts", "classRefs"]);
+const ACTIVE_COMPARISON_FIELDS = new Set([
+  "activeImportId",
+  "personTypeCounts",
+  "classRefsAdded",
+  "classRefsRemoved",
+]);
 const REPORT_IMPORT_FIELDS = new Set([
   "id",
   "status",
@@ -152,6 +159,20 @@ export type IdentityDirectoryReportRow = {
   issues: IdentityDirectoryReportIssue[];
 };
 
+export type IdentityDirectoryPersonTypeCounts = Partial<Record<(typeof PERSON_TYPES)[number], number>>;
+
+export type IdentityDirectoryClassSummary = {
+  personTypeCounts: IdentityDirectoryPersonTypeCounts;
+  classRefs: string[];
+};
+
+export type IdentityDirectoryActiveComparison = {
+  activeImportId: string | null;
+  personTypeCounts: IdentityDirectoryPersonTypeCounts;
+  classRefsAdded: string[];
+  classRefsRemoved: string[];
+};
+
 export type IdentityDirectoryReportPayload = {
   import: {
     id: string;
@@ -164,6 +185,8 @@ export type IdentityDirectoryReportPayload = {
       issueCounts: Partial<Record<(typeof ISSUE_CODES)[number], number>>;
     };
   };
+  classSummary: IdentityDirectoryClassSummary;
+  comparedToActiveImport: IdentityDirectoryActiveComparison;
   rows: IdentityDirectoryReportRow[];
   pagination: { page: number; pageSize: number; total: number };
 };
@@ -356,6 +379,55 @@ export function isIdentityDirectoryActionPayload(
     && allowedStatuses.includes(value.import.status);
 }
 
+function isPersonTypeCounts(value: unknown): value is IdentityDirectoryPersonTypeCounts {
+  if (!isRecord(value)) return false;
+  const entries = Object.entries(value);
+  if (entries.length > PERSON_TYPES.length) return false;
+  return entries.every(([key, count]) => (
+    known(key, PERSON_TYPES)
+    && Number.isSafeInteger(count)
+    && Number(count) >= 0
+    && Number(count) <= IDENTITY_DIRECTORY_MAX_ROWS
+  ));
+}
+
+function isSortedUniqueClassRefs(value: unknown): value is string[] {
+  if (!Array.isArray(value) || value.length > 500) return false;
+  if (!value.every((entry) => typeof entry === "string" && REFERENCE_PATTERN.test(entry))) return false;
+  for (let index = 1; index < value.length; index += 1) {
+    if (value[index - 1] >= value[index]) return false;
+  }
+  return true;
+}
+
+function isClassSummary(value: unknown): value is IdentityDirectoryClassSummary {
+  return isRecord(value)
+    && hasExactKeys(value, CLASS_SUMMARY_FIELDS)
+    && isPersonTypeCounts(value.personTypeCounts)
+    && isSortedUniqueClassRefs(value.classRefs);
+}
+
+function isComparedToActiveImport(
+  value: unknown,
+  expectedImportId: string
+): value is IdentityDirectoryActiveComparison {
+  if (!isRecord(value)
+    || !hasExactKeys(value, ACTIVE_COMPARISON_FIELDS)
+    || (value.activeImportId !== null && (
+      typeof value.activeImportId !== "string"
+      || !UUID_PATTERN.test(value.activeImportId)
+      || value.activeImportId === expectedImportId
+    ))
+    || !isPersonTypeCounts(value.personTypeCounts)
+    || !isSortedUniqueClassRefs(value.classRefsAdded)
+    || !isSortedUniqueClassRefs(value.classRefsRemoved)) {
+    return false;
+  }
+  const added = value.classRefsAdded;
+  const removed = value.classRefsRemoved;
+  return !added.some((ref) => removed.includes(ref));
+}
+
 export function isIdentityDirectoryReportPayload(
   value: unknown,
   expectedImportId: string,
@@ -370,6 +442,8 @@ export function isIdentityDirectoryReportPayload(
     || !known(value.import.status, IDENTITY_DIRECTORY_STATUSES)
     || !coherentCounts(value.import)
     || !isSummary(value.import.validationSummary, value.import.rowCount as number | null)
+    || !isClassSummary(value.classSummary)
+    || !isComparedToActiveImport(value.comparedToActiveImport, expectedImportId)
     || !Array.isArray(value.rows)
     || value.rows.length > 100
     || !value.rows.every(isReportRow)

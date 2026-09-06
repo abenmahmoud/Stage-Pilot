@@ -1,5 +1,5 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { and, asc, count, eq } from "drizzle-orm";
+import { and, asc, count, eq, isNotNull, ne } from "drizzle-orm";
 import { db } from "../../../../../db/index.js";
 import {
   identityDirectoryImports,
@@ -8,8 +8,45 @@ import {
 import { isIdentityDirectoryReportPayload } from "../../../../../shared/identity-directory-admin-payload-policy.js";
 import { HttpError } from "../../../../_shared/auth.js";
 import { requireIdentityDirectoryManager } from "../../../../_shared/identity-directory.js";
-import { identityDirectoryReportImportView } from "../../../../_shared/identity-directory-view.js";
+import {
+  identityDirectoryActiveComparisonView,
+  identityDirectoryClassSummaryView,
+  identityDirectoryReportImportView,
+} from "../../../../_shared/identity-directory-view.js";
 import { handleApi, methodNotAllowed } from "../../../../_shared/response.js";
+
+async function personTypeCounts(importId: string): Promise<Record<string, number>> {
+  const grouped = await db
+    .select({ personType: identityDirectoryRows.personType, value: count() })
+    .from(identityDirectoryRows)
+    .where(
+      and(
+        eq(identityDirectoryRows.importId, importId),
+        eq(identityDirectoryRows.recordType, "person")
+      )
+    )
+    .groupBy(identityDirectoryRows.personType);
+  const counts: Record<string, number> = {};
+  for (const row of grouped) {
+    if (row.personType) counts[row.personType] = Number(row.value);
+  }
+  return counts;
+}
+
+async function distinctClassRefs(importId: string): Promise<string[]> {
+  const rows = await db
+    .selectDistinct({ classRef: identityDirectoryRows.classRef })
+    .from(identityDirectoryRows)
+    .where(
+      and(
+        eq(identityDirectoryRows.importId, importId),
+        isNotNull(identityDirectoryRows.classRef)
+      )
+    )
+    .orderBy(asc(identityDirectoryRows.classRef))
+    .limit(500);
+  return rows.map((row) => row.classRef).filter((classRef): classRef is string => classRef !== null);
+}
 
 function routeId(req: VercelRequest): string {
   const value = Array.isArray(req.query.id) ? req.query.id[0] : req.query.id;
@@ -50,7 +87,19 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       .limit(1);
     if (!directoryImport) throw new HttpError(404, "Import introuvable");
 
-    const [totalResult, rows] = await Promise.all([
+    const [activeImport] = await db
+      .select({ id: identityDirectoryImports.id })
+      .from(identityDirectoryImports)
+      .where(
+        and(
+          eq(identityDirectoryImports.institutionId, context.institutionId),
+          eq(identityDirectoryImports.status, "active"),
+          ne(identityDirectoryImports.id, id)
+        )
+      )
+      .limit(1);
+
+    const [totalResult, rows, currentPersonTypeCounts, currentClassRefs, activePersonTypeCounts, activeClassRefs] = await Promise.all([
       db
         .select({ value: count() })
         .from(identityDirectoryRows)
@@ -78,6 +127,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         .orderBy(asc(identityDirectoryRows.sourceSheet), asc(identityDirectoryRows.rowNumber))
         .limit(pageSize)
         .offset((page - 1) * pageSize),
+      personTypeCounts(id),
+      distinctClassRefs(id),
+      activeImport ? personTypeCounts(activeImport.id) : Promise.resolve({}),
+      activeImport ? distinctClassRefs(activeImport.id) : Promise.resolve([]),
     ]);
 
     const total = Number(totalResult[0]?.value ?? 0);
@@ -87,6 +140,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
     const payload = {
       import: identityDirectoryReportImportView(directoryImport),
+      classSummary: identityDirectoryClassSummaryView(currentPersonTypeCounts, currentClassRefs),
+      comparedToActiveImport: identityDirectoryActiveComparisonView(
+        activeImport?.id ?? null,
+        activePersonTypeCounts,
+        currentClassRefs,
+        activeClassRefs
+      ),
       rows,
       pagination: {
         page,

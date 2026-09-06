@@ -53,6 +53,32 @@ export function identityDirectoryActionView(value: IdentityDirectoryImport) {
   };
 }
 
+export function identityDirectoryClassSummaryView(
+  personTypeCounts: Record<string, number>,
+  classRefs: readonly string[]
+) {
+  return {
+    personTypeCounts,
+    classRefs: [...classRefs].sort(),
+  };
+}
+
+export function identityDirectoryActiveComparisonView(
+  activeImportId: string | null,
+  activePersonTypeCounts: Record<string, number>,
+  currentClassRefs: readonly string[],
+  activeClassRefs: readonly string[]
+) {
+  const currentSet = new Set(currentClassRefs);
+  const activeSet = new Set(activeClassRefs);
+  return {
+    activeImportId,
+    personTypeCounts: activePersonTypeCounts,
+    classRefsAdded: [...currentSet].filter((ref) => !activeSet.has(ref)).sort(),
+    classRefsRemoved: [...activeSet].filter((ref) => !currentSet.has(ref)).sort(),
+  };
+}
+
 export function identityDirectoryReportImportView(value: IdentityDirectoryImport) {
   const summary = value.validationSummary
     && typeof value.validationSummary === "object"
