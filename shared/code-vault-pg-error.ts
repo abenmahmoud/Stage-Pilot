@@ -70,3 +70,20 @@ export class SanitizedPgWriteError extends Error {
     this.constraintName = sanitized.constraintName;
   }
 }
+
+/**
+ * Même garantie que `SanitizedPgWriteError`, côté point de lecture unique
+ * (`api/_shared/code-vault-read.ts`, LOT 1 du plan du 6 septembre 2026,
+ * `docs/operations/PLAN_LECTURE_COFFRE_2026-09-06.md`) : une erreur Postgres
+ * levée pendant la lecture de `code_vault_private_rows` ne doit jamais
+ * remonter avec son `detail` d'origine.
+ */
+export class SanitizedPgReadError extends Error {
+  readonly constraintName?: string;
+
+  constructor(sanitized: SanitizedPgError) {
+    super(sanitized.message);
+    this.name = "SanitizedPgReadError";
+    this.constraintName = sanitized.constraintName;
+  }
+}
