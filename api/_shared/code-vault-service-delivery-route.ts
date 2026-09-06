@@ -53,6 +53,7 @@ import {
 import { getOrCreateVaultAssignment, recordVaultCodeDisplay, type VaultTx } from "./code-vault-assignment.js";
 import { recordVaultAccessEvent } from "./code-vault-access-events.js";
 import { CURRENT_VAULT_ASSIGNMENT_VERSION } from "./code-vault-ent-inactif-route.js";
+import { resolveVaultCodeReveal } from "./code-vault-read.js";
 import { createVaultEscalationTicket } from "./code-vault-support-escalation.js";
 
 export { CURRENT_VAULT_ASSIGNMENT_VERSION };
@@ -121,12 +122,20 @@ export type ServiceDeliveryRouteInput = {
   now: Date;
   /** Cantine du professeur pour lui-même : « selon disponibilité validée » (§7). Non branché dans ce lot, voir en-tête. */
   cantineAvailabilityValidated?: boolean;
+  /** Recette locale uniquement : jamais fourni par `api/vault/cantine.ts` / `api/vault/koxo.ts`, qui laissent `resolveVaultCodeReveal` lire `process.env`. */
+  env?: NodeJS.ProcessEnv;
 };
 
 export type ServiceDeliveryRouteResult =
   | { outcome: "denied"; reason: VaultAccessRefusalReason }
   | { outcome: "step"; action: CodeVaultJourneyAction }
-  | { outcome: "displayed"; remainingDisplaysToday: number; revealedAt: string }
+  | {
+      outcome: "displayed";
+      remainingDisplaysToday: number;
+      revealedAt: string;
+      value: string | null;
+      reason: "reveal_disabled" | "not_displayed" | null;
+    }
   | { outcome: "escalated"; publicCode: string };
 
 function decideJourneyStep(
@@ -221,10 +230,18 @@ export async function handleServiceDeliveryVaultRequest(
   });
 
   if (displayOutcome.outcome === "displayed") {
+    const reveal = await resolveVaultCodeReveal(tx, {
+      assignmentId: assignment.id,
+      institutionId: input.target.institutionId,
+      displayOutcome,
+      env: input.env,
+    });
     return {
       outcome: "displayed",
       remainingDisplaysToday: displayOutcome.remainingDisplaysToday,
       revealedAt: displayOutcome.revealedAt.toISOString(),
+      value: reveal.value,
+      reason: reveal.reason,
     };
   }
   if (displayOutcome.outcome === "quota_exceeded") {

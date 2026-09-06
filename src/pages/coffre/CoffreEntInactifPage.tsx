@@ -12,13 +12,16 @@
 // phase avancée d'elle-même, même esprit que `shared/code-vault-journeys.ts`
 // (« c'est à l'appelant de faire progresser cette phase »).
 //
-// Point non résolu, documenté explicitement plutôt que masqué (voir
-// `docs/operations/night-logs/BRANCHE-LOT5.md`) : la route du LOT 3 ne
-// déchiffre et ne renvoie jamais la valeur du code (aucun point de lecture de
-// `code_vault_private_rows` n'existe dans ce dépôt). L'état `revealed` porte
-// donc toujours `value: null` aujourd'hui, et cette page l'assume au lieu de
-// fabriquer une valeur : `CodeVaultSecureDisplay` n'est réellement rendu avec
-// un code que le jour où un point de lecture unique sera tranché.
+// Depuis le LOT 3 du plan de lecture
+// (`docs/operations/PLAN_LECTURE_COFFRE_2026-09-06.md`), la route peut
+// renvoyer une valeur réellement déchiffrée : le point de lecture unique
+// existe (`api/_shared/code-vault-read.ts`). `value` reste néanmoins `null`
+// tant que `CODE_VAULT_REVEAL_ENABLED` est fermé — son défaut, jamais activé
+// par ce plan (voir `.env.local.example`) — ou si aucune ligne chiffrée
+// n'existe encore pour l'attribution (aucun code réel n'est importé
+// aujourd'hui). Cette page distingue les deux cas par `screen.reason` au lieu
+// de fabriquer une valeur : `CodeVaultSecureDisplay` n'est réellement rendu
+// avec un code que lorsque la route en a effectivement révélé un.
 import { useCallback, useEffect, useState } from "react";
 import { AlertTriangle, KeyRound, LoaderCircle, Mail, Phone, ShieldAlert, ShieldCheck } from "lucide-react";
 import { Link } from "react-router-dom";
@@ -53,6 +56,11 @@ const REFUSAL_MESSAGE: Readonly<Record<VaultAccessRefusalReason, string>> = {
 };
 
 const GENERIC_ERROR_MESSAGE = "Le service ne répond pas pour le moment. Réessayez dans quelques instants.";
+
+const REVEAL_UNAVAILABLE_MESSAGE: Readonly<Record<"reveal_disabled" | "not_displayed", string>> = {
+  reveal_disabled: "La lecture du code n'est pas encore activée sur cet environnement.",
+  not_displayed: "Autorisation confirmée, mais aucun code n'est encore enregistré pour ce compte.",
+};
 
 export default function CoffreEntInactifPage() {
   const [schoolYear, setSchoolYear] = useState<string | null>(null);
@@ -256,9 +264,8 @@ export default function CoffreEntInactifPage() {
                 <div className="flex items-start gap-2">
                   <ShieldAlert className="mt-0.5 h-5 w-5 text-gray-400" aria-hidden="true" />
                   <p className="text-sm text-gray-700">
-                    Autorisation confirmée ({screen.remainingDisplaysToday} affichage(s) restant(s)
-                    aujourd'hui), mais la lecture du code n'est pas encore branchée sur ce parcours —
-                    voir le compte rendu du LOT 5.
+                    {screen.reason !== null ? REVEAL_UNAVAILABLE_MESSAGE[screen.reason] : GENERIC_ERROR_MESSAGE}
+                    {" "}({screen.remainingDisplaysToday} affichage(s) restant(s) aujourd'hui).
                   </p>
                 </div>
                 <button

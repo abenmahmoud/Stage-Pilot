@@ -11,13 +11,23 @@
 // journal d'accès (mêmes garanties que le LOT 3), et — nouveau dans ce lot —
 // qu'un `lookup_failed` ouvre un vrai ticket dans `support_requests`, jamais
 // une décision qui reste sans suite.
+//
+// Étendu par le LOT 3 du plan de lecture
+// (`docs/operations/PLAN_LECTURE_COFFRE_2026-09-06.md`) : mêmes preuves que
+// `test-local-code-vault-ent-inactif-route.mjs` pour les parcours cantine et
+// koxo — round-trip réel de `resolveVaultCodeReveal` (drapeau fermé par
+// défaut, ouvert seulement dans l'`env` de l'appel, jamais persisté) et
+// chemin de refus « autre établissement » sans aucun déchiffrement atteint.
 import assert from "node:assert/strict";
-import { randomUUID } from "node:crypto";
+import { randomBytes, randomUUID } from "node:crypto";
 import postgres from "postgres";
 import { drizzle } from "drizzle-orm/postgres-js";
 import { sql } from "drizzle-orm";
 import { handleServiceDeliveryVaultRequest } from "../api/_shared/code-vault-service-delivery-route.ts";
 import { handleMessagerieAcademiqueVaultRequest } from "../api/_shared/code-vault-messagerie-academique-route.ts";
+import { CURRENT_VAULT_ASSIGNMENT_VERSION } from "../api/_shared/code-vault-ent-inactif-route.ts";
+import { getOrCreateVaultAssignment } from "../api/_shared/code-vault-assignment.ts";
+import { writeVaultCodeValue } from "../api/_shared/code-vault-write.ts";
 
 if (process.argv.length !== 3 || process.argv[2] !== "--local-stack-only") {
   throw new Error("local_stack_confirmation_required");
@@ -141,8 +151,14 @@ try {
     });
     check(
       cantineReveal,
-      { outcome: "displayed", remainingDisplaysToday: 2, revealedAt: "2026-09-06T08:00:00.000Z" },
-      "cantine_first_reveal_succeeds_without_leaking_a_value"
+      {
+        outcome: "displayed",
+        remainingDisplaysToday: 2,
+        revealedAt: "2026-09-06T08:00:00.000Z",
+        value: null,
+        reason: "reveal_disabled",
+      },
+      "cantine_first_reveal_succeeds_without_leaking_a_value_flag_closed_by_default"
     );
 
     // -----------------------------------------------------------------
@@ -329,6 +345,98 @@ try {
     );
     check(consultForMessagerie.length, 1, "messagerie_academique_logs_exactly_one_consult_event");
     check(consultForMessagerie[0].event_type, "consult", "messagerie_academique_event_type");
+
+    // -----------------------------------------------------------------
+    // Scénario 9 (LOT 3 du plan de lecture, cantine) : chemin de refus
+    // « autre établissement » — aucune attribution, aucun événement
+    // `consult`, donc `resolveVaultCodeReveal` n'est jamais atteint.
+    // -----------------------------------------------------------------
+    // L'événement de refus est journalisé sous l'institution de la *cible*
+    // (contrainte de clé étrangère réelle sur `code_vault_access_events`) :
+    // elle doit donc exister, même pour prouver un refus.
+    const otherInstitutionId = randomUUID();
+    await insertFictitiousInstitution(tx, otherInstitutionId);
+    const otherInstitutionActor = { profile: "eleve", personRef: "eleve-lot3-lecture-cantine-autre-etab", institutionId };
+    const otherInstitutionTarget = {
+      service: "cantine",
+      institutionId: otherInstitutionId,
+      subjectKind: "self",
+      subjectPersonRef: "eleve-lot3-lecture-cantine-autre-etab",
+      subjectClassRef: null,
+    };
+    const cantineInstitutionMismatch = await handleServiceDeliveryVaultRequest(tx, {
+      journeyType: "cantine",
+      actor: otherInstitutionActor,
+      target: otherInstitutionTarget,
+      phase: "verified",
+      proofChannel: "email",
+      schoolYear: "2026-2027",
+      now: new Date("2026-09-06T08:00:00.000Z"),
+    });
+    check(
+      cantineInstitutionMismatch,
+      { outcome: "denied", reason: "institution_mismatch" },
+      "cantine_other_institution_actor_is_denied_before_any_reveal_attempt"
+    );
+
+    // -----------------------------------------------------------------
+    // Scénario 10 (LOT 3 du plan de lecture) : round-trip réel de
+    // `resolveVaultCodeReveal` pour cantine et koxo — même preuve que le
+    // LOT 3 côté ENT inactif (`test-local-code-vault-ent-inactif-route.mjs`) :
+    // drapeau fermé par défaut, ouvert seulement dans l'`env` de l'appel.
+    // -----------------------------------------------------------------
+    async function revealRoundTrip(journeyType, service) {
+      const personRef = `eleve-lot3-lecture-${journeyType}-reveal`;
+      const actor = { profile: "eleve", personRef, institutionId };
+      const target = { service, institutionId, subjectKind: "self", subjectPersonRef: personRef, subjectClassRef: null };
+      const cryptoEnv = {
+        CODE_VAULT_ENCRYPTION_KEY_VERSION: "v1",
+        CODE_VAULT_ENCRYPTION_KEY_V1: randomBytes(32).toString("base64"),
+      };
+      const assignment = await getOrCreateVaultAssignment(tx, {
+        institutionId,
+        personRef,
+        service,
+        schoolYear: "2026-2027",
+        version: CURRENT_VAULT_ASSIGNMENT_VERSION,
+      });
+      const fixtureValue = `${journeyType}2026EleveLot3Lecture`;
+      await writeVaultCodeValue(tx, { assignmentId: assignment.id, institutionId, value: fixtureValue, env: cryptoEnv });
+
+      const closedFlagReveal = await handleServiceDeliveryVaultRequest(tx, {
+        journeyType,
+        actor,
+        target,
+        phase: "verified",
+        proofChannel: "email",
+        schoolYear: "2026-2027",
+        now: new Date("2026-09-06T08:00:00.000Z"),
+        env: cryptoEnv,
+      });
+      check(closedFlagReveal.outcome, "displayed", `${journeyType}_reveal_scenario_first_display_succeeds`);
+      check(closedFlagReveal.value, null, `${journeyType}_reveal_flag_closed_by_default_keeps_value_null`);
+      check(closedFlagReveal.reason, "reveal_disabled", `${journeyType}_reveal_flag_closed_reason_is_explicit`);
+
+      const openFlagReveal = await handleServiceDeliveryVaultRequest(tx, {
+        journeyType,
+        actor,
+        target,
+        phase: "verified",
+        proofChannel: "email",
+        schoolYear: "2026-2027",
+        now: new Date("2026-09-06T08:05:00.000Z"),
+        env: { ...cryptoEnv, CODE_VAULT_REVEAL_ENABLED: "true" },
+      });
+      check(openFlagReveal.outcome, "displayed", `${journeyType}_reveal_scenario_second_display_succeeds`);
+      check(
+        openFlagReveal.value,
+        fixtureValue,
+        `${journeyType}_reveal_flag_open_returns_the_real_decrypted_value_round_tripped_through_postgresql`
+      );
+      check(openFlagReveal.reason, null, `${journeyType}_reveal_flag_open_reason_is_null_when_a_value_is_returned`);
+    }
+    await revealRoundTrip("cantine", "cantine");
+    await revealRoundTrip("koxo", "koxo");
 
     throw rollback;
   });

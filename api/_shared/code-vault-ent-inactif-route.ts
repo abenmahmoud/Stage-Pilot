@@ -21,11 +21,16 @@
 //   `shared/code-vault-journeys.ts` mais jusqu'ici jamais invoqué), il ne
 //   remonte jamais comme une erreur brute.
 //
-// Ce module ne déchiffre et ne renvoie jamais la valeur du code : il
-// s'arrête à la décision d'autorisation, à l'attribution et à la
-// comptabilité d'affichage. La lecture de `code_vault_private_rows` reste
-// hors périmètre de ce lot (aucune fonction de ce module n'importe
-// `shared/code-vault-crypto.ts`).
+// Depuis le LOT 3 du plan de lecture
+// (`docs/operations/PLAN_LECTURE_COFFRE_2026-09-06.md`), une remise accordée
+// est enchaînée sur `resolveVaultCodeReveal`
+// (`api/_shared/code-vault-read.ts`) : ce module ne lit et ne déchiffre
+// toujours rien lui-même (aucun `select ... from
+// public.code_vault_private_rows` ici, aucun import de
+// `shared/code-vault-crypto.ts`), il délègue au point de lecture unique du
+// LOT 1/2. Tant que `CODE_VAULT_REVEAL_ENABLED` reste fermé (comportement par
+// défaut, voir `.env.local.example`), `value` reste `null` avec le motif
+// `reveal_disabled` — exactement le comportement d'avant ce lot.
 
 import {
   decideVaultAccess,
@@ -43,6 +48,7 @@ import {
 } from "../../shared/code-vault-journeys.js";
 import { getOrCreateVaultAssignment, recordVaultCodeDisplay, type VaultTx } from "./code-vault-assignment.js";
 import { recordVaultAccessEvent } from "./code-vault-access-events.js";
+import { resolveVaultCodeReveal } from "./code-vault-read.js";
 
 /** Aucun remplacement pour ce lot (`traceManualVaultCodeReplacement` reste hors périmètre) : toujours la première version. */
 export const CURRENT_VAULT_ASSIGNMENT_VERSION = 1;
@@ -101,12 +107,20 @@ export type EntInactifRouteInput = {
   proofChannel: VaultProofChannel;
   schoolYear: string;
   now: Date;
+  /** Recette locale uniquement : jamais fourni par `api/vault/ent-inactif.ts`, qui laisse `resolveVaultCodeReveal` lire `process.env`. */
+  env?: NodeJS.ProcessEnv;
 };
 
 export type EntInactifRouteResult =
   | { outcome: "denied"; reason: VaultAccessRefusalReason }
   | { outcome: "step"; action: CodeVaultJourneyAction }
-  | { outcome: "displayed"; remainingDisplaysToday: number; revealedAt: string };
+  | {
+      outcome: "displayed";
+      remainingDisplaysToday: number;
+      revealedAt: string;
+      value: string | null;
+      reason: "reveal_disabled" | "not_displayed" | null;
+    };
 
 export async function handleEntInactifVaultRequest(
   tx: VaultTx,
@@ -181,10 +195,18 @@ export async function handleEntInactifVaultRequest(
   });
 
   if (displayOutcome.outcome === "displayed") {
+    const reveal = await resolveVaultCodeReveal(tx, {
+      assignmentId: assignment.id,
+      institutionId: input.target.institutionId,
+      displayOutcome,
+      env: input.env,
+    });
     return {
       outcome: "displayed",
       remainingDisplaysToday: displayOutcome.remainingDisplaysToday,
       revealedAt: displayOutcome.revealedAt.toISOString(),
+      value: reveal.value,
+      reason: reveal.reason,
     };
   }
   if (displayOutcome.outcome === "quota_exceeded") {

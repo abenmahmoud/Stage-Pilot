@@ -41,7 +41,7 @@ test("monte réellement CodeVaultSecureDisplay quand l'état est revealed et qu'
 
 test("ne fabrique jamais de valeur de code quand la route n'en renvoie aucune", () => {
   assert.match(page, /screen\.value !== null/);
-  assert.match(page, /la lecture du code n'est pas encore branchée/i);
+  assert.match(page, /REVEAL_UNAVAILABLE_MESSAGE\[screen\.reason\]/);
 });
 
 test("onExpire relance une nouvelle demande de preuve d'identité, jamais une reprise à verified", () => {

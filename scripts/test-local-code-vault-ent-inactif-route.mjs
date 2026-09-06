@@ -9,12 +9,32 @@
 // attribution, remise, et journal d'accès — y compris les deux défauts
 // corrigés par ce lot (expiration de la fenêtre de visibilité, quatrième
 // affichage vers le formulaire enrichi).
+//
+// Étendu par le LOT 3 du plan de lecture
+// (`docs/operations/PLAN_LECTURE_COFFRE_2026-09-06.md`) : prouve que
+// `resolveVaultCodeReveal` (branché dans `handleEntInactifVaultRequest`
+// depuis ce lot) tient contre PostgreSQL réel, dans les deux sens —
+//   - drapeau fermé (comportement par défaut, jamais activé pour de vrai) :
+//     `value` reste `null`, motif `reveal_disabled` ;
+//   - drapeau ouvert **seulement dans l'`env` passé à cet appel de fonction**
+//     (jamais dans `.env.local.example`, jamais persistant) : la valeur
+//     écrite par `writeVaultCodeValue` (point d'écriture du LOT 1 du plan de
+//     branchement) revient déchiffrée telle quelle.
+// Couvre aussi explicitement le chemin de refus « autre établissement »
+// (`institution_mismatch`) exigé par le LOT 3 : aucune remise, donc aucun
+// déchiffrement, n'est jamais atteignable pour un acteur d'un autre
+// établissement.
 import assert from "node:assert/strict";
-import { randomUUID } from "node:crypto";
+import { randomBytes, randomUUID } from "node:crypto";
 import postgres from "postgres";
 import { drizzle } from "drizzle-orm/postgres-js";
 import { sql } from "drizzle-orm";
-import { handleEntInactifVaultRequest } from "../api/_shared/code-vault-ent-inactif-route.ts";
+import {
+  CURRENT_VAULT_ASSIGNMENT_VERSION,
+  handleEntInactifVaultRequest,
+} from "../api/_shared/code-vault-ent-inactif-route.ts";
+import { getOrCreateVaultAssignment } from "../api/_shared/code-vault-assignment.ts";
+import { writeVaultCodeValue } from "../api/_shared/code-vault-write.ts";
 
 if (process.argv.length !== 3 || process.argv[2] !== "--local-stack-only") {
   throw new Error("local_stack_confirmation_required");
@@ -152,10 +172,20 @@ try {
     });
     check(
       firstReveal,
-      { outcome: "displayed", remainingDisplaysToday: 2, revealedAt: "2026-09-06T08:00:00.000Z" },
-      "first_reveal_succeeds_without_leaking_a_value"
+      {
+        outcome: "displayed",
+        remainingDisplaysToday: 2,
+        revealedAt: "2026-09-06T08:00:00.000Z",
+        value: null,
+        reason: "reveal_disabled",
+      },
+      "first_reveal_succeeds_without_leaking_a_value_flag_closed_by_default"
     );
-    check(Object.keys(firstReveal), ["outcome", "remainingDisplaysToday", "revealedAt"], "displayed_outcome_has_no_extra_field");
+    check(
+      Object.keys(firstReveal),
+      ["outcome", "remainingDisplaysToday", "revealedAt", "value", "reason"],
+      "displayed_outcome_has_no_extra_field"
+    );
     const eventsAfterFirstReveal = await accessEventsFor(tx, institutionId);
     check(eventsAfterFirstReveal.length, 2, "reveal_appends_one_consult_event");
     check(eventsAfterFirstReveal[1].event_type, "consult", "reveal_event_type_is_consult");
@@ -240,6 +270,103 @@ try {
       where institution_id = ${institutionId} and person_ref = ${quotaPersonRef}
     `);
     check(afterQuotaExceeded.display_count, 3, "form_fallback_does_not_count_as_a_fourth_display");
+
+    // ---------------------------------------------------------------------
+    // Scénario 6 (LOT 3 du plan de lecture) : le chemin de refus « autre
+    // établissement » ne crée jamais d'attribution, ne journalise jamais de
+    // `consult`, et n'atteint donc jamais `resolveVaultCodeReveal`.
+    // ---------------------------------------------------------------------
+    // L'événement de refus est journalisé sous l'institution de la *cible*
+    // (contrainte de clé étrangère réelle sur `code_vault_access_events`) :
+    // elle doit donc exister, même pour prouver un refus.
+    const otherInstitutionId = randomUUID();
+    await insertFictitiousInstitution(tx, otherInstitutionId);
+    const otherInstitutionActor = { profile: "eleve", personRef: "eleve-lot3-lecture-autre-etab", institutionId };
+    const otherInstitutionTarget = {
+      service: "ent",
+      institutionId: otherInstitutionId,
+      subjectKind: "self",
+      subjectPersonRef: "eleve-lot3-lecture-autre-etab",
+      subjectClassRef: null,
+    };
+    const institutionMismatch = await handleEntInactifVaultRequest(tx, {
+      actor: otherInstitutionActor,
+      target: otherInstitutionTarget,
+      phase: "verified",
+      proofChannel: "email",
+      schoolYear: "2026-2027",
+      now: new Date("2026-09-06T08:00:00.000Z"),
+    });
+    check(
+      institutionMismatch,
+      { outcome: "denied", reason: "institution_mismatch" },
+      "other_institution_actor_is_denied_before_any_reveal_attempt"
+    );
+
+    // ---------------------------------------------------------------------
+    // Scénario 7 (LOT 3 du plan de lecture) : round-trip réel de
+    // `resolveVaultCodeReveal` contre PostgreSQL — drapeau fermé par défaut
+    // (comme partout ailleurs dans ce dépôt), puis ouvert seulement dans
+    // l'`env` de cet appel pour prouver que le déchiffrement fonctionne
+    // effectivement, sans jamais toucher `.env.local.example`.
+    // ---------------------------------------------------------------------
+    const revealPersonRef = "eleve-lot3-lecture-reveal";
+    const revealActor = { profile: "eleve", personRef: revealPersonRef, institutionId };
+    const revealTarget = {
+      service: "ent",
+      institutionId,
+      subjectKind: "self",
+      subjectPersonRef: revealPersonRef,
+      subjectClassRef: null,
+    };
+    const revealCryptoEnv = {
+      CODE_VAULT_ENCRYPTION_KEY_VERSION: "v1",
+      CODE_VAULT_ENCRYPTION_KEY_V1: randomBytes(32).toString("base64"),
+    };
+    const revealAssignment = await getOrCreateVaultAssignment(tx, {
+      institutionId,
+      personRef: revealPersonRef,
+      service: "ent",
+      schoolYear: "2026-2027",
+      version: CURRENT_VAULT_ASSIGNMENT_VERSION,
+    });
+    const REVEAL_FIXTURE_VALUE = "Ent2026EleveLot3Lecture";
+    await writeVaultCodeValue(tx, {
+      assignmentId: revealAssignment.id,
+      institutionId,
+      value: REVEAL_FIXTURE_VALUE,
+      env: revealCryptoEnv,
+    });
+
+    const closedFlagReveal = await handleEntInactifVaultRequest(tx, {
+      actor: revealActor,
+      target: revealTarget,
+      phase: "verified",
+      proofChannel: "email",
+      schoolYear: "2026-2027",
+      now: new Date("2026-09-06T08:00:00.000Z"),
+      env: revealCryptoEnv, // drapeau absent de cet env : reste fermé, comme process.env par défaut
+    });
+    check(closedFlagReveal.outcome, "displayed", "reveal_scenario_first_display_succeeds");
+    check(closedFlagReveal.value, null, "reveal_flag_closed_by_default_keeps_value_null_even_with_a_real_row");
+    check(closedFlagReveal.reason, "reveal_disabled", "reveal_flag_closed_reason_is_explicit");
+
+    const openFlagReveal = await handleEntInactifVaultRequest(tx, {
+      actor: revealActor,
+      target: revealTarget,
+      phase: "verified",
+      proofChannel: "email",
+      schoolYear: "2026-2027",
+      now: new Date("2026-09-06T08:05:00.000Z"), // toujours dans la fenêtre de visibilité de 30 minutes
+      env: { ...revealCryptoEnv, CODE_VAULT_REVEAL_ENABLED: "true" }, // ouvert seulement ici, jamais persisté
+    });
+    check(openFlagReveal.outcome, "displayed", "reveal_scenario_second_display_succeeds");
+    check(
+      openFlagReveal.value,
+      REVEAL_FIXTURE_VALUE,
+      "reveal_flag_open_returns_the_real_decrypted_value_round_tripped_through_postgresql"
+    );
+    check(openFlagReveal.reason, null, "reveal_flag_open_reason_is_null_when_a_value_is_returned");
 
     throw rollback;
   });

@@ -56,21 +56,45 @@ test("l'invitation à réinitialiser le mot de passe est un état distinct", () 
   assert.deepEqual(state, { kind: "password_reset_invited" });
 });
 
-test("un affichage réussi convertit revealedAt en Date et ne porte jamais de valeur de code", () => {
+test("un affichage réussi convertit revealedAt en Date et transporte la valeur telle quelle (drapeau fermé)", () => {
   const state = decideEntInactifScreenState({
     outcome: "displayed",
     remainingDisplaysToday: 2,
     revealedAt: "2026-09-06T10:00:00.000Z",
+    value: null,
+    reason: "reveal_disabled",
   });
   assert.equal(state.kind, "revealed");
   assert.ok(state.revealedAt instanceof Date);
   assert.equal(state.revealedAt.toISOString(), "2026-09-06T10:00:00.000Z");
   assert.equal(state.remainingDisplaysToday, 2);
-  assert.equal(
-    state.value,
-    null,
-    "aucun point de lecture du coffre n'existe encore (LOT 3/4/5) : la valeur ne peut être que nulle"
-  );
+  assert.equal(state.value, null, "drapeau fermé : ce module ne fabrique jamais de valeur");
+  assert.equal(state.reason, "reveal_disabled");
+});
+
+test("un affichage réussi avec remise trouvée transporte la valeur déchiffrée sans la recalculer", () => {
+  const state = decideEntInactifScreenState({
+    outcome: "displayed",
+    remainingDisplaysToday: 1,
+    revealedAt: "2026-09-06T10:00:00.000Z",
+    value: "Cantine2026Eleve456",
+    reason: null,
+  });
+  assert.equal(state.kind, "revealed");
+  assert.equal(state.value, "Cantine2026Eleve456");
+  assert.equal(state.reason, null);
+});
+
+test("un affichage réussi sans ligne chiffrée trouvée porte le motif not_displayed", () => {
+  const state = decideEntInactifScreenState({
+    outcome: "displayed",
+    remainingDisplaysToday: 3,
+    revealedAt: "2026-09-06T10:00:00.000Z",
+    value: null,
+    reason: "not_displayed",
+  });
+  assert.equal(state.value, null);
+  assert.equal(state.reason, "not_displayed");
 });
 
 test("la phase redemandée après expiration d'un affichage est toujours before_proof, jamais verified", () => {

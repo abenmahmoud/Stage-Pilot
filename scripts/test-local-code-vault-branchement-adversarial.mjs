@@ -225,7 +225,17 @@ try {
       now: new Date("2026-09-06T08:00:00.000Z"),
     });
     check(firstReveal.outcome, "displayed", "first_reveal_succeeds");
-    check(Object.keys(firstReveal), ["outcome", "remainingDisplaysToday", "revealedAt"], "first_reveal_response_carries_no_value");
+    // Depuis le LOT 3 du plan de lecture (`PLAN_LECTURE_COFFRE_2026-09-06.md`),
+    // la réponse porte structurellement `value`/`reason` — mais le drapeau
+    // `CODE_VAULT_REVEAL_ENABLED` reste fermé par défaut ici (aucun `env` de
+    // recette ne l'ouvre pour cette personne), donc `value` reste `null`.
+    check(
+      Object.keys(firstReveal),
+      ["outcome", "remainingDisplaysToday", "revealedAt", "value", "reason"],
+      "first_reveal_response_shape"
+    );
+    check(firstReveal.value, null, "first_reveal_carries_no_value_flag_closed_by_default");
+    check(firstReveal.reason, "reveal_disabled", "first_reveal_reason_is_explicit");
 
     const staleAttempt = await handleEntInactifVaultRequest(tx, {
       actor: expiryActor,

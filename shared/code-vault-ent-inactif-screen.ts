@@ -9,15 +9,14 @@
 // page (`src/pages/coffre/CoffreEntInactifPage.tsx`) qui appelle la route et
 // cette fonction, jamais l'inverse.
 //
-// Ce module ne reçoit jamais la valeur déchiffrée du code : la route LOT 3
-// s'arrête à la décision d'autorisation, à l'attribution et à la comptabilité
-// d'affichage (voir son en-tête : « Ce module ne déchiffre et ne renvoie
-// jamais la valeur du code »). L'état `revealed` ci-dessous porte donc un
-// champ `value` structurellement nul aujourd'hui — documenté explicitement
-// dans `docs/operations/night-logs/BRANCHE-LOT5.md` comme le point qui
-// empêche un affichage réellement rempli, pas seulement monté. Le champ
-// existe pour que la page reste prête le jour où un point de lecture unique
-// (symétrique de `api/_shared/code-vault-write.ts`, LOT 1) sera tranché.
+// Depuis le LOT 3 du plan de lecture
+// (`docs/operations/PLAN_LECTURE_COFFRE_2026-09-06.md`), la route peut
+// renvoyer une valeur déchiffrée non nulle — mais seulement si
+// `CODE_VAULT_REVEAL_ENABLED` est ouvert (fermé par défaut, jamais activé par
+// ce plan). Ce module ne fait que transporter `value`/`reason` tels quels
+// vers l'état `revealed` : aucune règle de déchiffrement ni de lecture de
+// `code_vault_private_rows` ne vit ici (voir l'en-tête de
+// `api/_shared/code-vault-read.ts` pour le point de lecture unique).
 
 import type { VaultAccessRefusalReason } from "./code-vault-policy.js";
 import type { EntInactifPhase, VaultProofChannel } from "./code-vault-journeys.js";
@@ -41,7 +40,13 @@ export type EntInactifRouteResultLike =
         | { kind: "form_fallback"; reasonCode: string }
         | { kind: "invite_password_reset" };
     }
-  | { outcome: "displayed"; remainingDisplaysToday: number; revealedAt: string };
+  | {
+      outcome: "displayed";
+      remainingDisplaysToday: number;
+      revealedAt: string;
+      value: string | null;
+      reason: "reveal_disabled" | "not_displayed" | null;
+    };
 
 export type EntInactifScreenState =
   | { kind: "denied"; reason: VaultAccessRefusalReason }
@@ -53,8 +58,10 @@ export type EntInactifScreenState =
       kind: "revealed";
       remainingDisplaysToday: number;
       revealedAt: Date;
-      /** Toujours `null` tant qu'aucun point de lecture du coffre n'existe (voir en-tête). */
+      /** Non nul seulement si la route a effectivement déchiffré une valeur (drapeau ouvert, remise trouvée). */
       value: string | null;
+      /** Motif de fermeture quand `value` est nul — `null` quand une valeur a réellement été renvoyée. */
+      reason: "reveal_disabled" | "not_displayed" | null;
     };
 
 export function decideEntInactifScreenState(result: EntInactifRouteResultLike): EntInactifScreenState {
@@ -66,7 +73,8 @@ export function decideEntInactifScreenState(result: EntInactifRouteResultLike): 
       kind: "revealed",
       remainingDisplaysToday: result.remainingDisplaysToday,
       revealedAt: new Date(result.revealedAt),
-      value: null,
+      value: result.value,
+      reason: result.reason,
     };
   }
   switch (result.action.kind) {
