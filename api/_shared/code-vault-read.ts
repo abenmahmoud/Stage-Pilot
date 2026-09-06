@@ -91,3 +91,40 @@ export async function readVaultCodeValue(
     key: config.key,
   });
 }
+
+// LOT 2 du plan du 6 septembre 2026 (« Le drapeau, fermé ») : tant que
+// `CODE_VAULT_REVEAL_ENABLED` n'est pas exactement `"true"`, aucune route ne
+// doit pouvoir obtenir de valeur déchiffrée, même après une remise accordée.
+// La comparaison stricte suit `readCommunicationFeatureFlags`
+// (`api/_shared/communication-flags.ts`) : toute valeur autre que `"true"`
+// ferme le drapeau, une configuration incomplète ou mal écrite ne l'ouvre
+// jamais par accident.
+export type VaultCodeRevealResult =
+  | { value: string; reason: null }
+  | { value: null; reason: "reveal_disabled" | "not_displayed" };
+
+/**
+ * Point d'entrée que les routes (LOT 3) devront appeler à la place de
+ * `readVaultCodeValue` directement. Quand le drapeau est fermé, le parcours
+ * reste complet mais `value` est toujours `null`, avec un motif explicite —
+ * exactement le comportement d'aujourd'hui, sans lecture de
+ * `code_vault_private_rows` ni tentative de déchiffrement.
+ */
+export async function resolveVaultCodeReveal(
+  tx: VaultTx,
+  params: {
+    assignmentId: string;
+    institutionId: string;
+    displayOutcome: VaultDisplayOutcome;
+    env?: NodeJS.ProcessEnv;
+  }
+): Promise<VaultCodeRevealResult> {
+  const env = params.env ?? process.env;
+  if (env.CODE_VAULT_REVEAL_ENABLED !== "true") {
+    return { value: null, reason: "reveal_disabled" };
+  }
+
+  const value = await readVaultCodeValue(tx, params);
+  if (value === null) return { value: null, reason: "not_displayed" };
+  return { value, reason: null };
+}
