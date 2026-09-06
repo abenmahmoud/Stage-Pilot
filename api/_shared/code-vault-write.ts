@@ -22,6 +22,7 @@ import {
   codeVaultCryptoConfig,
   encryptVaultCodeValue,
 } from "../../shared/code-vault-crypto.js";
+import { sanitizePgError, SanitizedPgWriteError } from "../../shared/code-vault-pg-error.js";
 import type { VaultTx } from "./code-vault-assignment.js";
 
 /**
@@ -50,12 +51,19 @@ export async function writeVaultCodeValue(
     assignmentId: params.assignmentId,
     config,
   });
-  await tx.execute(sql`
-    insert into public.code_vault_private_rows
-      (institution_id, assignment_id, key_version, payload_schema, iv, auth_tag, ciphertext)
-    values (
-      ${params.institutionId}, ${params.assignmentId}, ${envelope.keyVersion},
-      ${envelope.payloadSchema}, ${envelope.iv}, ${envelope.authTag}, ${envelope.ciphertext}
-    )
-  `);
+  try {
+    await tx.execute(sql`
+      insert into public.code_vault_private_rows
+        (institution_id, assignment_id, key_version, payload_schema, iv, auth_tag, ciphertext)
+      values (
+        ${params.institutionId}, ${params.assignmentId}, ${envelope.keyVersion},
+        ${envelope.payloadSchema}, ${envelope.iv}, ${envelope.authTag}, ${envelope.ciphertext}
+      )
+    `);
+  } catch (error: unknown) {
+    // LOT 2 : ne jamais laisser remonter l'erreur Postgres entière — son
+    // `detail` répéterait la ligne refusée en clair. Voir
+    // `shared/code-vault-pg-error.ts`.
+    throw new SanitizedPgWriteError(sanitizePgError(error));
+  }
 }
