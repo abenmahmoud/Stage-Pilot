@@ -350,6 +350,8 @@
     "test:code-vault-secure-display": "node scripts/test-code-vault-secure-display.mjs",
     "test:code-vault-journeys": "node --import ./scripts/ts-test-resolver.mjs --experimental-strip-types scripts/test-code-vault-journeys.mjs",
     "test:code-vault-ent-inactif-route": "node --import ./scripts/ts-test-resolver.mjs --experimental-strip-types scripts/test-code-vault-ent-inactif-route.mjs",
+    "test:code-vault-ent-inactif-screen": "node --import ./scripts/ts-test-resolver.mjs --experimental-strip-types scripts/test-code-vault-ent-inactif-screen.mjs",
+    "test:code-vault-ent-inactif-page": "node scripts/test-code-vault-ent-inactif-page.mjs",
     "recipe:local-code-vault-adversarial": "node --import ./scripts/ts-test-resolver.mjs --experimental-strip-types scripts/test-local-code-vault-adversarial.mjs --local-stack-only",
     "recipe:local-code-vault-ent-inactif-route": "node --import ./scripts/ts-test-resolver.mjs --experimental-strip-types scripts/test-local-code-vault-ent-inactif-route.mjs --local-stack-only",
     "test:code-vault-service-delivery-route": "node --import ./scripts/ts-test-resolver.mjs --experimental-strip-types scripts/test-code-vault-service-delivery-route.mjs",

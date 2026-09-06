@@ -1,14 +1,17 @@
 // Recette navigateur réelle (Chromium local) — LOT 6 du plan du coffre de
 // codes (docs/operations/PLAN_COFFRE_CODES_2026-09-05.md).
 //
-// Le composant `CodeVaultSecureDisplay` (LOT 4) n'est monté sur aucune route
-// applicative (LOT 5 ne l'a pas encore branché) : ce script ne fabrique donc
-// AUCUNE route, AUCUN backend, AUCUNE authentification. Il sert le composant
-// réel, tel quel, via un module virtuel Vite (même technique que
-// `scripts/serve-support-recovery-fixture.mjs`), avec une valeur et un
-// horodatage de révélation entièrement fictifs passés en props — exactement
-// ce que fera un futur appelant réel. Aucune valeur de code de service réel
-// n'est manipulée.
+// Le composant `CodeVaultSecureDisplay` (LOT 4) est depuis le LOT 5
+// (`docs/operations/PLAN_BRANCHEMENT_COFFRE_2026-09-06.md`) monté sur
+// `src/pages/coffre/CoffreEntInactifPage.tsx`, mais cette page ne le rend
+// jamais avec une vraie valeur aujourd'hui : la route du LOT 3 ne déchiffre
+// et ne renvoie toujours pas le code (voir le compte rendu du LOT 5). Ce
+// script continue donc de servir le composant seul, hors de toute route
+// applicative, AUCUN backend, AUCUNE authentification : via un module
+// virtuel Vite (même technique que `scripts/serve-support-recovery-fixture.mjs`),
+// avec une valeur et un horodatage de révélation entièrement fictifs passés
+// en props — exactement ce qu'un appelant réel fera le jour où un point de
+// lecture existera. Aucune valeur de code de service réel n'est manipulée.
 import assert from "node:assert/strict";
 import { mkdirSync } from "node:fs";
 import path from "node:path";
@@ -59,7 +62,8 @@ const server = await createServer({
             import { CodeVaultSecureDisplay } from "/src/components/CodeVaultSecureDisplay.tsx";
             import "/src/index.css";
             const revealedAt = new Date();
-            createRoot(document.getElementById("root")).render(
+            const root = createRoot(document.getElementById("root"));
+            root.render(
               React.createElement(React.StrictMode, null,
                 React.createElement("div", { style: { maxWidth: 480, margin: "0 auto", padding: 16 } },
                   React.createElement(CodeVaultSecureDisplay, {
@@ -70,6 +74,11 @@ const server = await createServer({
                 )
               )
             );
+            // LOT 5 (plan du 6 septembre 2026) : point d'entrée pour prouver
+            // en navigateur réel que le minuteur d'effacement du
+            // presse-papier survit à la sortie de l'écran plutôt que d'être
+            // annulé au démontage.
+            window.__unmountCodeVaultDisplay = () => root.unmount();
           `;
         }
       },
@@ -161,6 +170,16 @@ try {
   // L'attribut `aria-label` du bouton reste fixe ("Copier le code") : c'est
   // le TEXTE VISIBLE qui bascule sur "Copié", pas le nom accessible.
   await page.getByText("Copié", { exact: true }).waitFor({ state: "visible", timeout: 2_000 });
+
+  // LOT 5 (plan du 6 septembre 2026) : le minuteur d'effacement doit
+  // survivre à la sortie de l'écran. On démonte le composant tout de suite
+  // après la copie, puis on attend plus que le délai d'effacement (30 s) :
+  // avant le correctif, le `useEffect` de nettoyage annulait ce minuteur au
+  // démontage et le presse-papier gardait la valeur indéfiniment.
+  await page.evaluate(() => window.__unmountCodeVaultDisplay());
+  await page.waitForTimeout(31_000);
+  const clipboardAfterUnmount = await page.evaluate(() => navigator.clipboard.readText());
+  check(clipboardAfterUnmount, "", "clipboard_cleared_even_after_leaving_the_screen_lot5_fix");
 
   check(consoleErrors, [], "no_console_error_in_a_real_browser_render");
 

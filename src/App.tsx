@@ -50,6 +50,7 @@ const EnvoisNominatifsPage = lazy(() => import("./pages/admin/EnvoisNominatifsPa
 const FlashProposalPage = lazy(() => import("./pages/admin/FlashProposalPage"));
 const FlashValidationPage = lazy(() => import("./pages/admin/FlashValidationPage"));
 const WeeklyBriefPage = lazy(() => import("./pages/admin/WeeklyBriefPage"));
+const CoffreEntInactifPage = lazy(() => import("./pages/coffre/CoffreEntInactifPage"));
 
 function PageFallback() {
   return (
@@ -215,6 +216,14 @@ export default function App() {
           <Route path="grand-oral" element={<GrandOralDashboard />} />
           <Route path="grand-oral/ma-fiche" element={<MaFiche />} />
           <Route path="grand-oral/:ficheId" element={<FicheDetail />} />
+          <Route
+            path="coffre/ent-inactif"
+            element={
+              <RoleRoute allowedRoles={["eleve", "professeur"]}>
+                <CoffreEntInactifPage />
+              </RoleRoute>
+            }
+          />
           <Route
             path="admin"
             element={

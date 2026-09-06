@@ -50,6 +50,20 @@ test("copie via l'API presse-papier, jamais par selection d'un champ, et efface 
   assert.match(component, /clearTimeout\(clipboardClearTimeoutRef\.current\)/);
 });
 
+test("le minuteur d'effacement du presse-papier survit a la sortie de l'ecran (LOT 5) : aucune annulation au demontage", () => {
+  const clearCalls = component.match(/clearTimeout\(clipboardClearTimeoutRef\.current\)/g) ?? [];
+  assert.equal(
+    clearCalls.length,
+    1,
+    "une seule occurrence attendue (remplacement d'un minuteur deja en cours avant une nouvelle copie), aucune dans un nettoyage de demontage"
+  );
+  assert.doesNotMatch(
+    component,
+    /useEffect\(\(\) => \{\s*return \(\) => \{\s*if \(clipboardClearTimeoutRef\.current\)/,
+    "aucun useEffect de nettoyage ne doit annuler ce minuteur au demontage"
+  );
+});
+
 test("disparait de lui-meme a l'expiration, sans action de l'utilisateur", () => {
   assert.match(component, /if \(!stillVisible\)/);
   assert.match(component, /n'est plus affiché/);

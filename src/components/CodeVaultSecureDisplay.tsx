@@ -87,13 +87,15 @@ export function CodeVaultSecureDisplay({
     }
   }, [stillVisible, onExpire]);
 
-  useEffect(() => {
-    return () => {
-      if (clipboardClearTimeoutRef.current) {
-        clearTimeout(clipboardClearTimeoutRef.current);
-      }
-    };
-  }, []);
+  // Pas de nettoyage du minuteur d'effacement au démontage (LOT 5, plan du
+  // 6 septembre 2026) : l'élève quitte cet écran précisément pour aller
+  // coller son code ailleurs, donc démonter le composant est le
+  // comportement normal, pas une annulation. Un `clearTimeout` ici annulait
+  // l'effacement à chaque sortie d'écran, laissant la valeur indéfiniment
+  // dans le presse-papier — l'inverse de la garantie promise plus haut. Le
+  // minuteur est un `setTimeout` global : il continue de tourner et
+  // d'effacer le presse-papier après le démontage, sans dépendre du cycle de
+  // vie React.
 
   const handleCopy = useCallback(async () => {
     try {
