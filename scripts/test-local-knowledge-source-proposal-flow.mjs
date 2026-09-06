@@ -369,7 +369,7 @@ try {
   // email est expurgée et ne peut jamais être approuvée. ===
   const conversationId = randomUUID();
   const withEmail = await call(conversationProposalHandler, {
-    headers: authHeaders(knowledgeManagerAal2Token),
+    headers: authHeaders(knowledgeManagerAal2Token, `ob1-lot5-recette-${marker}-conversation`),
     body: {
       conversationId,
       title: `Observation fictive de conversation ${marker}`,

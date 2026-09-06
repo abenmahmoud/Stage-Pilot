@@ -864,6 +864,7 @@ export const knowledgeSourceProposals = pgTable(
     sourceId: uuid("source_id").references(() => knowledgeSources.id, {
       onDelete: "restrict",
     }),
+    idempotencyKeyHash: text("idempotency_key_hash"),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
   },
@@ -879,6 +880,13 @@ export const knowledgeSourceProposals = pgTable(
     uniqueIndex("knowledge_source_proposals_source_id_uidx")
       .on(table.sourceId)
       .where(sql`${table.sourceId} is not null`),
+    // Nul pour une proposition 'flash_publication' (garantie d'unicite deja
+    // assuree ailleurs) : un index unique simple suffit, NULL <> NULL en
+    // Postgres, donc ces lignes ne se bloquent jamais entre elles.
+    uniqueIndex("knowledge_source_proposals_institution_idempotency_uidx").on(
+      table.institutionId,
+      table.idempotencyKeyHash
+    ),
   ]
 );
 

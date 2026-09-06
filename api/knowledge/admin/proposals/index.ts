@@ -13,7 +13,7 @@
 // une mise en production reelle.
 
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { desc, eq } from "drizzle-orm";
+import { and, desc, eq } from "drizzle-orm";
 import { db } from "../../../../db/index.js";
 import { agentSkillAudit, knowledgeSourceProposals } from "../../../../db/schema.js";
 import {
@@ -26,6 +26,7 @@ import {
   requireKnowledgeManager,
 } from "../../../_shared/knowledge-registry.js";
 import { handleApi, methodNotAllowed } from "../../../_shared/response.js";
+import { idempotencyKey, sha256 } from "../../../_shared/support.js";
 
 function proposalPayload(row: typeof knowledgeSourceProposals.$inferSelect) {
   const exposeText = row.privacySignals.length === 0;
@@ -71,6 +72,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method === "POST") {
     return handleApi(res, async () => {
       const context = await requireKnowledgeManager(req);
+      const idempotencyHash = sha256(idempotencyKey(req));
       let input;
       try {
         input = parseConversationProposalInput(req.body);
@@ -91,35 +93,66 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         );
       }
 
-      const [proposal] = await db
-        .insert(knowledgeSourceProposals)
-        .values({
-          institutionId: context.institutionId,
-          origin: "conversation",
-          originConversationId: input.conversationId,
-          title: input.title,
-          proposedText: signals.length === 0 ? input.candidateText : null,
-          privacySignals: signals,
-          classification: input.classification,
-          serviceCodes: input.serviceCodes,
-          validFrom: input.validFrom,
-          expiresAt: input.expiresAt,
-          provenanceStatus: input.provenanceStatus,
-          usePolicy: input.usePolicy,
-          proposedBy: context.user.id,
-        })
-        .returning();
+      // Idempotence sur un double envoi (en-tête `Idempotency-Key`, jamais le
+      // corps) : même motif que `api/flash/proposals/index.ts`. Comparer le
+      // corps aurait échoué dès qu'un signal de vie privée retire le texte
+      // avant stockage (`proposedText` devient alors NULL).
+      const { proposal, duplicate } = await db.transaction(async (tx) => {
+        const [created] = await tx
+          .insert(knowledgeSourceProposals)
+          .values({
+            institutionId: context.institutionId,
+            origin: "conversation",
+            originConversationId: input.conversationId,
+            title: input.title,
+            proposedText: signals.length === 0 ? input.candidateText : null,
+            privacySignals: signals,
+            classification: input.classification,
+            serviceCodes: input.serviceCodes,
+            validFrom: input.validFrom,
+            expiresAt: input.expiresAt,
+            provenanceStatus: input.provenanceStatus,
+            usePolicy: input.usePolicy,
+            proposedBy: context.user.id,
+            idempotencyKeyHash: idempotencyHash,
+          })
+          .onConflictDoNothing({
+            target: [knowledgeSourceProposals.institutionId, knowledgeSourceProposals.idempotencyKeyHash],
+          })
+          .returning();
 
-      await db.insert(agentSkillAudit).values({
-        institutionId: context.institutionId,
-        resourceType: "proposal",
-        resourceId: proposal.id,
-        action: "propose_knowledge_source",
-        actorId: context.user.id,
-        summary: { origin: "conversation", privacySignalCount: signals.length },
+        if (created) {
+          await tx.insert(agentSkillAudit).values({
+            institutionId: context.institutionId,
+            resourceType: "proposal",
+            resourceId: created.id,
+            action: "propose_knowledge_source",
+            actorId: context.user.id,
+            summary: { origin: "conversation", privacySignalCount: signals.length },
+          });
+          return { proposal: created, duplicate: false };
+        }
+
+        const [existing] = await tx
+          .select()
+          .from(knowledgeSourceProposals)
+          .where(
+            and(
+              eq(knowledgeSourceProposals.institutionId, context.institutionId),
+              eq(knowledgeSourceProposals.idempotencyKeyHash, idempotencyHash),
+              eq(knowledgeSourceProposals.proposedBy, context.user.id)
+            )
+          )
+          .limit(1);
+        // L'idempotence évite une seconde écriture ; elle ne doit jamais
+        // donner accès à la proposition d'un autre auteur.
+        if (!existing) {
+          throw new HttpError(409, "Cet envoi ne peut pas être repris par ce compte.");
+        }
+        return { proposal: existing, duplicate: true };
       });
 
-      return { proposal: proposalPayload(proposal) };
+      return { proposal: proposalPayload(proposal), duplicate };
     });
   }
 
