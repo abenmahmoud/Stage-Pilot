@@ -1152,9 +1152,10 @@
   activer l'OTP email après recette de révocation et mentions de confidentialité.
 - [ ] T063A Choisir un fournisseur OTP téléphone, définir le budget et les
   consentements, puis tester la réponse neutre, les quotas et la révocation.
-- [ ] T064 Concevoir et tester le coffre de codes Koxo, ENT et cantine :
+- [x] T064 Concevoir et tester le coffre de codes Koxo, ENT et cantine :
   attribution unique, transaction concurrente, contrôle par rôle, affichage
   30 minutes, trois consultations par jour et journal sans valeur secrète.
+  Preuve : `docs/operations/night-logs/BRANCHE-LOT7.md`.
 - [ ] T064A Obtenir la décision de l'administration sur la remise de codes d'un
   enfant à un parent. Jusqu'à cette décision, conserver uniquement le formulaire.
 - [ ] T065 Raccorder un modèle officiel de certificat, la génération PDF, le QR,
