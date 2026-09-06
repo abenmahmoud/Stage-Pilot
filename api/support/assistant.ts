@@ -11,7 +11,10 @@ import {
 import { resolveKnowledgeActorFromRequest } from "../_shared/knowledge-actor.js";
 import { recordAgentRuntimeMetric } from "../_shared/agent-runtime-metrics.js";
 import { reserveAgentAiDailyBudget } from "../_shared/agent-ai-budget.js";
-import { readNextCourseForVerifiedIdentity } from "../_shared/schedule-identity-reader.js";
+import {
+  readCoursesForDayForVerifiedIdentity,
+  readNextCourseForVerifiedIdentity,
+} from "../_shared/schedule-identity-reader.js";
 import { routeSupportRequest } from "../../shared/support-routing.js";
 import {
   createSupportAssistantRoutingReceipt,
@@ -50,6 +53,21 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             req,
             now: new Date(),
             requestedAt,
+          });
+        } catch (error) {
+          if (error instanceof HttpError && (error.status === 401 || error.status === 403)) {
+            return { ok: false, reason: "identity_i3_required" } as const;
+          }
+          throw error;
+        }
+      },
+      scheduleDayReader: async ({ requestedAt, dayStart, dayEnd }) => {
+        try {
+          return await readCoursesForDayForVerifiedIdentity({
+            req,
+            now: requestedAt,
+            dayStart,
+            dayEnd,
           });
         } catch (error) {
           if (error instanceof HttpError && (error.status === 401 || error.status === 403)) {

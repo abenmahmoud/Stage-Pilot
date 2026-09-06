@@ -43,7 +43,7 @@ test("bounds trusted scopes and filters both reads by institution", () => {
   assert.match(reader, /toUpperCase\(\)/);
   assert.match(reader, /Invalid trusted schedule scope/);
   const institutionFilters = reader.match(/eq\([\s\S]{0,80}institutionId, input\.scope\.institutionId\)/g) ?? [];
-  assert.equal(institutionFilters.length, 2);
+  assert.equal(institutionFilters.length, 4);
   assert.match(reader, /eq\(scheduleSlots\.reviewStatus, "approved"\)/);
   assert.match(reader, /\.limit\(100\)/);
 });
@@ -52,4 +52,10 @@ test("returns the policy result without exposing a teacher reference", () => {
   assert.match(reader, /readNextAuthorizedCourse/);
   assert.doesNotMatch(reader, /course:\s*\{[\s\S]{0,500}teacherRef/);
   assert.match(reader, /changes: \[\]/);
+});
+
+test("also bounds the day reader to the same private, institution-scoped source", () => {
+  assert.match(reader, /readAuthorizedCoursesForDay/);
+  assert.match(reader, /readCoursesForDayFromPrivateSchedule/);
+  assert.doesNotMatch(reader, /courses:\s*\{[\s\S]{0,500}teacherRef/);
 });

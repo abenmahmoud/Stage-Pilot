@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { readNextAuthorizedCourse } from "../shared/schedule-policy.ts";
+import { readAuthorizedCoursesForDay, readNextAuthorizedCourse } from "../shared/schedule-policy.ts";
 
 const now = "2026-08-27T08:00:00.000Z";
 const version = {
@@ -195,4 +195,124 @@ test("does not keep showing a room for a cancelled course", () => {
   assert.equal(result.ok, true);
   assert.equal(result.course.state, "cancelled");
   assert.equal(result.course.roomCode, null);
+});
+
+const dayStart = "2026-08-27T00:00:00.000Z";
+const dayEnd = "2026-08-27T23:59:59.999Z";
+const afternoonSlot = {
+  ...slot,
+  id: "slot-fictif-2",
+  subjectCode: "HIST",
+  subjectLabel: "Histoire",
+  roomCode: "S-102",
+  startsAt: "2026-08-27T14:00:00.000Z",
+  endsAt: "2026-08-27T15:00:00.000Z",
+};
+const nextDaySlot = {
+  ...slot,
+  id: "slot-fictif-3",
+  startsAt: "2026-08-28T09:00:00.000Z",
+  endsAt: "2026-08-28T10:00:00.000Z",
+};
+
+function readDay(overrides = {}) {
+  return readAuthorizedCoursesForDay({
+    viewer: studentViewer,
+    now,
+    dayStart,
+    dayEnd,
+    versions: [version],
+    slots: [slot, afternoonSlot, nextDaySlot],
+    changes: [],
+    ...overrides,
+  });
+}
+
+test("requires a school identity before reading the day's schedule", () => {
+  for (const identityLevel of ["I0", "I1", "I2"]) {
+    const result = readDay({ viewer: { ...studentViewer, identityLevel } });
+    assert.deepEqual(result, { ok: false, reason: "identity_i3_required" });
+  }
+});
+
+test("returns every authorized course within the day, in order, and excludes other days", () => {
+  const result = readDay();
+  assert.equal(result.ok, true);
+  assert.equal(result.courses.length, 2);
+  assert.equal(result.courses[0].subjectLabel, "Sciences");
+  assert.equal(result.courses[1].subjectLabel, "Histoire");
+  assert.equal(result.source.versionId, version.id);
+});
+
+test("answers with an empty day rather than failing when the class has no course", () => {
+  const result = readDay({
+    viewer: { ...studentViewer, authorizedClassRefs: ["classe-fictive-b"], authorizedGroupRefs: [] },
+  });
+  assert.deepEqual(result, {
+    ok: true,
+    courses: [],
+    source: {
+      versionId: version.id,
+      sourceType: version.sourceType,
+      activatedAt: version.activatedAt,
+      freshUntil: version.freshUntil,
+    },
+  });
+});
+
+test("does not include a slot awaiting human review in the day", () => {
+  const result = readDay({ slots: [{ ...slot, reviewStatus: "pending" }, afternoonSlot] });
+  assert.equal(result.ok, true);
+  assert.equal(result.courses.length, 1);
+  assert.equal(result.courses[0].subjectLabel, "Histoire");
+});
+
+test("refuses a stale or unapproved source for the day view", () => {
+  assert.deepEqual(
+    readDay({ versions: [{ ...version, freshUntil: "2026-08-26T17:00:00.000Z" }] }),
+    { ok: false, reason: "source_stale" }
+  );
+  assert.deepEqual(readDay({ versions: [{ ...version, status: "review" }] }), {
+    ok: false,
+    reason: "source_unavailable",
+  });
+});
+
+test("applies the latest valid official change to a day course", () => {
+  const result = readDay({
+    changes: [
+      {
+        id: "changement-jour-fictif",
+        baseSlotId: afternoonSlot.id,
+        changeType: "room_changed",
+        newRoomCode: "S-204",
+        newStartsAt: null,
+        newEndsAt: null,
+        observedAt: "2026-08-27T07:30:00.000Z",
+        expiresAt: "2026-08-27T18:00:00.000Z",
+        status: "active",
+      },
+    ],
+  });
+  assert.equal(result.ok, true);
+  assert.equal(result.courses[1].roomCode, "S-204");
+  assert.equal(result.courses[1].state, "moved");
+});
+
+test("refuses contradictory changes observed at the same time for the day view", () => {
+  const baseChange = {
+    id: "changement-jour-a",
+    baseSlotId: slot.id,
+    changeType: "room_changed",
+    newRoomCode: "S-204",
+    newStartsAt: null,
+    newEndsAt: null,
+    observedAt: "2026-08-27T07:30:00.000Z",
+    expiresAt: "2026-08-27T11:00:00.000Z",
+    status: "active",
+  };
+  const result = readDay({
+    changes: [baseChange, { ...baseChange, id: "changement-jour-b", newRoomCode: "S-305" }],
+  });
+  assert.deepEqual(result, { ok: false, reason: "conflicting_changes" });
 });

@@ -27,10 +27,12 @@ import {
   type AgentTokenUsage,
 } from "../../shared/agent-runtime-metrics.js";
 import type { AgentAiBudgetReservationResult } from "../../shared/agent-ai-budget.js";
-import type { ScheduleReadResult } from "../../shared/schedule-policy.js";
+import type { ScheduleDayReadResult, ScheduleReadResult } from "../../shared/schedule-policy.js";
 import {
+  requestsOwnCoursesToday,
   requestsOwnNextCourse,
   scheduleAssistantAnswer,
+  scheduleAssistantDayAnswer,
 } from "../../shared/schedule-assistant.js";
 
 export type SupportAgentMessage = {
@@ -409,6 +411,11 @@ export async function analyzeSupportConversation(input: {
   runtimeMetricsRecorder?: (metric: AgentRuntimeMetric) => Promise<void>;
   aiBudgetGuard?: () => Promise<AgentAiBudgetReservationResult>;
   scheduleReader?: (input: { requestedAt: Date }) => Promise<ScheduleReadResult>;
+  scheduleDayReader?: (input: {
+    requestedAt: Date;
+    dayStart: Date;
+    dayEnd: Date;
+  }) => Promise<ScheduleDayReadResult>;
   now?: Date;
 }): Promise<SupportAgentResult> {
   const startedAt = Date.now();
@@ -476,6 +483,35 @@ export async function analyzeSupportConversation(input: {
       category: "autre", scope: "school_support", action: "continue",
       readyToCreate: false, confidence: "high", missingInformation: [], suggestedDocuments: [],
       urgency: "faible", usedAi: false,
+    };
+  }
+  if (input.scheduleDayReader && requestsOwnCoursesToday(input.messages)) {
+    const requestedAt = new Date();
+    const dayDate = requestedAt.toISOString().slice(0, 10);
+    const dayStart = new Date(`${dayDate}T00:00:00.000Z`);
+    const dayEnd = new Date(`${dayDate}T23:59:59.999Z`);
+    let dayResult: ScheduleDayReadResult;
+    try {
+      dayResult = await input.scheduleDayReader({ requestedAt, dayStart, dayEnd });
+    } catch {
+      dayResult = { ok: false, reason: "source_unavailable" };
+    }
+    runtimeSourceCount = dayResult.ok ? 1 : 0;
+    const answer = scheduleAssistantDayAnswer(dayResult);
+    await recordRuntime("deterministic", false, false);
+    return {
+      ...fallback,
+      ...answer,
+      category: "affectation_classe",
+      confidence: "high",
+      missingInformation: [],
+      suggestedDocuments: [],
+      usedAi: false,
+      scope: "school_support",
+      action: answer.readyToCreate ? "offer_case" : "continue",
+      internalSummaryFr: dayResult.ok
+        ? "Les cours autorisés du jour ont été lus depuis une source d'emploi du temps validée."
+        : "La consultation de l'emploi du temps du jour n'a pas pu fournir de résultat autorisé et actuel.",
     };
   }
   if (input.scheduleReader && requestsOwnNextCourse(input.messages)) {

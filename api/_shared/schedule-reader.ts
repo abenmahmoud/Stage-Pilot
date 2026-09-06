@@ -1,8 +1,10 @@
-import { and, asc, eq, gte, inArray, isNull, lte, or } from "drizzle-orm";
+import { and, asc, eq, gt, gte, inArray, isNull, lt, lte, or } from "drizzle-orm";
 import { db } from "../../db/index.js";
 import { scheduleSlots, scheduleSourceVersions } from "../../db/schema.js";
 import {
+  readAuthorizedCoursesForDay,
   readNextAuthorizedCourse,
+  type ScheduleDayReadResult,
   type ScheduleReadResult,
   type ScheduleSourceType,
   type ScheduleViewer,
@@ -29,7 +31,7 @@ function boundedRefs(values: string[]): string[] {
   return refs;
 }
 
-function failurePriority(result: ScheduleReadResult): number {
+function failurePriority(result: ScheduleReadResult | ScheduleDayReadResult): number {
   if (result.ok) return 0;
   return {
     conflicting_changes: 4,
@@ -40,29 +42,40 @@ function failurePriority(result: ScheduleReadResult): number {
   }[result.reason];
 }
 
+function boundedViewer(scope: TrustedScheduleScope): {
+  classRefs: string[];
+  groupRefs: string[];
+  teacherRefs: string[];
+  viewer: ScheduleViewer;
+  sourceKinds: string[];
+} {
+  const classRefs = boundedRefs(scope.authorizedClassRefs);
+  const groupRefs = boundedRefs(scope.authorizedGroupRefs);
+  const teacherRefs = boundedRefs(scope.authorizedTeacherRefs);
+  const viewer: ScheduleViewer = {
+    identityLevel: scope.identityLevel,
+    authorizedClassRefs: classRefs,
+    authorizedGroupRefs: groupRefs,
+    authorizedTeacherRefs: teacherRefs,
+  };
+  const sourceKinds = [
+    ...(classRefs.length > 0 || groupRefs.length > 0 ? ["classes"] : []),
+    ...(teacherRefs.length > 0 ? ["teachers"] : []),
+  ];
+  return { classRefs, groupRefs, teacherRefs, viewer, sourceKinds };
+}
+
 export async function readNextCourseFromPrivateSchedule(input: {
   scope: TrustedScheduleScope;
   now: Date;
   requestedAt: Date;
 }): Promise<ScheduleReadResult> {
-  const classRefs = boundedRefs(input.scope.authorizedClassRefs);
-  const groupRefs = boundedRefs(input.scope.authorizedGroupRefs);
-  const teacherRefs = boundedRefs(input.scope.authorizedTeacherRefs);
-  const viewer: ScheduleViewer = {
-    identityLevel: input.scope.identityLevel,
-    authorizedClassRefs: classRefs,
-    authorizedGroupRefs: groupRefs,
-    authorizedTeacherRefs: teacherRefs,
-  };
+  const { classRefs, groupRefs, teacherRefs, viewer, sourceKinds } = boundedViewer(input.scope);
 
   if (!["I3", "I4"].includes(viewer.identityLevel)) {
     return { ok: false, reason: "identity_i3_required" };
   }
 
-  const sourceKinds = [
-    ...(classRefs.length > 0 || groupRefs.length > 0 ? ["classes"] : []),
-    ...(teacherRefs.length > 0 ? ["teachers"] : []),
-  ];
   if (sourceKinds.length === 0) return { ok: false, reason: "no_authorized_course" };
 
   const requestedDate = input.requestedAt.toISOString().slice(0, 10);
@@ -155,6 +168,126 @@ export async function readNextCourseFromPrivateSchedule(input: {
     .filter((result): result is Extract<ScheduleReadResult, { ok: true }> => result.ok)
     .sort((left, right) => Date.parse(left.course.startsAt) - Date.parse(right.course.startsAt));
   if (successes[0]) return successes[0];
+
+  return results.sort((left, right) => failurePriority(right) - failurePriority(left))[0]
+    ?? { ok: false, reason: "source_unavailable" };
+}
+
+export async function readCoursesForDayFromPrivateSchedule(input: {
+  scope: TrustedScheduleScope;
+  now: Date;
+  dayStart: Date;
+  dayEnd: Date;
+}): Promise<ScheduleDayReadResult> {
+  const { classRefs, groupRefs, teacherRefs, viewer, sourceKinds } = boundedViewer(input.scope);
+
+  if (!["I3", "I4"].includes(viewer.identityLevel)) {
+    return { ok: false, reason: "identity_i3_required" };
+  }
+
+  if (sourceKinds.length === 0) return { ok: false, reason: "no_authorized_course" };
+
+  const dayStartDate = input.dayStart.toISOString().slice(0, 10);
+  const dayEndDate = input.dayEnd.toISOString().slice(0, 10);
+  const versions = await db
+    .select({
+      id: scheduleSourceVersions.id,
+      sourceKind: scheduleSourceVersions.sourceKind,
+      sourceFormat: scheduleSourceVersions.sourceFormat,
+      effectiveFrom: scheduleSourceVersions.effectiveFrom,
+      effectiveUntil: scheduleSourceVersions.effectiveUntil,
+      activatedAt: scheduleSourceVersions.activatedAt,
+      freshUntil: scheduleSourceVersions.freshUntil,
+      status: scheduleSourceVersions.status,
+    })
+    .from(scheduleSourceVersions)
+    .where(and(
+      eq(scheduleSourceVersions.institutionId, input.scope.institutionId),
+      eq(scheduleSourceVersions.status, "active"),
+      inArray(scheduleSourceVersions.sourceKind, sourceKinds),
+      lte(scheduleSourceVersions.effectiveFrom, dayEndDate),
+      or(
+        isNull(scheduleSourceVersions.effectiveUntil),
+        gte(scheduleSourceVersions.effectiveUntil, dayStartDate)
+      )
+    ));
+
+  if (versions.length === 0) return { ok: false, reason: "source_unavailable" };
+
+  const scopePredicates = [
+    ...(classRefs.length > 0 ? [inArray(scheduleSlots.classRef, classRefs)] : []),
+    ...(groupRefs.length > 0 ? [inArray(scheduleSlots.groupRef, groupRefs)] : []),
+    ...(teacherRefs.length > 0 ? [inArray(scheduleSlots.teacherRef, teacherRefs)] : []),
+  ];
+  const slots = await db
+    .select({
+      id: scheduleSlots.id,
+      sourceVersionId: scheduleSlots.sourceVersionId,
+      classRef: scheduleSlots.classRef,
+      groupRef: scheduleSlots.groupRef,
+      teacherRef: scheduleSlots.teacherRef,
+      subjectCode: scheduleSlots.subjectCode,
+      subjectLabel: scheduleSlots.subjectLabel,
+      roomCode: scheduleSlots.roomCode,
+      startsAt: scheduleSlots.startsAt,
+      endsAt: scheduleSlots.endsAt,
+      reviewStatus: scheduleSlots.reviewStatus,
+    })
+    .from(scheduleSlots)
+    .where(and(
+      eq(scheduleSlots.institutionId, input.scope.institutionId),
+      inArray(scheduleSlots.sourceVersionId, versions.map((version) => version.id)),
+      eq(scheduleSlots.reviewStatus, "approved"),
+      lt(scheduleSlots.startsAt, input.dayEnd),
+      gt(scheduleSlots.endsAt, input.dayStart),
+      or(...scopePredicates)
+    ))
+    .orderBy(asc(scheduleSlots.startsAt))
+    .limit(100);
+
+  const results = sourceKinds.map((sourceKind) => {
+    const sourceVersions = versions.filter((version) => version.sourceKind === sourceKind);
+    const sourceIds = new Set(sourceVersions.map((version) => version.id));
+    return readAuthorizedCoursesForDay({
+      viewer,
+      now: input.now.toISOString(),
+      dayStart: input.dayStart.toISOString(),
+      dayEnd: input.dayEnd.toISOString(),
+      versions: sourceVersions.map((version) => ({
+        id: version.id,
+        sourceType: version.sourceFormat as ScheduleSourceType,
+        status: version.status as "active",
+        effectiveFrom: `${version.effectiveFrom}T00:00:00.000Z`,
+        effectiveUntil: version.effectiveUntil
+          ? `${version.effectiveUntil}T23:59:59.999Z`
+          : null,
+        activatedAt: version.activatedAt?.toISOString() ?? null,
+        freshUntil: version.freshUntil?.toISOString() ?? "1970-01-01T00:00:00.000Z",
+      })),
+      slots: slots
+        .filter((slot) => sourceIds.has(slot.sourceVersionId))
+        .map((slot) => ({
+          ...slot,
+          startsAt: slot.startsAt.toISOString(),
+          endsAt: slot.endsAt.toISOString(),
+          reviewStatus: slot.reviewStatus as "approved",
+        })),
+      changes: [],
+    });
+  });
+
+  const successes = results.filter(
+    (result): result is Extract<ScheduleDayReadResult, { ok: true }> => result.ok
+  );
+  if (successes.length > 0) {
+    return {
+      ok: true,
+      courses: successes
+        .flatMap((result) => result.courses)
+        .sort((left, right) => Date.parse(left.startsAt) - Date.parse(right.startsAt)),
+      source: successes[0].source,
+    };
+  }
 
   return results.sort((left, right) => failurePriority(right) - failurePriority(left))[0]
     ?? { ok: false, reason: "source_unavailable" };

@@ -124,9 +124,121 @@ test("fails closed when the source is stale or the reader fails", async () => {
   assert.equal(unavailable.usedAi, false);
 });
 
-test("the public assistant route injects only the verified-identity reader", async () => {
+test("answers an own today-courses request with every authorized course from the private reader", async () => {
+  let calls = 0;
+  const metrics = [];
+  const result = await analyzeSupportConversation({
+    messages: messages("Quels sont mes cours aujourd'hui ?"),
+    attachments: [],
+    safetyIdentifier: "schedule-assistant-day-success",
+    runtimeMetricsRecorder: async (metric) => metrics.push(metric),
+    scheduleDayReader: async ({ requestedAt, dayStart, dayEnd }) => {
+      calls += 1;
+      assert.ok(requestedAt instanceof Date);
+      assert.ok(dayStart instanceof Date);
+      assert.ok(dayEnd instanceof Date);
+      assert.ok(dayStart < dayEnd);
+      return {
+        ok: true,
+        courses: [
+          {
+            subjectCode: "MATH",
+            subjectLabel: "Mathématiques",
+            roomCode: "B204",
+            startsAt: "2026-08-31T08:00:00.000Z",
+            endsAt: "2026-08-31T09:00:00.000Z",
+            state: "scheduled",
+          },
+          {
+            subjectCode: "HIST",
+            subjectLabel: "Histoire",
+            roomCode: "B105",
+            startsAt: "2026-08-31T10:00:00.000Z",
+            endsAt: "2026-08-31T11:00:00.000Z",
+            state: "scheduled",
+          },
+        ],
+        source: {
+          versionId: "00000000-0000-4000-8000-000000000001",
+          sourceType: "official_export",
+          activatedAt: "2026-08-30T06:00:00.000Z",
+          freshUntil: "2026-09-06T21:59:59.000Z",
+        },
+      };
+    },
+  });
+
+  assert.equal(calls, 1);
+  assert.equal(result.usedAi, false);
+  assert.equal(result.scope, "school_support");
+  assert.equal(result.category, "affectation_classe");
+  assert.equal(result.readyToCreate, false);
+  assert.match(result.reply, /Mathématiques/);
+  assert.match(result.reply, /B204/);
+  assert.match(result.reply, /Histoire/);
+  assert.match(result.reply, /B105/);
+  assert.doesNotMatch(result.reply, /professeur|teacher/i);
+  assert.equal(result.sourceReferences.length, 1);
+  assert.equal(metrics.length, 1);
+  assert.equal(metrics[0].sourceCount, 1);
+  assert.equal(metrics[0].aiAttempted, false);
+});
+
+test("answers with no course today rather than failing when the day is empty", async () => {
+  const result = await analyzeSupportConversation({
+    messages: messages("Mon emploi du temps aujourd'hui ?"),
+    attachments: [],
+    safetyIdentifier: "schedule-assistant-day-empty",
+    scheduleDayReader: async () => ({
+      ok: true,
+      courses: [],
+      source: {
+        versionId: "00000000-0000-4000-8000-000000000001",
+        sourceType: "official_export",
+        activatedAt: "2026-08-30T06:00:00.000Z",
+        freshUntil: "2026-09-06T21:59:59.000Z",
+      },
+    }),
+  });
+  assert.match(result.reply, /aucun cours prévu pour cette journée/i);
+  assert.equal(result.readyToCreate, false);
+});
+
+test("requires a confirmed school identity for a day request without calling the model", async () => {
+  const result = await analyzeSupportConversation({
+    messages: messages("Quel est mon programme du jour ?"),
+    attachments: [],
+    safetyIdentifier: "schedule-assistant-day-identity",
+    scheduleDayReader: async () => ({ ok: false, reason: "identity_i3_required" }),
+  });
+
+  assert.equal(result.usedAi, false);
+  assert.equal(result.readyToCreate, true);
+  assert.equal(result.action, "offer_case");
+  assert.match(result.reply, /identité scolaire/i);
+  assert.deepEqual(result.sourceReferences, []);
+});
+
+test("never turns a third-party day phrase into a schedule lookup", async () => {
+  let calls = 0;
+  const result = await analyzeSupportConversation({
+    messages: messages("Quels sont les cours de mon enfant aujourd'hui ?"),
+    attachments: [],
+    safetyIdentifier: "schedule-assistant-day-third-party",
+    scheduleDayReader: async () => {
+      calls += 1;
+      throw new Error("must not be called");
+    },
+  });
+
+  assert.equal(calls, 0);
+  assert.equal(result.usedAi, false);
+});
+
+test("the public assistant route injects only the verified-identity readers", async () => {
   const route = await readFile(new URL("../api/support/assistant.ts", import.meta.url), "utf8");
   assert.match(route, /readNextCourseForVerifiedIdentity/);
+  assert.match(route, /readCoursesForDayForVerifiedIdentity/);
   assert.match(route, /error\.status === 401 \|\| error\.status === 403/);
   assert.doesNotMatch(route, /targetPersonRef\s*:/);
 });

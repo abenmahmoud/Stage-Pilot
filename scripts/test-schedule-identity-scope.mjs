@@ -93,9 +93,14 @@ function fixture() {
     } },
     "./institution-context.js": { requireConfiguredInstitution: async () => ({ id: state.institutionId }) },
     "./identity-device-access.js": { readIdentityDeviceSession: async () => state.deviceIdentity },
-    "./schedule-reader.js": { readNextCourseFromPrivateSchedule: async (input) => {
-      state.readCalls.push(input); return { ok: false, reason: "no_authorized_course" };
-    } },
+    "./schedule-reader.js": {
+      readNextCourseFromPrivateSchedule: async (input) => {
+        state.readCalls.push(input); return { ok: false, reason: "no_authorized_course" };
+      },
+      readCoursesForDayFromPrivateSchedule: async (input) => {
+        state.readCalls.push(input); return { ok: false, reason: "no_authorized_course" };
+      },
+    },
   };
   const exports = {};
   vm.runInNewContext(compiled, { exports, Date: FixedDate,
@@ -103,6 +108,9 @@ function fixture() {
   return { state,
     resolve: async (target) => structuredClone(await exports.resolveVerifiedScheduleScope({ headers: {} }, target)),
     read: (target) => exports.readNextCourseForVerifiedIdentity({ req: { headers: {} }, targetPersonRef: target, now: NOW, requestedAt: NOW }),
+    readDay: (target) => exports.readCoursesForDayForVerifiedIdentity({
+      req: { headers: {} }, targetPersonRef: target, now: NOW, dayStart: NOW, dayEnd: NOW,
+    }),
   };
 }
 function guardianFixture() {
@@ -241,4 +249,13 @@ test("only derived scope reaches the private reader, never identity or contact r
   const f = fixture(); await f.read(); assert.equal(f.state.readCalls.length, 1);
   assert.deepEqual(structuredClone(f.state.readCalls[0].scope), studentScope);
   assert.doesNotMatch(JSON.stringify(f.state.readCalls[0]), /user-fixture|identity-fixture|import-fixture|personRef|verifiedBy|email|phone/);
+});
+test("the day reader goes through the same verified-identity resolution, scoped the same way", async () => {
+  const f = fixture(); await f.readDay(); assert.equal(f.state.readCalls.length, 1);
+  assert.deepEqual(structuredClone(f.state.readCalls[0].scope), studentScope);
+  assert.doesNotMatch(JSON.stringify(f.state.readCalls[0]), /user-fixture|identity-fixture|import-fixture|personRef|verifiedBy|email|phone/);
+});
+test("the day reader rejects an unverified identity before ever calling the private reader", async () => {
+  const f = fixture(); f.state.user = null;
+  await assert.rejects(f.readDay(), { status: 401 }); assert.equal(f.state.readCalls.length, 0);
 });

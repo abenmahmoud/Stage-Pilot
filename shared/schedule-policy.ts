@@ -75,12 +75,39 @@ export type ScheduleReadResult =
     }
   | {
       ok: false;
-      reason:
-        | "identity_i3_required"
-        | "source_unavailable"
-        | "source_stale"
-        | "no_authorized_course"
-        | "conflicting_changes";
+      reason: ScheduleReadFailureReason;
+    };
+
+export type ScheduleReadFailureReason =
+  | "identity_i3_required"
+  | "source_unavailable"
+  | "source_stale"
+  | "no_authorized_course"
+  | "conflicting_changes";
+
+export type ScheduleDayCourse = {
+  subjectCode: string;
+  subjectLabel: string;
+  roomCode: string | null;
+  startsAt: string;
+  endsAt: string;
+  state: "scheduled" | "maintained" | "moved" | "cancelled";
+};
+
+export type ScheduleDayReadResult =
+  | {
+      ok: true;
+      courses: ScheduleDayCourse[];
+      source: {
+        versionId: string;
+        sourceType: ScheduleSourceType;
+        activatedAt: string;
+        freshUntil: string;
+      };
+    }
+  | {
+      ok: false;
+      reason: ScheduleReadFailureReason;
     };
 
 function timestamp(value: string): number {
@@ -153,6 +180,30 @@ function selectChange(
   return active[0];
 }
 
+function applyChange(
+  slot: ScheduleSlot,
+  change: ScheduleChange | null
+): ScheduleDayCourse {
+  const startsAt = change?.newStartsAt ?? slot.startsAt;
+  const endsAt = change?.newEndsAt ?? slot.endsAt;
+  const roomCode = change?.changeType === "cancelled"
+    ? null
+    : change?.newRoomCode ?? slot.roomCode;
+  const state = change
+    ? change.changeType === "room_changed" || change.changeType === "time_changed"
+      ? "moved"
+      : change.changeType
+    : "scheduled";
+  return {
+    subjectCode: slot.subjectCode,
+    subjectLabel: slot.subjectLabel,
+    roomCode,
+    startsAt,
+    endsAt,
+    state,
+  };
+}
+
 export function readNextAuthorizedCourse(input: {
   viewer: ScheduleViewer;
   now: string;
@@ -188,33 +239,67 @@ export function readNextAuthorizedCourse(input: {
   const change = selectChange(input.changes, slot.id, now);
   if (change === "conflict") return { ok: false, reason: "conflicting_changes" };
 
-  const startsAt = change?.newStartsAt ?? slot.startsAt;
-  const endsAt = change?.newEndsAt ?? slot.endsAt;
-  const roomCode = change?.changeType === "cancelled"
-    ? null
-    : change?.newRoomCode ?? slot.roomCode;
-  const state = change
-    ? change.changeType === "room_changed" || change.changeType === "time_changed"
-      ? "moved"
-      : change.changeType
-    : "scheduled";
-
   return {
     ok: true,
-    course: {
-      subjectCode: slot.subjectCode,
-      subjectLabel: slot.subjectLabel,
-      roomCode,
-      startsAt,
-      endsAt,
-      state,
-    },
+    course: applyChange(slot, change),
     source: {
       versionId: version.id,
       sourceType: version.sourceType,
       activatedAt: version.activatedAt as string,
       freshUntil: version.freshUntil,
       changeObservedAt: change?.observedAt ?? null,
+    },
+  };
+}
+
+export function readAuthorizedCoursesForDay(input: {
+  viewer: ScheduleViewer;
+  now: string;
+  dayStart: string;
+  dayEnd: string;
+  versions: ScheduleVersion[];
+  slots: ScheduleSlot[];
+  changes: ScheduleChange[];
+}): ScheduleDayReadResult {
+  if (!identityAtLeast(input.viewer.identityLevel, "I3")) {
+    return { ok: false, reason: "identity_i3_required" };
+  }
+
+  const now = timestamp(input.now);
+  const dayStart = timestamp(input.dayStart);
+  const dayEnd = timestamp(input.dayEnd);
+  const version = selectActiveVersion(input.versions, now, dayStart);
+  if (!version) return { ok: false, reason: "source_unavailable" };
+  if (timestamp(version.freshUntil) < now) {
+    return { ok: false, reason: "source_stale" };
+  }
+
+  const daySlots = input.slots
+    .filter(
+      (candidate) =>
+        candidate.sourceVersionId === version.id &&
+        candidate.reviewStatus === "approved" &&
+        isAuthorized(input.viewer, candidate) &&
+        timestamp(candidate.startsAt) < dayEnd &&
+        timestamp(candidate.endsAt) > dayStart
+    )
+    .sort((left, right) => timestamp(left.startsAt) - timestamp(right.startsAt));
+
+  const courses: ScheduleDayCourse[] = [];
+  for (const slot of daySlots) {
+    const change = selectChange(input.changes, slot.id, now);
+    if (change === "conflict") return { ok: false, reason: "conflicting_changes" };
+    courses.push(applyChange(slot, change));
+  }
+
+  return {
+    ok: true,
+    courses,
+    source: {
+      versionId: version.id,
+      sourceType: version.sourceType,
+      activatedAt: version.activatedAt as string,
+      freshUntil: version.freshUntil,
     },
   };
 }

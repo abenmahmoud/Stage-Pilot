@@ -7,11 +7,12 @@ import {
   schoolIdentities,
   schoolRelationships,
 } from "../../db/schema.js";
-import type { ScheduleReadResult } from "../../shared/schedule-policy.js";
+import type { ScheduleDayReadResult, ScheduleReadResult } from "../../shared/schedule-policy.js";
 import { HttpError, requireUser } from "./auth.js";
 import { readIdentityDeviceSession } from "./identity-device-access.js";
 import { requireConfiguredInstitution } from "./institution-context.js";
 import {
+  readCoursesForDayFromPrivateSchedule,
   readNextCourseFromPrivateSchedule,
   type TrustedScheduleScope,
 } from "./schedule-reader.js";
@@ -236,5 +237,21 @@ export async function readNextCourseForVerifiedIdentity(input: {
     scope,
     now: input.now,
     requestedAt: input.requestedAt,
+  });
+}
+
+export async function readCoursesForDayForVerifiedIdentity(input: {
+  req: VercelRequest;
+  targetPersonRef?: string;
+  now: Date;
+  dayStart: Date;
+  dayEnd: Date;
+}): Promise<ScheduleDayReadResult> {
+  const scope = await resolveVerifiedScheduleScope(input.req, input.targetPersonRef);
+  return readCoursesForDayFromPrivateSchedule({
+    scope,
+    now: input.now,
+    dayStart: input.dayStart,
+    dayEnd: input.dayEnd,
   });
 }
