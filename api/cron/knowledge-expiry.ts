@@ -1,16 +1,18 @@
+// LOT 6 du plan de connaissance OB1 (2026-09-05) : cette route est désormais
+// appelée toutes les heures (`vercel.json`, `"5 * * * *"`, toujours en UTC —
+// Vercel Cron ne connaît pas les fuseaux) et laisse
+// `scheduledKnowledgeSweepTrigger` (heure locale Paris réelle de `now`)
+// décider si l'appel en cours correspond au balayage nocturne (2 h) ou à un
+// contrôle de fraîcheur (8 h, 13 h, 18 h). En dehors de ces heures, répond
+// sans ouvrir de transaction. Le balayage lui-même vit dans
+// `api/_shared/knowledge-freshness-sweep.ts`, rejoué à l'identique par les
+// routes de publication (LOT 6, bullet 3).
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { and, eq, inArray, isNotNull, lte } from "drizzle-orm";
 import { db } from "../../db/index.js";
-import {
-  agentSkillAudit,
-  agentSkills,
-  agentSkillVersions,
-  knowledgeSources,
-  skillSourceLinks,
-} from "../../db/schema.js";
 import { secretMatches, HttpError } from "../_shared/auth.js";
 import { handleApi, methodNotAllowed } from "../_shared/response.js";
-import { buildKnowledgeExpiryPlan } from "../../shared/knowledge-expiry-policy.js";
+import { runKnowledgeFreshnessSweep } from "../_shared/knowledge-freshness-sweep.js";
+import { scheduledKnowledgeSweepTrigger } from "../../shared/knowledge-freshness-schedule.js";
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== "GET" && req.method !== "POST") {
@@ -27,107 +29,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
 
     const now = new Date();
-    return db.transaction(async (tx) => {
-      const expiredSources = await tx
-        .update(knowledgeSources)
-        .set({ status: "expired", updatedAt: now })
-        .where(
-          and(
-            eq(knowledgeSources.status, "published"),
-            isNotNull(knowledgeSources.expiresAt),
-            lte(knowledgeSources.expiresAt, now)
-          )
-        )
-        .returning({
-          id: knowledgeSources.id,
-          institutionId: knowledgeSources.institutionId,
-        });
+    const trigger = scheduledKnowledgeSweepTrigger(now);
+    if (trigger === "not_scheduled") {
+      return { skipped: true, checkedAt: now.toISOString() };
+    }
 
-      const activeSkills = await tx
-        .select({
-          skillId: agentSkills.id,
-          institutionId: agentSkills.institutionId,
-          activeVersionId: agentSkillVersions.id,
-          reviewDueAt: agentSkillVersions.reviewDueAt,
-        })
-        .from(agentSkills)
-        .innerJoin(
-          agentSkillVersions,
-          eq(agentSkills.activeVersionId, agentSkillVersions.id)
-        )
-        .where(eq(agentSkills.enabled, true));
-
-      const activeVersionIds = activeSkills.map((skill) => skill.activeVersionId);
-      const links = activeVersionIds.length > 0
-        ? await tx
-            .select({
-              skillVersionId: skillSourceLinks.skillVersionId,
-              sourceId: skillSourceLinks.sourceId,
-              required: skillSourceLinks.required,
-            })
-            .from(skillSourceLinks)
-            .where(inArray(skillSourceLinks.skillVersionId, activeVersionIds))
-        : [];
-      const plan = buildKnowledgeExpiryPlan({
-        skills: activeSkills.map((skill) => ({
-          ...skill,
-          reviewDueAt: skill.reviewDueAt.toISOString(),
-        })),
-        links,
-        expiredSourceIds: expiredSources.map((source) => source.id),
-        now: now.toISOString(),
-      });
-
-      const disabled = plan.length > 0
-        ? await tx
-            .update(agentSkills)
-            .set({ enabled: false, activeVersionId: null, updatedAt: now })
-            .where(
-              and(
-                eq(agentSkills.enabled, true),
-                inArray(agentSkills.id, plan.map((item) => item.skillId))
-              )
-            )
-            .returning({ id: agentSkills.id })
-        : [];
-      const disabledIds = new Set(disabled.map((skill) => skill.id));
-
-      if (expiredSources.length > 0) {
-        await tx.insert(agentSkillAudit).values(
-          expiredSources.map((source) => ({
-            institutionId: source.institutionId,
-            resourceType: "source",
-            resourceId: source.id,
-            action: "expire_automatic",
-            actorId: null,
-            summary: { trigger: "schedule", expiredAt: now.toISOString() },
-          }))
-        );
-      }
-      const disabledPlan = plan.filter((item) => disabledIds.has(item.skillId));
-      if (disabledPlan.length > 0) {
-        await tx.insert(agentSkillAudit).values(
-          disabledPlan.map((item) => ({
-            institutionId: item.institutionId,
-            resourceType: "skill",
-            resourceId: item.skillId,
-            action: "disable_automatic",
-            actorId: null,
-            summary: {
-              trigger: "schedule",
-              reasons: item.reasons,
-              expiredSourceIds: item.expiredSourceIds,
-            },
-          }))
-        );
-      }
-
-      return {
-        expiredSources: expiredSources.length,
-        disabledSkills: disabledPlan.length,
-        checkedAt: now.toISOString(),
-      };
-    });
+    return db.transaction((tx) => runKnowledgeFreshnessSweep(tx, now, trigger));
   });
 }
 

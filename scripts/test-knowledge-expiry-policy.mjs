@@ -7,8 +7,13 @@ const workerSource = readFileSync(
   new URL("../api/cron/knowledge-expiry.ts", import.meta.url),
   "utf8"
 );
-const vercelConfig = JSON.parse(
-  readFileSync(new URL("../vercel.json", import.meta.url), "utf8")
+// LOT 6 : le balayage lui-même (péremption + désactivation des compétences)
+// a été extrait dans ce module pour être rejoué par les routes de
+// publication (voir scripts/test-knowledge-freshness-schedule.mjs) — le
+// cron ne fait plus que vérifier le secret puis déléguer selon l'heure.
+const sweepSource = readFileSync(
+  new URL("../api/_shared/knowledge-freshness-sweep.ts", import.meta.url),
+  "utf8"
 );
 
 const now = "2026-08-28T00:00:00.000Z";
@@ -89,15 +94,6 @@ test("authenticates the maintenance request before opening a transaction", () =>
 });
 
 test("records automatic source and skill actions without a human actor", () => {
-  assert.match(workerSource, /action: "expire_automatic"[\s\S]*?actorId: null/);
-  assert.match(workerSource, /action: "disable_automatic"[\s\S]*?actorId: null/);
-});
-
-test("declares one daily knowledge maintenance schedule", () => {
-  const cron = vercelConfig.crons.filter(
-    (entry) => entry.path === "/api/cron/knowledge-expiry"
-  );
-  assert.deepEqual(cron, [
-    { path: "/api/cron/knowledge-expiry", schedule: "15 2 * * *" },
-  ]);
+  assert.match(sweepSource, /action: "expire_automatic"[\s\S]*?actorId: null/);
+  assert.match(sweepSource, /action: "disable_automatic"[\s\S]*?actorId: null/);
 });

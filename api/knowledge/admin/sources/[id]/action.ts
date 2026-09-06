@@ -6,6 +6,7 @@ import { projectKnowledgeRegistrySourceActionPayload } from "../../../../../shar
 import { HttpError } from "../../../../_shared/auth.js";
 import { requireKnowledgeManager } from "../../../../_shared/knowledge-registry.js";
 import { revokeKnowledgeSourceAndDisableSkills } from "../../../../_shared/knowledge-source-revocation.js";
+import { runKnowledgeFreshnessSweep } from "../../../../_shared/knowledge-freshness-sweep.js";
 import { handleApi, methodNotAllowed } from "../../../../_shared/response.js";
 
 type SourceAction = "publish" | "revoke";
@@ -63,6 +64,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         actorId: context.user.id,
         summary: { checksum: source.checksum, expiresAt: source.expiresAt },
       });
+      // LOT 6 : une publication déclenche un contrôle de fraîcheur
+      // supplémentaire immédiat, sans attendre le prochain créneau planifié
+      // (2 h, 8 h, 13 h ou 18 h heure de Paris).
+      await db.transaction((tx) => runKnowledgeFreshnessSweep(tx, now, "publication"));
       return projectKnowledgeRegistrySourceActionPayload({
         source: published,
         action: "publish",

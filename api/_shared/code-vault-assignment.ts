@@ -18,6 +18,7 @@ import {
   type VaultCodeStatus,
   type VaultService,
 } from "../../shared/code-vault-policy.js";
+import { parisDateStringOf } from "../../shared/paris-time.js";
 
 export type VaultTx = {
   execute: (query: SQL) => Promise<unknown>;
@@ -105,7 +106,10 @@ export async function recordVaultCodeDisplay(
   if (!row) throw new Error("code_vault_assignment_not_found");
   if (row.defective_flagged_at) return { outcome: "defective" };
 
-  const today = params.now.toISOString().slice(0, 10);
+  // LOT 6 : la journée du quota est celle de Paris, pas celle d'UTC — sinon
+  // le compteur repart à 1 h ou 2 h du matin selon l'heure d'été/d'hiver au
+  // lieu de minuit heure de Paris (défaut relevé par la cartographie OB1).
+  const today = parisDateStringOf(params.now);
   const displayCountToday = row.display_count_date === today ? row.display_count : 0;
   const decision = decideVaultDisplayQuota({ displayCountToday });
   if (!decision.allowed) return { outcome: "quota_exceeded" };

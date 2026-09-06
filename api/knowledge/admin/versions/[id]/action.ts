@@ -17,6 +17,7 @@ import {
   type SkillVersion,
 } from "../../../../../shared/skill-registry-policy.js";
 import { projectKnowledgeRegistryVersionActionPayload } from "../../../../../shared/knowledge-registry-admin-action-payload.js";
+import { runKnowledgeFreshnessSweep } from "../../../../_shared/knowledge-freshness-sweep.js";
 import { HttpError } from "../../../../_shared/auth.js";
 import { requireKnowledgeManager } from "../../../../_shared/knowledge-registry.js";
 import { handleApi, methodNotAllowed } from "../../../../_shared/response.js";
@@ -239,6 +240,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           actorId: context.user.id,
           summary: { version: current.version.version, sourceCount: sourceIds.length },
         });
+        // LOT 6 : une publication déclenche un contrôle de fraîcheur
+        // supplémentaire immédiat, sans attendre le prochain créneau
+        // planifié (2 h, 8 h, 13 h ou 18 h heure de Paris).
+        await runKnowledgeFreshnessSweep(tx, now, "publication");
         return projectKnowledgeRegistryVersionActionPayload({ skill, version, action: "publish" });
       });
     }

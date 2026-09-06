@@ -23,6 +23,7 @@ import {
   knowledgeSources,
 } from "../../../../../db/schema.js";
 import { parseKnowledgeSourceProposalDecisionInput } from "../../../../../shared/knowledge-source-proposal-policy.js";
+import { runKnowledgeFreshnessSweep } from "../../../../_shared/knowledge-freshness-sweep.js";
 import { HttpError } from "../../../../_shared/auth.js";
 import {
   registryInputError,
@@ -151,6 +152,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           summary: { fromProposalId: id, origin: proposal.origin, status: "published" },
         },
       ]);
+
+      // LOT 6 : cette approbation publie directement une source — un
+      // contrôle de fraîcheur supplémentaire a lieu immédiatement, sans
+      // attendre le prochain créneau planifié.
+      await runKnowledgeFreshnessSweep(tx, now, "publication");
 
       return { proposalId: approved.id, status: approved.status, sourceId: source.id };
     });

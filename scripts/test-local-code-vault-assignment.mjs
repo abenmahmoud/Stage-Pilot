@@ -306,6 +306,59 @@ try {
     );
     await tx.execute(sql`rollback to savepoint before_defect_consistency_check`);
 
+    // Scénario 6 (LOT 6, plan de connaissance OB1) : le quota quotidien
+    // repart à minuit heure de Paris, pas à minuit UTC. Les deux instants
+    // choisis restent dans la MÊME journée UTC (2026-09-05) mais franchissent
+    // minuit à Paris (CEST, UTC+2) : avant le correctif, le compteur UTC les
+    // aurait comptés comme un seul et même jour et n'aurait PAS repris à
+    // zéro — la preuve porte donc sur le comportement réellement observé
+    // contre PostgreSQL, pas sur une relecture du code.
+    const parisMidnightIdentity = {
+      institutionId,
+      personRef: "eleve-quota-paris-01",
+      service: "ent",
+      schoolYear: "2026-2027",
+      version: 1,
+    };
+    const parisMidnightAssignment = await getOrCreateVaultAssignment(tx, parisMidnightIdentity);
+    const beforeParisMidnight = new Date("2026-09-05T21:00:00.000Z"); // Paris 2026-09-05 23:00 (CEST)
+    const afterParisMidnightSameUtcDay = new Date("2026-09-05T23:30:00.000Z"); // Paris 2026-09-06 01:30 (CEST)
+
+    const firstOfParisDay = await recordVaultCodeDisplay(tx, {
+      assignmentId: parisMidnightAssignment.id,
+      institutionId,
+      now: beforeParisMidnight,
+    });
+    check(firstOfParisDay.outcome, "displayed", "first_display_before_paris_midnight");
+    check(firstOfParisDay.remainingDisplaysToday, 2, "first_display_leaves_two_remaining");
+
+    const firstOfNextParisDay = await recordVaultCodeDisplay(tx, {
+      assignmentId: parisMidnightAssignment.id,
+      institutionId,
+      now: afterParisMidnightSameUtcDay,
+    });
+    check(
+      firstOfNextParisDay.outcome,
+      "displayed",
+      "quota_resets_after_paris_midnight_even_within_the_same_utc_calendar_day"
+    );
+    check(
+      firstOfNextParisDay.remainingDisplaysToday,
+      2,
+      "quota_is_fully_reset_not_merely_decremented"
+    );
+
+    const [afterParisMidnightRow] = await tx.execute(sql`
+      select display_count, display_count_date
+      from public.code_vault_assignments where id = ${parisMidnightAssignment.id}
+    `);
+    check(afterParisMidnightRow.display_count, 1, "counter_restarted_at_one_for_the_new_paris_day");
+    check(
+      afterParisMidnightRow.display_count_date,
+      "2026-09-06",
+      "stored_quota_date_is_the_paris_calendar_date_not_the_utc_one"
+    );
+
     throw rollback;
   });
 } catch (error) {
