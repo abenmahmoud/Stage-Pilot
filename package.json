@@ -196,6 +196,8 @@
     "test:schedule-page-assets": "node scripts/test-schedule-page-assets.mjs",
     "test:schedule-page-input": "node --experimental-strip-types scripts/test-schedule-page-input.mjs",
     "test:schedule-promotion-input": "node --experimental-strip-types scripts/test-schedule-promotion-input.mjs",
+    "test:schedule-slot-input": "node --experimental-strip-types scripts/test-schedule-slot-input.mjs",
+    "recipe:local-schedule-slot-write-point": "node --import ./scripts/ts-test-resolver.mjs --experimental-transform-types scripts/test-local-schedule-slot-write-point.mjs --local-stack-only",
     "test:schedule-import-ui": "node scripts/test-schedule-import-ui.mjs",
     "test:skill-registry": "node --import ./scripts/ts-test-resolver.mjs --experimental-strip-types scripts/test-skill-registry-policy.mjs",
     "test:skill-evaluations": "node --import ./scripts/ts-test-resolver.mjs --experimental-strip-types scripts/test-knowledge-registry-security.mjs",

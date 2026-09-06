@@ -9,6 +9,7 @@ const boundedRoutes = [
   ["restauration", "../api/schedule/admin/imports/[id]/rollback.ts", "4kb"],
   ["retrait", "../api/schedule/admin/imports/[id]/retire.ts", "4kb"],
   ["association de page", "../api/schedule/admin/imports/[id]/pages/index.ts", "4kb"],
+  ["écriture des créneaux", "../api/schedule/admin/imports/[id]/pages/[pageId]/slots.ts", "16kb"],
 ];
 
 test("borne les commandes d'emploi du temps qui acceptent un corps", () => {
