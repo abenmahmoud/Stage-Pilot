@@ -54,6 +54,20 @@ export type KnowledgeSourceUsePolicy =
   | "requires_human_confirmation"
   | "do_not_inject_automatically";
 
+// LOT 5 du plan de connaissance OB1 (2026-09-05) : meme regle que la
+// contrainte SQL `knowledge_sources_generated_inferred_policy_check` (LOT 1),
+// exposee ici cote TypeScript pour que la file de validation des
+// propositions (LOT 5) puisse refuser une combinaison invalide avec un
+// message clair, avant meme d'atteindre la base. La contrainte SQL reste la
+// garantie finale ; cette fonction ne fait que l'anticiper.
+export function provenanceAllowsUsePolicy(
+  provenanceStatus: KnowledgeSourceProvenanceStatus,
+  usePolicy: KnowledgeSourceUsePolicy
+): boolean {
+  if (provenanceStatus !== "generated" && provenanceStatus !== "inferred") return true;
+  return usePolicy !== "can_use_as_instruction";
+}
+
 export type KnowledgeUsageCandidateSource = {
   id: string;
   institutionId: string;

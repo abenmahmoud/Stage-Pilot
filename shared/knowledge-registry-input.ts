@@ -8,6 +8,12 @@ export const KNOWLEDGE_SOURCE_TYPES = [
   "procedure",
   "directory",
   "calendar",
+  // LOT 5 du plan de connaissance OB1 (2026-09-05) : origines de la file de
+  // validation des propositions (`knowledge_source_proposals`). Distinctes
+  // des types ci-dessus pour qu'un lecteur du registre puisse toujours
+  // savoir qu'une source est issue de cette file, pas d'une saisie directe.
+  "flash_publication",
+  "conversation",
 ] as const;
 
 export type KnowledgeSourceType = (typeof KNOWLEDGE_SOURCE_TYPES)[number];
@@ -44,14 +50,18 @@ const CLASSIFICATIONS: KnowledgeClassification[] = [
   "sensitive",
 ];
 
-function record(value: unknown): Record<string, unknown> {
+// Exportees depuis LOT 5 du plan de connaissance OB1 (2026-09-05) : reutilisees
+// telles quelles par `shared/knowledge-source-proposal-policy.ts` pour ne pas
+// dupliquer ces regles de validation (regle commune du plan : etendre sans
+// reecrire).
+export function record(value: unknown): Record<string, unknown> {
   if (!value || typeof value !== "object" || Array.isArray(value)) {
     throw new Error("Les données sont invalides");
   }
   return value as Record<string, unknown>;
 }
 
-function text(value: unknown, label: string, min: number, max: number): string {
+export function text(value: unknown, label: string, min: number, max: number): string {
   if (typeof value !== "string") throw new Error(`${label} est obligatoire`);
   const clean = value.trim();
   if (clean.length < min || clean.length > max) {
@@ -60,7 +70,7 @@ function text(value: unknown, label: string, min: number, max: number): string {
   return clean;
 }
 
-function enumValue<T extends string>(
+export function enumValue<T extends string>(
   value: unknown,
   values: readonly T[],
   label: string
@@ -71,14 +81,14 @@ function enumValue<T extends string>(
   return value as T;
 }
 
-function dateValue(value: unknown, label: string): Date {
+export function dateValue(value: unknown, label: string): Date {
   if (typeof value !== "string") throw new Error(`${label} est obligatoire`);
   const parsed = new Date(value);
   if (Number.isNaN(parsed.getTime())) throw new Error(`${label} est invalide`);
   return parsed;
 }
 
-function optionalDate(value: unknown, label: string): Date | null {
+export function optionalDate(value: unknown, label: string): Date | null {
   if (value === null || value === undefined || value === "") return null;
   return dateValue(value, label);
 }
@@ -90,7 +100,7 @@ function uniqueStrings(value: unknown, label: string, max: number): string[] {
   return values;
 }
 
-function serviceCodes(value: unknown): SupportService[] {
+export function serviceCodes(value: unknown): SupportService[] {
   return uniqueStrings(value ?? [], "Services", SUPPORT_SERVICES.length).map((entry) =>
     enumValue(entry, SUPPORT_SERVICES, "Service")
   );

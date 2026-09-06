@@ -818,6 +818,70 @@ export const knowledgeSourceExcerpts = pgTable(
   ]
 );
 
+// LOT 5 du plan de connaissance OB1 (2026-09-05, migration 20260906020000) :
+// file de validation des propositions de connaissance et passage
+// « publié -> connaissance ». Reutilise l'administration existante (memes
+// roles, meme table knowledge_sources en aval) plutot que d'ajouter un
+// troisieme back-office : cette table est la seule nouveaute, elle joue pour
+// une conversation ou une actualite publiee le role que
+// `knowledge_documents` joue deja pour un document televerse.
+export const knowledgeSourceProposals = pgTable(
+  "knowledge_source_proposals",
+  {
+    id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+    institutionId: uuid("institution_id")
+      .notNull()
+      .references(() => institutions.id, { onDelete: "cascade" }),
+    origin: text("origin").notNull(),
+    originConversationId: uuid("origin_conversation_id"),
+    originFlashInfoId: uuid("origin_flash_info_id").references(() => flashInfos.id, {
+      onDelete: "restrict",
+    }),
+    originFlashVersionId: uuid("origin_flash_version_id").references(
+      () => flashInfoVersions.id,
+      { onDelete: "restrict" }
+    ),
+    title: text("title").notNull(),
+    proposedText: text("proposed_text"),
+    privacySignals: text("privacy_signals")
+      .array()
+      .notNull()
+      .default(sql`array[]::text[]`),
+    classification: text("classification").notNull().default("internal"),
+    serviceCodes: text("service_codes")
+      .array()
+      .notNull()
+      .default(sql`array[]::text[]`),
+    validFrom: timestamp("valid_from", { withTimezone: true }).notNull(),
+    expiresAt: timestamp("expires_at", { withTimezone: true }),
+    provenanceStatus: text("provenance_status").notNull(),
+    usePolicy: text("use_policy").notNull(),
+    status: text("status").notNull().default("pending_review"),
+    proposedBy: uuid("proposed_by").notNull(),
+    reviewedBy: uuid("reviewed_by"),
+    reviewedAt: timestamp("reviewed_at", { withTimezone: true }),
+    reviewNote: text("review_note"),
+    sourceId: uuid("source_id").references(() => knowledgeSources.id, {
+      onDelete: "restrict",
+    }),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    index("knowledge_source_proposals_institution_status_idx").on(
+      table.institutionId,
+      table.status,
+      table.createdAt
+    ),
+    index("knowledge_source_proposals_flash_info_idx")
+      .on(table.originFlashInfoId)
+      .where(sql`${table.originFlashInfoId} is not null`),
+    uniqueIndex("knowledge_source_proposals_source_id_uidx")
+      .on(table.sourceId)
+      .where(sql`${table.sourceId} is not null`),
+  ]
+);
+
 export const agentSkills = pgTable(
   "agent_skills",
   {

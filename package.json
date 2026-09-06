@@ -359,7 +359,10 @@
     "test:flash-dispatch-plan": "node --import ./scripts/ts-test-resolver.mjs --experimental-strip-types scripts/test-flash-dispatch-plan.mjs",
     "test:flash-notification-dispatch": "node --import ./scripts/ts-test-resolver.mjs --experimental-strip-types scripts/test-flash-notification-dispatch.mjs",
     "test:flash-communication-bridge": "node --import ./scripts/ts-test-resolver.mjs --experimental-strip-types scripts/test-flash-communication-bridge.mjs",
-    "test:weekly-brief": "node --import ./scripts/ts-test-resolver.mjs --experimental-strip-types scripts/test-weekly-brief.mjs"
+    "test:weekly-brief": "node --import ./scripts/ts-test-resolver.mjs --experimental-strip-types scripts/test-weekly-brief.mjs",
+    "test:knowledge-source-proposal-policy": "node --import ./scripts/ts-test-resolver.mjs --experimental-strip-types --test scripts/test-knowledge-source-proposal-policy.mjs",
+    "test:knowledge-source-proposal-boundaries": "node --test scripts/test-knowledge-source-proposal-structural-boundaries.mjs",
+    "recipe:local-knowledge-source-proposal-flow": "node --import ./scripts/ts-test-resolver.mjs --experimental-transform-types scripts/test-local-knowledge-source-proposal-flow.mjs --local-stack-only"
   },
   "license": "ISC",
   "dependencies": {

@@ -37,6 +37,8 @@ import {
   flashInfoVersions,
   flashInfos,
   flashNotificationDispatches,
+  knowledgeSourceProposals,
+  knowledgeSources,
 } from "../../../../db/schema.js";
 import { handleApi, methodNotAllowed } from "../../../_shared/response.js";
 import { HttpError } from "../../../_shared/auth.js";
@@ -45,6 +47,7 @@ import {
   flashProposalRouteId,
   requireFlashActor,
 } from "../../../_shared/flash-access.js";
+import { revokeKnowledgeSourceAndDisableSkills } from "../../../_shared/knowledge-source-revocation.js";
 import {
   toFlashAudienceTreatmentPayload,
   toFlashVersionPayload,
@@ -192,6 +195,35 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         // comme filet, jamais comme seule protection contre la concurrence
         // (même motif que decision.ts, LOT 3).
         throw new HttpError(409, "Cette information vient d'être corrigée par quelqu'un d'autre.");
+      }
+
+      // LOT 5 du plan de connaissance OB1 (2026-09-05, bullet 3) : une
+      // actualite corrigee doit retirer IMMEDIATEMENT la connaissance qui en
+      // avait ete derivee (« Rendre utilisable par l'agent »,
+      // `api/flash/proposals/[id]/knowledge.ts`), avant meme qu'une
+      // expiration ne s'en charge. Recherche par `flash_info_id` (la racine
+      // immuable), pas par version : une actualite peut avoir ete rendue
+      // utilisable depuis une version anterieure a celle qui est corrigee
+      // ici.
+      const derivedProposals = await tx
+        .select({ sourceId: knowledgeSourceProposals.sourceId, sourceStatus: knowledgeSources.status })
+        .from(knowledgeSourceProposals)
+        .innerJoin(knowledgeSources, eq(knowledgeSourceProposals.sourceId, knowledgeSources.id))
+        .where(
+          and(
+            eq(knowledgeSourceProposals.institutionId, actor.institutionId),
+            eq(knowledgeSourceProposals.originFlashInfoId, current.flashInfoId),
+            eq(knowledgeSourceProposals.status, "approved")
+          )
+        );
+      for (const derived of derivedProposals) {
+        if (derived.sourceStatus !== "published" || !derived.sourceId) continue;
+        await revokeKnowledgeSourceAndDisableSkills(tx, {
+          institutionId: actor.institutionId,
+          sourceId: derived.sourceId,
+          actorId: actor.user.id,
+          auditSummary: { causedByFlashCorrection: true, flashInfoId: current.flashInfoId },
+        });
       }
 
       await tx.delete(flashInfoAudiences).where(eq(flashInfoAudiences.versionId, current.id));

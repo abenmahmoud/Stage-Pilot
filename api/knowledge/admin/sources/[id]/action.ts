@@ -1,16 +1,11 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { and, eq } from "drizzle-orm";
 import { db } from "../../../../../db/index.js";
-import {
-  agentSkillAudit,
-  agentSkills,
-  agentSkillVersions,
-  knowledgeSources,
-  skillSourceLinks,
-} from "../../../../../db/schema.js";
+import { agentSkillAudit, knowledgeSources } from "../../../../../db/schema.js";
 import { projectKnowledgeRegistrySourceActionPayload } from "../../../../../shared/knowledge-registry-admin-action-payload.js";
 import { HttpError } from "../../../../_shared/auth.js";
 import { requireKnowledgeManager } from "../../../../_shared/knowledge-registry.js";
+import { revokeKnowledgeSourceAndDisableSkills } from "../../../../_shared/knowledge-source-revocation.js";
 import { handleApi, methodNotAllowed } from "../../../../_shared/response.js";
 
 type SourceAction = "publish" | "revoke";
@@ -77,46 +72,22 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     if (source.status === "revoked") throw new HttpError(409, "Cette source est déjà révoquée.");
     return db.transaction(async (tx) => {
-      const [revoked] = await tx
-        .update(knowledgeSources)
-        .set({ status: "revoked" })
-        .where(eq(knowledgeSources.id, id))
-        .returning();
-      const affected = await tx
-        .select({ skillId: agentSkills.id })
-        .from(skillSourceLinks)
-        .innerJoin(
-          agentSkillVersions,
-          eq(skillSourceLinks.skillVersionId, agentSkillVersions.id)
-        )
-        .innerJoin(
-          agentSkills,
-          eq(agentSkills.activeVersionId, agentSkillVersions.id)
-        )
-        .where(
-          and(
-            eq(skillSourceLinks.institutionId, context.institutionId),
-            eq(skillSourceLinks.sourceId, id)
-          )
-        );
-      for (const { skillId } of affected) {
-        await tx
-          .update(agentSkills)
-          .set({ enabled: false, activeVersionId: null })
-          .where(eq(agentSkills.id, skillId));
-      }
-      await tx.insert(agentSkillAudit).values({
+      const outcome = await revokeKnowledgeSourceAndDisableSkills(tx, {
         institutionId: context.institutionId,
-        resourceType: "source",
-        resourceId: id,
-        action: "revoke",
+        sourceId: id,
         actorId: context.user.id,
-        summary: { disabledSkillCount: affected.length },
+        auditSummary: {},
       });
+      if (!outcome) throw new HttpError(409, "Cette source a déjà été traitée.");
+      const [revoked] = await tx
+        .select()
+        .from(knowledgeSources)
+        .where(eq(knowledgeSources.id, id))
+        .limit(1);
       return projectKnowledgeRegistrySourceActionPayload({
         source: revoked,
         action: "revoke",
-        disabledSkillCount: affected.length,
+        disabledSkillCount: outcome.disabledSkillCount,
       });
     });
   });
