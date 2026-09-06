@@ -343,6 +343,8 @@
     "test:flash-validation-access": "node --import ./scripts/ts-test-resolver.mjs --experimental-strip-types scripts/test-flash-validation-access.mjs",
     "test:code-vault-policy": "node --import ./scripts/ts-test-resolver.mjs --experimental-strip-types scripts/test-code-vault-policy.mjs",
     "test:code-vault-delivery-policy": "node --import ./scripts/ts-test-resolver.mjs --experimental-strip-types scripts/test-code-vault-delivery-policy.mjs",
+    "test:code-vault-write-point": "node --import ./scripts/ts-test-resolver.mjs --experimental-strip-types scripts/test-code-vault-write-point.mjs",
+    "recipe:local-code-vault-write-point": "node --import ./scripts/ts-test-resolver.mjs --experimental-strip-types scripts/test-local-code-vault-write-point.mjs --local-stack-only",
     "recipe:local-code-vault-assignment": "node --import ./scripts/ts-test-resolver.mjs --experimental-strip-types scripts/test-local-code-vault-assignment.mjs --local-stack-only",
     "test:code-vault-secure-display": "node scripts/test-code-vault-secure-display.mjs",
     "test:code-vault-journeys": "node --import ./scripts/ts-test-resolver.mjs --experimental-strip-types scripts/test-code-vault-journeys.mjs",
