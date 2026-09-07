@@ -39,6 +39,7 @@ const vaultMigrationPath = new URL(
   import.meta.url
 );
 const reservePath = new URL("../api/identity/admin/imports/index.ts", import.meta.url);
+const uploaderPath = new URL("../src/lib/resumable-upload.ts", import.meta.url);
 const confirmPath = new URL(
   "../api/identity/admin/imports/[id]/confirm.ts",
   import.meta.url
@@ -133,13 +134,16 @@ test("does not promote a contact verification into school identity", async () =>
   assert.match(sql, /num_nonnulls\(user_id, support_session_id\) = 1/);
 });
 
-test("requires MFA, signed upload and explicit confirmation", async () => {
-  const [reserve, confirm] = await Promise.all([
+test("requires MFA, a narrow signed upload and explicit confirmation", async () => {
+  const [reserve, confirm, uploader] = await Promise.all([
     readFile(reservePath, "utf8"),
     readFile(confirmPath, "utf8"),
+    readFile(uploaderPath, "utf8"),
   ]);
   assert.match(reserve, /requireIdentityDirectoryManager\(req\)/);
   assert.match(reserve, /createSignedUploadUrl\(storagePath\)/);
+  assert.match(uploader, /\.uploadToSignedUrl\(target\.path, target\.token, file/);
+  assert.doesNotMatch(uploader, /Authorization|Bearer|new tus\.Upload|resumeFromPreviousUpload/);
   assert.match(reserve, /status: "reserved"/);
   assert.doesNotMatch(reserve, /schoolIdentities|schoolRelationships/);
   assert.match(confirm, /inArray\(identityDirectoryImports\.status, \["reserved", "uploaded"\]\)/);

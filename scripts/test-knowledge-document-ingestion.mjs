@@ -106,7 +106,7 @@ test("requires a human owner, effective date and review deadline", async () => {
   assert.match(sql, /knowledge_documents_owner_review_idx/i);
 });
 
-test("uploads directly with TUS and never creates a published source", async () => {
+test("uploads directly with the narrow signed token and never creates a published source", async () => {
   const [reserve, uploader] = await Promise.all([
     readFile(reservePath, "utf8"),
     readFile(uploaderPath, "utf8"),
@@ -115,7 +115,7 @@ test("uploads directly with TUS and never creates a published source", async () 
   assert.match(reserve, /createSignedUploadUrl\(storagePath\)/);
   assert.match(reserve, /status: "reserved"/);
   assert.doesNotMatch(reserve, /insert\(knowledgeSources\)/);
-  assert.match(uploader, /new tus\.Upload/);
-  assert.match(uploader, /"x-signature": target\.token/);
-  assert.match(uploader, /resumeFromPreviousUpload/);
+  assert.match(uploader, /\.from\(target\.bucket\)/);
+  assert.match(uploader, /\.uploadToSignedUrl\(target\.path, target\.token, file/);
+  assert.doesNotMatch(uploader, /Authorization|Bearer|new tus\.Upload|resumeFromPreviousUpload/);
 });
