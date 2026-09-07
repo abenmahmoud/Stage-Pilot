@@ -106,6 +106,9 @@ test("l’interface valide les réponses API et n’attache pas les binaires aux
   assert.match(source.page, /const replyAttachmentIds = requiresSafeTemplate \? \[\] : selectedAgentAttachmentIds/);
   assert.match(source.page, /attachmentIds: replyAttachmentIds/);
   assert.match(source.page, /Documents à joindre à la réponse/);
+  assert.match(source.page, /Pièce jointe bloquée : vérifiez la personne/);
+  assert.match(source.page, /aria-describedby=\{agentAttachmentDisabledReason \? "lycee-agent-attachment-help" : undefined\}/);
+  assert.match(source.page, /disabled=\{agentAttachmentDisabledReason !== null\}/);
   assert.match(source.page, /canRemoveDraft/);
   assert.match(source.page, /Retrait à reprendre/);
   assert.match(source.page, /removeAgentAttachment/);

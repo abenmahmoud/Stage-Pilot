@@ -80,6 +80,9 @@ quarantaine. Une panne d'envoi externe n'affecte pas le dossier.
 - [x] **T016B** Afficher les trois niveaux de vérification, exiger le lien avec
   une liste officielle pour confirmer une identité et bloquer la résolution des
   demandes ENT ou email académique sans cette confirmation.
+- [x] **T016B1** Expliquer directement dans la zone de réponse pourquoi la pièce
+  jointe est bloquée et indiquer « Identité confirmée dans la liste », sans
+  affaiblir le verrou des demandes sensibles.
 - [x] **T016C** Valider strictement la liste publique avant affichage, mémoire
   locale ou notification, puis ignorer les actualisations réseau obsolètes.
 - [x] **T016D** Valider le dossier public, ses messages et pièces avant rendu,

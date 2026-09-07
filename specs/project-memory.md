@@ -1,9 +1,20 @@
 # Memoire durable - Portail numerique du Lycee Blaise Cendrars
 
-**Derniere mise a jour** : 2 septembre 2026
+**Derniere mise a jour** : 7 septembre 2026
 **Branche de travail** : `codex/lycee-connect-prototype`
 **Depot** : `abenmahmoud/Stage-Pilot`
 **Dernier jalon de code verifie** : branche de preview Vercel
+
+## Jalon du 7 septembre 2026 - aide visible pour les pièces jointes agent
+
+- Le bouton de pièce jointe de l’espace agent reste fermé lorsqu’une demande
+  sensible exige encore la confirmation de l’identité scolaire.
+- La zone de réponse explique maintenant le blocage et indique l’action exacte :
+  vérifier la personne puis choisir `Identité confirmée dans la liste`.
+- Le libellé actif devient `Joindre un document`. Le verrou serveur, la limite de
+  cinq fichiers, le dépôt privé et le contrôle antivirus restent inchangés.
+- Le correctif est isolé sur `codex/fix-agent-attachment-button`; aucun dossier
+  réel, fichier, email, variable de production ou déploiement n’a été modifié.
 
 ## Jalon du 3 septembre 2026 - socle reseau du poste IA diagnostique
 
