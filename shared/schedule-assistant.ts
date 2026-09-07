@@ -94,6 +94,10 @@ function scheduleFailureAnswer(
       reply: "Aucun emploi du temps validé n'est disponible pour cette consultation. Vous pouvez transmettre une demande à la vie scolaire afin qu'un agent vérifie la situation.",
       safetyNotice: null,
     },
+    teacher_schedule_unavailable: {
+      reply: "Votre emploi du temps personnel de professeur n'est pas disponible dans la version actuellement active : je ne peux donc pas vous répondre. Vous pouvez transmettre une demande à la vie scolaire pour qu'il soit ajouté.",
+      safetyNotice: "Aucun emploi du temps de classe ne vous est présenté à la place du vôtre.",
+    },
     source_stale: {
       reply: "L'emploi du temps disponible doit être revalidé avant que je puisse vous indiquer une salle ou un cours. Vous pouvez transmettre une demande à la vie scolaire.",
       safetyNotice: "Une source périmée n'est jamais présentée comme actuelle.",

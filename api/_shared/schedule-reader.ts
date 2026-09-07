@@ -4,6 +4,7 @@ import { scheduleSlots, scheduleSourceVersions } from "../../db/schema.js";
 import {
   readAuthorizedCoursesForDay,
   readNextAuthorizedCourse,
+  scheduleSourceUnavailableReason,
   type ScheduleDayReadResult,
   type ScheduleReadResult,
   type ScheduleSourceType,
@@ -38,6 +39,7 @@ function failurePriority(result: ScheduleReadResult | ScheduleDayReadResult): nu
     source_stale: 3,
     no_authorized_course: 2,
     source_unavailable: 1,
+    teacher_schedule_unavailable: 1,
     identity_i3_required: 0,
   }[result.reason];
 }
@@ -102,7 +104,7 @@ export async function readNextCourseFromPrivateSchedule(input: {
       )
     ));
 
-  if (versions.length === 0) return { ok: false, reason: "source_unavailable" };
+  if (versions.length === 0) return { ok: false, reason: scheduleSourceUnavailableReason(viewer) };
 
   const scopePredicates = [
     ...(classRefs.length > 0 ? [inArray(scheduleSlots.classRef, classRefs)] : []),
@@ -170,7 +172,7 @@ export async function readNextCourseFromPrivateSchedule(input: {
   if (successes[0]) return successes[0];
 
   return results.sort((left, right) => failurePriority(right) - failurePriority(left))[0]
-    ?? { ok: false, reason: "source_unavailable" };
+    ?? { ok: false, reason: scheduleSourceUnavailableReason(viewer) };
 }
 
 export async function readCoursesForDayFromPrivateSchedule(input: {
@@ -212,7 +214,7 @@ export async function readCoursesForDayFromPrivateSchedule(input: {
       )
     ));
 
-  if (versions.length === 0) return { ok: false, reason: "source_unavailable" };
+  if (versions.length === 0) return { ok: false, reason: scheduleSourceUnavailableReason(viewer) };
 
   const scopePredicates = [
     ...(classRefs.length > 0 ? [inArray(scheduleSlots.classRef, classRefs)] : []),
@@ -290,5 +292,5 @@ export async function readCoursesForDayFromPrivateSchedule(input: {
   }
 
   return results.sort((left, right) => failurePriority(right) - failurePriority(left))[0]
-    ?? { ok: false, reason: "source_unavailable" };
+    ?? { ok: false, reason: scheduleSourceUnavailableReason(viewer) };
 }

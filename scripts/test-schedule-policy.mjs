@@ -1,6 +1,10 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { readAuthorizedCoursesForDay, readNextAuthorizedCourse } from "../shared/schedule-policy.ts";
+import {
+  readAuthorizedCoursesForDay,
+  readNextAuthorizedCourse,
+  scheduleSourceUnavailableReason,
+} from "../shared/schedule-policy.ts";
 
 const now = "2026-08-27T08:00:00.000Z";
 const version = {
@@ -315,4 +319,37 @@ test("refuses contradictory changes observed at the same time for the day view",
     changes: [baseChange, { ...baseChange, id: "changement-jour-b", newRoomCode: "S-305" }],
   });
   assert.deepEqual(result, { ok: false, reason: "conflicting_changes" });
+});
+
+test("tells a professor apart from a student when no source can serve their scope", () => {
+  // Un professeur n'a jamais de classe ni de groupe autorisés : seule sa
+  // référence d'enseignant est peuplée. Un élève ou un parent, à l'inverse,
+  // n'a jamais de référence d'enseignant. Confondre les deux réponses fait
+  // croire à un professeur que la version active n'a "pas de cours" pour lui
+  // alors qu'en réalité aucune source ne porte de référence d'enseignant du
+  // tout : voir `docs/operations/night-logs/PRO-LOT3.md`.
+  assert.equal(
+    scheduleSourceUnavailableReason({
+      authorizedClassRefs: [],
+      authorizedGroupRefs: [],
+      authorizedTeacherRefs: ["personnel-fictif-1"],
+    }),
+    "teacher_schedule_unavailable"
+  );
+  assert.equal(
+    scheduleSourceUnavailableReason({
+      authorizedClassRefs: ["classe-fictive-a"],
+      authorizedGroupRefs: [],
+      authorizedTeacherRefs: [],
+    }),
+    "source_unavailable"
+  );
+  assert.equal(
+    scheduleSourceUnavailableReason({
+      authorizedClassRefs: [],
+      authorizedGroupRefs: [],
+      authorizedTeacherRefs: [],
+    }),
+    "source_unavailable"
+  );
 });

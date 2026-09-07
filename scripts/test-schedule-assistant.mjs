@@ -124,6 +124,34 @@ test("fails closed when the source is stale or the reader fails", async () => {
   assert.equal(unavailable.usedAi, false);
 });
 
+test("tells a professor plainly that their own schedule is missing from the active version, not that they have no course", async () => {
+  // LOT 1 a montré que `authorizedTeacherRefs` n'a aucune version active
+  // tant que la seule source disponible est un PDF par classe : voir
+  // `docs/operations/night-logs/PRO-LOT3.md`. Le message générique
+  // "Aucun emploi du temps validé n'est disponible pour cette consultation"
+  // ne dit pas explicitement que c'est SON emploi du temps de professeur qui
+  // manque, ce qui peut se confondre avec "vous n'avez pas cours".
+  const next = await analyzeSupportConversation({
+    messages: messages("Où est mon prochain cours ?"),
+    attachments: [],
+    safetyIdentifier: "schedule-assistant-teacher-unavailable-next",
+    scheduleReader: async () => ({ ok: false, reason: "teacher_schedule_unavailable" }),
+  });
+  assert.match(next.reply, /emploi du temps personnel de professeur/i);
+  assert.match(next.reply, /version.*active/i);
+  assert.doesNotMatch(next.reply, /vous n'avez pas de cours|aucun cours prévu/i);
+  assert.equal(next.readyToCreate, true);
+
+  const day = await analyzeSupportConversation({
+    messages: messages("Quels sont mes cours aujourd'hui ?"),
+    attachments: [],
+    safetyIdentifier: "schedule-assistant-teacher-unavailable-day",
+    scheduleDayReader: async () => ({ ok: false, reason: "teacher_schedule_unavailable" }),
+  });
+  assert.match(day.reply, /emploi du temps personnel de professeur/i);
+  assert.match(day.reply, /version.*active/i);
+});
+
 test("answers an own today-courses request with every authorized course from the private reader", async () => {
   let calls = 0;
   const metrics = [];

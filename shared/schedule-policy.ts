@@ -81,9 +81,30 @@ export type ScheduleReadResult =
 export type ScheduleReadFailureReason =
   | "identity_i3_required"
   | "source_unavailable"
+  | "teacher_schedule_unavailable"
   | "source_stale"
   | "no_authorized_course"
   | "conflicting_changes";
+
+// Un professeur n'a jamais de classe ni de groupe autorisés dans son
+// périmètre : seule sa référence d'enseignant est peuplée
+// (`schedule-identity-reader.ts`, `isOwnStaffSchedule`). Tant que la source
+// active ne porte aucune version de type "teachers" (l'export disponible
+// aujourd'hui est un PDF par classe, sans référence d'enseignant), ce
+// périmètre ne peut jamais trouver de version : le distinguer du cas
+// générique évite de répondre à un professeur qu'il "n'a pas de cours" alors
+// qu'aucune source ne le concerne du tout.
+export function scheduleSourceUnavailableReason(viewer: {
+  authorizedClassRefs: string[];
+  authorizedGroupRefs: string[];
+  authorizedTeacherRefs: string[];
+}): "teacher_schedule_unavailable" | "source_unavailable" {
+  const isTeacherOnlyScope =
+    viewer.authorizedTeacherRefs.length > 0 &&
+    viewer.authorizedClassRefs.length === 0 &&
+    viewer.authorizedGroupRefs.length === 0;
+  return isTeacherOnlyScope ? "teacher_schedule_unavailable" : "source_unavailable";
+}
 
 export type ScheduleDayCourse = {
   subjectCode: string;
@@ -219,7 +240,7 @@ export function readNextAuthorizedCourse(input: {
   const now = timestamp(input.now);
   const requestedAt = timestamp(input.requestedAt);
   const version = selectActiveVersion(input.versions, now, requestedAt);
-  if (!version) return { ok: false, reason: "source_unavailable" };
+  if (!version) return { ok: false, reason: scheduleSourceUnavailableReason(input.viewer) };
   if (timestamp(version.freshUntil) < now) {
     return { ok: false, reason: "source_stale" };
   }
@@ -269,7 +290,7 @@ export function readAuthorizedCoursesForDay(input: {
   const dayStart = timestamp(input.dayStart);
   const dayEnd = timestamp(input.dayEnd);
   const version = selectActiveVersion(input.versions, now, dayStart);
-  if (!version) return { ok: false, reason: "source_unavailable" };
+  if (!version) return { ok: false, reason: scheduleSourceUnavailableReason(input.viewer) };
   if (timestamp(version.freshUntil) < now) {
     return { ok: false, reason: "source_stale" };
   }

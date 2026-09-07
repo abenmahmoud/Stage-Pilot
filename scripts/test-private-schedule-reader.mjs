@@ -59,3 +59,14 @@ test("also bounds the day reader to the same private, institution-scoped source"
   assert.match(reader, /readCoursesForDayFromPrivateSchedule/);
   assert.doesNotMatch(reader, /courses:\s*\{[\s\S]{0,500}teacherRef/);
 });
+
+test("tells a teacher-only scope apart from a generic missing source, on both readers", () => {
+  // Voir `docs/operations/night-logs/PRO-LOT3.md` : un professeur n'a jamais
+  // de classe ni de groupe autorisés, seulement une référence d'enseignant.
+  // Les deux lecteurs doivent passer par la même fonction pure plutôt que de
+  // renvoyer "source_unavailable" en dur, sous peine de faire croire à un
+  // professeur qu'il n'a pas cours alors qu'aucune source ne le concerne.
+  const reasonCalls = reader.match(/reason:\s*scheduleSourceUnavailableReason\(viewer\)/g) ?? [];
+  assert.equal(reasonCalls.length, 4);
+  assert.doesNotMatch(reader, /reason:\s*"source_unavailable"/);
+});
