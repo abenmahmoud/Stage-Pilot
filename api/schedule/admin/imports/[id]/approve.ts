@@ -12,6 +12,7 @@ import { HttpError } from "../../../../_shared/auth.js";
 import { registryInputError } from "../../../../_shared/knowledge-registry.js";
 import { handleApi, methodNotAllowed } from "../../../../_shared/response.js";
 import { requireScheduleManager } from "../../../../_shared/schedule-imports.js";
+import { findVerifiedPagesWithoutSlots } from "../../../../_shared/schedule-slot-write.js";
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
@@ -78,6 +79,22 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         Number(pageCounts?.verified ?? 0) !== source.pageCount
       ) {
         throw new HttpError(409, "Chaque page doit être associée puis vérifiée.");
+      }
+
+      // Une page peut être vérifiée par erreur sans que son écriture des
+      // créneaux (`writeScheduleSlots`) n'ait jamais eu lieu, ou après un
+      // renvoi vide : l'approbation ne doit alors jamais passer, sinon
+      // l'emploi du temps activé restera silencieusement troué.
+      const emptyPages = await findVerifiedPagesWithoutSlots(tx, {
+        institutionId: context.institutionId,
+        sourceVersionId: id,
+      });
+      if (emptyPages.length > 0) {
+        const pageList = emptyPages.join(", ");
+        throw new HttpError(
+          409,
+          `Aucun créneau n'a été écrit pour la page ${pageList}. Retournez à l'étape d'écriture avant d'approuver.`
+        );
       }
 
       const [approved] = await tx

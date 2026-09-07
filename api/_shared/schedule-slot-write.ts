@@ -173,3 +173,32 @@ export async function writeScheduleSlots(
     weekPattern: row.week_pattern,
   }));
 }
+
+// Une page peut être vérifiée par un humain sans qu'aucun créneau n'ait
+// jamais été écrit pour elle (renvoi vide, ou vérification faite avant
+// l'écriture) : `approve.ts` doit refuser l'approbation tant que cette
+// fonction rapporte au moins une page. Elle rejoue la même correspondance
+// classe/professeur que `writeScheduleSlots`, sur le même point de vérité.
+export async function findVerifiedPagesWithoutSlots(
+  tx: ScheduleTx,
+  params: { institutionId: string; sourceVersionId: string }
+): Promise<number[]> {
+  const rows = rowsOf<{ page_number: number }>(
+    await tx.execute(sql`
+      select p.page_number
+      from public.schedule_page_indexes p
+      where p.source_version_id = ${params.sourceVersionId}
+        and p.institution_id = ${params.institutionId}
+        and p.review_status = 'verified'
+        and not exists (
+          select 1 from public.schedule_slots s
+          where s.source_version_id = p.source_version_id
+            and s.institution_id = p.institution_id
+            and coalesce(s.class_ref, '') = case when p.subject_type = 'class' then p.subject_ref else '' end
+            and coalesce(s.teacher_ref, '') = case when p.subject_type = 'teacher' then p.subject_ref else '' end
+        )
+      order by p.page_number
+    `)
+  );
+  return rows.map((row) => row.page_number);
+}

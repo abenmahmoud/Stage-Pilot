@@ -199,6 +199,7 @@
     "test:schedule-slot-input": "node --experimental-strip-types scripts/test-schedule-slot-input.mjs",
     "test:schedule-slot-write-payload": "node --experimental-strip-types scripts/test-schedule-slot-write-payload.mjs",
     "recipe:local-schedule-slot-write-point": "node --import ./scripts/ts-test-resolver.mjs --experimental-transform-types scripts/test-local-schedule-slot-write-point.mjs --local-stack-only",
+    "recipe:local-schedule-approval-gate-adversarial": "node --import ./scripts/ts-test-resolver.mjs --experimental-transform-types scripts/test-local-schedule-approval-gate-adversarial.mjs --local-stack-only",
     "recipe:local-schedule-identity-adversarial": "node --import ./scripts/ts-test-resolver.mjs --experimental-transform-types scripts/test-local-schedule-identity-adversarial.mjs --local-stack-only",
     "test:schedule-import-ui": "node scripts/test-schedule-import-ui.mjs",
     "test:skill-registry": "node --import ./scripts/ts-test-resolver.mjs --experimental-strip-types scripts/test-skill-registry-policy.mjs",

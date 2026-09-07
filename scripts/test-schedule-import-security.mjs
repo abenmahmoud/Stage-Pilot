@@ -82,6 +82,10 @@ const manager = readFileSync(
   new URL("../api/_shared/schedule-imports.ts", import.meta.url),
   "utf8"
 );
+const slotWrite = readFileSync(
+  new URL("../api/_shared/schedule-slot-write.ts", import.meta.url),
+  "utf8"
+);
 
 test("keeps schedule tables and the PDF bucket private", () => {
   assert.match(migration, /schedule_source_versions enable row level security/i);
@@ -205,6 +209,15 @@ test("requires a clean complete page index before approval", () => {
   assert.match(promotionMigration, /Schedule document validation is incomplete/);
   assert.match(validationSummaryMigration, /securityScan'\) is distinct from 'clean'/i);
   assert.match(validationSummaryMigration, /pageCountVerified'\) is distinct from 'true'/i);
+});
+
+test("refuses approval while a verified page carries no written slot", () => {
+  assert.match(approveApi, /findVerifiedPagesWithoutSlots\(tx, \{/);
+  assert.match(approveApi, /emptyPages\.length > 0/);
+  assert.match(approveApi, /Aucun créneau n'a été écrit pour la page/);
+  assert.match(slotWrite, /export async function findVerifiedPagesWithoutSlots/);
+  assert.match(slotWrite, /p\.review_status = 'verified'/);
+  assert.match(slotWrite, /not exists[\s\S]+schedule_slots s/);
 });
 
 test("activates one version per scope in an audited transaction", () => {
