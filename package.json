@@ -204,6 +204,7 @@
     "recipe:local-schedule-approval-gate-adversarial": "node --import ./scripts/ts-test-resolver.mjs --experimental-transform-types scripts/test-local-schedule-approval-gate-adversarial.mjs --local-stack-only",
     "recipe:local-schedule-identity-adversarial": "node --import ./scripts/ts-test-resolver.mjs --experimental-transform-types scripts/test-local-schedule-identity-adversarial.mjs --local-stack-only",
     "recipe:local-schedule-tabular-mapping-adversarial": "node --import ./scripts/ts-test-resolver.mjs --experimental-transform-types scripts/test-local-schedule-tabular-mapping-adversarial.mjs --local-stack-only",
+    "recipe:local-schedule-import-e2e": "node --import ./scripts/ts-test-resolver.mjs --experimental-transform-types scripts/test-local-schedule-import-e2e.mjs --local-stack-only",
     "test:schedule-import-ui": "node scripts/test-schedule-import-ui.mjs",
     "test:skill-registry": "node --import ./scripts/ts-test-resolver.mjs --experimental-strip-types scripts/test-skill-registry-policy.mjs",
     "test:skill-evaluations": "node --import ./scripts/ts-test-resolver.mjs --experimental-strip-types scripts/test-knowledge-registry-security.mjs",
