@@ -3,7 +3,7 @@ import { and, desc, eq, sql } from "drizzle-orm";
 import { db } from "../../../../db/index.js";
 import { scheduleAudit, scheduleSourceVersions } from "../../../../db/schema.js";
 import { projectScheduleImportPayload } from "../../../../shared/schedule-admin-payload.js";
-import { parseScheduleImportInput } from "../../../../shared/schedule-import-input.js";
+import { parseScheduleImportInput, scheduleImportFileExtension } from "../../../../shared/schedule-import-input.js";
 import { supabaseAdmin } from "../../../_shared/auth.js";
 import { registryInputError } from "../../../_shared/knowledge-registry.js";
 import { handleApi, methodNotAllowed } from "../../../_shared/response.js";
@@ -57,7 +57,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         context.institutionId,
         context.user.id,
         input.schoolYear,
-        input.sourceKind
+        input.sourceKind,
+        scheduleImportFileExtension(input.sourceFormat, input.mimeType)
       );
       const { data: upload, error: uploadError } = await supabaseAdmin.storage
         .from(SCHEDULE_IMPORT_BUCKET)
@@ -90,6 +91,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           .values({
             institutionId: context.institutionId,
             sourceKind: input.sourceKind,
+            sourceFormat: input.sourceFormat,
             schoolYear: input.schoolYear,
             version: Number(latest?.version ?? 0) + 1,
             title: input.title,

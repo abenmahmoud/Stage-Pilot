@@ -306,3 +306,40 @@ test("validates every browser response before storage or visible success", async
   assert.match(pageFileRoute, /requireScheduleManager\(req\)/);
   assert.match(pageFileRoute, /schedulePageIndexes\.reviewStatus, "verified"/);
 });
+
+test("binds a signed reservation to the exact requested tabular file (LOT 3)", () => {
+  const tabularInput = {
+    ...input,
+    sourceFormat: "tabular_import",
+    originalName: "export-edt.csv",
+    mimeType: "text/csv",
+  };
+  const reservation = {
+    import: scheduleImport({ originalName: "export-edt.csv" }),
+    upload: {
+      bucket: SCHEDULE_IMPORT_BUCKET,
+      path: `${INSTITUTION_ID}/2026-2027/classes/${ACTOR_ID}/${FILE_ID}.csv`,
+      token: "header.payload.signature-with-safe-ascii",
+    },
+  };
+  assert.deepEqual(parseScheduleImportReservationPayload(reservation, tabularInput), reservation);
+  assert.equal(
+    parseScheduleImportReservationPayload(
+      { ...reservation, upload: { ...reservation.upload, path: `${INSTITUTION_ID}/2026-2027/classes/${ACTOR_ID}/${FILE_ID}.pdf` } },
+      tabularInput
+    ),
+    null,
+    "a tabular reservation must not accept a .pdf storage path"
+  );
+});
+
+test("accepts the mapping_pending status for a tabular import awaiting column mapping", () => {
+  const pending = scheduleImport({ status: "mapping_pending", uploadedAt: UPLOADED_AT, pageCount: null });
+  assert.deepEqual(
+    parseScheduleImportMutationPayload(
+      { import: pending, duplicate: false },
+      { id: SOURCE_ID, freshStatus: "mapping_pending", duplicateStatuses: ["mapping_pending"] }
+    ),
+    { import: pending, duplicate: false }
+  );
+});

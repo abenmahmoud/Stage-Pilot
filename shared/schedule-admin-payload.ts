@@ -1,8 +1,11 @@
 import {
   SCHEDULE_IMPORT_MAX_BYTES,
   SCHEDULE_IMPORT_MIME,
+  SCHEDULE_TABULAR_MIME_TYPES,
+  scheduleImportFileExtension,
   type ScheduleImportInput,
   type ScheduleSourceKind,
+  type ScheduleTabularMimeType,
 } from "./schedule-import-input.js";
 
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -21,6 +24,7 @@ export const SCHEDULE_IMPORT_STATUSES = [
   "uploaded",
   "quarantined",
   "processing",
+  "mapping_pending",
   "review",
   "approved",
   "active",
@@ -122,10 +126,12 @@ function schoolYear(value: unknown): string | null {
   return match && Number(match[2]) === Number(match[1]) + 1 ? value : null;
 }
 
-function pdfName(value: unknown): string | null {
+const SCHEDULE_IMPORT_EXTENSIONS = [".pdf", ".csv", ".xlsx"];
+
+function importFileName(value: unknown): string | null {
   const name = boundedText(value, 5, 255);
   return name
-    && name.toLowerCase().endsWith(".pdf")
+    && SCHEDULE_IMPORT_EXTENSIONS.some((extension) => name.toLowerCase().endsWith(extension))
     && !name.startsWith(".")
     && !name.includes("/")
     && !name.includes("\\")
@@ -163,7 +169,7 @@ function parseImportRecord(value: unknown): ScheduleImportPayload | null {
   const effectiveFrom = calendarDate(row.effectiveFrom);
   const effectiveUntil = nullableDate(row.effectiveUntil);
   const freshUntil = nullableTimestamp(row.freshUntil);
-  const originalName = pdfName(row.originalName);
+  const originalName = importFileName(row.originalName);
   const uploadedAt = nullableTimestamp(row.uploadedAt);
   const createdAt = timestamp(row.createdAt);
   if (
@@ -256,7 +262,10 @@ export function parseScheduleImportReservationPayload(
   value: unknown,
   expected: ScheduleImportInput
 ): { import: ScheduleImportPayload; upload: { bucket: string; path: string; token: string } } | null {
-  if (expected.mimeType !== SCHEDULE_IMPORT_MIME) return null;
+  if (
+    expected.mimeType !== SCHEDULE_IMPORT_MIME
+    && !SCHEDULE_TABULAR_MIME_TYPES.includes(expected.mimeType as ScheduleTabularMimeType)
+  ) return null;
   const root = exactRecord(value, ["import", "upload"]);
   const source = root ? parseImportRecord(root.import) : null;
   const upload = root ? exactRecord(root.upload, ["bucket", "path", "token"]) : null;
@@ -278,8 +287,9 @@ export function parseScheduleImportReservationPayload(
     || typeof upload.token !== "string"
     || !SIGNED_TOKEN_PATTERN.test(upload.token)
   ) return null;
+  const extension = scheduleImportFileExtension(expected.sourceFormat, expected.mimeType).replace(".", "\\.");
   const pathPattern = new RegExp(
-    `^${UUID_FRAGMENT}/${expected.schoolYear}/${expected.sourceKind}/${UUID_FRAGMENT}/${UUID_FRAGMENT}\\.pdf$`,
+    `^${UUID_FRAGMENT}/${expected.schoolYear}/${expected.sourceKind}/${UUID_FRAGMENT}/${UUID_FRAGMENT}${extension}$`,
     "i"
   );
   if (!pathPattern.test(upload.path)) return null;

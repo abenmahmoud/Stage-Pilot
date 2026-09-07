@@ -30,17 +30,21 @@ import {
 import {
   SCHEDULE_IMPORT_MAX_BYTES,
   SCHEDULE_IMPORT_MIME,
+  SCHEDULE_TABULAR_MIME_TYPES,
   parseScheduleImportInput,
+  type ScheduleSourceFormat,
   type ScheduleSourceKind,
 } from "../../../shared/schedule-import-input";
-import type { ScheduleSlotWritePayload } from "../../../shared/schedule-slot-write-payload";
+import { parseScheduleSlotWritePayload, type ScheduleSlotWritePayload } from "../../../shared/schedule-slot-write-payload";
 import ScheduleSlotEditor from "./ScheduleSlotEditor";
+import ScheduleTabularMappingPanel, { type ScheduleTabularComputedPage } from "./ScheduleTabularMappingPanel";
 
 const STATUS: Record<ScheduleStatus, { label: string; style: string }> = {
   reserved: { label: "Transfert à terminer", style: "bg-slate-100 text-slate-700" },
   uploaded: { label: "Reçu, contrôle en attente", style: "bg-blue-100 text-blue-800" },
   quarantined: { label: "Contrôle de sécurité", style: "bg-amber-100 text-amber-900" },
   processing: { label: "Lecture technique", style: "bg-cyan-100 text-cyan-900" },
+  mapping_pending: { label: "Correspondance des colonnes à faire", style: "bg-amber-100 text-amber-900" },
   review: { label: "Index à vérifier", style: "bg-amber-100 text-amber-900" },
   approved: { label: "Approuvé", style: "bg-emerald-100 text-emerald-800" },
   active: { label: "Version active", style: "bg-emerald-700 text-white" },
@@ -86,11 +90,22 @@ function normalizeDraftRef(value: string): string {
   return value.normalize("NFKC").trim().toUpperCase().replace(/\s+/g, "-");
 }
 
+function tabularMimeForFileName(name: string): (typeof SCHEDULE_TABULAR_MIME_TYPES)[number] | null {
+  const lower = name.toLowerCase();
+  if (lower.endsWith(".csv")) return "text/csv";
+  if (lower.endsWith(".xlsx")) return "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+  return null;
+}
+
 export default function ScheduleImportPage() {
   const fileInput = useRef<HTMLInputElement>(null);
   const [imports, setImports] = useState<ScheduleImport[]>([]);
   const [file, setFile] = useState<File | null>(null);
   const [sourceKind, setSourceKind] = useState<ScheduleSourceKind>("classes");
+  const [sourceFormat, setSourceFormat] = useState<ScheduleSourceFormat>("pdf_import");
+  const [tabularPendingId, setTabularPendingId] = useState("");
+  const [precomputedRowsByPage, setPrecomputedRowsByPage] = useState<Record<number, ScheduleTabularComputedPage["rows"]>>({});
+  const [tabularWriteBusy, setTabularWriteBusy] = useState<number | null>(null);
   const [schoolYear, setSchoolYear] = useState(defaultSchoolYear);
   const [effectiveFrom, setEffectiveFrom] = useState(new Date().toISOString().slice(0, 10));
   const [effectiveUntil, setEffectiveUntil] = useState("");
@@ -146,6 +161,10 @@ export default function ScheduleImportPage() {
         const candidates = result.imports.filter((item) =>
           ["review", "approved", "superseded", "rejected", "failed"].includes(item.status)
         );
+        return candidates.some((item) => item.id === current) ? current : candidates[0]?.id ?? "";
+      });
+      setTabularPendingId((current) => {
+        const candidates = result.imports.filter((item) => item.status === "mapping_pending");
         return candidates.some((item) => item.id === current) ? current : candidates[0]?.id ?? "";
       });
     } catch (reason) {
@@ -303,6 +322,42 @@ export default function ScheduleImportPage() {
     }
   }
 
+  function onTabularMappingApplied(appliedImportId: string, pages: ScheduleTabularComputedPage[]) {
+    setPrecomputedRowsByPage(Object.fromEntries(pages.map((page) => [page.pageNumber, page.rows])));
+    setTabularPendingId("");
+    setSelectedImportId(appliedImportId);
+    setNotice(`${pages.length} page${pages.length > 1 ? "s" : ""} créée${pages.length > 1 ? "s" : ""} à partir du fichier. Vérifiez puis écrivez les créneaux ci-dessous.`);
+    void load();
+  }
+
+  async function writeTabularSlots(mapping: SchedulePageMapping) {
+    const rows = precomputedRowsByPage[mapping.pageNumber];
+    if (!selectedImportId || !rows) return;
+    setTabularWriteBusy(mapping.pageNumber);
+    setError("");
+    try {
+      const response = await apiFetch<unknown>(
+        `schedule/admin/imports/${selectedImportId}/pages/${mapping.id}/slots`,
+        { method: "POST", body: JSON.stringify({ rows }) }
+      );
+      const result = parseScheduleSlotWritePayload(response, {
+        subjectType: mapping.subjectType,
+        subjectRef: mapping.subjectRef,
+        rowCount: rows.length,
+      });
+      if (!result) throw new Error("La confirmation d'écriture des créneaux reçue est invalide.");
+      setSlotWriteReports((current) => ({ ...current, [mapping.pageNumber]: result.slots }));
+      setPrecomputedRowsByPage((current) => {
+        const { [mapping.pageNumber]: _written, ...rest } = current;
+        return rest;
+      });
+    } catch (reason) {
+      setError(reason instanceof Error ? reason.message : "Écriture des créneaux impossible.");
+    } finally {
+      setTabularWriteBusy(null);
+    }
+  }
+
   async function runPromotion() {
     const target = imports.find((item) => item.id === actionTargetId);
     if (!target) return;
@@ -383,11 +438,12 @@ export default function ScheduleImportPage() {
   async function submit(event: React.FormEvent) {
     event.preventDefault();
     if (!file) {
-      setError("Choisissez le PDF à déposer.");
+      setError(sourceFormat === "pdf_import" ? "Choisissez le PDF à déposer." : "Choisissez le fichier CSV ou Excel à déposer.");
       return;
     }
-    if (file.type !== SCHEDULE_IMPORT_MIME && !file.name.toLowerCase().endsWith(".pdf")) {
-      setError("Seuls les fichiers PDF sont acceptés.");
+    const mimeType = sourceFormat === "pdf_import" ? SCHEDULE_IMPORT_MIME : tabularMimeForFileName(file.name);
+    if (!mimeType) {
+      setError("Seuls les fichiers CSV ou Excel (.xlsx) sont acceptés.");
       return;
     }
     setBusy(true);
@@ -397,6 +453,7 @@ export default function ScheduleImportPage() {
     try {
       const requestedImport = parseScheduleImportInput({
         sourceKind,
+        sourceFormat,
         schoolYear,
         title,
         purposeDescription,
@@ -404,7 +461,7 @@ export default function ScheduleImportPage() {
         effectiveUntil: effectiveUntil || null,
         freshUntil,
         originalName: file.name,
-        mimeType: SCHEDULE_IMPORT_MIME,
+        mimeType,
         sizeBytes: file.size,
       });
       const reservationResponse = await apiFetch<unknown>("schedule/admin/imports", {
@@ -413,23 +470,23 @@ export default function ScheduleImportPage() {
       });
       const reservation = parseScheduleImportReservationPayload(reservationResponse, requestedImport);
       if (!reservation) throw new Error("La réservation de dépôt reçue est invalide.");
-      const pdf = file.type === SCHEDULE_IMPORT_MIME
-        ? file
-        : new File([file], file.name, { type: SCHEDULE_IMPORT_MIME });
-      await uploadPrivateFile(pdf, reservation.upload, setProgress);
+      const upload = file.type === mimeType ? file : new File([file], file.name, { type: mimeType });
+      await uploadPrivateFile(upload, reservation.upload, setProgress);
       const confirmationResponse = await apiFetch<unknown>(`schedule/admin/imports/${reservation.import.id}/confirm`, {
         method: "POST",
       });
       const confirmation = parseScheduleImportMutationPayload(confirmationResponse, {
         id: reservation.import.id,
         freshStatus: "quarantined",
-        duplicateStatuses: ["quarantined", "processing", "review", "approved", "active"],
+        duplicateStatuses: ["quarantined", "processing", "mapping_pending", "review", "approved", "active"],
       });
       if (!confirmation) throw new Error("La confirmation du dépôt reçue est invalide.");
       setNotice(
         confirmation.duplicate
-          ? "Ce PDF avait déjà été reçu. Son état actuel a été relu sans créer un second contrôle."
-          : "PDF reçu dans l'espace privé. Il reste bloqué jusqu'au contrôle antivirus, à l'indexation des pages et à l'approbation humaine."
+          ? "Ce fichier avait déjà été reçu. Son état actuel a été relu sans créer un second contrôle."
+          : sourceFormat === "pdf_import"
+            ? "PDF reçu dans l'espace privé. Il reste bloqué jusqu'au contrôle antivirus, à l'indexation des pages et à l'approbation humaine."
+            : "Fichier reçu dans l'espace privé. Il reste bloqué jusqu'au contrôle antivirus, puis attendra la correspondance des colonnes."
       );
       setFile(null);
       setTitle("");
@@ -447,7 +504,9 @@ export default function ScheduleImportPage() {
     file && (
       file.size < 1 ||
       file.size > SCHEDULE_IMPORT_MAX_BYTES ||
-      (!file.name.toLowerCase().endsWith(".pdf") && file.type !== SCHEDULE_IMPORT_MIME)
+      (sourceFormat === "pdf_import"
+        ? !file.name.toLowerCase().endsWith(".pdf") && file.type !== SCHEDULE_IMPORT_MIME
+        : !tabularMimeForFileName(file.name))
     )
   );
   const reviewImports = imports.filter((item) => item.status === "review" && item.pageCount);
@@ -536,27 +595,49 @@ export default function ScheduleImportPage() {
       {notice ? <p role="status" className="border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-800">{notice}</p> : null}
 
       <form onSubmit={submit} className="grid gap-4 border-y border-slate-200 bg-white p-4 sm:grid-cols-2 sm:p-6">
+        <label className="text-sm font-medium text-slate-700 sm:col-span-2">
+          Format du fichier
+          <select
+            className="field mt-1 bg-white"
+            value={sourceFormat}
+            disabled={busy}
+            onChange={(event) => {
+              setSourceFormat(event.target.value as ScheduleSourceFormat);
+              setFile(null);
+              if (fileInput.current) fileInput.current.value = "";
+            }}
+          >
+            <option value="pdf_import">PDF officiel (une page par classe ou par professeur)</option>
+            <option value="tabular_import">Export tabulaire (CSV ou Excel), colonnes à faire correspondre</option>
+          </select>
+        </label>
         <label className="flex min-h-32 cursor-pointer flex-col items-center justify-center border-2 border-dashed border-slate-300 px-4 py-5 text-center sm:col-span-2 hover:border-emerald-600">
           <Upload className="h-6 w-6 text-emerald-700" />
-          <strong className="mt-2 text-sm">{file ? file.name : "Choisir un PDF officiel"}</strong>
+          <strong className="mt-2 text-sm">
+            {file ? file.name : sourceFormat === "pdf_import" ? "Choisir un PDF officiel" : "Choisir un export CSV ou Excel"}
+          </strong>
           <span className="mt-1 text-xs text-slate-500">50 Mo maximum</span>
           <input
             ref={fileInput}
             className="sr-only"
             type="file"
-            accept=".pdf,application/pdf"
+            accept={sourceFormat === "pdf_import" ? ".pdf,application/pdf" : ".csv,.xlsx,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"}
             required
             disabled={busy}
             onChange={(event) => {
               const next = event.target.files?.[0] ?? null;
               setFile(next);
-              if (next && !title) setTitle(next.name.replace(/\.pdf$/i, ""));
+              if (next && !title) setTitle(next.name.replace(/\.(pdf|csv|xlsx)$/i, ""));
             }}
           />
         </label>
         {file ? (
           <small className={`sm:col-span-2 ${invalidFile ? "text-red-700" : "text-slate-500"}`}>
-            {invalidFile ? "Ce fichier n'est pas un PDF valide de moins de 50 Mo." : formatBytes(file.size)}
+            {invalidFile
+              ? sourceFormat === "pdf_import"
+                ? "Ce fichier n'est pas un PDF valide de moins de 50 Mo."
+                : "Ce fichier n'est pas un CSV ou Excel valide de moins de 50 Mo."
+              : formatBytes(file.size)}
           </small>
         ) : null}
 
@@ -757,6 +838,14 @@ export default function ScheduleImportPage() {
         </section>
       ) : null}
 
+      {tabularPendingId ? (
+        <ScheduleTabularMappingPanel
+          importId={tabularPendingId}
+          sourceKind={imports.find((item) => item.id === tabularPendingId)?.sourceKind ?? "classes"}
+          onApplied={(computedPages) => onTabularMappingApplied(tabularPendingId, computedPages)}
+        />
+      ) : null}
+
       <section className="space-y-4 border-t border-slate-200 pt-6">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
           <div>
@@ -877,7 +966,20 @@ export default function ScheduleImportPage() {
                           Vérifier
                         </button>
                       ) : null}
-                      {mapping && mapping.reviewStatus === "verified" ? (
+                      {mapping && mapping.reviewStatus === "verified" && precomputedRowsByPage[pageNumber] ? (
+                        <button
+                          type="button"
+                          onClick={() => void writeTabularSlots(mapping)}
+                          disabled={tabularWriteBusy === pageNumber}
+                          className="inline-flex min-h-9 items-center gap-1.5 rounded-md bg-emerald-700 px-2.5 text-xs font-semibold text-white disabled:opacity-40"
+                        >
+                          {tabularWriteBusy === pageNumber
+                            ? <LoaderCircle className="h-3.5 w-3.5 animate-spin" />
+                            : <CalendarDays className="h-3.5 w-3.5" />}
+                          Écrire les {precomputedRowsByPage[pageNumber].length} créneaux du fichier
+                        </button>
+                      ) : null}
+                      {mapping && mapping.reviewStatus === "verified" && !precomputedRowsByPage[pageNumber] ? (
                         <button
                           type="button"
                           onClick={() => setSlotEditorPage((current) => (current === pageNumber ? null : pageNumber))}

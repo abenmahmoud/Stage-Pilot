@@ -7,6 +7,7 @@ import {
 
 const valid = {
   sourceKind: "classes",
+  sourceFormat: "pdf_import",
   schoolYear: "2026-2027",
   title: "Emplois du temps classes - rentrée",
   purposeDescription: "Version entièrement fictive destinée à la recette de la preview.",
@@ -69,4 +70,43 @@ test("rejects empty and oversized files", () => {
 test("removes control characters from human labels", () => {
   const result = parseScheduleImportInput({ ...valid, title: "Version\u0000 rentrée" });
   assert.equal(result.title, "Version rentrée");
+});
+
+test("defaults to pdf_import when sourceFormat is omitted (backward compatibility)", () => {
+  const { sourceFormat, ...withoutFormat } = valid;
+  const result = parseScheduleImportInput(withoutFormat);
+  assert.equal(result.sourceFormat, "pdf_import");
+});
+
+test("accepts a bounded CSV tabular import", () => {
+  const result = parseScheduleImportInput({
+    ...valid,
+    sourceFormat: "tabular_import",
+    originalName: "export-edt.csv",
+    mimeType: "text/csv",
+  });
+  assert.equal(result.sourceFormat, "tabular_import");
+  assert.equal(result.mimeType, "text/csv");
+});
+
+test("accepts a bounded Excel tabular import", () => {
+  const result = parseScheduleImportInput({
+    ...valid,
+    sourceFormat: "tabular_import",
+    originalName: "export-edt.xlsx",
+    mimeType: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+  });
+  assert.equal(result.mimeType, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+});
+
+test("rejects a tabular import with a PDF mime type, a PDF name, or an unknown format", () => {
+  assert.throws(
+    () => parseScheduleImportInput({ ...valid, sourceFormat: "tabular_import", originalName: "export.csv", mimeType: "application/pdf" }),
+    /CSV ou Excel/i
+  );
+  assert.throws(
+    () => parseScheduleImportInput({ ...valid, sourceFormat: "tabular_import", originalName: "export.pdf", mimeType: "text/csv" }),
+    /CSV ou Excel/i
+  );
+  assert.throws(() => parseScheduleImportInput({ ...valid, sourceFormat: "xml_import" }), /format du fichier/i);
 });

@@ -19,6 +19,10 @@ import {
   SCHEDULE_PAGE_ASSET_BUCKET,
   schedulePageAssetStoragePath,
 } from "../shared/schedule-page-asset.mjs";
+import {
+  parseScheduleTabularBytes,
+  ScheduleTabularParseError,
+} from "./schedule-tabular-parser.mjs";
 
 const execFileAsync = promisify(execFile);
 const databaseUrl = process.env.DATABASE_URL;
@@ -65,14 +69,18 @@ async function clamScan(bytes, name) {
 
 async function loadSource(job) {
   const [source] = await sql`
-    select id, institution_id, original_name, mime_type, size_bytes,
+    select id, institution_id, original_name, mime_type, size_bytes, source_format,
            storage_bucket, storage_path, status, uploaded_by
     from public.schedule_source_versions
     where id = ${job.source_version_id} and institution_id = ${job.institution_id}
     limit 1
   `;
   if (!source) throw new Error("schedule_source_not_found");
-  if (["review", "approved", "active", "superseded", "rejected", "failed", "retired"].includes(source.status)) {
+  if (
+    ["mapping_pending", "review", "approved", "active", "superseded", "rejected", "failed", "retired"].includes(
+      source.status
+    )
+  ) {
     return { source, duplicate: true };
   }
   if (!["uploaded", "quarantined", "processing"].includes(source.status)) {
@@ -178,6 +186,47 @@ async function persistReview(source, result, pageAssets, msgId) {
   });
 }
 
+// Un fichier tabulaire n'a pas de "page" à isoler comme un PDF : le nombre
+// de classes/professeurs distincts (`page_count`) n'est connu qu'une fois
+// qu'un administrateur a choisi la correspondance des colonnes
+// (`api/schedule/admin/imports/[id]/tabular-mapping.ts`). Ce statut
+// intermédiaire n'existe que pour ce format — un PDF n'y transite jamais.
+async function persistMappingPending(source, result, msgId) {
+  await sql.begin(async (transaction) => {
+    const updated = await transaction`
+      update public.schedule_source_versions
+      set status = 'mapping_pending', checksum = ${result.checksum},
+          validation_summary = ${transaction.json({
+            securityScan: "clean",
+            tabularHeaders: result.headers,
+            tabularRowCount: result.rowCount,
+            humanMapping: "pending",
+            activation: "blocked",
+            realDataAllowedInModel: false,
+          })}
+      where id = ${source.id} and institution_id = ${source.institution_id}
+        and status = 'processing'
+      returning id
+    `;
+    if (!updated.length) throw new Error("schedule_source_state_changed");
+    await transaction`
+      insert into public.schedule_audit (
+        institution_id, source_version_id, action, actor_id, summary
+      ) values (
+        ${source.institution_id}, ${source.id}, 'complete_scan', ${source.uploaded_by},
+        ${transaction.json({
+          result: "clean",
+          format: "tabular_import",
+          columnCount: result.headers.length,
+          rowCount: result.rowCount,
+          checksum: result.checksum,
+        })}
+      )
+    `;
+    await transaction`select pgmq.delete('schedule_document_scan', ${msgId}::bigint)`;
+  });
+}
+
 async function rejectSource(source, msgId, reason, threat = false) {
   const { error } = await storage.from(source.storage_bucket).remove([source.storage_path]);
   if (error) throw new Error("schedule_storage_delete_failed");
@@ -276,19 +325,28 @@ async function processMessage(row) {
           )
       where id = ${loaded.source.id} and status = 'quarantined'
     `;
+    if (loaded.source.source_format === "tabular_import") {
+      const result = parseScheduleTabularBytes({ bytes, fileName: loaded.source.original_name });
+      await persistMappingPending(loaded.source, result, row.msg_id);
+      return "mapping_pending";
+    }
     const result = await inspectSchedulePdf(bytes);
     const pageAssets = await createPrivatePageAssets(loaded.source, bytes, result.pageCount);
     await persistReview(loaded.source, result, pageAssets, row.msg_id);
     return "review";
   } catch (error) {
-    const code = error instanceof ScheduleDocumentInspectionError || error instanceof SchedulePageAssetError
+    const code = error instanceof ScheduleDocumentInspectionError
+      || error instanceof SchedulePageAssetError
+      || error instanceof ScheduleTabularParseError
       ? error.code
       : error instanceof Error
         ? error.message.slice(0, 120)
         : "unknown_error";
     if (
       loaded?.source
-      && (error instanceof ScheduleDocumentInspectionError || error instanceof SchedulePageAssetError)
+      && (error instanceof ScheduleDocumentInspectionError
+        || error instanceof SchedulePageAssetError
+        || error instanceof ScheduleTabularParseError)
     ) {
       await rejectSource(loaded.source, row.msg_id, code);
       return "rejected";

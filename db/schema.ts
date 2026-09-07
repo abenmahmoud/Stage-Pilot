@@ -1256,6 +1256,25 @@ export const scheduleSlots = pgTable(
   ]
 );
 
+export const scheduleTabularColumnMappings = pgTable(
+  "schedule_tabular_column_mappings",
+  {
+    institutionId: uuid("institution_id")
+      .notNull()
+      .references(() => institutions.id, { onDelete: "cascade" }),
+    sourceKind: text("source_kind").notNull(),
+    mapping: jsonb("mapping").notNull(),
+    updatedBy: uuid("updated_by").notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    primaryKey({
+      name: "schedule_tabular_column_mappings_pkey",
+      columns: [table.institutionId, table.sourceKind],
+    }),
+  ]
+);
+
 export const siteContentTemplates = pgTable("site_content_templates", {
   id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
   slug: text("slug").notNull().unique(),

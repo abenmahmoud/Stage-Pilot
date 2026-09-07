@@ -1,10 +1,17 @@
 export const SCHEDULE_IMPORT_MAX_BYTES = 50 * 1024 * 1024;
 export const SCHEDULE_IMPORT_MIME = "application/pdf";
+export const SCHEDULE_TABULAR_MIME_TYPES = [
+  "text/csv",
+  "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+] as const;
+export type ScheduleTabularMimeType = (typeof SCHEDULE_TABULAR_MIME_TYPES)[number];
 
 export type ScheduleSourceKind = "classes" | "teachers";
+export type ScheduleSourceFormat = "pdf_import" | "tabular_import";
 
 export type ScheduleImportInput = {
   sourceKind: ScheduleSourceKind;
+  sourceFormat: ScheduleSourceFormat;
   schoolYear: string;
   title: string;
   purposeDescription: string;
@@ -12,9 +19,22 @@ export type ScheduleImportInput = {
   effectiveUntil: string | null;
   freshUntil: string;
   originalName: string;
-  mimeType: typeof SCHEDULE_IMPORT_MIME;
+  mimeType: typeof SCHEDULE_IMPORT_MIME | ScheduleTabularMimeType;
   sizeBytes: number;
 };
+
+const TABULAR_EXTENSIONS: Record<ScheduleTabularMimeType, string> = {
+  "text/csv": ".csv",
+  "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": ".xlsx",
+};
+
+export function scheduleImportFileExtension(
+  sourceFormat: ScheduleSourceFormat | undefined,
+  mimeType: string
+): string {
+  if (sourceFormat !== "tabular_import") return ".pdf";
+  return TABULAR_EXTENSIONS[mimeType as ScheduleTabularMimeType] ?? ".csv";
+}
 
 function record(value: unknown): Record<string, unknown> {
   if (!value || typeof value !== "object" || Array.isArray(value)) {
@@ -62,15 +82,19 @@ function calendarDate(value: unknown, year: string, label: string): string {
   return value;
 }
 
-function fileName(value: unknown): string {
+function fileName(value: unknown, sourceFormat: ScheduleSourceFormat): string {
   const cleaned = text(value, "Le nom du fichier", 5, 255);
-  if (
-    cleaned.includes("/") ||
-    cleaned.includes("\\") ||
-    cleaned.startsWith(".") ||
-    !cleaned.toLowerCase().endsWith(".pdf")
-  ) {
-    throw new Error("Choisissez un fichier PDF dont le nom est valide.");
+  const lower = cleaned.toLowerCase();
+  const validExtension =
+    sourceFormat === "pdf_import"
+      ? lower.endsWith(".pdf")
+      : lower.endsWith(".csv") || lower.endsWith(".xlsx");
+  if (cleaned.includes("/") || cleaned.includes("\\") || cleaned.startsWith(".") || !validExtension) {
+    throw new Error(
+      sourceFormat === "pdf_import"
+        ? "Choisissez un fichier PDF dont le nom est valide."
+        : "Choisissez un fichier CSV ou Excel (.xlsx) dont le nom est valide."
+    );
   }
   return cleaned;
 }
@@ -80,6 +104,14 @@ export function parseScheduleImportInput(value: unknown): ScheduleImportInput {
   if (input.sourceKind !== "classes" && input.sourceKind !== "teachers") {
     throw new Error("Le type d'emploi du temps est invalide.");
   }
+  const sourceFormat: ScheduleSourceFormat =
+    input.sourceFormat === "tabular_import"
+      ? "tabular_import"
+      : input.sourceFormat === undefined || input.sourceFormat === "pdf_import"
+        ? "pdf_import"
+        : (() => {
+            throw new Error("Le format du fichier est invalide.");
+          })();
   const year = schoolYear(input.schoolYear);
   const effectiveFrom = calendarDate(input.effectiveFrom, year, "La date d'effet");
   const effectiveUntil = input.effectiveUntil === null || input.effectiveUntil === ""
@@ -92,8 +124,16 @@ export function parseScheduleImportInput(value: unknown): ScheduleImportInput {
   if (freshUntil < effectiveFrom || (effectiveUntil !== null && freshUntil > effectiveUntil)) {
     throw new Error("La date de recontrôle doit être comprise dans la période de validité.");
   }
-  if (input.mimeType !== SCHEDULE_IMPORT_MIME) {
-    throw new Error("Seuls les documents PDF sont acceptés.");
+  const validMime =
+    sourceFormat === "pdf_import"
+      ? input.mimeType === SCHEDULE_IMPORT_MIME
+      : SCHEDULE_TABULAR_MIME_TYPES.includes(input.mimeType as ScheduleTabularMimeType);
+  if (!validMime) {
+    throw new Error(
+      sourceFormat === "pdf_import"
+        ? "Seuls les documents PDF sont acceptés."
+        : "Seuls les fichiers CSV ou Excel (.xlsx) sont acceptés."
+    );
   }
   if (
     typeof input.sizeBytes !== "number" ||
@@ -101,18 +141,19 @@ export function parseScheduleImportInput(value: unknown): ScheduleImportInput {
     input.sizeBytes < 1 ||
     input.sizeBytes > SCHEDULE_IMPORT_MAX_BYTES
   ) {
-    throw new Error("Le PDF doit peser entre 1 octet et 50 Mo.");
+    throw new Error("Le fichier doit peser entre 1 octet et 50 Mo.");
   }
   return {
     sourceKind: input.sourceKind,
+    sourceFormat,
     schoolYear: year,
     title: text(input.title, "Le titre", 2, 180),
     purposeDescription: text(input.purposeDescription, "L'usage prévu", 20, 2000),
     effectiveFrom,
     effectiveUntil,
     freshUntil,
-    originalName: fileName(input.originalName),
-    mimeType: SCHEDULE_IMPORT_MIME,
+    originalName: fileName(input.originalName, sourceFormat),
+    mimeType: input.mimeType as ScheduleImportInput["mimeType"],
     sizeBytes: input.sizeBytes,
   };
 }

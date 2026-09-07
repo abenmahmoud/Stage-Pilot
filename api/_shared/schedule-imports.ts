@@ -13,13 +13,14 @@ export function scheduleImportStoragePath(
   institutionId: string,
   actorId: string,
   schoolYear: string,
-  sourceKind: string
+  sourceKind: string,
+  extension = ".pdf"
 ): string {
   return [
     institutionId,
     schoolYear,
     sourceKind,
     actorId,
-    `${randomUUID()}.pdf`,
+    `${randomUUID()}${extension}`,
   ].join("/");
 }
