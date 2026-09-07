@@ -10,7 +10,7 @@ import {
   buildKnowledgeSearchQuery,
   selectAgentModelWindow,
 } from "../../shared/agent-context-window.js";
-import { MISSING_OPENING_HOURS_REPLY, schoolClock, schoolInformationIntent, schoolRuntimeInstructions, supportFormReady } from "../../shared/assistant-school-context.js";
+import { MISSING_OPENING_HOURS_REPLY, schoolClock, schoolDayBoundsUtc, schoolInformationIntent, schoolRuntimeInstructions, supportFormReady } from "../../shared/assistant-school-context.js";
 import { readAiProviderJsonResponse } from "../../shared/ai-provider-response.js";
 import { evaluateLaptopIntake } from "../../shared/laptop-intake.js";
 import type { KnowledgeActor } from "../../shared/skill-registry-policy.js";
@@ -487,9 +487,7 @@ export async function analyzeSupportConversation(input: {
   }
   if (input.scheduleDayReader && requestsOwnCoursesToday(input.messages)) {
     const requestedAt = new Date();
-    const dayDate = requestedAt.toISOString().slice(0, 10);
-    const dayStart = new Date(`${dayDate}T00:00:00.000Z`);
-    const dayEnd = new Date(`${dayDate}T23:59:59.999Z`);
+    const { dayStart, dayEnd } = schoolDayBoundsUtc(requestedAt);
     let dayResult: ScheduleDayReadResult;
     try {
       dayResult = await input.scheduleDayReader({ requestedAt, dayStart, dayEnd });

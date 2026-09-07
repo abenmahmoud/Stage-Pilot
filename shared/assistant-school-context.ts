@@ -32,6 +32,62 @@ export function schoolClock(now: Date) {
   };
 }
 
+function schoolWallClockParts(now: Date): Record<string, string> {
+  return new Intl.DateTimeFormat("en-US", {
+    timeZone: SCHOOL_TIME_ZONE,
+    hourCycle: "h23",
+    year: "numeric", month: "2-digit", day: "2-digit",
+    hour: "2-digit", minute: "2-digit", second: "2-digit",
+  }).formatToParts(now).reduce((map, part) => {
+    if (part.type !== "literal") map[part.type] = part.value;
+    return map;
+  }, {} as Record<string, string>);
+}
+
+function schoolMidnightUtc(year: number, month: number, day: number): Date {
+  const wallClockAsUtc = Date.UTC(year, month, day, 0, 0, 0, 0);
+  let candidate = wallClockAsUtc;
+  // Resolve the zone offset at the target midnight. Repeating matters when the
+  // first UTC guess and the Paris midnight fall on opposite sides of an offset
+  // change. Paris never changes offset at midnight, so the result is unique.
+  for (let attempt = 0; attempt < 3; attempt += 1) {
+    const instant = new Date(candidate);
+    const parts = schoolWallClockParts(instant);
+    const representedWallClock = Date.UTC(
+      Number(parts.year),
+      Number(parts.month) - 1,
+      Number(parts.day),
+      Number(parts.hour),
+      Number(parts.minute),
+      Number(parts.second)
+    );
+    const next = wallClockAsUtc - (representedWallClock - candidate);
+    if (next === candidate) break;
+    candidate = next;
+  }
+  return new Date(candidate);
+}
+
+export function schoolDayBoundsUtc(now: Date): { dayDate: string; dayStart: Date; dayEnd: Date } {
+  if (!Number.isFinite(now.getTime())) throw new Error("Horloge serveur invalide");
+  const parts = schoolWallClockParts(now);
+  const year = Number(parts.year);
+  const month = Number(parts.month) - 1;
+  const day = Number(parts.day);
+  const dayStart = schoolMidnightUtc(year, month, day);
+  const nextDay = new Date(Date.UTC(year, month, day + 1));
+  const nextDayStart = schoolMidnightUtc(
+    nextDay.getUTCFullYear(),
+    nextDay.getUTCMonth(),
+    nextDay.getUTCDate()
+  );
+  return {
+    dayDate: `${parts.year}-${parts.month}-${parts.day}`,
+    dayStart,
+    dayEnd: new Date(nextDayStart.getTime() - 1),
+  };
+}
+
 export function schoolRuntimeInstructions(now: Date): string {
   const clock = schoolClock(now);
   return `Contexte temporel fourni par le serveur, recalculé pour cette réponse : ${clock.instant}.

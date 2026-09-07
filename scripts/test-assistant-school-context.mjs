@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { analyzeSupportConversation } from '../api/_shared/support-agent.ts';
-import { schoolClock, schoolInformationIntent } from '../shared/assistant-school-context.ts';
+import { schoolClock, schoolDayBoundsUtc, schoolInformationIntent } from '../shared/assistant-school-context.ts';
 
 process.env.OPENAI_API_KEY = '';
 process.env.OPENAI_BUDGET_GUARD_ENABLED = 'false';
@@ -21,6 +21,38 @@ test('Paris winter time and invalid clocks are handled explicitly', () => {
   assert.equal(schoolClock(new Date('2025-12-31T23:30:00Z')).date, 'jeudi 1 janvier 2026');
   assert.equal(schoolClock(new Date('2025-12-31T23:30:00Z')).time, '00:30');
   assert.throws(() => schoolClock(new Date('invalid')), /Horloge serveur invalide/);
+});
+
+test('the school day boundaries follow the Paris calendar day, not the UTC one', () => {
+  // 00:30 in Paris on 8 September 2026 (CEST, UTC+2) is still 7 September in UTC.
+  const earlyParisSummer = schoolDayBoundsUtc(new Date('2026-09-07T22:30:00.000Z'));
+  assert.equal(earlyParisSummer.dayDate, '2026-09-08');
+  assert.equal(earlyParisSummer.dayStart.toISOString(), '2026-09-07T22:00:00.000Z');
+  assert.equal(earlyParisSummer.dayEnd.toISOString(), '2026-09-08T21:59:59.999Z');
+
+  // 00:30 in Paris on 1 January 2026 (CET, UTC+1) is still 31 December in UTC.
+  const earlyParisWinter = schoolDayBoundsUtc(new Date('2025-12-31T23:30:00.000Z'));
+  assert.equal(earlyParisWinter.dayDate, '2026-01-01');
+  assert.equal(earlyParisWinter.dayStart.toISOString(), '2025-12-31T23:00:00.000Z');
+  assert.equal(earlyParisWinter.dayEnd.toISOString(), '2026-01-01T22:59:59.999Z');
+
+  // Mid-afternoon Paris time falls on the same calendar day in UTC too.
+  const afternoon = schoolDayBoundsUtc(new Date('2026-09-08T12:00:00.000Z'));
+  assert.equal(afternoon.dayDate, '2026-09-08');
+  assert.ok(afternoon.dayStart <= new Date('2026-09-08T12:00:00.000Z'));
+  assert.ok(afternoon.dayEnd >= new Date('2026-09-08T12:00:00.000Z'));
+
+  const springChange = schoolDayBoundsUtc(new Date('2026-03-29T12:00:00.000Z'));
+  assert.equal(springChange.dayStart.toISOString(), '2026-03-28T23:00:00.000Z');
+  assert.equal(springChange.dayEnd.toISOString(), '2026-03-29T21:59:59.999Z');
+  assert.equal(springChange.dayEnd.getTime() - springChange.dayStart.getTime() + 1, 23 * 60 * 60 * 1000);
+
+  const autumnChange = schoolDayBoundsUtc(new Date('2026-10-25T12:00:00.000Z'));
+  assert.equal(autumnChange.dayStart.toISOString(), '2026-10-24T22:00:00.000Z');
+  assert.equal(autumnChange.dayEnd.toISOString(), '2026-10-25T22:59:59.999Z');
+  assert.equal(autumnChange.dayEnd.getTime() - autumnChange.dayStart.getTime() + 1, 25 * 60 * 60 * 1000);
+
+  assert.throws(() => schoolDayBoundsUtc(new Date('invalid')), /Horloge serveur invalide/);
 });
 
 test('a visitor and a previous assistant answer cannot redefine the current year', async () => {

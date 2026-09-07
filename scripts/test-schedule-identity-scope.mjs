@@ -236,7 +236,19 @@ test("does not transform references into another person's identifier or schedule
   for (const target of [" STUDENT-001 ", "\uff33TUDENT-001", "STUDENT-001\n", "", null, [], "x".repeat(121)]) {
     const f = fixture(); await assert.rejects(f.read(target), { status: 400 }); assert.equal(f.state.readCalls.length, 0);
   }
-  for (const ref of ["class-001", " CLASS-001 ", "\uff23LASS-001", "X".repeat(81)]) await deniedAfter((d) => { d.rows[0].classRef = ref; });
+  for (const ref of [" CLASS-001 ", "CL\u00c9-001", "\uff23LASS-001", "X".repeat(81)]) {
+    await deniedAfter((d) => { d.rows[0].classRef = ref; });
+  }
+  await deniedAfter((d) => { d.rows[1].objectRef = ""; });
+});
+test("accepts a lowercase schedule reference exactly as stored, without normalizing it", async () => {
+  const f = fixture(); f.state.data.rows[0].classRef = "class-001";
+  assert.deepEqual((await f.resolve()).authorizedClassRefs, ["class-001"]);
+
+  const staff = fixture();
+  staff.state.data.identities[0] = identity({ personType: "staff", officialPersonRef: "jean.dupont" });
+  staff.state.data.rows = [person({ personRef: "jean.dupont", personType: "staff", classRef: null })];
+  assert.deepEqual((await staff.resolve()).authorizedTeacherRefs, ["jean.dupont"]);
 });
 test("pins the source snapshot and observes revocation on the next call", async () => {
   const f = fixture(); f.state.afterQuery = (number) => { if (number === 1) f.state.data.imports[0].status = "superseded"; };
