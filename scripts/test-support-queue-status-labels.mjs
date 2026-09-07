@@ -15,7 +15,7 @@ test("uses agent-facing French labels for every support status", () => {
 
 test("renders status separately from operational warning flags", () => {
   assert.match(page, /<b data-kind="status">\{agentStatusLabels\[request\.status\] \?\? request\.status\}<\/b>/);
-  assert.match(page, /data-kind="unassigned">Sans agent/);
+  assert.match(page, /data-kind="unassigned">À attribuer/);
   assert.match(page, /data-kind="overdue">En retard/);
   assert.match(css, /b\[data-kind="status"\]/);
 });

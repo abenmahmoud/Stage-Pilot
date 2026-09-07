@@ -820,8 +820,8 @@
 .lycee-practical-grid > a > svg:first-child, .lycee-practical-grid > div > svg { width: 20px; color: var(--lc-green); }
 .lycee-practical-grid > a > svg:last-child { width: 13px; color: #92a0b0; }
 .lycee-practical-grid span { min-width: 0; display: flex; flex-direction: column; }
-.lycee-practical-grid strong { overflow-wrap: anywhere; font-size: 11px; }
-.lycee-practical-grid small { margin-top: 3px; color: var(--lc-muted); font-size: 9px; line-height: 1.35; }
+.lycee-practical-grid strong { overflow-wrap: anywhere; font-size: 14px; }
+.lycee-practical-grid small { margin-top: 5px; color: var(--lc-muted); font-size: 12px; line-height: 1.5; }
 .lycee-publication-note { display: flex; align-items: flex-start; gap: 9px; margin-top: 10px; padding: 11px 12px; border-left: 3px solid var(--lc-green); background: #edf8f5; color: #275f55; }
 .lycee-publication-note > svg { width: 18px; flex: 0 0 18px; }
 .lycee-publication-note span { display: flex; flex-direction: column; gap: 2px; }
@@ -1379,7 +1379,18 @@
 .lycee-empty-actions a:first-child, .lycee-empty-actions button:first-child { border-color: var(--lc-blue); background: var(--lc-blue); color: #fff; }
 .lycee-article-page > .lycee-public-footer { width: min(100% - 48px, 1000px); margin: 28px auto; }
 .lycee-formations, .lycee-specialties { scroll-margin-top: 152px; }
+.lycee-parents-meeting { display: grid; grid-template-columns: 38px minmax(0,1fr); align-items: start; gap: 14px; margin: 0 0 18px; padding: 20px 24px; border: 1px solid #d8bb79; border-radius: 8px; background: #fffaf0; color: #25344a; }
+.lycee-parents-meeting > svg { width: 28px; height: 28px; margin-top: 4px; color: #825b16; }
+.lycee-parents-meeting .lycee-eyebrow { color: #795414; }
+.lycee-parents-meeting h2 { margin: 5px 0 8px; font-size: clamp(18px, 2vw, 22px); line-height: 1.3; }
+.lycee-parents-meeting p { margin: 5px 0; font-size: 14px; line-height: 1.55; }
+.lycee-parents-meeting time { font-weight: 750; }
+.lycee-parents-meeting strong { display: block; margin-top: 8px; font-size: 13px; line-height: 1.5; color: #795414; }
+.lycee-school-feature + .lycee-parents-meeting { margin-top: 18px; }
+.lycee-practical > .lycee-primary-action { margin-top: 14px; }
 @media (max-width: 640px) {
+  .lycee-parents-meeting { grid-template-columns: 25px minmax(0,1fr); gap: 10px; padding: 16px; }
+  .lycee-parents-meeting > svg { width: 23px; height: 23px; }
   .lycee-public-footer { margin: 22px 16px 10px; }
   .lycee-public-footer nav { gap: 0 16px; }
   .lycee-empty-actions { align-items: stretch; flex-direction: column; width: 100%; }

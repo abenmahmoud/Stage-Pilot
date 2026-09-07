@@ -163,8 +163,7 @@ export default function MonStage() {
               Module Stage désactivé
             </h2>
             <p className="text-sm text-gray-500 max-w-md mx-auto">
-              Ce module n'est pas ouvert pour ton compte. L'administration peut
-              l'activer individuellement si nécessaire.
+              Ce module n’est pas activé pour votre compte. Adressez-vous à l’administration si vous en avez besoin.
             </p>
           </CardContent>
         </Card>

@@ -487,7 +487,7 @@ export default function CodesAccesPage() {
               <p style={{ fontSize: "8.5pt", color: "#666", lineHeight: 1.35 }}>
                 gestion.lycee-blaise-cendrars-sevran.fr
                 <br />
-                Onglet "Je suis eleve" - saisis ton code.
+                Onglet « Je suis élève » : saisissez votre code.
               </p>
             </div>
           ))}

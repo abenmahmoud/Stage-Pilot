@@ -197,11 +197,10 @@ export default function MaFiche() {
           <CardContent className="py-10 text-center space-y-3">
             <AlertCircle className="w-10 h-10 text-gray-400 mx-auto" />
             <h2 className="text-lg font-bold font-heading text-gray-900">
-              Module Grand Oral desactive
+              Module Grand Oral désactivé
             </h2>
             <p className="text-sm text-gray-500 max-w-md mx-auto">
-              Ce module n'est pas ouvert pour ton compte. L'administration peut
-              l'activer individuellement si necessaire.
+              Ce module n’est pas activé pour votre compte. Adressez-vous à l’administration si vous en avez besoin.
             </p>
           </CardContent>
         </Card>
@@ -414,7 +413,7 @@ export default function MaFiche() {
           <CardHeader>
             <h2 className="text-lg font-bold font-heading">Confirmation</h2>
             <p className="text-sm text-gray-500">
-              Les enseignants sont affectes par l'administration.
+              Les enseignants sont affectés par l’administration.
             </p>
           </CardHeader>
           <CardContent className="space-y-5">
@@ -446,18 +445,17 @@ export default function MaFiche() {
               </div>
               <div className="grid gap-2 text-sm text-gray-600">
                 <p>
-                  <span className="font-medium text-gray-700">Prof spe 1 : </span>
+                  <span className="font-medium text-gray-700">Professeur de spécialité 1 : </span>
                   {fiche.profSpe1 || "En attente d'affectation"}
                 </p>
                 <p>
-                  <span className="font-medium text-gray-700">Prof spe 2 : </span>
+                  <span className="font-medium text-gray-700">Professeur de spécialité 2 : </span>
                   {fiche.profSpe2 || "En attente d'affectation"}
                 </p>
               </div>
               {!fiche.profSpe1Id && (
                 <p className="rounded-xl border border-amber-200 bg-amber-50 p-3 text-xs text-amber-800">
-                  Tu peux enregistrer ton brouillon. La soumission sera possible
-                  quand l'administration aura affecte le professeur de specialite.
+                  Vous pouvez enregistrer votre brouillon. Vous pourrez l’envoyer lorsque l’administration aura affecté votre professeur de spécialité.
                 </p>
               )}
             </div>
@@ -523,11 +521,11 @@ export default function MaFiche() {
 
             <div className="rounded-xl border border-gray-200 p-4 space-y-3 text-sm">
               <p>
-                <span className="font-medium text-gray-700">Prof spe 1 : </span>
+                <span className="font-medium text-gray-700">Professeur de spécialité 1 : </span>
                 {fiche.profSpe1 || "En attente d'affectation"}
               </p>
               <p>
-                <span className="font-medium text-gray-700">Prof spe 2 : </span>
+                <span className="font-medium text-gray-700">Professeur de spécialité 2 : </span>
                 {fiche.profSpe2 || "En attente d'affectation"}
               </p>
             </div>

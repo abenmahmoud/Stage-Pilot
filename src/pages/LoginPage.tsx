@@ -1,6 +1,7 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "../lib/auth-context";
+import { SCHOOL_PUBLIC_INFORMATION } from "../../shared/school-public-information";
 import { ROLE_HOME } from "../lib/types";
 import { safeAuthReturnPath } from "../../shared/auth-return-path";
 import {
@@ -112,7 +113,7 @@ export default function LoginPage() {
       navigate(returnTo ?? "/dashboard", { replace: true });
     } catch {
       setError(
-        "Code d'accès incorrect. Vérifie l'orthographe (ex: AMIAR-2E1-7842) ou contacte ton professeur principal."
+        "Code d’accès incorrect. Vérifiez le code fourni par le lycée ou contactez votre professeur principal."
       );
     } finally {
       setLoading(false);
@@ -129,7 +130,7 @@ export default function LoginPage() {
       navigate(returnTo ?? "/dashboard", { replace: true });
     } catch {
       setError(
-        "Code d'accès professeur incorrect. Vérifie l'orthographe ou contacte l'administration."
+        "Code d’accès professeur incorrect. Vérifiez le code fourni ou contactez l’administration."
       );
     } finally {
       setLoading(false);
@@ -158,19 +159,18 @@ export default function LoginPage() {
         </div>
         <div className="relative z-10 space-y-6">
           <h2 className="text-4xl font-heading font-bold leading-tight">
-            Gestion simplifiée
+            {mode === "staff" ? "L’espace des équipes" : "Votre espace de suivi"}
             <br />
-            des stages et du
-            <br />
-            <span className="text-accent-300">Grand Oral</span>
+            <span className="text-accent-300">du lycée</span>
           </h2>
           <p className="text-white/80 text-lg max-w-md">
-            Collecte des données, circuit de validation et génération
-            automatique des conventions et fiches — tout au même endroit.
+            {mode === "staff"
+              ? "Consultez les demandes, échangez avec les familles et coordonnez leur traitement avec les services du lycée."
+              : "Retrouvez vos démarches de stage et de Grand Oral avec les accès fournis par le lycée."}
           </p>
         </div>
         <div className="relative z-10 text-xs text-white/50">
-          12 avenue Léon Jouhaux, 93270 Sevran — Année scolaire 2025-2026
+          {SCHOOL_PUBLIC_INFORMATION.address}, {SCHOOL_PUBLIC_INFORMATION.locality} · Année scolaire {SCHOOL_PUBLIC_INFORMATION.schoolYear}
         </div>
       </div>
 
@@ -234,7 +234,7 @@ export default function LoginPage() {
               }`}
             >
               <School className="w-4 h-4" />
-              Personnel administratif
+              Équipe du lycée
             </button>
           </div>
 
@@ -245,8 +245,7 @@ export default function LoginPage() {
                   Bienvenue !
                 </h2>
                 <p className="text-sm text-gray-500 mt-1">
-                  Saisis ton code d'accès personnel donné par ton professeur
-                  principal.
+                  Saisissez le code d’accès personnel fourni par votre professeur principal.
                 </p>
               </div>
 
@@ -288,7 +287,7 @@ export default function LoginPage() {
               </button>
 
               <p className="text-center text-xs text-gray-400">
-                Code perdu ? Contacte ton professeur principal.
+                Code perdu ? Contactez votre professeur principal.
               </p>
             </form>
           )}
@@ -300,7 +299,7 @@ export default function LoginPage() {
                   Espace professeur
                 </h2>
                 <p className="text-sm text-gray-500 mt-1">
-                  Saisis ton code d'accès professeur remis par l'administration.
+                  Saisissez le code d’accès professeur remis par l’administration.
                 </p>
               </div>
 
