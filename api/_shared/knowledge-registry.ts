@@ -16,7 +16,10 @@ export async function requireKnowledgeManager(
   options: { publish?: boolean } = {}
 ): Promise<KnowledgeManagerContext> {
   const context = await requireSupportAgent(req);
-  if (!context.access.canViewAll) {
+  if (
+    !context.access.canViewAll
+    || !["superadmin", "proviseur"].includes(context.user.role)
+  ) {
     throw new HttpError(403, "La gestion des connaissances est réservée à la direction.");
   }
   if (options.publish) await requireAal2(req);

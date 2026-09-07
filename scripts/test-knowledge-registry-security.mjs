@@ -66,6 +66,7 @@ test("requires persisted direction access and live AAL2 for publication", async 
   ]);
   assert.match(helper, /requireSupportAgent\(req\)/);
   assert.match(helper, /access\.canViewAll/);
+  assert.match(helper, /\["superadmin", "proviseur"\]\.includes\(context\.user\.role\)/);
   assert.match(helper, /if \(options\.publish\) await requireAal2\(req\)/);
   assert.match(action, /validateSkillForPublication/);
   assert.match(action, /selectActiveSkillVersion/);

@@ -63,6 +63,40 @@ test("uses active persisted services instead of metadata", () => {
   assert.equal(canAccessSupportService(access, "vie_scolaire"), false);
 });
 
+test("gives a nominated service manager the complete request perimeter only when every service is persisted", () => {
+  const access = resolvePersistedSupportAgentAccess("agent", {
+    role: "service_manager",
+    serviceCodes: [
+      "referent_numerique",
+      "ddfpt",
+      "secretariat",
+      "vie_scolaire",
+      "intendance",
+      "direction",
+      "administration",
+    ],
+    status: "active",
+    institutionStatus: "pilot",
+  });
+  assert.ok(access);
+  assert.equal(access.label, "Gestionnaire de toutes les demandes");
+  assert.equal(access.canViewAll, true);
+  assert.equal(access.canRoute, true);
+  assert.equal(access.canManageTemplates, true);
+  assert.equal(canAccessSupportService(access, null), true);
+  assert.equal(canTransferSupportRequest(access, "ddfpt", "vie_scolaire"), true);
+
+  const incomplete = resolvePersistedSupportAgentAccess("agent", {
+    role: "service_manager",
+    serviceCodes: ["ddfpt", "vie_scolaire"],
+    status: "active",
+    institutionStatus: "pilot",
+  });
+  assert.ok(incomplete);
+  assert.equal(incomplete.canViewAll, false);
+  assert.equal(incomplete.canRoute, false);
+});
+
 test("denies disabled memberships and suspended institutions", () => {
   assert.equal(
     resolvePersistedSupportAgentAccess("agent", {

@@ -180,6 +180,8 @@
     "test:charter-scenarios": "node --import ./scripts/ts-test-resolver.mjs --experimental-strip-types scripts/test-charter-scenarios.mjs",
     "test:institution-membership-security": "node --experimental-strip-types scripts/test-institution-membership-security.mjs",
     "verify:preview-agent-memberships": "node scripts/test-preview-agent-memberships.mjs",
+    "recipe:provision-preview-support-manager": "node scripts/provision-preview-support-manager.mjs --preview-only",
+    "test:preview-support-manager-provisioning-safety": "node scripts/test-preview-support-manager-provisioning-safety.mjs",
     "test:support-notification-routing": "node --experimental-strip-types scripts/test-support-notification-routing.mjs",
     "test:support-operations": "node --import ./scripts/ts-test-resolver.mjs --experimental-strip-types scripts/test-support-operations.mjs",
     "test:support-incident-guidance": "node --import ./scripts/ts-test-resolver.mjs --experimental-strip-types scripts/test-support-incident-guidance.mjs",

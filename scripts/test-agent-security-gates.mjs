@@ -192,6 +192,24 @@ test("every privileged role needs AAL2, and global roles still need an admin mem
   }
 });
 
+test("a nominated support manager gets every request without becoming a direction account", async () => {
+  const f = fixture();
+  f.state.membership.role = "service_manager";
+  f.state.membership.serviceCodes = [
+    "referent_numerique",
+    "ddfpt",
+    "secretariat",
+    "vie_scolaire",
+    "intendance",
+    "direction",
+    "administration",
+  ];
+  const context = await f.run();
+  assert.equal(context.user.role, "agent");
+  assert.equal(context.access.canViewAll, true);
+  assert.equal(context.access.canRoute, true);
+});
+
 test("membership and MFA changes are rechecked on the next request without cached grants", async () => {
   const f = fixture();
   await f.run();

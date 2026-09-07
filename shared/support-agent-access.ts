@@ -62,6 +62,16 @@ function scopedLabel(services: SupportService[]): string {
   return "Agent multi-services";
 }
 
+function managesEverySupportService(
+  authRole: string,
+  membershipRole: string,
+  services: SupportService[]
+): boolean {
+  return authRole === "agent"
+    && membershipRole === "service_manager"
+    && SUPPORT_SERVICES.every((service) => services.includes(service));
+}
+
 export function resolveSupportAgentAccess(
   role: string,
   appMetadata: Record<string, unknown> = {}
@@ -134,6 +144,17 @@ export function resolvePersistedSupportAgentAccess(
   if (authRole !== "agent" && authRole !== "administration") return null;
   const serviceCodes = persistedServices(membership.serviceCodes);
   if (serviceCodes.length === 0) return null;
+
+  if (managesEverySupportService(authRole, membership.role, serviceCodes)) {
+    return {
+      role: authRole,
+      label: "Gestionnaire de toutes les demandes",
+      serviceCodes: [...SUPPORT_SERVICES],
+      canViewAll: true,
+      canRoute: true,
+      canManageTemplates: true,
+    };
+  }
 
   return {
     role: authRole,

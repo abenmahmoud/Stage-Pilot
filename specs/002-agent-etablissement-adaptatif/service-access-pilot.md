@@ -9,6 +9,7 @@
 |---|---|---|---|
 | Superadministrateur | `superadmin` | Tous, y compris les demandes à classer | Oui |
 | Direction | `proviseur` | Tous | Oui |
+| Gestionnaire des demandes (DDFPT, pilote) | `agent` + adhésion `service_manager` + tous les `service_codes` | Tous, y compris les demandes à classer | Oui |
 | Agent DDFPT | `agent` + `service_codes: [ddfpt]` | DDFPT uniquement | Non |
 | Agent administration | `agent` + `service_codes: [secretariat, administration, intendance]` | Secrétariat, administration et intendance | Non |
 | Agent vie scolaire | `agent` + `service_codes: [vie_scolaire]` | Vie scolaire uniquement | Non |
@@ -33,6 +34,13 @@ numériques, DDFPT, vie scolaire ou direction.
   l'identité dans une source officielle.
 - Tous les agents utilisent un compte individuel et une double vérification.
   Aucun code partagé n'est accepté pour ce nouvel espace.
+- Le gestionnaire DDFPT temporairement étendu à tous les services reste un compte
+  `agent`. Il n'obtient pas les écrans de direction, le répertoire des identités,
+  les codes d'accès, les paramètres de l'établissement ou le registre de
+  connaissances. Son périmètre élargi concerne le traitement des demandes.
+- La vue globale n'est accordée que si l'adhésion persistée est
+  `service_manager` et contient la liste complète des services. Le retrait d'un
+  seul service rétablit automatiquement une vue limitée.
 
 ## Routage DDFPT
 
