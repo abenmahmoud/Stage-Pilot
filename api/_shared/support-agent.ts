@@ -486,7 +486,7 @@ export async function analyzeSupportConversation(input: {
     };
   }
   if (input.scheduleDayReader && requestsOwnCoursesToday(input.messages)) {
-    const requestedAt = new Date();
+    const requestedAt = now;
     const { dayStart, dayEnd } = schoolDayBoundsUtc(requestedAt);
     let dayResult: ScheduleDayReadResult;
     try {
@@ -515,7 +515,7 @@ export async function analyzeSupportConversation(input: {
   if (input.scheduleReader && requestsOwnNextCourse(input.messages)) {
     let scheduleResult: ScheduleReadResult;
     try {
-      scheduleResult = await input.scheduleReader({ requestedAt: new Date() });
+      scheduleResult = await input.scheduleReader({ requestedAt: now });
     } catch {
       scheduleResult = { ok: false, reason: "source_unavailable" };
     }

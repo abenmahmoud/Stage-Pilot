@@ -25,6 +25,7 @@ import {
   type KnowledgeRecallSourceEntry,
 } from "../../shared/knowledge-use-policy.js";
 import type { KnowledgeActor } from "../../shared/skill-registry-policy.js";
+import { loadPublicFlashAgentContext } from "./public-flash-context.js";
 
 const DEFAULT_INSTITUTION_SLUG = "blaise-cendrars-sevran";
 const MAX_DATABASE_CANDIDATES = 30;
@@ -93,29 +94,45 @@ export async function loadPublicKnowledgeContext(input: {
         serviceCodes: [],
       };
 
-  const rows = await db
-    .select({
-      institutionId: agentSkills.institutionId,
-      skillKey: agentSkills.skillKey,
-      name: agentSkills.name,
-      domain: agentSkills.domain,
-      enabled: agentSkills.enabled,
-      activeVersionId: agentSkills.activeVersionId,
-      versionId: agentSkillVersions.id,
-      version: agentSkillVersions.version,
-      versionStatus: agentSkillVersions.status,
-      dataClassification: agentSkillVersions.dataClassification,
-      publishedAt: agentSkillVersions.publishedAt,
-      reviewDueAt: agentSkillVersions.reviewDueAt,
-      definition: agentSkillVersions.definition,
-    })
-    .from(agentSkills)
-    .innerJoin(agentSkillVersions, eq(agentSkills.activeVersionId, agentSkillVersions.id))
-    .where(and(eq(agentSkills.institutionId, institution.id), eq(agentSkills.enabled, true)))
-    .orderBy(asc(agentSkills.skillKey))
-    .limit(MAX_DATABASE_CANDIDATES);
+  const [rows, flashContext] = await Promise.all([
+    db
+      .select({
+        institutionId: agentSkills.institutionId,
+        skillKey: agentSkills.skillKey,
+        name: agentSkills.name,
+        domain: agentSkills.domain,
+        enabled: agentSkills.enabled,
+        activeVersionId: agentSkills.activeVersionId,
+        versionId: agentSkillVersions.id,
+        version: agentSkillVersions.version,
+        versionStatus: agentSkillVersions.status,
+        dataClassification: agentSkillVersions.dataClassification,
+        publishedAt: agentSkillVersions.publishedAt,
+        reviewDueAt: agentSkillVersions.reviewDueAt,
+        definition: agentSkillVersions.definition,
+      })
+      .from(agentSkills)
+      .innerJoin(agentSkillVersions, eq(agentSkills.activeVersionId, agentSkillVersions.id))
+      .where(and(eq(agentSkills.institutionId, institution.id), eq(agentSkills.enabled, true)))
+      .orderBy(asc(agentSkills.skillKey))
+      .limit(MAX_DATABASE_CANDIDATES),
+    loadPublicFlashAgentContext({
+      institutionId: institution.id,
+      query: input.query,
+      now,
+    }).catch(() => ({ instructions: "", sources: [] })),
+  ]);
   const versionIds = rows.map((row) => row.versionId);
-  if (versionIds.length === 0) return EMPTY_CONTEXT;
+  if (versionIds.length === 0) {
+    return {
+      ...EMPTY_CONTEXT,
+      instructions: flashContext.instructions,
+      sources: flashContext.sources.map((source) => ({
+        ...source,
+        institutionId: institution.id,
+      })),
+    };
+  }
 
   const sourceRows = await db
     .select({
@@ -260,7 +277,7 @@ export async function loadPublicKnowledgeContext(input: {
     }))
   );
 
-  const instructions = [skillContext, excerptContext, evidenceContext]
+  const instructions = [skillContext, excerptContext, evidenceContext, flashContext.instructions]
     .filter((part) => part.length > 0)
     .join("\n\n");
 
@@ -296,17 +313,23 @@ export async function loadPublicKnowledgeContext(input: {
       versionId: skill.versionId,
       allowedTools: skill.allowedTools,
     })),
-    sources: [...citedSourceIds].flatMap((sourceId) => {
-      const source = sourceRows.find((candidate) => candidate.id === sourceId);
-      return source
-        ? [{
-            institutionId: institution.id,
-            sourceId,
-            title: source.title,
-            updatedAt: source.updatedAt.toISOString(),
-          }]
-        : [];
-    }),
+    sources: [
+      ...[...citedSourceIds].flatMap((sourceId) => {
+        const source = sourceRows.find((candidate) => candidate.id === sourceId);
+        return source
+          ? [{
+              institutionId: institution.id,
+              sourceId,
+              title: source.title,
+              updatedAt: source.updatedAt.toISOString(),
+            }]
+          : [];
+      }),
+      ...flashContext.sources.map((source) => ({
+        ...source,
+        institutionId: institution.id,
+      })),
+    ],
     recalledSources,
   };
 }

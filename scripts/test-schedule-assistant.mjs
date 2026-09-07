@@ -15,14 +15,16 @@ function messages(content) {
 test("answers an own next-course request only from the private reader", async () => {
   let calls = 0;
   const metrics = [];
+  const requestNow = new Date("2026-08-31T07:45:00.000Z");
   const result = await analyzeSupportConversation({
     messages: messages("Dans quelle salle est mon prochain cours ?"),
     attachments: [],
     safetyIdentifier: "schedule-assistant-success",
+    now: requestNow,
     runtimeMetricsRecorder: async (metric) => metrics.push(metric),
     scheduleReader: async ({ requestedAt }) => {
       calls += 1;
-      assert.ok(requestedAt instanceof Date);
+      assert.equal(requestedAt, requestNow);
       return {
         ok: true,
         course: {
@@ -155,14 +157,16 @@ test("tells a professor plainly that their own schedule is missing from the acti
 test("answers an own today-courses request with every authorized course from the private reader", async () => {
   let calls = 0;
   const metrics = [];
+  const requestNow = new Date("2026-08-31T07:45:00.000Z");
   const result = await analyzeSupportConversation({
     messages: messages("Quels sont mes cours aujourd'hui ?"),
     attachments: [],
     safetyIdentifier: "schedule-assistant-day-success",
+    now: requestNow,
     runtimeMetricsRecorder: async (metric) => metrics.push(metric),
     scheduleDayReader: async ({ requestedAt, dayStart, dayEnd }) => {
       calls += 1;
-      assert.ok(requestedAt instanceof Date);
+      assert.equal(requestedAt, requestNow);
       assert.ok(dayStart instanceof Date);
       assert.ok(dayEnd instanceof Date);
       assert.ok(dayStart < dayEnd);
