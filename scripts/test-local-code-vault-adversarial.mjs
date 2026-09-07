@@ -302,7 +302,18 @@ try {
     // définition (LOT 3, `api/_shared/code-vault-assignment.ts`) n'existe
     // dans `api/` ou `workers/` — donc aucune route ne peut aujourd'hui
     // déclencher un remplacement, encore moins automatiquement.
+    //
+    // LOT 2 (`docs/operations/PLAN_ENT_ACTIF_ET_DETTE_2026-09-06.md`) :
+    // un simple `content.includes(nom)` confondait un commentaire humain qui
+    // *mentionne* la fonction (par ex. `api/_shared/code-vault-ent-inactif-
+    // route.ts`, « aucun remplacement pour ce lot (`traceManualVaultCode
+    // Replacement` reste hors périmètre) ») avec un appel réel. La forme
+    // d'un appel ou d'une déclaration est toujours l'identifiant suivi d'une
+    // parenthèse ouvrante ; une mention en prose entre guillemets inverses
+    // ne l'est jamais. D'où l'exigence de cette forme précise, pas d'une
+    // simple sous-chaîne.
     const definitionFile = path.join(repoRoot, "api", "_shared", "code-vault-assignment.ts");
+    const realCallPattern = /traceManualVaultCodeReplacement\s*\(/;
     const applicationCallers = [];
     for (const dir of ["api", "workers"]) {
       const dirPath = path.join(repoRoot, dir);
@@ -314,7 +325,7 @@ try {
             walk(full);
           } else if (/\.(ts|tsx|mjs|js)$/.test(entry) && full !== definitionFile) {
             const content = readFileSync(full, "utf8");
-            if (content.includes("traceManualVaultCodeReplacement")) applicationCallers.push(full);
+            if (realCallPattern.test(content)) applicationCallers.push(full);
           }
         }
       };
