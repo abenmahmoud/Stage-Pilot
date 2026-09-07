@@ -33,6 +33,8 @@ import {
   parseScheduleImportInput,
   type ScheduleSourceKind,
 } from "../../../shared/schedule-import-input";
+import type { ScheduleSlotWritePayload } from "../../../shared/schedule-slot-write-payload";
+import ScheduleSlotEditor from "./ScheduleSlotEditor";
 
 const STATUS: Record<ScheduleStatus, { label: string; style: string }> = {
   reserved: { label: "Transfert à terminer", style: "bg-slate-100 text-slate-700" },
@@ -117,6 +119,8 @@ export default function ScheduleImportPage() {
   const [pageLoading, setPageLoading] = useState(false);
   const [pageBusy, setPageBusy] = useState<number | null>(null);
   const [pageOpening, setPageOpening] = useState<number | null>(null);
+  const [slotEditorPage, setSlotEditorPage] = useState<number | null>(null);
+  const [slotWriteReports, setSlotWriteReports] = useState<Record<number, ScheduleSlotWritePayload[]>>({});
 
   async function load() {
     setLoading(true);
@@ -156,6 +160,8 @@ export default function ScheduleImportPage() {
   }, []);
 
   useEffect(() => {
+    setSlotEditorPage(null);
+    setSlotWriteReports({});
     if (!selectedImportId) {
       setPageSource(null);
       setPages([]);
@@ -447,6 +453,8 @@ export default function ScheduleImportPage() {
   const reviewImports = imports.filter((item) => item.status === "review" && item.pageCount);
   const pageByNumber = new Map(pages.map((page) => [page.pageNumber, page]));
   const verifiedCount = pages.filter((page) => page.reviewStatus === "verified").length;
+  const slotWriteTotalPages = Object.keys(slotWriteReports).length;
+  const slotWriteTotalSlots = Object.values(slotWriteReports).reduce((sum, slots) => sum + slots.length, 0);
   const totalPages = pageSource?.pageCount ?? 0;
   const actionCandidates = imports.filter((item) =>
     ["review", "approved", "superseded"].includes(item.status)
@@ -754,6 +762,12 @@ export default function ScheduleImportPage() {
           <div>
             <h2 className="text-lg font-bold text-slate-950">Index des pages</h2>
             <p className="text-sm text-slate-500">{verifiedCount} page{verifiedCount > 1 ? "s" : ""} vérifiée{verifiedCount > 1 ? "s" : ""} sur {totalPages}</p>
+            {slotWriteTotalSlots > 0 ? (
+              <p className="text-sm font-medium text-emerald-700">
+                {slotWriteTotalSlots} créneau{slotWriteTotalSlots > 1 ? "x" : ""} écrit{slotWriteTotalSlots > 1 ? "s" : ""} cette session,
+                pour {slotWriteTotalPages} page{slotWriteTotalPages > 1 ? "s" : ""}.
+              </p>
+            ) : null}
           </div>
           {selectedImportId ? (
             <button
@@ -799,67 +813,91 @@ export default function ScheduleImportPage() {
               const canSave = Boolean(
                 draftRef.trim() && normalizeDraftRef(draftRef) !== mapping?.subjectRef
               );
+              const writtenSlots = slotWriteReports[pageNumber];
               return (
-                <div
-                  key={pageNumber}
-                  className="grid min-w-0 gap-3 border-b border-slate-100 px-4 py-3 last:border-b-0 sm:grid-cols-[52px_minmax(0,1fr)_auto] sm:items-center"
-                >
-                  <strong className="text-sm text-slate-600">P. {pageNumber}</strong>
-                  <label className="min-w-0 text-xs font-medium text-slate-600">
-                    <span className="sr-only">Référence opaque de la page {pageNumber}</span>
-                    <input
-                      className="field bg-white font-mono uppercase"
-                      value={draftRef}
-                      maxLength={80}
-                      placeholder={pageSource.sourceKind === "classes" ? "CLASSE-2NDE-01" : "PERSONNEL-0042"}
-                      disabled={rowBusy}
-                      onChange={(event) => setPageDrafts((current) => ({
-                        ...current,
-                        [pageNumber]: event.target.value,
-                      }))}
-                    />
-                  </label>
-                  <div className="flex min-w-0 flex-wrap items-center gap-2 sm:justify-end">
-                    {mapping?.reviewStatus === "verified" ? (
-                      <span className="inline-flex items-center gap-1 text-xs font-semibold text-emerald-700">
-                        <BadgeCheck className="h-4 w-4" /> Vérifiée
-                      </span>
-                    ) : null}
-                    {mapping?.reviewStatus === "verified" ? (
+                <div key={pageNumber} className="border-b border-slate-100 px-4 py-3 last:border-b-0">
+                  <div className="grid min-w-0 gap-3 sm:grid-cols-[52px_minmax(0,1fr)_auto] sm:items-center">
+                    <strong className="text-sm text-slate-600">P. {pageNumber}</strong>
+                    <label className="min-w-0 text-xs font-medium text-slate-600">
+                      <span className="sr-only">Référence opaque de la page {pageNumber}</span>
+                      <input
+                        className="field bg-white font-mono uppercase"
+                        value={draftRef}
+                        maxLength={80}
+                        placeholder={pageSource.sourceKind === "classes" ? "CLASSE-2NDE-01" : "PERSONNEL-0042"}
+                        disabled={rowBusy}
+                        onChange={(event) => setPageDrafts((current) => ({
+                          ...current,
+                          [pageNumber]: event.target.value,
+                        }))}
+                      />
+                    </label>
+                    <div className="flex min-w-0 flex-wrap items-center gap-2 sm:justify-end">
+                      {mapping?.reviewStatus === "verified" ? (
+                        <span className="inline-flex items-center gap-1 text-xs font-semibold text-emerald-700">
+                          <BadgeCheck className="h-4 w-4" /> Vérifiée
+                        </span>
+                      ) : null}
+                      {writtenSlots ? (
+                        <span className="inline-flex items-center gap-1 text-xs font-semibold text-emerald-700">
+                          <BadgeCheck className="h-4 w-4" /> {writtenSlots.length} créneau{writtenSlots.length > 1 ? "x" : ""} écrit{writtenSlots.length > 1 ? "s" : ""}
+                        </span>
+                      ) : null}
+                      {mapping?.reviewStatus === "verified" ? (
+                        <button
+                          type="button"
+                          onClick={() => void openPrivatePage(mapping)}
+                          disabled={pageOpening === pageNumber}
+                          title={`Ouvrir uniquement la page ${pageNumber}`}
+                          className="inline-flex min-h-9 items-center gap-1.5 rounded-md border border-slate-300 px-2.5 text-xs font-semibold text-slate-700 disabled:opacity-40"
+                        >
+                          {pageOpening === pageNumber
+                            ? <LoaderCircle className="h-3.5 w-3.5 animate-spin" />
+                            : <ExternalLink className="h-3.5 w-3.5" />}
+                          Ouvrir la page
+                        </button>
+                      ) : null}
                       <button
                         type="button"
-                        onClick={() => void openPrivatePage(mapping)}
-                        disabled={pageOpening === pageNumber}
-                        title={`Ouvrir uniquement la page ${pageNumber}`}
+                        onClick={() => void saveMapping(pageNumber)}
+                        disabled={rowBusy || !canSave}
                         className="inline-flex min-h-9 items-center gap-1.5 rounded-md border border-slate-300 px-2.5 text-xs font-semibold text-slate-700 disabled:opacity-40"
                       >
-                        {pageOpening === pageNumber
-                          ? <LoaderCircle className="h-3.5 w-3.5 animate-spin" />
-                          : <ExternalLink className="h-3.5 w-3.5" />}
-                        Ouvrir la page
+                        {rowBusy ? <LoaderCircle className="h-3.5 w-3.5 animate-spin" /> : <Save className="h-3.5 w-3.5" />}
+                        {mapping ? "Modifier" : "Enregistrer"}
                       </button>
-                    ) : null}
-                    <button
-                      type="button"
-                      onClick={() => void saveMapping(pageNumber)}
-                      disabled={rowBusy || !canSave}
-                      className="inline-flex min-h-9 items-center gap-1.5 rounded-md border border-slate-300 px-2.5 text-xs font-semibold text-slate-700 disabled:opacity-40"
-                    >
-                      {rowBusy ? <LoaderCircle className="h-3.5 w-3.5 animate-spin" /> : <Save className="h-3.5 w-3.5" />}
-                      {mapping ? "Modifier" : "Enregistrer"}
-                    </button>
-                    {mapping && mapping.reviewStatus !== "verified" ? (
-                      <button
-                        type="button"
-                        onClick={() => void verifyMapping(mapping)}
-                        disabled={rowBusy}
-                        className="inline-flex min-h-9 items-center gap-1.5 rounded-md bg-emerald-700 px-2.5 text-xs font-semibold text-white disabled:opacity-40"
-                      >
-                        <BadgeCheck className="h-3.5 w-3.5" />
-                        Vérifier
-                      </button>
-                    ) : null}
+                      {mapping && mapping.reviewStatus !== "verified" ? (
+                        <button
+                          type="button"
+                          onClick={() => void verifyMapping(mapping)}
+                          disabled={rowBusy}
+                          className="inline-flex min-h-9 items-center gap-1.5 rounded-md bg-emerald-700 px-2.5 text-xs font-semibold text-white disabled:opacity-40"
+                        >
+                          <BadgeCheck className="h-3.5 w-3.5" />
+                          Vérifier
+                        </button>
+                      ) : null}
+                      {mapping && mapping.reviewStatus === "verified" ? (
+                        <button
+                          type="button"
+                          onClick={() => setSlotEditorPage((current) => (current === pageNumber ? null : pageNumber))}
+                          className="inline-flex min-h-9 items-center gap-1.5 rounded-md border border-slate-300 px-2.5 text-xs font-semibold text-slate-700"
+                        >
+                          <CalendarDays className="h-3.5 w-3.5" />
+                          {slotEditorPage === pageNumber ? "Fermer" : "Écrire les créneaux"}
+                        </button>
+                      ) : null}
+                    </div>
                   </div>
+                  {mapping && mapping.reviewStatus === "verified" && slotEditorPage === pageNumber ? (
+                    <ScheduleSlotEditor
+                      importId={selectedImportId}
+                      page={mapping}
+                      onWritten={(writtenPageNumber, slots) =>
+                        setSlotWriteReports((current) => ({ ...current, [writtenPageNumber]: slots }))
+                      }
+                    />
+                  ) : null}
                 </div>
               );
             })}
