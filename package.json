@@ -374,6 +374,7 @@
     "recipe:local-code-vault-lecture-adversarial": "node --import ./scripts/ts-test-resolver.mjs --experimental-strip-types scripts/test-local-code-vault-lecture-adversarial.mjs --local-stack-only",
     "test:code-vault-ent-actif-route": "node --import ./scripts/ts-test-resolver.mjs --experimental-strip-types scripts/test-code-vault-ent-actif-route.mjs",
     "recipe:local-code-vault-ent-actif-route": "node --import ./scripts/ts-test-resolver.mjs --experimental-strip-types scripts/test-local-code-vault-ent-actif-route.mjs --local-stack-only",
+    "recipe:local-code-vault-http-routes": "node --import ./scripts/ts-test-resolver.mjs --experimental-strip-types scripts/test-local-code-vault-http-routes.mjs --local-stack-only",
     "test:flash-access": "node --import ./scripts/ts-test-resolver.mjs --experimental-transform-types scripts/test-flash-access.mjs",
     "test:flash-payload-policy": "node --import ./scripts/ts-test-resolver.mjs --experimental-strip-types scripts/test-flash-payload-policy.mjs",
     "test:flash-proposal-input": "node --import ./scripts/ts-test-resolver.mjs --experimental-strip-types scripts/test-flash-proposal-input.mjs",
