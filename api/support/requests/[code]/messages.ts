@@ -14,6 +14,7 @@ import {
   sha256,
 } from "../../../_shared/support.js";
 import { SUPPORT_RATE_LIMIT_POLICIES } from "../../../../shared/support-rate-limit-policy.js";
+import { supportAgentMessageNotificationWindow } from "../../../../shared/support-email-job-policy.js";
 import { createSupportRequesterMessageConfirmation } from "../../../../shared/support-requester-message-confirmation.js";
 import { verifySupportRequesterMessageMutationPayload } from "../../../../shared/support-public-mutation-payload-policy.js";
 import {
@@ -135,6 +136,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             'institution_id', ${access.institutionId}::uuid,
             'request_id', ${access.requestId}::uuid,
             'message_id', ${created.id}::uuid,
+            'notification_window', ${supportAgentMessageNotificationWindow(created.createdAt)}::text,
             'idempotency_key', ${`message-received:${created.id}`}::text,
             'attempt', 0
           )

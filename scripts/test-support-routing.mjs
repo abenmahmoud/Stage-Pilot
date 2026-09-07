@@ -173,6 +173,25 @@ test("routes catering and grants to stewardship", () => {
   assert.equal(route.priority, "p3");
 });
 
+test("prioritizes an explicit cantine domain over the generic verb s'inscrire", () => {
+  for (const source of [publicPortal, supportAgent]) {
+    const functionStart = source.indexOf("function infer");
+    const cantineRule = source.indexOf("cantine|badge|restauration", functionStart);
+    const registrationRule = source.indexOf("inscription|réinscription|reinscription|inscrire", functionStart);
+    assert.notEqual(functionStart, -1);
+    assert.notEqual(cantineRule, -1);
+    assert.notEqual(registrationRule, -1);
+    assert.ok(cantineRule < registrationRule);
+  }
+
+  const route = routeSupportRequest({
+    category: "restauration_bourse",
+    description: "Cantine : comment s'inscrire ?",
+  });
+  assert.equal(route.service, "intendance");
+  assert.equal(route.reason, "intendance_ou_aide_financiere");
+});
+
 test("keeps an unowned boarding request in human administrative triage", () => {
   const route = routeSupportRequest({
     category: "restauration_bourse",

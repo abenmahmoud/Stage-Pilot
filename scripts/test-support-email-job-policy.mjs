@@ -3,8 +3,10 @@ import { readFile } from "node:fs/promises";
 import test from "node:test";
 import {
   parseSupportEmailQueueJob,
+  supportAgentMessageNotificationWindow,
   supportEmailFailureDisposition,
 } from "../shared/support-email-job-policy.ts";
+import { supportEmailEventKey } from "../shared/support-email-dispatch.mjs";
 
 const institutionId = "00000000-0000-4000-8000-000000000101";
 const base = {
@@ -80,6 +82,64 @@ test("retries four times and isolates the fifth failure", () => {
   for (const invalid of [0, -1, 1.5, Number.NaN, 10_001]) {
     assert.throws(() => supportEmailFailureDisposition(invalid), /invalid_queue_attempt/);
   }
+});
+
+test("groups agent message notifications into one five-minute window", () => {
+  const firstWindow = supportAgentMessageNotificationWindow(Date.parse("2026-09-07T09:51:28.000Z"));
+  const sameWindow = supportAgentMessageNotificationWindow(Date.parse("2026-09-07T09:53:21.000Z"));
+  const nextWindow = supportAgentMessageNotificationWindow(Date.parse("2026-09-07T09:55:00.000Z"));
+  assert.equal(firstWindow, sameWindow);
+  assert.notEqual(firstWindow, nextWindow);
+
+  const messageJob = {
+    ...base,
+    job_type: "notify_agent_message_received",
+    contact_id: undefined,
+    access_token: undefined,
+    notification_window: firstWindow,
+  };
+  const parsed = parseSupportEmailQueueJob(messageJob, institutionId);
+  assert.equal(parsed.notification_window, firstWindow);
+  assert.equal(
+    supportEmailEventKey(parsed),
+    supportEmailEventKey({
+      ...parsed,
+      job_id: "00000000-0000-4000-8000-000000000202",
+      message_id: "00000000-0000-4000-8000-000000000402",
+    })
+  );
+  assert.notEqual(
+    supportEmailEventKey(parsed),
+    supportEmailEventKey({ ...parsed, notification_window: nextWindow })
+  );
+
+  const legacyJob = { ...parsed };
+  delete legacyJob.notification_window;
+  assert.notEqual(
+    supportEmailEventKey(legacyJob),
+    supportEmailEventKey({
+      ...legacyJob,
+      job_id: "00000000-0000-4000-8000-000000000202",
+      message_id: "00000000-0000-4000-8000-000000000402",
+    })
+  );
+});
+
+test("rejects notification windows on unrelated jobs or malformed windows", () => {
+  assert.throws(
+    () => parseSupportEmailQueueJob({ ...base, notification_window: "123" }, institutionId),
+    /invalid_queue_payload/
+  );
+  assert.throws(
+    () => parseSupportEmailQueueJob({
+      ...base,
+      job_type: "notify_agent_message_received",
+      contact_id: undefined,
+      access_token: undefined,
+      notification_window: "2026-09-07T09:50",
+    }, institutionId),
+    /invalid_queue_payload/
+  );
 });
 test("only a bound recovery job can omit a message, and carries no untrusted prose", () => {
   const input = { ...base, job_type: "send_requester_access_link", message_id: undefined, body: "discarded" };

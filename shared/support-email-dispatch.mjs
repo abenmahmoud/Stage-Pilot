@@ -15,6 +15,8 @@ export async function assertSupportEmailAccess(database, job) {
 
 export function supportEmailEventKey(job) {
   const event = job.job_type === "send_requester_access_link" ? job.job_id
+    : job.job_type === "notify_agent_message_received" && job.notification_window
+      ? `window:${job.notification_window}`
     : job.job_type.endsWith("request_created") ? job.request_id : job.message_id;
   if (!event) throw new Error("email_event_missing");
   return createHash("sha256").update(JSON.stringify([

@@ -207,6 +207,9 @@ Règles:
 - readyToCreate signifie seulement que le problème est assez clair pour ouvrir un dossier; les coordonnées seront demandées localement ensuite.`;
 
 function inferCategory(text: string): SupportAgentResult["category"] {
+  // Un verbe générique comme « s'inscrire » ne doit pas écraser le domaine
+  // explicite. « Comment s'inscrire à la cantine ? » relève de l'intendance.
+  if (/\b(cantine|badge|restauration|bourse|internat|hébergement scolaire|hebergement scolaire|intendance|paiement)\b/i.test(text)) return "restauration_bourse";
   if (/\b(inscription|réinscription|reinscription|inscrire)\b/i.test(text)) return "inscription";
   if (/\b(ent|educonnect|pronote|connexion|connecter|identifiant|code)\b/i.test(text)) return "ent";
   if (/\b(email|mail|webmail|zimbra|académique|academique)\b/i.test(text)) return "email_academique";
@@ -214,7 +217,6 @@ function inferCategory(text: string): SupportAgentResult["category"] {
   if (/\b(document|certificat|attestation|pièce|piece|dossier|justificatif|manque)\b/i.test(text)) return "documents_scolarite";
   if (/\b(pc|ordinateur|portable|tablette|chargeur)\b/i.test(text)) return "ordinateur";
   if (/\b(logiciel|application|wifi|réseau|reseau)\b/i.test(text)) return "logiciel";
-  if (/\b(cantine|badge|restauration|bourse|internat|hébergement scolaire|hebergement scolaire|intendance|paiement)\b/i.test(text)) return "restauration_bourse";
   if (/\b(orientation|formation|spécialité|specialite|parcoursup)\b/i.test(text)) return "orientation_formation";
   if (/\b(absence|retard|vie scolaire|cpe|surveillant)\b/i.test(text)) return "vie_scolaire";
   return "autre";

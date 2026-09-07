@@ -243,6 +243,11 @@ L'IA peut suggérer la priorité. Seul un agent peut confirmer P1 ou clôturer.
 ## 7. Notifications
 
 - Email : actif en V1, suivi de délivrabilité obligatoire.
+- Plusieurs messages du même dossier enregistrés dans une fenêtre de cinq
+  minutes restent tous visibles dans le fil, mais produisent une seule alerte
+  email destinée aux agents. Une fenêtre ultérieure peut produire une nouvelle
+  alerte. Le regroupement repose sur une clé persistante partagée par les
+  workers, pas sur leur mémoire locale.
 - Notification dans la PWA : active pour les sessions connues.
 - Téléphone : création d'une tâche de rappel en V1.
 - Une demande explicite de rappel crée la tâche même si un email est aussi
@@ -335,13 +340,17 @@ L'IA peut suggérer la priorité. Seul un agent peut confirmer P1 ou clôturer.
 10. La page reste utilisable à 320 px, 768 px, 1440 px et au clavier.
 11. Une demande peut être créée et suivie sans IA.
 12. Les modules existants conservent leur comportement après déploiement.
-13. Chaque réponse, affectation, export et consultation sensible est auditée.
-14. Les alertes de sécurité Supabase existantes sont corrigées avant ouverture.
-15. Une personne peut commencer par une phrase libre et joindre un fichier avant
+13. Trois messages du même dossier dans une fenêtre de cinq minutes créent trois
+    messages persistants et une seule expédition d'alerte agent.
+14. « Cantine : comment s'inscrire ? » est classé dans la restauration et dirigé
+    vers l'intendance, jamais dans l'inscription scolaire générale.
+15. Chaque réponse, affectation, export et consultation sensible est auditée.
+16. Les alertes de sécurité Supabase existantes sont corrigées avant ouverture.
+17. Une personne peut commencer par une phrase libre et joindre un fichier avant
     de renseigner son identité ou une catégorie.
-16. Les formations et les priorités de rentrée sont lisibles sur mobile sans
+18. Les formations et les priorités de rentrée sont lisibles sur mobile sans
     masquer l'accès au Webmail et au suivi des demandes.
-17. Le portrait et les cartes des spécialités restent lisibles sans débordement à
+19. Le portrait et les cartes des spécialités restent lisibles sans débordement à
     390 px et 1440 px ; les images sont optimisées et ne provoquent pas de rupture
     de mise en page.
 

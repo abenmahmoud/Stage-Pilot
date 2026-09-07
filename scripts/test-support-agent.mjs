@@ -28,6 +28,23 @@ test("offers a dossier when a school support request is complete", async () => {
   assert.match(result.reply, /demande est prête/i);
 });
 
+test("keeps a cantine registration request in the catering category", async () => {
+  const result = await analyzeSupportConversation({
+    messages: [
+      { role: "assistant", content: "Bonjour" },
+      { role: "requester", content: "Cantine" },
+      { role: "assistant", content: "Que souhaitez-vous savoir ?" },
+      { role: "requester", content: "Comment s'inscrire ?" },
+    ],
+    attachments: [],
+    safetyIdentifier: "test-session-cantine",
+  });
+
+  assert.equal(result.category, "restauration_bourse");
+  assert.equal(result.action, "offer_case");
+  assert.equal(result.readyToCreate, true);
+});
+
 test("asks for useful detail before offering an incomplete request", async () => {
   const result = await analyzeSupportConversation({
     messages: messages("Mon ENT ne marche pas"),

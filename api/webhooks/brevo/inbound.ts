@@ -13,6 +13,7 @@ import { HttpError, secretMatches } from "../../_shared/auth.js";
 import { handleApi, methodNotAllowed } from "../../_shared/response.js";
 import { assertNoForbiddenSupportSecret, sha256 } from "../../_shared/support.js";
 import { requireConfiguredInstitution } from "../../_shared/institution-context.js";
+import { supportAgentMessageNotificationWindow } from "../../../shared/support-email-job-policy.js";
 
 type Mailbox = { Address?: string; Name?: string };
 type InboundAttachment = {
@@ -185,7 +186,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             deliveryStatus: "received",
           })
           .onConflictDoNothing()
-          .returning({ id: supportMessages.id });
+          .returning({ id: supportMessages.id, createdAt: supportMessages.createdAt });
         if (!message) {
           await tx.update(supportWebhookReceipts).set({ status: "duplicate", processedAt: new Date() }).where(eq(supportWebhookReceipts.id, receipt.id));
           return "duplicate" as const;
@@ -215,6 +216,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
               'institution_id', ${institution.id}::uuid,
               'request_id', ${request.id}::uuid,
               'message_id', ${message.id}::uuid,
+              'notification_window', ${supportAgentMessageNotificationWindow(message.createdAt)}::text,
               'attempt', 0
             )
           )

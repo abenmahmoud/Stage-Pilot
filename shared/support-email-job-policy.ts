@@ -6,7 +6,9 @@ import {
 
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const TOKEN_PATTERN = /^[A-Za-z0-9_-]{32,256}$/;
+const NOTIFICATION_WINDOW_PATTERN = /^\d{1,16}$/;
 const MAX_QUEUE_PAYLOAD_LENGTH = 4_096;
+const AGENT_MESSAGE_NOTIFICATION_WINDOW_MS = 5 * 60_000;
 
 export type SupportEmailQueueJob = {
   job_id: string;
@@ -16,7 +18,14 @@ export type SupportEmailQueueJob = {
   message_id?: string;
   contact_id?: string;
   access_token?: string;
+  notification_window?: string;
 };
+
+export function supportAgentMessageNotificationWindow(value: Date | number): string {
+  const time = value instanceof Date ? value.getTime() : value;
+  if (!Number.isFinite(time) || time < 0) throw new Error("invalid_notification_time");
+  return String(Math.floor(time / AGENT_MESSAGE_NOTIFICATION_WINDOW_MS));
+}
 
 function record(value: unknown): Record<string, unknown> {
   if (!value || typeof value !== "object" || Array.isArray(value)) {
@@ -58,9 +67,22 @@ export function parseSupportEmailQueueJob(
   const messageId = input.message_id == null ? undefined : uuid(input.message_id);
   const contactId = input.contact_id == null ? undefined : uuid(input.contact_id);
   const accessToken = input.access_token == null ? undefined : input.access_token;
+  const notificationWindow = input.notification_window == null
+    ? undefined
+    : input.notification_window;
   if (input.message_id != null && !messageId) throw new Error("invalid_queue_payload");
   if (input.contact_id != null && !contactId) throw new Error("invalid_queue_payload");
   if (accessToken != null && (typeof accessToken !== "string" || !TOKEN_PATTERN.test(accessToken))) {
+    throw new Error("invalid_queue_payload");
+  }
+  if (
+    notificationWindow != null
+    && (
+      input.job_type !== "notify_agent_message_received"
+      || typeof notificationWindow !== "string"
+      || !NOTIFICATION_WINDOW_PATTERN.test(notificationWindow)
+    )
+  ) {
     throw new Error("invalid_queue_payload");
   }
 
@@ -77,6 +99,7 @@ export function parseSupportEmailQueueJob(
     ...(messageId ? { message_id: messageId } : {}),
     ...(contactId ? { contact_id: contactId } : {}),
     ...(typeof accessToken === "string" ? { access_token: accessToken } : {}),
+    ...(typeof notificationWindow === "string" ? { notification_window: notificationWindow } : {}),
   };
 }
 
