@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
+import { SchoolParentsMeeting } from "../../components/SchoolParentsMeeting";
+import { SCHOOL_PUBLIC_INFORMATION } from "../../../shared/school-public-information";
 import { PublicPortalFooter } from "../../components/PublicPortalFooter";
 import { publicPortalView, PUBLIC_PORTAL_TITLES, type PublicPortalView as View } from "../../../shared/public-portal-navigation";
 import { MISSING_OPENING_HOURS_REPLY, schoolInformationIntent, supportFormReady } from "../../../shared/assistant-school-context";
@@ -13,6 +15,7 @@ import {
   BookOpenCheck,
   Bot,
   BriefcaseBusiness,
+  CalendarDays,
   CheckCircle2,
   ChevronLeft,
   ChevronRight,
@@ -55,6 +58,7 @@ import {
   UserRound,
   Users,
   UsersRound,
+  Utensils,
   WandSparkles,
   Wifi,
 } from "lucide-react";
@@ -229,10 +233,10 @@ const supportCategories = [
   { value: "affectation_classe", label: "Classe ou emploi du temps" },
   { value: "documents_scolarite", label: "Certificat, document ou pièce manquante" },
   { value: "ent", label: "ENT, EduConnect ou PRONOTE" },
-  { value: "email_academique", label: "Email académique" },
+  { value: "email_academique", label: "Messagerie académique" },
   { value: "ordinateur", label: "Ordinateur ou équipement" },
   { value: "logiciel", label: "Logiciel ou accès numérique" },
-  { value: "restauration_bourse", label: "Restauration, bourse, internat ou intendance" },
+  { value: "restauration_bourse", label: "Cantine, badge, paiement ou bourse" },
   { value: "orientation_formation", label: "Orientation ou formation" },
   { value: "vie_scolaire", label: "Vie scolaire" },
   { value: "autre", label: "Rendez-vous ou autre demande" },
@@ -491,14 +495,14 @@ const services = [
   },
   {
     title: "Ordinateur portable",
-    detail: "Panne, charge, casse, perte ou connexion",
+    detail: "Panne, recharge, casse, perte ou connexion",
     icon: Laptop,
     tone: "coral",
     prompt: "J’ai un problème avec l’ordinateur portable prêté par le lycée.",
   },
   {
     title: "Codes de connexion",
-    detail: "ENT, EduConnect ou email académique",
+    detail: "ENT, session du lycée ou messagerie académique",
     icon: KeyRound,
     tone: "gold",
     prompt: "Je n’ai pas reçu mes codes ou je n’arrive pas à me connecter.",
@@ -518,8 +522,15 @@ const services = [
     prompt: "J’ai une question sur ma classe, mon emploi du temps ou la rentrée.",
   },
   {
+    title: "Cantine et intendance",
+    detail: "Inscription, badge ou paiement de la cantine",
+    icon: Utensils,
+    tone: "gold",
+    prompt: "J’ai une question sur la cantine pour le service d’intendance.",
+  },
+  {
     title: "Coordonnées personnelles",
-    detail: "Ajouter, corriger ou retirer un email personnel",
+    detail: "Demander une correction de vos coordonnées",
     icon: UserRound,
     tone: "green",
     prompt: "",
@@ -712,8 +723,8 @@ export default function LyceeConnectPrototype() {
         <div className="lycee-sidebar-status">
           <span className="lycee-live-dot" />
           <div>
-            <strong>Application disponible</strong>
-            <span>Services du lycée ouverts</span>
+            <strong>Portail du lycée</strong>
+            <span>Demandes en ligne · accueil sur rendez-vous</span>
           </div>
         </div>
       </aside>
@@ -790,16 +801,17 @@ export default function LyceeConnectPrototype() {
         </section>
 
         <div className="lycee-content">
+          <SchoolParentsMeeting />
           <section className="lycee-assistant" aria-labelledby="lycee-assistant-title">
             <div className="lycee-assistant-heading">
               <span className="lycee-ai-icon"><Bot aria-hidden="true" /></span>
               <div>
-                <span className="lycee-eyebrow">Aide immédiate</span>
+                <span className="lycee-eyebrow">Votre premier contact</span>
                 <h2 id="lycee-assistant-title">Posez votre question à l’assistant du lycée</h2>
               </div>
-              <span className="lycee-ai-status"><Sparkles aria-hidden="true" /> Disponible</span>
+              <span className="lycee-ai-status"><Sparkles aria-hidden="true" /> Assistant numérique</span>
             </div>
-            <p>Connexion, ordinateur, inscription, vie scolaire ou document&nbsp;: écrivez simplement votre besoin. L’assistant vous répond ou prépare une demande pour le bon service.</p>
+            <p>Connexion, ordinateur, inscription, cantine ou document&nbsp;: décrivez votre besoin. L’assistant vous guide et peut préparer une demande à relire avant l’envoi.</p>
             {SAFESCOL_ACCESS_ENABLED && SAFESCOL_URL ? (
               <a className="lycee-safescol-home-link" href={SAFESCOL_URL} target="_blank" rel="noreferrer">
                 <ShieldCheck aria-hidden="true" /> Signaler avec SafeScol <ExternalLink aria-hidden="true" />
@@ -828,12 +840,12 @@ export default function LyceeConnectPrototype() {
             <button className="lycee-form-shortcut" type="button" onClick={() => startHelp("", "form")}><FileText aria-hidden="true" /> Je préfère remplir un formulaire</button>
             <div className="lycee-trust-row">
               <button type="button" onClick={() => changeView("trust")}><ShieldCheck aria-hidden="true" /> Confidentialité et sécurité</button>
-              <span><Users aria-hidden="true" /> Actions sensibles validées par un agent</span>
+              <span><Users aria-hidden="true" /> Identité vérifiée avant tout accès personnel</span>
             </div>
           </section>
 
           <section className="lycee-core-tools" aria-label="Outils principaux du lycée">
-            <button type="button" data-tool="news" onClick={() => changeView("news")}><span><Newspaper aria-hidden="true" /></span><div><strong>À la une</strong><small>Rentrée, formations et informations du lycée</small></div><em>Consulter <ChevronRight aria-hidden="true" /></em></button>
+            <button type="button" data-tool="news" onClick={() => changeView("news")}><span><Newspaper aria-hidden="true" /></span><div><strong>À la une</strong><small>Actualités, événements et documents utiles</small></div><em>Consulter <ChevronRight aria-hidden="true" /></em></button>
             <a href={WEBMAIL_URL} target="_blank" rel="noreferrer" data-tool="mail"><span><Mail aria-hidden="true" /></span><div><strong>Webmail du lycée</strong><small>Messagerie, contacts et diffusion</small></div><em>Ouvrir <ExternalLink aria-hidden="true" /></em></a>
           </section>
 
@@ -841,7 +853,7 @@ export default function LyceeConnectPrototype() {
             <div className="lycee-section-title">
               <div>
                 <span className="lycee-eyebrow">Vos services</span>
-                <h2 id="lycee-services-title">Accéder rapidement</h2>
+                <h2 id="lycee-services-title">Les démarches courantes</h2>
               </div>
               <button type="button" onClick={() => changeView("services")}>Tout afficher <ChevronRight aria-hidden="true" /></button>
             </div>
@@ -886,7 +898,7 @@ export default function LyceeConnectPrototype() {
             <article className="lycee-news">
               <span><BarChart3 aria-hidden="true" /> LyceeGest</span>
               <h2>Stages et Grand Oral</h2>
-              <p>Les outils de suivi restent disponibles dans l’application de gestion du lycée.</p>
+              <p>Accédez aux outils de suivi des stages et du Grand Oral avec le compte fourni par le lycée.</p>
               <a href={LYCEEGEST_URL}>Ouvrir LyceeGest <ChevronRight aria-hidden="true" /></a>
             </article>
             <article className="lycee-status-panel">
@@ -933,7 +945,7 @@ export default function LyceeConnectPrototype() {
           />
         )}
         {view === "requests" && <RequestsView ticketCode={ticketCreated} accessLinkError={accessLinkError} onBack={() => changeView("home")} />}
-        {view === "services" && <ServicesView onHelp={() => startHelp()} onCollect={() => changeView("collect")} onBack={() => changeView("home")} />}
+        {view === "services" && <ServicesView onHelp={startHelp} onCollect={() => changeView("collect")} onBack={() => changeView("home")} />}
         {view === "school" && <SchoolView onBack={() => changeView("home")} onHelp={startHelp} />}
         {view === "news" && <NewsView onBack={() => changeView("home")} />}
         {view === "agent" && <AgentView onBack={() => changeView("home")} />}
@@ -1136,29 +1148,29 @@ function TrustView({ onBack }: { onBack: () => void }) {
   return (
     <div className="lycee-page lycee-trust-page">
       <PageIntro
-        eyebrow="Confiance numérique"
+        eyebrow="Vos données"
         title="Confidentialité et sécurité"
-        description="Ce que l'application utilise, ce qu'elle protège et les précautions à respecter pour suivre une demande."
+        description="Comprendre les informations demandées et protéger l’accès à vos démarches."
         onBack={onBack}
       />
 
       <section className="lycee-trust-lead" aria-labelledby="trust-lead-title">
         <ShieldCheck aria-hidden="true" />
         <div>
-          <span className="lycee-eyebrow">Préproduction sécurisée</span>
+          <span className="lycee-eyebrow">Phase pilote</span>
           <h2 id="trust-lead-title">Des informations limitées au traitement de votre demande</h2>
-          <p>Cette version sert encore aux essais. Utilisez des données fictives jusqu'à la validation officielle de la direction et du délégué à la protection des données.</p>
+          <p>Le service est en phase pilote. Tant que son utilisation avec des données réelles n’a pas été validée par la direction et le délégué à la protection des données, utilisez uniquement des informations fictives pour les essais.</p>
         </div>
       </section>
 
       <div className="lycee-trust-grid">
         <article>
           <span><UserRound aria-hidden="true" /></span>
-          <div><h2>Informations demandées</h2><p>Identité, moyen de réponse, description du besoin et, seulement si nécessaire, documents utiles au dossier.</p></div>
+          <div><h2>Informations demandées</h2><p>Votre prénom, votre nom, un email ou un téléphone, puis les précisions utiles à votre demande. Joignez uniquement les documents nécessaires.</p></div>
         </article>
         <article>
           <span><KeyRound aria-hidden="true" /></span>
-          <div><h2>Secrets interdits</h2><p>Ne transmettez jamais votre mot de passe ENT, EduConnect, académique ou personnel. Un agent n'en a pas besoin pour vous aider.</p></div>
+          <div><h2>Gardez vos codes confidentiels</h2><p>Ne communiquez aucun mot de passe, code d’activation ou code de vérification dans le chat ou une pièce jointe. Saisissez les codes de vérification uniquement dans le champ sécurisé prévu à cet effet.</p></div>
         </article>
         <article>
           <span><FileText aria-hidden="true" /></span>
@@ -1170,11 +1182,11 @@ function TrustView({ onBack }: { onBack: () => void }) {
         </article>
         <article>
           <span><Smartphone aria-hidden="true" /></span>
-          <div><h2>Suivi protégé</h2><p>Le suivi reste disponible sur l'appareil. L'email est recommandé pour conserver une trace et reprendre la demande ailleurs.</p></div>
+          <div><h2>Suivi protégé</h2><p>Sur votre appareil, retrouvez les échanges dans « Mes demandes ». Sur un appareil partagé, fermez cet accès en partant. L’email permet de retrouver votre dossier ailleurs.</p></div>
         </article>
         <article>
           <span><Clock3 aria-hidden="true" /></span>
-          <div><h2>Conservation encadrée</h2><p>Les durées définitives et la procédure d'exercice des droits seront publiées après validation par la direction et le DPO.</p></div>
+          <div><h2>Conservation encadrée</h2><p>Les durées de conservation et la procédure pour exercer vos droits restent à finaliser avec la direction et le délégué à la protection des données.</p></div>
         </article>
       </div>
 
@@ -1188,7 +1200,7 @@ function TrustView({ onBack }: { onBack: () => void }) {
           </span>
         </div>
         <div className="lycee-trust-actions">
-          <a href="mailto:dpd@ac-creteil.fr">Écrire au DPO <Mail aria-hidden="true" /></a>
+          <a href="mailto:dpd@ac-creteil.fr">Écrire au délégué <Mail aria-hidden="true" /></a>
           <a href="https://www.ac-creteil.fr/donnees-personnelles-et-cookies-121642" target="_blank" rel="noreferrer">Informations officielles <ExternalLink aria-hidden="true" /></a>
         </div>
       </section>
@@ -1282,8 +1294,8 @@ function localAssistantFallback(messages: AssistantChatMessage[], files: File[])
       : scheduleQuestion
       ? "Une classe écrite librement ne suffit pas pour ouvrir un emploi du temps réel. Le lycée doit d’abord confirmer votre identité scolaire et votre lien avec la classe ou le groupe, puis consulter une version validée et à jour. En cas de doute, la vie scolaire vérifiera avant de répondre."
       : readyToCreate
-        ? `J’ai compris. Je classe votre besoin dans « ${label} ». ${files.length ? `Je vois aussi ${files.length} fichier${files.length > 1 ? "s" : ""} à joindre au dossier. ` : ""}La demande est prête : vérifiez vos coordonnées puis transmettez-la au lycée.`
-        : `J’ai compris. Je classe votre besoin dans « ${label} ». ${files.length ? `Je vois aussi ${files.length} fichier${files.length > 1 ? "s" : ""} à joindre au dossier. ` : ""}Précisez ce qui bloque et ce que vous avez déjà essayé.`),
+        ? `Votre demande concerne « ${label} ». ${files.length ? `Vous avez sélectionné ${files.length} fichier${files.length > 1 ? "s" : ""} à joindre au dossier. ` : ""}Vérifiez le récapitulatif et vos coordonnées, puis envoyez votre demande au lycée.`
+        : `Votre demande concerne « ${label} ». ${files.length ? `Vous avez sélectionné ${files.length} fichier${files.length > 1 ? "s" : ""} à joindre au dossier. ` : ""}Précisez votre question et les informations utiles pour vous aider.`),
     category: policy.category ?? laptopIntake?.category ?? category,
     requesterType,
     urgency: policy.urgency ?? laptopIntake?.urgency ?? (/\b(urgent|aujourd'hui|bloqué|bloque|impossible)\b/i.test(text) ? "urgente" : "normale"),
@@ -1467,7 +1479,7 @@ function HelpDeskView({
   const welcomeMessage: AssistantChatMessage = {
     id: "welcome",
     role: "assistant",
-    content: "Bonjour, je suis l’assistant du lycée. Écrivez simplement ce qui vous arrive, même dans votre langue. Vous pouvez joindre une photo ou un document. Ne donnez jamais votre mot de passe.",
+    content: "Bonjour, je suis l’assistant du lycée. Décrivez votre besoin dans la langue de votre choix. Vous pouvez joindre une photo ou un document utile. Ne communiquez aucun mot de passe ni code de vérification ici.",
   };
   const [chatMessages, setChatMessages] = useState<AssistantChatMessage[]>(() => [
     welcomeMessage,
@@ -1938,11 +1950,11 @@ function HelpDeskView({
         <div className="lycee-confirmation-mark"><CheckCircle2 aria-hidden="true" /></div>
         <span className="lycee-eyebrow">Demande transmise</span>
         <h1>Votre dossier est créé.</h1>
-        <p>La conversation et les documents sont réunis. Un agent du lycée peut maintenant vous répondre sans vous faire recommencer.</p>
+        <p>Votre demande est enregistrée. Retrouvez les messages et les documents reçus dans le suivi. Le service concerné pourra vous y répondre.</p>
         <div className="lycee-ticket-code"><span>Numéro de demande</span><div><strong ref={ticketCodeRef}>{ticketCode}</strong><button type="button" onClick={() => void copyTicketCode()} aria-label={`Copier le numéro ${ticketCode}`}><Copy aria-hidden="true" /> {ticketCopyStatus === "copied" ? "Copié" : ticketCopyStatus === "selected" ? "Sélectionné" : "Copier"}</button></div></div>
-        <div className="lycee-confirmation-note"><Smartphone aria-hidden="true" /><span>Le suivi reste disponible sur cet appareil avec votre numéro de demande.</span></div>
+        <div className="lycee-confirmation-note"><Smartphone aria-hidden="true" /><span>Ouvrez « Mes demandes » sur cet appareil. Conservez votre numéro de dossier ; il ne suffit pas, à lui seul, à donner accès à la demande.</span></div>
         {confirmationChannel === "email"
-          ? <div className="lycee-confirmation-note"><Mail aria-hidden="true" /><span>Un lien sécurisé est envoyé par email pour retrouver le dossier depuis un autre appareil et conserver les réponses.</span></div>
+          ? <div className="lycee-confirmation-note"><Mail aria-hidden="true" /><span>L’envoi d’un email de suivi est prévu à l’adresse indiquée. Il permet de retrouver le dossier sur un autre appareil. Pensez à vérifier les courriers indésirables.</span></div>
           : <div className="lycee-confirmation-note"><Phone aria-hidden="true" /><span>Le lycée utilisera le téléphone indiqué pour vous répondre. Conservez aussi le numéro de demande.</span></div>}
         <div className="lycee-confirmation-note"><BadgeCheck aria-hidden="true" /><span>Pour une demande sensible, le lycée vérifie votre identité avant de transmettre un code ou une donnée personnelle.</span></div>
         {attachmentWarning ? <div className="lycee-form-error" role="alert"><CircleAlert aria-hidden="true" />{attachmentWarning}</div> : null}
@@ -1958,9 +1970,9 @@ function HelpDeskView({
     <div className="lycee-page">
       <PageIntro
         eyebrow={initialContactCollection ? "Contacts du lycée" : "Assistant du lycée"}
-        title={initialContactCollection ? "Gérer mes coordonnées personnelles" : "Dites simplement ce qu’il vous faut"}
+        title={initialContactCollection ? "Demander une modification de mes coordonnées" : "Dites simplement ce qu’il vous faut"}
         description={initialContactCollection
-          ? "Ajoutez, corrigez ou demandez le retrait d’une adresse personnelle. Un lien vérifie l’email, puis un agent confirme la personne concernée."
+          ? "Demandez l’ajout, la correction ou le retrait d’une adresse personnelle. Le lycée vérifie votre demande avant toute modification."
           : "Écrivez avec vos mots, dans la langue qui vous convient. Vous pourrez enregistrer la demande et suivre la réponse."}
         onBack={onBack}
       />
@@ -1970,7 +1982,7 @@ function HelpDeskView({
       <div className={`lycee-guided-chat${initialContactCollection ? " is-contact-collection" : ""}`}>
         {!initialContactCollection ? (
           <>
-        <div className="lycee-guided-chat-head"><span><Bot aria-hidden="true" /></span><div><strong>Assistant Blaise</strong><small>Comprend, reformule et transmet au bon agent</small></div><em><span /> Disponible</em></div>
+        <div className="lycee-guided-chat-head"><span><Bot aria-hidden="true" /></span><div><strong>Assistant Blaise</strong><small>Vous guide et prépare votre demande</small></div><em><span /> Assistant numérique</em></div>
         {SAFESCOL_ACCESS_ENABLED && SAFESCOL_URL ? (
           <a className="lycee-safescol-chat-link" href={SAFESCOL_URL} target="_blank" rel="noreferrer">
             <ShieldCheck aria-hidden="true" /> Accéder directement à SafeScol <ExternalLink aria-hidden="true" />
@@ -2006,7 +2018,7 @@ function HelpDeskView({
         <div className="lycee-chat-workspace">
           {!initialContactCollection ? (
             <>
-          <div className="lycee-language-help"><Languages aria-hidden="true" /><span><strong>Le français est difficile ?</strong><small>Écrivez dans votre langue ou avec des mots simples. L’assistant vous aide sans vous juger.</small></span></div>
+          <div className="lycee-language-help"><Languages aria-hidden="true" /><span><strong>Écrivez dans la langue de votre choix</strong><small>Quelques mots suffisent pour commencer. L’assistant peut vous aider à reformuler votre demande.</small></span></div>
           {draftNotice ? <div className="lycee-contact-guidance lycee-draft-guidance" role="status"><CheckCircle2 aria-hidden="true" /><span><strong>Brouillon récupéré</strong><small>{draftNotice}</small></span><button type="button" onClick={restartConversation}><Trash2 aria-hidden="true" /> Effacer</button></div> : null}
           {insight ? (
             <div className="lycee-live-analysis">
@@ -2035,7 +2047,7 @@ function HelpDeskView({
 
           {requesterMessages.length > 0 && !showDetails && insight?.scope !== "safescol" ? (
             <div className={`lycee-chat-next${canCreateRequest ? " is-ready" : " is-form-only"}`}>
-              {canCreateRequest ? <div className="lycee-case-ready"><CheckCircle2 aria-hidden="true" /><span><strong>{insight?.action === "human_transfer" ? "Un adulte doit reprendre la demande" : "Votre demande est prête"}</strong><small>Ajoutez maintenant votre prénom, votre nom et un moyen de réponse pour l’envoyer au lycée.</small></span></div> : null}
+              {canCreateRequest ? <div className="lycee-case-ready"><CheckCircle2 aria-hidden="true" /><span><strong>{insight?.action === "human_transfer" ? "Une personne du lycée doit vous accompagner" : "Votre demande est prête"}</strong><small>Ajoutez maintenant votre prénom, votre nom et un moyen de réponse pour l’envoyer au lycée.</small></span></div> : null}
               <div className="lycee-chat-next-actions">
                 {canCreateRequest ? <button className="lycee-primary-action" type="button" onClick={() => setShowDetails(true)}>{insight?.action === "human_transfer" ? "Indiquer mes coordonnées" : "Continuer avec mes coordonnées"} <ChevronRight aria-hidden="true" /></button> : null}
                 <button type="button" onClick={() => { setClassicDescription((current) => current.trim() ? current : conversationDescription); setClassicForm(true); setShowDetails(true); }}>Je préfère remplir le formulaire</button>
@@ -2049,7 +2061,7 @@ function HelpDeskView({
               <span><strong>Utilisez le canal dédié SafeScol</strong><small>Aucun signalement ni détail n’est enregistré dans cette conversation.</small></span>
               {SAFESCOL_ACCESS_ENABLED && SAFESCOL_URL
                 ? <a href={SAFESCOL_URL} target="_blank" rel="noreferrer">Ouvrir SafeScol <ExternalLink aria-hidden="true" /></a>
-                : <em>L’adresse officielle doit encore être validée par le lycée.</em>}
+                : <em>Le lien SafeScol n’est pas encore disponible sur ce site. Adressez-vous à un adulte du lycée.</em>}
             </div>
           ) : null}
 
@@ -2063,10 +2075,10 @@ function HelpDeskView({
           ) : null}
           {showDetails ? (
             <form ref={caseFormRef} className="lycee-case-form" onSubmit={submitRequest}>
-              <div className="lycee-case-form-head"><span><ShieldCheck aria-hidden="true" /></span><div><h2>{initialContactCollection ? "Coordonnées à vérifier" : classicForm ? "Formulaire classique" : "Vos coordonnées pour recevoir la réponse"}</h2><p>{initialContactCollection ? "L’adresse reste inutilisable pour une diffusion tant que le lien email et l’identité n’ont pas été confirmés." : classicForm ? "Tous les champs sont visibles pour ceux qui préfèrent écrire leur demande directement." : "Indiquez votre prénom, votre nom et au moins un moyen de contact. L’email est conseillé pour conserver une trace."}</p></div>{!initialContactCollection ? <button type="button" aria-label="Fermer" onClick={() => { setShowDetails(false); setClassicForm(false); }}>Fermer</button> : null}</div>
+              <div className="lycee-case-form-head"><span><ShieldCheck aria-hidden="true" /></span><div><h2>{initialContactCollection ? "Coordonnées à vérifier" : classicForm ? "Votre demande au lycée" : "Vos coordonnées pour recevoir la réponse"}</h2><p>{initialContactCollection ? "Un agent habilité vérifie votre identité et la modification demandée avant de l’appliquer." : classicForm ? "Décrivez votre besoin et indiquez comment vous joindre. Seuls les champs nécessaires sont obligatoires." : "Indiquez votre prénom, votre nom et au moins un moyen de contact. L’email est conseillé pour conserver une trace."}</p></div>{!initialContactCollection ? <button type="button" aria-label="Fermer" onClick={() => { setShowDetails(false); setClassicForm(false); }}>Fermer</button> : null}</div>
               <div className="lycee-fields-grid">
                 {initialContactCollection ? <label className="is-wide"><span>Action demandée</span><select name="contactCollectionAction" value={contactCollectionAction} onChange={(event) => setContactCollectionAction(event.target.value as "add_or_update" | "remove")}><option value="add_or_update">Ajouter ou modifier mon email</option><option value="remove">Retirer mon email</option></select></label> : null}
-                <label><span>Vous êtes</span><select id="lycee-requester-profile" name="requesterProfile" value={profile} onChange={(event) => setProfile(event.target.value as RequesterProfile)} required><option value="">Sélectionner</option><option value="eleve">Élève</option><option value="parent">Parent</option><option value="professeur">Professeur</option><option value="personnel">Personnel</option><option value="autre">Autre</option></select></label>
+                <label><span>Vous êtes</span><select id="lycee-requester-profile" name="requesterProfile" value={profile} onChange={(event) => setProfile(event.target.value as RequesterProfile)} required><option value="">Sélectionner</option><option value="eleve">Élève</option><option value="parent">Parent ou responsable légal</option><option value="professeur">Professeur</option><option value="personnel">Personnel</option><option value="autre">Autre</option></select></label>
                 {classicForm && !initialContactCollection ? <label><span>Votre demande concerne</span><select id="lycee-support-category" name="supportCategory" value={category} onChange={(event) => setCategory(event.target.value as SupportCategory)}>{supportCategories.map((item) => <option value={item.value} key={item.value}>{item.label}</option>)}</select></label> : null}
                 <label><span>Votre prénom</span><input name="requesterFirstName" type="text" autoComplete="given-name" placeholder="Prénom" minLength={2} maxLength={100} value={formValues.requesterFirstName} onChange={(event) => updateFormValue("requesterFirstName", event.target.value)} required /></label>
                 <label><span>Votre nom</span><input name="requesterLastName" type="text" autoComplete="family-name" placeholder="Nom" minLength={2} maxLength={100} value={formValues.requesterLastName} onChange={(event) => updateFormValue("requesterLastName", event.target.value)} required /></label>
@@ -2074,20 +2086,20 @@ function HelpDeskView({
                 {profile === "eleve" || profile === "parent" ? <label><span>Classe, si connue</span><input name="className" type="text" autoComplete="off" placeholder="Ex. 2GT4" value={formValues.className} onChange={(event) => updateFormValue("className", event.target.value)} /></label> : null}
                 {profile === "professeur" || profile === "personnel" ? <label><span>Matière ou service</span><input name="subjectArea" type="text" autoComplete="organization-title" placeholder="Ex. Mathématiques, intendance" value={formValues.subjectArea} onChange={(event) => updateFormValue("subjectArea", event.target.value)} /></label> : null}
                 {profile === "professeur" ? <label><span>Voie</span><select name="schoolTrack" value={formValues.schoolTrack} onChange={(event) => updateFormValue("schoolTrack", event.target.value)}><option value="">Non précisée</option><option value="general">Générale et technologique</option><option value="professionnel">Professionnelle</option><option value="les_deux">Les deux</option></select></label> : null}
-                <div className="lycee-contact-requirement is-wide"><strong>Comment le lycée peut-il vous répondre ?</strong><span>{initialContactCollection ? "L’adresse email est obligatoire. Le téléphone reste facultatif." : "Email ou téléphone obligatoire. Ajoutez les deux si possible."}</span></div>
+                <div className="lycee-contact-requirement is-wide"><strong>Comment le lycée peut-il vous répondre ?</strong><span>{initialContactCollection ? "L’adresse email est obligatoire. Le téléphone reste facultatif." : "Indiquez au moins un email ou un téléphone. Le second moyen de contact est facultatif."}</span></div>
                 <label><span>{initialContactCollection ? "Adresse email personnelle" : "Adresse email recommandée"}</span><input name="email" type="email" autoComplete="email" placeholder="nom@exemple.fr" value={formValues.email} onChange={(event) => updateFormValue("email", event.target.value)} required={initialContactCollection} /><small>{initialContactCollection ? "Un lien sécurisé vérifiera cette adresse avant toute validation." : "Pour garder une trace et retrouver la demande sur un autre appareil."}</small></label>
-                <label><span>Téléphone</span><input name="phone" type="tel" autoComplete="tel" placeholder="06 00 00 00 00" value={formValues.phone} onChange={(event) => updateFormValue("phone", event.target.value)} /><small>Pour un rappel si l’email ne suffit pas.</small></label>
+                <label><span>Téléphone</span><input name="phone" type="tel" autoComplete="tel" placeholder="06 00 00 00 00" value={formValues.phone} onChange={(event) => updateFormValue("phone", event.target.value)} /><small>Pour vous joindre si nécessaire.</small></label>
                 <label><span>Moyen de contact principal</span><select name="preferredChannel" value={formValues.preferredChannel} onChange={(event) => updateFormValue("preferredChannel", event.target.value as "email" | "phone")}><option value="email">Email, recommandé</option><option value="phone">Téléphone</option></select></label>
                 <label><span>Langue de la réponse du lycée</span><select name="languagePreference" value={formValues.languagePreference} onChange={(event) => updateFormValue("languagePreference", event.target.value)}><option value="francais_simple">Français simple</option><option value="francais">Français</option><option value="arabe">Arabe</option><option value="anglais">Anglais</option><option value="espagnol">Espagnol</option><option value="portugais">Portugais</option><option value="turc">Turc</option><option value="autre">Autre langue, précisée dans le message</option></select></label>
                 <label className="lycee-fallback-choice"><input name="fallbackAllowed" type="checkbox" checked={formValues.fallbackAllowed} onChange={(event) => updateFormValue("fallbackAllowed", event.target.checked)} /><span>{initialContactCollection ? "J’autorise le lycée à utiliser le téléphone indiqué pour me rappeler au sujet de cette demande" : "Utiliser l’autre moyen de contact si nécessaire"}</span></label>
                 <label className="lycee-fallback-choice"><input name="communicationSupport" type="checkbox" checked={formValues.communicationSupport} onChange={(event) => updateFormValue("communicationSupport", event.target.checked)} /><span>J’ai besoin d’un rappel pour mieux comprendre la réponse</span></label>
                 {classicForm ? <label className="is-wide"><span>{initialContactCollection ? "Précision facultative" : "Votre demande"}</span><textarea id="lycee-classic-description" name="classicDescription" value={classicDescription} onChange={(event) => setClassicDescription(event.target.value)} rows={initialContactCollection ? 3 : 5} maxLength={5000} placeholder={initialContactCollection ? "Ex. changement de matière ou de service" : "Expliquez ce dont vous avez besoin."} required={!initialContactCollection} /></label> : null}
-                {classicForm ? <div className="lycee-classic-files is-wide"><button type="button" onClick={() => fileInputRef.current?.click()} disabled={files.length >= MAX_SUPPORT_FILES}><Paperclip aria-hidden="true" /> Joindre un document</button><small>PDF, image, Word ou Excel, jusqu’à 10 Mo.</small>{files.map((file, index) => <div key={`${file.name}-${file.lastModified}`}><FileText aria-hidden="true" /><span>{file.name}</span><button type="button" onClick={() => setFiles((current) => current.filter((_, fileIndex) => fileIndex !== index))}>Retirer</button></div>)}</div> : null}
+                {classicForm ? <div className="lycee-classic-files is-wide"><button type="button" onClick={() => fileInputRef.current?.click()} disabled={files.length >= MAX_SUPPORT_FILES}><Paperclip aria-hidden="true" /> Joindre un document</button><small>5 fichiers maximum : PDF, image, Word, Excel ou texte, 10 Mo par fichier.</small>{files.map((file, index) => <div key={`${file.name}-${file.lastModified}`}><FileText aria-hidden="true" /><span>{file.name}</span><button type="button" onClick={() => setFiles((current) => current.filter((_, fileIndex) => fileIndex !== index))}>Retirer</button></div>)}</div> : null}
                 <label className="lycee-honeypot" aria-hidden="true"><span>Site web</span><input name="website" type="text" tabIndex={-1} autoComplete="off" /></label>
               </div>
               <div className="lycee-contact-guidance" role="status"><Smartphone aria-hidden="true" /><span><strong>{formValues.email && formValues.phone ? "Email et téléphone disponibles" : formValues.email || formValues.phone ? "Un seul moyen de réponse" : "Au moins un moyen de réponse est nécessaire"}</strong><small>{formValues.email && formValues.phone ? "Si l’un des deux ne fonctionne pas, le lycée pourra utiliser l’autre selon votre autorisation." : formValues.email || formValues.phone ? "La demande peut être envoyée. Si ce contact est incorrect ou inaccessible, la réponse pourra arriver plus tard." : "Sans email ni téléphone, le lycée ne pourra pas vous répondre. Vous pouvez choisir l’un des deux sans fournir les deux."}</small></span></div>
               <div className="lycee-ai-summary"><WandSparkles aria-hidden="true" /><span><strong>{initialContactCollection ? contactCollectionAction === "remove" ? "Retrait à confirmer" : "Adresse à vérifier" : selectedCategory?.label}</strong><small>{initialContactCollection ? "La demande reste dans la file jusqu’à la décision d’un agent" : "Conversation et pièces jointes conservées dans le même dossier"}</small></span></div>
-              <div className="lycee-case-security"><BadgeCheck aria-hidden="true" /><span><strong>Vérification adaptée à la demande</strong><small>{initialContactCollection ? "Le lien reçu confirme seulement l’adresse. Un agent rapproche ensuite la demande de la liste officielle avant ajout, correction ou retrait." : "Le lien reçu par email vérifie votre adresse. Pour un code ENT, PRONOTE ou une messagerie académique, un agent confirme aussi votre identité dans la liste officielle du lycée."}</small></span></div>
+              <div className="lycee-case-security"><BadgeCheck aria-hidden="true" /><span><strong>Vérification adaptée à la demande</strong><small>{initialContactCollection ? "Le lien reçu confirme seulement l’adresse. Un agent rapproche ensuite la demande de la liste officielle avant ajout, correction ou retrait." : "Vérifier votre email ne suffit pas à confirmer votre identité. Avant de transmettre un code d’accès ou un document personnel, le lycée vérifie aussi votre identité à partir de ses informations officielles."}</small></span></div>
               {submitError ? <div className="lycee-form-error" role="alert"><CircleAlert aria-hidden="true" />{submitError}</div> : null}
               <button className="lycee-primary-action lycee-submit-request" type="submit" disabled={submitting || (!classicForm && !conversationDescription)}>{submitting ? "Enregistrement…" : "Envoyer au lycée"} <Send aria-hidden="true" /></button>
             </form>
@@ -2755,7 +2767,7 @@ function ConnectedRequestsView({ ticketCode, onBack, accessLinkError }: { ticket
               <div className="lycee-ticket-meta"><span><Users aria-hidden="true" /> {requesterProfileLabels[detail.request.requesterType] ?? detail.request.requesterType}</span><span><Smartphone aria-hidden="true" /> Suivi sur cet appareil</span><span><Mail aria-hidden="true" /> Contact principal : {channelLabels[detail.request.preferredChannel] ?? detail.request.preferredChannel}</span></div>
               <section className="lycee-identity-status" data-status={detail.request.identityStatus}>
                 <BadgeCheck aria-hidden="true" />
-                <span><strong>{identityStatusLabels[detail.request.identityStatus]}</strong><small>{detail.request.identityStatus === "identite_confirmee" ? "Le lycée a rapproché la personne d’une source officielle." : detail.request.identityStatus === "contact_verifie" ? detail.request.identityMethod === "phone_callback" ? "Un agent a vérifié le numéro de téléphone par rappel, sans confirmer encore l’identité scolaire." : "L’accès sécurisé confirme le contrôle de l’adresse email, sans confirmer encore l’identité scolaire." : "La demande est enregistrée. Aucune donnée sensible ne sera transmise avant vérification."}</small></span>
+                <span><strong>{identityStatusLabels[detail.request.identityStatus]}</strong><small>{detail.request.identityStatus === "identite_confirmee" ? "Le lycée a confirmé votre identité à partir de ses informations officielles." : detail.request.identityStatus === "contact_verifie" ? detail.request.identityMethod === "phone_callback" ? "Un agent a vérifié le numéro de téléphone par rappel, sans confirmer encore l’identité scolaire." : "L’accès sécurisé confirme le contrôle de l’adresse email, sans confirmer encore l’identité scolaire." : "La demande est enregistrée. Les codes d’accès et documents personnels nécessitent une vérification d’identité."}</small></span>
               </section>
               {initialRequesterMessage ? (
                 <section className="lycee-request-summary" aria-label="Votre demande">
@@ -2806,7 +2818,7 @@ function DemoRequestsView({ ticketCode, onBack }: { ticketCode: string | null; o
     setDemoMessages((current) => [
       ...current,
       { id: crypto.randomUUID(), direction: "is-requester", author: "Vous", date: "Maintenant", body: message },
-      { id: crypto.randomUUID(), direction: "is-agent", author: "Assistant Blaise", date: "Maintenant", body: "Merci, votre précision est ajoutée au dossier. L’agent qui traite la demande la verra immédiatement." },
+      { id: crypto.randomUUID(), direction: "is-agent", author: "Assistant Blaise", date: "Maintenant", body: "Merci, votre précision est ajoutée au dossier. La personne qui traite la demande pourra la consulter." },
     ]);
     setDemoReply("");
   }
@@ -2849,22 +2861,24 @@ function DemoRequestsView({ ticketCode, onBack }: { ticketCode: string | null; o
   );
 }
 
-function ServicesView({ onHelp, onCollect, onBack }: { onHelp: () => void; onCollect: () => void; onBack: () => void }) {
+function ServicesView({ onHelp, onCollect, onBack }: { onHelp: (prompt?: string) => void; onCollect: () => void; onBack: () => void }) {
   const serviceGroups = [
-    { title: "Assistance du lycée", description: "Une conversation libre pour toute question de rentrée, de scolarité ou d’accès", icon: LifeBuoy, color: "coral", progress: "Conversation suivie", action: "Demander de l’aide", help: true },
-    { title: "Webmail du lycée", description: "Messagerie, contacts et diffusion lorsque Créteil est perturbé", icon: Mail, color: "green", progress: "Communication disponible", action: "Ouvrir le Webmail", href: WEBMAIL_URL, external: true },
-    { title: "Inscriptions et dossiers", description: "Réinscription, pièces manquantes, classe et documents de scolarité", icon: FolderCheck, color: "gold", progress: "Priorité rentrée", action: "Préparer une demande", help: true },
-    { title: "Accès ENT et EduConnect", description: "Connexion directe ou demande d’aide pour retrouver son accès", icon: KeyRound, color: "blue", progress: "Service de rentrée", action: "Accéder à l’ENT", href: ENT_URL, external: true },
+    { title: "Assistance du lycée", description: "Une question de scolarité ou une difficulté de connexion ? Décrivez votre besoin.", icon: LifeBuoy, color: "coral", progress: "Assistant et formulaire", action: "Demander de l’aide", help: true },
+    { title: "Webmail du lycée", description: "Accès à la messagerie du lycée pour les utilisateurs autorisés.", icon: Mail, color: "green", progress: "Connexion à la messagerie", action: "Ouvrir le Webmail", href: WEBMAIL_URL, external: true },
+    { title: "Inscriptions et dossiers", description: "Réinscription, pièces manquantes, classe et documents de scolarité", icon: FolderCheck, color: "gold", progress: "Traitement par le service concerné", action: "Préparer une demande", help: true },
+    { title: "Cantine et intendance", description: "Inscription à la cantine, badge, repas ou paiement : adressez votre demande à l’intendance.", icon: Utensils, color: "gold", progress: "Service responsable : intendance", action: "Poser ma question", help: true, prompt: "J’ai une question sur la cantine pour le service d’intendance." },
+    { title: "Rendez-vous au lycée", description: SCHOOL_PUBLIC_INFORMATION.welcome, icon: CalendarDays, color: "blue", progress: "Rendez-vous à confirmer par le lycée", action: "Demander un rendez-vous", help: true, prompt: "Je souhaite demander un rendez-vous au lycée." },
+    { title: "ENT Monlycée.net", description: "Ouvrez votre espace numérique avec vos identifiants personnels.", icon: KeyRound, color: "blue", progress: "Accès à Monlycée.net", action: "Accéder à l’ENT", href: ENT_URL, external: true },
     { title: "PRONOTE via l’ENT", description: "Notes, emploi du temps et vie scolaire selon les services activés par le lycée", icon: GraduationCap, color: "green", progress: "Accès officiel du lycée", action: "Ouvrir l’ENT", href: ENT_URL, external: true },
     { title: "Scolarité Services", description: "Bourses, inscriptions et démarches proposées aux familles", icon: FileText, color: "coral", progress: "Service national", action: "Comprendre et accéder", href: SCOLARITE_SERVICES_URL, external: true },
-    { title: "Coordonnées personnelles", description: "Ajouter, corriger ou demander le retrait d’un email personnel", icon: UserRound, color: "gold", progress: "Email vérifié puis validation humaine", action: "Gérer mes coordonnées", collect: true },
-    { title: "LyceeGest", description: "Stages, Grand Oral et outils de gestion du lycée", icon: BarChart3, color: "blue", progress: "Application complète", action: "Ouvrir LyceeGest", href: LYCEEGEST_URL },
+    { title: "Coordonnées personnelles", description: "Demandez l’ajout, la correction ou le retrait d’un email personnel.", icon: UserRound, color: "gold", progress: "Email vérifié puis validation humaine", action: "Demander une modification", collect: true },
+    { title: "LyceeGest", description: "Stages, Grand Oral et outils de gestion du lycée", icon: BarChart3, color: "blue", progress: "Compte du lycée nécessaire", action: "Ouvrir LyceeGest", href: LYCEEGEST_URL },
     { title: "Stages de seconde", description: "Convention, entreprise, livret et suivi du stage", icon: BriefcaseBusiness, color: "gold", progress: "Module LyceeGest", action: "Ouvrir Stages", href: "/stages" },
     { title: "Grand Oral", description: "Questions, validations des professeurs et fiche officielle", icon: Mic2, color: "green", progress: "Module LyceeGest", action: "Ouvrir Grand Oral", href: "/grand-oral" },
   ];
   return (
     <div className="lycee-page">
-      <PageIntro eyebrow="Application lycée" title="Mes services" description="Les outils déjà présents dans Gest et les nouveaux services du lycée, réunis au même endroit." onBack={onBack} />
+      <PageIntro eyebrow="Application lycée" title="Mes services" description="Retrouvez les accès utiles et choisissez la démarche adaptée à votre besoin." onBack={onBack} />
       <div className="lycee-services-catalog">
         {SAFESCOL_ACCESS_ENABLED && SAFESCOL_URL ? (
           <article data-tone="coral">
@@ -2877,13 +2891,13 @@ function ServicesView({ onHelp, onCollect, onBack }: { onHelp: () => void; onCol
           <article data-tone={service.color} key={service.title}>
             <span className="lycee-catalog-icon"><service.icon aria-hidden="true" /></span>
             <div><h2>{service.title}</h2><p>{service.description}</p><small>{service.progress}</small></div>
-            {service.help ? <button type="button" onClick={onHelp}>{service.action}<ChevronRight aria-hidden="true" /></button> : service.collect ? <button type="button" onClick={onCollect}>{service.action}<ChevronRight aria-hidden="true" /></button> : <a href={service.href} target={service.external ? "_blank" : undefined} rel={service.external ? "noreferrer" : undefined}>{service.action}{service.external ? <ExternalLink aria-hidden="true" /> : <ChevronRight aria-hidden="true" />}</a>}
+            {service.help ? <button type="button" onClick={() => onHelp(service.prompt)}>{service.action}<ChevronRight aria-hidden="true" /></button> : service.collect ? <button type="button" onClick={onCollect}>{service.action}<ChevronRight aria-hidden="true" /></button> : <a href={service.href} target={service.external ? "_blank" : undefined} rel={service.external ? "noreferrer" : undefined}>{service.action}{service.external ? <ExternalLink aria-hidden="true" /> : <ChevronRight aria-hidden="true" />}</a>}
           </article>
         ))}
       </div>
       <section className="lycee-mail-bridge">
-        <div><Headphones aria-hidden="true" /><span><span className="lycee-eyebrow">Besoin d’aide</span><h2>Une seule conversation jusqu’à la réponse</h2><p>Expliquez le problème, ajoutez vos documents et suivez le traitement sans recommencer.</p></span></div>
-        <button type="button" onClick={onHelp}>Parler à l’assistant <MessageCircleMore aria-hidden="true" /></button>
+        <div><Headphones aria-hidden="true" /><span><span className="lycee-eyebrow">Besoin d’aide</span><h2>Une demande, un suivi</h2><p>Expliquez votre besoin, joignez les documents utiles et retrouvez les échanges dans « Mes demandes ».</p></span></div>
+        <button type="button" onClick={() => onHelp()}>Parler à l’assistant <MessageCircleMore aria-hidden="true" /></button>
       </section>
     </div>
   );
@@ -2921,13 +2935,13 @@ function SchoolView({ onBack, onHelp }: { onBack: () => void; onHelp: (prompt?: 
       title: "Voie technologique",
       icon: GraduationCap,
       description: "Des parcours scientifiques et tertiaires jusqu’au baccalauréat.",
-      items: "STL Sciences physiques et chimiques en laboratoire, STMG gestion-finance, mercatique ou RH-communication",
+      items: "STL : sciences physiques et chimiques en laboratoire. STMG : gestion et finance, mercatique, ressources humaines et communication.",
     },
     {
       title: "Voie professionnelle",
       icon: Settings2,
       description: "Des formations concrètes dans l’énergie, les procédés et la maintenance.",
-      items: "2de MTNE, 2de MPMIA, Bac pro MELEC et Bac pro PCEPC",
+      items: "Secondes professionnelles MTNE et MPMIA, puis baccalauréats professionnels MELEC et PCEPC.",
     },
     {
       title: "CAP",
@@ -2977,7 +2991,7 @@ function SchoolView({ onBack, onHelp }: { onBack: () => void; onHelp: (prompt?: 
     {
       title: "CDI et ressources documentaires",
       description: "Rechercher des documents, préparer un travail et accéder au portail documentaire du lycée.",
-      detail: "Les horaires 2026-2027 seront publiés après validation du CDI.",
+      detail: "Consultez le CDI pour connaître ses horaires d’accueil.",
       action: "Ouvrir E-sidoc",
       href: "https://0932048w.esidoc.fr/",
       icon: BookOpenCheck,
@@ -2985,7 +2999,7 @@ function SchoolView({ onBack, onHelp }: { onBack: () => void; onHelp: (prompt?: 
     {
       title: "Association sportive et UNSS",
       description: "Découvrir les activités sportives et les modalités d’inscription proposées aux élèves.",
-      detail: "Activités, horaires et autorisation parentale en cours de validation pour l’année.",
+      detail: "Pour les activités, les horaires et l’inscription de cette année, renseignez-vous auprès de l’équipe d’EPS.",
       action: "Poser une question",
       prompt: "Je souhaite des informations à jour sur l’UNSS et les activités sportives du lycée.",
       icon: UsersRound,
@@ -2993,7 +3007,7 @@ function SchoolView({ onBack, onHelp }: { onBack: () => void; onHelp: (prompt?: 
     {
       title: "Mini-stages de découverte",
       description: "Découvrir une formation technologique, professionnelle ou le CAP avant de faire son choix.",
-      detail: "Les dates et le formulaire seront publiés après confirmation des équipes responsables.",
+      detail: "Les dates et les modalités d’accueil doivent être confirmées par les équipes responsables.",
       action: "Demander une information",
       prompt: "Je souhaite des informations sur les mini-stages de découverte du lycée.",
       icon: BriefcaseBusiness,
@@ -3002,17 +3016,18 @@ function SchoolView({ onBack, onHelp }: { onBack: () => void; onHelp: (prompt?: 
 
   return (
     <div className="lycee-page">
-      <PageIntro eyebrow="Lycée polyvalent" title="Blaise Cendrars, Sevran" description="Découvrez les spécialités, les voies de formation et les accès utiles de l'établissement." onBack={onBack} />
+      <PageIntro eyebrow="Lycée polyvalent" title="Blaise Cendrars, Sevran" description="Formations, vie scolaire, rendez-vous et coordonnées : retrouvez les repères utiles pour votre parcours au lycée." onBack={onBack} />
       <section className="lycee-school-feature">
         <img src="/blaise-cendrars-portrait.webp" alt="Portrait de Blaise Cendrars" />
         <div><span className="lycee-eyebrow">Une identité, plusieurs parcours</span><h2>Un lycée ouvert sur les sciences, les humanités et les métiers</h2><p>À Sevran, les voies générale, technologique et professionnelle se rencontrent dans un même établissement.</p><button type="button" onClick={() => document.getElementById("specialites")?.scrollIntoView({ behavior: "smooth" })}>Voir les spécialités <ChevronRight aria-hidden="true" /></button></div>
       </section>
-      <div className="lycee-school-stats"><div><strong>Polyvalent</strong><span>général, techno et pro</span></div><div><strong>8</strong><span>spécialités générales</span></div><div><strong>15</strong><span>formations référencées</span></div><div><strong>Euro</strong><span>section européenne anglais</span></div></div>
+      <SchoolParentsMeeting />
+      <div className="lycee-school-stats"><div><strong>Polyvalent</strong><span>général, technologique et professionnel</span></div><div><strong>8</strong><span>spécialités générales</span></div><div><strong>CAP au bac</strong><span>parcours de formation</span></div><div><strong>Euro</strong><span>section européenne anglais</span></div></div>
       <nav className="lycee-school-nav" aria-label="Rubriques du lycée">
         <Link to="/?view=school#specialites">Spécialités</Link>
         <Link to="/?view=school#formations">Formations</Link>
         <Link to="/?view=school#vie-lycee">Vie du lycée</Link>
-        <Link to="/?view=school#infos-pratiques">Infos pratiques</Link>
+        <Link to="/?view=school#infos-pratiques">Informations pratiques</Link>
       </nav>
       <section className="lycee-specialties" id="specialites" aria-labelledby="specialites-title">
         <div className="lycee-section-title">
@@ -3084,12 +3099,13 @@ function SchoolView({ onBack, onHelp }: { onBack: () => void; onHelp: (prompt?: 
       <section className="lycee-practical" id="infos-pratiques" aria-labelledby="practical-title">
         <div className="lycee-section-title"><div><span className="lycee-eyebrow">Venir et contacter</span><h2 id="practical-title">Informations pratiques</h2></div></div>
         <div className="lycee-practical-grid">
-          <a href="https://maps.app.goo.gl/qoEq5cf4UwTm5diC7" target="_blank" rel="noreferrer"><MapPin aria-hidden="true" /><span><strong>12 avenue Léon Jouhaux</strong><small>93270 Sevran · ouvrir l’itinéraire</small></span><ExternalLink aria-hidden="true" /></a>
-          <a href="tel:+33149362050"><Phone aria-hidden="true" /><span><strong>01 49 36 20 50</strong><small>Accueil du lycée</small></span><ChevronRight aria-hidden="true" /></a>
-          <a href="mailto:ce.0932048w@ac-creteil.fr"><Mail aria-hidden="true" /><span><strong>ce.0932048w@ac-creteil.fr</strong><small>Adresse académique officielle</small></span><ChevronRight aria-hidden="true" /></a>
-          <div><GraduationCap aria-hidden="true" /><span><strong>RER B · Sevran-Livry</strong><small>Bus 618 · arrêt Collège Georges Brassens</small></span></div>
+          <a href="https://maps.app.goo.gl/qoEq5cf4UwTm5diC7" target="_blank" rel="noreferrer"><MapPin aria-hidden="true" /><span><strong>{SCHOOL_PUBLIC_INFORMATION.address}</strong><small>{SCHOOL_PUBLIC_INFORMATION.locality} · ouvrir l’itinéraire</small></span><ExternalLink aria-hidden="true" /></a>
+          <a href={SCHOOL_PUBLIC_INFORMATION.phoneHref}><Phone aria-hidden="true" /><span><strong>{SCHOOL_PUBLIC_INFORMATION.phone}</strong><small>Accueil du lycée</small></span><ChevronRight aria-hidden="true" /></a>
+          <a href={`mailto:${SCHOOL_PUBLIC_INFORMATION.email}`}><Mail aria-hidden="true" /><span><strong>{SCHOOL_PUBLIC_INFORMATION.email}</strong><small>Adresse académique officielle</small></span><ChevronRight aria-hidden="true" /></a>
+          <a href="https://www.iledefrance-mobilites.fr/" target="_blank" rel="noreferrer"><GraduationCap aria-hidden="true" /><span><strong>Venir en transports en commun</strong><small>Vérifiez votre itinéraire et les horaires sur Île-de-France Mobilités.</small></span><ExternalLink aria-hidden="true" /></a>
         </div>
-        <div className="lycee-publication-note"><BadgeCheck aria-hidden="true" /><span><strong>Informations contrôlées avant publication</strong><small>Les dates, horaires et documents annuels seront ajoutés uniquement après validation du service responsable.</small></span></div>
+        <div className="lycee-publication-note"><BadgeCheck aria-hidden="true" /><span><strong>Accueil sur rendez-vous</strong><small>{SCHOOL_PUBLIC_INFORMATION.welcome}</small></span></div>
+        <button className="lycee-primary-action" type="button" onClick={() => onHelp("Je souhaite demander un rendez-vous au lycée.")}>Demander un rendez-vous <ChevronRight aria-hidden="true" /></button>
       </section>
       <section className="lycee-quick-links"><div className="lycee-section-title"><div><span className="lycee-eyebrow">Liens utiles</span><h2>Accès rapides</h2></div></div><div>{links.map((link) => <a href={link.href} target="_blank" rel="noreferrer" key={link.label}><link.icon aria-hidden="true" /><span>{link.label}</span><ExternalLink aria-hidden="true" /></a>)}</div></section>
     </div>
@@ -4275,11 +4291,11 @@ function ConnectedAgentView({ onBack }: { onBack: () => void }) {
         </div>
         {nextQueueAction.mode && nextQueueAction.actionLabel ? <button type="button" onClick={() => { setQueueMode(nextQueueAction.mode ?? "all"); setPage(1); setSelectedCode(null); }}><b>{nextQueueAction.count}</b><span>{nextQueueAction.actionLabel}</span><ChevronRight aria-hidden="true" /></button> : <b className="lycee-agent-next-action-done"><CheckCircle2 aria-hidden="true" /> À jour</b>}
       </section> : null}
-      {access?.canViewAll && orderedServiceStats.length > 0 ? <section className="lycee-service-load" aria-label="Charge par service"><div><small>Vue superadministrateur</small><strong>Charge par service</strong></div><nav aria-label="Filtrer par charge de service">{orderedServiceStats.map((item) => { const value = item.service ?? "unassigned"; return <button type="button" aria-pressed={serviceFilter === value} className={serviceFilter === value ? "is-active" : ""} onClick={() => { setServiceFilter(value); setPage(1); }} key={value}><span>{supportTeamLabel(item.service)}</span><strong>{item.open}</strong><small>{item.urgent > 0 ? `${item.urgent} urgente${item.urgent > 1 ? "s" : ""}` : "Aucune urgence"}{item.overdue > 0 ? ` · ${item.overdue} en retard` : ""}</small></button>; })}</nav></section> : null}
+      {access?.canViewAll && orderedServiceStats.length > 0 ? <section className="lycee-service-load" aria-label="Charge par service"><div><small>Vue de gestion</small><strong>Charge par service</strong></div><nav aria-label="Filtrer par charge de service">{orderedServiceStats.map((item) => { const value = item.service ?? "unassigned"; return <button type="button" aria-pressed={serviceFilter === value} className={serviceFilter === value ? "is-active" : ""} onClick={() => { setServiceFilter(value); setPage(1); }} key={value}><span>{supportTeamLabel(item.service)}</span><strong>{item.open}</strong><small>{item.urgent > 0 ? `${item.urgent} urgente${item.urgent > 1 ? "s" : ""}` : "Aucune urgence"}{item.overdue > 0 ? ` · ${item.overdue} en retard` : ""}</small></button>; })}</nav></section> : null}
       <div className="lycee-agent-workspace">
         <section className="lycee-agent-queue" aria-label="File des demandes">
           <div className="lycee-agent-toolbar"><label><Search aria-hidden="true" /><input aria-label="Rechercher une demande" maxLength={80} value={query} onChange={(event) => { setQuery(event.target.value); setPage(1); }} placeholder="Nom, numéro ou objet" /></label><button className={queueMode === "mine" ? "is-active" : ""} type="button" aria-label="Afficher mes demandes" aria-pressed={queueMode === "mine"} title="Afficher mes demandes" onClick={() => { setQueueMode((current) => current === "mine" ? "all" : "mine"); setPage(1); }}><Filter aria-hidden="true" /></button><button type="button" aria-label="Réinitialiser les filtres" title="Réinitialiser les filtres" disabled={!hasQueueFilters} onClick={resetQueueFilters}><RotateCcw aria-hidden="true" /></button><select aria-label="Filtrer par service" value={serviceFilter} onChange={(event) => { setServiceFilter(event.target.value); setPage(1); }}><option value="">{access?.canViewAll ? "Tous les services" : "Mon périmètre"}</option>{access?.canViewAll ? <option value="unassigned">À orienter</option> : null}{availableTeams.map((team) => <option value={team.value} key={team.value}>{team.label}</option>)}</select></div>
-          <div className="lycee-agent-tabs" aria-label="Filtrer les demandes"><button aria-pressed={queueMode === "all"} className={queueMode === "all" ? "is-active" : ""} type="button" onClick={() => { setQueueMode("all"); setPage(1); }}>Toutes <span>{stats.total}</span></button><button aria-pressed={queueMode === "qualify"} className={queueMode === "qualify" ? "is-active" : ""} type="button" onClick={() => { setQueueMode("qualify"); setPage(1); }}>À classer <span>{stats.qualify}</span></button><button aria-pressed={queueMode === "urgent"} className={queueMode === "urgent" ? "is-active" : ""} type="button" onClick={() => { setQueueMode("urgent"); setPage(1); }}>Urgentes <span>{stats.urgent}</span></button><button aria-pressed={queueMode === "overdue"} className={queueMode === "overdue" ? "is-active" : ""} type="button" onClick={() => { setQueueMode("overdue"); setPage(1); }}>En retard <span>{stats.overdue}</span></button><button aria-pressed={queueMode === "waiting"} className={queueMode === "waiting" ? "is-active" : ""} type="button" onClick={() => { setQueueMode("waiting"); setPage(1); }}>En attente <span>{stats.waitingRequester}</span></button><button aria-pressed={queueMode === "internal"} className={queueMode === "internal" ? "is-active" : ""} type="button" onClick={() => { setQueueMode("internal"); setPage(1); }}>À vérifier <span>{stats.waitingInternal}</span></button><button aria-pressed={queueMode === "unassigned"} className={queueMode === "unassigned" ? "is-active" : ""} type="button" onClick={() => { setQueueMode("unassigned"); setPage(1); }}>Sans agent <span>{stats.unassigned}</span></button><button aria-pressed={queueMode === "callbacks"} className={queueMode === "callbacks" ? "is-active" : ""} type="button" onClick={() => { setQueueMode("callbacks"); setPage(1); }}>Rappels <span>{stats.callbacks}</span></button><button aria-pressed={queueMode === "duplicates"} className={queueMode === "duplicates" ? "is-active" : ""} type="button" onClick={() => { setQueueMode("duplicates"); setPage(1); }}>Doublons <span>{stats.duplicates}</span></button></div>
+          <div className="lycee-agent-tabs" aria-label="Filtrer les demandes"><button aria-pressed={queueMode === "all"} className={queueMode === "all" ? "is-active" : ""} type="button" onClick={() => { setQueueMode("all"); setPage(1); }}>Toutes <span>{stats.total}</span></button><button aria-pressed={queueMode === "qualify"} className={queueMode === "qualify" ? "is-active" : ""} type="button" onClick={() => { setQueueMode("qualify"); setPage(1); }}>À classer <span>{stats.qualify}</span></button><button aria-pressed={queueMode === "urgent"} className={queueMode === "urgent" ? "is-active" : ""} type="button" onClick={() => { setQueueMode("urgent"); setPage(1); }}>Urgentes <span>{stats.urgent}</span></button><button aria-pressed={queueMode === "overdue"} className={queueMode === "overdue" ? "is-active" : ""} type="button" onClick={() => { setQueueMode("overdue"); setPage(1); }}>En retard <span>{stats.overdue}</span></button><button aria-pressed={queueMode === "waiting"} className={queueMode === "waiting" ? "is-active" : ""} type="button" onClick={() => { setQueueMode("waiting"); setPage(1); }}>En attente <span>{stats.waitingRequester}</span></button><button aria-pressed={queueMode === "internal"} className={queueMode === "internal" ? "is-active" : ""} type="button" onClick={() => { setQueueMode("internal"); setPage(1); }}>À vérifier <span>{stats.waitingInternal}</span></button><button aria-pressed={queueMode === "unassigned"} className={queueMode === "unassigned" ? "is-active" : ""} type="button" onClick={() => { setQueueMode("unassigned"); setPage(1); }}>À attribuer <span>{stats.unassigned}</span></button><button aria-pressed={queueMode === "callbacks"} className={queueMode === "callbacks" ? "is-active" : ""} type="button" onClick={() => { setQueueMode("callbacks"); setPage(1); }}>Rappels <span>{stats.callbacks}</span></button><button aria-pressed={queueMode === "duplicates"} className={queueMode === "duplicates" ? "is-active" : ""} type="button" onClick={() => { setQueueMode("duplicates"); setPage(1); }}>Doublons <span>{stats.duplicates}</span></button></div>
           <div className="lycee-agent-list" aria-busy={queueLoading}>
             {queueLoading ? <div className="lycee-agent-list-loading" role="status" aria-live="polite"><Clock3 aria-hidden="true" /> Mise à jour…</div> : null}
             <ul aria-label="Demandes affichées">
@@ -4289,7 +4305,7 @@ function ConnectedAgentView({ onBack }: { onBack: () => void }) {
                 return <li key={request.publicCode}><button aria-pressed={isSelected} aria-current={isSelected ? "true" : undefined} className={isSelected ? "is-selected" : ""} type="button" onClick={() => setSelectedCode(request.publicCode)}>
                   <span className="lycee-request-avatar">{`${request.requesterFirstName[0] ?? ""}${request.requesterLastName[0] ?? ""}`}</span>
                   <span><strong>{request.subject}</strong><small>{request.requesterFirstName} {request.requesterLastName} · {requesterProfileLabels[request.requesterType] ?? request.requesterType}</small><em>{supportTeamLabel(request.assignedTeam)} · {supportCategoryLabel(request.category)} · {supportSlaLabel(request.slaDueAt)}</em></span>
-                  <span className="lycee-request-flags"><b data-kind="status">{agentStatusLabels[request.status] ?? request.status}</b>{hasSupportAgentWorkDraft(agentWorkDraftsRef.current, request.publicCode) ? <b data-kind="draft">Brouillon</b> : null}{["p1", "p2"].includes(request.priority) ? <b>Urgent</b> : null}{request.callbackPending ? <b data-kind="callback">Rappel</b> : null}{request.duplicatePending ? <b data-kind="duplicate">Doublon ?</b> : null}{queueState.unassigned ? <b data-kind="unassigned">Sans agent</b> : null}{queueState.overdue ? <b data-kind="overdue">En retard</b> : null}</span>
+                  <span className="lycee-request-flags"><b data-kind="status">{agentStatusLabels[request.status] ?? request.status}</b>{hasSupportAgentWorkDraft(agentWorkDraftsRef.current, request.publicCode) ? <b data-kind="draft">Brouillon</b> : null}{["p1", "p2"].includes(request.priority) ? <b>Urgent</b> : null}{request.callbackPending ? <b data-kind="callback">Rappel</b> : null}{request.duplicatePending ? <b data-kind="duplicate">Doublon ?</b> : null}{queueState.unassigned ? <b data-kind="unassigned">À attribuer</b> : null}{queueState.overdue ? <b data-kind="overdue">En retard</b> : null}</span>
                 </button></li>;
               })}
             </ul>
@@ -4307,13 +4323,13 @@ function ConnectedAgentView({ onBack }: { onBack: () => void }) {
                   <Headphones aria-hidden="true" />
                   <span>
                     <small>Rappel téléphonique</small>
-                    <strong>{activeCallback?.status === "todo" ? "Rappel à prendre" : activeCallback?.status === "in_progress" ? "Rappel en cours" : lastFinishedCallback?.status === "done" ? "Dernier rappel terminé" : "Aucun rappel en attente"}</strong>
+                    <strong>{activeCallback?.status === "todo" ? "Rappel à effectuer" : activeCallback?.status === "in_progress" ? "Rappel en cours" : lastFinishedCallback?.status === "done" ? "Dernier rappel terminé" : "Aucun rappel en attente"}</strong>
                     <p>{phoneContact.value}{activeCallback?.dueAt ? ` · demandé le ${supportDate(activeCallback.dueAt)}` : ""}</p>
                     {lastFinishedCallback?.outcome && !activeCallback ? <em>{lastFinishedCallback.outcome}</em> : null}
                   </span>
                   <div>
                     {!activeCallback ? <button type="button" disabled={saving || selected.status === "clos"} onClick={() => void createCallback(phoneContact.id)}>Programmer</button> : null}
-                    {activeCallback?.status === "todo" ? <button type="button" disabled={saving} onClick={() => void updateCallback(activeCallback.id, "claim")}>Prendre le rappel</button> : null}
+                    {activeCallback?.status === "todo" ? <button type="button" disabled={saving} onClick={() => void updateCallback(activeCallback.id, "claim")}>Prendre en charge le rappel</button> : null}
                     {activeCallback?.status === "in_progress" && activeCallback.assignedToCurrentAgent ? <><textarea aria-label="Résultat du rappel" rows={2} maxLength={1000} value={callbackOutcome} disabled={saving} onChange={(event) => changeCallbackOutcome(event.target.value)} placeholder="Résultat de l’appel…" /><button type="button" disabled={saving || callbackOutcome.trim().length < 2} onClick={() => void updateCallback(activeCallback.id, "complete")}>Terminer</button></> : null}
                     {activeCallback?.status === "in_progress" && !activeCallback.assignedToCurrentAgent ? <small>Pris en charge par un autre agent</small> : null}
                   </div>
@@ -4323,11 +4339,11 @@ function ConnectedAgentView({ onBack }: { onBack: () => void }) {
               <section className="lycee-agent-routing"><ArrowRightLeft aria-hidden="true" /><span><strong>Service responsable</strong><small>{access?.canRoute ? "Le transfert conserve tous les messages et documents. Un changement corrige le classement proposé." : "Le superadministrateur réalise les transferts entre services."}</small></span><select aria-label="Service responsable" value={selected.assignedTeam ?? ""} disabled={saving || selected.status === "clos" || !access?.canRoute} onChange={(event) => void updateRequest({ assignedTeam: event.target.value || null, status: ["nouveau", "a_qualifier"].includes(selected.status) ? "assigne" : selected.status })}><option value="">À orienter</option>{supportTeams.map((team) => <option value={team.value} key={team.value}>{team.label}</option>)}</select></section>
 <section className="lycee-agent-identity" data-sensitive={supportReplyRequiresSchoolIdentity(selected)}><BadgeCheck aria-hidden="true" /><span><strong>{identityStatusLabels[selected.identityStatus]}</strong><small>{supportReplyRequiresSchoolIdentity(selected) ? "Demande sensible : vérifiez l’identité scolaire avant de transmettre des informations ou documents personnels." : "Adaptez le contrôle au niveau de sensibilité de la réponse."}</small></span><select aria-label="Niveau de vérification de l’identité" value={selected.identityStatus} disabled={saving} onChange={(event) => { const identityStatus = event.target.value as IdentityStatus; const identityMethod = identityStatus === "identite_confirmee" ? "official_roster" : identityStatus === "contact_verifie" ? (detail.contacts.some((contact) => contact.channel === "email" && contact.isVerified) ? "email_magic_link" : "phone_callback") : undefined; void updateRequest({ identityStatus, identityMethod }); }}><option value="non_verifiee">Coordonnées déclarées</option><option value="contact_verifie">Contact vérifié</option><option value="identite_confirmee">Identité confirmée dans la liste</option></select></section>
               {personalContactAction ? <section className="lycee-agent-contact-review" aria-label="Contrôle de la demande de coordonnées"><Mail aria-hidden="true" /><div><small>Action demandée</small><strong>{personalContactAction}</strong><p>{emailContact?.value ?? "Adresse email absente du dossier"}</p></div><dl><div data-ready={emailContact?.isVerified}><dt>Email</dt><dd>{emailContact?.isVerified ? "Adresse vérifiée par le lien" : "Lien de vérification attendu"}</dd></div><div data-ready={selected.identityStatus === "identite_confirmee"}><dt>Identité</dt><dd>{selected.identityStatus === "identite_confirmee" ? "Confirmée dans la liste officielle" : "Rapprochement officiel à terminer"}</dd></div></dl><p className="lycee-agent-contact-warning"><CircleAlert aria-hidden="true" /> Ne confirmez jamais une mise à jour du Webmail tant que son registre externe n’a pas renvoyé une preuve.</p></section> : null}
-              {detail.duplicateReview ? <section className="lycee-agent-duplicate" data-status={detail.duplicateReview.status}><Copy aria-hidden="true" /><span><strong>{detail.duplicateReview.status === "pending" ? "Possible doublon à vérifier" : detail.duplicateReview.status === "confirmed" ? "Doublon confirmé" : "Dossiers distincts"}</strong><small>Même contact et même catégorie sur sept jours. Aucun dossier n’est fusionné automatiquement.</small></span><div>{detail.duplicateReview.candidatePublicCode ? <button type="button" onClick={() => setSelectedCode(detail.duplicateReview?.candidatePublicCode ?? null)}>Voir {detail.duplicateReview.candidatePublicCode}</button> : null}{detail.duplicateReview.status === "pending" && detail.duplicateReview.candidatePublicCode ? <><button type="button" disabled={saving} onClick={() => void updateRequest({ duplicateDecision: "dismissed" })}>Dossiers distincts</button><button type="button" disabled={saving} onClick={() => void updateRequest({ duplicateDecision: "confirmed" })}>Confirmer</button></> : detail.duplicateReview.status === "pending" ? <small>Validation réservée à un agent autorisé à consulter les deux dossiers.</small> : <small>Décision humaine enregistrée dans l’audit.</small>}</div></section> : null}
+              {detail.duplicateReview ? <section className="lycee-agent-duplicate" data-status={detail.duplicateReview.status}><Copy aria-hidden="true" /><span><strong>{detail.duplicateReview.status === "pending" ? "Possible doublon à vérifier" : detail.duplicateReview.status === "confirmed" ? "Doublon confirmé" : "Dossiers distincts"}</strong><small>Même contact et même catégorie sur sept jours. Aucun dossier n’est fusionné automatiquement.</small></span><div>{detail.duplicateReview.candidatePublicCode ? <button type="button" onClick={() => setSelectedCode(detail.duplicateReview?.candidatePublicCode ?? null)}>Voir {detail.duplicateReview.candidatePublicCode}</button> : null}{detail.duplicateReview.status === "pending" && detail.duplicateReview.candidatePublicCode ? <><button type="button" disabled={saving} onClick={() => void updateRequest({ duplicateDecision: "dismissed" })}>Dossiers distincts</button><button type="button" disabled={saving} onClick={() => void updateRequest({ duplicateDecision: "confirmed" })}>Confirmer</button></> : detail.duplicateReview.status === "pending" ? <small>Validation réservée à un agent autorisé à consulter les deux dossiers.</small> : <small>Décision enregistrée dans l’historique.</small>}</div></section> : null}
               <div className="lycee-agent-thread">{detail.messages.map((message) => <div data-direction={message.direction} data-author={message.authorLabel === "Assistant du lycée" ? "assistant" : undefined} key={message.id}><span><strong>{message.direction === "internal" ? "Note interne" : message.authorLabel ?? "Utilisateur"}</strong><small>{supportDate(message.createdAt)}{message.direction === "internal" ? " · invisible pour l’utilisateur" : message.authorLabel === "Assistant du lycée" ? " · réponse automatique" : ` · ${supportDeliveryLabel(message.deliveryStatus)}`}</small></span><p>{message.bodyText}</p></div>)}</div>
               {detail.attachments.length > 0 ? <div className="lycee-tracked-files">{detail.attachments.map((attachment) => <div key={attachment.id}><FileText aria-hidden="true" /><span><strong>{attachment.originalName}</strong><small>{attachment.direction === "agent" ? attachment.releasedAt ? "Envoyé au demandeur · " : "Préparé par un agent · " : "Reçu du demandeur · "}{attachment.scanStatus === "clean" ? "vérifié" : attachment.scanStatus === "blocked" ? "refusé" : attachment.scanStatus === "scan_error" ? "contrôle indisponible" : "contrôle en cours"}</small></span>{attachment.scanStatus === "clean" ? <button type="button" onClick={() => void openAgentAttachment(attachment.id)} aria-label={`Ouvrir ${attachment.originalName}`}><ExternalLink aria-hidden="true" /></button> : null}</div>)}</div> : null}
               <section className="lycee-agent-ai"><div><WandSparkles aria-hidden="true" /><span><span className="lycee-eyebrow">Aide au traitement</span><h3>{supportCategoryLabel(selected.category)} · priorité {priorityLabels[selected.priority] ?? "Normale"}</h3></span></div><dl><div><dt>Personne</dt><dd>{selected.beneficiaryType === "self" ? "Demandeur" : `${selected.beneficiaryFirstName ?? ""} ${selected.beneficiaryLastName ?? ""}`}</dd></div><div><dt>Canal disponible</dt><dd>{detail.contacts.map((contact) => channelLabels[contact.channel] ?? contact.channel).join(" + ")}</dd></div><div><dt>{normalizationLabels.language}</dt><dd>{selected.subjectContext.detectedLanguage ?? "Non déterminée"}</dd></div><div><dt>Langue de réponse</dt><dd>{languagePreferenceLabels[selected.subjectContext.languagePreference ?? ""] ?? "Non précisée"}</dd></div><div><dt>Aide à la compréhension</dt><dd>{selected.subjectContext.communicationSupport ?? "Réponse écrite"}</dd></div><div><dt>Pièces</dt><dd>{detail.attachments.length} {detail.attachments.length > 1 ? "documents" : "document"}</dd></div></dl>{selected.subjectContext.internalSummaryFr ? <div className="lycee-agent-french-summary"><Languages aria-hidden="true" /><span><small>{normalizationLabels.summary}</small><p>{selected.subjectContext.internalSummaryFr}</p><em>{normalizationLabels.notice}</em></span></div> : null}</section>
-              <section className="lycee-agent-actions"><div><span><StickyNote aria-hidden="true" /><strong>Note interne</strong><small>Visible uniquement par les agents.</small></span><textarea aria-label="Note interne" rows={3} value={internalNote} disabled={saving} onChange={(event) => changeInternalNote(event.target.value)} placeholder="Diagnostic, appel effectué ou prochaine action…" maxLength={5000} /><button type="button" disabled={saving || !internalNote.trim()} onClick={() => void saveInternalNote()}>Ajouter la note</button></div><div data-closed={selected.status === "clos"}><span><CheckCircle2 aria-hidden="true" /><strong>{selected.status === "clos" ? "Dossier clôturé" : "Clôturer proprement"}</strong><small>{selected.status === "clos" ? selected.subjectContext.closureReason ?? "Motif enregistré dans l’historique." : requiresSafeIdentityReply ? "Confirmez d’abord l’identité scolaire pour cette demande sensible." : "Un motif est obligatoire et reste dans l’audit."}</small></span>{selected.status === "clos" ? <button type="button" disabled={saving} onClick={() => void updateRequest({ status: "en_cours" })}>Rouvrir le dossier</button> : <><textarea aria-label="Motif de clôture" rows={3} value={closureReason} onChange={(event) => changeClosureReason(event.target.value)} placeholder="Solution apportée ou raison de la clôture…" maxLength={500} /><button type="button" disabled={saving || !closureReason.trim() || requiresSafeIdentityReply} onClick={() => void updateRequest({ status: "clos", closureReason })}>Clôturer le dossier</button></>}</div></section>
+              <section className="lycee-agent-actions"><div><span><StickyNote aria-hidden="true" /><strong>Note interne</strong><small>Visible uniquement par les agents.</small></span><textarea aria-label="Note interne" rows={3} value={internalNote} disabled={saving} onChange={(event) => changeInternalNote(event.target.value)} placeholder="Diagnostic, appel effectué ou prochaine action…" maxLength={5000} /><button type="button" disabled={saving || !internalNote.trim()} onClick={() => void saveInternalNote()}>Ajouter la note</button></div><div data-closed={selected.status === "clos"}><span><CheckCircle2 aria-hidden="true" /><strong>{selected.status === "clos" ? "Dossier clôturé" : "Clôturer la demande"}</strong><small>{selected.status === "clos" ? selected.subjectContext.closureReason ?? "Motif enregistré dans l’historique." : requiresSafeIdentityReply ? "Confirmez d’abord l’identité scolaire pour cette demande sensible." : "Indiquez le motif de clôture ; il sera conservé dans l’historique."}</small></span>{selected.status === "clos" ? <button type="button" disabled={saving} onClick={() => void updateRequest({ status: "en_cours" })}>Rouvrir le dossier</button> : <><textarea aria-label="Motif de clôture" rows={3} value={closureReason} onChange={(event) => changeClosureReason(event.target.value)} placeholder="Solution apportée ou raison de la clôture…" maxLength={500} /><button type="button" disabled={saving || !closureReason.trim() || requiresSafeIdentityReply} onClick={() => void updateRequest({ status: "clos", closureReason })}>Clôturer le dossier</button></>}</div></section>
               <section className="lycee-reply-box">
                 <div>
                   <span><Sparkles aria-hidden="true" /> {requiresSafeIdentityReply ? "Consigne de vérification sécurisée" : "Réponse en français"}</span>

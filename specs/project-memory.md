@@ -1,9 +1,17 @@
 # Memoire durable - Portail numerique du Lycee Blaise Cendrars
 
-**Derniere mise a jour** : 2 septembre 2026
+**Derniere mise a jour** : 7 septembre 2026
 **Branche de travail** : `codex/lycee-connect-prototype`
 **Depot** : `abenmahmoud/Stage-Pilot`
 **Dernier jalon de code verifie** : branche de preview Vercel
+
+## Jalon du 7 septembre 2026 - révision éditoriale isolée
+
+- Branche `codex/correction-textes-lycee-20260907`, créée depuis `cd512c4` pour ne pas interrompre le travail de Claude sur les exports et les imports.
+- Accueil, services, formulaires, suivi, connexion et textes du livret de stage relus ; cantine rattachée explicitement à l’intendance dans les accès publics ; informations pratiques recoupées et accueil sur rendez-vous indiqué.
+- Rencontre des parents de seconde le 22 septembre 2026 : encart sans horaire inventé, retiré automatiquement après la journée. Aucun import automatique de ces textes dans les connaissances de l’assistant.
+- Build et vérifications ciblées réussis, contrôle visuel local mobile et ordinateur. Aucune publication ni modification des données réelles. Intégration avec les travaux en cours nécessaire avant déploiement.
+- Détails, sources, limites et instructions d’intégration : `docs/operations/REVISION_TEXTES_SITE_2026-09-07.md`.
 
 ## Jalon du 3 septembre 2026 - socle reseau du poste IA diagnostique
 

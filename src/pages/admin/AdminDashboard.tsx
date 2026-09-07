@@ -84,7 +84,7 @@ export default function AdminDashboard() {
           Administration
         </h1>
         <p className="text-sm text-gray-500 mt-1">
-          Vue d'ensemble — Année scolaire 2025-2026
+          Vue d’ensemble des données enregistrées dans LycéeGest
         </p>
       </div>
 

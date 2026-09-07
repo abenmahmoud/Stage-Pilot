@@ -373,7 +373,7 @@ export default function AppLayout() {
           <div className="flex items-center gap-1.5 text-sm text-gray-500">
             <span className="font-medium text-gray-900">LycéeGest</span>
             <ChevronRight className="w-3.5 h-3.5" />
-            <span>2026-2027</span>
+            <span>Portail du lycée</span>
           </div>
         </header>
         <main id="main-content" tabIndex={-1} className="flex-1 overflow-y-auto p-4 lg:p-8">

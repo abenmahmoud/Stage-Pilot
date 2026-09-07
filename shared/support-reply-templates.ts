@@ -15,7 +15,7 @@ export const DEFAULT_SUPPORT_REPLY_TEMPLATES: SupportReplyTemplate[] = [
     category: "all",
     name: "Prise en charge",
     bodyText:
-      "Bonjour {{prenom}}, votre demande {{numero}} concernant « {{objet}} » a bien été prise en charge. Nous revenons vers vous dès que la vérification est terminée.",
+      "Bonjour {{prenom}}, votre demande {{numero}} concernant « {{objet}} » a bien été prise en charge. Nous vous répondrons dans ce dossier lorsque les vérifications seront terminées.",
     allowedVariables: ["prenom", "numero", "objet"],
     builtIn: true,
   },
@@ -24,7 +24,7 @@ export const DEFAULT_SUPPORT_REPLY_TEMPLATES: SupportReplyTemplate[] = [
     category: "all",
     name: "Demande de précision",
     bodyText:
-      "Bonjour {{prenom}}, nous avons besoin d’une précision pour poursuivre le traitement de la demande {{numero}}. Pouvez-vous répondre à ce message en indiquant ce qui s’affiche exactement, sans transmettre de mot de passe ni de code reçu par SMS ?",
+      "Bonjour {{prenom}}, nous avons besoin d’une précision pour poursuivre le traitement de la demande {{numero}}. Pouvez-vous répondre à ce message en indiquant ce qui s’affiche exactement, sans transmettre de mot de passe, de code d’activation ni de code de vérification reçu par email ou SMS ?",
     allowedVariables: ["prenom", "numero"],
     builtIn: true,
   },

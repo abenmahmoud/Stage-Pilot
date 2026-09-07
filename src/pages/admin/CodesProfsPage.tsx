@@ -481,7 +481,7 @@ export default function CodesProfsPage() {
               <p style={{ fontSize: "8.5pt", color: "#666", lineHeight: 1.35 }}>
                 gestion.lycee-blaise-cendrars-sevran.fr
                 <br />
-                Onglet "Je suis professeur" - saisis ton code.
+                Onglet « Je suis professeur » : saisissez votre code.
               </p>
             </div>
           ))}

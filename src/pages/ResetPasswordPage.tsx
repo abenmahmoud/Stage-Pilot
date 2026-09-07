@@ -49,10 +49,10 @@ export default function ResetPasswordPage() {
         </div>
         <p className="mt-6 text-sm font-semibold text-emerald-700">Compte du lycée</p>
         <h1 className="mt-2 text-3xl font-bold leading-tight">
-          Choisir un nouveau mot de passe
+          Définir votre mot de passe
         </h1>
         <p className="mt-3 text-sm leading-6 text-slate-600">
-          Le lien reçu par email ouvre une session temporaire. Après la modification, vous devrez vous reconnecter.
+          Choisissez un mot de passe personnel pour votre compte du lycée. Vous vous reconnecterez ensuite avec ce mot de passe.
         </p>
 
         {loading ? (

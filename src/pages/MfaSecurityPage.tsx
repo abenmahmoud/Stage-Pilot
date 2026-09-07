@@ -138,7 +138,7 @@ export default function MfaSecurityPage() {
         <div className="mx-auto max-w-xl rounded-lg border border-slate-200 bg-white p-6">
           <h1 className="text-xl font-bold text-slate-950">Accès réservé</h1>
           <p className="mt-2 text-sm leading-6 text-slate-600">
-            Cette page protège les comptes de la direction et de l’administration.
+            Cette page est réservée aux membres habilités de l’équipe du lycée.
           </p>
           <Link className="mt-5 inline-flex items-center gap-2 text-sm font-semibold text-primary-500" to="/">
             <ArrowLeft className="h-4 w-4" /> Retour
@@ -175,7 +175,7 @@ export default function MfaSecurityPage() {
             Protéger l’espace de traitement des demandes
           </h1>
           <p className="mt-4 max-w-2xl text-base leading-7 text-slate-600">
-            Après votre connexion, un code temporaire affiché sur votre téléphone protège l’accès aux dossiers.
+            Après votre connexion, un code temporaire fourni par votre application d’authentification protège l’accès aux dossiers.
           </p>
 
           {error ? (
@@ -191,10 +191,10 @@ export default function MfaSecurityPage() {
           ) : isVerifiedNow ? (
             <div className="mt-10 border-l-4 border-emerald-500 pl-5">
               <div className="flex items-center gap-2 font-bold text-emerald-800">
-                <BadgeCheck className="h-5 w-5" /> Double vérification confirmée
+                <BadgeCheck className="h-5 w-5" /> Compte sécurisé pour cette session
               </div>
               <p className="mt-2 text-sm leading-6 text-slate-600">
-                La double vérification est active pour cette session. L’accès aux dossiers dépend aussi des autorisations accordées par le lycée.
+                Vous pouvez continuer vers les dossiers autorisés pour votre compte.
               </p>
               <button
                 type="button"

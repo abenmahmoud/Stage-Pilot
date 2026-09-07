@@ -290,7 +290,7 @@ export default function LivretStagePage() {
       setCanEditEleve(data.canEditEleve);
       setCanEditSuivi(data.canEditSuivi);
       setSavedMessage(
-        submitEleve ? "Livret transmis pour suivi." : "Livret sauvegarde."
+        submitEleve ? "Livret transmis pour suivi." : "Livret enregistré."
       );
     } catch (e) {
       setError(e instanceof Error ? e.message : "Erreur de sauvegarde");
@@ -368,7 +368,7 @@ export default function LivretStagePage() {
                 className="inline-flex items-center gap-2 rounded-xl bg-primary-500 px-4 py-2.5 text-sm font-semibold text-white hover:bg-primary-600 transition-all disabled:opacity-50"
               >
                 <Save className="w-4 h-4" />
-                {saving ? "Sauvegarde..." : "Enregistrer"}
+                {saving ? "Enregistrement…" : "Enregistrer"}
               </button>
             )}
           </div>
@@ -394,10 +394,10 @@ export default function LivretStagePage() {
             </div>
             <div>
               <h2 className="text-sm font-semibold text-gray-900">
-                Dossier numerique
+                Dossier numérique
               </h2>
               <p className="text-sm text-gray-500">
-                Convention officielle conservee separement, livret de suivi
+                Convention officielle conservée séparément, livret de suivi
                 rempli ici et imprimable en PDF.
               </p>
             </div>
@@ -412,11 +412,11 @@ export default function LivretStagePage() {
               {textValue(stage.tuteurNomQualite)}
             </p>
             <p>
-              <span className="text-gray-500">Referent lycee :</span>{" "}
+              <span className="text-gray-500">Référent du lycée :</span>{" "}
               {textValue(stage.professeurReferent)}
             </p>
             <p>
-              <span className="text-gray-500">Periode :</span>{" "}
+              <span className="text-gray-500">Période :</span>{" "}
               {textValue(stage.dateDebut)} au {textValue(stage.dateFin)}
             </p>
           </CardContent>
@@ -432,7 +432,7 @@ export default function LivretStagePage() {
                 Avant le stage
               </h2>
               <p className="text-sm text-gray-500">
-                Attentes, objectifs et questions a preparer.
+                Attentes, objectifs et questions à préparer.
               </p>
             </div>
           </CardHeader>
@@ -465,29 +465,29 @@ export default function LivretStagePage() {
             </div>
             <div>
               <h2 className="text-sm font-semibold text-gray-900">
-                Decouverte de l'entreprise
+                Découverte de l’entreprise
               </h2>
               <p className="text-sm text-gray-500">
-                Comprendre le lieu d'accueil et les metiers observes.
+                Comprendre le lieu d’accueil et les métiers observés.
               </p>
             </div>
           </CardHeader>
           <CardContent className="space-y-4">
             <TextAreaField
-              label="Presentation de l'entreprise ou du service"
+              label="Présentation de l’entreprise ou du service"
               value={livret.presentationEntreprise}
               disabled={eleveDisabled}
               rows={5}
               onChange={(value) => updateLivret("presentationEntreprise", value)}
             />
             <TextAreaField
-              label="Metiers observes"
+              label="Métiers observés"
               value={livret.metiersObserves}
               disabled={eleveDisabled}
               onChange={(value) => updateLivret("metiersObserves", value)}
             />
             <TextAreaField
-              label="Regles de securite, horaires, tenue, comportement attendu"
+              label="Règles de sécurité, horaires, tenue, comportement attendu"
               value={livret.reglesSecurite}
               disabled={eleveDisabled}
               onChange={(value) => updateLivret("reglesSecurite", value)}
@@ -501,7 +501,7 @@ export default function LivretStagePage() {
               Journal de bord
             </h2>
             <p className="text-sm text-gray-500 mt-1">
-              A completer chaque jour de stage.
+              À compléter chaque jour de stage.
             </p>
           </CardHeader>
           <CardContent className="space-y-5">
@@ -512,7 +512,7 @@ export default function LivretStagePage() {
                 </h3>
                 <div className="grid gap-4 lg:grid-cols-3">
                   <TextAreaField
-                    label="Activites observees ou realisees"
+                    label="Activités observées ou réalisées"
                     value={livret.journal[day].activites}
                     disabled={eleveDisabled}
                     rows={3}
@@ -545,7 +545,7 @@ export default function LivretStagePage() {
             </div>
             <div>
               <h2 className="text-sm font-semibold text-gray-900">
-                Bilan de l'eleve
+                Bilan de l’élève
               </h2>
               <p className="text-sm text-gray-500">
                 Ce que le stage apporte au projet d'orientation.
@@ -554,19 +554,19 @@ export default function LivretStagePage() {
           </CardHeader>
           <CardContent className="space-y-4">
             <TextAreaField
-              label="Activites que j'ai preferees"
+              label="Activités que j’ai préférées"
               value={livret.activitesPreferees}
               disabled={eleveDisabled}
               onChange={(value) => updateLivret("activitesPreferees", value)}
             />
             <TextAreaField
-              label="Competences ou qualites decouvertes"
+              label="Compétences ou qualités découvertes"
               value={livret.competencesDecouvertes}
               disabled={eleveDisabled}
               onChange={(value) => updateLivret("competencesDecouvertes", value)}
             />
             <TextAreaField
-              label="Difficultes rencontrees"
+              label="Difficultés rencontrées"
               value={livret.difficultes}
               disabled={eleveDisabled}
               onChange={(value) => updateLivret("difficultes", value)}
@@ -614,11 +614,10 @@ export default function LivretStagePage() {
             </div>
             <div>
               <h2 className="text-sm font-semibold text-gray-900">
-                Suivi professeur
+                Suivi par le professeur
               </h2>
               <p className="text-sm text-gray-500">
-                Partie reservee au PP, a l'administration ou au professeur
-                referent.
+                Partie réservée au professeur principal, à l’administration ou au professeur référent.
               </p>
             </div>
           </CardHeader>
@@ -626,7 +625,7 @@ export default function LivretStagePage() {
             <div className="grid gap-4 md:grid-cols-2">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Date de contact ou visite
+                  Date du contact ou de la visite
                 </label>
                 <input
                   type="date"
@@ -644,7 +643,7 @@ export default function LivretStagePage() {
                   type="text"
                   value={livret.suiviProf.modeContact}
                   disabled={suiviDisabled}
-                  placeholder="Visite, telephone, mail..."
+                  placeholder="Visite, téléphone, email…"
                   onChange={(event) => updateSuivi("modeContact", event.target.value)}
                   className="w-full rounded-xl border border-gray-300 px-4 py-2.5 text-sm outline-none focus:border-primary-500 disabled:bg-gray-50 disabled:text-gray-500"
                 />
@@ -664,7 +663,7 @@ export default function LivretStagePage() {
               onChange={(value) => updateSuivi("pointsVigilance", value)}
             />
             <TextAreaField
-              label="Appreciation / bilan du professeur referent"
+              label="Appréciation et bilan du professeur référent"
               value={livret.suiviProf.appreciation}
               disabled={suiviDisabled}
               rows={5}
@@ -711,17 +710,17 @@ function PrintableLivret({
           Livret de suivi - Stage d'observation 2nde GT
         </h1>
         <p style={{ margin: "0 0 8mm", color: "#4b5563" }}>
-          Lycee Blaise Cendrars - Sevran - Annee scolaire 2025-2026
+          Lycée Blaise Cendrars · Sevran · Livret de suivi du stage
         </p>
         <table style={{ width: "100%", borderCollapse: "collapse" }}>
           <tbody>
-            <PrintRow label="Eleve" value={`${stage.eleveNom} ${stage.elevePrenom}`} />
+            <PrintRow label="Élève" value={`${stage.eleveNom} ${stage.elevePrenom}`} />
             <PrintRow label="Classe" value={textValue(stage.classeNom)} />
-            <PrintRow label="Periode" value={`${textValue(stage.dateDebut)} au ${textValue(stage.dateFin)}`} />
+            <PrintRow label="Période" value={`${textValue(stage.dateDebut)} au ${textValue(stage.dateFin)}`} />
             <PrintRow label="Entreprise" value={textValue(stage.entrepriseNom)} />
             <PrintRow label="Adresse" value={textValue(stage.entrepriseAdresse)} />
             <PrintRow label="Tuteur" value={textValue(stage.tuteurNomQualite)} />
-            <PrintRow label="Professeur referent" value={textValue(stage.professeurReferent)} />
+            <PrintRow label="Professeur référent" value={textValue(stage.professeurReferent)} />
           </tbody>
         </table>
       </section>
@@ -729,13 +728,13 @@ function PrintableLivret({
       <PrintTextSection title="Avant le stage" items={[
         ["Attentes", livret.attentes],
         ["Objectifs personnels", livret.objectifs],
-        ["Questions a poser", livret.questionsAvantStage],
+        ["Questions à poser", livret.questionsAvantStage],
       ]} />
 
-      <PrintTextSection title="Decouverte de l'entreprise" items={[
-        ["Presentation", livret.presentationEntreprise],
-        ["Metiers observes", livret.metiersObserves],
-        ["Regles et securite", livret.reglesSecurite],
+      <PrintTextSection title="Découverte de l’entreprise" items={[
+        ["Présentation", livret.presentationEntreprise],
+        ["Métiers observés", livret.metiersObserves],
+        ["Règles et sécurité", livret.reglesSecurite],
       ]} />
 
       <section className="print-section print-page-break">
@@ -745,27 +744,27 @@ function PrintableLivret({
             <h3 style={{ fontSize: "12pt", margin: "0 0 2mm" }}>
               {DAY_LABELS[day]}
             </h3>
-            <p><strong>Activites :</strong> {textValue(livret.journal[day].activites)}</p>
+            <p><strong>Activités :</strong> {textValue(livret.journal[day].activites)}</p>
             <p><strong>Apprentissages :</strong> {textValue(livret.journal[day].apprentissages)}</p>
             <p><strong>Questions :</strong> {textValue(livret.journal[day].questions)}</p>
           </div>
         ))}
       </section>
 
-      <PrintTextSection title="Bilan de l'eleve" items={[
-        ["Activites preferees", livret.activitesPreferees],
-        ["Competences decouvertes", livret.competencesDecouvertes],
-        ["Difficultes", livret.difficultes],
+      <PrintTextSection title="Bilan de l’élève" items={[
+        ["Activités préférées", livret.activitesPreferees],
+        ["Compétences découvertes", livret.competencesDecouvertes],
+        ["Difficultés", livret.difficultes],
         ["Bilan personnel", livret.bilanPersonnel],
         ["Projet d'orientation", livret.projetOrientation],
       ]} />
 
-      <PrintTextSection title="Suivi professeur" items={[
-        ["Date de contact ou visite", livret.suiviProf.dateVisite],
+      <PrintTextSection title="Suivi par le professeur" items={[
+        ["Date du contact ou de la visite", livret.suiviProf.dateVisite],
         ["Mode de suivi", livret.suiviProf.modeContact],
         ["Observations", livret.suiviProf.observations],
         ["Points de vigilance", livret.suiviProf.pointsVigilance],
-        ["Appreciation", livret.suiviProf.appreciation],
+        ["Appréciation", livret.suiviProf.appreciation],
         ["Prochaine action", livret.suiviProf.prochaineAction],
       ]} />
     </div>
