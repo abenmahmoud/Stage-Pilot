@@ -18,7 +18,7 @@ import {
 } from "./schedule-reader.js";
 
 const PERSON_REF = /^[A-Za-z0-9][A-Za-z0-9._:-]{2,119}$/;
-const SCHEDULE_REF = /^[A-Z0-9][A-Z0-9._:-]{1,79}$/;
+const SCHEDULE_REF = /^[A-Za-z0-9][A-Za-z0-9._:-]{1,79}$/;
 const MAX_GROUPS = 40;
 const IDENTITY_REQUIRED = "Une identité scolaire et des droits à jour sont nécessaires.";
 
