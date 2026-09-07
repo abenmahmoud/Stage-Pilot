@@ -48,19 +48,27 @@ réelles (LOT 1 à 6 : `api/flash/**`, `api/cron/flash-expiry.ts`). Plan :
 huit lots précédents). Recette PostgreSQL réelle jetable et recette
 navigateur Chromium réelle faites (LOT 7, LOT 8) — non rejouées depuis, à
 refaire si un délai significatif s'est écoulé.
-**Trou bloquant, à trancher avec Adel avant tout nouveau lot sur ce
-domaine** : aucune route ne fait jamais passer une version de `validee` à
-`publiee`. Conséquence : la correction après publication (LOT 4, T071A/B)
-est fonctionnelle et testée en base réelle mais inatteignable par un usage
-normal aujourd'hui. Seule T071D est cochée (§`tasks.md`, spec 002) ; T071,
-T071A, T071B, T071C, T071E restent ouvertes pour des raisons précises
-détaillées dans `PERSIST-LOT9.md`. Drapeaux tous fermés.
+**Ancien trou bloquant, comblé le 5 septembre 2026 (T071F)** : la route
+`POST /api/flash/proposals/[id]/publication` fait désormais passer une
+version de `validee` à `publiee`, par le même service que la validation,
+idempotente et verrouillée. Toute la famille T071 est close (§`tasks.md`,
+spec 002) : T071, T071A, T071B, T071C, T071D, T071E, T071F. Reste ouverte :
+**T071G** — corriger une information déjà publiée la fait aujourd'hui
+disparaître du site public (`modifiee` est un état terminal, la route
+publique ne sert que `publiee`), ce qui retourne l'intention de la règle de
+correction ; décision d'Adel du 5 septembre 2026, à implémenter (ouvrir
+`modifiee` -> `publiee` par le même geste humain que la première parution).
+Drapeaux tous fermés.
 
-## État au 3 septembre 2026
+## État au 6 septembre 2026
 Tâche ouverte : `002/T010B4B` (identité email sur appareil). Drapeaux
 `IDENTITY_DEVICE_ACCESS_ENABLED` et `VITE_IDENTITY_DEVICE_ACCESS_ENABLED` à `false`.
-Bloquant : les 94 migrations n'ont pas encore été rejouées sur un PostgreSQL réel
-(Docker Desktop indisponible lors du dernier lot).
+Bloquant : les 111 migrations n'ont pas été rejouées sur un PostgreSQL réel
+depuis le dernier compte rendu confirmant ce point ; à revérifier avant de
+s'y fier. `002/T064` (coffre de codes Koxo/ENT/cantine) est close depuis le
+6 septembre 2026 (preuve : `docs/operations/night-logs/BRANCHE-LOT7.md`) ;
+`002/T064A` (décision sur la remise de codes d'un enfant à un parent) reste
+ouverte, en attente d'une décision de l'administration.
 
 ## Pieges connus (verifies le 3 septembre 2026)
 
