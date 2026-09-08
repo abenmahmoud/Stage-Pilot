@@ -70,36 +70,48 @@ humaines.
 - audit des dépendances de production : 0 vulnérabilité connue ;
 - aucune migration distante et aucune donnée réelle utilisés.
 
-La recette avec une vraie base locale n'a pas pu être exécutée : le 8 septembre,
-`docker info` échoue car le moteur Docker Desktop Linux n'est pas démarré. Les
-tests avec fichiers fictifs, les contrôles structurels, le build et la barrière
-complète passent ; la recette base + HTTP reste donc une condition de mise en
-service, pas une preuve déjà acquise.
+La recette avec une vraie base locale n'a pas pu être exécutée. Le diagnostic du
+8 septembre a isolé un défaut Docker Desktop 4.67 sur Windows build 26200 : les
+sockets AF_UNIX `dockerInference` puis `docker-secrets-engine/engine.sock`
+deviennent des points NTFS inaccessibles. Les anciens dossiers d'exécution ont
+été conservés par renommage avec le suffixe `codex-stale-20260908-1045` ; aucune
+image, aucun volume et aucune base n'ont été supprimés. Docker recrée aussitôt un
+socket invalide, ce qui impose un redémarrage complet de Windows avant la recette.
+
+La recette est maintenant prête sous la commande
+`npm run recipe:local-depot-attributs-persistence`. Elle utilise le vrai handler
+HTTP `/api/depot/attributs`, une pile Supabase exclusivement locale, un acteur et
+une identité fictifs, puis vérifie l'authentification technique, le chiffrement,
+l'idempotence, l'activation et le journal append-only. Son garde-fou local est
+inclus dans `test:preview-security-gate`.
 
 ## Actions externes encore obligatoires
 
 1. Relire la migration
    `supabase/migrations/20260908013000_create_person_attribute_imports.sql`.
-2. La tester sur une base locale propre, puis l'appliquer selon la procédure
+2. Après redémarrage complet de Windows, démarrer Docker Desktop et la pile
+   Supabase locale, appliquer les migrations à cette base jetable, puis lancer
+   `npm run recipe:local-depot-attributs-persistence`.
+3. Après réussite locale, appliquer la migration selon la procédure
    contrôlée de l'établissement. Ne jamais utiliser `--linked`, `db push` ou une
    URL distante depuis une session d'agent.
-3. Créer ou sélectionner un compte technique Supabase lié au lycée et relever
+4. Créer ou sélectionner un compte technique Supabase lié au lycée et relever
    son UUID comme `LYCEEGEST_DEPOT_ACTOR_ID`.
-4. Générer un jeton long côté VPS et ne mettre dans Vercel que son SHA-256 sous
+5. Générer un jeton long côté VPS et ne mettre dans Vercel que son SHA-256 sous
    `LYCEEGEST_DEPOT_TOKEN_SHA256`.
-5. Installer la clé privée RSA côté LyceeGest sous
+6. Installer la clé privée RSA côté LyceeGest sous
    `LYCEEGEST_CODES_PRIVATE_KEY_PEM_BASE64`. Seule la clé publique correspondante
    va sur le VPS.
-6. Poser les clés de chiffrement du coffre et des attributs conformément à
+7. Poser les clés de chiffrement du coffre et des attributs conformément à
    `.env.local.example`. Ne jamais les écrire dans Git ou une conversation.
-7. Configurer le VPS avec la base
+8. Configurer le VPS avec la base
    `https://lycee-blaise-cendrars-sevran.fr/api/depot` et le jeton clair.
-8. Exécuter d'abord une recette entièrement fictive : annuaire + rapport,
+9. Exécuter d'abord une recette entièrement fictive : annuaire + rapport,
    attributs + activation MFA, codes fictifs, puis EDT fictif.
-9. Vérifier l'idempotence en renvoyant chaque même fichier une seconde fois.
-10. Garder `CODE_VAULT_REVEAL_ENABLED=false` jusqu'à une recette séparée et
+10. Vérifier l'idempotence en renvoyant chaque même fichier une seconde fois.
+11. Garder `CODE_VAULT_REVEAL_ENABLED=false` jusqu'à une recette séparée et
     autorisée du parcours de remise à une personne vérifiée.
-11. Après validation seulement, Adel effectue le push puis la mise en ligne.
+12. Après validation seulement, Adel effectue le push puis la mise en ligne.
 
 ## Prompt direct à donner à Claude
 
