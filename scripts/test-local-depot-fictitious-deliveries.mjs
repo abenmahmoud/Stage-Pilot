@@ -152,6 +152,22 @@ async function post(type, body) {
   return { status: response.status, json };
 }
 
+async function postJson(type, body) {
+  const response = await fetch(`${baseUrl}/api/depot/${type}`, {
+    method: "POST",
+    headers: {
+      authorization: `Bearer ${depotToken}`,
+      "content-type": "application/json",
+    },
+    body: JSON.stringify(body),
+  });
+  const text = await response.text();
+  capturedResponses.push(text);
+  let json = null;
+  try { json = JSON.parse(text); } catch { /* la forme est contrôlée par les assertions */ }
+  return { status: response.status, json };
+}
+
 function annuaireForm() {
   const csv = `type_ligne,reference_personne,type_personne,nom,prenom,date_naissance,reference_classe,email,telephone,type_relation,reference_sujet,reference_objet,valide_depuis,valide_jusquau,source,commentaire,actif\nperson,${personRef},student,Fictif,Eleve,2010-04-02,2F1,eleve.${marker}@example.test,,,,,2026-09-01,2027-08-31,ent,Recette locale,true`;
   const report = `Rapport de verification fictif\nlignes_total=1\npersonnes=1\nrelations=0\nreferences_orphelines=0\ndoublons_reference_personne=0\nclasses_distinctes=1\ncolonnes_interdites=0\ncodes_detectes=0\nListe des reference_classe : 2F1`;
@@ -275,6 +291,80 @@ try {
   const edtObject = await admin.storage.from(edtRows[0].storage_bucket).download(edtRows[0].storage_path);
   check(!edtObject.error && (await edtObject.data.arrayBuffer()).byteLength === pdf.length, "edt_is_in_private_storage");
 
+  const tabular = Buffer.from(
+    `classe,matiere,date,debut,fin\n2F1,Maths,2026-09-08,08:00,09:00\n`,
+    "utf8"
+  );
+  const tabularChecksum = createHash("sha256").update(tabular).digest("hex");
+  const tabularReservationBody = {
+    mode: "reserve",
+    originalName: "edt-classes-fictif.csv",
+    sizeBytes: tabular.length,
+    schoolYear: "2026-2027",
+    title: "EDT tabulaire fictif reçu automatiquement",
+    effectiveFrom: "2026-09-08",
+    effectiveUntil: "2027-07-07",
+    freshUntil: "2026-09-10",
+    sourceKind: "classes",
+    sourceFormat: "tabular_import",
+    mimeType: "text/csv",
+    checksum: tabularChecksum,
+  };
+  const tabularReservation = await postJson("edt", tabularReservationBody);
+  check(tabularReservation.status === 201, "edt_tabular_reservation_is_created");
+  check(
+    tabularReservation.json?.status === "reserved"
+      && tabularReservation.json?.duplicate === false
+      && tabularReservation.json?.upload?.bucket === "schedule-ingest"
+      && typeof tabularReservation.json?.upload?.signedUrl === "string",
+    "edt_tabular_reservation_has_private_upload_url"
+  );
+  const resumedTabularReservation = await postJson("edt", tabularReservationBody);
+  check(
+    resumedTabularReservation.status === 200
+      && resumedTabularReservation.json?.duplicate === true
+      && resumedTabularReservation.json?.status === "reserved"
+      && resumedTabularReservation.json?.importId === tabularReservation.json.importId
+      && typeof resumedTabularReservation.json?.upload?.signedUrl === "string",
+    "edt_tabular_interrupted_reservation_can_resume"
+  );
+  const tabularUpload = await fetch(resumedTabularReservation.json.upload.signedUrl, {
+    method: "PUT",
+    headers: { "content-type": "text/csv", "x-upsert": "false" },
+    body: tabular,
+  });
+  check(tabularUpload.ok, "edt_tabular_signed_upload_succeeds");
+  const tabularConfirmation = await postJson("edt", {
+    mode: "confirm",
+    importId: tabularReservation.json.importId,
+  });
+  check(
+    tabularConfirmation.status === 202
+      && tabularConfirmation.json?.status === "quarantined"
+      && tabularConfirmation.json?.duplicate === false,
+    "edt_tabular_confirmation_queues_security_scan"
+  );
+  const repeatedTabular = await postJson("edt", tabularReservationBody);
+  check(
+    repeatedTabular.status === 200
+      && repeatedTabular.json?.duplicate === true
+      && repeatedTabular.json?.importId === tabularReservation.json.importId,
+    "edt_tabular_repeat_is_idempotent"
+  );
+  const tabularRows = await database`
+    select storage_bucket, storage_path, source_format, mime_type
+    from public.schedule_source_versions
+    where institution_id = ${institutionId} and checksum = ${tabularChecksum}
+  `;
+  check(
+    tabularRows.length === 1
+      && tabularRows[0].source_format === "tabular_import"
+      && tabularRows[0].mime_type === "text/csv"
+      && tabularRows[0].storage_path.endsWith(".csv"),
+    "edt_tabular_metadata_is_persisted_exactly"
+  );
+  edtStorage.push(tabularRows[0].storage_path);
+
   const responseLeak = capturedResponses.some((text) => (
     text.includes(codeValue) || text.includes(identifier) || text.includes(depotToken)
   ));
@@ -310,6 +400,7 @@ console.log(JSON.stringify({
   annuaireIdempotent: true,
   encryptedCodesIdempotent: true,
   edtIdempotent: true,
+  edtAutomaticTabularUpload: true,
   privateStorage: true,
   cleanupVerified: true,
   realData: false,

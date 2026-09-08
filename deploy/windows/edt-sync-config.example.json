@@ -1,0 +1,18 @@
+{
+  "endpoint": "https://lycee-blaise-cendrars-sevran.fr/api/depot/edt",
+  "minimumAgeSeconds": 60,
+  "freshDays": 2,
+  "statePath": "C:\\Users\\UTILISATEUR\\AppData\\Local\\LyceeGest\\EdtSync\\edt-sync-state.json",
+  "sources": [
+    {
+      "path": "C:\\Exports-EDT\\classes.xlsx",
+      "sourceKind": "classes",
+      "title": "Synchronisation automatique EDT — classes"
+    },
+    {
+      "path": "C:\\Exports-EDT\\professeurs.xlsx",
+      "sourceKind": "teachers",
+      "title": "Synchronisation automatique EDT — professeurs"
+    }
+  ]
+}

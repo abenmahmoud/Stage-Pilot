@@ -31,7 +31,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         actorId,
         body: await readDepotJson(req),
       });
-      res.status("upload" in result ? 201 : result.duplicate ? 200 : 202);
+      res.status("upload" in result ? (result.duplicate ? 200 : 201) : result.duplicate ? 200 : 202);
       return { ok: true, type, ...result };
     }
     const payload = await readDepotMultipart(req);

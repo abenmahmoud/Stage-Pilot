@@ -85,19 +85,22 @@ Une attribution existante n'est jamais écrasée automatiquement.
 
 ### `edt`
 
-- `fichier` : PDF `application/pdf` ;
+- `fichier` : PDF `application/pdf`, CSV `text/csv` ou Excel `.xlsx`
+  `application/vnd.openxmlformats-officedocument.spreadsheetml.sheet` ;
 - `source_kind` : `classes` par défaut ;
 - réponse : `202`, statut `quarantined` ; `200`, `duplicate: true` si le même
-  PDF a déjà été reçu pour le même périmètre et la même année scolaire.
+  fichier a déjà été reçu pour le même périmètre et la même année scolaire.
 
-Le PDF passe dans le circuit existant : stockage privé, antivirus, indexation,
-revue et activation humaines. Son SHA-256 est enregistré et un index unique
-partiel empêche deux réservations concurrentes du même fichier.
+Le fichier passe dans le circuit existant : stockage privé, antivirus,
+correspondance des colonnes pour CSV/Excel ou indexation PDF, revue et activation
+humaines. Son SHA-256 est enregistré et un index unique partiel empêche deux
+réservations concurrentes du même fichier.
 
-## EDT supérieur à 4 Mo
+## EDT signé jusqu'à 50 Mo
 
-Vercel limite le corps d'une fonction à 4,5 Mo. Pour un PDF plus grand, le Dépôt
-réserve d'abord une destination :
+Vercel limite le corps d'une fonction à 4,5 Mo. Le connecteur automatique utilise
+toujours le dépôt signé ; il convient au PDF, au CSV et au fichier Excel jusqu'à
+50 Mo. Il calcule l'empreinte localement puis réserve une destination :
 
 ```http
 POST /api/depot/edt
@@ -112,7 +115,10 @@ Content-Type: application/json
   "effectiveFrom": "2026-09-08",
   "effectiveUntil": null,
   "freshUntil": "2026-09-15",
-  "sourceKind": "classes"
+  "sourceKind": "classes",
+  "sourceFormat": "pdf_import",
+  "mimeType": "application/pdf",
+  "checksum": "<sha256-hexadecimal>"
 }
 ```
 
@@ -124,16 +130,18 @@ Réponse `201` :
   "type": "edt",
   "importId": "<uuid>",
   "status": "reserved",
+  "duplicate": false,
   "upload": {
     "bucket": "schedule-ingest",
     "path": "<chemin opaque>",
-    "token": "<jeton upload signé>"
+    "token": "<jeton upload signé>",
+    "signedUrl": "<url HTTPS temporaire limitée à cet objet>"
   }
 }
 ```
 
-Le VPS envoie ensuite le PDF directement à Supabase avec `upload.path` et
-`upload.token`, puis confirme :
+Le client envoie ensuite le fichier directement à Supabase par `signedUrl`, puis
+confirme :
 
 ```http
 POST /api/depot/edt
@@ -145,6 +153,11 @@ Content-Type: application/json
 Réponse `202` quand le contrôle est mis en file, `200` avec `duplicate: true`
 si la confirmation avait déjà été reçue, `409` si le fichier est absent ou
 incomplet.
+
+Si une réservation portant la même empreinte est encore au statut `reserved`,
+le serveur renvoie `200`, `duplicate: true` et une nouvelle `signedUrl` pour
+reprendre l'envoi. Il ne crée pas de deuxième version. Après réception, la même
+réservation renvoie seulement l'identifiant et le statut existants.
 
 ## Codes HTTP communs
 

@@ -1178,6 +1178,12 @@
   Dépôt Lycée et protéger la concurrence par un index unique partiel. Conserver
   antivirus, revue et activation humaines ; la source réelle de T066 reste
   fermée.
+- [x] T066B Ajouter le connecteur Windows de synchronisation du dossier EDT :
+  PDF/CSV/XLSX stable, empreinte locale, envoi privé jusqu'à 50 Mo, reprise d'une
+  réservation interrompue, déduplication serveur, jeton DPAPI et tâche toutes les
+  cinq minutes. L'activation reste humaine et le XML partenaire Index demeure
+  fermé sans contrat technique. Preuve :
+  `docs/operations/SYNCHRONISATION_EDT_2026-09-08.md`.
 - [ ] T067 Programmer les contrôles de connaissances à 08:00, 13:00 et 18:00
   Europe/Paris, la détection des conflits, les alertes immédiates et le digest
   dédupliqué des questions inconnues.

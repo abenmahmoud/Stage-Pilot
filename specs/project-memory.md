@@ -5868,3 +5868,21 @@ taches et analyse de coherence avant une automatisation sensible.
   cartes fictives inspectées à 1440 et 390 px, zéro erreur console et aucune
   mutation distante. L'archivage privé du PDF, la réponse IA réelle en preview,
   l'envoi des notifications et l'ouverture du drapeau restent à faire.
+
+### Synchronisation du dossier EDT — 8 septembre 2026
+
+- La capture PRONOTE/EDT montre un profil `ENEJ` fixé vers
+  `api.enej.lavienne86.fr` : ne pas l'activer pour Sevran. Les exports ENT Index
+  sont liés à un socle partenaire et leur XML est chiffré pour ce destinataire.
+- LyceeGest accepte désormais par le Dépôt Lycée les PDF, CSV et XLSX, y compris
+  par réservation signée jusqu'à 50 Mo. L'empreinte empêche les doublons ; une
+  réservation interrompue peut reprendre sans créer une nouvelle version.
+- Le connecteur Windows surveille au plus deux fichiers, attend leur stabilité,
+  envoie seulement une nouvelle empreinte et conserve un état local sans secret.
+  Le jeton est protégé par DPAPI pour le compte Windows nominatif et la tâche
+  planifiée s'exécute toutes les cinq minutes.
+- Le contrôle antivirus, la correspondance tabulaire, la vérification,
+  l'approbation et l'activation restent humains. L'agent lit seulement la version
+  active. L'intégration directe du XML opérationnel exige le contrat technique
+  Index prévu par T003/T066.
+- Preuve : `docs/operations/SYNCHRONISATION_EDT_2026-09-08.md`.

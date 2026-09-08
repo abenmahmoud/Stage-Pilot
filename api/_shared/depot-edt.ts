@@ -4,7 +4,11 @@ import { db } from "../../db/index.js";
 import { scheduleAudit, scheduleSourceVersions } from "../../db/schema.js";
 import {
   parseScheduleImportInput,
+  scheduleImportFileExtension,
+  SCHEDULE_IMPORT_MIME,
+  SCHEDULE_TABULAR_MIME_TYPES,
   type ScheduleImportInput,
+  type ScheduleSourceFormat,
 } from "../../shared/schedule-import-input.js";
 import { parisDateStringOf } from "../../shared/paris-time.js";
 import { HttpError, supabaseAdmin } from "./auth.js";
@@ -36,6 +40,23 @@ function plusDays(day: string, count: number): string {
   return date.toISOString().slice(0, 10);
 }
 
+function edtFileMetadata(originalName: string): {
+  sourceFormat: ScheduleSourceFormat;
+  mimeType: ScheduleImportInput["mimeType"];
+} {
+  const lower = originalName.toLowerCase();
+  if (lower.endsWith(".csv")) {
+    return { sourceFormat: "tabular_import", mimeType: "text/csv" };
+  }
+  if (lower.endsWith(".xlsx")) {
+    return {
+      sourceFormat: "tabular_import",
+      mimeType: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    };
+  }
+  return { sourceFormat: "pdf_import", mimeType: SCHEDULE_IMPORT_MIME };
+}
+
 function scheduleInput(input: {
   originalName: string;
   sizeBytes: number;
@@ -44,10 +65,11 @@ function scheduleInput(input: {
 }): ScheduleImportInput {
   const today = parisDateStringOf(new Date());
   const source = input.json ?? input.fields ?? {};
+  const inferred = edtFileMetadata(input.originalName);
   try {
     return parseScheduleImportInput({
       sourceKind: source.sourceKind ?? source.source_kind ?? "classes",
-      sourceFormat: "pdf_import",
+      sourceFormat: source.sourceFormat ?? source.source_format ?? inferred.sourceFormat,
       schoolYear: source.schoolYear ?? source.annee_scolaire ?? schoolYearFor(today),
       title: source.title ?? source.titre ?? "Emploi du temps reçu du Dépôt Lycée",
       purposeDescription:
@@ -56,7 +78,7 @@ function scheduleInput(input: {
       effectiveUntil: source.effectiveUntil ?? source.valide_au ?? null,
       freshUntil: source.freshUntil ?? source.fraiche_jusquau ?? plusDays(today, 7),
       originalName: input.originalName,
-      mimeType: "application/pdf",
+      mimeType: source.mimeType ?? source.mime_type ?? inferred.mimeType,
       sizeBytes: input.sizeBytes,
     });
   } catch {
@@ -67,8 +89,54 @@ function scheduleInput(input: {
 export type DepotEdtReservation = {
   importId: string;
   status: "reserved";
-  upload: { bucket: string; path: string; token: string };
+  duplicate: boolean;
+  upload: { bucket: string; path: string; token: string; signedUrl: string };
 };
+
+type DepotEdtDuplicate = { importId: string; status: string; duplicate: true };
+
+const DEDUPLICATED_EDT_STATUSES = [
+  "reserved", "uploaded", "quarantined", "processing",
+  "mapping_pending", "review", "approved", "active", "superseded",
+] as const;
+
+async function findDepotEdtDuplicate(params: {
+  institutionId: string;
+  input: ScheduleImportInput;
+  checksum: string;
+}): Promise<DepotEdtDuplicate | DepotEdtReservation | null> {
+  const [existing] = await db.select({
+    id: scheduleSourceVersions.id,
+    status: scheduleSourceVersions.status,
+    storageBucket: scheduleSourceVersions.storageBucket,
+    storagePath: scheduleSourceVersions.storagePath,
+  }).from(scheduleSourceVersions).where(and(
+    eq(scheduleSourceVersions.institutionId, params.institutionId),
+    eq(scheduleSourceVersions.sourceKind, params.input.sourceKind),
+    eq(scheduleSourceVersions.schoolYear, params.input.schoolYear),
+    eq(scheduleSourceVersions.checksum, params.checksum),
+    inArray(scheduleSourceVersions.status, [...DEDUPLICATED_EDT_STATUSES])
+  )).limit(1);
+  if (!existing) return null;
+  if (existing.status !== "reserved") {
+    return { importId: existing.id, status: existing.status, duplicate: true };
+  }
+  const { data: upload, error } = await supabaseAdmin.storage
+    .from(existing.storageBucket)
+    .createSignedUploadUrl(existing.storagePath, { upsert: true });
+  if (error || !upload) throw new HttpError(503, "La reprise du transfert EDT est indisponible");
+  return {
+    importId: existing.id,
+    status: "reserved",
+    duplicate: true,
+    upload: {
+      bucket: existing.storageBucket,
+      path: upload.path,
+      token: upload.token,
+      signedUrl: upload.signedUrl,
+    },
+  };
+}
 
 export async function reserveDepotEdt(params: {
   institutionId: string;
@@ -81,7 +149,7 @@ export async function reserveDepotEdt(params: {
     params.actorId,
     params.input.schoolYear,
     params.input.sourceKind,
-    ".pdf"
+    scheduleImportFileExtension(params.input.sourceFormat, params.input.mimeType)
   );
   const { data: upload, error: uploadError } = await supabaseAdmin.storage
     .from(SCHEDULE_IMPORT_BUCKET)
@@ -142,8 +210,40 @@ export async function reserveDepotEdt(params: {
   return {
     importId: created.id,
     status: "reserved",
-    upload: { bucket: SCHEDULE_IMPORT_BUCKET, path: upload.path, token: upload.token },
+    duplicate: false,
+    upload: {
+      bucket: SCHEDULE_IMPORT_BUCKET,
+      path: upload.path,
+      token: upload.token,
+      signedUrl: upload.signedUrl,
+    },
   };
+}
+
+async function reserveDepotEdtIdempotently(params: {
+  institutionId: string;
+  actorId: string;
+  input: ScheduleImportInput;
+  checksum?: string;
+}): Promise<DepotEdtReservation | DepotEdtDuplicate> {
+  if (!params.checksum) return reserveDepotEdt(params);
+  const existing = await findDepotEdtDuplicate({
+    institutionId: params.institutionId,
+    input: params.input,
+    checksum: params.checksum,
+  });
+  if (existing) return existing;
+  try {
+    return await reserveDepotEdt(params);
+  } catch (error) {
+    const concurrentDuplicate = await findDepotEdtDuplicate({
+      institutionId: params.institutionId,
+      input: params.input,
+      checksum: params.checksum,
+    });
+    if (concurrentDuplicate) return concurrentDuplicate;
+    throw error;
+  }
 }
 
 export async function confirmDepotEdt(params: {
@@ -172,8 +272,8 @@ export async function confirmDepotEdt(params: {
   const mime = String(metadata.mimetype ?? metadata.mimeType ?? "");
   if (
     error || !uploaded || Number(metadata.size ?? 0) !== source.sizeBytes
-    || (mime && mime !== "application/pdf")
-  ) throw new HttpError(409, "Le PDF EDT n'a pas été reçu complètement");
+    || (mime && mime !== source.mimeType)
+  ) throw new HttpError(409, "Le fichier EDT n'a pas été reçu complètement");
 
   const jobId = randomUUID();
   const rows = await db.transaction(async (tx) => {
@@ -225,8 +325,17 @@ export async function receiveDepotEdtMultipart(params: {
   payload: DepotMultipartPayload;
 }) {
   const file = params.payload.files.fichier;
-  if (!file || params.payload.files.rapport || !/\.pdf$/i.test(file.fileName) || file.mimeType !== "application/pdf") {
-    throw new HttpError(415, "L'emploi du temps doit être un unique fichier PDF");
+  const inferred = file ? edtFileMetadata(file.fileName) : null;
+  const validFile = file && inferred && (
+    (inferred.sourceFormat === "pdf_import"
+      && /\.pdf$/i.test(file.fileName)
+      && file.mimeType === SCHEDULE_IMPORT_MIME)
+    || (inferred.sourceFormat === "tabular_import"
+      && SCHEDULE_TABULAR_MIME_TYPES.includes(file.mimeType as (typeof SCHEDULE_TABULAR_MIME_TYPES)[number])
+      && file.mimeType === inferred.mimeType)
+  );
+  if (!validFile || params.payload.files.rapport) {
+    throw new HttpError(415, "L'emploi du temps doit être un unique fichier PDF, CSV ou Excel (.xlsx)");
   }
   const input = scheduleInput({
     originalName: file.fileName,
@@ -234,45 +343,12 @@ export async function receiveDepotEdtMultipart(params: {
     fields: params.payload.fields,
   });
   const checksum = createHash("sha256").update(file.bytes).digest("hex");
-  const duplicateStatuses = [
-    "reserved", "uploaded", "quarantined", "processing",
-    "review", "approved", "active", "superseded",
-  ];
-  const findDuplicate = async () => {
-    const [existing] = await db.select({
-      id: scheduleSourceVersions.id,
-      status: scheduleSourceVersions.status,
-    }).from(scheduleSourceVersions).where(and(
-      eq(scheduleSourceVersions.institutionId, params.institutionId),
-      eq(scheduleSourceVersions.sourceKind, input.sourceKind),
-      eq(scheduleSourceVersions.schoolYear, input.schoolYear),
-      eq(scheduleSourceVersions.checksum, checksum),
-      inArray(scheduleSourceVersions.status, duplicateStatuses)
-    )).limit(1);
-    return existing;
-  };
-  const existing = await findDuplicate();
-  if (existing) {
-    return { importId: existing.id, status: existing.status, duplicate: true };
-  }
-  let reservation;
-  try {
-    reservation = await reserveDepotEdt({ ...params, input, checksum });
-  } catch (error) {
-    const concurrentDuplicate = await findDuplicate();
-    if (concurrentDuplicate) {
-      return {
-        importId: concurrentDuplicate.id,
-        status: concurrentDuplicate.status,
-        duplicate: true,
-      };
-    }
-    throw error;
-  }
+  const reservation = await reserveDepotEdtIdempotently({ ...params, input, checksum });
+  if (!("upload" in reservation)) return reservation;
   const { error } = await supabaseAdmin.storage
     .from(reservation.upload.bucket)
     .uploadToSignedUrl(reservation.upload.path, reservation.upload.token, file.bytes, {
-      contentType: "application/pdf",
+      contentType: input.mimeType,
     });
   if (error) throw new HttpError(503, "Le transfert privé de l'emploi du temps a échoué");
   return confirmDepotEdt({
@@ -299,15 +375,25 @@ export async function handleDepotEdtJson(params: {
     "mode", "originalName", "sizeBytes", "schoolYear", "title",
     "effectiveFrom", "effectiveUntil", "freshUntil", "sourceKind",
   ];
+  const allowed = [...expected, "sourceFormat", "mimeType", "checksum"];
   const keys = Object.keys(input);
-  if (input.mode !== "reserve" || keys.length !== expected.length || keys.some((key) => !expected.includes(key))) {
+  if (
+    input.mode !== "reserve"
+    || expected.some((key) => !keys.includes(key))
+    || keys.some((key) => !allowed.includes(key))
+  ) {
     throw new HttpError(400, "La réservation EDT est invalide");
   }
   if (typeof input.originalName !== "string") throw new HttpError(400, "La réservation EDT est invalide");
+  const checksum = input.checksum === undefined
+    ? undefined
+    : typeof input.checksum === "string" && /^[a-f0-9]{64}$/i.test(input.checksum)
+      ? input.checksum.toLowerCase()
+      : (() => { throw new HttpError(400, "L'empreinte EDT est invalide"); })();
   const parsed = scheduleInput({
     originalName: input.originalName,
     sizeBytes: Number(input.sizeBytes),
     json: input,
   });
-  return reserveDepotEdt({ ...params, input: parsed });
+  return reserveDepotEdtIdempotently({ ...params, input: parsed, checksum });
 }
