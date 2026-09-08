@@ -77,6 +77,23 @@ test("sanitizePgError rejette un constraint_name qui ne ressemble pas à un iden
   assertNoMarkerAnywhere(sanitized, SECRET_MARKER, "sanitizePgError (constraint_name invalide)");
 });
 
+test("sanitizePgError extrait uniquement les champs sûrs d'une erreur Drizzle enveloppée", () => {
+  const driverError = fabricatedPgError({
+    constraint_name: "code_vault_private_rows_assignment_id_institution_id_key",
+  });
+  const wrapped = new Error(`Failed query with hidden params ${SECRET_MARKER}`, {
+    cause: driverError,
+  });
+  const sanitized = sanitizePgError(wrapped);
+
+  assert.equal(
+    sanitized.constraintName,
+    "code_vault_private_rows_assignment_id_institution_id_key"
+  );
+  assert.equal(sanitized.message, driverError.message);
+  assertNoMarkerAnywhere(sanitized, SECRET_MARKER, "sanitizePgError (Drizzle enveloppé)");
+});
+
 test("sanitizePgError tolère une entrée qui n'est pas une PostgresError", () => {
   assert.deepEqual(sanitizePgError(null), { message: "pg_error_unknown" });
   assert.deepEqual(sanitizePgError(undefined), { message: "pg_error_unknown" });

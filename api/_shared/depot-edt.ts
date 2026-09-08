@@ -1,4 +1,4 @@
-import { randomUUID } from "node:crypto";
+import { createHash, randomUUID } from "node:crypto";
 import { and, eq, inArray, sql } from "drizzle-orm";
 import { db } from "../../db/index.js";
 import { scheduleAudit, scheduleSourceVersions } from "../../db/schema.js";
@@ -74,6 +74,7 @@ export async function reserveDepotEdt(params: {
   institutionId: string;
   actorId: string;
   input: ScheduleImportInput;
+  checksum?: string;
 }): Promise<DepotEdtReservation> {
   const storagePath = scheduleImportStoragePath(
     params.institutionId,
@@ -107,6 +108,7 @@ export async function reserveDepotEdt(params: {
     const rows = await tx.insert(scheduleSourceVersions).values({
       institutionId: params.institutionId,
       ...params.input,
+      checksum: params.checksum,
       version: Number(latest?.version ?? 0) + 1,
       freshUntil: new Date(`${params.input.freshUntil}T23:59:59.999Z`),
       storageBucket: SCHEDULE_IMPORT_BUCKET,
@@ -231,7 +233,42 @@ export async function receiveDepotEdtMultipart(params: {
     sizeBytes: file.bytes.length,
     fields: params.payload.fields,
   });
-  const reservation = await reserveDepotEdt({ ...params, input });
+  const checksum = createHash("sha256").update(file.bytes).digest("hex");
+  const duplicateStatuses = [
+    "reserved", "uploaded", "quarantined", "processing",
+    "review", "approved", "active", "superseded",
+  ];
+  const findDuplicate = async () => {
+    const [existing] = await db.select({
+      id: scheduleSourceVersions.id,
+      status: scheduleSourceVersions.status,
+    }).from(scheduleSourceVersions).where(and(
+      eq(scheduleSourceVersions.institutionId, params.institutionId),
+      eq(scheduleSourceVersions.sourceKind, input.sourceKind),
+      eq(scheduleSourceVersions.schoolYear, input.schoolYear),
+      eq(scheduleSourceVersions.checksum, checksum),
+      inArray(scheduleSourceVersions.status, duplicateStatuses)
+    )).limit(1);
+    return existing;
+  };
+  const existing = await findDuplicate();
+  if (existing) {
+    return { importId: existing.id, status: existing.status, duplicate: true };
+  }
+  let reservation;
+  try {
+    reservation = await reserveDepotEdt({ ...params, input, checksum });
+  } catch (error) {
+    const concurrentDuplicate = await findDuplicate();
+    if (concurrentDuplicate) {
+      return {
+        importId: concurrentDuplicate.id,
+        status: concurrentDuplicate.status,
+        duplicate: true,
+      };
+    }
+    throw error;
+  }
   const { error } = await supabaseAdmin.storage
     .from(reservation.upload.bucket)
     .uploadToSignedUrl(reservation.upload.path, reservation.upload.token, file.bytes, {

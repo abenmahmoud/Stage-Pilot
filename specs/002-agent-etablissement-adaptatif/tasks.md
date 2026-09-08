@@ -1152,6 +1152,11 @@
   activer l'OTP email après recette de révocation et mentions de confidentialité.
 - [ ] T063A Choisir un fournisseur OTP téléphone, définir le budget et les
   consentements, puis tester la réponse neutre, les quotas et la révocation.
+- [x] T063B Recetter sur la pile locale vide la route technique du Dépôt Lycée
+  avec annuaire et rapport, attributs chiffrés et activation, codes LGC1 puis
+  PDF EDT entièrement fictifs. Prouver stockage privé, absence de valeur dans
+  les réponses, idempotence et nettoyage sans import ni migration distante.
+  Preuve : `docs/operations/PASSATION_DEPOT_LYCEE_CODEX_2026-09-08.md`.
 - [x] T064 Concevoir et tester le coffre de codes Koxo, ENT et cantine :
   attribution unique, transaction concurrente, contrôle par rôle, affichage
   30 minutes, trois consultations par jour et journal sans valeur secrète.
@@ -1164,6 +1169,10 @@
 - [ ] T066 Raccorder la source d'emploi du temps et la déclaration professeur
   vérifiée, avec récapitulatif, validation opérationnelle, mise à jour humaine
   de PRONOTE et notifications à une audience explicitement choisie.
+- [x] T066A Dédupliquer par empreinte les PDF EDT reçus en multipart depuis le
+  Dépôt Lycée et protéger la concurrence par un index unique partiel. Conserver
+  antivirus, revue et activation humaines ; la source réelle de T066 reste
+  fermée.
 - [ ] T067 Programmer les contrôles de connaissances à 08:00, 13:00 et 18:00
   Europe/Paris, la détection des conflits, les alertes immédiates et le digest
   dédupliqué des questions inconnues.

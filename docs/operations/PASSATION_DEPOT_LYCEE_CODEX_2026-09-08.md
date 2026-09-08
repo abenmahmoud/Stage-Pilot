@@ -24,7 +24,8 @@ Le parseur accepte le contrat exact à 17 colonnes. Il rejoue les contrôles et
 compare le résultat au `rapport_verification.txt`. Une divergence de compteur ou
 de classe refuse le lot. Les contacts opérationnels restent dans le coffre
 chiffré ; les tables de contrôle ne contiennent que leurs empreintes. Un dépôt
-identique est idempotent.
+identique est idempotent dès la quarantaine et pendant le traitement. Le rapport
+`text/plain` est explicitement accepté dans le stockage privé.
 
 ### Réception automatique
 
@@ -56,7 +57,8 @@ une erreur, un journal ou le modèle. La révélation reste désactivée.
 Le dépôt multipart couvre les PDF jusqu'à 4 Mo. Au-delà, le Dépôt réserve une
 destination signée, envoie directement le PDF au stockage privé, puis confirme
 l'import. Le circuit existant conserve antivirus, analyse, revue et activation
-humaines.
+humaines. Pour le multipart, le SHA-256 et un index unique partiel empêchent le
+renvoi ou deux réceptions concurrentes de créer plusieurs versions.
 
 ## Vérifications déjà obtenues
 
@@ -64,54 +66,56 @@ humaines.
 - 32 tests ciblés annuaire, entrée Dépôt, codes, attributs et payloads : réussis ;
 - couverture des méthodes HTTP : 135 routes contrôlées ;
 - limites explicites sur les corps HTTP : réussies ;
-- intégrité des versions : 112 migrations uniques contrôlées ;
+- intégrité des versions : 114 migrations uniques contrôlées et rejouées ;
 - barrière complète `npm run test:preview-security-gate` : réussie ;
-- intégrité des cinq spécifications et de leurs 635 tâches : réussie ;
+- intégrité des cinq spécifications et de leurs 637 tâches : réussie ;
 - audit des dépendances de production : 0 vulnérabilité connue ;
-- aucune migration distante et aucune donnée réelle utilisés.
+- recette locale réelle du point d'entrée Dépôt : 21 contrôles sur annuaire,
+  codes et EDT, puis 17 contrôles sur les attributs ;
+- coffre de codes : 336 contrôles locaux cumulés sur l'écriture, l'attribution,
+  les scénarios adverses et les cinq routes HTTP ;
+- emploi du temps : 24 contrôles de dépôt, activation, remplacement et lecture ;
+- aucune migration distante et aucune donnée réelle utilisées.
 
-La recette avec une vraie base locale n'a pas pu être exécutée. Le diagnostic du
-8 septembre a isolé un défaut Docker Desktop 4.67 sur Windows build 26200 : les
-sockets AF_UNIX `dockerInference` puis `docker-secrets-engine/engine.sock`
-deviennent des points NTFS inaccessibles. Les anciens dossiers d'exécution ont
-été conservés par renommage avec le suffixe `codex-stale-20260908-1045` ; aucune
-image, aucun volume et aucune base n'ont été supprimés. Docker recrée aussitôt un
-socket invalide, ce qui impose un redémarrage complet de Windows avant la recette.
+Après redémarrage Windows, le socket AF_UNIX `dockerInference` resté invalide a
+été retiré uniquement via WSL. Docker Desktop a redémarré avec le moteur 29.3.1,
+sans réinitialisation ni suppression d'image ou de volume. La pile Supabase a
+ensuite été reconstruite et les 114 migrations ont été rejouées sur une base
+locale vide.
 
-La recette est maintenant prête sous la commande
-`npm run recipe:local-depot-attributs-persistence`. Elle utilise le vrai handler
-HTTP `/api/depot/attributs`, une pile Supabase exclusivement locale, un acteur et
-une identité fictifs, puis vérifie l'authentification technique, le chiffrement,
-l'idempotence, l'activation et le journal append-only. Son garde-fou local est
-inclus dans `test:preview-security-gate`.
+Deux recettes utilisent les vrais handlers HTTP sur la boucle locale :
+`npm run recipe:local-depot-fictitious-deliveries` pour annuaire, codes et EDT,
+puis `npm run recipe:local-depot-attributs-persistence` pour les attributs et
+leur activation. Elles n'héritent d'aucune URL distante ni fichier `.env` et
+n'utilisent que des identités, fichiers, clés et codes fictifs. Leurs garde-fous
+sont inclus dans `test:preview-security-gate`.
 
 ## Actions externes encore obligatoires
 
-1. Relire la migration
-   `supabase/migrations/20260908013000_create_person_attribute_imports.sql`.
-2. Après redémarrage complet de Windows, démarrer Docker Desktop et la pile
-   Supabase locale, appliquer les migrations à cette base jetable, puis lancer
-   `npm run recipe:local-depot-attributs-persistence`.
-3. Après réussite locale, appliquer la migration selon la procédure
+1. Relire les trois migrations
+   `20260908013000_create_person_attribute_imports.sql`,
+   `20260908133000_make_depot_schedule_idempotent.sql` et
+   `20260908134500_allow_depot_verification_report.sql`.
+2. Après réussite locale, appliquer ces migrations selon la procédure
    contrôlée de l'établissement. Ne jamais utiliser `--linked`, `db push` ou une
    URL distante depuis une session d'agent.
-4. Créer ou sélectionner un compte technique Supabase lié au lycée et relever
+3. Créer ou sélectionner un compte technique Supabase lié au lycée et relever
    son UUID comme `LYCEEGEST_DEPOT_ACTOR_ID`.
-5. Générer un jeton long côté VPS et ne mettre dans Vercel que son SHA-256 sous
+4. Générer un jeton long côté VPS et ne mettre dans Vercel que son SHA-256 sous
    `LYCEEGEST_DEPOT_TOKEN_SHA256`.
-6. Installer la clé privée RSA côté LyceeGest sous
+5. Installer la clé privée RSA côté LyceeGest sous
    `LYCEEGEST_CODES_PRIVATE_KEY_PEM_BASE64`. Seule la clé publique correspondante
    va sur le VPS.
-7. Poser les clés de chiffrement du coffre et des attributs conformément à
+6. Poser les clés de chiffrement du coffre et des attributs conformément à
    `.env.local.example`. Ne jamais les écrire dans Git ou une conversation.
-8. Configurer le VPS avec la base
+7. Configurer le VPS avec la base
    `https://lycee-blaise-cendrars-sevran.fr/api/depot` et le jeton clair.
-9. Exécuter d'abord une recette entièrement fictive : annuaire + rapport,
+8. Répéter dans l'environnement ciblé la recette entièrement fictive : annuaire + rapport,
    attributs + activation MFA, codes fictifs, puis EDT fictif.
-10. Vérifier l'idempotence en renvoyant chaque même fichier une seconde fois.
-11. Garder `CODE_VAULT_REVEAL_ENABLED=false` jusqu'à une recette séparée et
-    autorisée du parcours de remise à une personne vérifiée.
-12. Après validation seulement, Adel effectue le push puis la mise en ligne.
+9. Vérifier l'idempotence en renvoyant chaque même fichier une seconde fois.
+10. Garder `CODE_VAULT_REVEAL_ENABLED=false` jusqu'à une recette séparée et
+   autorisée du parcours de remise à une personne vérifiée.
+11. Après validation seulement, Adel effectue le push puis la mise en ligne.
 
 ## Prompt direct à donner à Claude
 
@@ -130,7 +134,7 @@ inclus dans `test:preview-security-gate`.
 
 ## Limites honnêtes
 
-Le code est prêt localement, mais le site public ne bénéficie d'aucune de ces
+Le code et les migrations sont prêts et recettés localement, mais le site public ne bénéficie d'aucune de ces
 modifications avant migration, configuration des secrets, recette fictive,
 push et déploiement. Le circuit ne prétend pas avoir ingéré ou vérifié les
 exports réels. La restitution finale des codes reste volontairement fermée.

@@ -39,7 +39,9 @@ export async function receiveDepotAnnuaire(params: {
     .where(and(
       eq(identityDirectoryImports.institutionId, params.institutionId),
       eq(identityDirectoryImports.checksum, checksum),
-      inArray(identityDirectoryImports.status, ["review", "approved", "active", "superseded", "retired"])
+      inArray(identityDirectoryImports.status, [
+        "quarantined", "processing", "review", "approved", "active", "superseded", "retired",
+      ])
     ))
     .orderBy(desc(identityDirectoryImports.createdAt))
     .limit(1);
@@ -81,7 +83,9 @@ export async function receiveDepotAnnuaire(params: {
         .where(and(
           eq(identityDirectoryImports.institutionId, params.institutionId),
           eq(identityDirectoryImports.checksum, checksum),
-          inArray(identityDirectoryImports.status, ["review", "approved", "active", "superseded", "retired"])
+          inArray(identityDirectoryImports.status, [
+            "quarantined", "processing", "review", "approved", "active", "superseded", "retired",
+          ])
         ))
         .limit(1);
       if (duplicate) return [{ ...duplicate, duplicate: true }];

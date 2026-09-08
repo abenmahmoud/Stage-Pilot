@@ -39,15 +39,22 @@ function sanitizedConstraintName(value: unknown): string | undefined {
 }
 
 /**
- * Ne lit que `message` et `constraint_name` de l'erreur reçue. N'accède à
- * aucun autre champ (donc jamais à `detail`), que l'erreur vienne réellement
- * du pilote `postgres` ou d'ailleurs.
+ * Ne lit que `message`, `constraint_name` et la chaîne de `cause` de l'erreur
+ * reçue. Drizzle enveloppe maintenant l'erreur du pilote `postgres` dans une
+ * erreur de requête : descendre dans `cause` permet de conserver le nom de la
+ * contrainte sans jamais lire ni recopier `detail`, les paramètres ou l'objet
+ * d'erreur d'origine.
  */
 export function sanitizePgError(error: unknown): SanitizedPgError {
   if (error === null || typeof error !== "object") {
     return { message: sanitizedMessage(undefined) };
   }
-  const raw = error as Record<string, unknown>;
+  let raw = error as Record<string, unknown>;
+  for (let depth = 0; depth < 4; depth += 1) {
+    if (sanitizedConstraintName(raw.constraint_name)) break;
+    if (raw.cause === null || typeof raw.cause !== "object") break;
+    raw = raw.cause as Record<string, unknown>;
+  }
   return {
     message: sanitizedMessage(raw.message),
     constraintName: sanitizedConstraintName(raw.constraint_name),

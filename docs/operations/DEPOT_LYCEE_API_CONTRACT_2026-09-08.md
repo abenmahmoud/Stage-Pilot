@@ -55,7 +55,9 @@ Exemple de réponse :
 Le worker contrôle les deux fichiers par antivirus, lit les 17 colonnes, rejoue
 les vérifications, compare les huit compteurs et vérifie que toutes les classes
 calculées figurent dans le rapport. La version reste inactive jusqu'à son
-approbation et son activation humaines dans l'administration.
+approbation et son activation humaines dans l'administration. Le stockage privé
+`identity-ingest` autorise explicitement `text/plain` pour ce rapport ; un même
+lot déjà en quarantaine ou en traitement est également reconnu comme doublon.
 
 ### `attributs`
 
@@ -85,10 +87,12 @@ Une attribution existante n'est jamais écrasée automatiquement.
 
 - `fichier` : PDF `application/pdf` ;
 - `source_kind` : `classes` par défaut ;
-- réponse : `202`, statut `quarantined`.
+- réponse : `202`, statut `quarantined` ; `200`, `duplicate: true` si le même
+  PDF a déjà été reçu pour le même périmètre et la même année scolaire.
 
 Le PDF passe dans le circuit existant : stockage privé, antivirus, indexation,
-revue et activation humaines.
+revue et activation humaines. Son SHA-256 est enregistré et un index unique
+partiel empêche deux réservations concurrentes du même fichier.
 
 ## EDT supérieur à 4 Mo
 
@@ -156,15 +160,17 @@ incomplet.
 
 ## Mise en service externe encore nécessaire
 
-1. faire relire puis appliquer la migration
-   `20260908013000_create_person_attribute_imports.sql`
-   selon la procédure locale contrôlée du projet ;
+1. faire relire puis appliquer les migrations
+   `20260908013000_create_person_attribute_imports.sql`,
+   `20260908133000_make_depot_schedule_idempotent.sql` et
+   `20260908134500_allow_depot_verification_report.sql` selon la procédure
+   contrôlée du projet ;
 2. créer ou choisir le compte technique et renseigner son UUID ;
 3. poser les cinq variables secrètes serveur décrites dans `.env.local.example` ;
 4. configurer `LYCEEGEST_URL` et `LYCEEGEST_TOKEN` sur le VPS ;
-5. exécuter la recette de bout en bout avec les seuls fichiers fictifs avant les
-   exports réels, y compris l'activation d'un lot d'attributs depuis l'écran
-   d'administration ;
+5. après application dans l'environnement ciblé, répéter la recette de bout en
+   bout avec les seuls fichiers fictifs avant les exports réels, y compris
+   l'activation d'un lot d'attributs depuis l'écran d'administration ;
 6. conserver `CODE_VAULT_REVEAL_ENABLED=false` jusqu'à la validation finale des
    parcours de remise.
 

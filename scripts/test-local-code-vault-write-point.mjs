@@ -116,9 +116,10 @@ try {
           env: testEnv,
         }),
       (error) =>
-        (error?.cause?.message ?? error?.message ?? String(error)).includes(
-          "duplicate key value violates unique constraint"
-        ),
+        error?.name === "SanitizedPgWriteError" &&
+        error?.constraintName ===
+          "code_vault_private_rows_assignment_id_institution_id_key" &&
+        !("cause" in error),
       "deuxieme_ecriture_sur_la_meme_attribution_rejetee_par_la_contrainte_unique"
     );
     assertions++;

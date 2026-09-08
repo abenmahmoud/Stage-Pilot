@@ -5,6 +5,29 @@
 **Depot** : `abenmahmoud/Stage-Pilot`
 **Dernier jalon de code verifie** : branche de preview Vercel
 
+## Jalon du 8 septembre 2026 - recette locale complète du Dépôt Lycée
+
+- Docker Desktop 4.67 a été remis en service sans réinitialisation : après le
+  redémarrage Windows, le seul socket AF_UNIX `dockerInference` resté invalide a
+  été retiré via WSL. Le moteur 29.3.1 et la pile Supabase locale répondent.
+- Les 114 migrations Git se rejouent sur une base locale vide. Deux migrations
+  ferment des défauts trouvés par la recette : le rapport `text/plain` est
+  accepté dans le stockage privé de l'annuaire et un même PDF EDT est dédupliqué
+  par empreinte, y compris sous concurrence.
+- La route réelle `/api/depot/<type>` est recettée avec des données uniquement
+  fictives pour `annuaire`, `attributs`, `codes` et `edt`. Les renvois sont
+  idempotents, les codes et attributs restent chiffrés, les fichiers restent
+  privés et les fixtures de la nouvelle recette sont nettoyées.
+- La couche de sanitisation du coffre extrait désormais le message générique et
+  le nom de contrainte depuis l'erreur Drizzle enveloppée, sans conserver le
+  `detail`, les paramètres ni l'erreur d'origine. Les recettes Node 24 qui
+  importent les routes HTTP utilisent le mode de transformation TypeScript.
+- Build, barrière complète de sécurité, 135 méthodes de routes, 78 routes
+  privées et intégrité des 114 migrations passent. Aucune donnée réelle, aucune
+  migration distante, aucun email, aucun push et aucun déploiement n'ont été
+  effectués. Passation :
+  `docs/operations/PASSATION_DEPOT_LYCEE_CODEX_2026-09-08.md`.
+
 ## Jalon du 7 septembre 2026 - révision éditoriale isolée
 
 - Branche `codex/correction-textes-lycee-20260907`, créée depuis `cd512c4` pour ne pas interrompre le travail de Claude sur les exports et les imports.

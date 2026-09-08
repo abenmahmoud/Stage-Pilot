@@ -1182,6 +1182,9 @@ export const scheduleSourceVersions = pgTable(
       table.schoolYear,
       table.version
     ),
+    uniqueIndex("schedule_source_versions_checksum_uidx")
+      .on(table.institutionId, table.sourceKind, table.schoolYear, table.checksum)
+      .where(sql`${table.checksum} is not null and ${table.status} not in ('rejected', 'failed', 'retired')`),
     index("schedule_source_versions_institution_status_idx").on(
       table.institutionId,
       table.status,
