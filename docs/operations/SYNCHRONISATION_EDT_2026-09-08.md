@@ -101,6 +101,27 @@ fichier. L'activation remplace alors l'ancienne version de façon atomique.
   données fictives ;
 - TypeScript : aucune erreur.
 
+## Mise en service du traitement serveur
+
+Le worker `lycee-schedule-document-worker` et son timer systemd sont installés
+sur le VPS de preview. Le timer lance le contrôle toutes les minutes. Le service
+utilise ClamAV avant toute lecture du contenu et ne fait aucun appel à un modèle
+d'IA.
+
+La recette de preview du 8 septembre a traversé le circuit réel du domaine :
+
+- réservation et envoi signé d'un CSV entièrement fictif ;
+- contrôle antivirus propre ;
+- lecture de six colonnes et d'une ligne ;
+- passage à `mapping_pending`, avec activation bloquée ;
+- second envoi de la même empreinte reconnu comme doublon ;
+- suppression contrôlée du fichier, de la version, de ses audits et du message
+  de file : quatre compteurs revenus à zéro.
+
+Le script reproductible `scripts/test-preview-schedule-document-worker.mjs`
+refuse de démarrer sans confirmation `preview-only` et sans correspondance
+exacte avec le projet Supabase de preview.
+
 ## Retour arrière
 
 La tâche Windows peut être arrêtée sans toucher au site :
