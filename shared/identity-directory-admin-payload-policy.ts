@@ -26,7 +26,9 @@ const ISSUE_CODES = [
   "shared_personal_email",
   "shared_phone",
   "invalid_email",
+  "ambiguous_email",
   "invalid_phone",
+  "invalid_active",
   "invalid_date",
   "invalid_date_range",
   "invalid_person_type",
@@ -37,6 +39,7 @@ const ISSUE_CODES = [
   "no_contact_factor",
   "student_without_class",
   "staff_without_service",
+  "inactive_record",
   "unknown_subject_ref",
   "unknown_object_ref",
   "self_reference_mismatch",
@@ -46,8 +49,10 @@ const ISSUE_CODES = [
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const ISO_DATE_PATTERN = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/;
 const DAY_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
-const REFERENCE_PATTERN = /^[A-Za-z0-9][A-Za-z0-9._:-]{2,119}$/;
+const REFERENCE_PATTERN = /^[A-Za-z0-9][A-Za-z0-9._:-]{2,199}$/;
+const SHORT_REFERENCE_PATTERN = /^[A-Za-z0-9][A-Za-z0-9._:-]{1,79}$/;
 const STORAGE_PATH_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}\/[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}\/\d{4}\/(?:0[1-9]|1[0-2])\/[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}\.(?:csv|xlsx)$/i;
+const REPORT_STORAGE_PATH_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}\/[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}\/\d{4}\/(?:0[1-9]|1[0-2])\/[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}\.txt$/i;
 const UPLOAD_TOKEN_PATTERN = /^[A-Za-z0-9._~-]+$/;
 
 const LIST_FIELDS = new Set(["imports"]);
@@ -65,7 +70,7 @@ const LIST_ITEM_FIELDS = new Set([
 ]);
 const ACTION_VIEW_FIELDS = new Set(["id", "status", "updatedAt"]);
 const ACTION_FIELDS = new Set(["import", "duplicate"]);
-const RESERVATION_FIELDS = new Set(["import", "upload"]);
+const RESERVATION_FIELDS = new Set(["import", "upload", "verificationReportUpload"]);
 const UPLOAD_FIELDS = new Set(["bucket", "path", "token"]);
 const REPORT_FIELDS = new Set(["import", "classSummary", "comparedToActiveImport", "rows", "pagination"]);
 const CLASS_SUMMARY_FIELDS = new Set(["personTypeCounts", "classRefs"]);
@@ -133,6 +138,7 @@ export type IdentityDirectoryActionPayload = {
 export type IdentityDirectoryReservationPayload = {
   import: IdentityDirectoryActionView;
   upload: { bucket: string; path: string; token: string };
+  verificationReportUpload: { bucket: string; path: string; token: string } | null;
 };
 
 export type IdentityDirectoryReportIssue = {
@@ -253,6 +259,10 @@ function isReferenceOrNull(value: unknown): value is string | null {
   return value === null || (typeof value === "string" && REFERENCE_PATTERN.test(value));
 }
 
+function isShortReferenceOrNull(value: unknown): value is string | null {
+  return value === null || (typeof value === "string" && SHORT_REFERENCE_PATTERN.test(value));
+}
+
 function isListItem(value: unknown): value is IdentityDirectoryListItem {
   return isRecord(value)
     && hasExactKeys(value, LIST_ITEM_FIELDS)
@@ -302,8 +312,8 @@ function isReportRow(value: unknown): value is IdentityDirectoryReportRow {
     && isReferenceOrNull(value.subjectPersonRef)
     && (value.relationshipType === null || known(value.relationshipType, RELATIONSHIP_TYPES))
     && isReferenceOrNull(value.objectRef)
-    && isReferenceOrNull(value.classRef)
-    && isReferenceOrNull(value.serviceCode)
+    && isShortReferenceOrNull(value.classRef)
+    && isShortReferenceOrNull(value.serviceCode)
     && (value.validFrom === null || calendarDay(value.validFrom))
     && (value.validUntil === null || calendarDay(value.validUntil))
     && known(value.validationStatus, VALIDATION_STATUSES)
@@ -363,7 +373,21 @@ export function isIdentityDirectoryReservationPayload(
     && typeof value.upload.token === "string"
     && value.upload.token.length >= 20
     && value.upload.token.length <= 4_096
-    && UPLOAD_TOKEN_PATTERN.test(value.upload.token);
+    && UPLOAD_TOKEN_PATTERN.test(value.upload.token)
+    && (
+      value.verificationReportUpload === null
+      || (
+        isRecord(value.verificationReportUpload)
+        && hasExactKeys(value.verificationReportUpload, UPLOAD_FIELDS)
+        && value.verificationReportUpload.bucket === "identity-ingest"
+        && typeof value.verificationReportUpload.path === "string"
+        && REPORT_STORAGE_PATH_PATTERN.test(value.verificationReportUpload.path)
+        && typeof value.verificationReportUpload.token === "string"
+        && value.verificationReportUpload.token.length >= 20
+        && value.verificationReportUpload.token.length <= 4_096
+        && UPLOAD_TOKEN_PATTERN.test(value.verificationReportUpload.token)
+      )
+    );
 }
 
 export function isIdentityDirectoryActionPayload(

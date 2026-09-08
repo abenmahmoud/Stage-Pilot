@@ -20,6 +20,31 @@ function routeId(req: VercelRequest): string {
   return value;
 }
 
+type VerificationReportMetadata = {
+  originalName: string;
+  mimeType: "text/plain";
+  sizeBytes: number;
+  storageBucket: string;
+  storagePath: string;
+};
+
+function verificationReportMetadata(value: unknown): VerificationReportMetadata | null {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return null;
+  const report = (value as Record<string, unknown>).verificationReport;
+  if (!report || typeof report !== "object" || Array.isArray(report)) return null;
+  const candidate = report as Record<string, unknown>;
+  if (
+    typeof candidate.originalName !== "string"
+    || candidate.mimeType !== "text/plain"
+    || !Number.isSafeInteger(candidate.sizeBytes)
+    || Number(candidate.sizeBytes) <= 0
+    || Number(candidate.sizeBytes) > 256 * 1024
+    || candidate.storageBucket !== "identity-ingest"
+    || typeof candidate.storagePath !== "string"
+  ) return null;
+  return candidate as VerificationReportMetadata;
+}
+
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== "POST") return methodNotAllowed(res, ["POST"]);
   return handleApi(res, async () => {
@@ -52,6 +77,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
 
     if (directoryImport.status === "reserved") {
+      const reportMetadata = verificationReportMetadata(directoryImport.validationSummary);
+      if (directoryImport.sourceType === "official_export" && !reportMetadata) {
+        throw new HttpError(409, "Le rapport de vérification associé est obligatoire");
+      }
       const separator = directoryImport.storagePath.lastIndexOf("/");
       const folder = directoryImport.storagePath.slice(0, separator);
       const fileName = directoryImport.storagePath.slice(separator + 1);
@@ -66,13 +95,36 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       const metadata = (uploaded.metadata ?? {}) as Record<string, unknown>;
       const uploadedSize = Number(metadata.size ?? 0);
       const uploadedMime = String(metadata.mimetype ?? metadata.mimeType ?? "");
+      let reportMismatch = false;
+      if (reportMetadata) {
+        const reportSeparator = reportMetadata.storagePath.lastIndexOf("/");
+        const reportFolder = reportMetadata.storagePath.slice(0, reportSeparator);
+        const reportName = reportMetadata.storagePath.slice(reportSeparator + 1);
+        const { data: reportFiles, error: reportError } = await supabaseAdmin.storage
+          .from(reportMetadata.storageBucket)
+          .list(reportFolder, { search: reportName, limit: 10 });
+        const uploadedReport = reportFiles?.find((file) => file.name === reportName);
+        const reportStorageMetadata = (uploadedReport?.metadata ?? {}) as Record<string, unknown>;
+        reportMismatch = Boolean(
+          reportError
+          || !uploadedReport
+          || Number(reportStorageMetadata.size ?? 0) !== reportMetadata.sizeBytes
+          || (
+            String(reportStorageMetadata.mimetype ?? reportStorageMetadata.mimeType ?? "")
+            && String(reportStorageMetadata.mimetype ?? reportStorageMetadata.mimeType ?? "") !== "text/plain"
+          )
+        );
+      }
       if (
         uploadedSize !== directoryImport.sizeBytes ||
-        (uploadedMime && uploadedMime !== directoryImport.mimeType)
+        (uploadedMime && uploadedMime !== directoryImport.mimeType) ||
+        reportMismatch
       ) {
+        const pathsToRemove = [directoryImport.storagePath];
+        if (reportMetadata) pathsToRemove.push(reportMetadata.storagePath);
         await supabaseAdmin.storage
           .from(directoryImport.storageBucket)
-          .remove([directoryImport.storagePath]);
+          .remove(pathsToRemove);
         await db
           .update(identityDirectoryImports)
           .set({
@@ -91,6 +143,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             declaredSize: directoryImport.sizeBytes,
             uploadedMime,
             declaredMime: directoryImport.mimeType,
+            reportMismatch,
           },
         });
         throw new HttpError(400, "Le fichier reçu ne correspond pas au fichier annoncé");
@@ -98,13 +151,18 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
 
     const jobId = randomUUID();
+    const existingValidationSummary = directoryImport.validationSummary
+      && typeof directoryImport.validationSummary === "object"
+      && !Array.isArray(directoryImport.validationSummary)
+      ? directoryImport.validationSummary as Record<string, unknown>
+      : {};
     const [confirmed] = await db.transaction(async (tx) => {
       const updated = await tx
         .update(identityDirectoryImports)
         .set({
           status: "quarantined",
           uploadedAt: directoryImport.uploadedAt ?? new Date(),
-          validationSummary: { antivirus: "pending" },
+          validationSummary: { ...existingValidationSummary, antivirus: "pending" },
         })
         .where(
           and(

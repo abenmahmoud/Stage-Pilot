@@ -15,3 +15,17 @@ export function identityDirectoryStoragePath(
     `${randomUUID()}.${extension}`,
   ].join("/");
 }
+
+export function identityDirectoryVerificationReportPath(
+  institutionId: string,
+  userId: string
+): string {
+  const date = new Date();
+  return [
+    institutionId,
+    userId,
+    date.getUTCFullYear(),
+    String(date.getUTCMonth() + 1).padStart(2, "0"),
+    `${randomUUID()}.txt`,
+  ].join("/");
+}

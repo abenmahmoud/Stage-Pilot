@@ -78,6 +78,11 @@ function validInput(overrides = {}) {
     originalName: "repertoire-fictif.xlsx",
     mimeType: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
     sizeBytes: 2 * 1024 * 1024,
+    verificationReport: {
+      originalName: "rapport_verification.txt",
+      mimeType: "text/plain",
+      sizeBytes: 2048,
+    },
     ...overrides,
   };
 }
@@ -85,6 +90,10 @@ function validInput(overrides = {}) {
 test("accepts only bounded CSV and XLSX directory files", () => {
   assert.equal(IDENTITY_DIRECTORY_MAX_ROWS, PARSER_MAX_ROWS);
   assert.equal(parseIdentityDirectoryInput(validInput()).sourceType, "official_export");
+  assert.throws(
+    () => parseIdentityDirectoryInput(validInput({ verificationReport: null })),
+    /rapport de vérification est obligatoire/
+  );
   assert.equal(identityDirectoryMime("liste.csv", "application/octet-stream"), "text/csv");
   assert.throws(
     () => parseIdentityDirectoryInput(validInput({ originalName: "liste.pdf", mimeType: "application/pdf" })),

@@ -34,8 +34,11 @@ const HEADER_ALIASES = new Map(
     email_academique: "academic_email",
     personal_email: "personal_email",
     email_personnel: "personal_email",
+    email: "email",
     phone: "phone",
     telephone: "phone",
+    date_of_birth: "date_of_birth",
+    date_naissance: "date_of_birth",
     class_ref: "class_ref",
     reference_classe: "class_ref",
     service_code: "service_code",
@@ -54,6 +57,11 @@ const HEADER_ALIASES = new Map(
     valide_depuis: "valid_from",
     valid_until: "valid_until",
     valide_jusquau: "valid_until",
+    source: "source",
+    comment: "comment",
+    commentaire: "comment",
+    active: "active",
+    actif: "active",
   })
 );
 
@@ -140,17 +148,40 @@ function normalizePhone(value, issues) {
   return phone;
 }
 
-function normalizeRef(value, column, issues, required = true) {
+function normalizeRef(
+  value,
+  column,
+  issues,
+  required = true,
+  { minLength = 4, maxLength = 200 } = {}
+) {
   const ref = boundedText(value, column, issues);
   if (!ref) {
     if (required) issue(issues, "error", "missing_value", column);
     return "";
   }
-  if (!/^[A-Za-z0-9][A-Za-z0-9._:-]{2,119}$/.test(ref)) {
+  if (
+    ref.length < minLength ||
+    ref.length > maxLength ||
+    !/^[A-Za-z0-9][A-Za-z0-9._:-]*$/.test(ref)
+  ) {
     issue(issues, "error", "invalid_reference", column);
     return "";
   }
   return ref;
+}
+
+function normalizeActive(value, issues) {
+  const active = boundedText(value, "active", issues).toLowerCase();
+  if (!active || ["1", "true", "yes", "oui", "actif", "active"].includes(active)) {
+    return true;
+  }
+  if (["0", "false", "no", "non", "inactif", "inactive"].includes(active)) {
+    issue(issues, "warning", "inactive_record", "active");
+    return false;
+  }
+  issue(issues, "error", "invalid_active", "active");
+  return false;
 }
 
 function normalizeDate(value, column, issues, required) {
@@ -214,13 +245,43 @@ function parsePerson(record, base, pepper) {
 
   const firstName = boundedText(record.first_name, "first_name", issues);
   const lastName = boundedText(record.last_name, "last_name", issues);
-  const academicEmail = normalizeEmail(record.academic_email, "academic_email", issues);
-  const personalEmail = normalizeEmail(record.personal_email, "personal_email", issues);
+  const genericEmail = normalizeEmail(record.email, "email", issues);
+  let academicEmail = normalizeEmail(record.academic_email, "academic_email", issues);
+  let personalEmail = normalizeEmail(record.personal_email, "personal_email", issues);
+  if (genericEmail) {
+    const explicitEmails = [academicEmail, personalEmail].filter(Boolean);
+    if (explicitEmails.some((value) => value !== genericEmail)) {
+      issue(issues, "error", "ambiguous_email", "email");
+    } else if (!academicEmail && !personalEmail) {
+      if (personType === "staff") academicEmail = genericEmail;
+      else personalEmail = genericEmail;
+    }
+  }
   const phone = normalizePhone(record.phone, issues);
-  const classRef = normalizeRef(record.class_ref, "class_ref", issues, false);
-  const serviceCode = normalizeRef(record.service_code, "service_code", issues, false);
-  const validFrom = normalizeDate(record.active_from, "active_from", issues, true);
-  const validUntil = normalizeDate(record.active_until, "active_until", issues, false);
+  const classRef = normalizeRef(record.class_ref, "class_ref", issues, false, {
+    minLength: 2,
+    maxLength: 80,
+  });
+  const serviceCode = normalizeRef(record.service_code, "service_code", issues, false, {
+    minLength: 2,
+    maxLength: 80,
+  });
+  normalizeDate(record.date_of_birth, "date_of_birth", issues, false);
+  boundedText(record.source, "source", issues);
+  boundedText(record.comment, "comment", issues);
+  normalizeActive(record.active, issues);
+  const validFrom = normalizeDate(
+    record.active_from || record.valid_from,
+    record.active_from ? "active_from" : "valid_from",
+    issues,
+    true
+  );
+  const validUntil = normalizeDate(
+    record.active_until || record.valid_until,
+    record.active_until ? "active_until" : "valid_until",
+    issues,
+    false
+  );
 
   if (validFrom && validUntil && validUntil < validFrom) {
     issue(issues, "error", "invalid_date_range", "active_until");
@@ -278,6 +339,9 @@ function parseRelationship(record, base) {
   const objectRef = normalizeRef(record.object_ref, "object_ref", issues);
   const validFrom = normalizeDate(record.valid_from, "valid_from", issues, true);
   const validUntil = normalizeDate(record.valid_until, "valid_until", issues, false);
+  boundedText(record.source, "source", issues);
+  boundedText(record.comment, "comment", issues);
+  normalizeActive(record.active, issues);
   if (validFrom && validUntil && validUntil < validFrom) {
     issue(issues, "error", "invalid_date_range", "valid_until");
   }
@@ -527,13 +591,27 @@ export function parseIdentityDirectoryBytes({ bytes, fileName, contactPepper }) 
   const warnings = rows.filter((row) => row.validationStatus === "warning").length;
   const people = rows.filter((row) => row.recordType === "person").length;
   const relationships = rows.filter((row) => row.recordType === "relationship").length;
+  const orphanReferenceCount = rows.reduce(
+    (total, row) => total + row.issues.filter((entry) =>
+      entry.code === "unknown_subject_ref" || entry.code === "unknown_object_ref"
+    ).length,
+    0
+  );
+  const duplicatePersonReferenceCount = [...personIndexes.values()]
+    .filter((indexes) => indexes.length > 1)
+    .reduce((total, indexes) => total + indexes.length - 1, 0);
+  const classRefs = [...new Set(
+    rows
+      .filter((row) => row.recordType === "person" && row.classRef)
+      .map((row) => row.classRef)
+  )].sort((left, right) => left.localeCompare(right, "fr", { numeric: true }));
 
   return {
     checksum: createHash("sha256").update(bytes).digest("hex"),
     rows,
     privateRows,
     summary: {
-      parserVersion: 1,
+      parserVersion: 2,
       sheets: workbook.SheetNames.map((name) => name.slice(0, 80)),
       rowCount: rows.length,
       personCount: people,
@@ -542,6 +620,12 @@ export function parseIdentityDirectoryBytes({ bytes, fileName, contactPepper }) 
       rejectedRowCount: rejected,
       warningRowCount: warnings,
       issueCounts: countIssueCodes(rows),
+      orphanReferenceCount,
+      duplicatePersonReferenceCount,
+      classRefCount: classRefs.length,
+      classRefs,
+      forbiddenColumnCount: 0,
+      detectedCodeCount: 0,
       containsRawContacts: false,
       readyForApproval: rejected === 0,
     },

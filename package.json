@@ -239,6 +239,7 @@
     "test:identity-directory": "node --experimental-strip-types scripts/test-identity-directory-ingestion.mjs",
     "test:private-ent-directory-preparation": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/test-prepare-private-ent-directory.ps1",
     "test:identity-directory-parser": "node scripts/test-identity-directory-parser.mjs",
+    "test:identity-directory-verification-report": "node scripts/test-identity-directory-verification-report.mjs",
     "test:identity-directory-worker": "node scripts/test-identity-directory-worker.mjs",
     "test:identity-directory-vault": "node scripts/test-identity-directory-vault.mjs",
     "test:identity-vault-rotation-worker": "node scripts/test-identity-vault-rotation-worker.mjs",

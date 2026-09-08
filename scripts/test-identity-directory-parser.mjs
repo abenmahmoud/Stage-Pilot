@@ -82,11 +82,29 @@ relationship,,,,PAR-001,guardian_of,STU-404,2026-09-01`);
 assert.equal(brokenRelation.summary.rejectedRowCount, 1);
 assert.equal(brokenRelation.summary.issueCounts.unknown_object_ref, 1);
 
-expectParseCode(
-  () => parseCsv(`record_type,person_ref,person_type,commentaire,active_from
-person,STU-001,student,information libre,2026-09-01`),
-  "unsupported_column"
+const depotContract = parseCsv(`type_ligne,reference_personne,type_personne,nom,prenom,date_naissance,reference_classe,email,telephone,type_relation,reference_sujet,reference_objet,valide_depuis,valide_jusquau,source,commentaire,actif
+person,STU-DEMO-101,student,Fictif,Eleve,2010-03-12,2E5,eleve.101@example.test,,,,,2026-09-01,2027-08-31,ent,Donnee fictive,true
+person,RESP-DEMO-101,guardian,Fictif,Responsable,,,responsable.101@example.test,+33600000101,,,,2026-09-01,2027-08-31,ent,Donnee fictive,1
+relationship,,,,,,,,,guardian_of,RESP-DEMO-101,STU-DEMO-101,2026-09-01,2027-08-31,siecle,Donnee fictive,oui`);
+assert.deepEqual(
+  {
+    rows: depotContract.summary.rowCount,
+    people: depotContract.summary.personCount,
+    relationships: depotContract.summary.relationshipCount,
+    rejected: depotContract.summary.rejectedRowCount,
+  },
+  { rows: 3, people: 2, relationships: 1, rejected: 0 },
+  "the exact 17-column Depot Lycee contract must be accepted"
 );
+assert.equal(depotContract.privateRows[0].value.personalEmail, "eleve.101@example.test");
+assert.equal(depotContract.rows[0].personalEmailHash?.length, 64);
+assert.equal(JSON.stringify(depotContract.rows).includes("eleve.101@example.test"), false);
+
+const inactive = parseCsv(`type_ligne,reference_personne,type_personne,email,valide_depuis,actif
+person,STU-DEMO-102,student,eleve.102@example.test,2026-09-01,false`);
+assert.equal(inactive.summary.rejectedRowCount, 0);
+assert.equal(inactive.summary.warningRowCount, 1);
+assert.equal(inactive.summary.issueCounts.inactive_record, 1);
 
 for (const [header, value] of [
   ["mot_de_passe", "Azerty123!"],

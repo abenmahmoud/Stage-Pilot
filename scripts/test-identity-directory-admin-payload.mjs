@@ -117,6 +117,7 @@ test("accepts only an exact private upload reservation", () => {
       path: `${institutionId}/${actorId}/2026/09/${fileId}.csv`,
       token: "a".repeat(32),
     },
+    verificationReportUpload: null,
   };
   assert.equal(isIdentityDirectoryReservationPayload(reservation), true);
   assert.equal(isIdentityDirectoryReservationPayload({ ...reservation, storageKey: "hidden" }), false);
@@ -232,6 +233,7 @@ test("requires exact decision and reservation command fields", () => {
       originalName: "test.csv",
       mimeType: "text/csv",
       sizeBytes: 100,
+      verificationReport: null,
       institutionId: "hidden",
     }),
     /données sont invalides/
@@ -249,7 +251,7 @@ test("validates every browser response before state, upload or success", () => {
 
   const reservationRead = page.indexOf('apiFetch<unknown>("identity/admin/imports", {');
   const reservationCheck = page.indexOf("isIdentityDirectoryReservationPayload(reservation)", reservationRead);
-  const upload = page.indexOf("uploadPrivateFile(uploadFile", reservationCheck);
+  const upload = page.indexOf("uploadPrivateFile(", reservationCheck);
   assert.ok(reservationRead !== -1 && reservationRead < reservationCheck && reservationCheck < upload);
 
   const confirmationRead = page.indexOf("const confirmation = await apiFetch<unknown>");

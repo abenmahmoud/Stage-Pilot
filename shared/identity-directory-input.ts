@@ -1,5 +1,6 @@
 export const IDENTITY_DIRECTORY_MAX_BYTES = 50 * 1024 * 1024;
 export const IDENTITY_DIRECTORY_MAX_ROWS = 25_000;
+export const IDENTITY_VERIFICATION_REPORT_MAX_BYTES = 256 * 1024;
 
 export const IDENTITY_DIRECTORY_MIME_TYPES = [
   "text/csv",
@@ -19,6 +20,11 @@ export type IdentityDirectoryInput = {
   originalName: string;
   mimeType: (typeof IDENTITY_DIRECTORY_MIME_TYPES)[number];
   sizeBytes: number;
+  verificationReport: {
+    originalName: string;
+    mimeType: "text/plain";
+    sizeBytes: number;
+  } | null;
 };
 
 function record(value: unknown): Record<string, unknown> {
@@ -74,6 +80,7 @@ export function parseIdentityDirectoryInput(value: unknown): IdentityDirectoryIn
     "originalName",
     "mimeType",
     "sizeBytes",
+    "verificationReport",
   ]);
   const originalName = cleanText(input.originalName, "Nom du fichier", 1, 255);
   const mimeType = enumValue(
@@ -90,16 +97,40 @@ export function parseIdentityDirectoryInput(value: unknown): IdentityDirectoryIn
     throw new Error("Le fichier doit faire 50 Mo maximum pour ce pilote");
   }
 
+  const sourceType = enumValue(
+    input.sourceType,
+    IDENTITY_DIRECTORY_SOURCE_TYPES,
+    "Origine du fichier"
+  );
+  let verificationReport: IdentityDirectoryInput["verificationReport"] = null;
+  if (input.verificationReport !== null) {
+    const report = record(input.verificationReport);
+    exactFields(report, ["originalName", "mimeType", "sizeBytes"]);
+    const reportName = cleanText(report.originalName, "Nom du rapport", 1, 255);
+    if (!/\.txt$/i.test(reportName) || report.mimeType !== "text/plain") {
+      throw new Error("Le rapport de vérification doit être un fichier texte .txt");
+    }
+    const reportSize = Number(report.sizeBytes);
+    if (!Number.isInteger(reportSize) || reportSize <= 0 || reportSize > IDENTITY_VERIFICATION_REPORT_MAX_BYTES) {
+      throw new Error("Le rapport de vérification doit faire 256 Ko maximum");
+    }
+    verificationReport = {
+      originalName: reportName,
+      mimeType: "text/plain",
+      sizeBytes: reportSize,
+    };
+  }
+  if (sourceType === "official_export" && !verificationReport) {
+    throw new Error("Le rapport de vérification est obligatoire avec un export officiel");
+  }
+
   return {
     title: cleanText(input.title, "Titre", 2, 180),
     purposeDescription: cleanText(input.purposeDescription, "Explication", 20, 2000),
-    sourceType: enumValue(
-      input.sourceType,
-      IDENTITY_DIRECTORY_SOURCE_TYPES,
-      "Origine du fichier"
-    ),
+    sourceType,
     originalName,
     mimeType,
     sizeBytes,
+    verificationReport,
   };
 }

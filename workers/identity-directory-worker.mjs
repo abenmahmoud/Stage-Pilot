@@ -12,6 +12,11 @@ import {
   parseIdentityDirectoryBytes,
 } from "./identity-directory-parser.mjs";
 import {
+  IdentityDirectoryVerificationError,
+  IDENTITY_VERIFICATION_REPORT_MAX_BYTES,
+  verifyIdentityDirectoryReport,
+} from "./identity-directory-verification-report.mjs";
+import {
   encryptIdentityVaultPayload,
   identityVaultConfig,
 } from "./identity-directory-vault.mjs";
@@ -67,7 +72,7 @@ async function clamScan(bytes, name) {
 async function loadImport(job) {
   const [directoryImport] = await sql`
     select id, institution_id, original_name, mime_type, size_bytes,
-           storage_bucket, storage_path, status
+           storage_bucket, storage_path, source_type, validation_summary, status
     from public.identity_directory_imports
     where id = ${job.import_id} and institution_id = ${job.institution_id}
     limit 1
@@ -89,7 +94,47 @@ async function loadImport(job) {
   } catch {
     throw new IdentityDirectoryParseError("size_mismatch", "Taille différente du dépôt annoncé");
   }
-  return { directoryImport, bytes, duplicate: false };
+  let verificationReportBytes = null;
+  let verificationReportError = null;
+  const report = verificationReportMetadata(directoryImport.validation_summary);
+  if (report) {
+    const { data: reportBlob, error: reportError } = await storage
+      .from(report.storageBucket)
+      .download(report.storagePath);
+    if (reportError || !reportBlob) {
+      verificationReportError = "verification_report_download_failed";
+    } else try {
+      verificationReportBytes = await boundedBlobToBuffer(
+        reportBlob,
+        report.sizeBytes,
+        IDENTITY_VERIFICATION_REPORT_MAX_BYTES
+      );
+    } catch {
+      verificationReportError = "verification_report_size_mismatch";
+    }
+  }
+  return {
+    directoryImport,
+    bytes,
+    verificationReportBytes,
+    verificationReportError,
+    duplicate: false,
+  };
+}
+
+function verificationReportMetadata(value) {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return null;
+  const report = value.verificationReport;
+  if (!report || typeof report !== "object" || Array.isArray(report)) return null;
+  if (
+    report.mimeType !== "text/plain"
+    || !Number.isSafeInteger(report.sizeBytes)
+    || report.sizeBytes <= 0
+    || report.sizeBytes > IDENTITY_VERIFICATION_REPORT_MAX_BYTES
+    || report.storageBucket !== "identity-ingest"
+    || typeof report.storagePath !== "string"
+  ) return null;
+  return report;
 }
 
 function databaseRows(parsed, directoryImport, json) {
@@ -139,7 +184,7 @@ function privateDatabaseRows(parsed, directoryImport) {
   });
 }
 
-async function persistReport(directoryImport, parsed, msgId) {
+async function persistReport(directoryImport, parsed, verification, msgId) {
   return sql.begin(async (transaction) => {
     await transaction`
       select pg_advisory_xact_lock(
@@ -160,6 +205,43 @@ async function persistReport(directoryImport, parsed, msgId) {
         return false;
       }
       throw new Error("identity_import_not_processable");
+    }
+    const [sameFile] = await transaction`
+      select id, status
+      from public.identity_directory_imports
+      where institution_id = ${directoryImport.institution_id}
+        and id <> ${directoryImport.id}
+        and checksum = ${parsed.checksum}
+        and status in ('review', 'approved', 'active', 'superseded', 'retired')
+      order by created_at asc
+      limit 1
+    `;
+    if (sameFile) {
+      await transaction`
+        update public.identity_directory_imports
+        set status = 'superseded', checksum = ${parsed.checksum},
+            row_count = ${parsed.summary.rowCount},
+            valid_row_count = ${parsed.summary.validRowCount},
+            rejected_row_count = ${parsed.summary.rejectedRowCount},
+            validation_summary = ${transaction.json({
+              ...parsed.summary,
+              antivirus: "clamav_clean",
+              sourceVerificationReport: verification,
+              duplicateOfImportId: sameFile.id,
+            })}
+        where id = ${directoryImport.id} and institution_id = ${directoryImport.institution_id}
+      `;
+      await transaction`
+        insert into public.identity_directory_audit (
+          institution_id, resource_type, resource_id, action, actor_id, summary
+        ) values (
+          ${directoryImport.institution_id}, 'import', ${directoryImport.id},
+          'complete_parse', null,
+          ${transaction.json({ result: "duplicate", duplicateOfImportId: sameFile.id })}
+        )
+      `;
+      await transaction`select pgmq.delete('identity_directory_scan', ${msgId}::bigint)`;
+      return "duplicate";
     }
     const rows = databaseRows(parsed, directoryImport, (value) => transaction.json(value));
     const privateRows = privateDatabaseRows(parsed, directoryImport);
@@ -222,6 +304,7 @@ async function persistReport(directoryImport, parsed, msgId) {
           validation_summary = ${transaction.json({
             ...parsed.summary,
             antivirus: "clamav_clean",
+            sourceVerificationReport: verification,
             encryptedPersonCount: privateRows.length,
             vaultSchemaVersion: 1,
             vaultKeyVersion: vaultConfig.version,
@@ -241,11 +324,12 @@ async function persistReport(directoryImport, parsed, msgId) {
           warningRowCount: parsed.summary.warningRowCount,
           encryptedPersonCount: privateRows.length,
           vaultKeyVersion: vaultConfig.version,
+          verificationReportMatches: verification?.matches ?? null,
         })}
       )
     `;
     await transaction`select pgmq.delete('identity_directory_scan', ${msgId}::bigint)`;
-    return true;
+    return "review";
   });
 }
 
@@ -310,6 +394,12 @@ async function processMessage(row) {
       await sql`select pgmq.delete('identity_directory_scan', ${row.msg_id}::bigint)`;
       return "duplicate";
     }
+    if (loaded.verificationReportError) {
+      throw new IdentityDirectoryVerificationError(
+        loaded.verificationReportError,
+        "Le rapport de vérification associé est indisponible ou incomplet"
+      );
+    }
     await sql`
       update public.identity_directory_imports set status = 'quarantined'
       where id = ${loaded.directoryImport.id}
@@ -320,6 +410,19 @@ async function processMessage(row) {
       await rejectThreat(loaded.directoryImport, row.msg_id);
       return "blocked";
     }
+    if (loaded.directoryImport.source_type === "official_export" && !loaded.verificationReportBytes) {
+      throw new IdentityDirectoryVerificationError(
+        "verification_report_required",
+        "Le rapport de vérification est obligatoire avec un export officiel"
+      );
+    }
+    if (loaded.verificationReportBytes) {
+      const reportScan = await clamScan(loaded.verificationReportBytes, "rapport_verification.txt");
+      if (reportScan === "blocked") {
+        await rejectThreat(loaded.directoryImport, row.msg_id);
+        return "blocked";
+      }
+    }
     await sql`
       update public.identity_directory_imports set status = 'parsing'
       where id = ${loaded.directoryImport.id} and status = 'quarantined'
@@ -329,15 +432,25 @@ async function processMessage(row) {
       fileName: loaded.directoryImport.original_name,
       contactPepper,
     });
-    const persisted = await persistReport(loaded.directoryImport, parsed, row.msg_id);
-    return persisted ? "review" : "duplicate";
+    const verification = loaded.verificationReportBytes
+      ? verifyIdentityDirectoryReport({ bytes: loaded.verificationReportBytes, parsed })
+      : { schema: 1, required: false, matches: null };
+    if (verification.matches === false) {
+      throw new IdentityDirectoryVerificationError(
+        "verification_report_mismatch",
+        "Le rapport de vérification ne concorde pas avec le fichier"
+      );
+    }
+    return persistReport(loaded.directoryImport, parsed, verification, row.msg_id);
   } catch (error) {
-    const code = error instanceof IdentityDirectoryParseError
+    const deterministicError = error instanceof IdentityDirectoryParseError
+      || error instanceof IdentityDirectoryVerificationError;
+    const code = deterministicError
       ? error.code
       : error instanceof Error
         ? error.message.slice(0, 120)
         : "unknown_error";
-    if (loaded?.directoryImport && error instanceof IdentityDirectoryParseError) {
+    if (loaded?.directoryImport && deterministicError) {
       await markDeterministicFailure(loaded.directoryImport, row.msg_id, code);
       return "failed";
     }

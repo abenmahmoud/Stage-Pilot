@@ -15,7 +15,10 @@ import {
   IDENTITY_DIRECTORY_BUCKET,
   requireIdentityDirectoryManager,
 } from "../../../_shared/identity-directory.js";
-import { identityDirectoryStoragePath } from "../../../_shared/identity-directory-path.js";
+import {
+  identityDirectoryStoragePath,
+  identityDirectoryVerificationReportPath,
+} from "../../../_shared/identity-directory-path.js";
 import {
   identityDirectoryActionView,
   identityDirectoryListView,
@@ -56,22 +59,47 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         context.user.id,
         input.originalName
       );
-      const { data: upload, error: uploadError } = await supabaseAdmin.storage
-        .from(IDENTITY_DIRECTORY_BUCKET)
-        .createSignedUploadUrl(storagePath);
-      if (uploadError || !upload) {
+      const verificationReportPath = input.verificationReport
+        ? identityDirectoryVerificationReportPath(context.institutionId, context.user.id)
+        : null;
+      const [mainUploadResult, reportUploadResult] = await Promise.all([
+        supabaseAdmin.storage
+          .from(IDENTITY_DIRECTORY_BUCKET)
+          .createSignedUploadUrl(storagePath),
+        verificationReportPath
+          ? supabaseAdmin.storage
+            .from(IDENTITY_DIRECTORY_BUCKET)
+            .createSignedUploadUrl(verificationReportPath)
+          : Promise.resolve({ data: null, error: null }),
+      ]);
+      const upload = mainUploadResult.data;
+      const reportUpload = reportUploadResult.data;
+      if (
+        mainUploadResult.error || !upload
+        || (verificationReportPath && (reportUploadResult.error || !reportUpload))
+      ) {
         throw new Error("Le dépôt privé des identités est momentanément indisponible");
       }
 
+      const { verificationReport, ...directoryInput } = input;
       const [directoryImport] = await db
         .insert(identityDirectoryImports)
         .values({
           institutionId: context.institutionId,
-          ...input,
+          ...directoryInput,
           storageBucket: IDENTITY_DIRECTORY_BUCKET,
           storagePath,
           uploadedBy: context.user.id,
           status: "reserved",
+          validationSummary: verificationReport && verificationReportPath
+            ? {
+              verificationReport: {
+                ...verificationReport,
+                storageBucket: IDENTITY_DIRECTORY_BUCKET,
+                storagePath: verificationReportPath,
+              },
+            }
+            : {},
         })
         .returning();
       await db.insert(identityDirectoryAudit).values({
@@ -84,6 +112,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           sourceType: directoryImport.sourceType,
           mimeType: directoryImport.mimeType,
           sizeBytes: directoryImport.sizeBytes,
+          verificationReportRequired: Boolean(verificationReport),
         },
       });
       const payload = {
@@ -93,6 +122,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           path: upload.path,
           token: upload.token,
         },
+        verificationReportUpload: reportUpload && verificationReportPath
+          ? {
+            bucket: IDENTITY_DIRECTORY_BUCKET,
+            path: reportUpload.path,
+            token: reportUpload.token,
+          }
+          : null,
       };
       if (!isIdentityDirectoryReservationPayload(payload)) {
         throw new HttpError(503, "La réservation du dépôt privé est invalide.");

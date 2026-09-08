@@ -13,6 +13,7 @@ import { apiFetch } from "../../lib/api";
 import { uploadPrivateFile } from "../../lib/resumable-upload";
 import {
   IDENTITY_DIRECTORY_MAX_BYTES,
+  IDENTITY_VERIFICATION_REPORT_MAX_BYTES,
   identityDirectoryMime,
 } from "../../../shared/identity-directory-input";
 import {
@@ -71,8 +72,10 @@ function dateLabel(value: string): string {
 
 export default function IdentityDirectoryPage() {
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const reportInputRef = useRef<HTMLInputElement>(null);
   const [imports, setImports] = useState<IdentityDirectoryListItem[]>([]);
   const [file, setFile] = useState<File | null>(null);
+  const [verificationReport, setVerificationReport] = useState<File | null>(null);
   const [title, setTitle] = useState("");
   const [purposeDescription, setPurposeDescription] = useState("");
   const [sourceType, setSourceType] = useState("official_export");
@@ -109,6 +112,10 @@ export default function IdentityDirectoryPage() {
       setError("Choisissez un fichier CSV ou Excel.");
       return;
     }
+    if (sourceType === "official_export" && !verificationReport) {
+      setError("Ajoutez le rapport_verification.txt fourni avec l’export officiel.");
+      return;
+    }
     const mimeType = identityDirectoryMime(file.name, file.type);
     if (!mimeType) {
       setError("Seuls les fichiers CSV et Excel .xlsx sont acceptés.");
@@ -128,6 +135,13 @@ export default function IdentityDirectoryPage() {
           originalName: file.name,
           mimeType,
           sizeBytes: file.size,
+          verificationReport: verificationReport
+            ? {
+              originalName: verificationReport.name,
+              mimeType: "text/plain",
+              sizeBytes: verificationReport.size,
+            }
+            : null,
         }),
       });
       if (!isIdentityDirectoryReservationPayload(reservation)) {
@@ -136,7 +150,21 @@ export default function IdentityDirectoryPage() {
       const uploadFile = file.type === mimeType
         ? file
         : new File([file], file.name, { type: mimeType });
-      await uploadPrivateFile(uploadFile, reservation.upload, setProgress);
+      await uploadPrivateFile(
+        uploadFile,
+        reservation.upload,
+        (value) => setProgress(verificationReport ? Math.round(value / 2) : value)
+      );
+      if (verificationReport && reservation.verificationReportUpload) {
+        const reportFile = verificationReport.type === "text/plain"
+          ? verificationReport
+          : new File([verificationReport], verificationReport.name, { type: "text/plain" });
+        await uploadPrivateFile(
+          reportFile,
+          reservation.verificationReportUpload,
+          (value) => setProgress(50 + Math.round(value / 2))
+        );
+      }
       const confirmation = await apiFetch<unknown>(
         `identity/admin/imports/${reservation.import.id}/confirm`, {
           method: "POST",
@@ -153,7 +181,9 @@ export default function IdentityDirectoryPage() {
         "Fichier reçu dans l’espace privé. Il ne sera ni activé ni transmis à l’IA avant les contrôles et la validation humaine."
       );
       setFile(null);
+      setVerificationReport(null);
       if (fileInputRef.current) fileInputRef.current.value = "";
+      if (reportInputRef.current) reportInputRef.current.value = "";
       setTitle("");
       setPurposeDescription("");
       setSourceType("official_export");
@@ -168,6 +198,13 @@ export default function IdentityDirectoryPage() {
 
   const tooLarge = Boolean(file && file.size > IDENTITY_DIRECTORY_MAX_BYTES);
   const unsupported = Boolean(file && !identityDirectoryMime(file.name, file.type));
+  const reportTooLarge = Boolean(
+    verificationReport && verificationReport.size > IDENTITY_VERIFICATION_REPORT_MAX_BYTES
+  );
+  const reportUnsupported = Boolean(
+    verificationReport && !/\.txt$/i.test(verificationReport.name)
+  );
+  const reportMissing = sourceType === "official_export" && !verificationReport;
 
   return (
     <div className="mx-auto max-w-6xl space-y-6">
@@ -259,6 +296,29 @@ export default function IdentityDirectoryPage() {
             d’activation, donnée médicale ou note disciplinaire. Toute colonne
             non prévue par le modèle sera refusée.
           </p>
+          <label className="mt-3 flex cursor-pointer items-center justify-between gap-3 border border-slate-300 bg-slate-50 px-4 py-3 hover:border-emerald-600">
+            <span>
+              <strong className="block text-sm text-slate-900">
+                {verificationReport ? verificationReport.name : "Ajouter rapport_verification.txt"}
+              </strong>
+              <small className={`${reportTooLarge || reportUnsupported ? "text-red-700" : "text-slate-500"}`}>
+                {reportTooLarge
+                  ? "Ce rapport dépasse 256 Ko."
+                  : reportUnsupported
+                    ? "Le rapport doit être un fichier .txt."
+                    : "Obligatoire pour un export officiel · comparaison automatique"}
+              </small>
+            </span>
+            <Upload className="h-5 w-5 shrink-0 text-emerald-700" />
+            <input
+              ref={reportInputRef}
+              className="sr-only"
+              type="file"
+              accept=".txt,text/plain"
+              disabled={busy}
+              onChange={(event) => setVerificationReport(event.target.files?.[0] ?? null)}
+            />
+          </label>
         </div>
 
         <label className="text-sm font-medium text-slate-700">
@@ -290,7 +350,7 @@ export default function IdentityDirectoryPage() {
         <div className="sm:col-span-2">
           <button
             type="submit"
-            disabled={busy || tooLarge || unsupported}
+            disabled={busy || tooLarge || unsupported || reportTooLarge || reportUnsupported || reportMissing}
             className="inline-flex items-center gap-2 rounded-md bg-emerald-700 px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-50"
           >
             {busy ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
