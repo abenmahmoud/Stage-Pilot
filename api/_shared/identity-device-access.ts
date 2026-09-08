@@ -25,7 +25,11 @@ type ChallengeReceipt = {
   requestId: string;
   institutionId: string;
   responseKey: string;
-  email: string;
+  contactType: "email" | "phone";
+  contact: string;
+  claimedProfile: "student" | "guardian" | "staff";
+  claimedFirstName: string;
+  claimedLastName: string;
   deviceId: string;
   expiresAt: string;
 };
@@ -99,7 +103,11 @@ export function challengeReceiptClaims(value: unknown): ChallengeReceipt {
     "requestId",
     "institutionId",
     "responseKey",
-    "email",
+    "contactType",
+    "contact",
+    "claimedProfile",
+    "claimedFirstName",
+    "claimedLastName",
     "deviceId",
     "expiresAt",
   ];
@@ -113,7 +121,11 @@ export function challengeReceiptClaims(value: unknown): ChallengeReceipt {
     ) ||
     typeof input.responseKey !== "string" ||
     Buffer.from(input.responseKey, "base64").length !== 32 ||
-    typeof input.email !== "string" ||
+    !["email", "phone"].includes(String(input.contactType)) ||
+    typeof input.contact !== "string" ||
+    !["student", "guardian", "staff"].includes(String(input.claimedProfile)) ||
+    typeof input.claimedFirstName !== "string" ||
+    typeof input.claimedLastName !== "string" ||
     typeof input.deviceId !== "string" ||
     typeof input.expiresAt !== "string" ||
     !Number.isFinite(Date.parse(input.expiresAt))
@@ -201,7 +213,7 @@ export type IdentityDeviceSessionContext = {
   personRef: string;
   personType: "student" | "guardian" | "staff";
   persistent: boolean;
-  assuranceLevel: "directory_email_otp";
+  assuranceLevel: "directory_email_otp" | "directory_phone_otp";
   expiresAt: Date;
   absoluteExpiresAt: Date;
 };
@@ -258,7 +270,11 @@ export async function readIdentityDeviceSession(
       )
     )
     .limit(1);
-  if (!row || !["student", "guardian", "staff"].includes(row.personType)) {
+  if (
+    !row ||
+    !["student", "guardian", "staff"].includes(row.personType) ||
+    !["directory_email_otp", "directory_phone_otp"].includes(row.assuranceLevel)
+  ) {
     if (res) clearIdentityDeviceSessionCookie(res);
     return null;
   }
@@ -286,7 +302,7 @@ export async function readIdentityDeviceSession(
   return {
     ...row,
     personType: row.personType as IdentityDeviceSessionContext["personType"],
-    assuranceLevel: "directory_email_otp",
+    assuranceLevel: row.assuranceLevel as IdentityDeviceSessionContext["assuranceLevel"],
     expiresAt,
   };
 }

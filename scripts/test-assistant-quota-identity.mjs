@@ -287,6 +287,7 @@ test("the actual assistant handler stops before analysis when the global guard r
   dependencies["../_shared/support.js"] = { assertNoForbiddenSupportSecret: () => {} };
   dependencies["../_shared/support-rate-limits.js"] = f.exports;
   dependencies["../_shared/knowledge-actor.js"] = { resolveKnowledgeActorFromRequest: async () => null };
+  dependencies["../_shared/identity-device-access.js"] = { readIdentityDeviceSession: async () => null };
   dependencies["../_shared/support-agent.js"] = { analyzeSupportConversation: async () => {
     analyses++;
     return { category: "autre", usedAi: false, sourceReferences: [] };

@@ -5,7 +5,11 @@ export const IDENTITY_DEVICE_ABSOLUTE_SESSION_SECONDS = 30 * 24 * 60 * 60;
 export const IDENTITY_DEVICE_MAX_ATTEMPTS = 5;
 
 export type IdentityDeviceRequestInput = {
-  email: string;
+  contactType: "email" | "phone";
+  contact: string;
+  claimedProfile: "student" | "guardian" | "staff";
+  claimedFirstName: string;
+  claimedLastName: string;
   deviceId: string;
   rememberDevice: boolean;
 };
@@ -41,6 +45,59 @@ export function normalizeIdentityDeviceEmail(value: unknown): string {
   return normalized;
 }
 
+export function normalizeIdentityDevicePhone(value: unknown): string {
+  if (typeof value !== "string") throw new Error("identity_device_phone_invalid");
+  let normalized = value.normalize("NFKC").trim().replace(/[\s.()\-]/g, "");
+  if (normalized.startsWith("0033")) normalized = `+33${normalized.slice(4)}`;
+  if (/^0\d{9}$/.test(normalized)) normalized = `+33${normalized.slice(1)}`;
+  if (!/^\+[1-9]\d{7,14}$/.test(normalized)) {
+    throw new Error("identity_device_phone_invalid");
+  }
+  return normalized;
+}
+
+export function normalizeIdentityDeviceClaimName(value: unknown): string {
+  if (typeof value !== "string") throw new Error("identity_device_name_invalid");
+  const normalized = value.normalize("NFKC").trim().replace(/\s+/g, " ");
+  if (normalized.length < 1 || normalized.length > 100 || !/^[\p{L}\p{M}'’ -]+$/u.test(normalized)) {
+    throw new Error("identity_device_name_invalid");
+  }
+  return normalized;
+}
+
+function comparableName(value: string): string {
+  return value
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[’']/g, " ")
+    .replace(/[^a-zA-Z -]/g, " ")
+    .replace(/[-\s]+/g, " ")
+    .trim()
+    .toLowerCase();
+}
+
+export function identityDeviceClaimsMatch(input: {
+  claimedProfile: IdentityDeviceRequestInput["claimedProfile"];
+  claimedFirstName: string;
+  claimedLastName: string;
+  personType: "student" | "guardian" | "staff";
+  firstName: string;
+  lastName: string;
+}): boolean {
+  if (input.claimedProfile !== input.personType) return false;
+  const claimedFirst = comparableName(input.claimedFirstName).split(" ").filter(Boolean);
+  const officialFirst = comparableName(input.firstName).split(" ").filter(Boolean);
+  const claimedLast = comparableName(input.claimedLastName).replace(/\s/g, "");
+  const officialLast = comparableName(input.lastName).replace(/\s/g, "");
+  return Boolean(
+    claimedFirst.length &&
+    officialFirst.length &&
+    claimedFirst.some((part) => officialFirst.includes(part)) &&
+    claimedLast &&
+    claimedLast === officialLast
+  );
+}
+
 export function normalizeIdentityDeviceId(value: unknown): string {
   if (typeof value !== "string") throw new Error("identity_device_id_invalid");
   const normalized = value.trim();
@@ -52,12 +109,32 @@ export function normalizeIdentityDeviceId(value: unknown): string {
 
 export function parseIdentityDeviceRequestInput(value: unknown): IdentityDeviceRequestInput {
   const input = plainObject(value);
-  exactFields(input, ["email", "deviceId", "rememberDevice"]);
+  exactFields(input, [
+    "contactType",
+    "contact",
+    "claimedProfile",
+    "claimedFirstName",
+    "claimedLastName",
+    "deviceId",
+    "rememberDevice",
+  ]);
   if (typeof input.rememberDevice !== "boolean") {
     throw new Error("identity_device_remember_invalid");
   }
+  if (input.contactType !== "email" && input.contactType !== "phone") {
+    throw new Error("identity_device_contact_type_invalid");
+  }
+  if (!['student', 'guardian', 'staff'].includes(String(input.claimedProfile))) {
+    throw new Error("identity_device_profile_invalid");
+  }
   return {
-    email: normalizeIdentityDeviceEmail(input.email),
+    contactType: input.contactType,
+    contact: input.contactType === "email"
+      ? normalizeIdentityDeviceEmail(input.contact)
+      : normalizeIdentityDevicePhone(input.contact),
+    claimedProfile: input.claimedProfile as IdentityDeviceRequestInput["claimedProfile"],
+    claimedFirstName: normalizeIdentityDeviceClaimName(input.claimedFirstName),
+    claimedLastName: normalizeIdentityDeviceClaimName(input.claimedLastName),
     deviceId: normalizeIdentityDeviceId(input.deviceId),
     rememberDevice: input.rememberDevice,
   };
@@ -78,7 +155,7 @@ export function identityDeviceFeatureEnabled(env: NodeJS.ProcessEnv = process.en
 
 export type IdentityDevicePublicState = {
   available: boolean;
-  status: "ready" | "verified" | "unavailable";
+  status: "checking" | "code_sent" | "needs_contact_update" | "verified" | "unavailable";
   message: string;
   expiresAt?: string;
   personType?: "student" | "guardian" | "staff";
@@ -87,9 +164,26 @@ export type IdentityDevicePublicState = {
 export function identityDeviceReadyPayload(expiresAt: Date): IdentityDevicePublicState {
   return {
     available: true,
-    status: "ready",
-    message:
-      "Si cette adresse peut être utilisée, un code est envoyé. Saisissez-le ci-dessous. Sinon, le formulaire du lycée reste disponible.",
+    status: "checking",
+    message: "Recherche de votre identité dans l’annuaire du lycée…",
+    expiresAt: expiresAt.toISOString(),
+  };
+}
+
+export function identityDeviceCodeSentPayload(expiresAt: Date): IdentityDevicePublicState {
+  return {
+    available: true,
+    status: "code_sent",
+    message: "Le code a été envoyé au moyen de contact connu du lycée.",
+    expiresAt: expiresAt.toISOString(),
+  };
+}
+
+export function identityDeviceContactUpdatePayload(expiresAt: Date): IdentityDevicePublicState {
+  return {
+    available: true,
+    status: "needs_contact_update",
+    message: "Aucun code n’a pu être envoyé. Vérifiez les informations saisies ou demandez l’ajout ou la correction de vos coordonnées.",
     expiresAt: expiresAt.toISOString(),
   };
 }

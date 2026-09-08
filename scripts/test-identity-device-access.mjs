@@ -4,20 +4,30 @@ import {
   IDENTITY_DEVICE_ABSOLUTE_SESSION_SECONDS,
   IDENTITY_DEVICE_MAX_ATTEMPTS,
   IDENTITY_DEVICE_PERSISTENT_IDLE_SECONDS,
+  identityDeviceClaimsMatch,
   identityDeviceFeatureEnabled,
   identityDeviceReadyPayload,
+  normalizeIdentityDevicePhone,
   parseIdentityDeviceRequestInput,
   parseIdentityDeviceVerifyInput,
 } from "../shared/identity-device-access.ts";
 
 assert.deepEqual(
   parseIdentityDeviceRequestInput({
-    email: "  ELEVE@EXAMPLE.TEST ",
+    contactType: "email",
+    contact: "  ELEVE@EXAMPLE.TEST ",
+    claimedProfile: "student",
+    claimedFirstName: "  Élodie ",
+    claimedLastName: "  Martin ",
     deviceId: "device-test-1234567890",
     rememberDevice: true,
   }),
   {
-    email: "eleve@example.test",
+    contactType: "email",
+    contact: "eleve@example.test",
+    claimedProfile: "student",
+    claimedFirstName: "Élodie",
+    claimedLastName: "Martin",
     deviceId: "device-test-1234567890",
     rememberDevice: true,
   }
@@ -25,22 +35,64 @@ assert.deepEqual(
 assert.throws(
   () =>
     parseIdentityDeviceRequestInput({
-      email: "eleve@example.test",
+      contactType: "email",
+      contact: "eleve@example.test",
+      claimedProfile: "student",
+      claimedFirstName: "Élodie",
+      claimedLastName: "Martin",
       deviceId: "device-test-1234567890",
       rememberDevice: true,
-      personType: "student",
+      extra: "refusé",
     }),
   /invalid/
 );
 assert.throws(
   () =>
     parseIdentityDeviceRequestInput({
-      email: "not-an-email",
+      contactType: "email",
+      contact: "not-an-email",
+      claimedProfile: "student",
+      claimedFirstName: "Élodie",
+      claimedLastName: "Martin",
       deviceId: "device-test-1234567890",
       rememberDevice: false,
     }),
   /email/
 );
+assert.equal(normalizeIdentityDevicePhone("06 12 34 56 78"), "+33612345678");
+assert.deepEqual(parseIdentityDeviceRequestInput({
+  contactType: "phone",
+  contact: "06 12 34 56 78",
+  claimedProfile: "staff",
+  claimedFirstName: "Samira",
+  claimedLastName: "Durand",
+  deviceId: "device-test-1234567890",
+  rememberDevice: false,
+}), {
+  contactType: "phone",
+  contact: "+33612345678",
+  claimedProfile: "staff",
+  claimedFirstName: "Samira",
+  claimedLastName: "Durand",
+  deviceId: "device-test-1234567890",
+  rememberDevice: false,
+});
+assert.equal(identityDeviceClaimsMatch({
+  claimedProfile: "student",
+  claimedFirstName: "Elodie",
+  claimedLastName: "Martin",
+  personType: "student",
+  firstName: "Élodie Marie",
+  lastName: "MARTIN",
+}), true);
+assert.equal(identityDeviceClaimsMatch({
+  claimedProfile: "guardian",
+  claimedFirstName: "Elodie",
+  claimedLastName: "Martin",
+  personType: "student",
+  firstName: "Élodie",
+  lastName: "Martin",
+}), false);
 assert.deepEqual(parseIdentityDeviceVerifyInput({ code: "012345" }), { code: "012345" });
 assert.throws(() => parseIdentityDeviceVerifyInput({ code: "12345" }), /code/);
 assert.throws(() => parseIdentityDeviceVerifyInput({ code: "123456", email: "hidden" }), /invalid/);
@@ -51,7 +103,7 @@ assert.equal(IDENTITY_DEVICE_PERSISTENT_IDLE_SECONDS, 7 * 24 * 60 * 60);
 assert.equal(IDENTITY_DEVICE_ABSOLUTE_SESSION_SECONDS, 30 * 24 * 60 * 60);
 
 const ready = identityDeviceReadyPayload(new Date("2026-09-02T12:00:00.000Z"));
-assert.equal(ready.status, "ready");
+assert.equal(ready.status, "checking");
 assert.doesNotMatch(JSON.stringify(ready), /student|guardian|staff|personRef|known|unknown/i);
 
 process.env.DATABASE_URL ||= "postgres://test:test@127.0.0.1:5432/test";
@@ -77,6 +129,10 @@ const migration = await readFile(
   new URL("../supabase/migrations/20260902210908_create_identity_device_access.sql", import.meta.url),
   "utf8"
 );
+const phoneOtpMigration = await readFile(
+  new URL("../supabase/migrations/20260909143000_allow_identity_phone_otp.sql", import.meta.url),
+  "utf8"
+);
 const requestRoute = await readFile(new URL("../api/identity/device/request.ts", import.meta.url), "utf8");
 const statusRoute = await readFile(new URL("../api/identity/device/status.ts", import.meta.url), "utf8");
 const verifyRoute = await readFile(new URL("../api/identity/device/verify.ts", import.meta.url), "utf8");
@@ -94,6 +150,7 @@ assert.match(migration, /actor_id is null and public_actor_id is not null/);
 assert.match(migration, /search_type in \([^)]*'email'/s);
 assert.match(migration, /attempt_count between 0 and 5/);
 assert.match(migration, /absolute_expires_at/);
+assert.match(phoneOtpMigration, /directory_email_otp[^)]*directory_phone_otp/s);
 assert.doesNotMatch(migration, /\bemail\b text|\bcode\b text|first_name|last_name/);
 assert.match(requestRoute, /encryptIdentityLookupRequest/);
 assert.match(requestRoute, /contactHash: personalHash|contactHash/);
@@ -112,6 +169,7 @@ assert.doesNotMatch(serverHelper, /personRef=.*Set-Cookie|email=.*Set-Cookie/);
 assert.match(worker, /\["academic_email", "personal_email", "email", "phone", "person_ref"\]/);
 assert.match(worker, /academic_email_hash[\s\S]+personal_email_hash/);
 assert.match(worker, /publicSelfService/);
+assert.match(worker, /\["email", "phone"\]\.includes\(value\.searchType\)/);
 assert.match(worker, /pgmq\.read\('identity_directory_lookup', 90, 50\)/);
 assert.match(workerService, /User=lycee-support/);
 assert.match(workerService, /ProtectSystem=strict/);

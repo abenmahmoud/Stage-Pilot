@@ -26,6 +26,7 @@ import { isValidSupportAssistantPayload } from "../../shared/support-assistant-p
 import { parseSupportAssistantInput } from "../../shared/support-assistant-input-policy.js";
 import { loadPublicKnowledgeContext } from "../_shared/public-knowledge-context.js";
 import { createSupportNormalizationReceipt } from "../_shared/support-normalization.js";
+import { readIdentityDeviceSession } from "../_shared/identity-device-access.js";
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== "POST") return methodNotAllowed(res, ["POST"]);
@@ -38,6 +39,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const messages = input.messages;
     const attachments = input.attachments;
     const knowledgeActor = await resolveKnowledgeActorFromRequest(req);
+    const identitySession = await readIdentityDeviceSession(req);
     const result = await analyzeSupportConversation({
       messages,
       attachments,
@@ -47,6 +49,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         ? (metric) => recordAgentRuntimeMetric(knowledgeActor.institutionId, metric)
         : undefined,
       aiBudgetGuard: () => reserveAgentAiDailyBudget("support_assistant"),
+      identityVerified: identitySession !== null,
       scheduleReader: async ({ requestedAt }) => {
         try {
           return await readNextCourseForVerifiedIdentity({

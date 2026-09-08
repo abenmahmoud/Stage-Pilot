@@ -4,7 +4,7 @@ import test from "node:test";
 
 process.env.NEXT_PUBLIC_SUPABASE_URL ||= "https://test-only.supabase.co";
 process.env.SUPABASE_SERVICE_ROLE_KEY ||= "test-only-service-role";
-const { sendTransactionalEmail } = await import("../api/_shared/brevo.ts");
+const { sendTransactionalEmail, sendTransactionalSms } = await import("../api/_shared/brevo.ts");
 
 const inboundWebhook = await readFile(
   new URL("../api/webhooks/brevo/inbound.ts", import.meta.url),
@@ -22,6 +22,7 @@ const supportWorker = await readFile(
 const originalFetch = globalThis.fetch;
 const originalApiKey = process.env.BREVO_API_KEY;
 const originalSender = process.env.SUPPORT_FROM_EMAIL;
+const originalSmsSender = process.env.IDENTITY_DEVICE_SMS_SENDER;
 
 function email() {
   return {
@@ -77,6 +78,42 @@ test("handles Brevo success, duplicate and outage without losing idempotency", a
   }
 });
 
+test("sends an identity OTP SMS only through the current transactional endpoint", async () => {
+  process.env.BREVO_API_KEY = "test-only-key";
+  process.env.IDENTITY_DEVICE_SMS_SENDER = "BlaiseCend";
+  try {
+    let url;
+    let sentBody;
+    globalThis.fetch = async (input, init) => {
+      url = String(input);
+      sentBody = JSON.parse(init.body);
+      return new Response(JSON.stringify({ messageId: 1511882900176220 }), {
+        status: 201,
+        headers: { "content-type": "application/json" },
+      });
+    };
+    assert.deepEqual(await sendTransactionalSms({
+      recipient: "+33612345678",
+      content: "Code fictif 123456",
+    }), { messageId: "1511882900176220" });
+    assert.equal(url, "https://api.brevo.com/v3/transactionalSMS/send");
+    assert.deepEqual(sentBody, {
+      sender: "BlaiseCend",
+      recipient: "33612345678",
+      content: "Code fictif 123456",
+      type: "transactional",
+      tag: "lyceegest-identity",
+      unicodeEnabled: true,
+    });
+  } finally {
+    globalThis.fetch = originalFetch;
+    if (originalApiKey === undefined) delete process.env.BREVO_API_KEY;
+    else process.env.BREVO_API_KEY = originalApiKey;
+    if (originalSmsSender === undefined) delete process.env.IDENTITY_DEVICE_SMS_SENDER;
+    else process.env.IDENTITY_DEVICE_SMS_SENDER = originalSmsSender;
+  }
+});
+
 test("claims inbound webhook work atomically and only reopens retryable receipts", () => {
   const transaction = inboundWebhook.indexOf("db.transaction(async (tx)");
   const claim = inboundWebhook.indexOf("insert into public.support_webhook_receipts", transaction);
@@ -95,7 +132,7 @@ test("claims inbound webhook work atomically and only reopens retryable receipts
 
 test("deduplicates delivery events and keeps failed email jobs retryable", () => {
   const failureBranch = supportWorker.slice(
-    supportWorker.indexOf('if (supportEmailFailureDisposition(row.read_ct) === "dead_letter")'),
+    supportWorker.indexOf('if (["email_delivery_uncertain", "support_access_expired"].includes(errorCode)'),
     supportWorker.indexOf('return "retried";') + 'return "retried";'.length
   );
   assert.match(deliveryWebhook, /\.onConflictDoNothing\(\)/);

@@ -12,6 +12,32 @@ function messages(content) {
   ];
 }
 
+test("a generic personal timetable request starts identity verification instead of sending the user to a form", async () => {
+  const result = await analyzeSupportConversation({
+    messages: messages("Bonjour, je veux mon emploi du temps."),
+    attachments: [],
+    safetyIdentifier: "schedule-assistant-generic-identity",
+    identityVerified: false,
+  });
+  assert.equal(result.usedAi, false);
+  assert.equal(result.category, "affectation_classe");
+  assert.equal(result.action, "continue");
+  assert.equal(result.readyToCreate, false);
+  assert.match(result.reply, /email ou un téléphone déjà connu du lycée/i);
+});
+
+test("after identity confirmation, a generic timetable request asks only for the desired day", async () => {
+  const result = await analyzeSupportConversation({
+    messages: messages("Je veux mon emploi du temps."),
+    attachments: [],
+    safetyIdentifier: "schedule-assistant-generic-day",
+    identityVerified: true,
+  });
+  assert.equal(result.action, "continue");
+  assert.deepEqual(result.missingInformation, ["Le jour souhaité"]);
+  assert.match(result.reply, /aujourd’hui.*demain/i);
+});
+
 test("answers an own next-course request only from the private reader", async () => {
   let calls = 0;
   const metrics = [];

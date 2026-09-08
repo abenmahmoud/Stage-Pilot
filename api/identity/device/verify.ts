@@ -142,6 +142,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         personRef: matchedPersonRef,
         personType: matchedPersonType,
         sessionHash: session.hash,
+        assuranceLevel: claims.contactType === "phone"
+          ? "directory_phone_otp"
+          : "directory_email_otp",
         persistent: challenge.remember_device,
         verifiedAt: now,
         lastUsedAt: now,

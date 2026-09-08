@@ -30,6 +30,7 @@ import type { AgentAiBudgetReservationResult } from "../../shared/agent-ai-budge
 import type { ScheduleDayReadResult, ScheduleReadResult } from "../../shared/schedule-policy.js";
 import {
   requestedOwnCoursesDayOffset,
+  requestsOwnSchedule,
   requestsOwnNextCourse,
   scheduleAssistantAnswer,
   scheduleAssistantDayAnswer,
@@ -416,6 +417,7 @@ export async function analyzeSupportConversation(input: {
     dayStart: Date;
     dayEnd: Date;
   }) => Promise<ScheduleDayReadResult>;
+  identityVerified?: boolean;
   now?: Date;
 }): Promise<SupportAgentResult> {
   const startedAt = Date.now();
@@ -486,6 +488,24 @@ export async function analyzeSupportConversation(input: {
     };
   }
   const requestedScheduleDayOffset = requestedOwnCoursesDayOffset(input.messages);
+  if (requestsOwnSchedule(input.messages) && requestedScheduleDayOffset === null) {
+    await recordRuntime("deterministic", false, false);
+    return {
+      ...fallback,
+      reply: input.identityVerified
+        ? "Votre identité est confirmée. Indiquez simplement le jour souhaité, par exemple « aujourd’hui » ou « demain », et je consulterai l’emploi du temps validé."
+        : "Je peux consulter votre emploi du temps personnel. Confirmez d’abord votre identité avec un email ou un téléphone déjà connu du lycée ; le code sera demandé seulement après son envoi réel.",
+      category: "affectation_classe",
+      confidence: "high",
+      missingInformation: input.identityVerified ? ["Le jour souhaité"] : ["Identité scolaire confirmée"],
+      suggestedDocuments: [],
+      readyToCreate: false,
+      safetyNotice: "Aucun emploi du temps personnel n’est affiché avant la confirmation de l’identité.",
+      usedAi: false,
+      scope: "school_support",
+      action: "continue",
+    };
+  }
   if (input.scheduleDayReader && requestedScheduleDayOffset !== null) {
     const requestedAt = now;
     const { dayStart, dayEnd } = schoolDayBoundsUtc(requestedAt, requestedScheduleDayOffset);

@@ -46,6 +46,12 @@ export function requestsOwnCoursesToday(messages: ConversationMessage[]): boolea
   return requestedOwnCoursesDayOffset(messages) === 0;
 }
 
+export function requestsOwnSchedule(messages: ConversationMessage[]): boolean {
+  const text = requesterText(messages);
+  if (mentionsThirdParty(text)) return false;
+  return /\b(mon emploi du temps|mes horaires de cours|mon planning de cours)\b/.test(text);
+}
+
 export function requestedOwnCoursesDayOffset(messages: ConversationMessage[]): 0 | 1 | null {
   const text = requesterText(messages);
   if (mentionsThirdParty(text)) return null;

@@ -75,7 +75,7 @@ function requestPayload(value, row) {
   }
   const publicSelfService = row.actor_id === null && row.public_actor_id !== null;
   if (
-    (publicSelfService && (value.searchType !== "email" || value.reasonCategory !== "identity_verification"))
+    (publicSelfService && (!["email", "phone"].includes(value.searchType) || value.reasonCategory !== "identity_verification"))
     || (!publicSelfService && value.searchType === "email")
   ) {
     throw new Error("lookup_request_invalid");

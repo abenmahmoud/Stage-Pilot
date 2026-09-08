@@ -234,13 +234,13 @@ export async function enforceIdentityOtpRequestLimits(input: {
   req: VercelRequest;
   institutionId: string;
   deviceId: string;
-  email: string;
+  contact: string;
 }): Promise<void> {
   const deviceKey = personalHash(
     `identity-otp-device:${input.institutionId}:${input.deviceId}`
   );
   const contactKey = personalHash(
-    `identity-otp-contact:${input.institutionId}:${input.email}`
+    `identity-otp-contact:${input.institutionId}:${input.contact}`
   );
   const attempts: SupportRateLimitAttempt[] = [
     { ...SUPPORT_RATE_LIMIT_POLICIES.identityOtpDeviceBurst, keyHash: deviceKey },

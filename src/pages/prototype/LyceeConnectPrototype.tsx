@@ -242,7 +242,7 @@ const supportCategories = [
   { value: "email_academique", label: "Messagerie académique" },
   { value: "ordinateur", label: "Ordinateur ou équipement" },
   { value: "logiciel", label: "Logiciel ou accès numérique" },
-  { value: "restauration_bourse", label: "Cantine, badge, paiement ou bourse" },
+  { value: "restauration_bourse", label: "Restauration, bourse, internat ou intendance" },
   { value: "orientation_formation", label: "Orientation ou formation" },
   { value: "vie_scolaire", label: "Vie scolaire" },
   { value: "autre", label: "Rendez-vous ou autre demande" },
@@ -535,7 +535,7 @@ const services = [
     prompt: "J’ai une question sur la cantine pour le service d’intendance.",
   },
   {
-    title: "Coordonnées personnelles",
+    title: "Gérer mes coordonnées personnelles",
     detail: "Demander une correction de vos coordonnées",
     icon: UserRound,
     tone: "green",
@@ -990,6 +990,7 @@ export default function LyceeConnectPrototype() {
             onBack={() => changeView("home")}
             onTicketCreated={setTicketCreated}
             onTrack={() => changeView("requests")}
+            onCollect={() => changeView("collect")}
           />
         )}
         {view === "collect" && (
@@ -1000,6 +1001,7 @@ export default function LyceeConnectPrototype() {
             onBack={() => changeView("home")}
             onTicketCreated={setTicketCreated}
             onTrack={() => changeView("requests")}
+            onCollect={() => changeView("collect")}
           />
         )}
         {view === "requests" && <RequestsView ticketCode={ticketCreated} accessLinkError={accessLinkError} onBack={() => changeView("home")} />}
@@ -1378,11 +1380,23 @@ function localAssistantFallback(messages: AssistantChatMessage[], files: File[])
   };
 }
 
-type IdentityDeviceUiState = "checking" | "anonymous" | "awaiting_code" | "verified";
+type IdentityDeviceUiState = "checking_session" | "identify" | "checking_contact" | "awaiting_code" | "needs_contact_update" | "verified";
 
-function IdentityDeviceAccessPanel({ onVerified }: { onVerified?: () => void }) {
-  const [state, setState] = useState<IdentityDeviceUiState>("checking");
-  const [email, setEmail] = useState("");
+function IdentityDeviceAccessPanel({
+  onVerified,
+  onVerificationChange,
+  onContactUpdate,
+}: {
+  onVerified?: () => void;
+  onVerificationChange?: (verified: boolean) => void;
+  onContactUpdate: () => void;
+}) {
+  const [state, setState] = useState<IdentityDeviceUiState>("checking_session");
+  const [claimedProfile, setClaimedProfile] = useState<"student" | "guardian" | "staff">("student");
+  const [claimedFirstName, setClaimedFirstName] = useState("");
+  const [claimedLastName, setClaimedLastName] = useState("");
+  const [contactType, setContactType] = useState<"email" | "phone">("email");
+  const [contact, setContact] = useState("");
   const [code, setCode] = useState("");
   const [rememberDevice, setRememberDevice] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -1399,28 +1413,52 @@ function IdentityDeviceAccessPanel({ onVerified }: { onVerified?: () => void }) 
         if (payload.status === "verified") {
           setPersonType(typeof payload.personType === "string" ? payload.personType : null);
           setState("verified");
+          onVerificationChange?.(true);
+          onVerified?.();
         } else {
-          setState("anonymous");
+          setState("identify");
+          onVerificationChange?.(false);
         }
       })
-      .catch(() => { if (active) setState("anonymous"); });
+      .catch(() => {
+        if (!active) return;
+        setState("identify");
+        onVerificationChange?.(false);
+      });
     return () => { active = false; };
   }, []);
 
   useEffect(() => {
-    if (state !== "awaiting_code") return;
+    if (state !== "checking_contact") return;
     let active = true;
     let attempts = 0;
-    const poll = () => {
+    const poll = async () => {
       if (!active || attempts >= 40) return;
       attempts += 1;
-      void fetch("/api/identity/device/status", {
-        method: "POST",
-        credentials: "include",
-      }).catch(() => undefined);
+      try {
+        const response = await fetch("/api/identity/device/status", {
+          method: "POST",
+          credentials: "include",
+        });
+        const payload = await readJsonApiResponse<Record<string, unknown>>(response, { maxBytes: 16 * 1024 });
+        if (!active) return;
+        if (payload.status === "code_sent") {
+          setState("awaiting_code");
+        } else if (payload.status === "needs_contact_update") {
+          setError(typeof payload.message === "string" ? payload.message : "Aucun code n’a pu être envoyé.");
+          setState("needs_contact_update");
+        } else if (!response.ok) {
+          throw new Error("status_failed");
+        } else if (attempts >= 40) {
+          setError("La recherche prend trop de temps. Vérifiez les informations ou recommencez.");
+          setState("needs_contact_update");
+        }
+      } catch {
+        if (active) setError("La vérification est momentanément indisponible. Réessayez ou demandez la correction de vos coordonnées.");
+      }
     };
-    poll();
-    const timer = window.setInterval(poll, 3_000);
+    void poll();
+    const timer = window.setInterval(() => void poll(), 3_000);
     return () => { active = false; window.clearInterval(timer); };
   }, [state]);
 
@@ -1433,11 +1471,19 @@ function IdentityDeviceAccessPanel({ onVerified }: { onVerified?: () => void }) 
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, deviceId: deviceId.current, rememberDevice }),
+        body: JSON.stringify({
+          contactType,
+          contact,
+          claimedProfile,
+          claimedFirstName,
+          claimedLastName,
+          deviceId: deviceId.current,
+          rememberDevice,
+        }),
       });
       const payload = await readJsonApiResponse<Record<string, unknown>>(response, { maxBytes: 16 * 1024 });
-      if (!response.ok || payload.status !== "ready") throw new Error("request_failed");
-      setState("awaiting_code");
+      if (!response.ok || payload.status !== "checking") throw new Error("request_failed");
+      setState("checking_contact");
     } catch {
       setError("La vérification est indisponible. Vous pouvez continuer avec le formulaire.");
     } finally {
@@ -1461,6 +1507,7 @@ function IdentityDeviceAccessPanel({ onVerified }: { onVerified?: () => void }) 
       setPersonType(typeof payload.personType === "string" ? payload.personType : null);
       setCode("");
       setState("verified");
+      onVerificationChange?.(true);
       onVerified?.();
     } catch {
       setError("Ce code est invalide ou expiré. Vérifiez l’email reçu ou recommencez.");
@@ -1473,15 +1520,18 @@ function IdentityDeviceAccessPanel({ onVerified }: { onVerified?: () => void }) 
     setBusy(true);
     await fetch("/api/identity/device/session", { method: "DELETE", credentials: "include" })
       .catch(() => undefined);
-    setEmail("");
+    setContact("");
+    setClaimedFirstName("");
+    setClaimedLastName("");
     setCode("");
     setPersonType(null);
     setError(null);
-    setState("anonymous");
+    setState("identify");
+    onVerificationChange?.(false);
     setBusy(false);
   }
 
-  if (state === "checking") {
+  if (state === "checking_session") {
     return <section className="lycee-identity-device" aria-label="Vérification de l’identité"><RefreshCw className="is-spinning" aria-hidden="true" /><p>Vérification de cet appareil…</p></section>;
   }
   if (state === "verified") {
@@ -1489,7 +1539,7 @@ function IdentityDeviceAccessPanel({ onVerified }: { onVerified?: () => void }) 
     return (
       <section className="lycee-identity-device is-verified" aria-label="Identité vérifiée">
         <BadgeCheck aria-hidden="true" />
-        <div><strong>Appareil reconnu</strong><p>{profileLabel}. L’assistant peut utiliser les services autorisés pour votre propre situation.</p></div>
+        <div><strong>Identité confirmée</strong><p>{profileLabel}. L’assistant peut maintenant traiter les services personnels autorisés.</p></div>
         <button type="button" disabled={busy} onClick={() => void forgetIdentity()}>Oublier mon identité</button>
       </section>
     );
@@ -1498,21 +1548,39 @@ function IdentityDeviceAccessPanel({ onVerified }: { onVerified?: () => void }) 
     <section className="lycee-identity-device" aria-labelledby="identity-device-title">
       <KeyRound aria-hidden="true" />
       <div className="lycee-identity-device-copy">
-        <strong id="identity-device-title">Accéder à mes informations</strong>
-        <p>Utilisez une adresse déjà connue du lycée. Aucun mot de passe n’est demandé.</p>
+        <strong id="identity-device-title">Confirmer mon identité pour cette demande</strong>
+        <p>Indiquez qui vous êtes, puis utilisez un email ou un téléphone déjà présent dans l’annuaire du lycée.</p>
       </div>
-      {state === "anonymous" ? (
+      {state === "identify" ? (
         <form onSubmit={requestCode}>
-          <input type="email" autoComplete="email" value={email} onChange={(event) => setEmail(event.target.value)} placeholder="Votre adresse email" aria-label="Adresse email connue du lycée" required />
+          <select value={claimedProfile} onChange={(event) => setClaimedProfile(event.target.value as "student" | "guardian" | "staff")} aria-label="Votre profil">
+            <option value="student">Élève</option>
+            <option value="guardian">Parent ou responsable</option>
+            <option value="staff">Professeur ou personnel</option>
+          </select>
+          <input autoComplete="given-name" value={claimedFirstName} onChange={(event) => setClaimedFirstName(event.target.value)} placeholder="Prénom" aria-label="Votre prénom" required />
+          <input autoComplete="family-name" value={claimedLastName} onChange={(event) => setClaimedLastName(event.target.value)} placeholder="Nom" aria-label="Votre nom" required />
+          <select value={contactType} onChange={(event) => { setContactType(event.target.value as "email" | "phone"); setContact(""); }} aria-label="Moyen de vérification">
+            <option value="email">Email connu du lycée</option>
+            <option value="phone">Téléphone connu du lycée</option>
+          </select>
+          <input type={contactType === "email" ? "email" : "tel"} autoComplete={contactType === "email" ? "email" : "tel"} value={contact} onChange={(event) => setContact(event.target.value)} placeholder={contactType === "email" ? "Votre adresse connue" : "Votre numéro connu"} aria-label={contactType === "email" ? "Adresse email connue du lycée" : "Téléphone connu du lycée"} required />
           <label><input type="checkbox" checked={rememberDevice} onChange={(event) => setRememberDevice(event.target.checked)} /> Appareil personnel</label>
-          <button type="submit" disabled={busy}>{busy ? "Vérification…" : "Recevoir un code"}</button>
+          <button type="submit" disabled={busy}>{busy ? "Recherche…" : "Rechercher et envoyer le code"}</button>
         </form>
+      ) : state === "checking_contact" ? (
+        <div className="lycee-identity-device-progress" role="status"><RefreshCw className="is-spinning" aria-hidden="true" /><span>Recherche dans l’annuaire et contrôle du moyen de contact…</span></div>
+      ) : state === "needs_contact_update" ? (
+        <div className="lycee-identity-device-actions">
+          <button type="button" onClick={() => { setState("identify"); setError(null); }}>Corriger ma saisie</button>
+          <button type="button" onClick={onContactUpdate}>Demander l’ajout ou la correction</button>
+        </div>
       ) : (
         <form onSubmit={verifyCode}>
-          <span>Si l’adresse peut être utilisée, un code vient d’être envoyé.</span>
+          <span>Le code a bien été envoyé au moyen de contact trouvé dans l’annuaire. Saisissez-le ici.</span>
           <input inputMode="numeric" autoComplete="one-time-code" pattern="[0-9]{6}" maxLength={6} value={code} onChange={(event) => setCode(event.target.value.replace(/\D/g, "").slice(0, 6))} placeholder="Code à 6 chiffres" aria-label="Code de vérification à six chiffres" required />
           <button type="submit" disabled={busy || code.length !== 6}>{busy ? "Contrôle…" : "Vérifier"}</button>
-          <button type="button" disabled={busy} onClick={() => { setState("anonymous"); setCode(""); setError(null); }}>Recommencer</button>
+          <button type="button" disabled={busy} onClick={() => { setState("identify"); setCode(""); setError(null); }}>Recommencer</button>
         </form>
       )}
       {error ? <p className="lycee-identity-device-error" role="alert">{error}</p> : null}
@@ -1527,6 +1595,7 @@ function HelpDeskView({
   onBack,
   onTicketCreated,
   onTrack,
+  onCollect,
 }: {
   initialMessage: string;
   initialClassicForm: boolean;
@@ -1534,6 +1603,7 @@ function HelpDeskView({
   onBack: () => void;
   onTicketCreated: (code: string) => void;
   onTrack: () => void;
+  onCollect: () => void;
 }) {
   const welcomeMessage: AssistantChatMessage = {
     id: "welcome",
@@ -1580,10 +1650,20 @@ function HelpDeskView({
   const [requestKey, setRequestKey] = useState<string>(() => crypto.randomUUID());
   const [assistantSessionId] = useState(supportAssistantSessionId);
   const [draftReady, setDraftReady] = useState(false);
+  const [identityVerified, setIdentityVerified] = useState(false);
 
   const requesterMessages = chatMessages.filter((message) => message.role === "requester");
   const conversationDescription = requesterMessages.map((message) => message.content).join("\n\n").trim();
   const selectedCategory = supportCategories.find((item) => item.value === category);
+  const identityRequiredForCurrentRequest = requesterMessages.length > 0 && [
+    "affectation_classe",
+    "documents_scolarite",
+    "ent",
+    "email_academique",
+    "logiciel",
+    "restauration_bourse",
+    "vie_scolaire",
+  ].includes(category);
 
   useEffect(() => {
     threadRef.current?.scrollTo({ top: threadRef.current.scrollHeight, behavior: "smooth" });
@@ -1674,7 +1754,7 @@ function HelpDeskView({
     window.requestAnimationFrame(() => caseFormRef.current?.scrollIntoView({ block: "start" }));
   }, []);
 
-  async function askAssistant(nextMessages: AssistantChatMessage[]) {
+  async function askAssistant(nextMessages: AssistantChatMessage[], identityJustVerified = false) {
     setAssistantBusy(true);
     setSubmitError(null);
     let result: AssistantInsight = localAssistantFallback(nextMessages, files);
@@ -1710,6 +1790,33 @@ function HelpDeskView({
       } catch {
         result = localAssistantFallback(nextMessages, files);
       }
+    }
+    const requesterText = nextMessages
+      .filter((message) => message.role === "requester")
+      .map((message) => message.content)
+      .join(" ")
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .toLowerCase();
+    const asksForOwnPersonalService = /\b(mon|ma|mes|moi|pour moi|je veux|je souhaite|donne(?:z)? moi)\b/.test(requesterText);
+    const requiresIdentity = asksForOwnPersonalService && [
+      "affectation_classe",
+      "documents_scolarite",
+      "ent",
+      "email_academique",
+      "logiciel",
+      "restauration_bourse",
+      "vie_scolaire",
+    ].includes(result.category);
+    if (requiresIdentity && !identityVerified && !identityJustVerified) {
+      result = {
+        ...result,
+        reply: "Je peux traiter cette demande de manière personnalisée. Confirmez d’abord votre profil, votre prénom et votre nom, puis choisissez un email ou un téléphone déjà connu du lycée. Le champ du code apparaîtra seulement après son envoi réel.",
+        readyToCreate: false,
+        action: "continue",
+        missingInformation: ["Votre profil", "Votre prénom et votre nom", "Un email ou un téléphone connu du lycée"],
+        safetyNotice: "Aucune donnée personnelle n’est affichée avant la confirmation par code.",
+      };
     }
     setAssistantRoutingReceipt(routingReceipt);
     setAssistantNormalizationReceipt(normalizationReceipt);
@@ -1864,10 +1971,6 @@ function HelpDeskView({
     }
     const email = String(form.get("email") ?? "").trim();
     const phone = String(form.get("phone") ?? "").trim();
-    if (initialContactCollection && !email) {
-      setSubmitError("Indiquez l’adresse email personnelle à vérifier ou à retirer.");
-      return;
-    }
     if (!email && !phone) {
       setSubmitError("Sans email ni téléphone, le lycée ne pourra pas vous répondre. Indiquez au moins un des deux.");
       return;
@@ -2031,17 +2134,17 @@ function HelpDeskView({
         eyebrow={initialContactCollection ? "Contacts du lycée" : "Assistant du lycée"}
         title={initialContactCollection ? "Demander une modification de mes coordonnées" : "Dites simplement ce qu’il vous faut"}
         description={initialContactCollection
-          ? "Demandez l’ajout, la correction ou le retrait d’une adresse personnelle. Le lycée vérifie votre demande avant toute modification."
+          ? "Demandez l’ajout, la correction ou le retrait d’un email ou d’un téléphone. Le lycée vérifie votre demande avant toute modification."
           : "Écrivez avec vos mots, dans la langue qui vous convient. Vous pourrez enregistrer la demande et suivre la réponse."}
         onBack={onBack}
       />
 
-      {IDENTITY_DEVICE_ACCESS_ENABLED && !initialContactCollection
+      {IDENTITY_DEVICE_ACCESS_ENABLED && !initialContactCollection && identityRequiredForCurrentRequest
         ? <IdentityDeviceAccessPanel onVerified={() => {
             if (!assistantBusy && chatMessages.some((message) => message.role === "requester")) {
-              void askAssistant(chatMessages);
+              void askAssistant(chatMessages, true);
             }
-          }} />
+          }} onVerificationChange={setIdentityVerified} onContactUpdate={onCollect} />
         : null}
 
       <div className={`lycee-guided-chat${initialContactCollection ? " is-contact-collection" : ""}`}>
@@ -2142,7 +2245,7 @@ function HelpDeskView({
             <form ref={caseFormRef} className="lycee-case-form" onSubmit={submitRequest}>
               <div className="lycee-case-form-head"><span><ShieldCheck aria-hidden="true" /></span><div><h2>{initialContactCollection ? "Coordonnées à vérifier" : classicForm ? "Votre demande au lycée" : "Vos coordonnées pour recevoir la réponse"}</h2><p>{initialContactCollection ? "Un agent habilité vérifie votre identité et la modification demandée avant de l’appliquer." : classicForm ? "Décrivez votre besoin et indiquez comment vous joindre. Seuls les champs nécessaires sont obligatoires." : "Indiquez votre prénom, votre nom et au moins un moyen de contact. L’email est conseillé pour conserver une trace."}</p></div>{!initialContactCollection ? <button type="button" aria-label="Fermer" onClick={() => { setShowDetails(false); setClassicForm(false); }}>Fermer</button> : null}</div>
               <div className="lycee-fields-grid">
-                {initialContactCollection ? <label className="is-wide"><span>Action demandée</span><select name="contactCollectionAction" value={contactCollectionAction} onChange={(event) => setContactCollectionAction(event.target.value as "add_or_update" | "remove")}><option value="add_or_update">Ajouter ou modifier mon email</option><option value="remove">Retirer mon email</option></select></label> : null}
+                {initialContactCollection ? <label className="is-wide"><span>Action demandée</span><select name="contactCollectionAction" value={contactCollectionAction} onChange={(event) => setContactCollectionAction(event.target.value as "add_or_update" | "remove")}><option value="add_or_update">Ajouter ou modifier mes coordonnées</option><option value="remove">Retirer une coordonnée</option></select></label> : null}
                 <label><span>Vous êtes</span><select id="lycee-requester-profile" name="requesterProfile" value={profile} onChange={(event) => setProfile(event.target.value as RequesterProfile)} required><option value="">Sélectionner</option><option value="eleve">Élève</option><option value="parent">Parent ou responsable légal</option><option value="professeur">Professeur</option><option value="personnel">Personnel</option><option value="autre">Autre</option></select></label>
                 {classicForm && !initialContactCollection ? <label><span>Votre demande concerne</span><select id="lycee-support-category" name="supportCategory" value={category} onChange={(event) => setCategory(event.target.value as SupportCategory)}>{supportCategories.map((item) => <option value={item.value} key={item.value}>{item.label}</option>)}</select></label> : null}
                 <label><span>Votre prénom</span><input name="requesterFirstName" type="text" autoComplete="given-name" placeholder="Prénom" minLength={2} maxLength={100} value={formValues.requesterFirstName} onChange={(event) => updateFormValue("requesterFirstName", event.target.value)} required /></label>
@@ -2151,12 +2254,12 @@ function HelpDeskView({
                 {profile === "eleve" || profile === "parent" ? <label><span>Classe, si connue</span><input name="className" type="text" autoComplete="off" placeholder="Ex. 2GT4" value={formValues.className} onChange={(event) => updateFormValue("className", event.target.value)} /></label> : null}
                 {profile === "professeur" || profile === "personnel" ? <label><span>Matière ou service</span><input name="subjectArea" type="text" autoComplete="organization-title" placeholder="Ex. Mathématiques, intendance" value={formValues.subjectArea} onChange={(event) => updateFormValue("subjectArea", event.target.value)} /></label> : null}
                 {profile === "professeur" ? <label><span>Voie</span><select name="schoolTrack" value={formValues.schoolTrack} onChange={(event) => updateFormValue("schoolTrack", event.target.value)}><option value="">Non précisée</option><option value="general">Générale et technologique</option><option value="professionnel">Professionnelle</option><option value="les_deux">Les deux</option></select></label> : null}
-                <div className="lycee-contact-requirement is-wide"><strong>Comment le lycée peut-il vous répondre ?</strong><span>{initialContactCollection ? "L’adresse email est obligatoire. Le téléphone reste facultatif." : "Indiquez au moins un email ou un téléphone. Le second moyen de contact est facultatif."}</span></div>
-                <label><span>{initialContactCollection ? "Adresse email personnelle" : "Adresse email recommandée"}</span><input name="email" type="email" autoComplete="email" placeholder="nom@exemple.fr" value={formValues.email} onChange={(event) => updateFormValue("email", event.target.value)} required={initialContactCollection} /><small>{initialContactCollection ? "Un lien sécurisé vérifiera cette adresse avant toute validation." : "Pour garder une trace et retrouver la demande sur un autre appareil."}</small></label>
-                <label><span>Téléphone</span><input name="phone" type="tel" autoComplete="tel" placeholder="06 00 00 00 00" value={formValues.phone} onChange={(event) => updateFormValue("phone", event.target.value)} /><small>Pour vous joindre si nécessaire.</small></label>
+                <div className="lycee-contact-requirement is-wide"><strong>Comment le lycée peut-il vous répondre ?</strong><span>Indiquez au moins un email ou un téléphone. Le second moyen de contact est facultatif.</span></div>
+                <label><span>{initialContactCollection ? "Adresse email à ajouter ou corriger" : "Adresse email recommandée"}</span><input name="email" type="email" autoComplete="email" placeholder="nom@exemple.fr" value={formValues.email} onChange={(event) => updateFormValue("email", event.target.value)} /><small>{initialContactCollection ? "Un agent vérifiera cette adresse avec votre dossier avant toute modification." : "Pour garder une trace et retrouver la demande sur un autre appareil."}</small></label>
+                <label><span>{initialContactCollection ? "Téléphone à ajouter ou corriger" : "Téléphone"}</span><input name="phone" type="tel" autoComplete="tel" placeholder="06 00 00 00 00" value={formValues.phone} onChange={(event) => updateFormValue("phone", event.target.value)} /><small>{initialContactCollection ? "Un agent vérifiera ce numéro avec votre dossier avant toute modification." : "Pour vous joindre si nécessaire."}</small></label>
                 <label><span>Moyen de contact principal</span><select name="preferredChannel" value={formValues.preferredChannel} onChange={(event) => updateFormValue("preferredChannel", event.target.value as "email" | "phone")}><option value="email">Email, recommandé</option><option value="phone">Téléphone</option></select></label>
                 <label><span>Langue de la réponse du lycée</span><select name="languagePreference" value={formValues.languagePreference} onChange={(event) => updateFormValue("languagePreference", event.target.value)}><option value="francais_simple">Français simple</option><option value="francais">Français</option><option value="arabe">Arabe</option><option value="anglais">Anglais</option><option value="espagnol">Espagnol</option><option value="portugais">Portugais</option><option value="turc">Turc</option><option value="autre">Autre langue, précisée dans le message</option></select></label>
-                <label className="lycee-fallback-choice"><input name="fallbackAllowed" type="checkbox" checked={formValues.fallbackAllowed} onChange={(event) => updateFormValue("fallbackAllowed", event.target.checked)} /><span>{initialContactCollection ? "J’autorise le lycée à utiliser le téléphone indiqué pour me rappeler au sujet de cette demande" : "Utiliser l’autre moyen de contact si nécessaire"}</span></label>
+                <label className="lycee-fallback-choice"><input name="fallbackAllowed" type="checkbox" checked={formValues.fallbackAllowed} onChange={(event) => updateFormValue("fallbackAllowed", event.target.checked)} /><span>{initialContactCollection ? "J’autorise le lycée à utiliser l’autre moyen indiqué pour me contacter au sujet de cette demande" : "Utiliser l’autre moyen de contact si nécessaire"}</span></label>
                 <label className="lycee-fallback-choice"><input name="communicationSupport" type="checkbox" checked={formValues.communicationSupport} onChange={(event) => updateFormValue("communicationSupport", event.target.checked)} /><span>J’ai besoin d’un rappel pour mieux comprendre la réponse</span></label>
                 {classicForm ? <label className="is-wide"><span>{initialContactCollection ? "Précision facultative" : "Votre demande"}</span><textarea id="lycee-classic-description" name="classicDescription" value={classicDescription} onChange={(event) => setClassicDescription(event.target.value)} rows={initialContactCollection ? 3 : 5} maxLength={5000} placeholder={initialContactCollection ? "Ex. changement de matière ou de service" : "Expliquez ce dont vous avez besoin."} required={!initialContactCollection} /></label> : null}
                 {classicForm ? <div className="lycee-classic-files is-wide"><button type="button" onClick={() => fileInputRef.current?.click()} disabled={files.length >= MAX_SUPPORT_FILES}><Paperclip aria-hidden="true" /> Joindre un document</button><small>5 fichiers maximum : PDF, image, Word, Excel ou texte, 10 Mo par fichier.</small>{files.map((file, index) => <div key={`${file.name}-${file.lastModified}`}><FileText aria-hidden="true" /><span>{file.name}</span><button type="button" onClick={() => setFiles((current) => current.filter((_, fileIndex) => fileIndex !== index))}>Retirer</button></div>)}</div> : null}

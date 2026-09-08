@@ -31,19 +31,19 @@ import { enforceIdentityOtpRequestLimits } from "../../_shared/support-rate-limi
 import { personalHash } from "../../_shared/support.js";
 
 const JUSTIFICATION =
-  "Vérification autonome d’une adresse connue afin d’ouvrir une session d’identité limitée.";
+  "Vérification autonome d’un moyen de contact connu après déclaration de l’identité afin d’ouvrir une session limitée.";
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== "POST") return methodNotAllowed(res, ["POST"]);
   return handleApi(res, async () => {
     if (!identityDeviceFeatureEnabled()) {
-      throw new HttpError(503, "La vérification par email n’est pas encore activée.");
+      throw new HttpError(503, "La vérification d’identité n’est pas encore activée.");
     }
     let input;
     try {
       input = parseIdentityDeviceRequestInput(req.body);
     } catch {
-      throw new HttpError(400, "Saisissez une adresse email valide.");
+      throw new HttpError(400, "Vérifiez votre identité et le moyen de contact saisis.");
     }
     const institution = await requireConfiguredInstitution();
     const [activeDirectory] = await db
@@ -57,20 +57,20 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       )
       .limit(1);
     if (!activeDirectory) {
-      throw new HttpError(503, "La vérification par email n’est pas encore disponible.");
+      throw new HttpError(503, "La vérification d’identité n’est pas encore disponible.");
     }
     await enforceIdentityOtpRequestLimits({
       req,
       institutionId: institution.id,
       deviceId: input.deviceId,
-      email: input.email,
+      contact: input.contact,
     });
 
     let config;
     try {
       config = identityLookupApiConfig();
     } catch {
-      throw new HttpError(503, "La vérification par email n’est pas encore disponible.");
+      throw new HttpError(503, "La vérification d’identité n’est pas encore disponible.");
     }
     const challengeId = randomUUID();
     const requestId = randomUUID();
@@ -86,8 +86,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         requestId,
         institutionId: institution.id,
         actorId: challengeId,
-        searchType: "email",
-        query: input.email,
+        searchType: input.contactType,
+        query: input.contact,
         reasonCategory: "identity_verification",
         justification: JUSTIFICATION,
         responseKey: responseKey.toString("base64"),
@@ -104,7 +104,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       `identity-device:${institution.id}:${input.deviceId}`
     );
     const contactHash = personalHash(
-      `identity-device-contact:${institution.id}:${input.email}`
+      `identity-device-contact:${institution.id}:${input.contactType}:${input.contact}`
     );
 
     await db.transaction(async (tx) => {
@@ -113,7 +113,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         institutionId: institution.id,
         actorId: null,
         publicActorId: challengeId,
-        searchType: "email",
+        searchType: input.contactType,
         reasonCategory: "identity_verification",
         justificationHash,
         requestSchema: envelope.schema,
@@ -140,7 +140,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         action: "request_lookup",
         actorId: null,
         summary: {
-          searchType: "email",
+          searchType: input.contactType,
           reasonCategory: "identity_verification",
           publicSelfService: true,
           expiresAt: lookupExpiresAt.toISOString(),
@@ -165,7 +165,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         requestId,
         institutionId: institution.id,
         responseKey: responseKey.toString("base64"),
-        email: input.email,
+        contactType: input.contactType,
+        contact: input.contact,
+        claimedProfile: input.claimedProfile,
+        claimedFirstName: input.claimedFirstName,
+        claimedLastName: input.claimedLastName,
         deviceId: input.deviceId,
         expiresAt: challengeExpiresAt.toISOString(),
       },

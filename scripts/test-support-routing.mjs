@@ -39,8 +39,8 @@ test("keeps the six administrative needs in the single support intake", () => {
 test("keeps personal contact collection inside the verified support workflow", () => {
   assert.match(publicPortal, /"collect"/);
   assert.match(publicPortal, /Gérer mes coordonnées personnelles/);
-  assert.match(publicPortal, /Adresse email personnelle/);
-  assert.match(publicPortal, /initialContactCollection && !email/);
+  assert.match(publicPortal, /Adresse email à ajouter ou corriger/);
+  assert.match(publicPortal, /if \(!email && !phone\)/);
   assert.match(publicPortal, /CONTACT_REMOVAL_DESCRIPTION/);
   assert.match(publicPortal, /contact_personnel_retrait/);
   assert.match(publicPortal, /contact_personnel_ajout/);

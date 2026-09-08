@@ -11,11 +11,14 @@ import {
   openIdentityLookupReceipt,
 } from "../../../shared/identity-directory-lookup-crypto.mjs";
 import {
+  identityDeviceClaimsMatch,
+  identityDeviceCodeSentPayload,
+  identityDeviceContactUpdatePayload,
   identityDeviceFeatureEnabled,
   identityDeviceReadyPayload,
 } from "../../../shared/identity-device-access.js";
 import { HttpError } from "../../_shared/auth.js";
-import { escapeHtml, sendTransactionalEmail } from "../../_shared/brevo.js";
+import { escapeHtml, sendTransactionalEmail, sendTransactionalSms } from "../../_shared/brevo.js";
 import {
   challengeReceiptClaims,
   clearChallengeReceiptCookie,
@@ -30,7 +33,7 @@ type DeviceLookupResult = {
   lastName: string;
   personType: "student" | "guardian" | "staff";
   personRef: string;
-  matchedBy: "email";
+  matchedBy: "email" | "phone";
   directoryVersionId: string;
 };
 
@@ -44,7 +47,7 @@ function parseDeviceLookupResult(value: unknown): DeviceLookupResult {
     typeof input.lastName !== "string" ||
     !["student", "guardian", "staff"].includes(String(input.personType)) ||
     typeof input.personRef !== "string" ||
-    input.matchedBy !== "email" ||
+    !["email", "phone"].includes(String(input.matchedBy)) ||
     typeof input.directoryVersionId !== "string"
   ) {
     throw new HttpError(503, "La vérification n’a pas pu être contrôlée.");
@@ -54,14 +57,23 @@ function parseDeviceLookupResult(value: unknown): DeviceLookupResult {
 
 async function deliverCode(input: {
   challengeId: string;
-  email: string;
+  contactType: "email" | "phone";
+  contact: string;
   firstName: string;
 }): Promise<void> {
   const code = identityDeviceCode(input.challengeId);
+  if (input.contactType === "phone") {
+    await sendTransactionalSms({
+      recipient: input.contact,
+      content: `Lycée Blaise Cendrars : votre code de vérification est ${code}. Il expire dans 10 minutes. Ne le transmettez à personne.`,
+      tag: "lyceegest-identity",
+    });
+    return;
+  }
   const safeName = escapeHtml(input.firstName.trim() || "");
   const greeting = safeName ? `Bonjour ${safeName},` : "Bonjour,";
   await sendTransactionalEmail({
-    to: { email: input.email },
+    to: { email: input.contact },
     subject: "Votre code de vérification - Lycée Blaise Cendrars",
     textContent: `${greeting.replace(/<[^>]*>/g, "")}\n\nVotre code de vérification est : ${code}\n\nIl expire dans 10 minutes. Ne le transmettez à personne. Le lycée ne vous demandera jamais votre mot de passe.`,
     htmlContent: `<p>${greeting}</p><p>Votre code de vérification est :</p><p style="font-size:28px;font-weight:700;letter-spacing:6px">${code}</p><p>Il expire dans 10 minutes. Ne le transmettez à personne.</p><p>Le lycée ne vous demandera jamais votre mot de passe.</p>`,
@@ -74,7 +86,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== "POST") return methodNotAllowed(res, ["POST"]);
   return handleApi(res, async () => {
     if (!identityDeviceFeatureEnabled()) {
-      throw new HttpError(503, "La vérification par email n’est pas encore activée.");
+      throw new HttpError(503, "La vérification d’identité n’est pas encore activée.");
     }
     let config;
     let claims;
@@ -89,6 +101,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
     const now = new Date();
     const publicPayload = identityDeviceReadyPayload(new Date(claims.expiresAt));
+    const codeSentPayload = identityDeviceCodeSentPayload(new Date(claims.expiresAt));
+    const contactUpdatePayload = identityDeviceContactUpdatePayload(new Date(claims.expiresAt));
     if (new Date(claims.expiresAt) <= now) {
       clearChallengeReceiptCookie(res);
       throw new HttpError(410, "Ce code a expiré. Demandez un nouveau code.");
@@ -123,6 +137,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       throw new HttpError(410, "Ce code a expiré. Demandez un nouveau code.");
     }
 
+    if (row.challenge.status === "code_sent") return codeSentPayload;
+    if (["ineligible", "failed"].includes(row.challenge.status)) return contactUpdatePayload;
+
     if (
       row.challenge.status === "lookup_queued" &&
       ["not_found", "ambiguous", "failed", "expired"].includes(row.lookup.status)
@@ -136,7 +153,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             eq(identityDeviceChallenges.status, "lookup_queued")
           )
         );
-      return publicPayload;
+      return contactUpdatePayload;
     }
 
     let shouldDeliver = false;
@@ -164,6 +181,28 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           actorId: claims.challengeId,
         })
       );
+      if (
+        result.matchedBy !== claims.contactType ||
+        !identityDeviceClaimsMatch({
+          claimedProfile: claims.claimedProfile,
+          claimedFirstName: claims.claimedFirstName,
+          claimedLastName: claims.claimedLastName,
+          personType: result.personType,
+          firstName: result.firstName,
+          lastName: result.lastName,
+        })
+      ) {
+        await db
+          .update(identityDeviceChallenges)
+          .set({ status: "ineligible" })
+          .where(
+            and(
+              eq(identityDeviceChallenges.id, claims.challengeId),
+              eq(identityDeviceChallenges.status, "lookup_queued")
+            )
+          );
+        return contactUpdatePayload;
+      }
       const code = identityDeviceCode(claims.challengeId);
       const [prepared] = await db
         .update(identityDeviceChallenges)
@@ -205,7 +244,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       try {
         await deliverCode({
           challengeId: claims.challengeId,
-          email: claims.email,
+          contactType: claims.contactType,
+          contact: claims.contact,
           firstName,
         });
         await db
@@ -227,7 +267,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
               inArray(identityDeviceChallenges.status, ["delivery_pending"])
             )
           );
+        return contactUpdatePayload;
       }
+      return codeSentPayload;
     }
     return publicPayload;
   });

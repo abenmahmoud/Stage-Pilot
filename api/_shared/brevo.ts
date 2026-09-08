@@ -2,6 +2,7 @@ import { HttpError } from "./auth.js";
 import { readJsonApiResponse } from "../../shared/json-api-response.js";
 
 const BREVO_ENDPOINT = "https://api.brevo.com/v3/smtp/email";
+const BREVO_SMS_ENDPOINT = "https://api.brevo.com/v3/transactionalSMS/send";
 const BREVO_RESPONSE_MAX_BYTES = 256 * 1024;
 
 export type TransactionalEmail = {
@@ -15,7 +16,7 @@ export type TransactionalEmail = {
 };
 
 type BrevoResponse = {
-  messageId?: string;
+  messageId?: string | number;
   code?: string;
   message?: string;
 };
@@ -27,6 +28,52 @@ export function escapeHtml(value: string): string {
     .replaceAll(">", "&gt;")
     .replaceAll('"', "&quot;")
     .replaceAll("'", "&#039;");
+}
+
+export async function sendTransactionalSms(input: {
+  recipient: string;
+  content: string;
+  tag?: string;
+}): Promise<{ messageId: string }> {
+  const apiKey = process.env.BREVO_API_KEY;
+  if (!apiKey) throw new HttpError(503, "Le service SMS n'est pas configuré");
+  const sender = process.env.IDENTITY_DEVICE_SMS_SENDER;
+  if (!sender || !/^[A-Za-z0-9]{3,11}$/.test(sender)) {
+    throw new HttpError(503, "L'expéditeur SMS n'est pas configuré");
+  }
+  const response = await fetch(BREVO_SMS_ENDPOINT, {
+    method: "POST",
+    signal: AbortSignal.timeout(15_000),
+    headers: {
+      accept: "application/json",
+      "api-key": apiKey,
+      "content-type": "application/json",
+    },
+    body: JSON.stringify({
+      sender,
+      recipient: input.recipient.replace(/^\+/, ""),
+      content: input.content,
+      type: "transactional",
+      tag: input.tag ?? "lyceegest-identity",
+      unicodeEnabled: true,
+    }),
+  });
+  let payload: BrevoResponse = {};
+  try {
+    payload = await readJsonApiResponse<BrevoResponse>(response, {
+      maxBytes: BREVO_RESPONSE_MAX_BYTES,
+      requireOk: false,
+    });
+  } catch {
+    payload = {};
+  }
+  if (response.ok && payload.messageId !== undefined) {
+    return { messageId: String(payload.messageId) };
+  }
+  const error = new Error(payload.code || `brevo_sms_http_${response.status}`);
+  error.name = response.status >= 400 && response.status < 500 && response.status !== 408
+    ? "BrevoRejectedError" : "BrevoError";
+  throw error;
 }
 
 export async function sendTransactionalEmail(
@@ -68,7 +115,7 @@ export async function sendTransactionalEmail(
     payload = {};
   }
   if (response.ok && payload.messageId) {
-    return { messageId: payload.messageId, duplicate: false };
+    return { messageId: String(payload.messageId), duplicate: false };
   }
   if (payload.code === "duplicate_parameter") {
     return { messageId: `duplicate:${email.idempotencyKey}`, duplicate: true };
