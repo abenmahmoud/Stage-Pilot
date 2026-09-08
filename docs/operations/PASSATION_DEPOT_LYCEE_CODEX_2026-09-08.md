@@ -70,6 +70,12 @@ humaines.
 - audit des dépendances de production : 0 vulnérabilité connue ;
 - aucune migration distante et aucune donnée réelle utilisés.
 
+La recette avec une vraie base locale n'a pas pu être exécutée : le 8 septembre,
+`docker info` échoue car le moteur Docker Desktop Linux n'est pas démarré. Les
+tests avec fichiers fictifs, les contrôles structurels, le build et la barrière
+complète passent ; la recette base + HTTP reste donc une condition de mise en
+service, pas une preuve déjà acquise.
+
 ## Actions externes encore obligatoires
 
 1. Relire la migration
