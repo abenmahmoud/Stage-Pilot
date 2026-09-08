@@ -496,7 +496,7 @@ export async function analyzeSupportConversation(input: {
       dayResult = { ok: false, reason: "source_unavailable" };
     }
     runtimeSourceCount = dayResult.ok ? 1 : 0;
-    const answer = scheduleAssistantDayAnswer(dayResult);
+    const answer = scheduleAssistantDayAnswer(dayResult, requestedScheduleDayOffset);
     await recordRuntime("deterministic", false, false);
     return {
       ...fallback,

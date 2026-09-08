@@ -249,6 +249,7 @@ test("answers an own tomorrow timetable request with the next Paris school day",
   assert.equal(receivedBounds.dayStart.toISOString(), "2026-09-08T22:00:00.000Z");
   assert.equal(receivedBounds.dayEnd.toISOString(), "2026-09-09T21:59:59.999Z");
   assert.equal(result.readyToCreate, false);
+  assert.match(result.reply, /demain/i);
   assert.match(result.reply, /Numérique et sciences informatiques/);
   assert.match(result.reply, /C112/);
 });
@@ -269,7 +270,7 @@ test("answers with no course today rather than failing when the day is empty", a
       },
     }),
   });
-  assert.match(result.reply, /aucun cours prévu pour cette journée/i);
+  assert.match(result.reply, /aucun cours prévu aujourd'hui/i);
   assert.equal(result.readyToCreate, false);
 });
 

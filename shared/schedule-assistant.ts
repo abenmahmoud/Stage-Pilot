@@ -91,12 +91,13 @@ function reviewDate(value: string): string {
 
 function scheduleFailureAnswer(
   reason: ScheduleReadFailureReason,
-  context: "next" | "day"
+  context: "next" | "today" | "tomorrow"
 ): ScheduleAssistantAnswer {
+  const requestedDay = context === "tomorrow" ? "de demain" : "du jour";
   const messages: Record<ScheduleReadFailureReason, { reply: string; safetyNotice: string | null }> = {
     identity_i3_required: {
-      reply: context === "day"
-        ? "Je peux rechercher vos cours du jour, mais votre identité scolaire doit d'abord être confirmée. Vous pouvez transmettre une demande au lycée si vous ne pouvez pas effectuer cette vérification."
+      reply: context !== "next"
+        ? `Je peux rechercher vos cours ${requestedDay}, mais votre identité scolaire doit d'abord être confirmée. Vous pouvez transmettre une demande au lycée si vous ne pouvez pas effectuer cette vérification.`
         : "Je peux rechercher votre prochain cours, mais votre identité scolaire doit d'abord être confirmée. Vous pouvez transmettre une demande au lycée si vous ne pouvez pas effectuer cette vérification.",
       safetyNotice: "Une adresse ou une classe écrite dans la conversation ne donne aucun accès à un emploi du temps personnel.",
     },
@@ -113,7 +114,7 @@ function scheduleFailureAnswer(
       safetyNotice: "Une source périmée n'est jamais présentée comme actuelle.",
     },
     no_authorized_course: {
-      reply: context === "day"
+      reply: context !== "next"
         ? "Je ne trouve aucun cours autorisé pour vous dans la version validée. Vous pouvez transmettre une demande à la vie scolaire pour vérification."
         : "Je ne trouve aucun prochain cours autorisé dans la version validée. Vous pouvez transmettre une demande à la vie scolaire pour vérification.",
       safetyNotice: null,
@@ -175,12 +176,16 @@ function dayCourseSentence(course: ScheduleDayCourse): string {
   return `${course.subjectLabel}, ${timing}${room}${change}.`;
 }
 
-export function scheduleAssistantDayAnswer(result: ScheduleDayReadResult): ScheduleAssistantAnswer {
+export function scheduleAssistantDayAnswer(
+  result: ScheduleDayReadResult,
+  dayOffset: 0 | 1 = 0,
+): ScheduleAssistantAnswer {
+  const requestedDay = dayOffset === 1 ? "demain" : "aujourd'hui";
   if (result.ok) {
     const sourceNotice = `Source validée, à recontrôler avant le ${reviewDate(result.source.freshUntil)}.`;
     if (result.courses.length === 0) {
       return {
-        reply: `Vous n'avez aucun cours prévu pour cette journée selon l'emploi du temps validé. ${sourceNotice}`,
+        reply: `Vous n'avez aucun cours prévu ${requestedDay} selon l'emploi du temps validé. ${sourceNotice}`,
         readyToCreate: false,
         safetyNotice: null,
         sourceReferences: [{ title: "Emploi du temps validé", updatedAt: result.source.activatedAt }],
@@ -188,12 +193,12 @@ export function scheduleAssistantDayAnswer(result: ScheduleDayReadResult): Sched
     }
     const sentences = result.courses.map(dayCourseSentence).join(" ");
     return {
-      reply: `Voici vos cours pour cette journée : ${sentences} ${sourceNotice}`,
+      reply: `Voici vos cours pour ${requestedDay} : ${sentences} ${sourceNotice}`,
       readyToCreate: false,
       safetyNotice: null,
       sourceReferences: [{ title: "Emploi du temps validé", updatedAt: result.source.activatedAt }],
     };
   }
 
-  return scheduleFailureAnswer(result.reason, "day");
+  return scheduleFailureAnswer(result.reason, dayOffset === 1 ? "tomorrow" : "today");
 }
