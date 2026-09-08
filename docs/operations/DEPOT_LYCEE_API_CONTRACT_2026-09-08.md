@@ -64,7 +64,11 @@ approbation et son activation humaines dans l'administration.
 
 Chaque référence doit exister dans l'annuaire actif. Les clés de secrets sont
 refusées. La valeur est chiffrée séparément en AES-256-GCM et l'import reste en
-attente de validation humaine. Aucune valeur n'est ajoutée au contexte de l'IA.
+attente de validation humaine. Le lot apparaît dans « Répertoire privé du
+lycée » avec son seul nom, son volume et son statut. Son activation exige MFA,
+une justification et la même version active de l'annuaire que lors de sa
+réception. Aucune valeur n'est affichée ni ajoutée au contexte de l'IA. Chaque
+réception, activation et remplacement est consigné dans un journal append-only.
 
 ### `codes`
 
@@ -152,12 +156,15 @@ incomplet.
 
 ## Mise en service externe encore nécessaire
 
-1. appliquer la migration `20260908013000_create_person_attribute_imports.sql`
+1. faire relire puis appliquer la migration
+   `20260908013000_create_person_attribute_imports.sql`
    selon la procédure locale contrôlée du projet ;
 2. créer ou choisir le compte technique et renseigner son UUID ;
 3. poser les cinq variables secrètes serveur décrites dans `.env.local.example` ;
 4. configurer `LYCEEGEST_URL` et `LYCEEGEST_TOKEN` sur le VPS ;
-5. exécuter une recette avec les seuls fichiers fictifs avant les exports réels ;
+5. exécuter la recette de bout en bout avec les seuls fichiers fictifs avant les
+   exports réels, y compris l'activation d'un lot d'attributs depuis l'écran
+   d'administration ;
 6. conserver `CODE_VAULT_REVEAL_ENABLED=false` jusqu'à la validation finale des
    parcours de remise.
 
