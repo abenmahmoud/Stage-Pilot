@@ -23,6 +23,95 @@ function routeId(req: VercelRequest): string {
   return value;
 }
 
+export async function activatePersonAttributeImport(input: {
+  institutionId: string;
+  actorId: string;
+  importId: string;
+  justification: string;
+}) {
+  return db.transaction(async (tx) => {
+    await tx.execute(sql`
+      select pg_advisory_xact_lock(hashtextextended(${input.institutionId}::text, 827164))
+    `);
+    const [candidate] = await tx
+      .select()
+      .from(personAttributeImports)
+      .where(and(
+        eq(personAttributeImports.id, input.importId),
+        eq(personAttributeImports.institutionId, input.institutionId)
+      ))
+      .limit(1);
+    if (!candidate) throw new HttpError(404, "Import introuvable");
+    if (candidate.status === "active") return { import: candidate, duplicate: true };
+    if (candidate.status !== "review") {
+      throw new HttpError(409, "Cet import ne peut pas être activé");
+    }
+    const [activeDirectory] = await tx
+      .select({ id: identityDirectoryImports.id })
+      .from(identityDirectoryImports)
+      .where(and(
+        eq(identityDirectoryImports.institutionId, input.institutionId),
+        eq(identityDirectoryImports.status, "active")
+      ))
+      .limit(1);
+    if (!activeDirectory || activeDirectory.id !== candidate.directoryImportId) {
+      throw new HttpError(409, "L’annuaire actif a changé ; régénérez ce fichier d’attributs");
+    }
+    const [stored] = await tx
+      .select({ value: count() })
+      .from(personAttributeRows)
+      .where(and(
+        eq(personAttributeRows.institutionId, input.institutionId),
+        eq(personAttributeRows.importId, input.importId)
+      ));
+    if (Number(stored?.value ?? 0) !== candidate.rowCount) {
+      throw new HttpError(409, "L’import chiffré est incomplet ; activation refusée");
+    }
+    const previous = await tx
+      .select({ id: personAttributeImports.id })
+      .from(personAttributeImports)
+      .where(and(
+        eq(personAttributeImports.institutionId, input.institutionId),
+        eq(personAttributeImports.status, "active")
+      ));
+    if (previous.length) {
+      await tx
+        .update(personAttributeImports)
+        .set({ status: "superseded" })
+        .where(and(
+          eq(personAttributeImports.institutionId, input.institutionId),
+          eq(personAttributeImports.status, "active")
+        ));
+      await tx.insert(personAttributeEvents).values(previous.map((entry) => ({
+        institutionId: input.institutionId,
+        importId: entry.id,
+        action: "supersede",
+        actorId: input.actorId,
+        summary: { replacementImportId: input.importId },
+      })));
+    }
+    const now = new Date();
+    const [updated] = await tx
+      .update(personAttributeImports)
+      .set({ status: "active", approvedBy: input.actorId, approvedAt: now })
+      .where(and(
+        eq(personAttributeImports.id, input.importId),
+        eq(personAttributeImports.institutionId, input.institutionId),
+        eq(personAttributeImports.status, "review")
+      ))
+      .returning();
+    if (!updated) throw new HttpError(409, "Cet import a déjà changé");
+    await tx.insert(personAttributeEvents).values({
+      institutionId: input.institutionId,
+      importId: input.importId,
+      action: "activate",
+      actorId: input.actorId,
+      summary: { justification: input.justification, replacedCount: previous.length, rowCount: updated.rowCount },
+    });
+    return { import: updated, duplicate: false };
+  });
+}
+
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== "POST") return methodNotAllowed(res, ["POST"]);
   return handleApi(res, async () => {
@@ -34,86 +123,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     } catch (error) {
       registryInputError(error);
     }
-    const result = await db.transaction(async (tx) => {
-      await tx.execute(sql`
-        select pg_advisory_xact_lock(hashtextextended(${context.institutionId}::text, 827164))
-      `);
-      const [candidate] = await tx
-        .select()
-        .from(personAttributeImports)
-        .where(and(
-          eq(personAttributeImports.id, id),
-          eq(personAttributeImports.institutionId, context.institutionId)
-        ))
-        .limit(1);
-      if (!candidate) throw new HttpError(404, "Import introuvable");
-      if (candidate.status === "active") return { import: candidate, duplicate: true };
-      if (candidate.status !== "review") {
-        throw new HttpError(409, "Cet import ne peut pas être activé");
-      }
-      const [activeDirectory] = await tx
-        .select({ id: identityDirectoryImports.id })
-        .from(identityDirectoryImports)
-        .where(and(
-          eq(identityDirectoryImports.institutionId, context.institutionId),
-          eq(identityDirectoryImports.status, "active")
-        ))
-        .limit(1);
-      if (!activeDirectory || activeDirectory.id !== candidate.directoryImportId) {
-        throw new HttpError(409, "L’annuaire actif a changé ; régénérez ce fichier d’attributs");
-      }
-      const [stored] = await tx
-        .select({ value: count() })
-        .from(personAttributeRows)
-        .where(and(
-          eq(personAttributeRows.institutionId, context.institutionId),
-          eq(personAttributeRows.importId, id)
-        ));
-      if (Number(stored?.value ?? 0) !== candidate.rowCount) {
-        throw new HttpError(409, "L’import chiffré est incomplet ; activation refusée");
-      }
-      const previous = await tx
-        .select({ id: personAttributeImports.id })
-        .from(personAttributeImports)
-        .where(and(
-          eq(personAttributeImports.institutionId, context.institutionId),
-          eq(personAttributeImports.status, "active")
-        ));
-      if (previous.length) {
-        await tx
-          .update(personAttributeImports)
-          .set({ status: "superseded" })
-          .where(and(
-            eq(personAttributeImports.institutionId, context.institutionId),
-            eq(personAttributeImports.status, "active")
-          ));
-        await tx.insert(personAttributeEvents).values(previous.map((entry) => ({
-          institutionId: context.institutionId,
-          importId: entry.id,
-          action: "supersede",
-          actorId: context.user.id,
-          summary: { replacementImportId: id },
-        })));
-      }
-      const now = new Date();
-      const [updated] = await tx
-        .update(personAttributeImports)
-        .set({ status: "active", approvedBy: context.user.id, approvedAt: now })
-        .where(and(
-          eq(personAttributeImports.id, id),
-          eq(personAttributeImports.institutionId, context.institutionId),
-          eq(personAttributeImports.status, "review")
-        ))
-        .returning();
-      if (!updated) throw new HttpError(409, "Cet import a déjà changé");
-      await tx.insert(personAttributeEvents).values({
-        institutionId: context.institutionId,
-        importId: id,
-        action: "activate",
-        actorId: context.user.id,
-        summary: { justification, replacedCount: previous.length, rowCount: updated.rowCount },
-      });
-      return { import: updated, duplicate: false };
+    const result = await activatePersonAttributeImport({
+      institutionId: context.institutionId,
+      actorId: context.user.id,
+      importId: id,
+      justification,
     });
     const payload = {
       import: personAttributeImportView(result.import),
