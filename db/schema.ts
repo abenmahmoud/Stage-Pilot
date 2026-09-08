@@ -378,6 +378,75 @@ export const identityDirectoryRows = pgTable(
   ]
 );
 
+export const personAttributeImports = pgTable(
+  "person_attribute_imports",
+  {
+    id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+    institutionId: uuid("institution_id")
+      .notNull()
+      .references(() => institutions.id, { onDelete: "restrict" }),
+    checksum: text("checksum").notNull(),
+    originalName: text("original_name").notNull(),
+    sizeBytes: bigint("size_bytes", { mode: "number" }).notNull(),
+    rowCount: integer("row_count").notNull(),
+    status: text("status").notNull().default("review"),
+    uploadedBy: uuid("uploaded_by").notNull(),
+    approvedBy: uuid("approved_by"),
+    approvedAt: timestamp("approved_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    uniqueIndex("person_attribute_imports_checksum_uidx").on(
+      table.institutionId,
+      table.checksum
+    ),
+    index("person_attribute_imports_status_idx").on(
+      table.institutionId,
+      table.status,
+      table.createdAt
+    ),
+  ]
+);
+
+export const personAttributeRows = pgTable(
+  "person_attribute_rows",
+  {
+    id: uuid("id").primaryKey(),
+    institutionId: uuid("institution_id")
+      .notNull()
+      .references(() => institutions.id, { onDelete: "restrict" }),
+    importId: uuid("import_id")
+      .notNull()
+      .references(() => personAttributeImports.id, { onDelete: "cascade" }),
+    personRef: text("person_ref").notNull(),
+    attributeKey: text("attribute_key").notNull(),
+    validFrom: date("valid_from").notNull(),
+    validUntil: date("valid_until"),
+    source: text("source").notNull(),
+    keyVersion: text("key_version").notNull(),
+    payloadSchema: integer("payload_schema").notNull().default(1),
+    iv: text("iv").notNull(),
+    authTag: text("auth_tag").notNull(),
+    ciphertext: text("ciphertext").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    uniqueIndex("person_attribute_rows_identity_uidx").on(
+      table.importId,
+      table.personRef,
+      table.attributeKey,
+      table.validFrom
+    ),
+    index("person_attribute_rows_lookup_idx").on(
+      table.institutionId,
+      table.personRef,
+      table.attributeKey,
+      table.validFrom
+    ),
+  ]
+);
+
 export const identityDirectoryPrivateRows = pgTable(
   "identity_directory_private_rows",
   {

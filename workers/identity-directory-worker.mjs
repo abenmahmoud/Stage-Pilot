@@ -218,20 +218,6 @@ async function persistReport(directoryImport, parsed, verification, msgId) {
     `;
     if (sameFile) {
       await transaction`
-        update public.identity_directory_imports
-        set status = 'superseded', checksum = ${parsed.checksum},
-            row_count = ${parsed.summary.rowCount},
-            valid_row_count = ${parsed.summary.validRowCount},
-            rejected_row_count = ${parsed.summary.rejectedRowCount},
-            validation_summary = ${transaction.json({
-              ...parsed.summary,
-              antivirus: "clamav_clean",
-              sourceVerificationReport: verification,
-              duplicateOfImportId: sameFile.id,
-            })}
-        where id = ${directoryImport.id} and institution_id = ${directoryImport.institution_id}
-      `;
-      await transaction`
         insert into public.identity_directory_audit (
           institution_id, resource_type, resource_id, action, actor_id, summary
         ) values (
@@ -241,6 +227,10 @@ async function persistReport(directoryImport, parsed, verification, msgId) {
         )
       `;
       await transaction`select pgmq.delete('identity_directory_scan', ${msgId}::bigint)`;
+      await transaction`
+        delete from public.identity_directory_imports
+        where id = ${directoryImport.id} and institution_id = ${directoryImport.institution_id}
+      `;
       return "duplicate";
     }
     const rows = databaseRows(parsed, directoryImport, (value) => transaction.json(value));
@@ -441,7 +431,14 @@ async function processMessage(row) {
         "Le rapport de vérification ne concorde pas avec le fichier"
       );
     }
-    return persistReport(loaded.directoryImport, parsed, verification, row.msg_id);
+    const persisted = await persistReport(loaded.directoryImport, parsed, verification, row.msg_id);
+    if (persisted === "duplicate") {
+      const report = verificationReportMetadata(loaded.directoryImport.validation_summary);
+      const paths = [loaded.directoryImport.storage_path];
+      if (report) paths.push(report.storagePath);
+      await storage.from(loaded.directoryImport.storage_bucket).remove(paths);
+    }
+    return persisted;
   } catch (error) {
     const deterministicError = error instanceof IdentityDirectoryParseError
       || error instanceof IdentityDirectoryVerificationError;
