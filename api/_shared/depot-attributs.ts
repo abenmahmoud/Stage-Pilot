@@ -4,6 +4,7 @@ import { db } from "../../db/index.js";
 import {
   identityDirectoryImports,
   identityDirectoryRows,
+  personAttributeEvents,
   personAttributeImports,
   personAttributeRows,
 } from "../../db/schema.js";
@@ -45,19 +46,23 @@ export async function receiveDepotAttributs(params: {
   }
 
   const refs = [...new Set(rows.map((row) => row.personRef))];
+  const [activeDirectory] = await db
+    .select({ id: identityDirectoryImports.id })
+    .from(identityDirectoryImports)
+    .where(and(
+      eq(identityDirectoryImports.institutionId, params.institutionId),
+      eq(identityDirectoryImports.status, "active")
+    ))
+    .limit(1);
+  if (!activeDirectory) {
+    throw new HttpError(409, "Aucun annuaire actif ne permet de vérifier ces attributs");
+  }
   const known = await db
     .select({ personRef: identityDirectoryRows.personRef })
     .from(identityDirectoryRows)
-    .innerJoin(
-      identityDirectoryImports,
-      and(
-        eq(identityDirectoryImports.id, identityDirectoryRows.importId),
-        eq(identityDirectoryImports.institutionId, identityDirectoryRows.institutionId)
-      )
-    )
     .where(and(
       eq(identityDirectoryRows.institutionId, params.institutionId),
-      eq(identityDirectoryImports.status, "active"),
+      eq(identityDirectoryRows.importId, activeDirectory.id),
       eq(identityDirectoryRows.recordType, "person"),
       inArray(identityDirectoryRows.personRef, refs)
     ));
@@ -94,6 +99,7 @@ export async function receiveDepotAttributs(params: {
       await tx.insert(personAttributeImports).values({
         id: importId,
         institutionId: params.institutionId,
+        directoryImportId: activeDirectory.id,
         checksum,
         originalName: file.fileName,
         sizeBytes: file.bytes.length,
@@ -104,6 +110,18 @@ export async function receiveDepotAttributs(params: {
       for (let offset = 0; offset < encryptedRows.length; offset += 500) {
         await tx.insert(personAttributeRows).values(encryptedRows.slice(offset, offset + 500));
       }
+      await tx.insert(personAttributeEvents).values({
+        institutionId: params.institutionId,
+        importId,
+        action: "receive",
+        actorId: params.actorId,
+        summary: {
+          rowCount: encryptedRows.length,
+          checksum,
+          source: "depot_lycee",
+          directoryImportId: activeDirectory.id,
+        },
+      });
     });
   } catch (error) {
     const [duplicate] = await db

@@ -385,6 +385,9 @@ export const personAttributeImports = pgTable(
     institutionId: uuid("institution_id")
       .notNull()
       .references(() => institutions.id, { onDelete: "restrict" }),
+    directoryImportId: uuid("directory_import_id")
+      .notNull()
+      .references(() => identityDirectoryImports.id, { onDelete: "restrict" }),
     checksum: text("checksum").notNull(),
     originalName: text("original_name").notNull(),
     sizeBytes: bigint("size_bytes", { mode: "number" }).notNull(),
@@ -405,6 +408,10 @@ export const personAttributeImports = pgTable(
       table.institutionId,
       table.status,
       table.createdAt
+    ),
+    index("person_attribute_imports_directory_idx").on(
+      table.institutionId,
+      table.directoryImportId
     ),
   ]
 );
@@ -443,6 +450,30 @@ export const personAttributeRows = pgTable(
       table.personRef,
       table.attributeKey,
       table.validFrom
+    ),
+  ]
+);
+
+export const personAttributeEvents = pgTable(
+  "person_attribute_events",
+  {
+    id: bigint("id", { mode: "number" }).primaryKey().generatedAlwaysAsIdentity(),
+    institutionId: uuid("institution_id")
+      .notNull()
+      .references(() => institutions.id, { onDelete: "restrict" }),
+    importId: uuid("import_id")
+      .notNull()
+      .references(() => personAttributeImports.id, { onDelete: "restrict" }),
+    action: text("action").notNull(),
+    actorId: uuid("actor_id").notNull(),
+    summary: jsonb("summary").notNull().default({}),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    index("person_attribute_events_import_idx").on(
+      table.institutionId,
+      table.importId,
+      table.createdAt
     ),
   ]
 );

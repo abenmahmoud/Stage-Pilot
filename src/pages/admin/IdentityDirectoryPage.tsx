@@ -29,6 +29,7 @@ import {
 } from "../../../shared/fictitious-identity-directory";
 import IdentityDirectoryReport from "./IdentityDirectoryReport";
 import IdentityDirectoryLookupPanel from "./IdentityDirectoryLookupPanel";
+import PersonAttributeImportPanel from "./PersonAttributeImportPanel";
 
 function downloadLargeFictitiousDirectory() {
   const blob = new Blob([generateFictitiousIdentityDirectory()], {
@@ -249,6 +250,8 @@ export default function IdentityDirectoryPage() {
       {notice ? <p role="status" className="border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-800">{notice}</p> : null}
 
       <IdentityDirectoryLookupPanel />
+
+      <PersonAttributeImportPanel />
 
       <form onSubmit={submit} className="grid gap-4 border-y border-slate-200 bg-white p-4 sm:grid-cols-2 sm:p-6">
         <div className="sm:col-span-2">

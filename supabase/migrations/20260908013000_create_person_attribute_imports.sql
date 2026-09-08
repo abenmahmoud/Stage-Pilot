@@ -3,6 +3,7 @@ begin;
 create table public.person_attribute_imports (
   id uuid primary key default gen_random_uuid(),
   institution_id uuid not null references public.institutions(id) on delete restrict,
+  directory_import_id uuid not null references public.identity_directory_imports(id) on delete restrict,
   checksum text not null check (checksum ~ '^[a-f0-9]{64}$'),
   original_name text not null check (char_length(original_name) between 1 and 255),
   size_bytes bigint not null check (size_bytes between 1 and 4194304),
@@ -14,7 +15,11 @@ create table public.person_attribute_imports (
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),
   unique (institution_id, checksum),
-  unique (id, institution_id)
+  unique (id, institution_id),
+  constraint person_attribute_imports_approval_check check (
+    (status = 'review' and approved_by is null and approved_at is null)
+    or (status in ('active', 'superseded', 'rejected') and approved_by is not null and approved_at is not null)
+  )
 );
 
 create table public.person_attribute_rows (
@@ -39,10 +44,27 @@ create table public.person_attribute_rows (
   unique (import_id, person_ref, attribute_key, valid_from)
 );
 
+create table public.person_attribute_events (
+  id bigint generated always as identity primary key,
+  institution_id uuid not null references public.institutions(id) on delete restrict,
+  import_id uuid not null,
+  action text not null check (action in ('receive', 'activate', 'supersede', 'reject')),
+  actor_id uuid not null references auth.users(id) on delete restrict,
+  summary jsonb not null default '{}'::jsonb,
+  created_at timestamptz not null default now(),
+  constraint person_attribute_events_import_scope_fk
+    foreign key (import_id, institution_id)
+    references public.person_attribute_imports(id, institution_id) on delete restrict
+);
+
 create index person_attribute_imports_status_idx
   on public.person_attribute_imports (institution_id, status, created_at desc);
+create index person_attribute_imports_directory_idx
+  on public.person_attribute_imports (institution_id, directory_import_id);
 create index person_attribute_rows_lookup_idx
   on public.person_attribute_rows (institution_id, person_ref, attribute_key, valid_from desc);
+create index person_attribute_events_import_idx
+  on public.person_attribute_events (institution_id, import_id, created_at desc);
 
 create trigger person_attribute_imports_set_updated_at
 before update on public.person_attribute_imports
@@ -52,15 +74,40 @@ alter table public.person_attribute_imports enable row level security;
 alter table public.person_attribute_imports force row level security;
 alter table public.person_attribute_rows enable row level security;
 alter table public.person_attribute_rows force row level security;
+alter table public.person_attribute_events enable row level security;
+alter table public.person_attribute_events force row level security;
 
 revoke all on table public.person_attribute_imports from public, anon, authenticated;
 revoke all on table public.person_attribute_rows from public, anon, authenticated;
+revoke all on table public.person_attribute_events from public, anon, authenticated;
 grant select, insert, update on table public.person_attribute_imports to service_role;
 grant select, insert on table public.person_attribute_rows to service_role;
+grant select, insert on table public.person_attribute_events to service_role;
+
+create or replace function public.person_attribute_events_append_only()
+returns trigger
+language plpgsql
+security invoker
+set search_path = ''
+as $$
+begin
+  raise exception 'person_attribute_events is append-only';
+end;
+$$;
+
+create trigger person_attribute_events_no_update
+before update on public.person_attribute_events
+for each row execute function public.person_attribute_events_append_only();
+
+create trigger person_attribute_events_no_delete
+before delete on public.person_attribute_events
+for each row execute function public.person_attribute_events_append_only();
 
 comment on table public.person_attribute_imports is
   'Imports nominatifs chiffrés reçus du Dépôt Lycée, inactifs avant validation humaine.';
 comment on column public.person_attribute_rows.ciphertext is
   'Valeur nominative chiffrée en AES-256-GCM, jamais destinée au contexte d un modèle.';
+comment on table public.person_attribute_events is
+  'Journal append-only des réceptions et décisions humaines sur les attributs nominatifs.';
 
 commit;

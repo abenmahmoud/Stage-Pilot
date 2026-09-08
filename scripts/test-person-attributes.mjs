@@ -6,6 +6,11 @@ import {
   encryptPersonAttributeValue,
 } from "../shared/person-attribute-crypto.ts";
 import { parsePersonAttributeCsv } from "../shared/person-attribute-input.ts";
+import {
+  isPersonAttributeActionPayload,
+  isPersonAttributeImportListPayload,
+} from "../shared/person-attribute-admin-payload-policy.ts";
+import { readFileSync } from "node:fs";
 
 const env = {
   PERSON_ATTRIBUTE_ENCRYPTION_KEY_VERSION: "v1",
@@ -42,4 +47,45 @@ test("refuse une clé réservée aux secrets", () => {
 STU-DEMO-501,code_ent,valeur-fictive,2026-09-01,,export_fictif`, "utf8")),
     /person_attribute_row_invalid/
   );
+});
+
+test("n’expose que les métadonnées nécessaires à la validation humaine", () => {
+  const item = {
+    id: "11111111-1111-4111-8111-111111111111",
+    originalName: "attributs_import.csv",
+    rowCount: 1,
+    status: "review",
+    createdAt: "2026-09-08T01:30:00.000Z",
+    approvedAt: null,
+  };
+  assert.equal(isPersonAttributeImportListPayload({ imports: [item] }), true);
+  assert.equal(isPersonAttributeImportListPayload({ imports: [{ ...item, valeur: "interdite" }] }), false);
+  assert.equal(isPersonAttributeActionPayload({
+    import: { ...item, status: "active", approvedAt: "2026-09-08T01:40:00.000Z" },
+    duplicate: false,
+  }, item.id), true);
+});
+
+test("l’activation est protégée, cohérente avec l’annuaire et journalisée", () => {
+  const route = readFileSync(new URL(
+    "../api/identity/admin/attributes/[id]/activate.ts",
+    import.meta.url
+  ), "utf8");
+  const list = readFileSync(new URL(
+    "../api/identity/admin/attributes/index.ts",
+    import.meta.url
+  ), "utf8");
+  const migration = readFileSync(new URL(
+    "../supabase/migrations/20260908013000_create_person_attribute_imports.sql",
+    import.meta.url
+  ), "utf8");
+  assert.match(route, /requireIdentityDirectoryManager\(req\)/);
+  assert.match(route, /parseIdentityDirectoryDecisionInput\(req\.body, "activate"\)/);
+  assert.match(route, /candidate\.directoryImportId/);
+  assert.match(route, /personAttributeEvents/);
+  assert.match(list, /personAttributeImportView/);
+  assert.doesNotMatch(list, /decryptPersonAttributeValue/);
+  assert.match(migration, /person_attribute_events_no_update/);
+  assert.match(migration, /person_attribute_events_no_delete/);
+  assert.match(migration, /force row level security/);
 });
