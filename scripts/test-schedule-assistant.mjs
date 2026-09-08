@@ -69,8 +69,8 @@ test("requires a confirmed school identity without calling the model", async () 
   });
 
   assert.equal(result.usedAi, false);
-  assert.equal(result.readyToCreate, true);
-  assert.equal(result.action, "offer_case");
+  assert.equal(result.readyToCreate, false);
+  assert.equal(result.action, "continue");
   assert.match(result.reply, /identité scolaire/i);
   assert.deepEqual(result.sourceReferences, []);
 });
@@ -216,6 +216,43 @@ test("answers an own today-courses request with every authorized course from the
   assert.equal(metrics[0].aiAttempted, false);
 });
 
+test("answers an own tomorrow timetable request with the next Paris school day", async () => {
+  const requestNow = new Date("2026-09-08T20:30:00.000Z");
+  let receivedBounds = null;
+  const result = await analyzeSupportConversation({
+    messages: messages("Donne-moi mon emploi du temps demain."),
+    attachments: [],
+    safetyIdentifier: "schedule-assistant-tomorrow-success",
+    now: requestNow,
+    scheduleDayReader: async ({ dayStart, dayEnd }) => {
+      receivedBounds = { dayStart, dayEnd };
+      return {
+        ok: true,
+        courses: [{
+          subjectCode: "NSI",
+          subjectLabel: "Numérique et sciences informatiques",
+          roomCode: "C112",
+          startsAt: "2026-09-09T06:00:00.000Z",
+          endsAt: "2026-09-09T07:00:00.000Z",
+          state: "scheduled",
+        }],
+        source: {
+          versionId: "00000000-0000-4000-8000-000000000001",
+          sourceType: "official_export",
+          activatedAt: "2026-09-08T18:00:00.000Z",
+          freshUntil: "2026-09-15T21:59:59.000Z",
+        },
+      };
+    },
+  });
+
+  assert.equal(receivedBounds.dayStart.toISOString(), "2026-09-08T22:00:00.000Z");
+  assert.equal(receivedBounds.dayEnd.toISOString(), "2026-09-09T21:59:59.999Z");
+  assert.equal(result.readyToCreate, false);
+  assert.match(result.reply, /Numérique et sciences informatiques/);
+  assert.match(result.reply, /C112/);
+});
+
 test("answers with no course today rather than failing when the day is empty", async () => {
   const result = await analyzeSupportConversation({
     messages: messages("Mon emploi du temps aujourd'hui ?"),
@@ -245,8 +282,8 @@ test("requires a confirmed school identity for a day request without calling the
   });
 
   assert.equal(result.usedAi, false);
-  assert.equal(result.readyToCreate, true);
-  assert.equal(result.action, "offer_case");
+  assert.equal(result.readyToCreate, false);
+  assert.equal(result.action, "continue");
   assert.match(result.reply, /identité scolaire/i);
   assert.deepEqual(result.sourceReferences, []);
 });

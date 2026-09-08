@@ -83,6 +83,8 @@ const verifyRoute = await readFile(new URL("../api/identity/device/verify.ts", i
 const sessionRoute = await readFile(new URL("../api/identity/device/session.ts", import.meta.url), "utf8");
 const serverHelper = await readFile(new URL("../api/_shared/identity-device-access.ts", import.meta.url), "utf8");
 const worker = await readFile(new URL("../workers/identity-directory-lookup-worker.mjs", import.meta.url), "utf8");
+const workerService = await readFile(new URL("../deploy/lycee-identity-directory-lookup-worker.service", import.meta.url), "utf8");
+const workerTimer = await readFile(new URL("../deploy/lycee-identity-directory-lookup-worker.timer", import.meta.url), "utf8");
 const ratePolicy = await readFile(new URL("../shared/support-rate-limit-policy.ts", import.meta.url), "utf8");
 
 assert.match(migration, /force row level security/g);
@@ -110,6 +112,11 @@ assert.doesNotMatch(serverHelper, /personRef=.*Set-Cookie|email=.*Set-Cookie/);
 assert.match(worker, /\["academic_email", "personal_email", "email", "phone", "person_ref"\]/);
 assert.match(worker, /academic_email_hash[\s\S]+personal_email_hash/);
 assert.match(worker, /publicSelfService/);
+assert.match(worker, /pgmq\.read\('identity_directory_lookup', 90, 50\)/);
+assert.match(workerService, /User=lycee-support/);
+assert.match(workerService, /ProtectSystem=strict/);
+assert.match(workerService, /identity-directory-lookup-worker\.env/);
+assert.match(workerTimer, /OnUnitInactiveSec=2s/);
 assert.match(ratePolicy, /identity_otp_device_burst/);
 assert.match(ratePolicy, /identity_otp_contact_daily/);
 

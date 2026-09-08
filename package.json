@@ -261,6 +261,7 @@
     "test:identity-directory-admin-payload": "node --import ./scripts/ts-test-resolver.mjs --experimental-strip-types scripts/test-identity-directory-admin-payload.mjs",
     "apply:preview-identity-directory-lookup": "node scripts/apply-preview-identity-directory-lookup.mjs",
     "test:preview-identity-directory-lifecycle": "node scripts/test-preview-identity-directory-lifecycle.mjs",
+    "test:preview-identity-lookup-worker": "node scripts/test-preview-identity-lookup-worker.mjs",
     "apply:preview-identity-directory-retirement": "node scripts/apply-preview-identity-directory-retirement.mjs",
     "check:preview-identity-directory-vault": "node scripts/apply-preview-identity-directory-vault.mjs",
     "test:support-queue": "node --experimental-strip-types scripts/test-support-queue-policy.mjs",

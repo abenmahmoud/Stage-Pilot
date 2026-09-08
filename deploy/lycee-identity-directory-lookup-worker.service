@@ -1,0 +1,29 @@
+[Unit]
+Description=Lycee private identity lookup worker (preview)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=lycee-support
+Group=lycee-support
+WorkingDirectory=/opt/lycee-support-preview
+EnvironmentFile=/etc/lycee-support-preview/identity-directory-worker.env
+EnvironmentFile=/etc/lycee-support-preview/identity-directory-lookup-worker.env
+ExecStart=/usr/bin/node --max-old-space-size=256 /opt/lycee-support-preview/workers/identity-directory-lookup-worker.mjs
+TimeoutStartSec=45s
+MemoryMax=384M
+TasksMax=32
+CPUQuota=100%
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+LockPersonality=true
+
+[Install]
+WantedBy=multi-user.target

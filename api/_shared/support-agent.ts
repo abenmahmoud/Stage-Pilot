@@ -29,7 +29,7 @@ import {
 import type { AgentAiBudgetReservationResult } from "../../shared/agent-ai-budget.js";
 import type { ScheduleDayReadResult, ScheduleReadResult } from "../../shared/schedule-policy.js";
 import {
-  requestsOwnCoursesToday,
+  requestedOwnCoursesDayOffset,
   requestsOwnNextCourse,
   scheduleAssistantAnswer,
   scheduleAssistantDayAnswer,
@@ -485,9 +485,10 @@ export async function analyzeSupportConversation(input: {
       urgency: "faible", usedAi: false,
     };
   }
-  if (input.scheduleDayReader && requestsOwnCoursesToday(input.messages)) {
+  const requestedScheduleDayOffset = requestedOwnCoursesDayOffset(input.messages);
+  if (input.scheduleDayReader && requestedScheduleDayOffset !== null) {
     const requestedAt = now;
-    const { dayStart, dayEnd } = schoolDayBoundsUtc(requestedAt);
+    const { dayStart, dayEnd } = schoolDayBoundsUtc(requestedAt, requestedScheduleDayOffset);
     let dayResult: ScheduleDayReadResult;
     try {
       dayResult = await input.scheduleDayReader({ requestedAt, dayStart, dayEnd });
@@ -508,8 +509,8 @@ export async function analyzeSupportConversation(input: {
       scope: "school_support",
       action: answer.readyToCreate ? "offer_case" : "continue",
       internalSummaryFr: dayResult.ok
-        ? "Les cours autorisés du jour ont été lus depuis une source d'emploi du temps validée."
-        : "La consultation de l'emploi du temps du jour n'a pas pu fournir de résultat autorisé et actuel.",
+        ? `Les cours autorisés ${requestedScheduleDayOffset === 1 ? "de demain" : "du jour"} ont été lus depuis une source d'emploi du temps validée.`
+        : `La consultation de l'emploi du temps ${requestedScheduleDayOffset === 1 ? "de demain" : "du jour"} n'a pas pu fournir de résultat autorisé et actuel.`,
     };
   }
   if (input.scheduleReader && requestsOwnNextCourse(input.messages)) {

@@ -68,12 +68,20 @@ function schoolMidnightUtc(year: number, month: number, day: number): Date {
   return new Date(candidate);
 }
 
-export function schoolDayBoundsUtc(now: Date): { dayDate: string; dayStart: Date; dayEnd: Date } {
+export function schoolDayBoundsUtc(now: Date, dayOffset = 0): { dayDate: string; dayStart: Date; dayEnd: Date } {
   if (!Number.isFinite(now.getTime())) throw new Error("Horloge serveur invalide");
+  if (!Number.isInteger(dayOffset) || dayOffset < 0 || dayOffset > 7) {
+    throw new Error("Décalage de journée invalide");
+  }
   const parts = schoolWallClockParts(now);
-  const year = Number(parts.year);
-  const month = Number(parts.month) - 1;
-  const day = Number(parts.day);
+  const requestedDay = new Date(Date.UTC(
+    Number(parts.year),
+    Number(parts.month) - 1,
+    Number(parts.day) + dayOffset
+  ));
+  const year = requestedDay.getUTCFullYear();
+  const month = requestedDay.getUTCMonth();
+  const day = requestedDay.getUTCDate();
   const dayStart = schoolMidnightUtc(year, month, day);
   const nextDay = new Date(Date.UTC(year, month, day + 1));
   const nextDayStart = schoolMidnightUtc(
@@ -82,7 +90,7 @@ export function schoolDayBoundsUtc(now: Date): { dayDate: string; dayStart: Date
     nextDay.getUTCDate()
   );
   return {
-    dayDate: `${parts.year}-${parts.month}-${parts.day}`,
+    dayDate: `${year.toString().padStart(4, "0")}-${(month + 1).toString().padStart(2, "0")}-${day.toString().padStart(2, "0")}`,
     dayStart,
     dayEnd: new Date(nextDayStart.getTime() - 1),
   };

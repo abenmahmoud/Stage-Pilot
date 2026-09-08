@@ -42,6 +42,11 @@ test('the school day boundaries follow the Paris calendar day, not the UTC one',
   assert.ok(afternoon.dayStart <= new Date('2026-09-08T12:00:00.000Z'));
   assert.ok(afternoon.dayEnd >= new Date('2026-09-08T12:00:00.000Z'));
 
+  const tomorrow = schoolDayBoundsUtc(new Date('2026-09-08T20:30:00.000Z'), 1);
+  assert.equal(tomorrow.dayDate, '2026-09-09');
+  assert.equal(tomorrow.dayStart.toISOString(), '2026-09-08T22:00:00.000Z');
+  assert.equal(tomorrow.dayEnd.toISOString(), '2026-09-09T21:59:59.999Z');
+
   const springChange = schoolDayBoundsUtc(new Date('2026-03-29T12:00:00.000Z'));
   assert.equal(springChange.dayStart.toISOString(), '2026-03-28T23:00:00.000Z');
   assert.equal(springChange.dayEnd.toISOString(), '2026-03-29T21:59:59.999Z');

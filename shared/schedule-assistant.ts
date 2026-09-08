@@ -43,9 +43,19 @@ export function requestsOwnNextCourse(messages: ConversationMessage[]): boolean 
 }
 
 export function requestsOwnCoursesToday(messages: ConversationMessage[]): boolean {
+  return requestedOwnCoursesDayOffset(messages) === 0;
+}
+
+export function requestedOwnCoursesDayOffset(messages: ConversationMessage[]): 0 | 1 | null {
   const text = requesterText(messages);
-  if (mentionsThirdParty(text)) return false;
-  return /\b(mes cours (?:aujourd'hui|de la journee|du jour|de ce matin|de cet apres-midi)|quels sont mes cours|qu'est-ce que j'ai (?:comme cours )?(?:aujourd'hui|ce matin|cet apres-midi)|mon programme du jour|mon emploi du temps (?:aujourd'hui|du jour|maintenant|ce matin|cet apres-midi))\b/.test(text);
+  if (mentionsThirdParty(text)) return null;
+  if (/\b(mes cours demain|quels sont mes cours demain|qu'est-ce que j'ai (?:comme cours )?demain|mon programme de demain|mon emploi du temps (?:pour )?demain|emploi du temps de demain)\b/.test(text)) {
+    return 1;
+  }
+  if (/\b(mes cours (?:aujourd'hui|de la journee|du jour|de ce matin|de cet apres-midi)|quels sont mes cours|qu'est-ce que j'ai (?:comme cours )?(?:aujourd'hui|ce matin|cet apres-midi)|mon programme du jour|mon emploi du temps (?:aujourd'hui|du jour|maintenant|ce matin|cet apres-midi))\b/.test(text)) {
+    return 0;
+  }
+  return null;
 }
 
 function courseTiming(startsAt: string, endsAt: string): string {
@@ -115,7 +125,7 @@ function scheduleFailureAnswer(
   };
   return {
     ...messages[reason],
-    readyToCreate: true,
+    readyToCreate: reason !== "identity_i3_required",
     sourceReferences: [],
   };
 }

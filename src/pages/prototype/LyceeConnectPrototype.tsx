@@ -23,6 +23,7 @@ import {
   CircleUserRound,
   Clock3,
   Copy,
+  Download,
   ExternalLink,
   FileText,
   FolderCheck,
@@ -207,6 +208,11 @@ const CONTACT_COLLECTION_DESCRIPTION =
   "Je souhaite faire vérifier et ajouter ou mettre à jour mes coordonnées personnelles dans la liste de contact du lycée.";
 const CONTACT_REMOVAL_DESCRIPTION =
   "Je demande le retrait de mes coordonnées personnelles de la liste de contact du lycée.";
+
+type InstallPromptEvent = Event & {
+  prompt: () => Promise<void>;
+  userChoice: Promise<{ outcome: "accepted" | "dismissed" }>;
+};
 
 function supportAssistantSessionId(): string {
   try {
@@ -606,7 +612,33 @@ export default function LyceeConnectPrototype() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [ticketCreated, setTicketCreated] = useState<string | null>(null);
   const [accessLinkError, setAccessLinkError] = useState<string | null>(null);
+  const [installPrompt, setInstallPrompt] = useState<InstallPromptEvent | null>(null);
+  const [installAvailable, setInstallAvailable] = useState(false);
+  const [installNotice, setInstallNotice] = useState<string | null>(null);
   const homeAssistantRef = useRef<HTMLTextAreaElement>(null);
+
+  useEffect(() => {
+    const standalone = window.matchMedia("(display-mode: standalone)").matches
+      || Boolean((window.navigator as Navigator & { standalone?: boolean }).standalone);
+    const mobileDevice = /Android|iPhone|iPad|iPod/i.test(window.navigator.userAgent);
+    setInstallAvailable(!standalone && mobileDevice);
+    const handlePrompt = (event: Event) => {
+      event.preventDefault();
+      setInstallPrompt(event as InstallPromptEvent);
+      setInstallAvailable(true);
+    };
+    const handleInstalled = () => {
+      setInstallPrompt(null);
+      setInstallAvailable(false);
+      setInstallNotice("L’application Blaise Cendrars est installée sur cet appareil.");
+    };
+    window.addEventListener("beforeinstallprompt", handlePrompt);
+    window.addEventListener("appinstalled", handleInstalled);
+    return () => {
+      window.removeEventListener("beforeinstallprompt", handlePrompt);
+      window.removeEventListener("appinstalled", handleInstalled);
+    };
+  }, []);
 
   useEffect(() => {
     document.title = PUBLIC_PORTAL_TITLES[view];
@@ -680,6 +712,23 @@ export default function LyceeConnectPrototype() {
     window.setTimeout(() => homeAssistantRef.current?.focus(), 350);
   }
 
+  async function installPortalApp() {
+    if (installPrompt) {
+      await installPrompt.prompt();
+      const choice = await installPrompt.userChoice;
+      if (choice.outcome === "accepted") {
+        setInstallPrompt(null);
+        setInstallAvailable(false);
+      }
+      return;
+    }
+    const appleDevice = /iPhone|iPad|iPod/i.test(window.navigator.userAgent);
+    setInstallNotice(appleDevice
+      ? "Sur iPhone ou iPad : ouvrez le menu Partager de Safari, puis choisissez « Sur l’écran d’accueil » et « Ajouter »."
+      : "Ouvrez le menu de votre navigateur, puis choisissez « Installer l’application » ou « Ajouter à l’écran d’accueil »."
+    );
+  }
+
   return (
     <div className="lycee-connect">
       <a className="lycee-skip-link" href="#lycee-main">Aller au contenu</a>
@@ -749,6 +798,7 @@ export default function LyceeConnectPrototype() {
           </div>
           <div className="lycee-top-actions">
             <button className="lycee-top-tool" type="button" onClick={() => changeView("news")} title="Voir les informations du lycée"><Newspaper aria-hidden="true" /><span>À la une</span></button>
+            {installAvailable ? <button className="lycee-top-tool" type="button" onClick={() => void installPortalApp()} title="Installer l’application du lycée"><Download aria-hidden="true" /><span>Installer</span></button> : null}
             <a className="lycee-top-tool" href={WEBMAIL_URL} target="_blank" rel="noreferrer" title="Ouvrir le Webmail"><Mail aria-hidden="true" /><span>Webmail</span></a>
             <button className="lycee-profile-button" type="button" aria-label="Se connecter à l’espace agent" onClick={openAgentLogin}>
               <CircleUserRound aria-hidden="true" />
@@ -777,6 +827,14 @@ export default function LyceeConnectPrototype() {
           <span>Portail numérique officiel du Lycée Blaise Cendrars</span>
           <strong>En ligne</strong>
         </div>
+
+        {installNotice ? (
+          <div className="lycee-install-notice" role="status">
+            <Smartphone aria-hidden="true" />
+            <span>{installNotice}</span>
+            <button type="button" onClick={() => setInstallNotice(null)}>Fermer</button>
+          </div>
+        ) : null}
 
         {view !== "agent" ? <FlashPublicBulletin /> : null}
 
@@ -1322,7 +1380,7 @@ function localAssistantFallback(messages: AssistantChatMessage[], files: File[])
 
 type IdentityDeviceUiState = "checking" | "anonymous" | "awaiting_code" | "verified";
 
-function IdentityDeviceAccessPanel() {
+function IdentityDeviceAccessPanel({ onVerified }: { onVerified?: () => void }) {
   const [state, setState] = useState<IdentityDeviceUiState>("checking");
   const [email, setEmail] = useState("");
   const [code, setCode] = useState("");
@@ -1403,6 +1461,7 @@ function IdentityDeviceAccessPanel() {
       setPersonType(typeof payload.personType === "string" ? payload.personType : null);
       setCode("");
       setState("verified");
+      onVerified?.();
     } catch {
       setError("Ce code est invalide ou expiré. Vérifiez l’email reçu ou recommencez.");
     } finally {
@@ -1977,7 +2036,13 @@ function HelpDeskView({
         onBack={onBack}
       />
 
-      {IDENTITY_DEVICE_ACCESS_ENABLED && !initialContactCollection ? <IdentityDeviceAccessPanel /> : null}
+      {IDENTITY_DEVICE_ACCESS_ENABLED && !initialContactCollection
+        ? <IdentityDeviceAccessPanel onVerified={() => {
+            if (!assistantBusy && chatMessages.some((message) => message.role === "requester")) {
+              void askAssistant(chatMessages);
+            }
+          }} />
+        : null}
 
       <div className={`lycee-guided-chat${initialContactCollection ? " is-contact-collection" : ""}`}>
         {!initialContactCollection ? (

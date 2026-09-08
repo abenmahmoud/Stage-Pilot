@@ -77,6 +77,10 @@
 .lycee-service-banner { min-height: 38px; display: flex; align-items: center; gap: 8px; padding: 8px 32px; background: #e7f7f1; color: #076958; font-size: 12px; font-weight: 700; }
 .lycee-service-banner svg { width: 16px; height: 16px; }
 .lycee-service-banner strong { margin-left: auto; padding: 4px 9px; border-radius: 999px; background: var(--lc-green); color: #fff; font-size: 10px; text-transform: uppercase; }
+.lycee-install-notice { display: flex; align-items: center; gap: 10px; padding: 10px 32px; border-bottom: 1px solid #bfd2ff; background: #eef4ff; color: #173d83; font-size: 12px; }
+.lycee-install-notice > svg { width: 18px; height: 18px; flex: 0 0 18px; }
+.lycee-install-notice > span { flex: 1; line-height: 1.45; }
+.lycee-install-notice > button { min-height: 32px; padding: 0 10px; border: 1px solid #9db8ef; border-radius: 6px; background: #fff; color: #173d83; font-size: 11px; font-weight: 800; }
 
 .lycee-flash-bulletin { padding: 10px 32px; background: #fff; border-bottom: 1px solid var(--lc-line); }
 .lycee-flash-bulletin ul { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; }
@@ -252,6 +256,7 @@
   .lycee-service-banner { min-height: 34px; padding: 7px 14px; }
   .lycee-service-banner span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .lycee-service-banner strong { display: none; }
+  .lycee-install-notice { align-items: flex-start; padding: 10px 14px; }
   .lycee-hero { min-height: 390px; }
   .lycee-hero > img:first-child { object-position: 78% 54%; }
   .lycee-hero-shade { background: linear-gradient(0deg,rgba(9,25,47,.88),rgba(9,25,47,.18)); }

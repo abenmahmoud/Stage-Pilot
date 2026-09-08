@@ -44,6 +44,18 @@ function normalizeRef(value) {
   return normalized;
 }
 
+function queuePayload(message) {
+  const value = message?.message;
+  if (value && typeof value === "object" && !Array.isArray(value)) return value;
+  if (typeof value !== "string") return null;
+  try {
+    const parsed = JSON.parse(value);
+    return parsed && typeof parsed === "object" && !Array.isArray(parsed) ? parsed : null;
+  } catch {
+    return null;
+  }
+}
+
 function requestPayload(value, row) {
   if (!value || typeof value !== "object" || Array.isArray(value) || value.schema !== 1) {
     throw new Error("lookup_request_invalid");
@@ -172,8 +184,9 @@ async function finalize(row, status, options = {}) {
 }
 
 async function processMessage(message) {
-  const requestId = message.message?.request_id;
-  const institutionId = message.message?.institution_id;
+  const queuedRequest = queuePayload(message);
+  const requestId = queuedRequest?.request_id;
+  const institutionId = queuedRequest?.institution_id;
   if (typeof requestId !== "string" || typeof institutionId !== "string") {
     await sql`select pgmq.archive('identity_directory_lookup', ${message.msg_id}::bigint)`;
     return;
@@ -316,15 +329,16 @@ async function main() {
   await expireStaleRequests();
   const messages = await sql`
     select msg_id, read_ct, message
-    from pgmq.read('identity_directory_lookup', 90, 5)
+    from pgmq.read('identity_directory_lookup', 90, 50)
   `;
   for (const message of messages) {
     try {
       await processMessage(message);
     } catch {
       if (Number(message.read_ct) >= 5) {
-        const requestId = message.message?.request_id;
-        const institutionId = message.message?.institution_id;
+        const payload = queuePayload(message);
+        const requestId = payload?.request_id;
+        const institutionId = payload?.institution_id;
         if (typeof requestId === "string" && typeof institutionId === "string") {
           await finalize(
             { id: requestId, institution_id: institutionId, actor_id: null, public_actor_id: null, search_type: "unknown", msg_id: message.msg_id },
@@ -338,8 +352,8 @@ async function main() {
         await sql`
           update public.identity_directory_lookup_requests
           set status = 'queued', error_code = 'lookup_retry_pending'
-          where id = ${message.message?.request_id ?? null}
-            and institution_id = ${message.message?.institution_id ?? null}
+          where id = ${queuePayload(message)?.request_id ?? null}
+            and institution_id = ${queuePayload(message)?.institution_id ?? null}
             and status = 'processing'
         `;
       }
