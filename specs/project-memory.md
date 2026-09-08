@@ -1,9 +1,34 @@
 # Memoire durable - Portail numerique du Lycee Blaise Cendrars
 
-**Derniere mise a jour** : 7 septembre 2026
+**Derniere mise a jour** : 8 septembre 2026
 **Branche de travail** : `codex/lycee-connect-prototype`
 **Depot** : `abenmahmoud/Stage-Pilot`
 **Dernier jalon de code verifie** : branche de preview Vercel
+
+## Jalon du 8 septembre 2026 - Dépôt Lycée mis en ligne
+
+- Autorisation explicite d'Adel obtenue dans la conversation avant les mutations
+  GitHub, Supabase, Vercel et VPS. Le commit `78a9dba` et ses 28 prédécesseurs
+  locaux ont été poussés sur `codex/lycee-connect-prototype`.
+- Le domaine `https://lycee-blaise-cendrars-sevran.fr/` pointe sur le déploiement
+  Vercel prêt `dpl_6sh8iTsZvSpWHKj7ynn4m5Q12BsF`, construit depuis le commit
+  propre. L'accueil, l'espace agent, les API publiques et les frontières privées
+  ont été contrôlés sur le domaine et l'alias de branche.
+- La cible de données du domaine reste la branche Supabase isolée
+  `guichet-lycee-preview` (`xijocumlwivhbmffrnlj`). Après sauvegarde du schéma,
+  19 migrations additives manquantes du 4 au 8 septembre ont été appliquées et
+  inscrites dans son historique. L'advisor de sécurité ne signale aucune alerte ;
+  RLS et FORCE RLS sont actifs sur les nouvelles tables.
+- Un acteur technique sans possibilité de connexion a été créé pour les traces
+  du Dépôt. Vercel conserve l'empreinte du jeton, la clé privée de transport et
+  les deux clés de chiffrement ; le VPS conserve le jeton clair et la clé
+  publique sous `/etc/lycee-support-preview`, droits `root:lycee-support 0640`.
+  `CODE_VAULT_REVEAL_ENABLED` reste à `false`.
+- Le contrôle public est sans écriture et sans appel IA : pages publiques `200`,
+  routes privées `401`, mauvaise méthode `405`, Dépôt sans jeton `401` et Dépôt
+  authentifié avec format volontairement invalide `415`. Aucune donnée réelle,
+  aucun import fictif persistant et aucun email n'ont été produits. Détails :
+  `docs/operations/MISE_EN_LIGNE_DEPOT_LYCEE_2026-09-08.md`.
 
 ## Jalon du 8 septembre 2026 - recette locale complète du Dépôt Lycée
 

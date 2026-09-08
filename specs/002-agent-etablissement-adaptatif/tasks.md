@@ -1157,6 +1157,11 @@
   PDF EDT entièrement fictifs. Prouver stockage privé, absence de valeur dans
   les réponses, idempotence et nettoyage sans import ni migration distante.
   Preuve : `docs/operations/PASSATION_DEPOT_LYCEE_CODEX_2026-09-08.md`.
+- [x] T063C Mettre en ligne le récepteur du Dépôt sur le pilote public : pousser
+  le commit validé, appliquer les migrations additives à la branche Supabase du
+  domaine, installer un acteur technique non connectable, séparer les secrets
+  Vercel/VPS et vérifier les frontières HTTP sans donnée réelle ni envoi.
+  Preuve : `docs/operations/MISE_EN_LIGNE_DEPOT_LYCEE_2026-09-08.md`.
 - [x] T064 Concevoir et tester le coffre de codes Koxo, ENT et cantine :
   attribution unique, transaction concurrente, contrôle par rôle, affichage
   30 minutes, trois consultations par jour et journal sans valeur secrète.
