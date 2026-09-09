@@ -6,6 +6,7 @@ import postgres from "postgres";
 import { readBoundedJsonResponse } from "./bounded-download.mjs";
 import { supportAccessCodeFromToken } from "../shared/support-access-code.mjs";
 import { buildSupportAccessRecoveryEmail } from "../shared/support-access-recovery-email.mjs";
+import { buildSupportRequesterEmail, buildSupportAgentEmail, schoolEmailSenderName, schoolEmailUrl, SCHOOL_PUBLIC_URL } from "../shared/school-email-templates.mjs";
 
 const databaseUrl = process.env.DATABASE_URL;
 const brevoApiKey = process.env.BREVO_API_KEY;
@@ -16,25 +17,12 @@ if (!databaseUrl || !brevoApiKey || !senderEmail) {
 
 const sql = postgres(databaseUrl, { prepare: false, max: 2, idle_timeout: 20 });
 const brevoEndpoint = "https://api.brevo.com/v3/smtp/email";
-const senderName = process.env.SUPPORT_FROM_NAME ?? "Lycee Blaise Cendrars";
+const senderName = schoolEmailSenderName(process.env.SUPPORT_FROM_NAME);
 const agentEmail = process.env.SUPPORT_AGENT_EMAIL;
-const publicUrl = (process.env.SUPPORT_PUBLIC_URL ?? "").replace(/\/$/, "");
+const publicUrl = process.env.SUPPORT_PUBLIC_URL || SCHOOL_PUBLIC_URL;
 const agentUrl = (process.env.SUPPORT_AGENT_URL ?? publicUrl).replace(/\/$/, "");
 const institutionSlug = process.env.SUPPORT_INSTITUTION_SLUG ?? "blaise-cendrars-sevran";
 const brevoResponseMaxBytes = 256 * 1024;
-
-function escapeHtml(value) {
-  return value
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#039;");
-}
-
-function paragraphs(value) {
-  return escapeHtml(value).replace(/\r?\n/g, "<br>");
-}
 
 function isTestAddress(value) {
   return typeof value === "string" && /@(example\.com|example\.org|example\.net|test\.invalid)$/i.test(value);
@@ -42,7 +30,7 @@ function isTestAddress(value) {
 
 function trackingUrl(accessToken) {
   if (!publicUrl || !accessToken) throw new Error("tracking_url_unavailable");
-  return `${publicUrl}?support_token=${encodeURIComponent(accessToken)}`;
+  return schoolEmailUrl(publicUrl, { support_token: accessToken });
 }
 
 function requesterAccessCode(job) {
@@ -70,7 +58,7 @@ async function sendProviderEmail({ to, subject, textContent, htmlContent, idempo
     body: JSON.stringify({
       sender: { email: senderEmail, name: senderName },
       to: [to],
-      replyTo: replyTo ?? { email: senderEmail, name: senderName },
+      replyTo: replyTo ?? { email: process.env.SUPPORT_REPLY_TO_EMAIL || senderEmail, name: senderName },
       subject,
       textContent,
       htmlContent,
@@ -146,6 +134,7 @@ async function deliver(job, institutionId) {
     return sendEmail({
       to: { email: context.email },
       ...buildSupportAccessRecoveryEmail({
+        requesterName,
         publicCode: request.public_code, trackingUrl: trackingUrl(job.access_token), accessCode: requesterAccessCode(job),
       }),
       idempotencyKey: job.job_id,
@@ -158,13 +147,10 @@ async function deliver(job, institutionId) {
     if (!context.email) return "skipped:no_email";
     const link = trackingUrl(job.access_token);
     const accessCode = requesterAccessCode(job);
-    const accessCodeText = accessCode ? `\nCode a usage unique : ${accessCode}` : "";
-    const accessCodeHtml = accessCode ? `<p>Code a usage unique : <strong>${accessCode}</strong></p>` : "";
     return sendEmail({
       to: { email: context.email, name: requesterName },
-      subject: `${request.public_code} - Votre demande a ete recue`,
-      textContent: `Bonjour ${requesterName},\n\nVotre demande "${request.subject}" a bien ete recue.\nNumero : ${request.public_code}${accessCodeText}\nSuivi securise : ${link}\n\nLe code et le lien expirent apres 30 minutes. Aucun mot de passe ne vous sera demande.`,
-      htmlContent: `<p>Bonjour ${escapeHtml(requesterName)},</p><p>Votre demande <strong>${escapeHtml(request.subject)}</strong> a bien ete recue.</p><p>Numero : <strong>${escapeHtml(request.public_code)}</strong></p>${accessCodeHtml}<p><a href="${escapeHtml(link)}">Suivre ma demande</a></p><p><small>Le code et le lien expirent apres 30 minutes. Aucun mot de passe ne vous sera demande.</small></p>`,
+      ...buildSupportRequesterEmail({ kind: "created", publicCode: request.public_code, requesterName,
+        requestSubject: request.subject, trackingUrl: link, accessCode }),
       idempotencyKey: job.job_id,
       replyTo: { email: requesterReplyAddress(request.public_code), name: senderName },
       tags: ["lyceegest-support", "demande-recue"],
@@ -177,9 +163,8 @@ async function deliver(job, institutionId) {
     const isMessage = job.job_type === "notify_agent_message_received";
     return sendEmail({
       to: { email: target.email, name: target.name },
-      subject: `${isMessage ? "Nouveau message" : "Nouvelle demande"} ${request.public_code} - ${request.subject}`,
-      textContent: `${isMessage ? "Un nouveau message est arrive" : "Une nouvelle demande a ete creee"}.\nDossier : ${request.public_code}\nDemandeur : ${requesterName} (${request.requester_type})\nCategorie : ${request.category}\nObjet : ${request.subject}\n\nOuvrir : ${agentUrl}?view=agent`,
-      htmlContent: `<p><strong>${isMessage ? "Un nouveau message est arrive" : "Une nouvelle demande a ete creee"}.</strong></p><p>Dossier : ${escapeHtml(request.public_code)}<br>Demandeur : ${escapeHtml(requesterName)} (${escapeHtml(request.requester_type)})<br>Categorie : ${escapeHtml(request.category)}<br>Objet : ${escapeHtml(request.subject)}</p><p><a href="${escapeHtml(`${agentUrl}?view=agent`)}">Ouvrir les demandes</a></p>`,
+      ...buildSupportAgentEmail({ publicCode: request.public_code, requesterName, requestSubject: request.subject,
+        serviceName: target.name, agentUrl, isMessage }),
       idempotencyKey: job.job_id,
       tags: ["lyceegest-support", isMessage ? "message-agent" : "nouvelle-demande"],
     });
@@ -206,21 +191,12 @@ async function deliver(job, institutionId) {
         and scan_status = 'clean'
     `;
     const attachmentCount = Number(attachmentSummary?.count ?? 0);
-    const attachmentText = attachmentCount > 0
-      ? `\n\n${attachmentCount} document${attachmentCount > 1 ? "s sont" : " est"} disponible${attachmentCount > 1 ? "s" : ""} dans votre suivi sécurisé.`
-      : "";
-    const attachmentHtml = attachmentCount > 0
-      ? `<p><strong>${attachmentCount} document${attachmentCount > 1 ? "s sont" : " est"} disponible${attachmentCount > 1 ? "s" : ""} dans votre suivi sécurisé.</strong></p>`
-      : "";
     const link = trackingUrl(job.access_token);
     const accessCode = requesterAccessCode(job);
-    const accessCodeText = accessCode ? `\nCode a usage unique : ${accessCode}` : "";
-    const accessCodeHtml = accessCode ? `<p>Code a usage unique : <strong>${accessCode}</strong></p>` : "";
     const messageId = await sendEmail({
       to: { email: context.email, name: requesterName },
-      subject: `${request.public_code} - Reponse du lycee`,
-      textContent: `Bonjour ${requesterName},\n\n${message.body_text}${attachmentText}${accessCodeText}\n\nRepondre et suivre : ${link}\n\nLe code et le lien expirent apres 30 minutes.`,
-      htmlContent: `<p>Bonjour ${escapeHtml(requesterName)},</p><p>${paragraphs(message.body_text)}</p>${attachmentHtml}${accessCodeHtml}<p><a href="${escapeHtml(link)}">Repondre et suivre la demande</a></p><p><small>Le code et le lien expirent apres 30 minutes.</small></p>`,
+      ...buildSupportRequesterEmail({ kind: "reply", publicCode: request.public_code, requesterName,
+        bodyText: message.body_text, trackingUrl: link, accessCode, attachmentCount }),
       idempotencyKey: job.job_id,
       replyTo: { email: requesterReplyAddress(request.public_code), name: senderName },
       tags: ["lyceegest-support", "reponse-agent"],

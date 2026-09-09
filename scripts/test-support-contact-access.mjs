@@ -11,6 +11,7 @@ import { supportAccessCodeFromToken, supportAccessCodeMatches, supportAccessCode
 import { parseSupportAccessCodeInput } from "../shared/support-access-code-payload-policy.ts";
 import { isSupportMagicAccessPayload } from "../shared/support-magic-access-payload-policy.ts";
 import { buildSupportAccessRecoveryEmail } from "../shared/support-access-recovery-email.mjs";
+import * as schoolEmailTemplates from "../shared/school-email-templates.mjs";
 import { parseSupportAccessRecoveryInput, isSupportAccessRecoveryPayload, SUPPORT_ACCESS_RECOVERY_COOLDOWN_SECONDS } from "../shared/support-access-recovery-policy.ts";
 import * as retryPolicy from "../shared/support-job-retry.ts";
 import { createSupportJobRetryConfirmation } from "../shared/support-operation-confirmation.ts";
@@ -296,6 +297,7 @@ function deliveryFixture(mutate = () => {}, { reservedAddress = false } = {}) {
     "../../shared/support-email-job-policy.js": {}, "../_shared/institution-context.js": {},
     "../../shared/support-access-code.mjs": { supportAccessCodeFromToken },
     "../../shared/support-access-recovery-email.mjs": { buildSupportAccessRecoveryEmail },
+    "../../shared/school-email-templates.mjs": schoolEmailTemplates,
     "../../shared/support-email-dispatch.mjs": { dispatchSupportEmail: async (_db, job, send) => send(job.job_id), assertSupportEmailAccess: async () => {} },
   }, { process: { env: { SUPPORT_FROM_EMAIL: "support@example.org", SUPPORT_ACCESS_CODE_SECRET: secret } } }, ["deliver"]);
   const job = { job_type: "send_requester_reply", job_id: "job-a", request_id: "request-a", institution_id: "school-a",
@@ -407,7 +409,7 @@ function vpsDelivery({ contactAvailable = true, messageAvailable = true, reserve
     sendProviderEmail: async (value) => { sent.push(value); return "fictitious-provider-id"; },
     dispatchSupportEmail: async (_db, job, send) => send(job.job_id), assertSupportEmailAccess: async () => {},
     supportAccessCodeFromToken, resolveSupportNotificationTarget: () => ({email:'agent@example.org',name:'Test'}),
-    exports: {}, reservedAddress, buildSupportAccessRecoveryEmail,
+    exports: {}, reservedAddress, buildSupportAccessRecoveryEmail, ...schoolEmailTemplates,
   };
   vm.runInNewContext(declarations.map((node) => node.getText(ast)).join("\n")
     + "\nisTestAddress = (value) => reservedAddress && value === 'fictitious@example.org'; exports.deliver = deliver;", context);
@@ -604,12 +606,13 @@ test("recovery inputs and receipts are exact, bounded and never grant access", a
     assert.equal(isSupportAccessRecoveryPayload(invalid), false);
   }
 });
-test("Vercel sends a recovery email without the person's name, request body or any attachment", async () => {
+test("Vercel personalizes recovery for the bound contact without request body or attachments", async () => {
   const item = deliveryFixture(); item.job.job_type = "send_requester_access_link"; delete item.job.message_id;
   await item.deliver(item.job, "school-a");
   assert.equal(item.sent.length, 1);
   assert.equal(item.sent[0].to.name, undefined);
-  assert.doesNotMatch(item.sent[0].textContent, /Question fictive|Test Fictif|Reponse fictive/);
+  assert.match(item.sent[0].textContent, /Bonjour Test Fictif,/);
+  assert.doesNotMatch(item.sent[0].textContent, /Question fictive|Reponse fictive/);
   assert.match(item.sent[0].textContent, /30 minutes/);
   assert.equal(item.sent[0].attachments, undefined);
   assert.equal(item.storage.rows.supportMessages[0].deliveryStatus, "queued");

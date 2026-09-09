@@ -18,7 +18,8 @@ import {
   identityDeviceReadyPayload,
 } from "../../../shared/identity-device-access.js";
 import { HttpError } from "../../_shared/auth.js";
-import { escapeHtml, sendTransactionalEmail, sendTransactionalSms } from "../../_shared/brevo.js";
+import { sendTransactionalEmail, sendTransactionalSms } from "../../_shared/brevo.js";
+import { buildIdentityVerificationEmail } from "../../../shared/school-email-templates.mjs";
 import {
   challengeReceiptClaims,
   clearChallengeReceiptCookie,
@@ -70,13 +71,9 @@ async function deliverCode(input: {
     });
     return;
   }
-  const safeName = escapeHtml(input.firstName.trim() || "");
-  const greeting = safeName ? `Bonjour ${safeName},` : "Bonjour,";
   await sendTransactionalEmail({
-    to: { email: input.contact },
-    subject: "Votre code de vérification - Lycée Blaise Cendrars",
-    textContent: `${greeting.replace(/<[^>]*>/g, "")}\n\nVotre code de vérification est : ${code}\n\nIl expire dans 10 minutes. Ne le transmettez à personne. Le lycée ne vous demandera jamais votre mot de passe.`,
-    htmlContent: `<p>${greeting}</p><p>Votre code de vérification est :</p><p style="font-size:28px;font-weight:700;letter-spacing:6px">${code}</p><p>Il expire dans 10 minutes. Ne le transmettez à personne.</p><p>Le lycée ne vous demandera jamais votre mot de passe.</p>`,
+    to: { email: input.contact, name: input.firstName },
+    ...buildIdentityVerificationEmail({ firstName: input.firstName, code }),
     idempotencyKey: `identity-device-${input.challengeId}`,
     tags: ["lyceegest-identity"],
   });

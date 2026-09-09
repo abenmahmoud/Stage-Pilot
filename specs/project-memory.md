@@ -5927,3 +5927,18 @@ Publication confirmée : `895078a`, déploiement
 `dpl_52G8sAPkDdnfy5Do6Q615rVov2xv` READY sur le domaine principal ; page d'aide
 et module du chat vérifiés en HTTP 200 avec les nouveaux contrôles. La réception
 du prochain SMS sous le nouveau nom d'expéditeur attend le retour de l'utilisateur.
+
+### 9 septembre 2026 — emails personnalisés et réception
+
+Adel demande aussi la correction et la personnalisation des emails. Cinq modèles
+communs à l'API et au worker remplacent les textes divergents : OTP, confirmation,
+réponse, reprise et notification agent. Nom d'expéditeur accentué, texte brut et
+HTML, code expliqué, bouton principal et identité visuelle du lycée. Les réponses
+humaines restent inchangées ; les contacts et protections anti-doublon sont conservés.
+
+Un email réel du 8 septembre est en boîte de réception Gmail avec SPF/DKIM/DMARC
+valides sur le sous-domaine Brevo actuel. Aucun envoi réel de test ni changement
+DNS. Validation locale : 112 tests, identité, build et 15 vues ordinateur/mobile.
+La connexion SSH au VPS expire : son nouveau modèle reste à installer séparément
+du Web. Voir `docs/operations/EMAILS_PERSONNALISES_2026-09-09.md` pour l'état précis,
+les aperçus, le bundle et la configuration d'expéditeur restant à préparer.

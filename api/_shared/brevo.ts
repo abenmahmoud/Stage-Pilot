@@ -1,5 +1,6 @@
 import { HttpError } from "./auth.js";
 import { readJsonApiResponse } from "../../shared/json-api-response.js";
+import { schoolEmailSenderName } from "../../shared/school-email-templates.mjs";
 
 const BREVO_ENDPOINT = "https://api.brevo.com/v3/smtp/email";
 const BREVO_SMS_ENDPOINT = "https://api.brevo.com/v3/transactionalSMS/send";
@@ -86,7 +87,7 @@ export async function sendTransactionalEmail(
 
   const senderEmail = process.env.SUPPORT_FROM_EMAIL;
   if (!senderEmail) throw new HttpError(503, "L'expéditeur email n'est pas configuré");
-  const senderName = process.env.SUPPORT_FROM_NAME ?? "Lycée Blaise Cendrars";
+  const senderName = schoolEmailSenderName(process.env.SUPPORT_FROM_NAME);
   const response = await fetch(BREVO_ENDPOINT, {
     method: "POST",
     signal: AbortSignal.timeout(15_000),
@@ -98,7 +99,7 @@ export async function sendTransactionalEmail(
     body: JSON.stringify({
       sender: { email: senderEmail, name: senderName },
       to: [email.to],
-      replyTo: email.replyTo ?? { email: senderEmail, name: senderName },
+      replyTo: email.replyTo ?? { email: process.env.SUPPORT_REPLY_TO_EMAIL || senderEmail, name: senderName },
       subject: email.subject,
       textContent: email.textContent,
       htmlContent: email.htmlContent,

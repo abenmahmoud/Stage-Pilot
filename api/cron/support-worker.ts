@@ -9,7 +9,7 @@ import {
   supportMessages,
   supportRequests,
 } from "../../db/schema.js";
-import { escapeHtml, sendTransactionalEmail, type TransactionalEmail } from "../_shared/brevo.js";
+import { sendTransactionalEmail, type TransactionalEmail } from "../_shared/brevo.js";
 import { dispatchSupportEmail, supportEmailErrorCode, assertSupportEmailAccess } from "../../shared/support-email-dispatch.mjs";
 import { HttpError, secretMatches } from "../_shared/auth.js";
 import { handleApi, methodNotAllowed } from "../_shared/response.js";
@@ -26,6 +26,7 @@ import {
 } from "../_shared/institution-context.js";
 import { supportAccessCodeFromToken } from "../../shared/support-access-code.mjs";
 import { buildSupportAccessRecoveryEmail } from "../../shared/support-access-recovery-email.mjs";
+import { buildSupportRequesterEmail, buildSupportAgentEmail, schoolEmailSenderName, schoolEmailUrl, SCHOOL_PUBLIC_URL } from "../../shared/school-email-templates.mjs";
 
 type QueueRow = {
   msg_id: number;
@@ -86,8 +87,7 @@ async function loadEmailContext(
 
 function trackingUrl(accessToken: string | undefined): string {
   if (!accessToken) throw new Error("access_token_missing");
-  const base = (process.env.SUPPORT_PUBLIC_URL ?? "https://app.lycee-blaise-cendrars-sevran.fr/prototype").replace(/\/$/, "");
-  return `${base}?support_token=${encodeURIComponent(accessToken)}`;
+  return schoolEmailUrl(process.env.SUPPORT_PUBLIC_URL, { support_token: accessToken });
 }
 
 function requesterAccessCode(job: SupportEmailQueueJob): string | null {
@@ -95,10 +95,6 @@ function requesterAccessCode(job: SupportEmailQueueJob): string | null {
   if (!secret || !job.contact_id) throw new Error("support_access_code_unavailable");
   if (!job.access_token) throw new Error("access_token_missing");
   return supportAccessCodeFromToken({ token: job.access_token, secret });
-}
-
-function paragraphs(value: string): string {
-  return escapeHtml(value).replace(/\r?\n/g, "<br>");
 }
 
 function requesterReplyAddress(publicCode: string): string {
@@ -125,13 +121,14 @@ async function deliver(job: SupportEmailQueueJob, institutionId: string): Promis
   const requesterName = `${context.request.requesterFirstName} ${context.request.requesterLastName}`;
   const senderEmail = process.env.SUPPORT_FROM_EMAIL;
   if (!senderEmail) throw new Error("support_from_email_missing");
-  const senderName = process.env.SUPPORT_FROM_NAME ?? "Lycée Blaise Cendrars";
+  const senderName = schoolEmailSenderName(process.env.SUPPORT_FROM_NAME);
 
   if (job.job_type === "send_requester_access_link") {
     if (!context.email) throw new Error("requester_contact_unavailable");
     const result = await sendEmail({
       to: { email: context.email },
       ...buildSupportAccessRecoveryEmail({
+        requesterName,
         publicCode: context.request.publicCode,
         trackingUrl: trackingUrl(job.access_token),
         accessCode: requesterAccessCode(job),
@@ -147,13 +144,10 @@ async function deliver(job: SupportEmailQueueJob, institutionId: string): Promis
     if (!context.email) return "skipped:no_email";
     const link = trackingUrl(job.access_token);
     const accessCode = requesterAccessCode(job);
-    const accessCodeText = accessCode ? `\nCode à usage unique : ${accessCode}` : "";
-    const accessCodeHtml = accessCode ? `<p>Code à usage unique : <strong>${accessCode}</strong></p>` : "";
     const result = await sendEmail({
       to: { email: context.email, name: requesterName },
-      subject: `${context.request.publicCode} - Votre demande a été reçue`,
-      textContent: `Bonjour ${requesterName},\n\nVotre demande « ${context.request.subject} » a bien été reçue.\nNuméro : ${context.request.publicCode}${accessCodeText}\nSuivi sécurisé : ${link}\n\nLe code et le lien expirent après 30 minutes. Aucun mot de passe ne vous sera demandé.`,
-      htmlContent: `<p>Bonjour ${escapeHtml(requesterName)},</p><p>Votre demande <strong>${escapeHtml(context.request.subject)}</strong> a bien été reçue.</p><p>Numéro : <strong>${escapeHtml(context.request.publicCode)}</strong></p>${accessCodeHtml}<p><a href="${escapeHtml(link)}">Suivre ma demande</a></p><p><small>Le code et le lien expirent après 30 minutes. Aucun mot de passe ne vous sera demandé.</small></p>`,
+      ...buildSupportRequesterEmail({ kind: "created", publicCode: context.request.publicCode, requesterName,
+        requestSubject: context.request.subject, trackingUrl: link, accessCode }),
       idempotencyKey: job.job_id,
       replyTo: { email: requesterReplyAddress(context.request.publicCode), name: senderName },
       tags: ["lyceegest-support", "demande-recue"],
@@ -165,12 +159,11 @@ async function deliver(job: SupportEmailQueueJob, institutionId: string): Promis
     const target = resolveSupportNotificationTarget(context.request.assignedTeam, process.env);
     if (!target) throw new Error("support_agent_email_missing");
     const isMessage = job.job_type === "notify_agent_message_received";
-    const agentUrl = (process.env.SUPPORT_AGENT_URL ?? process.env.SUPPORT_PUBLIC_URL ?? "https://app.lycee-blaise-cendrars-sevran.fr/prototype").replace(/\/$/, "");
+    const agentUrl = process.env.SUPPORT_AGENT_URL || process.env.SUPPORT_PUBLIC_URL || SCHOOL_PUBLIC_URL;
     const result = await sendEmail({
       to: { email: target.email, name: target.name },
-      subject: `${isMessage ? "Nouveau message" : "Nouvelle demande"} ${context.request.publicCode} - ${context.request.subject}`,
-      textContent: `${isMessage ? "Un nouveau message est arrivé" : "Une nouvelle demande a été créée"}.\nDossier : ${context.request.publicCode}\nDemandeur : ${requesterName} (${context.request.requesterType})\nCatégorie : ${context.request.category}\nObjet : ${context.request.subject}\n\nOuvrir : ${agentUrl}?agent_request=${context.request.publicCode}`,
-      htmlContent: `<p><strong>${isMessage ? "Un nouveau message est arrivé" : "Une nouvelle demande a été créée"}.</strong></p><p>Dossier : ${escapeHtml(context.request.publicCode)}<br>Demandeur : ${escapeHtml(requesterName)} (${escapeHtml(context.request.requesterType)})<br>Catégorie : ${escapeHtml(context.request.category)}<br>Objet : ${escapeHtml(context.request.subject)}</p><p><a href="${escapeHtml(`${agentUrl}?agent_request=${context.request.publicCode}`)}">Ouvrir le dossier</a></p>`,
+      ...buildSupportAgentEmail({ publicCode: context.request.publicCode, requesterName, requestSubject: context.request.subject,
+        serviceName: target.name, agentUrl, isMessage }),
       idempotencyKey: job.job_id,
       tags: ["lyceegest-support", isMessage ? "message-agent" : "nouvelle-demande"],
     });
@@ -203,21 +196,12 @@ async function deliver(job: SupportEmailQueueJob, institutionId: string): Promis
         eq(supportAttachments.scanStatus, "clean")
       ));
     const attachmentCount = Number(attachmentSummary?.count ?? 0);
-    const attachmentText = attachmentCount > 0
-      ? `\n\n${attachmentCount} document${attachmentCount > 1 ? "s sont" : " est"} disponible${attachmentCount > 1 ? "s" : ""} dans votre suivi sécurisé.`
-      : "";
-    const attachmentHtml = attachmentCount > 0
-      ? `<p><strong>${attachmentCount} document${attachmentCount > 1 ? "s sont" : " est"} disponible${attachmentCount > 1 ? "s" : ""} dans votre suivi sécurisé.</strong></p>`
-      : "";
     const link = trackingUrl(job.access_token);
     const accessCode = requesterAccessCode(job);
-    const accessCodeText = accessCode ? `\nCode à usage unique : ${accessCode}` : "";
-    const accessCodeHtml = accessCode ? `<p>Code à usage unique : <strong>${accessCode}</strong></p>` : "";
     const result = await sendEmail({
       to: { email: context.email, name: requesterName },
-      subject: `${context.request.publicCode} - Réponse du lycée`,
-      textContent: `Bonjour ${requesterName},\n\n${message.bodyText}${attachmentText}${accessCodeText}\n\nRépondre et suivre : ${link}\n\nLe code et le lien expirent après 30 minutes.`,
-      htmlContent: `<p>Bonjour ${escapeHtml(requesterName)},</p><p>${paragraphs(message.bodyText)}</p>${attachmentHtml}${accessCodeHtml}<p><a href="${escapeHtml(link)}">Répondre et suivre la demande</a></p><p><small>Le code et le lien expirent après 30 minutes.</small></p>`,
+      ...buildSupportRequesterEmail({ kind: "reply", publicCode: context.request.publicCode, requesterName,
+        bodyText: message.bodyText, trackingUrl: link, accessCode, attachmentCount }),
       idempotencyKey: job.job_id,
       replyTo: { email: requesterReplyAddress(context.request.publicCode), name: senderName },
       tags: ["lyceegest-support", "reponse-agent"],
