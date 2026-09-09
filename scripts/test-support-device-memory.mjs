@@ -67,7 +67,7 @@ const restartBlock = prototypeSource.slice(
 );
 assert.match(restartBlock, /setProfile\(""\)/);
 assert.match(restartBlock, /setClassicDescription\(""\)/);
-assert.match(restartBlock, /setFormValues\(defaultSupportFormValues\(\)\)/);
+assert.match(restartBlock, /setFormValues\(\{\s*\.\.\.defaultSupportFormValues\(\),/);
 assert.match(restartBlock, /clearSupportDeviceDraft\(\)/);
 
 console.log("support device memory policy: ok");

@@ -613,6 +613,8 @@ export default function LyceeConnectPrototype() {
   const navigate = useNavigate();
   const view = publicPortalView(location.search);
   const [message, setMessage] = useState("");
+  const [helpInitialMessage, setHelpInitialMessage] = useState("");
+  const [hasHelpDraft, setHasHelpDraft] = useState(false);
   const [helpMode, setHelpMode] = useState<"chat" | "form">("chat");
   const [menuOpen, setMenuOpen] = useState(false);
   const [ticketCreated, setTicketCreated] = useState<string | null>(null);
@@ -620,7 +622,15 @@ export default function LyceeConnectPrototype() {
   const [installPrompt, setInstallPrompt] = useState<InstallPromptEvent | null>(null);
   const [installAvailable, setInstallAvailable] = useState(false);
   const [installNotice, setInstallNotice] = useState<string | null>(null);
-  const homeAssistantRef = useRef<HTMLTextAreaElement>(null);
+
+  useEffect(() => {
+    if (view !== "home") return;
+    let active = true;
+    void readSupportDeviceDraft().then(draft => {
+      if (active) setHasHelpDraft(Boolean(draft));
+    });
+    return () => { active = false; };
+  }, [view]);
 
   useEffect(() => {
     const standalone = window.matchMedia("(display-mode: standalone)").matches
@@ -707,14 +717,10 @@ export default function LyceeConnectPrototype() {
   }
 
   function startHelp(prompt = "", mode: "chat" | "form" = "chat") {
-    setMessage(prompt);
+    setHelpInitialMessage(prompt);
+    if (prompt.trim()) setMessage("");
     setHelpMode(mode);
     changeView("help");
-  }
-
-  function focusHomeAssistant() {
-    document.getElementById("lycee-assistant-title")?.scrollIntoView({ behavior: "smooth", block: "center" });
-    window.setTimeout(() => homeAssistantRef.current?.focus(), 350);
   }
 
   async function installPortalApp() {
@@ -855,7 +861,7 @@ export default function LyceeConnectPrototype() {
             <div className="lycee-hero-tracks" role="list" aria-label="Parcours proposés">
               <span role="listitem">Général</span><span role="listitem">Technologique</span><span role="listitem">Professionnel</span><span role="listitem">CAP</span>
             </div>
-            <button className="lycee-hero-help" type="button" onClick={focusHomeAssistant}>
+            <button className="lycee-hero-help" type="button" onClick={() => startHelp()}>
               <MessageCircleMore aria-hidden="true" />
               <span><strong>Besoin d’aide&nbsp;?</strong><small>Parler à l’assistant du lycée</small></span>
               <ChevronRight aria-hidden="true" />
@@ -870,11 +876,12 @@ export default function LyceeConnectPrototype() {
               <span className="lycee-ai-icon"><Bot aria-hidden="true" /></span>
               <div>
                 <span className="lycee-eyebrow">Votre premier contact</span>
-                <h2 id="lycee-assistant-title">Posez votre question à l’assistant du lycée</h2>
+                <h2 id="lycee-assistant-title">Blaise, votre assistant</h2>
               </div>
               <span className="lycee-ai-status"><Sparkles aria-hidden="true" /> Assistant numérique</span>
             </div>
-            <p>Connexion, ordinateur, inscription, cantine ou document&nbsp;: décrivez votre besoin. L’assistant vous guide et peut préparer une demande à relire avant l’envoi.</p>
+            <p>Une question, un document ou un accès ? Écrivez ici : la conversation continue dans « Aide et demandes », sans ressaisir votre question.</p>
+            {hasHelpDraft ? <button className="lycee-resume-conversation" type="button" onClick={() => startHelp()}><MessageCircleMore aria-hidden="true" /><span><strong>Reprendre ma conversation</strong><small>Retrouver ma demande en cours</small></span><ChevronRight aria-hidden="true" /></button> : null}
             {SAFESCOL_ACCESS_ENABLED && SAFESCOL_URL ? (
               <a className="lycee-safescol-home-link" href={SAFESCOL_URL} target="_blank" rel="noreferrer">
                 <ShieldCheck aria-hidden="true" /> Signaler avec SafeScol <ExternalLink aria-hidden="true" />
@@ -882,9 +889,9 @@ export default function LyceeConnectPrototype() {
             ) : null}
             <div className="lycee-composer">
               <textarea
-                ref={homeAssistantRef}
                 id="lycee-home-help-message"
                 name="helpMessage"
+                maxLength={1500}
                 value={message}
                 onChange={(event) => setMessage(event.target.value)}
                 rows={3}
@@ -897,7 +904,7 @@ export default function LyceeConnectPrototype() {
                 onClick={() => startHelp(message)}
               >
                 <Send aria-hidden="true" />
-                <span>Obtenir de l’aide</span>
+                <span>Envoyer ma question</span>
               </button>
             </div>
             <button className="lycee-form-shortcut" type="button" onClick={() => startHelp("", "form")}><FileText aria-hidden="true" /> Je préfère remplir un formulaire</button>
@@ -989,7 +996,8 @@ export default function LyceeConnectPrototype() {
 
         {view === "help" && (
           <HelpDeskView
-            initialMessage={message}
+            initialMessage={helpInitialMessage}
+            onEntryConsumed={() => setHelpInitialMessage("")}
             initialClassicForm={helpMode === "form"}
             initialContactCollection={false}
             onBack={() => changeView("home")}
@@ -1636,6 +1644,7 @@ function IdentityDeviceAccessPanel({
 
 function HelpDeskView({
   initialMessage,
+  onEntryConsumed,
   initialClassicForm,
   initialContactCollection,
   onBack,
@@ -1644,6 +1653,7 @@ function HelpDeskView({
   onCollect,
 }: {
   initialMessage: string;
+  onEntryConsumed?: () => void;
   initialClassicForm: boolean;
   initialContactCollection: boolean;
   onBack: () => void;
@@ -1698,6 +1708,16 @@ function HelpDeskView({
   const [draftReady, setDraftReady] = useState(false);
   const [identityVerified, setIdentityVerified] = useState(false);
   const [reuseIdentityDetails, setReuseIdentityDetails] = useState(false);
+  const pendingDraftSaveRef = useRef<(() => void) | null>(null);
+  const assistantAbortRef = useRef<AbortController | null>(null);
+
+  useEffect(() => {
+    onEntryConsumed?.();
+    return () => {
+      assistantAbortRef.current?.abort();
+      pendingDraftSaveRef.current?.();
+    };
+  }, []);
 
   const requesterMessages = chatMessages.filter((message) => message.role === "requester");
   const conversationDescription = requesterMessages.map((message) => message.content).join("\n\n").trim();
@@ -1748,6 +1768,7 @@ function HelpDeskView({
   useEffect(() => {
     if (!draftReady || ticketCode || submitting || initialContactCollection) return;
     if (insight?.scope === "safescol") {
+      pendingDraftSaveRef.current = null;
       void clearSupportDeviceDraft();
       return;
     }
@@ -1757,10 +1778,12 @@ function HelpDeskView({
       profile.length > 0 ||
       showDetails;
     if (!hasDraft) {
+      pendingDraftSaveRef.current = null;
       void clearSupportDeviceDraft();
       return;
     }
-    const timer = window.setTimeout(() => {
+    const saveDraft = () => {
+      pendingDraftSaveRef.current = null;
       void saveSupportDeviceDraft<AssistantInsight>({
         requestKey,
         chatMessages: chatMessages.map(({ role, content }) => ({ role, content })),
@@ -1773,7 +1796,9 @@ function HelpDeskView({
         formValues,
         hadAttachments: files.length > 0,
       });
-    }, 350);
+    };
+    pendingDraftSaveRef.current = saveDraft;
+    const timer = window.setTimeout(saveDraft, 350);
     return () => window.clearTimeout(timer);
   }, [
     category,
@@ -1792,10 +1817,11 @@ function HelpDeskView({
   ]);
 
   useEffect(() => {
-    if (!initialMessage.trim() || initialAnalysisStarted.current) return;
+    if (!draftReady || initialAnalysisStarted.current || initialClassicForm || initialContactCollection) return;
+    if (chatMessages.at(-1)?.role !== "requester") return;
     initialAnalysisStarted.current = true;
     void askAssistant(chatMessages);
-  }, []);
+  }, [draftReady]);
 
   useEffect(() => {
     if (!initialClassicForm) return;
@@ -1803,6 +1829,9 @@ function HelpDeskView({
   }, []);
 
   async function askAssistant(nextMessages: AssistantChatMessage[], identityJustVerified = false) {
+    assistantAbortRef.current?.abort();
+    const controller = new AbortController();
+    assistantAbortRef.current = controller;
     setAssistantBusy(true);
     setSubmitError(null);
     const lastRequesterIndex = nextMessages.findLastIndex(message => message.role === "requester");
@@ -1815,6 +1844,7 @@ function HelpDeskView({
       try {
         const apiResult = await apiFetch<unknown>("support/assistant", {
           method: "POST",
+          signal: controller.signal,
           headers: { "X-Support-Device": assistantSessionId },
           body: JSON.stringify({
             sessionId: assistantSessionId,
@@ -1841,6 +1871,7 @@ function HelpDeskView({
         result = localAssistantFallback(nextMessages, files);
       }
     }
+    if (controller.signal.aborted) return;
     const requesterText = nextMessages
       .filter((message) => message.role === "requester")
       .map((message) => message.content)
@@ -1872,6 +1903,7 @@ function HelpDeskView({
     setAssistantNormalizationReceipt(normalizationReceipt);
     setAssistantRequestActionExpected(requestActionAuthorized);
     if (result.scope === "safescol") {
+      pendingDraftSaveRef.current = null;
       setFiles([]);
       void clearSupportDeviceDraft();
     }
@@ -1900,7 +1932,7 @@ function HelpDeskView({
   function sendChatMessage(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const content = chatInput.trim();
-    if (!content || assistantBusy || insight?.limitReached) return;
+    if (!draftReady || !content || assistantBusy || insight?.limitReached) return;
     const nextMessages = [
       ...chatMessages,
       { id: crypto.randomUUID(), role: "requester" as const, content },
@@ -1916,6 +1948,9 @@ function HelpDeskView({
     (insight?.action === "offer_case" && insight.readyToCreate === true);
 
   function restartConversation() {
+    assistantAbortRef.current?.abort();
+    setAssistantBusy(false);
+    pendingDraftSaveRef.current = null;
     setReuseIdentityDetails(false);
     setChatMessages([welcomeMessage]);
     setChatInput("");
@@ -2105,6 +2140,7 @@ function HelpDeskView({
         }
       }
       setConfirmationChannel(preferredChannel === "phone" ? "phone" : "email");
+      pendingDraftSaveRef.current = null;
       setTicketCode(publicCode);
       void Promise.all([
         clearSupportDeviceDraft(),
@@ -2253,7 +2289,7 @@ function HelpDeskView({
             <form className="lycee-chat-composer" onSubmit={sendChatMessage}>
               <textarea id="lycee-chat-message" name="chatMessage" value={chatInput} onChange={(event) => setChatInput(event.target.value)} rows={2} maxLength={1500} placeholder="Écrivez comme si vous parliez à l’accueil du lycée…" aria-label="Votre message" />
               <button className="lycee-chat-attach" type="button" aria-label="Joindre un document" title="Joindre un document" disabled={files.length >= MAX_SUPPORT_FILES} onClick={() => fileInputRef.current?.click()}><Paperclip aria-hidden="true" /></button>
-              <button className="lycee-chat-send" type="submit" aria-label="Envoyer le message" title="Envoyer" disabled={!chatInput.trim() || assistantBusy}><Send aria-hidden="true" /></button>
+              <button className="lycee-chat-send" type="submit" aria-label="Envoyer le message" title="Envoyer" disabled={!draftReady || !chatInput.trim() || assistantBusy}><Send aria-hidden="true" /></button>
             </form>
           ) : null}
 

@@ -4,6 +4,9 @@ const STORE_NAME = "memory";
 const ACTIVE_DRAFT_KEY = "active-support-draft";
 const REQUESTS_KEY = "remembered-support-requests";
 const PENDING_REQUESTER_UPLOAD_PREFIX = "pending-requester-upload:";
+// A route can read a draft immediately after the previous screen saved it.
+// Keep writes and erasure ordered within this tab before restoring that draft.
+let activeDraftWrite: Promise<void> = Promise.resolve();
 
 export const DEVICE_MEMORY_RETENTION_MS = 30 * 24 * 60 * 60 * 1000;
 export const PENDING_REQUESTER_UPLOAD_RETENTION_MS = 7 * 24 * 60 * 60 * 1000;
@@ -252,6 +255,7 @@ export function normalizePendingRequesterUploads(
 
 export async function readSupportDeviceDraft<TInsight>(): Promise<SupportDeviceDraft<TInsight> | null> {
   try {
+    await activeDraftWrite;
     const draft = await readRecord<unknown>(ACTIVE_DRAFT_KEY);
     if (!isSupportDeviceDraft<TInsight>(draft) || !isDeviceMemoryFresh(draft.updatedAt)) {
       if (draft) await deleteRecord(ACTIVE_DRAFT_KEY);
@@ -266,19 +270,18 @@ export async function readSupportDeviceDraft<TInsight>(): Promise<SupportDeviceD
 export async function saveSupportDeviceDraft<TInsight>(
   draft: Omit<SupportDeviceDraft<TInsight>, "updatedAt">
 ): Promise<void> {
-  try {
-    await writeRecord(ACTIVE_DRAFT_KEY, { ...draft, updatedAt: new Date().toISOString() });
-  } catch {
+  const value = { ...draft, updatedAt: new Date().toISOString() };
+  activeDraftWrite = activeDraftWrite.then(() => writeRecord(ACTIVE_DRAFT_KEY, value)).catch(() => {
     // The support flow remains usable when private browsing disables IndexedDB.
-  }
+  });
+  await activeDraftWrite;
 }
 
 export async function clearSupportDeviceDraft(): Promise<void> {
-  try {
-    await deleteRecord(ACTIVE_DRAFT_KEY);
-  } catch {
+  activeDraftWrite = activeDraftWrite.then(() => deleteRecord(ACTIVE_DRAFT_KEY)).catch(() => {
     // Nothing else should block because local memory is an optional resilience layer.
-  }
+  });
+  await activeDraftWrite;
 }
 
 export async function rememberSupportRequests(requests: RememberedSupportRequest[]): Promise<void> {

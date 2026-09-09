@@ -5988,3 +5988,15 @@ Publication vérifiée : commit `ed347b8`, statut Vercel réussi dans GitHub,
 déploiement `Epp6JwGfaGqEEC59sSbuwAfjGFWM`. Domaine principal et module
 `LyceeConnectPrototype-CB-EnwTh.js` HTTP 200 avec les nouveaux blocs. Aucune
 mutation réelle pendant la recette ; pas de migration de base.
+
+### 9 septembre 2026 — continuité entre accueil et aide
+
+Adel signale la longueur et l’impression de deux parcours. Correction : bouton
+d’aide direct, message d’entrée consommé une seule fois, reprise visible sur
+l’accueil, sauvegarde au départ et écritures locales ordonnées. La restauration
+ne relance pas une question déjà répondue. Les étapes remplies mènent au
+récapitulatif, toujours éditable. Effacement et changement de personne préservés.
+
+31 tests ciblés et recettes public/OTP à 1 440/390/320 px avec données fictives.
+Voir `docs/operations/PARCOURS_ACCUEIL_AIDE_2026-09-09.md` pour les preuves,
+limites et état de publication. Pas de modification des autorisations serveur.

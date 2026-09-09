@@ -1,5 +1,21 @@
 # Politique de conversation de l'agent
 
+## Accueil et reprise — clarification du 9 septembre 2026
+
+L’accueil et « Aide et demandes » donnent accès au même assistant. Le bouton
+« Besoin d’aide » ouvre directement la conversation. Une question tapée sur
+l’accueil n’est envoyée que par son bouton d’envoi ; la navigation seule ne la
+soumet pas. Le message d’entrée est consommé une seule fois. Une conversation
+inachevée se reprend depuis l’accueil, avec son brouillon, sans relancer les
+questions déjà répondues. Seule une question restée sans réponse est reprise.
+
+Le récapitulatif reste obligatoire avant la création d’un dossier. À la reprise,
+les étapes déjà renseignées sont passées, mais les coordonnées restent
+modifiables. Un brouillon ne confère aucune vérification d’identité ni aucun
+droit sur des données personnelles. Code sur un seul contact connu, expiration
+et changement de personne conservent leurs règles. Une suppression explicite
+du brouillon ne doit pas être annulée par une ancienne sauvegarde différée.
+
 **Version** : 1.1
 **Révision** : 4 septembre 2026
 
