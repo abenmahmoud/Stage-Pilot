@@ -5971,3 +5971,15 @@ et module du chat HTTP 200. Une question de recette sans donnée personnelle
 confirme en ligne le classement restauration et l'absence de renvoi vers un
 formulaire externe. Aucune source de procédure de repas n'a été retrouvée pour
 ce cas ; l'agent le signale. Aucun dossier ni email créé pendant cet essai.
+
+### 9 septembre 2026 — console centrée sur le dernier message
+
+Reprise autorisée de l’audit : dernier message, service, bénéficiaire, état
+enregistré et action suggérée précèdent la réponse. Réglages, historique,
+documents, notes et vue globale deviennent repliables. Les boutons de suggestion
+ouvrent une section sans modifier le dossier. Identité et clôture conservent
+leurs protections ; les brouillons restent séparés par demande dans l’onglet.
+
+50 tests, build et recette fictive à 1 440/390/320 px réussis. Aucun message envoyé
+ni donnée réelle modifiée. Voir `docs/operations/CONSOLE_TRAITEMENT_FLUIDE_2026-09-09.md`
+pour les preuves et l’état de publication. Procédure des repas toujours attendue.

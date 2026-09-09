@@ -925,6 +925,42 @@
 .lycee-agent-pagination > span { min-width: 0; display: flex; flex-direction: column; color: var(--lc-ink); font-size: 10px; font-weight: 800; text-align: center; }
 .lycee-agent-pagination small { margin-top: 2px; color: var(--lc-muted); font-size: 8px; font-weight: 650; }
 .lycee-agent-detail { min-width: 0; padding: 20px; }
+.lycee-agent-focus { margin-top: 16px; overflow-wrap: anywhere; }
+.lycee-agent-focus-meta { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
+.lycee-agent-focus-meta > span { padding: 4px 8px; border-radius: 6px; background: #eef3f8; color: #42566f; font-size: 11px; }
+.lycee-agent-focus-message { padding: 14px; border: 1px solid var(--lc-line); border-radius: 8px; background: #f8fafc; }
+.lycee-agent-focus-message > div { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.lycee-agent-focus-message svg { width: 16px; height: 16px; color: var(--lc-blue); }
+.lycee-agent-focus-message strong { font-size: 12px; }
+.lycee-agent-focus-message small { margin-left: auto; color: var(--lc-muted); font-size: 10px; }
+.lycee-agent-focus-message p { margin: 10px 0 0; white-space: pre-wrap; color: var(--lc-ink); font-size: 14px; line-height: 1.6; }
+.lycee-agent-focus-message > button { min-height: 36px; margin-top: 6px; padding: 0; border: 0; color: var(--lc-blue); background: none; font-size: 12px; font-weight: 700; }
+.lycee-agent-focus-message > button + button { display: block; }
+.lycee-agent-focus-next { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 12px; padding: 12px; border: 1px solid #c9e4dd; border-radius: 8px; background: #f1faf7; }
+.lycee-agent-focus-next > div { min-width: 0; }
+.lycee-agent-focus-next strong { font-size: 12px; }
+.lycee-agent-focus-next p { margin: 4px 0 0; color: #4b635c; font-size: 11px; line-height: 1.5; }
+.lycee-agent-focus-next button { display: inline-flex; align-items: center; justify-content: center; gap: 6px; flex-shrink: 0; max-width: 100%; min-height: 40px; padding: 8px 12px; border: 1px solid #bfd7ce; border-radius: 7px; background: #fff; color: #19654f; font-size: 11px; font-weight: 800; }
+.lycee-agent-focus-next button svg { flex-shrink: 0; width: 16px; height: 16px; }
+.lycee-agent-focus-next[data-attention="true"] { border-color: #efcf8d; background: #fff9ea; }
+.lycee-agent-focus-next[data-attention="true"] p { color: #715526; }
+.lycee-agent-focus-review { display: inline-flex; align-items: center; gap: 6px; min-height: 36px; margin-top: 5px; padding: 2px 0; border: 0; background: none; color: #815700; font-size: 11px; text-align: left; }
+.lycee-agent-focus-review svg { width: 15px; height: 15px; flex-shrink: 0; }
+.lycee-agent-panel { margin-top: 12px; border: 1px solid var(--lc-line); border-radius: 8px; background: #fff; scroll-margin-top: 100px; }
+.lycee-agent-panel > summary { min-height: 48px; padding: 13px; color: var(--lc-ink); cursor: pointer; overflow-wrap: anywhere; }
+.lycee-agent-panel > summary strong { font-size: 12px; }
+.lycee-agent-panel > summary span { display: block; margin: 4px 0 0 17px; font-size: 11px; color: var(--lc-muted); }
+.lycee-agent-panel[open] > summary { border-bottom: 1px solid var(--lc-line); background: #f8fafc; border-radius: 8px 8px 0 0; }
+.lycee-agent-panel-content { padding: 0 12px 12px; }
+.lycee-agent-dashboard { margin: 0 0 14px; }
+.lycee-agent-panel-content .lycee-agent-scope { margin-top: 12px; }
+.lycee-agent-detail :is(button, select, summary, textarea):focus-visible { outline: 3px solid #79a9ff; outline-offset: 3px; }
+.lycee-agent-detail :is(textarea, select) { scroll-margin-top: 100px; }
+.lycee-agent-thread p { overflow-wrap: anywhere; }
+@media (max-width: 1100px) {
+  .lycee-agent-focus-next { align-items: stretch; flex-direction: column; }
+  .lycee-agent-focus-next button { align-self: flex-start; }
+}
 .lycee-agent-detail-head { display: flex; justify-content: space-between; gap: 14px; padding-bottom: 16px; border-bottom: 1px solid var(--lc-line); }
 .lycee-agent-detail-head > div > span { color: var(--lc-blue); font-size: 9px; font-weight: 900; }
 .lycee-agent-detail-head h2 { margin: 4px 0; font-size: 19px; }

@@ -345,6 +345,17 @@ L'IA peut suggérer la priorité. Seul un agent peut confirmer P1 ou clôturer.
     390 px et 1440 px ; les images sont optimisées et ne provoquent pas de rupture
     de mise en page.
 
+### Clarification de la console — 9 septembre 2026
+
+La reprise de l’audit de fluidité place le dernier message du demandeur et la
+réponse avant les réglages. Le statut reste celui enregistré ; une note interne
+ou une réponse automatique ne prouve pas une résolution. L’action suggérée ouvre
+la section utile, sans mutation automatique. Identité, rapprochement de doublons,
+rappels, attribution et clôture gardent leurs contrôles existants. L’historique,
+les documents, les coordonnées et les notes sont repliables ; les brouillons
+restent propres à chaque dossier dans l’onglet. La vue globale des services se
+déplie à la demande. Aucun nouveau canal d’envoi ni droit supplémentaire.
+
 ## 12. Hors V1
 
 - Remplacement complet de l'ENT ou du webmail académique.

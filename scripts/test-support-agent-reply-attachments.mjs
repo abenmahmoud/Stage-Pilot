@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
+import { buildSupportRequesterEmail } from "../shared/school-email-templates.mjs";
 
 const files = {
   migration: "supabase/migrations/20260830170000_add_agent_reply_attachments.sql",
@@ -112,7 +113,13 @@ test("l’interface valide les réponses API et n’attache pas les binaires aux
   assert.match(source.page, /method: "DELETE"/);
   assert.match(source.page, /verifySupportAttachmentRemovalConfirmation/);
   for (const worker of [source.emailWorker, source.cronWorker]) {
-    assert.match(worker, /dans votre suivi sécurisé/);
+    assert.match(worker, /buildSupportRequesterEmail\(\{ kind: "reply"/);
+    assert.match(worker, /accessCode, attachmentCount/);
     assert.doesNotMatch(worker, /attachment:\s*\[/);
   }
+  const email = buildSupportRequesterEmail({ kind: "reply", publicCode: "BC-2026-000101",
+    requesterName: "Test", bodyText: "Voici les documents.", trackingUrl: "https://lycee-blaise-cendrars-sevran.fr/?support_token=fixture",
+    accessCode: "123456", attachmentCount: 2 });
+  assert.match(email.textContent, /2 documents sont disponibles dans votre suivi sécurisé/);
+  assert.equal(Object.hasOwn(email, "attachment"), false);
 });
