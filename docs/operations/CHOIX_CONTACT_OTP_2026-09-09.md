@@ -47,6 +47,14 @@ SHA-256 installé : `b2fb55ff68d97d40d3cf0b33afca9b5aec500fae4b63dd36dd9b61059df
 En retour arrière, restaurer le site `51abb48` ; l'ajout nullable
 en base reste compatible avec l'ancien worker. Ne supprimer aucune donnée réelle.
 
-Publication de l'interface à vérifier après le push. Ce lot ne prouve pas la
+Publication vérifiée : commit `ba8e098`, statut Vercel réussi,
+déploiement `MfooYUNLcs4kszVu9jffANSLmzdY`, domaine principal.
+Sur le site déployé, une recherche de la fiche du propriétaire retourne
+`choose_contact` avec deux coordonnées masquées (SMS et email académique).
+Aucun appel à l'endpoint de sélection : aucun envoi réel déclenché.
+Parcours du bundle publié à 390 px vérifié avec API simulées : une recherche,
+un choix, un OTP, reprise du dossier et changement de personne confirmés.
+
+Ce lot ne prouve pas la
 réception réelle d'un nouveau SMS/email, ni l'activation du complément ENT,
 ni l'intégration EDT, ni toutes les fonctions cibles de gestion des appareils.

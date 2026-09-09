@@ -6016,3 +6016,9 @@ automatique de l'annuaire.
 Réalisation et recette : `docs/operations/CHOIX_CONTACT_OTP_2026-09-09.md`.
 Le complément ENT reste un chantier distinct ; ne pas confondre la préparation
 locale avec des adresses déjà disponibles dans l'annuaire actif.
+
+Publication vérifiée : `ba8e098`, déploiement Vercel
+`MfooYUNLcs4kszVu9jffANSLmzdY`. Recherche réelle de la fiche du propriétaire :
+deux moyens masqués proposés, SMS et email académique, sans sélection ni envoi.
+Recette mobile du bundle publié avec API simulées réussie. Worker privé actif,
+service réussi ; migration et protections d'accès vérifiées.
