@@ -5983,3 +5983,8 @@ leurs protections ; les brouillons restent séparés par demande dans l’onglet
 50 tests, build et recette fictive à 1 440/390/320 px réussis. Aucun message envoyé
 ni donnée réelle modifiée. Voir `docs/operations/CONSOLE_TRAITEMENT_FLUIDE_2026-09-09.md`
 pour les preuves et l’état de publication. Procédure des repas toujours attendue.
+
+Publication vérifiée : commit `ed347b8`, statut Vercel réussi dans GitHub,
+déploiement `Epp6JwGfaGqEEC59sSbuwAfjGFWM`. Domaine principal et module
+`LyceeConnectPrototype-CB-EnwTh.js` HTTP 200 avec les nouveaux blocs. Aucune
+mutation réelle pendant la recette ; pas de migration de base.

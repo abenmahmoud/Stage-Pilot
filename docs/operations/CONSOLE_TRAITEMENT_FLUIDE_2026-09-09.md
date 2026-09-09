@@ -49,6 +49,20 @@ regroupement des notifications restent suivies séparément.
 
 ## Publication
 
-Publication en cours de préparation. Avant la livraison, vérifier le module
-servi par le domaine principal. Retour arrière : commit `7e6d029`, déploiement
+Commit `ed347b8f218575f3e380408f0b59d81d783417b6` poussé sur
+`codex/lycee-connect-prototype`. Le statut GitHub Vercel du commit indique
+`success` / `Deployment has completed`, déploiement
+`Epp6JwGfaGqEEC59sSbuwAfjGFWM`.
+
+Le domaine principal répond HTTP 200 et sert désormais
+`/assets/index-DUs9j62w.js`, puis `LyceeConnectPrototype-CB-EnwTh.js`, HTTP 200.
+Le module contient les nouveaux blocs d’essentiel, de vue globale et le lien
+« Relire les échanges et les réponses ». Les données réelles ne sont pas
+consultées pour cette vérification et aucun envoi réel n’est déclenché.
+
+Le connecteur Vercel échoue sur son transport ; l’état de déploiement a donc été
+contrôlé par l’API publique de statut GitHub et par les fichiers servis sur le
+domaine réel, sans modifier les certificats ni les alias.
+
+Retour arrière : commit `7e6d029`, déploiement
 `dpl_6tw3jfTu4MLPGL9BeXd5JebZruhn`. Aucune migration nécessaire.
