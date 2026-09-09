@@ -79,3 +79,19 @@ Références :
 
 Retour arrière Web : commit `895078a`, déploiement
 `dpl_52G8sAPkDdnfy5Do6Q615rVov2xv`. Aucun changement de schéma ou de données.
+
+## Paquet prêt pour le serveur
+
+Commit testé et poussé : `ae0cd872ae8877c3f9c159c0354b41fd1d0e06e1`.
+Le bundle a été créé depuis ce commit et passe `node --check`.
+SHA-256 : `66ab89f694b6fceac57b01182d99d3f1488bd1cd2f4c49f27ca5e15da5916f6d`.
+Il est prêt localement, sans installation ni redémarrage du serveur distant.
+
+## Publication Web vérifiée
+
+Le déploiement `dpl_8HBtKqeJ78PJCGt1FkJwd8RtTqdg` est `READY` et son alias
+est `lycee-blaise-cendrars-sevran.fr`, avec le commit `ae0cd87`.
+La page d'aide répond HTTP 200 après publication. Le modèle OTP et l'API Web
+partagée sont donc déployés ; aucune réception réelle du nouveau modèle n'a été
+provoquée. Le worker VPS continue d'utiliser sa version installée jusqu'au
+rétablissement de l'accès technique et à l'installation du paquet ci-dessus.

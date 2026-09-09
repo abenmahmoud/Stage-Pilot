@@ -5942,3 +5942,9 @@ DNS. Validation locale : 112 tests, identité, build et 15 vues ordinateur/mobil
 La connexion SSH au VPS expire : son nouveau modèle reste à installer séparément
 du Web. Voir `docs/operations/EMAILS_PERSONNALISES_2026-09-09.md` pour l'état précis,
 les aperçus, le bundle et la configuration d'expéditeur restant à préparer.
+
+Publication Web vérifiée : `ae0cd87`, déploiement
+`dpl_8HBtKqeJ78PJCGt1FkJwd8RtTqdg` READY, alias du domaine principal confirmé
+et page d'aide HTTP 200. L'OTP email utilise le modèle corrigé. Le bundle VPS
+est prêt mais non installé, faute de connexion SSH ; ne pas annoncer que ses
+confirmations/réponses utilisent déjà les nouveaux textes.
