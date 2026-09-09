@@ -56,7 +56,7 @@ export default function PublicContentPage() {
 
       <main className="lycee-article-main" id="lycee-article-main" tabIndex={-1}>
         {loading ? <div className="lycee-article-state"><LoaderCircle className="is-spinning" aria-hidden="true" /><p>Chargement de la page…</p></div> : null}
-        {!loading && (error || !item) ? <section className="lycee-article-state"><h1>{error ? "Chargement interrompu" : "Cette page n’est pas encore disponible"}</h1><p>{error || "Vous pouvez retrouver les informations disponibles dans la rubrique correspondante ou adresser votre question au lycée."}</p><div className="lycee-empty-actions">{error ? <button type="button" onClick={() => setAttempt((value) => value + 1)}>Réessayer</button> : null}<Link to={alternative.href}>{alternative.label}</Link><Link to="/?view=help">Demander de l’aide</Link></div><Link to="/">Revenir à l’accueil</Link></section> : null}
+        {!loading && (error || !item) ? <section className="lycee-article-state"><h1>{error ? "Chargement interrompu" : "Cette page n’est pas encore disponible"}</h1><p>{error || "Retrouvez les informations du lycée à l’accueil ou posez votre question à l’assistant."}</p><div className="lycee-empty-actions">{error ? <button type="button" onClick={() => setAttempt((value) => value + 1)}>Réessayer</button> : null}<Link to={alternative.href}>{alternative.label}</Link><Link to="/?view=help">Demander de l’aide</Link></div><Link to="/">Revenir à l’accueil</Link></section> : null}
         {!loading && !error && item?.slug === slug ? <article className="lycee-article-content">
           <p className="lycee-eyebrow">{item.category}</p>
           <h1>{item.title}</h1>

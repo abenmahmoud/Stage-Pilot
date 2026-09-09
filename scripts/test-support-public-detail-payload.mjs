@@ -209,7 +209,7 @@ test("keeps public detail races and errors separate", () => {
   assert.match(page, /const detailLoadIdRef = useRef\(0\)/);
   assert.match(page, /loadId !== detailLoadIdRef\.current \|\| selectedCodeRef\.current !== code/);
   assert.match(page, /setDetailError\(/);
-  assert.match(page, /Réessayer le dossier/);
+  assert.match(page, /Recharger le dossier/);
   assert.match(page, /setDetail\(null\);\s+setDetailError\(null\);/);
 });
 

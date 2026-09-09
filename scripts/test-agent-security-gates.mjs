@@ -10,6 +10,10 @@ import { renderToStaticMarkup } from "react-dom/server";
 import * as accessPolicy from "../shared/support-agent-access.ts";
 import { AGENT_ROLES } from "../shared/role-access.ts";
 import { safeAuthReturnPath } from "../shared/auth-return-path.ts";
+import { servicePilotPasswordOnly } from "../shared/agent-pilot-access.ts";
+
+const FIXTURE_NOW = Date.parse("2026-09-09T12:00:00Z");
+const pilotPolicy = (role, until) => servicePilotPasswordOnly(role, until, FIXTURE_NOW);
 
 const read = (path) => readFileSync(new URL(`../${path}`, import.meta.url), "utf8");
 const compiled = new Map();
@@ -40,6 +44,7 @@ function fixture(env = {}) {
   const req = { headers: { authorization: "Bearer fixture-token-not-a-real-jwt" } };
   const auth = load("api/_shared/auth.ts", {
     "node:crypto": crypto,
+    "../../shared/agent-pilot-access.js": { servicePilotPasswordOnly: pilotPolicy },
     "@supabase/supabase-js": { createClient: () => ({ auth: {
       getUser: async (token) => {
         state.calls.auth++;
@@ -218,7 +223,7 @@ test("ordinary student and teacher authorization does not acquire an agent MFA r
 test("the public shell and enrollment remain reachable, with an explicit security route", () => {
   const app = read("src/App.tsx");
   assert.doesNotMatch(app, /AGENT_MFA_ENFORCED|nextAssuranceLevel/);
-  assert.match(app, /isAgentRole\(user\.role\)\s*&&\s*assuranceLevel !== "aal2"/);
+  assert.match(app, /isAgentRole\(user\.role\)\s*&&\s*!servicePilotPasswordOnly\(user\.role, import\.meta\.env\.VITE_AGENT_PILOT_PASSWORD_ONLY_UNTIL\)\s*&&\s*assuranceLevel !== "aal2"/);
   assert.match(app, /path="\/security"[\s\S]*?<SignedInRoute>[\s\S]*?<MfaSecurityPage/);
   assert.match(app, /path="\/" element=\{<LyceeConnectPrototype \/>\}/);
   const mfa = read("src/pages/MfaSecurityPage.tsx");
@@ -234,10 +239,12 @@ test("the real route guards send AAL1 staff to enrollment while keeping enrollme
   const names = new Set(["ProtectedRoute", "SignedInRoute", "PageFallback"]);
   const functions = ast.statements.filter((node) => ts.isFunctionDeclaration(node) && names.has(node.name?.text));
   assert.equal(functions.length, 3);
-  const output = ts.transpileModule(functions.map((node) => `export ${node.getText(ast)}`).join("\n"), {
+  const routeSource = functions.map((node) => `export ${node.getText(ast)}`).join("\n").replaceAll("import.meta.env", "__viteEnv");
+  const output = ts.transpileModule(routeSource, {
     compilerOptions: { module: ts.ModuleKind.CommonJS, jsx: ts.JsxEmit.ReactJSX },
   }).outputText;
   let session = { user: null, loading: false, assuranceLevel: "aal1", nextAssuranceLevel: "aal1" };
+  const viteEnv = {};
   const exports = {};
   vm.runInNewContext(output, {
     exports,
@@ -245,6 +252,8 @@ test("the real route guards send AAL1 staff to enrollment while keeping enrollme
     useAuth: () => session,
     useLocation: () => ({ pathname: "/admin/contenus", search: "?draft=fixture" }),
     isAgentRole: (role) => AGENT_ROLES.includes(role),
+    servicePilotPasswordOnly: pilotPolicy,
+    __viteEnv: viteEnv,
     Navigate: ({ to }) => React.createElement("a", { href: to }, "redirect"),
   });
   const child = React.createElement("p", null, "private-content-fixture");
@@ -262,8 +271,35 @@ test("the real route guards send AAL1 staff to enrollment while keeping enrollme
     session = { user: { role }, loading: false, assuranceLevel: "aal1", nextAssuranceLevel: "aal1" };
     assert.match(render("ProtectedRoute"), /private-content-fixture/);
   }
+  viteEnv.VITE_AGENT_PILOT_PASSWORD_ONLY_UNTIL = "2026-09-10T00:00:00Z";
+  for (const role of AGENT_ROLES) {
+    session = { user: { role }, loading: false, assuranceLevel: "aal1", nextAssuranceLevel: "aal1" };
+    const html = render("ProtectedRoute");
+    if (["agent", "administration"].includes(role)) assert.match(html, /private-content-fixture/);
+    else assert.doesNotMatch(html, /private-content-fixture/);
+  }
+  viteEnv.VITE_AGENT_PILOT_PASSWORD_ONLY_UNTIL = "2026-09-08T00:00:00Z";
+  session = { user: { role: "agent" }, loading: false, assuranceLevel: "aal1" };
+  assert.doesNotMatch(render("ProtectedRoute"), /private-content-fixture/);
   session = { user: { role: "agent" }, loading: true, assuranceLevel: "aal2" };
   assert.doesNotMatch(render("ProtectedRoute"), /private-content-fixture/);
+});
+
+test("the temporary service pilot preserves memberships, privileged MFA and expiry on the actual server", async () => {
+  for (const role of AGENT_ROLES) {
+    const f = fixture({AGENT_PILOT_PASSWORD_ONLY_UNTIL:"2026-09-10T00:00:00Z"});
+    f.state.user.app_metadata.role = role;
+    f.state.currentLevel = "aal1";
+    if (["agent", "administration"].includes(role)) {
+      const context = await f.run();
+      assert.deepEqual(context.access.serviceCodes, ["ddfpt"]);
+      f.state.membership.status = "revoked";
+      await assert.rejects(f.run(), {status:403});
+    } else await assert.rejects(f.run(), {status:403, message:/Double vérification/});
+  }
+  const expired = fixture({AGENT_PILOT_PASSWORD_ONLY_UNTIL:"2026-09-08T00:00:00Z"});
+  expired.state.currentLevel = "aal1";
+  await assert.rejects(expired.run(), {status:403, message:/Double vérification/});
 });
 
 test("login and MFA return paths cannot escape the application through browser URL normalization", () => {

@@ -21,7 +21,7 @@ test("ignores stale detail reads for the same or another selection", () => {
 test("offers a bounded retry only for ordinary detail failures", () => {
   assert.match(source, /detailLoadError && selectedCode \?/);
   assert.match(source, /onClick=\{\(\) => void loadDetail\(selectedCode\)\}/);
-  assert.match(source, /"Réessayer le dossier"/);
+  assert.match(source, /"Recharger le dossier"/);
   const security = source.indexOf("needsAgentSecurity ?");
   const retry = source.indexOf("detailLoadError && selectedCode ?");
   assert.ok(security !== -1 && security < retry);

@@ -12,9 +12,9 @@ export default function ServiceAccessPage() {
     if(active)setOverview(value);
   }).catch(()=>{if(active)setError("La liste des accès n’a pas pu être chargée. Actualisez la page.");});return()=>{active=false;};},[]);
   return <div className="mx-auto max-w-5xl space-y-6">
-    <div><h1 className="text-2xl font-bold text-slate-900">Les services du lycée</h1><p className="mt-2 text-slate-600">Une file par équipe. Les messages, les documents et l’historique restent dans le même dossier.</p></div>
+    <div><h1 className="text-2xl font-bold text-slate-900">Les services du lycée</h1><p className="mt-2 text-slate-600">Chaque équipe retrouve ses demandes. Les messages, les documents et l’historique sont regroupés dans chaque dossier.</p></div>
     {error?<p role="alert" className="rounded-xl bg-red-50 p-4 text-red-800">{error}</p>:null}
-    {overview?.passwordOnlyUntil?<p className="rounded-xl border border-blue-200 bg-blue-50 p-4 text-sm text-blue-950">Pendant les essais, les comptes agents et administration se connectent avec leur email et leur mot de passe, sans MFA obligatoire, jusqu’au {new Date(overview.passwordOnlyUntil).toLocaleDateString("fr-FR",{timeZone:"Europe/Paris"})}. Chaque compte conserve son périmètre.</p>:null}
+    {overview?.passwordOnlyUntil?<p className="rounded-xl border border-blue-200 bg-blue-50 p-4 text-sm text-blue-950">Pendant les essais, les comptes des agents et de l’administration peuvent se connecter avec leur email et leur mot de passe, sans double authentification obligatoire, jusqu’au {new Date(overview.passwordOnlyUntil).toLocaleDateString("fr-FR",{timeZone:"Europe/Paris"})}. Les droits d’accès de chaque compte restent inchangés.</p>:null}
     {!overview&&!error?<p role="status">Chargement des services…</p>:null}
     <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">{overview?.services.map(service=><article key={service.code} className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
       <UsersRound className="mb-4 h-6 w-6 text-blue-600" aria-hidden="true"/><h2 className="text-lg font-semibold text-slate-900">{service.label}</h2>

@@ -73,11 +73,11 @@ export function ChatRequestIntake(p: Props) {
         {field("className", "Classe, si vous la connaissez")}
       </> : current === "contact" ? <>
         <label><span>Je préfère être contacté par</span><select value={p.values.preferredChannel} onChange={event => p.update("preferredChannel", event.target.value as "email" | "phone")}><option value="email">Email</option><option value="phone">Téléphone</option></select></label>
-        {p.values.preferredChannel === "email" ? field("email", "Votre adresse email", "email", true) : field("phone", "Votre téléphone", "tel", true)}
+        {p.values.preferredChannel === "email" ? field("email", "Votre adresse email", "email", true) : field("phone", "Votre numéro de téléphone", "tel", true)}
         <details><summary>Ajouter une précision ou un autre contact</summary>
           {p.values.preferredChannel === "email" ? field("phone", "Autre contact : téléphone", "tel") : field("email", "Autre contact : email", "email")}
           <label className="lycee-chat-check"><input type="checkbox" checked={p.values.fallbackAllowed} onChange={event => p.update("fallbackAllowed", event.target.checked)} />Le lycée peut utiliser cet autre contact si nécessaire.</label>
-          {p.profile === "eleve" ? field("className", "Classe, si connue") : null}
+          {p.profile === "eleve" ? field("className", "Classe, si vous la connaissez") : null}
           {p.profile === "personnel" || p.profile === "professeur" ? field("subjectArea", "Matière ou service") : null}
           <label className="lycee-chat-check"><input type="checkbox" checked={p.values.communicationSupport} onChange={event => p.update("communicationSupport", event.target.checked)} />J’ai besoin d’un rappel pour mieux comprendre la réponse.</label>
         </details>
@@ -87,7 +87,7 @@ export function ChatRequestIntake(p: Props) {
         <small>{p.values.requesterFirstName} {p.values.requesterLastName} · {p.values.preferredChannel === "phone" ? p.values.phone : p.values.email}</small>
         {p.profile === "parent" ? <small>Pour {p.values.beneficiaryFirstName} {p.values.beneficiaryLastName}</small> : null}
         <button type="button" disabled={p.busy} onClick={() => { setEditingIdentity(true); setStep(0); }}>Modifier mes coordonnées</button>
-        <p className="lycee-chat-review-note">La réponse et les documents seront regroupés dans « Mes demandes ». Le délai dépend du service concerné.</p>
+        <p className="lycee-chat-review-note">Retrouvez la réponse et les documents dans « Mes demandes ». Le délai dépend du service concerné.</p>
         {p.fileNames.map((name, index) => <small key={index}>Pièce jointe : {name}</small>)}
         <button type="button" onClick={p.onAttach} disabled={p.fileNames.length >= 5}><Paperclip aria-hidden="true" />Joindre un document</button>
       </div>}

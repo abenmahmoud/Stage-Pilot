@@ -55,6 +55,31 @@ export function requestsOwnSchedule(messages: ConversationMessage[]): boolean {
 export function requestedOwnCoursesDayOffset(messages: ConversationMessage[]): 0 | 1 | null {
   const text = requesterText(messages);
   if (mentionsThirdParty(text)) return null;
+  const explicitDay = explicitOwnCoursesDayOffset(text);
+  if (explicitDay !== null) return explicitDay;
+
+  // A short answer continues only the immediately preceding personal timetable
+  // discussion. This resolves intent, never identity or permission to read data.
+  const shortDay = shortDayOffset(text);
+  if (shortDay === null) return null;
+  const previousRequests = messages.filter(message => message.role === "requester").slice(0, -1);
+  for (const previous of previousRequests.reverse()) {
+    const previousText = normalized(previous.content);
+    if (mentionsThirdParty(previousText)) return null;
+    if (shortDayOffset(previousText) !== null) continue;
+    const conversation = [previous];
+    return requestsOwnSchedule(conversation) || requestsOwnNextCourse(conversation)
+      || explicitOwnCoursesDayOffset(previousText) !== null ? shortDay : null;
+  }
+  return null;
+}
+
+function shortDayOffset(text: string): 0 | 1 | null {
+  const match = text.trim().match(/^(?:(?:oui|et|pour|plutot)[ ,]*){0,2}(aujourd'hui|demain)(?:[ ,]*(?:s'il (?:vous|te) plait|svp|stp|merci))?[.!?\s]*$/);
+  return match ? match[1] === "demain" ? 1 : 0 : null;
+}
+
+function explicitOwnCoursesDayOffset(text: string): 0 | 1 | null {
   if (/\b(mes cours demain|quels sont mes cours demain|qu'est-ce que j'ai (?:comme cours )?demain|mon programme de demain|mon emploi du temps (?:pour )?demain|emploi du temps de demain)\b/.test(text)) {
     return 1;
   }
@@ -86,7 +111,7 @@ function courseTiming(startsAt: string, endsAt: string): string {
 
 function reviewDate(value: string): string {
   const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return "la date de fraîcheur indiquée";
+  if (Number.isNaN(date.getTime())) return "date non disponible";
   return new Intl.DateTimeFormat("fr-FR", {
     day: "numeric",
     month: "long",
@@ -112,22 +137,22 @@ function scheduleFailureAnswer(
       safetyNotice: null,
     },
     teacher_schedule_unavailable: {
-      reply: "Votre emploi du temps personnel de professeur n'est pas disponible dans la version actuellement active : je ne peux donc pas vous répondre. Vous pouvez transmettre une demande à la vie scolaire pour qu'il soit ajouté.",
-      safetyNotice: "Aucun emploi du temps de classe ne vous est présenté à la place du vôtre.",
+      reply: "Votre emploi du temps personnel de professeur n'est pas encore disponible dans la version active. Je peux préparer une demande à la vie scolaire pour qu'il soit ajouté.",
+      safetyNotice: null,
     },
     source_stale: {
       reply: "L'emploi du temps disponible doit être revalidé avant que je puisse vous indiquer une salle ou un cours. Vous pouvez transmettre une demande à la vie scolaire.",
-      safetyNotice: "Une source périmée n'est jamais présentée comme actuelle.",
+      safetyNotice: null,
     },
     no_authorized_course: {
       reply: context !== "next"
-        ? "Je ne trouve aucun cours autorisé pour vous dans la version validée. Vous pouvez transmettre une demande à la vie scolaire pour vérification."
-        : "Je ne trouve aucun prochain cours autorisé dans la version validée. Vous pouvez transmettre une demande à la vie scolaire pour vérification.",
+        ? "Je ne peux pas retrouver vos cours dans l'emploi du temps validé. Je peux préparer une demande à la vie scolaire pour vérification."
+        : "Je ne peux pas retrouver votre prochain cours dans l'emploi du temps validé. Je peux préparer une demande à la vie scolaire pour vérification.",
       safetyNotice: null,
     },
     conflicting_changes: {
-      reply: "Deux informations officielles se contredisent sur ce cours. Je ne choisis pas à votre place : transmettez une demande à la vie scolaire pour confirmation.",
-      safetyNotice: "Aucune salle ni aucun horaire incertain n'est affiché.",
+      reply: "Les informations disponibles sur ce cours se contredisent. La vie scolaire doit les vérifier avant que je vous indique une salle ou un horaire. Je peux préparer cette demande ici.",
+      safetyNotice: null,
     },
   };
   return {
@@ -140,7 +165,7 @@ function scheduleFailureAnswer(
 export function scheduleAssistantAnswer(result: ScheduleReadResult): ScheduleAssistantAnswer {
   if (result.ok) {
     const timing = courseTiming(result.course.startsAt, result.course.endsAt);
-    const sourceNotice = `Source validée, à recontrôler avant le ${reviewDate(result.source.freshUntil)}.`;
+    const sourceNotice = `Version du ${reviewDate(result.source.activatedAt)}.`;
     if (result.course.state === "cancelled") {
       return {
         reply: `Votre cours de ${result.course.subjectLabel} prévu ${timing} est annulé selon le dernier changement officiel. ${sourceNotice}`,
@@ -173,13 +198,14 @@ export function scheduleAssistantAnswer(result: ScheduleReadResult): ScheduleAss
 }
 
 function dayCourseSentence(course: ScheduleDayCourse): string {
-  const timing = courseTiming(course.startsAt, course.endsAt);
+  const time = new Intl.DateTimeFormat("fr-FR", { hour: "2-digit", minute: "2-digit", timeZone: "Europe/Paris" });
+  const timing = `${time.format(new Date(course.startsAt))} – ${time.format(new Date(course.endsAt))}`;
   if (course.state === "cancelled") {
-    return `${course.subjectLabel} (${timing}) est annulé selon le dernier changement officiel.`;
+    return `• ${timing} · ${course.subjectLabel} · Cours annulé`;
   }
-  const room = course.roomCode ? ` en salle ${course.roomCode}` : ", sans salle confirmée";
-  const change = course.state === "moved" ? " (changement pris en compte)" : "";
-  return `${course.subjectLabel}, ${timing}${room}${change}.`;
+  const room = course.roomCode ? `Salle ${course.roomCode}` : "Salle à confirmer";
+  const change = course.state === "moved" ? " · Changement pris en compte" : "";
+  return `• ${timing} · ${course.subjectLabel} · ${room}${change}`;
 }
 
 export function scheduleAssistantDayAnswer(
@@ -188,7 +214,7 @@ export function scheduleAssistantDayAnswer(
 ): ScheduleAssistantAnswer {
   const requestedDay = dayOffset === 1 ? "demain" : "aujourd'hui";
   if (result.ok) {
-    const sourceNotice = `Source validée, à recontrôler avant le ${reviewDate(result.source.freshUntil)}.`;
+    const sourceNotice = `Version du ${reviewDate(result.source.activatedAt)}.`;
     if (result.courses.length === 0) {
       return {
         reply: `Vous n'avez aucun cours prévu ${requestedDay} selon l'emploi du temps validé. ${sourceNotice}`,
@@ -197,9 +223,9 @@ export function scheduleAssistantDayAnswer(
         sourceReferences: [{ title: "Emploi du temps validé", updatedAt: result.source.activatedAt }],
       };
     }
-    const sentences = result.courses.map(dayCourseSentence).join(" ");
+    const sentences = result.courses.map(dayCourseSentence).join("\n");
     return {
-      reply: `Voici vos cours pour ${requestedDay} : ${sentences} ${sourceNotice}`,
+      reply: `Voici vos cours pour ${requestedDay} :\n\n${sentences}\n\n${sourceNotice}`,
       readyToCreate: false,
       safetyNotice: null,
       sourceReferences: [{ title: "Emploi du temps validé", updatedAt: result.source.activatedAt }],

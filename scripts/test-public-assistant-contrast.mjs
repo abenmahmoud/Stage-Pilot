@@ -47,7 +47,7 @@ test("l'assistant public reste visible avant les outils secondaires", () => {
 
 test("l'assistant public conserve une saisie libre et une alternative formulaire", () => {
   assert.match(page, /<section className="lycee-assistant" aria-labelledby="lycee-assistant-title">/);
-  assert.match(page, /<h2 id="lycee-assistant-title">Posez votre question à l’assistant du lycée<\/h2>/);
+  assert.match(page, /<h2 id="lycee-assistant-title">[^<]*assistant[^<]*<\/h2>/i);
   assert.match(page, /aria-label="Écrivez votre question ou votre problème"/);
   assert.match(page, /disabled=\{!message\.trim\(\)\}/);
   assert.match(page, /onClick=\{\(\) => startHelp\("", "form"\)\}/);

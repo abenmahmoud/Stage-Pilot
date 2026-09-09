@@ -41,8 +41,8 @@ export function PushNotificationsButton({ audience = "requester" }: { audience?:
       subscription ??= await registration.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey });
       const result = await apiFetch<{ enabled: boolean }>(route, { method: "POST", body: JSON.stringify(subscription.toJSON()) });
       if (result.enabled !== true) throw new Error("subscription_failed");
-      setEnabled(true); setNotice("Vous serez prévenu sur cet appareil, même lorsque le site est fermé.");
-    } catch { setNotice("L’activation n’a pas abouti. Réessayez depuis votre espace de demandes connecté."); }
+      setEnabled(true); setNotice("Les notifications du lycée sont activées sur cet appareil.");
+    } catch { setNotice("La modification des notifications n’a pas abouti. Réessayez depuis votre espace connecté."); }
     finally { setBusy(false); }
   }
   if (!available) return null;

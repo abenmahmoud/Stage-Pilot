@@ -210,9 +210,9 @@ const SUPPORT_FILE_TYPES = [
 
 const SUPPORT_ASSISTANT_DEVICE_KEY = "bc_support_assistant_session";
 const CONTACT_COLLECTION_DESCRIPTION =
-  "Je souhaite faire vérifier et ajouter ou mettre à jour mes coordonnées personnelles dans la liste de contact du lycée.";
+  "Je souhaite faire vérifier et ajouter ou mettre à jour mes coordonnées personnelles dans l’annuaire du lycée.";
 const CONTACT_REMOVAL_DESCRIPTION =
-  "Je demande le retrait de mes coordonnées personnelles de la liste de contact du lycée.";
+  "Je demande le retrait de mes coordonnées personnelles de l’annuaire du lycée.";
 
 type InstallPromptEvent = Event & {
   prompt: () => Promise<void>;
@@ -443,7 +443,7 @@ async function uploadSupportFile(
     })
   );
   if (!isRequesterSupportUploadReservationPayload(reservation)) {
-    throw new Error("La réservation du fichier reçue est invalide.");
+    throw new Error("Le document ne peut pas être préparé. Réessayez.");
   }
   submission.attachmentId = reservation.attachment.id;
   await rememberRequesterUploadSubmission(submission);
@@ -472,7 +472,7 @@ async function uploadSupportFile(
     })
   );
   if (!isSupportAttachmentConfirmationPayload(confirmation, reservation.attachment.id)) {
-    throw new Error("La confirmation du fichier reçue est invalide.");
+    throw new Error("L’envoi du document n’a pas pu être confirmé. Actualisez le dossier avant de réessayer.");
   }
   await completeRequesterUploadSubmission(submission);
   return reservation.attachment.id;
@@ -694,7 +694,7 @@ export default function LyceeConnectPrototype() {
     )
       .then((payload) => {
         if (!isSupportMagicAccessPayload(payload)) {
-          throw new Error("La confirmation d'accès reçue est invalide.");
+          throw new Error("L’ouverture de votre accès n’a pas pu être confirmée. Réessayez.");
         }
         setTicketCreated(payload.request.publicCode);
         setAccessLinkError(null);
@@ -881,7 +881,7 @@ export default function LyceeConnectPrototype() {
               </div>
               <span className="lycee-ai-status"><Sparkles aria-hidden="true" /> Assistant numérique</span>
             </div>
-            <p>Une question, un document ou un accès ? Écrivez ici : la conversation continue dans « Aide et demandes », sans ressaisir votre question.</p>
+            <p>Une question ou une démarche ? Écrivez ici pour commencer la conversation.</p>
             {hasHelpDraft ? <button className="lycee-resume-conversation" type="button" onClick={() => startHelp()}><MessageCircleMore aria-hidden="true" /><span><strong>Reprendre ma conversation</strong><small>Retrouver ma demande en cours</small></span><ChevronRight aria-hidden="true" /></button> : null}
             {SAFESCOL_ACCESS_ENABLED && SAFESCOL_URL ? (
               <a className="lycee-safescol-home-link" href={SAFESCOL_URL} target="_blank" rel="noreferrer">
@@ -973,7 +973,7 @@ export default function LyceeConnectPrototype() {
               <a href={LYCEEGEST_URL}>Ouvrir LyceeGest <ChevronRight aria-hidden="true" /></a>
             </article>
             <article className="lycee-status-panel">
-              <a href={ENT_URL} target="_blank" rel="noreferrer" title="Ouvrir ENT Monlycée.net dans un nouvel onglet">
+              <a href={ENT_URL} target="_blank" rel="noreferrer" title="Ouvrir l’ENT Monlycée.net dans un nouvel onglet">
                 <span className="lycee-status-icon"><Wifi aria-hidden="true" /></span>
                 <span><strong>ENT Monlycée.net</strong><small>Connexion et services</small></span>
                 <em>Ouvrir <ExternalLink aria-hidden="true" /></em>
@@ -987,7 +987,7 @@ export default function LyceeConnectPrototype() {
           </section>
 
           <section className="lycee-formations-band">
-            <div><span className="lycee-eyebrow">Lycée polyvalent</span><h2>Général, technologique et professionnel</h2><p>Des parcours de la seconde au baccalauréat, avec CAP, spécialités générales, STL, STMG, MELEC et PCEPC.</p></div>
+            <div><span className="lycee-eyebrow">Lycée polyvalent</span><h2>Général, technologique et professionnel</h2><p>Des parcours en CAP, en voie générale, technologique et professionnelle.</p></div>
             <div className="lycee-track-pills"><span>Voie générale</span><span>STL</span><span>STMG</span><span>Voie pro</span><span>CAP</span></div>
             <button type="button" onClick={() => changeView("school")}>Découvrir toutes les formations <ChevronRight aria-hidden="true" /></button>
           </section>
@@ -1154,7 +1154,7 @@ function NewsView({ onBack }: { onBack: () => void }) {
         description="Les informations, événements et documents publiés par le lycée."
         onBack={onBack}
       />
-      <div className="lycee-news-scope" role="group" aria-label="Période des informations">
+      <div className="lycee-news-scope" role="group" aria-label="Période de publication">
         <button type="button" aria-pressed={scope === "current"} className={scope === "current" ? "is-active" : ""} onClick={() => changeScope("current")}>
           <Newspaper aria-hidden="true" /> En cours
         </button>
@@ -1185,8 +1185,8 @@ function NewsView({ onBack }: { onBack: () => void }) {
       {!loading && !error && !selected ? (
         <section className="lycee-news-empty">
           <Newspaper aria-hidden="true" />
-          <h2>{items.length > 0 ? "Aucune information ne correspond" : scope === "expired" ? "Aucune archive disponible" : "Les prochaines informations seront publiées ici"}</h2>
-          <p>{items.length > 0 ? "Modifiez votre recherche ou choisissez une autre catégorie." : scope === "expired" ? "Les publications retirées par la direction ne sont jamais affichées ici." : "Les formations et la présentation du lycée restent disponibles dans « Vie du lycée »."}</p>
+          <h2>{items.length > 0 ? "Aucun résultat pour cette recherche" : scope === "expired" ? "Aucune archive disponible" : "Les prochaines informations seront publiées ici"}</h2>
+          <p>{items.length > 0 ? "Modifiez votre recherche ou choisissez une autre catégorie." : scope === "expired" ? "Les anciennes publications encore consultables sont regroupées dans les archives." : "Les formations et la présentation du lycée restent disponibles dans « Vie du lycée »."}</p>
           {items.length > 0 ? <button type="button" onClick={() => { setQuery(""); setCategory("all"); }}>Effacer les filtres</button> : <div className="lycee-empty-actions"><Link to="/?view=school">Découvrir le lycée</Link><Link to="/?view=help">Poser une question</Link></div>}
         </section>
       ) : null}
@@ -1368,9 +1368,9 @@ function localAssistantFallback(messages: AssistantChatMessage[], files: File[])
     reply: policy.deterministicReply ?? laptopIntake?.reply ?? (informationIntent === "opening_hours" ? MISSING_OPENING_HOURS_REPLY
       : informationIntent === "clock" ? "L’horloge du service est momentanément indisponible. Je ne peux pas confirmer la date et l’heure du lycée."
       : scheduleQuestion
-      ? "Une classe écrite librement ne suffit pas pour ouvrir un emploi du temps réel. Le lycée doit d’abord confirmer votre identité scolaire et votre lien avec la classe ou le groupe, puis consulter une version validée et à jour. En cas de doute, la vie scolaire vérifiera avant de répondre."
+      ? "Votre emploi du temps personnel nécessite une identité vérifiée et une version à jour. La consultation est momentanément indisponible. Vous pouvez réessayer ou préparer une demande ici."
       : readyToCreate
-        ? `Votre demande concerne « ${label} ». Nous allons compléter les informations utiles ici, puis vous pourrez relire et confirmer l’envoi. Rien n’est envoyé sans votre confirmation.`
+        ? `Votre demande concerne « ${label} ». Complétons les informations utiles ici. Vous pourrez relire et modifier votre demande avant de confirmer l’envoi.`
         : `Votre demande concerne « ${label} ». ${files.length ? `Vous avez sélectionné ${files.length} fichier${files.length > 1 ? "s" : ""} à joindre au dossier. ` : ""}Précisez votre question et les informations utiles pour vous aider.`),
     category: policy.category ?? laptopIntake?.category ?? category,
     requesterType,
@@ -1486,7 +1486,7 @@ function IdentityDeviceAccessPanel({
           setError(typeof payload.error === 'string' ? payload.error : "La vérification est momentanément indisponible.");
           setState("unavailable");
         } else if (attempts >= 40) {
-          setError("La recherche prend trop de temps. Vérifiez les informations ou recommencez.");
+          setError("La recherche prend plus de temps que prévu. Réessayez dans quelques instants.");
           setState("unavailable");
         }
       } catch {
@@ -1615,7 +1615,7 @@ function IdentityDeviceAccessPanel({
     return (
       <section className="lycee-identity-device is-verified" aria-label="Identité vérifiée">
         <BadgeCheck aria-hidden="true" />
-        <div><strong>Identité confirmée</strong><p>{profileLabel}. L’assistant peut maintenant traiter les services personnels autorisés.</p></div>
+        <div><strong>Identité confirmée</strong><p>{profileLabel}. Vous pouvez accéder aux services personnels disponibles pour votre profil.</p></div>
         {!confirmForget ? <button type="button" disabled={busy} onClick={() => setConfirmForget(true)}>Changer de personne</button>
           : <div className="lycee-identity-device-actions"><p>Changer de personne ferme votre accès et efface le brouillon de cet appareil. Vos demandes déjà envoyées restent conservées.</p><button type="button" disabled={busy} onClick={() => setConfirmForget(false)}>Garder mon accès</button><button type="button" disabled={busy} onClick={() => void forgetIdentity()}>Fermer mon accès et changer</button></div>}
         {error ? <p role="alert">{error}</p> : null}
@@ -1626,8 +1626,8 @@ function IdentityDeviceAccessPanel({
     <section className="lycee-identity-device" aria-labelledby="identity-device-title">
       <KeyRound aria-hidden="true" />
       <div className="lycee-identity-device-copy">
-        <strong id="identity-device-title">{state === "identify" ? "Présentons-nous : qui êtes-vous ?" : state === "choosing_contact" ? "Où souhaitez-vous recevoir votre code ?" : state === "awaiting_code" ? "Quel code avez-vous reçu ?" : "Vérifions votre accès"}</strong>
-        <p>{state === "identify" ? "Indiquez votre identité telle qu’elle est enregistrée au lycée. Si vous êtes parent, indiquez votre propre nom." : state === "choosing_contact" ? "Choisissez un seul moyen parmi les coordonnées connues du lycée." : state === "awaiting_code" ? "Ce code confirme votre identité et ouvre votre accès personnel." : "Vos informations personnelles restent protégées."}</p>
+        <strong id="identity-device-title">{state === "identify" ? "Qui êtes-vous ?" : state === "choosing_contact" ? "Où souhaitez-vous recevoir votre code ?" : state === "awaiting_code" ? "Quel code avez-vous reçu ?" : "Vérifions votre accès"}</strong>
+        <p>{state === "identify" ? "Indiquez votre identité telle qu’elle est enregistrée au lycée. Si vous êtes parent, indiquez votre propre nom." : state === "choosing_contact" ? "Choisissez un seul moyen parmi les coordonnées connues du lycée." : state === "awaiting_code" ? "Saisissez le code reçu pour confirmer votre identité." : "Vos informations personnelles restent protégées."}</p>
       </div>
       {state === "identify" ? (
         <form onSubmit={requestCode}>
@@ -1650,7 +1650,7 @@ function IdentityDeviceAccessPanel({
           </button>)}
           {busy ? <p role="status">Envoi du code…</p> : null}
           <button type="button" className="lycee-identity-contact-alternative" disabled={busy} onClick={requestContactCorrection}>Je n’ai plus accès à ces coordonnées</button>
-          <button type="button" className="lycee-identity-contact-alternative" disabled={busy} onClick={() => { setContactOptions([]); setState('identify'); setError(null); }}>Modifier mon identité</button>
+          <button type="button" className="lycee-identity-contact-alternative" disabled={busy} onClick={() => { setContactOptions([]); setState('identify'); setError(null); }}>Corriger mon nom ou mon profil</button>
         </div>
       ) : state === "checking_contact" ? (
         <div className="lycee-identity-device-progress" role="status"><RefreshCw className="is-spinning" aria-hidden="true" /><span>Recherche dans l’annuaire du lycée…</span></div>
@@ -1663,7 +1663,7 @@ function IdentityDeviceAccessPanel({
         <form onSubmit={verifyCode}>
           <span>Code envoyé à {destination}. Il est valable 10 minutes.</span>
           <input inputMode="numeric" autoComplete="one-time-code" pattern="[0-9]{6}" maxLength={6} value={code} onChange={(event) => setCode(event.target.value.replace(/\D/g, "").slice(0, 6))} placeholder="Code à 6 chiffres" aria-label="Code de vérification à six chiffres" required />
-          <button type="submit" disabled={busy || code.length !== 6}>{busy ? "Contrôle…" : "Vérifier"}</button>
+          <button type="submit" disabled={busy || code.length !== 6}>{busy ? "Vérification…" : "Vérifier"}</button>
           <button type="button" disabled={busy} onClick={() => { setState("identify"); setCode(""); setError(null); }}>Recommencer</button>
         </form>
       )}
@@ -1697,7 +1697,7 @@ function HelpDeskView({
   const welcomeMessage: AssistantChatMessage = {
     id: "welcome",
     role: "assistant",
-    content: "Bonjour, je suis l’assistant du lycée. Décrivez votre besoin dans la langue de votre choix. Vous pouvez joindre une photo ou un document utile. Ne communiquez aucun mot de passe ni code de vérification ici.",
+    content: "Bonjour, je suis Blaise, l’assistant du lycée. Comment puis-je vous aider ? Vous pouvez écrire dans la langue de votre choix et joindre un document utile. Gardez vos mots de passe confidentiels ; saisissez les codes uniquement dans le champ prévu.",
   };
   const [chatMessages, setChatMessages] = useState<AssistantChatMessage[]>(() => [
     welcomeMessage,
@@ -1790,8 +1790,8 @@ function HelpDeskView({
       setFormValues(draft.formValues);
       setDraftNotice(
         draft.hadAttachments
-          ? "Votre demande inachevée a été retrouvée. Pour votre sécurité, sélectionnez de nouveau les documents à joindre."
-          : "Votre demande inachevée a été retrouvée sur cet appareil."
+          ? "Votre brouillon a été retrouvé. Pour votre sécurité, sélectionnez de nouveau les documents à joindre."
+          : "Votre brouillon a été retrouvé sur cet appareil."
       );
     }).finally(() => {
       if (active) setDraftReady(true);
@@ -2023,7 +2023,7 @@ function HelpDeskView({
       (file) => !SUPPORT_FILE_TYPES.includes(file.type) || file.size > MAX_SUPPORT_FILE_BYTES
     );
     if (invalid) {
-      setSubmitError("Formats acceptés : PDF, image, texte, Word ou Excel, jusqu’à 10 Mo.");
+      setSubmitError("Formats acceptés : PDF, image, texte, Word ou Excel. Taille maximale : 10 Mo par fichier.");
       event.target.value = "";
       return;
     }
@@ -2156,7 +2156,7 @@ function HelpDeskView({
         payload,
         !classicForm && assistantRequestActionExpected
       )) {
-        throw new Error("La demande n’a pas pu être confirmée après son enregistrement");
+        throw new Error("L’enregistrement de votre demande n’a pas pu être confirmé. Réessayez sans modifier les informations.");
       }
       const publicCode = payload.request.publicCode;
       const persistedCreatedAt = payload.request.createdAt;
@@ -2232,7 +2232,7 @@ function HelpDeskView({
         <div className="lycee-confirmation-mark"><CheckCircle2 aria-hidden="true" /></div>
         <span className="lycee-eyebrow">Demande transmise</span>
         <h1>Votre dossier est créé.</h1>
-        <p>Votre demande est enregistrée. Retrouvez les messages et les documents reçus dans le suivi. Le service concerné pourra vous y répondre.</p>
+        <p>Votre demande est enregistrée. Retrouvez les réponses du lycée et les documents dans « Mes demandes ».</p>
         <div className="lycee-ticket-code"><span>Numéro de demande</span><div><strong ref={ticketCodeRef}>{ticketCode}</strong><button type="button" onClick={() => void copyTicketCode()} aria-label={`Copier le numéro ${ticketCode}`}><Copy aria-hidden="true" /> {ticketCopyStatus === "copied" ? "Copié" : ticketCopyStatus === "selected" ? "Sélectionné" : "Copier"}</button></div></div>
         <div className="lycee-confirmation-note"><Smartphone aria-hidden="true" /><span>Ouvrez « Mes demandes » sur cet appareil. Conservez votre numéro de dossier ; il ne suffit pas, à lui seul, à donner accès à la demande.</span></div>
         {confirmationChannel === "email"
@@ -2255,7 +2255,7 @@ function HelpDeskView({
         title={initialContactCollection ? "Demander une modification de mes coordonnées" : "Dites simplement ce qu’il vous faut"}
         description={initialContactCollection
           ? "Demandez l’ajout, la correction ou le retrait d’un email ou d’un téléphone. Le lycée vérifie votre demande avant toute modification."
-          : "Une question, un document ou un accès ? On s’en occupe ensemble, ici."}
+          : "Posez votre question ou expliquez votre démarche. Nous vous accompagnons ici."}
         onBack={onBack}
       />
 
@@ -2337,7 +2337,7 @@ function HelpDeskView({
 
           {requesterMessages.length > 0 && !showDetails && insight?.scope !== "safescol" ? (
             <div className={`lycee-chat-next${canCreateRequest ? " is-ready" : " is-form-only"}`}>
-              {canCreateRequest ? <div className="lycee-case-ready"><CheckCircle2 aria-hidden="true" /><span><strong>{insight?.action === "human_transfer" ? "Une personne du lycée doit vous accompagner" : "Votre demande est prête"}</strong><small>{reuseIdentityDetails ? "Vos coordonnées sont reprises. Relisez votre demande avant de l’envoyer au lycée." : "Ajoutez maintenant votre prénom, votre nom et un moyen de réponse pour l’envoyer au lycée."}</small></span></div> : null}
+              {canCreateRequest ? <div className="lycee-case-ready"><CheckCircle2 aria-hidden="true" /><span><strong>{insight?.action === "human_transfer" ? "Une personne du lycée doit vous accompagner" : "Votre demande est prête"}</strong><small>{reuseIdentityDetails ? "Vos coordonnées sont déjà renseignées. Relisez votre demande avant de l’envoyer." : "Ajoutez maintenant votre prénom, votre nom et un moyen de réponse pour l’envoyer au lycée."}</small></span></div> : null}
               <div className="lycee-chat-next-actions">
                 {canCreateRequest ? <button className="lycee-primary-action" type="button" onClick={() => setShowDetails(true)}>Préparer l’envoi <ChevronRight aria-hidden="true" /></button> : null}
                 <button type="button" onClick={() => { setClassicDescription((current) => current.trim() ? current : conversationDescription); setClassicForm(true); setShowDetails(true); }}>Je préfère remplir le formulaire</button>
@@ -2357,7 +2357,7 @@ function HelpDeskView({
 
           {conversationStopped && !canCreateRequest && insight?.scope !== "safescol" ? (
             <div className="lycee-chat-next">
-              <button className="lycee-primary-action" type="button" onClick={restartConversation}>Commencer une demande du lycée</button>
+              <button className="lycee-primary-action" type="button" onClick={restartConversation}>Commencer une demande au lycée</button>
             </div>
           ) : null}
 
@@ -2389,7 +2389,7 @@ function HelpDeskView({
               </div>
               <div className="lycee-contact-guidance" role="status"><Smartphone aria-hidden="true" /><span><strong>{formValues.email && formValues.phone ? "Email et téléphone disponibles" : formValues.email || formValues.phone ? "Un seul moyen de réponse" : "Au moins un moyen de réponse est nécessaire"}</strong><small>{formValues.email && formValues.phone ? "Si l’un des deux ne fonctionne pas, le lycée pourra utiliser l’autre selon votre autorisation." : formValues.email || formValues.phone ? "La demande peut être envoyée. Si ce contact est incorrect ou inaccessible, la réponse pourra arriver plus tard." : "Sans email ni téléphone, le lycée ne pourra pas vous répondre. Vous pouvez choisir l’un des deux sans fournir les deux."}</small></span></div>
               <div className="lycee-ai-summary"><WandSparkles aria-hidden="true" /><span><strong>{initialContactCollection ? contactCollectionAction === "remove" ? "Retrait à confirmer" : "Adresse à vérifier" : selectedCategory?.label}</strong><small>{initialContactCollection ? "La demande reste dans la file jusqu’à la décision d’un agent" : "Conversation et pièces jointes conservées dans le même dossier"}</small></span></div>
-              <div className="lycee-case-security"><BadgeCheck aria-hidden="true" /><span><strong>Vérification adaptée à la demande</strong><small>{initialContactCollection ? "Le lien reçu confirme seulement l’adresse. Un agent rapproche ensuite la demande de la liste officielle avant ajout, correction ou retrait." : "Vérifier votre email ne suffit pas à confirmer votre identité. Avant de transmettre un code d’accès ou un document personnel, le lycée vérifie aussi votre identité à partir de ses informations officielles."}</small></span></div>
+              <div className="lycee-case-security"><BadgeCheck aria-hidden="true" /><span><strong>Vérification adaptée à la demande</strong><small>{initialContactCollection ? "Le lien de suivi confirme l’accès à votre email. Le lycée vérifie ensuite la modification demandée à partir de son annuaire." : "Le lien de suivi donne accès à votre dossier. Pour consulter des informations personnelles, confirmez votre identité dans le chat avec un contact connu du lycée."}</small></span></div>
               {submitError ? <div className="lycee-form-error" role="alert"><CircleAlert aria-hidden="true" />{submitError}</div> : null}
               <button className="lycee-primary-action lycee-submit-request" type="submit" disabled={submitting || (!classicForm && !conversationDescription)}>{submitting ? "Enregistrement…" : "Envoyer au lycée"} <Send aria-hidden="true" /></button>
             </form>
@@ -2460,7 +2460,7 @@ const supportStatusLabels: Record<string, string> = {
 
 const agentStatusLabels: Record<string, string> = {
   ...supportStatusLabels,
-  attente_demandeur: "En attente usager",
+  attente_demandeur: "En attente de votre réponse",
   attente_interne: "À vérifier",
 };
 
@@ -2774,7 +2774,7 @@ function ConnectedRequestsView({ ticketCode, onBack, accessLinkError }: { ticket
       (file) => !SUPPORT_FILE_TYPES.includes(file.type) || file.size > MAX_SUPPORT_FILE_BYTES
     );
     if (invalid) {
-      setError("Formats acceptés : PDF, image, texte, Word ou Excel, jusqu’à 10 Mo.");
+      setError("Formats acceptés : PDF, image, texte, Word ou Excel. Taille maximale : 10 Mo par fichier.");
       return;
     }
     const requesterAttachmentCount = detail?.attachments.filter(
@@ -2818,7 +2818,7 @@ function ConnectedRequestsView({ ticketCode, onBack, accessLinkError }: { ticket
         const failedCount = uploads.filter((result) => result.status === "rejected").length;
         await loadDetail(code);
         if (failedCount > 0) {
-          setError(`${failedCount} document${failedCount > 1 ? "s n’ont" : " n’a"} pas été joint. Réessayez : les documents déjà reçus ne seront pas renvoyés.`);
+          setError(`${failedCount} document${failedCount > 1 ? "s n’ont pas été joints" : " n’a pas été joint"}. Réessayez : les documents déjà reçus ne seront pas renvoyés.`);
           return;
         }
         setFollowupFiles([]);
@@ -3024,11 +3024,11 @@ function ConnectedRequestsView({ ticketCode, onBack, accessLinkError }: { ticket
         <span><ShieldCheck aria-hidden="true" /><span><strong>Appareil partagé ?</strong><small>Fermez l’accès avant de le quitter.</small></span></span>
         <div className="lycee-device-action-buttons">
           {requests.length > 0 ? <PushNotificationsButton /> : null}
-          <button type="button" disabled={forgettingDevice} onClick={() => void forgetThisDevice()}><LogOut aria-hidden="true" />{forgettingDevice ? "Fermeture…" : "Oublier les demandes"}</button>
+          <button type="button" disabled={forgettingDevice} onClick={() => void forgetThisDevice()}><LogOut aria-hidden="true" />{forgettingDevice ? "Fermeture…" : "Fermer l’accès sur cet appareil"}</button>
         </div>
       </div>
       {error ? <div className="lycee-form-error" role="alert"><CircleAlert aria-hidden="true" />{error}</div> : null}
-      {detailError && selectedCode ? <div className="lycee-form-error" role="alert"><CircleAlert aria-hidden="true" /><span>{detailError}</span><button type="button" disabled={detailLoading} onClick={() => void loadDetail(selectedCode)}>{detailLoading ? "Nouvel essai…" : "Réessayer le dossier"}</button></div> : null}
+      {detailError && selectedCode ? <div className="lycee-form-error" role="alert"><CircleAlert aria-hidden="true" /><span>{detailError}</span><button type="button" disabled={detailLoading} onClick={() => void loadDetail(selectedCode)}>{detailLoading ? "Nouvel essai…" : "Recharger le dossier"}</button></div> : null}
       {loading ? <div className="lycee-loading-state"><Clock3 aria-hidden="true" /> Chargement des demandes…</div> : null}
       {detailLoading && requests.length > 0 ? <div className="lycee-loading-state" role="status" aria-live="polite"><Clock3 aria-hidden="true" /> Chargement du dossier…</div> : null}
       {!loading && requests.length === 0 ? (
@@ -3153,7 +3153,7 @@ function DemoRequestsView({ ticketCode, onBack }: { ticketCode: string | null; o
 
 function ServicesView({ onHelp, onCollect, onBack }: { onHelp: (prompt?: string) => void; onCollect: () => void; onBack: () => void }) {
   const serviceGroups = [
-    { title: "Assistance du lycée", description: "Une question de scolarité ou une difficulté de connexion ? Décrivez votre besoin.", icon: LifeBuoy, color: "coral", progress: "Assistant et formulaire", action: "Demander de l’aide", help: true },
+    { title: "Assistance du lycée", description: "Une question de scolarité ou une difficulté de connexion ? Décrivez votre besoin.", icon: LifeBuoy, color: "coral", progress: "Démarches dans le chat", action: "Demander de l’aide", help: true },
     { title: "Webmail du lycée", description: "Accès à la messagerie du lycée pour les utilisateurs autorisés.", icon: Mail, color: "green", progress: "Connexion à la messagerie", action: "Ouvrir le Webmail", href: WEBMAIL_URL, external: true },
     { title: "Inscriptions et dossiers", description: "Réinscription, pièces manquantes, classe et documents de scolarité", icon: FolderCheck, color: "gold", progress: "Traitement par le service concerné", action: "Préparer une demande", help: true },
     { title: "Cantine et intendance", description: "Inscription à la cantine, badge, repas ou paiement : adressez votre demande à l’intendance.", icon: Utensils, color: "gold", progress: "Service responsable : intendance", action: "Poser ma question", help: true, prompt: "J’ai une question sur la cantine pour le service d’intendance." },
@@ -3161,14 +3161,14 @@ function ServicesView({ onHelp, onCollect, onBack }: { onHelp: (prompt?: string)
     { title: "ENT Monlycée.net", description: "Ouvrez votre espace numérique avec vos identifiants personnels.", icon: KeyRound, color: "blue", progress: "Accès à Monlycée.net", action: "Accéder à l’ENT", href: ENT_URL, external: true },
     { title: "PRONOTE via l’ENT", description: "Notes, emploi du temps et vie scolaire selon les services activés par le lycée", icon: GraduationCap, color: "green", progress: "Accès officiel du lycée", action: "Ouvrir l’ENT", href: ENT_URL, external: true },
     { title: "Scolarité Services", description: "Bourses, inscriptions et démarches proposées aux familles", icon: FileText, color: "coral", progress: "Service national", action: "Comprendre et accéder", href: SCOLARITE_SERVICES_URL, external: true },
-    { title: "Coordonnées personnelles", description: "Demandez l’ajout, la correction ou le retrait d’un email personnel.", icon: UserRound, color: "gold", progress: "Email vérifié puis validation humaine", action: "Demander une modification", collect: true },
+    { title: "Coordonnées personnelles", description: "Demandez l’ajout, la correction ou le retrait d’un email ou d’un téléphone.", icon: UserRound, color: "gold", progress: "Modification validée par le lycée", action: "Demander une modification", collect: true },
     { title: "LyceeGest", description: "Stages, Grand Oral et outils de gestion du lycée", icon: BarChart3, color: "blue", progress: "Compte du lycée nécessaire", action: "Ouvrir LyceeGest", href: LYCEEGEST_URL },
     { title: "Stages de seconde", description: "Convention, entreprise, livret et suivi du stage", icon: BriefcaseBusiness, color: "gold", progress: "Module LyceeGest", action: "Ouvrir Stages", href: "/stages" },
     { title: "Grand Oral", description: "Questions, validations des professeurs et fiche officielle", icon: Mic2, color: "green", progress: "Module LyceeGest", action: "Ouvrir Grand Oral", href: "/grand-oral" },
   ];
   return (
     <div className="lycee-page">
-      <PageIntro eyebrow="Application lycée" title="Mes services" description="Retrouvez les accès utiles et choisissez la démarche adaptée à votre besoin." onBack={onBack} />
+      <PageIntro eyebrow="Application du lycée" title="Mes services" description="Retrouvez les accès utiles et choisissez la démarche adaptée à votre besoin." onBack={onBack} />
       <div className="lycee-services-catalog">
         {SAFESCOL_ACCESS_ENABLED && SAFESCOL_URL ? (
           <article data-tone="coral">
@@ -3260,14 +3260,14 @@ function SchoolView({ onBack, onHelp }: { onBack: () => void; onHelp: (prompt?: 
       title: "MELEC",
       name: "Métiers de l’électricité et de ses environnements connectés",
       description: "Préparer, réaliser et maintenir des installations électriques et des équipements communicants dans des environnements variés.",
-      path: "Seconde famille MTNE · baccalauréat professionnel en trois ans",
+      path: "Seconde de la famille MTNE · baccalauréat professionnel en trois ans",
     },
     {
       family: "Voie professionnelle",
       title: "PCEPC",
       name: "Procédés de la chimie, de l’eau et des papiers-cartons",
       description: "Piloter et surveiller des procédés industriels, contrôler la qualité et intervenir dans les domaines de la chimie et de l’eau.",
-      path: "Seconde famille MPMIA · baccalauréat professionnel en trois ans",
+      path: "Seconde de la famille MPMIA · baccalauréat professionnel en trois ans",
     },
     {
       family: "Certificat d’aptitude professionnelle",
@@ -3312,7 +3312,7 @@ function SchoolView({ onBack, onHelp }: { onBack: () => void; onHelp: (prompt?: 
         <div><span className="lycee-eyebrow">Une identité, plusieurs parcours</span><h2>Un lycée ouvert sur les sciences, les humanités et les métiers</h2><p>À Sevran, les voies générale, technologique et professionnelle se rencontrent dans un même établissement.</p><button type="button" onClick={() => document.getElementById("specialites")?.scrollIntoView({ behavior: "smooth" })}>Voir les spécialités <ChevronRight aria-hidden="true" /></button></div>
       </section>
       <SchoolParentsMeeting />
-      <div className="lycee-school-stats"><div><strong>Polyvalent</strong><span>général, technologique et professionnel</span></div><div><strong>8</strong><span>spécialités générales</span></div><div><strong>CAP au bac</strong><span>parcours de formation</span></div><div><strong>Euro</strong><span>section européenne anglais</span></div></div>
+      <div className="lycee-school-stats"><div><strong>Polyvalent</strong><span>général, technologique et professionnel</span></div><div><strong>8</strong><span>spécialités générales</span></div><div><strong>CAP au bac</strong><span>parcours de formation</span></div><div><strong>Euro</strong><span>section européenne en anglais</span></div></div>
       <nav className="lycee-school-nav" aria-label="Rubriques du lycée">
         <Link to="/?view=school#specialites">Spécialités</Link>
         <Link to="/?view=school#formations">Formations</Link>
@@ -3661,7 +3661,7 @@ async function uploadAgentSupportFile(
     }),
   });
   if (!isAgentSupportUploadReservationPayload(reservation)) {
-    throw new Error("La réservation du fichier reçue est invalide.");
+    throw new Error("Le document ne peut pas être préparé. Réessayez.");
   }
   submission.attachmentId = reservation.attachment.id;
   if (reservation.upload === null) {
@@ -3682,7 +3682,7 @@ async function uploadAgentSupportFile(
     { method: "POST", body: "{}" }
   );
   if (!isSupportAttachmentConfirmationPayload(confirmation, reservation.attachment.id)) {
-    throw new Error("La confirmation du fichier reçue est invalide.");
+    throw new Error("L’envoi du document n’a pas pu être confirmé. Actualisez le dossier avant de réessayer.");
   }
   submission.completed = true;
   return reservation.attachment.id;
@@ -3762,7 +3762,7 @@ function isAgentRequestDetail(value: unknown): value is AgentRequestDetail {
 async function fetchAgentRequestDetail(code: string): Promise<AgentRequestDetail> {
   const payload = await apiFetch<unknown>(`support/agent/requests/${code}`);
   if (!isAgentRequestDetail(payload)) {
-    throw new Error("Réponse invalide du détail de la demande");
+    throw new Error("Le détail de la demande n’a pas pu être chargé.");
   }
   return payload;
 }
@@ -4172,7 +4172,7 @@ function ConnectedAgentView({ onBack }: { onBack: () => void }) {
       (file) => !SUPPORT_FILE_TYPES.includes(file.type) || file.size > MAX_SUPPORT_FILE_BYTES
     );
     if (invalid) {
-      setError("Formats acceptés : PDF, image, texte, Word ou Excel, jusqu’à 10 Mo.");
+      setError("Formats acceptés : PDF, image, texte, Word ou Excel. Taille maximale : 10 Mo par fichier.");
       return;
     }
     const pendingCount = detail.attachments.filter(
@@ -4210,7 +4210,7 @@ function ConnectedAgentView({ onBack }: { onBack: () => void }) {
       return true;
     });
     if (acceptedEntries.length !== files.length || acceptedEntries.length === 0) {
-      setError("Une réponse peut préparer au maximum 5 documents.");
+      setError("Vous pouvez joindre au maximum 5 documents à une réponse.");
       if (acceptedEntries.length === 0) return;
     }
 
@@ -4585,7 +4585,7 @@ function ConnectedAgentView({ onBack }: { onBack: () => void }) {
   return (
     <div className="lycee-page lycee-agent-page">
       <PageIntro eyebrow="Espace agent" title="Demandes du lycée" description="Classez, répondez et gardez chaque échange dans le même dossier." onBack={onBack} />
-      {agentError ? <div className="lycee-form-error" role="alert"><CircleAlert aria-hidden="true" /><span>{agentError}</span>{needsAgentSecurity ? <a href="/security?returnTo=%2Fprototype%3Fview%3Dagent">Sécuriser le compte</a> : needsAgentLogin ? <a href="/login?returnTo=%2Fprototype%3Fview%3Dagent&mode=staff">Se connecter</a> : queueLoadError ? <button type="button" disabled={queueLoading} onClick={() => void loadQueue()}>{queueLoading ? "Nouvel essai…" : "Réessayer"}</button> : detailLoadError && selectedCode ? <button type="button" disabled={detailLoading} onClick={() => void loadDetail(selectedCode)}>{detailLoading ? "Nouvel essai…" : "Réessayer le dossier"}</button> : null}</div> : null}
+      {agentError ? <div className="lycee-form-error" role="alert"><CircleAlert aria-hidden="true" /><span>{agentError}</span>{needsAgentSecurity ? <a href="/security?returnTo=%2Fprototype%3Fview%3Dagent">Sécuriser le compte</a> : needsAgentLogin ? <a href="/login?returnTo=%2Fprototype%3Fview%3Dagent&mode=staff">Se connecter</a> : queueLoadError ? <button type="button" disabled={queueLoading} onClick={() => void loadQueue()}>{queueLoading ? "Nouvel essai…" : "Réessayer"}</button> : detailLoadError && selectedCode ? <button type="button" disabled={detailLoading} onClick={() => void loadDetail(selectedCode)}>{detailLoading ? "Nouvel essai…" : "Recharger le dossier"}</button> : null}</div> : null}
       {access ? <details className="lycee-agent-dashboard lycee-agent-panel">
         <summary><strong>Vue d’ensemble des services</strong><span>{stats.total} demandes · {stats.urgent} urgentes · {stats.unassigned} à attribuer</span></summary>
         <div className="lycee-agent-panel-content">
@@ -4599,7 +4599,7 @@ function ConnectedAgentView({ onBack }: { onBack: () => void }) {
       {access && !queueLoadError ? <section className="lycee-agent-next-action" data-mode={nextQueueAction.mode ?? "empty"} aria-labelledby="agent-next-action-title">
         <span><TicketCheck aria-hidden="true" /></span>
         <div>
-          <small>Priorité maintenant</small>
+          <small>À traiter en priorité</small>
           <strong id="agent-next-action-title">{nextQueueAction.headline}</strong>
           <p>{nextQueueAction.detail}</p>
         </div>
@@ -4651,13 +4651,13 @@ function ConnectedAgentView({ onBack }: { onBack: () => void }) {
                   {requiresSafeIdentityReply ? null : <select aria-label="Choisir un modèle de réponse" defaultValue="" onChange={(event) => { applyReplyTemplate(event.target.value); event.currentTarget.value = ""; }}><option value="">Choisir un modèle</option>{visibleTemplates.map((template) => <option value={template.id} key={template.id}>{template.name}</option>)}</select>}
                 </div>
                 <textarea ref={replyFieldRef} aria-label="Réponse à envoyer" rows={5} maxLength={5000} value={requiresSafeIdentityReply ? SUPPORT_IDENTITY_VERIFICATION_MESSAGE : reply} readOnly={requiresSafeIdentityReply || selected.status === "clos"} onChange={(event) => changeReply(event.target.value)} placeholder="Écrivez une réponse claire. Aucun mot de passe ne doit être demandé." />
-                {!requiresSafeIdentityReply && reply.trim() ? <small className="lycee-agent-draft-state">Brouillon gardé dans cet onglet jusqu’à l’envoi confirmé.</small> : null}
-                {translationTargetLanguage ? <div className="lycee-translation-command"><Languages aria-hidden="true" /><span><strong>Répondre aussi en {translationTargetLanguage}</strong><small>La version française reste la référence. Vous comparerez les deux textes avant l’envoi.</small></span><button type="button" disabled={translating || saving || selected.status === "clos" || !replySourceMessage} onClick={() => void prepareTranslation()}>{translating ? "Traduction…" : translationDraft ? "Repréparer" : "Préparer"}</button></div> : null}
+                {!requiresSafeIdentityReply && reply.trim() ? <small className="lycee-agent-draft-state">Brouillon conservé dans cet onglet jusqu’à la confirmation de l’envoi.</small> : null}
+                {translationTargetLanguage ? <div className="lycee-translation-command"><Languages aria-hidden="true" /><span><strong>Répondre aussi en {translationTargetLanguage}</strong><small>La version française reste la référence. Vous comparerez les deux textes avant l’envoi.</small></span><button type="button" disabled={translating || saving || selected.status === "clos" || !replySourceMessage} onClick={() => void prepareTranslation()}>{translating ? "Traduction…" : translationDraft ? "Refaire la traduction" : "Préparer"}</button></div> : null}
                 {translationDraft ? <div className="lycee-translation-review" aria-live="polite"><div><Languages aria-hidden="true" /><strong>Version en {translationDraft.targetLanguage}</strong><button type="button" title="Abandonner la traduction" onClick={clearTranslation}><Trash2 aria-hidden="true" /><span>Garder le français</span></button></div><p dir="auto">{translationDraft.translatedText}</p><div className="lycee-translation-back"><small>Contrôle du sens en français</small><p>{translationDraft.backTranslationFr}</p></div>{translationDraft.warnings.length > 0 ? <ul>{translationDraft.warnings.map((warning) => <li key={warning}>{warning}</li>)}</ul> : null}<label><input type="checkbox" checked={translationValidated} onChange={(event) => setTranslationValidated(event.target.checked)} /><span><strong>J’ai comparé les deux versions.</strong><small>J’autorise l’envoi de cette traduction. L’agent humain reste responsable du message.</small></span></label></div> : null}
                 <input ref={agentFileInputRef} className="lycee-file-input" type="file" multiple accept={SUPPORT_FILE_TYPES.join(",")} aria-label="Documents à joindre à la réponse" onChange={(event) => void selectAgentFiles(event)} />
                 {!requiresSafeIdentityReply && agentDraftAttachments.length > 0 ? <div className="lycee-agent-reply-files" aria-label="Documents préparés pour la réponse">{agentDraftAttachments.map((attachment) => <div key={attachment.id} data-ready={attachment.canAttachToReply}><label><input type="checkbox" disabled={!attachment.canAttachToReply || saving || agentDeletingAttachmentId === attachment.id} checked={selectedAgentAttachmentIds.includes(attachment.id)} onChange={(event) => setSelectedAgentAttachmentIds((current) => event.target.checked ? [...new Set([...current, attachment.id])] : current.filter((id) => id !== attachment.id))} /><FileText aria-hidden="true" /><span><strong>{attachment.originalName}</strong><small>{attachment.canAttachToReply ? "Prêt à joindre" : attachment.scanStatus === "blocked" ? "Fichier refusé" : attachment.scanStatus === "scan_error" ? "Contrôle indisponible" : attachment.scanStatus === "removal_pending" ? "Retrait à reprendre" : "Contrôle antivirus en cours"}</small></span></label>{attachment.canRemoveDraft ? <button type="button" className="lycee-agent-file-remove" disabled={agentDeletingAttachmentId !== null || saving} title="Retirer ce brouillon" aria-label={`Retirer ${attachment.originalName}`} onClick={() => void removeAgentAttachment(attachment.id, attachment.originalName)}>{agentDeletingAttachmentId === attachment.id ? <RefreshCw className="is-spinning" aria-hidden="true" /> : <Trash2 aria-hidden="true" />}</button> : null}</div>)}</div> : null}
                 {showTemplateSave && !requiresSafeIdentityReply && access?.canManageTemplates ? <div className="lycee-template-save"><input aria-label="Nom du nouveau modèle" value={templateName} onChange={(event) => setTemplateName(event.target.value)} placeholder="Nom du modèle" maxLength={80} /><button type="button" disabled={saving || !templateName.trim() || !reply.trim()} onClick={() => void saveReplyTemplate()}>Enregistrer</button></div> : null}
-                <div>{requiresSafeIdentityReply || !access?.canManageTemplates ? null : <button className="lycee-secondary-action" type="button" disabled={selected.status === "clos"} onClick={() => setShowTemplateSave((current) => !current)}><BookOpenCheck aria-hidden="true" /> Modèle</button>}<button className="lycee-secondary-action" type="button" disabled={selected.status === "clos" || requiresSafeIdentityReply || saving || agentUploading || agentDraftAttachments.length >= MAX_SUPPORT_FILES} onClick={() => agentFileInputRef.current?.click()}><Paperclip aria-hidden="true" /> {agentUploading ? "Contrôle…" : "Joindre"}</button><button className="lycee-primary-action" type="button" disabled={saving || agentUploading || translating || translationNeedsDecision || selected.status === "clos" || (!requiresSafeIdentityReply && !reply.trim())} onClick={() => void sendAgentReply()}><Send aria-hidden="true" /> {saving ? "Enregistrement…" : translatedReplyReady && translationDraft ? `Valider et envoyer en ${translationDraft.targetLanguage}` : "Valider et envoyer"}</button></div>
+                <div>{requiresSafeIdentityReply || !access?.canManageTemplates ? null : <button className="lycee-secondary-action" type="button" disabled={selected.status === "clos"} onClick={() => setShowTemplateSave((current) => !current)}><BookOpenCheck aria-hidden="true" /> Modèle</button>}<button className="lycee-secondary-action" type="button" disabled={selected.status === "clos" || requiresSafeIdentityReply || saving || agentUploading || agentDraftAttachments.length >= MAX_SUPPORT_FILES} onClick={() => agentFileInputRef.current?.click()}><Paperclip aria-hidden="true" /> {agentUploading ? "Vérification…" : "Joindre"}</button><button className="lycee-primary-action" type="button" disabled={saving || agentUploading || translating || translationNeedsDecision || selected.status === "clos" || (!requiresSafeIdentityReply && !reply.trim())} onClick={() => void sendAgentReply()}><Send aria-hidden="true" /> {saving ? "Enregistrement…" : translatedReplyReady && translationDraft ? `Valider et envoyer en ${translationDraft.targetLanguage}` : "Valider et envoyer"}</button></div>
               </section>
               <details key={selected.publicCode + "-historyPanelRef"} ref={historyPanelRef} className="lycee-agent-panel">
                 <summary><strong>Échanges et documents</strong><span>{detail.messages.length} messages · {detail.attachments.length} documents</span></summary>
@@ -4698,7 +4698,7 @@ function ConnectedAgentView({ onBack }: { onBack: () => void }) {
               <details key={selected.publicCode + "-notesPanelRef"} ref={notesPanelRef} className="lycee-agent-panel">
                 <summary><strong>Notes internes et clôture</strong><span>{selected.status === "clos" ? "Dossier clôturé" : "Suivi réservé aux agents"}</span></summary>
                 <div className="lycee-agent-panel-content">
-              <section className="lycee-agent-actions"><div><span><StickyNote aria-hidden="true" /><strong>Note interne</strong><small>Visible uniquement par les agents.</small></span><textarea aria-label="Note interne" rows={3} value={internalNote} disabled={saving} onChange={(event) => changeInternalNote(event.target.value)} placeholder="Diagnostic, appel effectué ou prochaine action…" maxLength={5000} /><button type="button" disabled={saving || !internalNote.trim()} onClick={() => void saveInternalNote()}>Ajouter la note</button></div><div data-closed={selected.status === "clos"}><span><CheckCircle2 aria-hidden="true" /><strong>{selected.status === "clos" ? "Dossier clôturé" : "Clôturer la demande"}</strong><small>{selected.status === "clos" ? selected.subjectContext.closureReason ?? "Motif enregistré dans l’historique." : requiresSafeIdentityReply ? "Confirmez d’abord l’identité scolaire pour cette demande sensible." : "Indiquez le motif de clôture ; il sera conservé dans l’historique."}</small></span>{selected.status === "clos" ? <button type="button" disabled={saving} onClick={() => void updateRequest({ status: "en_cours" })}>Rouvrir le dossier</button> : <><textarea aria-label="Motif de clôture" rows={3} value={closureReason} onChange={(event) => changeClosureReason(event.target.value)} placeholder="Solution apportée ou raison de la clôture…" maxLength={500} /><button type="button" disabled={saving || !closureReason.trim() || requiresSafeIdentityReply} onClick={() => void updateRequest({ status: "clos", closureReason })}>Clôturer le dossier</button></>}</div></section>
+              <section className="lycee-agent-actions"><div><span><StickyNote aria-hidden="true" /><strong>Note interne</strong><small>Visible uniquement des agents.</small></span><textarea aria-label="Note interne" rows={3} value={internalNote} disabled={saving} onChange={(event) => changeInternalNote(event.target.value)} placeholder="Diagnostic, appel effectué ou prochaine action…" maxLength={5000} /><button type="button" disabled={saving || !internalNote.trim()} onClick={() => void saveInternalNote()}>Ajouter la note</button></div><div data-closed={selected.status === "clos"}><span><CheckCircle2 aria-hidden="true" /><strong>{selected.status === "clos" ? "Dossier clôturé" : "Clôturer la demande"}</strong><small>{selected.status === "clos" ? selected.subjectContext.closureReason ?? "Motif enregistré dans l’historique." : requiresSafeIdentityReply ? "Confirmez d’abord l’identité scolaire pour cette demande sensible." : "Indiquez le motif de clôture ; il sera conservé dans l’historique."}</small></span>{selected.status === "clos" ? <button type="button" disabled={saving} onClick={() => void updateRequest({ status: "en_cours" })}>Rouvrir le dossier</button> : <><textarea aria-label="Motif de clôture" rows={3} value={closureReason} onChange={(event) => changeClosureReason(event.target.value)} placeholder="Solution apportée ou raison de la clôture…" maxLength={500} /><button type="button" disabled={saving || !closureReason.trim() || requiresSafeIdentityReply} onClick={() => void updateRequest({ status: "clos", closureReason })}>Clôturer le dossier</button></>}</div></section>
                 </div>
               </details>
             </>
@@ -4706,7 +4706,7 @@ function ConnectedAgentView({ onBack }: { onBack: () => void }) {
         </article>
       </div>
       <section className="lycee-agent-mail"><div><Newspaper aria-hidden="true" /><span><strong>Contenus du site</strong><small>Ajouter une actualité, publier un document ou modifier un modèle.</small></span></div><a href="/admin/contenus">Gérer <ChevronRight aria-hidden="true" /></a></section>
-      <section className="lycee-agent-mail"><div><Mail aria-hidden="true" /><span><strong>Communication direction</strong><small>Envoyer une information aux professeurs et personnels depuis la messagerie du lycée.</small></span></div><a href={WEBMAIL_ADMIN_URL} target="_blank" rel="noreferrer">Ouvrir <ExternalLink aria-hidden="true" /></a></section>
+      <section className="lycee-agent-mail"><div><Mail aria-hidden="true" /><span><strong>Communication de la direction</strong><small>Envoyer une information aux professeurs et personnels depuis la messagerie du lycée.</small></span></div><a href={WEBMAIL_ADMIN_URL} target="_blank" rel="noreferrer">Ouvrir <ExternalLink aria-hidden="true" /></a></section>
     </div>
   );
 }
@@ -4747,7 +4747,7 @@ function DemoAgentView({ onBack }: { onBack: () => void }) {
         </article>
       </div>
       <section className="lycee-agent-mail"><div><Newspaper aria-hidden="true" /><span><strong>Contenus du site</strong><small>Ajouter une actualité, publier un document ou modifier un modèle.</small></span></div><a href="/admin/contenus">Gérer <ChevronRight aria-hidden="true" /></a></section>
-      <section className="lycee-agent-mail"><div><Mail aria-hidden="true" /><span><strong>Communication direction</strong><small>Envoyer une information aux professeurs et personnels depuis la messagerie du lycée.</small></span></div><a href={WEBMAIL_ADMIN_URL} target="_blank" rel="noreferrer">Ouvrir <ExternalLink aria-hidden="true" /></a></section>
+      <section className="lycee-agent-mail"><div><Mail aria-hidden="true" /><span><strong>Communication de la direction</strong><small>Envoyer une information aux professeurs et personnels depuis la messagerie du lycée.</small></span></div><a href={WEBMAIL_ADMIN_URL} target="_blank" rel="noreferrer">Ouvrir <ExternalLink aria-hidden="true" /></a></section>
     </div>
   );
 }

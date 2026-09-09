@@ -2,8 +2,61 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
 import { analyzeSupportConversation } from "../api/_shared/support-agent.ts";
+import { requestedOwnCoursesDayOffset, scheduleAssistantDayAnswer } from "../shared/schedule-assistant.ts";
 
 process.env.OPENAI_API_KEY = "";
+
+test("a short day answer continues the personal timetable request and reads the correct Paris day", async () => {
+  const initial = messages("Je voudrais mon emploi du temps.");
+  const first = await analyzeSupportConversation({ messages: initial, attachments: [], identityVerified: true, safetyIdentifier: "schedule-followup" });
+  for (const day of ["Demain", "Pour demain svp", "Aujourd’hui", "Et demain ?"]) {
+    const dialogue = [...initial, {role:"assistant", content:first.reply}, {role:"requester",content:day}];
+    let calls = 0;
+    const answer = await analyzeSupportConversation({
+      messages: dialogue, attachments: [], identityVerified: true,
+      safetyIdentifier: "schedule-followup", now: new Date("2026-09-09T21:00:00Z"),
+      scheduleDayReader: async ({dayStart}) => {
+        calls++;
+        assert.equal(dayStart.toISOString(), day.includes("Aujourd") ? "2026-09-08T22:00:00.000Z" : "2026-09-09T22:00:00.000Z");
+        return {ok:false, reason:"source_unavailable"};
+      },
+    });
+    assert.equal(calls, 1);
+    assert.equal(answer.usedAi, false);
+    assert.equal(answer.readyToCreate, true);
+    assert.match(answer.reply, /Aucun emploi du temps validé/i);
+  }
+});
+
+test("short day answers neither open unrelated schedules nor bypass identity verification", async () => {
+  for (const prior of ["Je veux l’emploi du temps de mon enfant", "Quels sont les horaires de la cantine ?", "Je voudrais un certificat"]) {
+    assert.equal(requestedOwnCoursesDayOffset([...messages(prior), {role:"requester",content:"demain"}]), null);
+  }
+  assert.equal(requestedOwnCoursesDayOffset(messages("demain")), null);
+  assert.equal(requestedOwnCoursesDayOffset([...messages("mon emploi du temps"), {role:"requester",content:"les horaires de la cantine"}, {role:"requester",content:"demain"}]), null);
+  assert.equal(requestedOwnCoursesDayOffset([...messages("mon emploi du temps"), {role:"requester",content:"demain pour mon fils"}]), null);
+  const result = await analyzeSupportConversation({
+    messages:[...messages("mon emploi du temps"),{role:"requester",content:"demain"}],
+    attachments:[], identityVerified:false, safetyIdentifier:"schedule-followup-denied",
+    scheduleDayReader:async()=>({ok:false,reason:"identity_i3_required"}),
+  });
+  assert.match(result.reply,/identité scolaire/i);
+  assert.equal(result.readyToCreate,false);
+  assert.deepEqual(result.sourceReferences,[]);
+});
+
+test("the timetable separates each course and preserves official cancellation and room uncertainty", () => {
+  const result = scheduleAssistantDayAnswer({ok:true,courses:[
+    {subjectCode:"MATH",subjectLabel:"Mathématiques",startsAt:"2026-09-10T06:00:00Z",endsAt:"2026-09-10T07:00:00Z",roomCode:"B204",state:"scheduled"},
+    {subjectCode:"FR",subjectLabel:"Français",startsAt:"2026-09-10T07:00:00Z",endsAt:"2026-09-10T08:00:00Z",roomCode:null,state:"scheduled"},
+    {subjectCode:"HG",subjectLabel:"Histoire",startsAt:"2026-09-10T08:00:00Z",endsAt:"2026-09-10T09:00:00Z",roomCode:null,state:"cancelled"},
+  ],source:{versionId:"test",sourceType:"official_export",activatedAt:"2026-09-09T12:00:00Z",freshUntil:"2026-09-15T22:00:00Z"}},1);
+  assert.match(result.reply,/\n• 08:00 – 09:00 · Mathématiques · Salle B204\n/);
+  assert.match(result.reply,/Français · Salle à confirmer\n/);
+  assert.match(result.reply,/Histoire · Cours annulé/);
+  assert.match(result.reply,/Version du 9 septembre 2026/);
+  assert.equal(result.readyToCreate,false);
+});
 
 function messages(content) {
   return [
@@ -23,7 +76,8 @@ test("a generic personal timetable request starts identity verification instead 
   assert.equal(result.category, "affectation_classe");
   assert.equal(result.action, "continue");
   assert.equal(result.readyToCreate, false);
-  assert.match(result.reply, /email ou un téléphone déjà connu du lycée/i);
+  assert.match(result.reply, /nom et votre prénom/i);
+  assert.match(result.reply, /SMS ou par email parmi les contacts proposés/i);
 });
 
 test("after identity confirmation, a generic timetable request asks only for the desired day", async () => {

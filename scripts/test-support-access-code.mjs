@@ -14,6 +14,7 @@ const route = await readFile(new URL("../api/support/access-code.ts", import.met
 const session = await readFile(new URL("../api/_shared/support-access-session.ts", import.meta.url), "utf8");
 const vercelWorker = await readFile(new URL("../api/cron/support-worker.ts", import.meta.url), "utf8");
 const vpsWorker = await readFile(new URL("../workers/support-email-worker.mjs", import.meta.url), "utf8");
+const emailTemplates = await readFile(new URL("../shared/school-email-templates.mjs", import.meta.url), "utf8");
 const page = await readFile(new URL("../src/pages/prototype/LyceeConnectPrototype.tsx", import.meta.url), "utf8");
 
 const token = "A".repeat(43);
@@ -105,10 +106,12 @@ test("validates the minimal response before issuing the session cookie", () => {
 });
 
 test("requires codes in requester emails and fails closed when configuration is missing", () => {
+  assert.match(emailTemplates, /Code à usage unique : \$\{accessCode\}/);
   for (const worker of [vercelWorker, vpsWorker]) {
     assert.match(worker, /if \(!secret \|\| !job\.contact_id\) throw new Error\("support_access_code_unavailable"\)/);
     assert.match(worker, /supportAccessCodeFromToken/);
-    assert.match(worker, /Code (à|a) usage unique/);
+    assert.match(worker, /buildSupportRequesterEmail/);
+    assert.match(worker, /accessCode: requesterAccessCode\(job\)/);
     const agentStart = worker.indexOf('job.job_type === "notify_agent_request_created"');
     const replyStart = worker.indexOf('job.job_type === "send_requester_reply"', agentStart);
     assert.ok(agentStart >= 0 && replyStart > agentStart);

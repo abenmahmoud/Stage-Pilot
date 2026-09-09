@@ -6022,3 +6022,19 @@ Publication vérifiée : `ba8e098`, déploiement Vercel
 deux moyens masqués proposés, SMS et email académique, sans sélection ni envoi.
 Recette mobile du bundle publié avec API simulées réussie. Worker privé actif,
 service réussi ; migration et protections d'accès vérifiées.
+
+### 9 septembre 2026 — textes et état réel de l’autonomie
+
+Adel fournira les documents le lendemain et demande une correction des textes,
+ainsi qu’une explication de l’EDT et de l’autonomie après OTP. Plus de 60 passages
+du portail clarifiés ; reprise de « demain » après « mon emploi du temps » corrigée ;
+affichage d’un cours par ligne. Build, 86 tests ciblés, contrôle de sécurité complet
+et recettes à 1 440/390/320 px réussis. Les tests historiques ont été actualisés
+pour les évolutions déjà livrées, sans changer les habilitations.
+
+Audit en lecture seule : annuaire actif, mais aucune version EDT, aucune attribution
+de code et aucune compétence dans le registre de cet établissement. Les réponses
+publiques validées embarquées restent disponibles. Pas de PDF automatique dans le
+chat, ni de sélection d’enfant branchée pour un parent. Ne pas annoncer que l’OTP
+suffit à rendre tous les services autonomes. Publication et preuves :
+`docs/operations/TEXTES_ET_AUTONOMIE_AGENT_2026-09-09.md`.

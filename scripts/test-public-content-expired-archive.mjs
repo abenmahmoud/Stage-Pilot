@@ -33,8 +33,8 @@ test("binds pagination to the current or expired scope", () => {
   assert.match(route, /return \{ items, nextCursor, scope \}/);
 });
 
-test("offers an accessible archive mode while explaining manual withdrawal", () => {
-  assert.match(page, /role="group" aria-label="Période des informations"/);
+test("offers an accessible archive mode for publications still available", () => {
+  assert.match(page, /role="group" aria-label="Période de publication"/);
   assert.match(page, /aria-pressed=\{scope === "expired"\}/);
-  assert.match(page, /Les publications retirées par la direction ne sont jamais affichées ici/);
+  assert.match(page, /Les anciennes publications encore consultables sont regroupées dans les archives/);
 });

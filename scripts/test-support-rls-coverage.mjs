@@ -24,6 +24,8 @@ const expectedTables = [
   "support_templates",
   "support_rate_limits",
   "support_assistant_routing_reviews",
+  "support_push_subscriptions",
+  "support_push_deliveries",
 ].sort();
 
 const discoveredTables = new Set();
@@ -41,6 +43,15 @@ assert.deepEqual(
 );
 
 for (const table of expectedTables) {
+  if (table.startsWith("support_push_")) {
+    const guard = await readFile(new URL("20260909000432_support_web_push.sql", migrationsUrl), "utf8");
+    assert.match(guard, new RegExp(`alter table public\\.${table} enable row level security`, "i"));
+    assert.match(guard, /revoke all on public\.support_push_subscriptions, public\.support_push_deliveries from public, anon, authenticated/i);
+    assert.match(guard, /grant select, insert, update, delete on public\.support_push_subscriptions, public\.support_push_deliveries to service_role/i);
+    assert.doesNotMatch(guard, /grant[^;]+to\s+(public|anon|authenticated)/i);
+    assert.doesNotMatch(guard, /disable row level security/i);
+    continue;
+  }
   if (table === "support_email_dispatches") {
     const guard = await readFile(new URL("20260904102111_support_email_dispatch_guard.sql", migrationsUrl), "utf8");
     assert.match(guard, /support_email_dispatches enable row level security/i);

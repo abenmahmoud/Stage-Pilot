@@ -1,4 +1,18 @@
-# Import prive des emplois du temps
+# Import privé des emplois du temps
+
+## Consultation par le chat — état du 9 septembre 2026
+
+Le lecteur personnel peut répondre dans le chat pour le prochain cours,
+aujourd’hui ou demain. Une réponse courte « demain » après une demande personnelle
+conserve ce sujet, sans réduire les contrôles d’identité et de périmètre.
+Les cours sont présentés séparément avec horaire, matière, salle et changement
+officiel. Il n’y a pas de remise automatique de PDF au demandeur dans ce parcours.
+Le choix d’un enfant pour un parent reste à raccorder au chat.
+
+Contrôle de production du 9 septembre : aucune version EDT ni aucun créneau
+importé dans l’établissement. Le lecteur fonctionnel sur données fictives ne
+constitue donc pas un EDT réellement disponible. Preuves :
+`docs/operations/TEXTES_ET_AUTONOMIE_AGENT_2026-09-09.md`.
 
 ## Sources examinees
 

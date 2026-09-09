@@ -19,7 +19,7 @@ export function schoolReferenceAnswer(messages: readonly Message[], now: Date) {
   } else if (/\b(adresse|telephone|numero|contacter|joindre)\b/.test(text) && /\b(lycee|accueil|etablissement)\b/.test(text)) {
     reply = `Le lycée Blaise Cendrars se trouve au ${SCHOOL_PUBLIC_INFORMATION.address}, ${SCHOOL_PUBLIC_INFORMATION.locality}. Téléphone : ${SCHOOL_PUBLIC_INFORMATION.phone}. Email de l’établissement : ${SCHOOL_PUBLIC_INFORMATION.email}. L’accueil des visiteurs se fait sur rendez-vous.`;
   } else if (/\b(carnet|carte du lycee)\b/.test(text) && /\b(obligatoire|entrer|entree|presenter|faut|regle)\b/.test(text)) {
-    reply = "Pour entrer dans le lycée, présentez votre carte du lycée ou votre carnet de correspondance. Gardez-le avec vous : un adulte de l’établissement peut vous le demander.";
+    reply = "Pour entrer dans le lycée, présentez votre carte du lycée ou votre carnet de correspondance. Gardez ce document avec vous : un adulte de l’établissement peut vous demander de le présenter.";
     source = "Livret d’accueil 2026-2027, p. 14";
   } else if (/\b(absence|absences)\b/.test(text) && /\b(justifier|justificatif|delai|combien|comment)\b/.test(text) && !/\b(professeur|prof|personnel|enseignant)\b/.test(text)) {
     reply = "Prévenez la vie scolaire de l’absence. Au retour de l’élève, l’absence doit être justifiée dans les 48 heures, avec un justificatif signé dans le carnet de liaison, présenté à la vie scolaire avant l’entrée en cours. Vous pouvez préparer votre demande ici ; sa validation relève du lycée.";

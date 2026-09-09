@@ -505,14 +505,14 @@ export async function analyzeSupportConversation(input: {
     return {
       ...fallback,
       reply: input.identityVerified
-        ? "Votre identité est confirmée. Indiquez simplement le jour souhaité, par exemple « aujourd’hui » ou « demain », et je consulterai l’emploi du temps validé."
-        : "Je peux consulter votre emploi du temps personnel. Confirmez d’abord votre identité avec un email ou un téléphone déjà connu du lycée ; le code sera demandé seulement après son envoi réel.",
+        ? "Votre identité est confirmée. Souhaitez-vous consulter vos cours d’aujourd’hui ou de demain ?"
+        : "Pour consulter votre emploi du temps, confirmons votre identité. Indiquez votre nom et votre prénom, puis choisissez de recevoir un code par SMS ou par email parmi les contacts proposés.",
       category: "affectation_classe",
       confidence: "high",
       missingInformation: input.identityVerified ? ["Le jour souhaité"] : ["Identité scolaire confirmée"],
       suggestedDocuments: [],
       readyToCreate: false,
-      safetyNotice: "Aucun emploi du temps personnel n’est affiché avant la confirmation de l’identité.",
+      safetyNotice: null,
       usedAi: false,
       scope: "school_support",
       action: "continue",

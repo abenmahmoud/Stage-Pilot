@@ -122,6 +122,7 @@ test("the browser sends only the documented input fields", () => {
     page.indexOf("if (!isAssistantApiResult(apiResult))")
   );
   assert.match(call, /sessionId: assistantSessionId/);
-  assert.match(call, /messages: nextMessages\.slice\(-21\)\.map\(\(\{ role, content \}\) => \(\{ role, content \}\)\)/);
+  assert.match(page, /const requestMessages = nextMessages\.slice\(0, lastRequesterIndex \+ 1\)/);
+  assert.match(call, /messages: requestMessages\.slice\(-21\)\.map\(\(\{ role, content \}\) => \(\{ role, content \}\)\)/);
   assert.match(call, /attachments: files\.map\(\(file\) => \(\{ name: file\.name, type: file\.type, size: file\.size \}\)\)/);
 });

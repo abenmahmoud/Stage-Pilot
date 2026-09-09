@@ -269,7 +269,7 @@ export default function LoginPage() {
                     required
                     autoComplete="username"
                     autoCapitalize="characters"
-                    placeholder="EX: AMIAR-2E1-7842"
+                    placeholder="Ex. : DUPONT-2E1-7842"
                     className="w-full rounded-xl border border-gray-300 bg-white py-3 pl-10 pr-4 text-sm outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 tracking-wider font-mono uppercase"
                   />
                 </div>
@@ -323,7 +323,7 @@ export default function LoginPage() {
                     required
                     autoComplete="username"
                     autoCapitalize="characters"
-                    placeholder="EX: DURAND-PROF-4821"
+                    placeholder="Ex. : DURAND-PROF-4821"
                     className="w-full rounded-xl border border-gray-300 bg-white py-3 pl-10 pr-4 text-sm outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 tracking-wider font-mono uppercase"
                   />
                 </div>
@@ -341,7 +341,7 @@ export default function LoginPage() {
               </button>
 
               <p className="text-center text-xs text-gray-400">
-                Code perdu ? Contacte l'administration du lycée.
+                  Code perdu ? Contactez l’administration du lycée.
               </p>
             </form>
           )}
@@ -356,7 +356,7 @@ export default function LoginPage() {
                   Accès réservé aux agents autorisés. Utilisez votre compte professionnel nominatif.
                 </p>
                 <p className="mt-3 rounded-xl border border-blue-100 bg-blue-50 px-4 py-3 text-xs leading-5 text-blue-800">
-                  Chaque agent possède son propre compte. Après la connexion, une vérification renforcée protège les demandes du lycée.
+                  Chaque agent possède son propre compte. Les vérifications demandées dépendent de son rôle et des règles d’accès en vigueur.
                 </p>
               </div>
 
