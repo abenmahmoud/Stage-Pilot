@@ -34,3 +34,16 @@ Adel demande une entrée par le chat, des écrans moins chargés, des textes vé
 
 ## Retour arrière
 Revenir au déploiement Vercel précédent ; désactiver SUPPORT_PUSH_ENABLED et le timer push ; supprimer les deux variables de date du pilote MFA. Les tables additives peuvent rester sans abonnement actif. Ne pas supprimer les données de demandes.
+
+## Livraison vérifiée le 9 septembre
+
+- Code livré : `326d2cf`, après `90a141d` et `457bfa6`, poussé sur `codex/lycee-connect-prototype`.
+- Vercel : `dpl_GN5264GUy5F5MMggj8pxzD7GyeTW`, état READY, preview `https://lyceegest-phtygvm4i-safe-scol.vercel.app`. Le domaine principal pointe déjà sur ce déploiement via la configuration de branche existante. Aucun changement DNS.
+- Site public : HTTP 200, CSP et HSTS présents ; `www` renvoie en 308 vers le domaine principal. Les fichiers JS/CSS d’entrée, le service worker et le manifeste sont identiques entre la version testée et le site. La différence HTML est uniquement la barre Vercel ajoutée aux previews.
+- Recette navigateur : accueil du chat sans identité ; réponse sourcée aux horaires sans formulaire imposé ; demande d’EDT personnel suivie des étapes identité puis email OU téléphone ; contact fictif inconnu refusé sans prétendre envoyer un code ; poursuite sans vérification, contact téléphone seul, récapitulatif modifiable, sélection d’un PDF fictif fonctionnelle. Aucun dossier ni message à un collègue créé par cette recette.
+- Affichage ordinateur contrôlé ; formats 390 et 320 pixels contrôlés. Le débordement des boutons d’identité découvert pendant la recette est corrigé ; largeur défilante égale à la largeur visible dans les trois blocs du chat testés.
+- `/admin/services` vérifié avec la session de direction existante : sept services affichés, leurs comptes habilités et leur file ; aucun message d’erreur console. Les dimensions du navigateur ont été rétablies et les onglets de test fermés.
+- Configuration push publique active ; inscription sans session ou compte autorisé refusée (401), route administrative refusée sans authentification (401). Le transport réel vers un téléphone reste à tester avec le consentement de son utilisateur.
+- Annuaire : un import actif, 6 186 lignes valides. Aucune version d’EDT présente dans la base au contrôle. Une adhésion de responsable de service couvre les sept services ; le superadministrateur dispose de son adhésion distincte.
+- Tests ciblés d’identité, assistant, normalisation, routes privées, limites API, MFA, migrations et responsive réussis ; build réussi. Recette PostgreSQL isolée réussie, y compris contact révoqué, avec zéro envoi externe. Audit npm des dépendances de production : zéro vulnérabilité signalée. Encodage UTF-8 des textes `src`, `public` et `shared` contrôlé.
+- Point de reprise : tester sur le téléphone d’Adel le vrai OTP, l’installation PWA et un push ; importer et valider un EDT réel ; fournir les modèles officiels pour la génération des documents et les coordonnées nominatives des comptes supplémentaires.
