@@ -49,6 +49,32 @@ La matrice complète des rôles, codes, certificats et sessions figure dans
 
 ## Fichiers et vie privée
 
+### Adresses de messagerie ENT — décision du 9 septembre 2026
+
+Adel confirme explicitement la règle du lycée : l'adresse de messagerie ENT est
+constituée de l'**identifiant de connexion ENT exact**, suivi de `@monlycee.net`.
+Cette confirmation autorise la préparation d'un complément à partir de l'export
+officiel ; ne pas reconstruire un identifiant depuis le nom et le prénom.
+
+- Conserver les emails académiques, personnels et téléphones existants. L'email
+  ENT constitue un contact supplémentaire pour la même personne, sans nouvelle
+  fiche ni perte de relations parent-enfant.
+- Distinguer la colonne `Identifiant de connexion` des identifiants techniques
+  `ID` et `Id Externe`. Seule la première sert à construire l'adresse.
+- Ne pas corriger silencieusement un identifiant ambigu ou une adresse invalide :
+  isoler ces lignes pour contrôle, conserver les autres moyens de contact.
+- Un seul contact connu choisi par la personne et un seul OTP suffisent selon la
+  politique existante. L'email ENT ne devient pas obligatoire et ne remplace pas
+  l'option email académique, personnel ou téléphone.
+- Conserver les fichiers de correspondance hors Git et les codes ENT hors du
+  répertoire d'identité. Aucune valeur secrète n'est transmise au modèle.
+
+**État : règle confirmée ; complément préparé localement.** Le répertoire codé
+actuellement possède deux colonnes email (académique et personnelle). La prise
+en charge d'un troisième contact ENT dans l'import et la recherche OTP reste à
+raccorder puis à vérifier en production. La préparation de ce complément ne
+prouve ni son activation ni la réception d'un code.
+
 Tout fichier reste en stockage privé et fermé avant un état antivirus `clean`.
 L'agent reçoit un niveau de preuve, un type de personne et un périmètre, jamais
 le répertoire complet ni une valeur secrète. Une panne laisse disponible le

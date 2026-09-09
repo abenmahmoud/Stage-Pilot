@@ -5895,3 +5895,19 @@ Livraison et limites : `docs/operations/CHAT_PWA_SERVICES_2026-09-09.md`. Push s
 ### Livraison chat et PWA du 9 septembre 2026
 
 Le code `326d2cf` est en ligne sur le domaine principal. Parcours vérifié : question publique sans identité, demande personnelle puis identité et choix email/téléphone, contact inconnu sans faux code annoncé, préparation progressive et pièce jointe dans le chat. Recette visuelle ordinateur, 390 et 320 pixels passée. L'espace `/admin/services` est opérationnel ; le push est actif côté serveur et attend le test du téléphone réel. L'annuaire comporte un import actif (6 186 lignes valides), mais aucune version d'EDT n'est encore importée. Ne pas annoncer un emploi du temps personnel disponible avant cet import, ni une génération de document sans modèle officiel validé. Preuves, périmètre MFA temporaire et retour arrière : `docs/operations/CHAT_PWA_SERVICES_2026-09-09.md`.
+
+### 9 septembre 2026 — emails ENT et affiche du site
+
+Adel confirme la correspondance `Identifiant de connexion ENT` + `@monlycee.net`
+pour le lycée. Cette règle est désormais approuvée pour préparer le complément
+officiel ; ne plus demander cette confirmation. Préserver les autres contacts,
+contrôler les références exactes et isoler les identifiants atypiques. Voir
+`002-agent-etablissement-adaptatif/identity-device-access.md`. Le support du
+troisième email et son activation dans la recherche OTP restent à raccorder ;
+aucune réception de code n'est attestée par cette seule préparation.
+
+Affiche créée localement dans `../output/pdf/Affiche-site-app-lycee-2026` : PDF A3
+et A4, PNG de partage, illustration originale. QR vectoriel direct vers le domaine
+principal, relu par un décodeur indépendant sur les deux PDF. Le texte annonce
+actualités, démarches, réponses et ajout à l'écran d'accueil, sans promettre de
+service personnel encore indisponible. Aucune diffusion externe effectuée.
