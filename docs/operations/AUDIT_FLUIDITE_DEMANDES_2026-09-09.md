@@ -67,3 +67,20 @@ vérifié avec les règles administratives validées avant une nouvelle automati
 Points séparés déjà suivis : adresse d'envoi sur le domaine du lycée à configurer
 dans Brevo ; nouveau paquet des emails de confirmations/réponses non installé
 sur le VPS tant que la connexion SSH expire. Voir `EMAILS_PERSONNALISES_2026-09-09.md`.
+
+## Publication et essai Web
+
+Commit `7e6d029cc46132dc2095fc3c7419479c62544815`, déploiement
+`dpl_6tw3jfTu4MLPGL9BeXd5JebZruhn` READY avec l'alias du domaine principal.
+La page d'aide et le module du chat répondent HTTP 200 ; le module contient
+les nouvelles consignes visibles de préparation ici.
+
+Une seule question de recette publique, sans identité ni donnée personnelle,
+a été posée à l'API du chat en ligne : réservation de repas via application ou
+PRONOTE. Réponse IA obtenue : catégorie `restauration_bourse`, indication honnête
+qu'aucune procédure validée n'est disponible, proposition de préparer une demande
+sans renvoi vers un formulaire externe. `sourceReferences` est vide pour cette
+question. Aucun dossier, contact ou message aux familles n'a été créé par l'essai.
+
+Retour arrière Web : commit `ae0cd87`, déploiement
+`dpl_8HBtKqeJ78PJCGt1FkJwd8RtTqdg`. Aucune migration de base nécessaire.

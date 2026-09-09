@@ -5964,3 +5964,10 @@ modifiée ni message envoyé. Voir `docs/operations/AUDIT_FLUIDITE_DEMANDES_2026
 Suite proposée : procédures validées, reprise de dossier après vérification,
 console centrée sur l'action attendue, titres précis et notifications regroupées.
 Question nouvelle posée : procédure officielle de réservation des repas ; en attente.
+
+Publication vérifiée : `7e6d029`, déploiement
+`dpl_6tw3jfTu4MLPGL9BeXd5JebZruhn` READY sur le domaine principal ; page d'aide
+et module du chat HTTP 200. Une question de recette sans donnée personnelle
+confirme en ligne le classement restauration et l'absence de renvoi vers un
+formulaire externe. Aucune source de procédure de repas n'a été retrouvée pour
+ce cas ; l'agent le signale. Aucun dossier ni email créé pendant cet essai.
