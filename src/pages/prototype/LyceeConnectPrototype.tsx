@@ -1610,7 +1610,7 @@ function IdentityDeviceAccessPanel({
         </form>
       )}
       {error ? <p className="lycee-identity-device-error" role="alert">{error}</p> : null}
-      {!busy && state !== "checking_contact" ? <button className="lycee-identity-skip" type="button" onClick={onSkip}>Je préfère transmettre ma demande sans vérifier mon identité</button> : null}
+      {!busy ? <button className="lycee-identity-skip" type="button" onClick={onSkip}>Je préfère transmettre ma demande sans vérifier mon identité</button> : null}
     </section>
   );
 }
