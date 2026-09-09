@@ -56,5 +56,17 @@ contrôle d’accès serveur.
 
 ## Publication
 
-À vérifier après déploiement. Retour arrière : commit `ed347b8`, déploiement
+Commit `51abb489e9ecfed933c9abf547c6becf92553e6e`, déploiement
+`AmB67mpCwJvunFoRshGysf16U99V`, statut GitHub Vercel `success` / `Deployment has
+completed`. Le domaine principal et le module `LyceeConnectPrototype-CkLPsokx.js`
+répondent HTTP 200, via `/assets/index-BFjpo4iF.js`. Le nouveau bouton de reprise
+et le texte d’envoi de l’accueil sont présents dans le module servi.
+
+Recette supplémentaire du site déployé à 390 px : accueil → bouton « Besoin
+d’aide » → conversation d’aide, sans question envoyée ni identité demandée à
+l’ouverture. API interceptées dans un navigateur vierge ; aucun message réel
+envoyé. Pas d’erreur JavaScript ni de débordement. Preuve locale :
+`../tmp/qa-public-journey/live.json` et `live-help-390.png`.
+
+Retour arrière : commit `ed347b8`, déploiement
 `Epp6JwGfaGqEEC59sSbuwAfjGFWM`. Aucun changement de schéma ni de configuration.

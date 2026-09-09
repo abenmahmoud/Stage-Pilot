@@ -6000,3 +6000,8 @@ récapitulatif, toujours éditable. Effacement et changement de personne préser
 31 tests ciblés et recettes public/OTP à 1 440/390/320 px avec données fictives.
 Voir `docs/operations/PARCOURS_ACCUEIL_AIDE_2026-09-09.md` pour les preuves,
 limites et état de publication. Pas de modification des autorisations serveur.
+
+Publication vérifiée : `51abb48`, statut Vercel réussi, déploiement
+`AmB67mpCwJvunFoRshGysf16U99V`. Module `LyceeConnectPrototype-CkLPsokx.js`
+HTTP 200 sur le domaine principal. Parcours d’entrée du site déployé vérifié
+à 390 px avec API simulées, sans envoi ni demande d’identité à l’ouverture.
