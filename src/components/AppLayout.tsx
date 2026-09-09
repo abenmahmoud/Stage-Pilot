@@ -209,7 +209,7 @@ export default function AppLayout() {
               <Inbox className="w-4 h-4" />
               Demandes
             </NavLink>
-              {["superadmin", "proviseur"].includes(user.role) ? <NavLink to="/admin/services" className={navCls}>Équipes et services</NavLink> : null}
+              {["superadmin", "proviseur"].includes(user.role) ? <NavLink to="/admin/services" className={navCls}>Ã‰quipes et services</NavLink> : null}
             <NavLink to="/admin/validations-agent" className={navCls}>
               <BadgeCheck className="w-4 h-4" />
               Validations

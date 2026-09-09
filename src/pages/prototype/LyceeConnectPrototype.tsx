@@ -1461,7 +1461,10 @@ function IdentityDeviceAccessPanel({
           setState("needs_contact_update");
         }
       } catch {
-        if (active) setError("La vérification est momentanément indisponible. Réessayez ou demandez la correction de vos coordonnées.");
+        if (active) {
+          setError("La vérification est momentanément indisponible. Réessayez ou demandez la correction de vos coordonnées.");
+          if (attempts >= 40) setState("needs_contact_update");
+        }
       }
     };
     void poll();
@@ -1493,7 +1496,7 @@ function IdentityDeviceAccessPanel({
       if (!response.ok || payload.status !== "checking") throw new Error("request_failed");
       setState("checking_contact");
     } catch {
-      setError("La vérification est indisponible. Vous pouvez continuer avec le formulaire.");
+      setError("La vérification est indisponible. Vous pouvez transmettre votre demande ici sans vérifier votre identité.");
     } finally {
       setBusy(false);
     }
