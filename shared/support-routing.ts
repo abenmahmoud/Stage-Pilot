@@ -1,4 +1,5 @@
 import type { AgentIdentityLevel } from "./agent-identity-policy.js";
+import { isCateringSupportTopic } from "./support-topic-context.js";
 
 export type SchoolService =
   | "referent_numerique"
@@ -83,8 +84,17 @@ export function routeSupportRequest(input: {
       priority: "p1",
     };
   }
+  if (isCateringSupportTopic(input.description)) {
+    return {
+      service: "intendance",
+      confidence: "high",
+      reason: "intendance_ou_aide_financiere",
+      requiredIdentity: identity,
+      priority: "p3",
+    };
+  }
   if (
-    /\b(ent|educonnect|pronote|webmail|zimbra|email academique|wifi|reseau|ordinateur|pc|tablette|logiciel|connexion)\b/.test(text)
+    /\b(ent|educonnect|pronotes?|webmail|zimbra|email academique|wifi|reseau|ordinateur|pc|tablette|logiciel|connexion)\b/.test(text)
   ) {
     return {
       service: "referent_numerique",

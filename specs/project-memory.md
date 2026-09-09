@@ -5948,3 +5948,19 @@ Publication Web vérifiée : `ae0cd87`, déploiement
 et page d'aide HTTP 200. L'OTP email utilise le modèle corrigé. Le bundle VPS
 est prêt mais non installé, faute de connexion SSH ; ne pas annoncer que ses
 confirmations/réponses utilisent déjà les nouveaux textes.
+
+### 9 septembre 2026 — audit des demandes et fluidité du chat
+
+Adel demande de lire les demandes pour améliorer le traitement. Audit des 15
+dossiers : 14 nouveaux sans attribution, une réponse humaine ; doubles créations
+rapprochées et confusion entre outil cité et sujet réel. Les trois notifications
+de nouveau message d'un dossier correspondent à trois messages distincts.
+
+Correction des instructions serveur encore orientées vers un formulaire externe,
+de la priorité du sujet cantine, des codes formulés en français hésitant et des
+diplômes. Le chat conserve préparation locale, identité protégée et confirmation.
+75 tests, build et recette sur ordinateur/390/320 px réussis. Aucune demande réelle
+modifiée ni message envoyé. Voir `docs/operations/AUDIT_FLUIDITE_DEMANDES_2026-09-09.md`.
+Suite proposée : procédures validées, reprise de dossier après vérification,
+console centrée sur l'action attendue, titres précis et notifications regroupées.
+Question nouvelle posée : procédure officielle de réservation des repas ; en attente.

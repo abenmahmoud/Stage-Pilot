@@ -12,6 +12,7 @@ import {
 } from "../../shared/agent-context-window.js";
 import { MISSING_OPENING_HOURS_REPLY, schoolClock, schoolDayBoundsUtc, schoolInformationIntent, schoolRuntimeInstructions, supportFormReady } from "../../shared/assistant-school-context.js";
 import { schoolReferenceAnswer } from "../../shared/school-reference-answers.js";
+import { isCateringSupportTopic } from "../../shared/support-topic-context.js";
 import { readAiProviderJsonResponse } from "../../shared/ai-provider-response.js";
 import { evaluateLaptopIntake } from "../../shared/laptop-intake.js";
 import type { KnowledgeActor } from "../../shared/skill-registry-policy.js";
@@ -171,7 +172,7 @@ const RESULT_SCHEMA = {
 } as const;
 
 const INSTRUCTIONS = `Tu es l'assistant numérique officiel du Lycée polyvalent Blaise Cendrars de Sevran.
-Ta mission est d'aider élèves, parents, professeurs et personnels à la rentrée, puis de préparer une demande claire pour un agent humain.
+Ta mission est d'aider élèves, parents, professeurs et personnels dans le chat, de répondre depuis les sources validées et de préparer une demande humaine lorsque le besoin ne peut pas être résolu directement.
 
 Règles:
 - Réponds dans la langue principalement utilisée par la personne lorsqu'elle est identifiable. Sinon, utilise un français simple, chaleureux et direct, en 2 à 5 phrases.
@@ -204,16 +205,19 @@ Règles:
 - Une seule question nécessaire à la fois. Ne prolonge pas artificiellement la conversation.
 - Réponds d'abord à la question posée. Une question sur la date, les horaires ou une procédure générale n'exige pas un dossier.
 - Pour une intervention du lycée, mets readyToCreate à true dès que le besoin est compréhensible. N'impose pas d'essai préalable pour un code perdu, un document demandé ou une inscription.
-- Au maximum une question de clarification utile pour un incident vague ; ensuite propose le formulaire. Nom, classe, email et téléphone seront recueillis dans le formulaire, pas dans le dialogue.
-- Si caseFormReady vaut true dans l'entrée serveur, ne pose plus de question de diagnostic : termine par « Vérifiez vos coordonnées dans le formulaire puis utilisez Envoyer au lycée. » dans la langue de la personne.
-- readyToCreate signifie seulement que le problème est assez clair pour ouvrir un dossier; les coordonnées seront demandées localement ensuite.`;
+- Le parcours se déroule dans cette conversation. Ne renvoie pas vers un formulaire à chercher ailleurs. L'interface locale pose les questions nécessaires une par une puis affiche un récapitulatif modifiable avant confirmation d'envoi.
+- Si caseFormReady vaut true, le besoin est assez clair pour préparer une demande : explique brièvement la prochaine étape ici, sans recommencer le diagnostic ni annoncer une demande déjà envoyée. N'ajoute pas une consigne automatique de formulaire à chaque réponse.
+- Ne redemande pas une information déjà donnée. Les coordonnées et le code de vérification sont recueillis par les composants sécurisés du chat, pas par le modèle. N'invente jamais un contact ou une identité vérifiée.
+- Une demande de réservation de repas reste une demande de restauration même si la personne demande si elle doit utiliser une application ou PRONOTE. Une inscription à la cantine n'est pas une inscription au lycée.
+- readyToCreate signifie seulement que le besoin est assez clair pour préparer un dossier; cela ne prouve ni sa création, ni l'envoi d'un message, ni la résolution du problème.`;
 
 function inferCategory(text: string): SupportAgentResult["category"] {
+  if (isCateringSupportTopic(text)) return "restauration_bourse";
   if (/\b(inscription|réinscription|reinscription|inscrire)\b/i.test(text)) return "inscription";
-  if (/\b(ent|educonnect|pronote|connexion|connecter|identifiant|code)\b/i.test(text)) return "ent";
+  if (/\b(ent|educonnect|pronotes?|connexion|connecter|identifiants?|codes?)\b/i.test(text)) return "ent";
   if (/\b(email|mail|webmail|zimbra|académique|academique)\b/i.test(text)) return "email_academique";
   if (/\b(classe|affectation|emploi du temps|edt)\b/i.test(text)) return "affectation_classe";
-  if (/\b(document|certificat|attestation|pièce|piece|dossier|justificatif|manque)\b/i.test(text)) return "documents_scolarite";
+  if (/\b(documents?|diplômes?|diplomes?|certificat|attestation|pièce|piece|dossier|justificatif|manque)\b/i.test(text)) return "documents_scolarite";
   if (/\b(pc|ordinateur|portable|tablette|chargeur)\b/i.test(text)) return "ordinateur";
   if (/\b(logiciel|application|wifi|réseau|reseau)\b/i.test(text)) return "logiciel";
   if (/\b(cantine|badge|restauration|bourse|internat|hébergement scolaire|hebergement scolaire|intendance|paiement)\b/i.test(text)) return "restauration_bourse";
@@ -292,8 +296,8 @@ function localFallback(
     reply: informationIntent === "opening_hours" ? MISSING_OPENING_HOURS_REPLY
       : informationIntent === "clock" ? "L’horloge du service est momentanément indisponible. Je ne peux pas confirmer la date et l’heure du lycée."
       : readyToCreate
-      ? `J’ai compris votre besoin et je le classe dans « ${CATEGORY_LABELS[category]} ». ${attachments.length ? `Les ${attachments.length} pièces sélectionnées seront jointes au dossier. ` : ""}La demande est prête : vérifiez vos coordonnées puis transmettez-la au lycée.`
-      : `J’ai compris votre besoin et je le classe dans « ${CATEGORY_LABELS[category]} ». ${attachments.length ? `Les ${attachments.length} pièces sélectionnées seront jointes au dossier. ` : ""}Précisez ce qui bloque et ce que vous avez déjà essayé.`,
+      ? `Votre demande concerne « ${CATEGORY_LABELS[category]} ». Nous allons compléter les informations utiles ici, puis vous pourrez relire et confirmer l’envoi. Rien n’est envoyé sans votre confirmation.`
+      : `Votre demande concerne « ${CATEGORY_LABELS[category]} ». Que souhaitez-vous obtenir ou qu’est-ce qui vous bloque ?`,
     category,
     requesterType,
     urgency: /\b(urgent|aujourd'hui|bloqué|bloque|impossible)\b/i.test(text) ? "urgente" : "normale",

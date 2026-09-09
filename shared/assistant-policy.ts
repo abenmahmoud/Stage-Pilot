@@ -153,7 +153,7 @@ function explicitScope(content: string): AssistantScope {
   }
 
   if (
-    /\b(lycee|direction|proviseur|proviseure|accueil|secretariat|ent|educonnect|pronote|webmail|zimbra|email academique|mot de passe academique|inscription|reinscription|classe|affectation|emploi du temps|document|dossier|formulaire|certificat|attestation|badge|justificatif|ordinateur|pc portable|tablette|wifi|logiciel|cantine|restauration|bourse|intendance|orientation|parcoursup|formation|specialite|absence|retard|vie scolaire|cpe|stage|grand oral)\b/.test(
+    /\b(lycee|direction|proviseur|proviseure|accueil|secretariat|ent|educonnect|pronotes?|webmail|zimbra|email academique|mot de passe academique|inscription|reinscription|classe|affectation|emploi du temps|documents?|diplomes?|dossier|formulaire|certificat|attestation|badge|justificatif|ordinateur|pc portable|tablette|wifi|logiciel|cantine|restauration|repas|bourse|intendance|orientation|parcoursup|formation|specialite|absence|retard|vie scolaire|cpe|stage|grand oral)\b/.test(
       text
     )
   ) {

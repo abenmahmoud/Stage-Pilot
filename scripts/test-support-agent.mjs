@@ -25,7 +25,7 @@ test("offers a dossier when a school support request is complete", async () => {
   assert.equal(result.requesterType, "eleve");
   assert.equal(result.action, "offer_case");
   assert.equal(result.readyToCreate, true);
-  assert.match(result.reply, /demande est prête/i);
+  assert.match(result.reply, /relire et confirmer l’envoi/i);
 });
 
 test("asks for useful detail before offering an incomplete request", async () => {

@@ -164,6 +164,7 @@ import {
   type ActiveSupportNotificationSnapshot,
 } from "../../../shared/support-active-notification";
 import { readJsonApiResponse } from "../../../shared/json-api-response";
+import { isCateringSupportTopic } from "../../../shared/support-topic-context";
 import {
   readPublicContentPayload,
   type PublicContent,
@@ -1312,11 +1313,12 @@ type AssistantApiResult = AssistantInsight & {
 };
 
 function inferSupportCategory(text: string): SupportCategory {
+  if (isCateringSupportTopic(text)) return "restauration_bourse";
   if (/\b(inscription|réinscription|reinscription|inscrire)\b/i.test(text)) return "inscription";
-  if (/\b(ent|educonnect|pronote|connexion|connecter|identifiant|code)\b/i.test(text)) return "ent";
+  if (/\b(ent|educonnect|pronotes?|connexion|connecter|identifiants?|codes?)\b/i.test(text)) return "ent";
   if (/\b(email|mail|webmail|zimbra|académique|academique)\b/i.test(text)) return "email_academique";
   if (/\b(classe|affectation|emploi du temps|edt|prochain cours|mon cours|quelle salle|dans quelle salle|changement de salle)\b/i.test(text)) return "affectation_classe";
-  if (/\b(certificat|attestation|document|pièce|piece|dossier|justificatif|manque)\b/i.test(text)) return "documents_scolarite";
+  if (/\b(certificat|attestation|documents?|diplômes?|diplomes?|pièce|piece|dossier|justificatif|manque)\b/i.test(text)) return "documents_scolarite";
   if (/\b(pc|ordinateur|portable|tablette|chargeur)\b/i.test(text)) return "ordinateur";
   if (/\b(logiciel|application|wifi|réseau|reseau)\b/i.test(text)) return "logiciel";
   if (/\b(cantine|badge|restauration|bourse|internat|hébergement scolaire|hebergement scolaire|intendance|paiement)\b/i.test(text)) return "restauration_bourse";
@@ -1356,7 +1358,7 @@ function localAssistantFallback(messages: AssistantChatMessage[], files: File[])
       : scheduleQuestion
       ? "Une classe écrite librement ne suffit pas pour ouvrir un emploi du temps réel. Le lycée doit d’abord confirmer votre identité scolaire et votre lien avec la classe ou le groupe, puis consulter une version validée et à jour. En cas de doute, la vie scolaire vérifiera avant de répondre."
       : readyToCreate
-        ? `Votre demande concerne « ${label} ». ${files.length ? `Vous avez sélectionné ${files.length} fichier${files.length > 1 ? "s" : ""} à joindre au dossier. ` : ""}Vérifiez le récapitulatif et vos coordonnées, puis envoyez votre demande au lycée.`
+        ? `Votre demande concerne « ${label} ». Nous allons compléter les informations utiles ici, puis vous pourrez relire et confirmer l’envoi. Rien n’est envoyé sans votre confirmation.`
         : `Votre demande concerne « ${label} ». ${files.length ? `Vous avez sélectionné ${files.length} fichier${files.length > 1 ? "s" : ""} à joindre au dossier. ` : ""}Précisez votre question et les informations utiles pour vous aider.`),
     category: policy.category ?? laptopIntake?.category ?? category,
     requesterType,

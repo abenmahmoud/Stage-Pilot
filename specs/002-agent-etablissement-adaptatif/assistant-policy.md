@@ -28,6 +28,25 @@ Une conversation ou une demande ne devient jamais une connaissance officielle.
 Les procédures susceptibles de changer ne sont affirmées que depuis une version
 publiée, datée, non expirée et autorisée pour l'audience courante.
 
+## Parcours dans le chat — correction du 9 septembre 2026
+
+La préparation du dossier reste dans la conversation, avec des questions locales
+et un récapitulatif modifiable avant confirmation. L'agent ne renvoie pas vers
+un formulaire à rechercher ailleurs. Le formulaire classique reste un choix
+explicite de l'utilisateur. `readyToCreate` indique seulement que le besoin est
+assez clair pour préparer la demande ; il ne prouve ni l'envoi, ni la résolution.
+La personne ne doit pas ressaisir des données déjà recueillies dans le parcours
+vérifié. Les composants sécurisés collectent coordonnées et OTP hors du modèle.
+
+Une question de réservation ou d'inscription à la cantine conserve son sujet
+restauration même si une application ou PRONOTE est mentionné comme canal.
+Une difficulté explicite de connexion ENT/PRONOTE reste un besoin numérique.
+L'agent accepte les formulations hésitantes et les pluriels usuels sans imposer
+une clarification dont la réponse figure déjà dans le message.
+
+Constats et prochaines améliorations :
+`docs/operations/AUDIT_FLUIDITE_DEMANDES_2026-09-09.md`.
+
 ## Validation
 
 Les tests couvrent les demandes ordinaires, SafeScol sans formulaire, le danger
