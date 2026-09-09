@@ -11,6 +11,7 @@ type Props = {
   category: string;
   fileNames: string[];
   busy: boolean;
+  reuseIdentityDetails?: boolean;
   error: string | null;
   onSubmit: (event: React.FormEvent<HTMLFormElement>) => void;
   onBack: () => void;
@@ -20,7 +21,15 @@ type Props = {
 /** Private intake stays in the browser and is never sent to the language model. */
 export function ChatRequestIntake(p: Props) {
   const [step, setStep] = useState(0);
-  const steps = p.profile === "parent" ? ["person", "child", "contact", "review"] : ["person", "contact", "review"];
+  const [editingIdentity, setEditingIdentity] = useState(false);
+  // Reuse only details entered during this conversation after a successful OTP.
+  // This skips duplicate questions; it never grants any server-side permission.
+  const reuseIdentity = p.reuseIdentityDetails && !editingIdentity
+    && p.values.requesterFirstName.trim() && p.values.requesterLastName.trim()
+    && (p.values.preferredChannel === "phone" ? p.values.phone.trim() : p.values.email.trim());
+  const steps = reuseIdentity
+    ? p.profile === "parent" ? ["child", "review"] : ["review"]
+    : p.profile === "parent" ? ["person", "child", "contact", "review"] : ["person", "contact", "review"];
   const current = steps[Math.min(step, steps.length - 1)];
   const review = current === "review";
   const labels: Record<string, string> = {
@@ -69,6 +78,7 @@ export function ChatRequestIntake(p: Props) {
         <p>{p.description}</p>
         <small>{p.values.requesterFirstName} {p.values.requesterLastName} · {p.values.preferredChannel === "phone" ? p.values.phone : p.values.email}</small>
         {p.profile === "parent" ? <small>Pour {p.values.beneficiaryFirstName} {p.values.beneficiaryLastName}</small> : null}
+        {reuseIdentity ? <button type="button" onClick={() => { setEditingIdentity(true); setStep(0); }}>Modifier mes coordonnées</button> : null}
         <p className="lycee-chat-review-note">La réponse et les documents seront regroupés dans « Mes demandes ». Le délai dépend du service concerné.</p>
         {p.fileNames.map((name, index) => <small key={index}>Pièce jointe : {name}</small>)}
         <button type="button" onClick={p.onAttach} disabled={p.fileNames.length >= 5}><Paperclip aria-hidden="true" />Joindre un document</button>

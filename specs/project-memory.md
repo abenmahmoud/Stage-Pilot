@@ -5911,3 +5911,14 @@ et A4, PNG de partage, illustration originale. QR vectoriel direct vers le domai
 principal, relu par un décodeur indépendant sur les deux PDF. Le texte annonce
 actualités, démarches, réponses et ajout à l'écran d'accueil, sans promettre de
 service personnel encore indisponible. Aucune diffusion externe effectuée.
+
+### 9 septembre 2026 — retour d'essai OTP SMS
+
+Adel confirme la réception et la validation d'un code SMS par une responsable.
+La mention PFMP doit disparaître et le parcours ne doit pas redemander les mêmes
+informations. Correction : expéditeur scolaire `LycCendrars`, reprise locale des
+détails après OTP, enfant puis relecture pour un parent, édition possible,
+confirmation avant changement de personne, absence de relance automatique lors
+du retour au chat. Recette locale passée sur ordinateur, 390 et 320 pixels ;
+voir `docs/operations/CORRECTION_SMS_PARCOURS_IDENTITE_2026-09-09.md` pour les
+preuves et les limites de la recette réelle.

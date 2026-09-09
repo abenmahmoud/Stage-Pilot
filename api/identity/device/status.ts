@@ -65,7 +65,7 @@ async function deliverCode(input: {
   if (input.contactType === "phone") {
     await sendTransactionalSms({
       recipient: input.contact,
-      content: `Lycée Blaise Cendrars : votre code de vérification est ${code}. Il expire dans 10 minutes. Ne le transmettez à personne.`,
+      content: `Lycée Blaise Cendrars : ${code}. Valable 10 min. Ne le partagez pas.`,
       tag: "lyceegest-identity",
     });
     return;

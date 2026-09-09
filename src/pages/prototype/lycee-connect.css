@@ -1362,6 +1362,8 @@
 .lycee-identity-device-progress, .lycee-identity-device-actions { display: flex; align-items: center; justify-content: flex-end; gap: 10px; color: #435b73; font-size: 12px; }
 .lycee-identity-device-progress svg { width: 18px; color: #1767d9; }
 .lycee-identity-device-actions button { white-space: normal; }
+.lycee-identity-device.is-verified .lycee-identity-device-actions { flex-basis: 100%; flex-wrap: wrap; justify-content: flex-start; }
+.lycee-identity-device.is-verified .lycee-identity-device-actions p { flex-basis: 100%; }
 
 @media (max-width: 760px) {
   .lycee-identity-device { grid-template-columns: 34px minmax(0,1fr); align-items: start; padding: 13px; }

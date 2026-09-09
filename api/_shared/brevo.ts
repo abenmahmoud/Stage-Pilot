@@ -37,7 +37,9 @@ export async function sendTransactionalSms(input: {
 }): Promise<{ messageId: string }> {
   const apiKey = process.env.BREVO_API_KEY;
   if (!apiKey) throw new HttpError(503, "Le service SMS n'est pas configuré");
-  const sender = process.env.IDENTITY_DEVICE_SMS_SENDER;
+  // The old identity sender was configured for PFMP. School messages use their
+  // own sender so a legacy stage setting cannot rename the lycée's OTPs.
+  const sender = process.env.SCHOOL_SMS_SENDER?.trim() || "LycCendrars";
   if (!sender || !/^[A-Za-z0-9]{3,11}$/.test(sender)) {
     throw new HttpError(503, "L'expéditeur SMS n'est pas configuré");
   }
