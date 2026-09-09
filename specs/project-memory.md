@@ -6038,3 +6038,9 @@ publiques validées embarquées restent disponibles. Pas de PDF automatique dans
 chat, ni de sélection d’enfant branchée pour un parent. Ne pas annoncer que l’OTP
 suffit à rendre tous les services autonomes. Publication et preuves :
 `docs/operations/TEXTES_ET_AUTONOMIE_AGENT_2026-09-09.md`.
+
+Publication vérifiée : `f275706`, déploiement
+`awBFG69yVLB5YmjQDC9GZNWUc5VN`. Module `LyceeConnectPrototype-OytICXHD.js`
+servi en HTTP 200 sur le domaine principal. Les deux appels de recette de l’API
+reconnaissent la demande EDT et « demain », puis exigent l’identité ; aucun
+code envoyé, aucun dossier créé, aucune donnée personnelle utilisée.

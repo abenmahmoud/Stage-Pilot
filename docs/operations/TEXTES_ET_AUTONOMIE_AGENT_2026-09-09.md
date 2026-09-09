@@ -97,6 +97,14 @@ Aucun SMS, email, notification ou dossier réel créé pour ces essais.
 
 ## Publication
 
-En attente de publication de ce lot. Retour arrière applicatif possible vers
-`ba8e098`, déploiement `MfooYUNLcs4kszVu9jffANSLmzdY`.
+Publication confirmée : commit `f275706`, déploiement Vercel
+`awBFG69yVLB5YmjQDC9GZNWUc5VN`, statut réussi dans GitHub. Le domaine principal
+sert le module `LyceeConnectPrototype-OytICXHD.js` en HTTP 200 avec les nouveaux
+textes. Deux questions de recette sans donnée personnelle à l’API publiée
+confirment l’instruction nom/prénom puis choix SMS/email et la reprise de
+« demain », avec refus de donner l’EDT sans identité ; aucun appel IA,
+envoi de code ou dossier créé.
+
+Retour arrière applicatif possible vers `ba8e098`, déploiement
+`MfooYUNLcs4kszVu9jffANSLmzdY`.
 Aucune migration ni modification de configuration nécessaire pour ce lot.
