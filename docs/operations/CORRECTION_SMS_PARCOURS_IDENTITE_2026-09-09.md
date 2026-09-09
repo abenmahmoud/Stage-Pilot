@@ -67,3 +67,17 @@ Le déploiement précédent est `dpl_8GdviVKQGEigxoKPKwqQ2fG9yRZz`, source
 `f56b2d8`. Revenir au déploiement précédent restaure le parcours et l'ancien
 expéditeur sans mutation de données. Le libellé réellement affiché par
 l'opérateur téléphonique sera confirmé au prochain essai choisi par Adel.
+
+## Publication vérifiée
+
+Le commit `895078a8c83d6c113cf3aff5c52612a3bd96ff1c` est publié dans le
+déploiement `dpl_52G8sAPkDdnfy5Do6Q615rVov2xv`, état `READY`. Le connecteur
+Vercel confirme que `lycee-blaise-cendrars-sevran.fr` pointe vers ce déploiement.
+Contrôle HTTP après publication : page d'aide et module JavaScript du chat en
+200 ; présence effective de la modification des coordonnées et des deux choix
+de confirmation de changement de personne dans le module servi.
+
+Le déploiement Git a actualisé l'alias du domaine principal automatiquement.
+La tentative de lecture de l'API Vercel depuis PowerShell a renvoyé 403 ; aucune
+mutation distante n'a été tentée par ce canal. Publication et contrôles ont
+abouti via Git et le connecteur déjà autorisés.

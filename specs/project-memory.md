@@ -5922,3 +5922,8 @@ confirmation avant changement de personne, absence de relance automatique lors
 du retour au chat. Recette locale passée sur ordinateur, 390 et 320 pixels ;
 voir `docs/operations/CORRECTION_SMS_PARCOURS_IDENTITE_2026-09-09.md` pour les
 preuves et les limites de la recette réelle.
+
+Publication confirmée : `895078a`, déploiement
+`dpl_52G8sAPkDdnfy5Do6Q615rVov2xv` READY sur le domaine principal ; page d'aide
+et module du chat vérifiés en HTTP 200 avec les nouveaux contrôles. La réception
+du prochain SMS sous le nouveau nom d'expéditeur attend le retour de l'utilisateur.
