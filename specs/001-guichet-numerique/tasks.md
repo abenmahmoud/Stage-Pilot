@@ -464,3 +464,7 @@ Le support continue à fonctionner si l'IA est coupée.
 - IA indisponible, résultat invalide et confiance faible ;
 - restauration d'un dossier et d'un média depuis sauvegarde ;
 - écrans 320 px, 390 px, tablette et ordinateur large.
+
+## Complément du 9 septembre 2026
+
+T013 : la collecte guidée et l'identité rejoignent la conversation ; reprise OTP corrigée et pièces jointes disponibles avant confirmation. T032 : écran hors connexion autonome et cache limité aux ressources publiques statiques. T033 reste ouverte pour la réception sur un téléphone réel ; la chaîne push serveur, le cloisonnement et la déduplication ont une recette PostgreSQL isolée réussie. L'espace `/admin/services` et le pilote temporaire sans MFA obligatoire pour les comptes agents/administration sont documentés dans `docs/operations/CHAT_PWA_SERVICES_2026-09-09.md`.

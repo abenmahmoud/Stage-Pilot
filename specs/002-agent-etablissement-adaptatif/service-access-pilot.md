@@ -58,3 +58,7 @@ parcours métier complets et leur révocation avant le pilote réel.
 - service confirmé ;
 - responsable autorisant l'accès ;
 - second facteur enrôlé et procédure de récupération testée.
+
+## Décision du 9 septembre 2026 — essai sans MFA obligatoire
+
+À la demande explicite d'Adel, la connexion par mot de passe seul est admise temporairement pour les rôles `agent` et `administration`, tant que `AGENT_PILOT_PASSWORD_ONLY_UNTIL` et sa date frontend sont actives. Configuration initiale : 23 septembre 2026 à 23 h 59 Paris. Cette décision remplace l'obligation générale MFA ci-dessus uniquement pour ce périmètre. Compte individuel, rôle vérifié côté serveur, adhésion active et séparation des services restent exigés. Aucun facteur existant n'est supprimé. Les contrôles AAL2 explicites des opérations sensibles demeurent. `/admin/services` donne à la direction un état des accès et des files sans envoyer d'invitation.

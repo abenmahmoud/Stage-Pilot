@@ -5,6 +5,7 @@ import { useAuth } from "./lib/auth-context";
 import { apiFetch } from "./lib/api";
 import { ROLE_HOME } from "./lib/types";
 import { isAgentRole } from "./lib/auth-policy";
+import { servicePilotPasswordOnly } from "../shared/agent-pilot-access";
 import {
   ADMINISTRATION_ROLES,
   CONTENT_MANAGER_ROLES,
@@ -33,6 +34,7 @@ const MaFiche = lazy(() => import("./pages/grand-oral/MaFiche"));
 const FicheDetail = lazy(() => import("./pages/grand-oral/FicheDetail"));
 const AdminDashboard = lazy(() => import("./pages/admin/AdminDashboard"));
 const ImportPage = lazy(() => import("./pages/admin/ImportPage"));
+const ServiceAccessPage = lazy(() => import("./pages/admin/ServiceAccessPage"));
 const ParametresPage = lazy(() => import("./pages/admin/ParametresPage"));
 const CodesAccesPage = lazy(() => import("./pages/admin/CodesAccesPage"));
 const CodesProfsPage = lazy(() => import("./pages/admin/CodesProfsPage"));
@@ -81,6 +83,7 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
   }
   if (
     isAgentRole(user.role) &&
+    !servicePilotPasswordOnly(user.role, import.meta.env.VITE_AGENT_PILOT_PASSWORD_ONLY_UNTIL) &&
     assuranceLevel !== "aal2"
   ) {
     const returnTo = `${location.pathname}${location.search}`;
@@ -368,6 +371,7 @@ export default function App() {
               </RoleRoute>
             }
           />
+          <Route path="admin/services" element={<RoleRoute allowedRoles={["superadmin", "proviseur"]}><ServiceAccessPage /></RoleRoute>} />
           <Route
             path="admin/parametres"
             element={

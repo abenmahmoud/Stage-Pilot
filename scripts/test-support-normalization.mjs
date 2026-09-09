@@ -262,6 +262,7 @@ test("the actual assistant handler signs its result once, independently of tool 
   imports["../_shared/response.js"] = { handleApi: (_res, callback) => callback() };
   imports["../_shared/support.js"] = { assertNoForbiddenSupportSecret: () => {} };
   imports["../_shared/support-rate-limits.js"] = { enforceAssistantRateLimits: async () => requesterRefHash };
+  imports["../_shared/identity-device-access.js"] = { readIdentityDeviceSession: async () => null };
   imports["../_shared/knowledge-actor.js"] = { resolveKnowledgeActorFromRequest: async () => ({ institutionId }) };
   imports["../_shared/support-agent.js"] = { analyzeSupportConversation: async () => {
     analyses += 1; return { ...modelResult, usedAi };

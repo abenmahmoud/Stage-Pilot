@@ -14,8 +14,9 @@ d'activation.
 
 1. L'agent répond directement lorsqu'une source officielle publiée, datée et
    actuelle suffit.
-2. Il ouvre un formulaire uniquement lorsqu'une action humaine, une donnée
-   personnelle, une vérification ou une information absente est nécessaire.
+2. Il poursuit la demande dans le chat, avec des étapes privées intégrées pour
+   l’identité et les coordonnées, puis un récapitulatif à confirmer. Le formulaire
+   classique reste une alternative choisie par la personne.
 3. Il n'invente jamais. Il indique clairement qu'une information est inconnue,
    incertaine, contradictoire ou périmée.
 4. Une conversation, une demande ou une affirmation d'un visiteur ne devient
@@ -68,7 +69,7 @@ formulation tant qu'une heure n'est pas publiée.
 
 L'agent accepte les formulations simples, les fautes, le français hésitant et
 les langues prises en charge. Il pose une seule question nécessaire à la fois et
-passe rapidement au formulaire lorsque le besoin est compris.
+prépare la demande dans la conversation lorsque le besoin est compris.
 
 Lorsqu'un message est irrespectueux, l'agent reste calme et propose une
 reformulation fidèle et polie. Une demande ordinaire n'est transmise qu'après

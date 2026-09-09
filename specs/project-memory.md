@@ -5886,3 +5886,9 @@ taches et analyse de coherence avant une automatisation sensible.
   active. L'intégration directe du XML opérationnel exige le contrat technique
   Index prévu par T003/T066.
 - Preuve : `docs/operations/SYNCHRONISATION_EDT_2026-09-08.md`.
+
+### 9 septembre 2026 — entrée par le chat, PWA et services
+
+Adel remplace la consigne de passage rapide au formulaire par un parcours dans le chat : identité après la demande, choix du contact connu, préparation progressive et relecture. Les données privées restent hors du modèle. Il autorise des essais sans MFA obligatoire pour les autres services. L'exception implémentée concerne les rôles agents/administration jusqu'au 23 septembre, sans élévation de droits.
+
+Livraison et limites : `docs/operations/CHAT_PWA_SERVICES_2026-09-09.md`. Push serveur avec réservation durable testé en PostgreSQL isolé et worker actif ; recette physique du téléphone encore à faire. Sources publiques relues contre livret ; heure de rencontre de l'hebdo à valider. Aucun compte ni email de masse créé.

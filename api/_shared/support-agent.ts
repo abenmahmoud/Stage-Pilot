@@ -11,6 +11,7 @@ import {
   selectAgentModelWindow,
 } from "../../shared/agent-context-window.js";
 import { MISSING_OPENING_HOURS_REPLY, schoolClock, schoolDayBoundsUtc, schoolInformationIntent, schoolRuntimeInstructions, supportFormReady } from "../../shared/assistant-school-context.js";
+import { schoolReferenceAnswer } from "../../shared/school-reference-answers.js";
 import { readAiProviderJsonResponse } from "../../shared/ai-provider-response.js";
 import { evaluateLaptopIntake } from "../../shared/laptop-intake.js";
 import type { KnowledgeActor } from "../../shared/skill-registry-policy.js";
@@ -476,6 +477,13 @@ export async function analyzeSupportConversation(input: {
     return deterministicResult(policy, fallback);
   }
   const informationIntent = schoolInformationIntent(input.messages);
+  const referenceAnswer = schoolReferenceAnswer(input.messages, now);
+  if (referenceAnswer) {
+    await recordRuntime("deterministic", false, false);
+    return { ...fallback, ...referenceAnswer, category: "autre", scope: "school_support", action: "continue",
+      readyToCreate: false, confidence: "high", missingInformation: [], suggestedDocuments: [],
+      urgency: "faible", usedAi: false };
+  }
   if (informationIntent === "clock") {
     const clock = schoolClock(now);
     await recordRuntime("deterministic", false, false);

@@ -9,7 +9,7 @@ export const SCHOOL_PUBLIC_INFORMATION = {
   phone: "01 49 36 20 50",
   phoneHref: "tel:+33149362050",
   email: "ce.0932048w@ac-creteil.fr",
-  welcome: "L’accueil des parents et des visiteurs se fait sur rendez-vous. Utilisez le formulaire pour demander un rendez-vous avant de vous déplacer.",
+  welcome: "L’accueil des parents et des visiteurs se fait sur rendez-vous. Demandez un rendez-vous dans le chat avant de vous déplacer.",
 } as const;
 
 export const SECOND_YEAR_PARENTS_MEETING = {

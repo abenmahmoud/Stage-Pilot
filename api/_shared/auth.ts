@@ -1,6 +1,7 @@
 import { timingSafeEqual } from "node:crypto";
 import { createClient } from "@supabase/supabase-js";
 import type { VercelRequest } from "@vercel/node";
+import { servicePilotPasswordOnly } from "../../shared/agent-pilot-access.js";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL ?? process.env.VITE_SUPABASE_URL ?? "";
 const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY ?? "";
@@ -79,7 +80,7 @@ export async function requireRole(
   if (!allowedRoles.includes(user.role)) {
     throw new HttpError(403, `Rôle insuffisant. Attendu : ${allowedRoles.join(", ")}`);
   }
-  if (agentMfaRoles.has(user.role)) {
+  if (agentMfaRoles.has(user.role) && !servicePilotPasswordOnly(user.role, process.env.AGENT_PILOT_PASSWORD_ONLY_UNTIL)) {
     const authHeader = req.headers.authorization;
     const token = authHeader?.startsWith("Bearer ")
       ? authHeader.slice("Bearer ".length).trim()

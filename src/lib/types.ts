@@ -16,10 +16,10 @@ export interface AppUser {
 }
 
 export const ROLE_LABELS: Record<UserRole, string> = {
-  superadmin: "Super Admin",
+  superadmin: "Superadministrateur",
   administration: "Administration",
   agent: "Agent du lycée",
-  pp: "Professeur Principal",
+  pp: "Professeur principal",
   professeur: "Professeur",
   proviseur: "Proviseur",
   eleve: "Élève",
@@ -42,7 +42,7 @@ export const STAGE_STATUS = {
     label: "En cours",
     color: "bg-yellow-100 text-yellow-700",
   },
-  soumis: { label: "A verifier", color: "bg-yellow-100 text-yellow-700" },
+  soumis: { label: "À vérifier", color: "bg-yellow-100 text-yellow-700" },
   convention_generee: {
     label: "PDF prêt",
     color: "bg-indigo-100 text-indigo-700",

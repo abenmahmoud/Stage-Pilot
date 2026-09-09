@@ -427,6 +427,7 @@
     "react-router-dom": "^7.18.2",
     "remark-gfm": "4.0.1",
     "turndown": "^7.2.4",
+    "web-push": "3.6.7",
     "xlsx": "https://cdn.sheetjs.com/xlsx-0.20.3/xlsx-0.20.3.tgz"
   },
   "devDependencies": {
@@ -437,6 +438,7 @@
     "@types/react": "^19.0.7",
     "@types/react-dom": "^19.0.3",
     "@types/turndown": "^5.0.6",
+    "@types/web-push": "3.6.4",
     "@vercel/node": "^5.10.2",
     "@vitejs/plugin-react": "^4.3.4",
     "drizzle-kit": "^0.31.10",

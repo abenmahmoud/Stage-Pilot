@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { SchoolParentsMeeting } from "../../components/SchoolParentsMeeting";
+import { PushNotificationsButton } from "../../components/PushNotificationsButton";
+import { ChatRequestIntake } from "../../components/ChatRequestIntake";
 import { SCHOOL_PUBLIC_INFORMATION } from "../../../shared/school-public-information";
 import { PublicPortalFooter } from "../../components/PublicPortalFooter";
 import { publicPortalView, PUBLIC_PORTAL_TITLES, type PublicPortalView as View } from "../../../shared/public-portal-navigation";
@@ -1386,12 +1388,17 @@ function IdentityDeviceAccessPanel({
   onVerified,
   onVerificationChange,
   onContactUpdate,
+  onForgot,
+  onSkip,
 }: {
   onVerified?: () => void;
   onVerificationChange?: (verified: boolean) => void;
   onContactUpdate: () => void;
+  onForgot?: () => void;
+  onSkip: () => void;
 }) {
   const [state, setState] = useState<IdentityDeviceUiState>("checking_session");
+  const [identityStep, setIdentityStep] = useState<"person" | "contact">("person");
   const [claimedProfile, setClaimedProfile] = useState<"student" | "guardian" | "staff">("student");
   const [claimedFirstName, setClaimedFirstName] = useState("");
   const [claimedLastName, setClaimedLastName] = useState("");
@@ -1464,6 +1471,7 @@ function IdentityDeviceAccessPanel({
 
   async function requestCode(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (identityStep === "person") { setIdentityStep("contact"); return; }
     setBusy(true);
     setError(null);
     try {
@@ -1510,7 +1518,7 @@ function IdentityDeviceAccessPanel({
       onVerificationChange?.(true);
       onVerified?.();
     } catch {
-      setError("Ce code est invalide ou expiré. Vérifiez l’email reçu ou recommencez.");
+      setError("Ce code est invalide ou expiré. Vérifiez le code reçu par email ou SMS, ou recommencez.");
     } finally {
       setBusy(false);
     }
@@ -1518,8 +1526,17 @@ function IdentityDeviceAccessPanel({
 
   async function forgetIdentity() {
     setBusy(true);
-    await fetch("/api/identity/device/session", { method: "DELETE", credentials: "include" })
-      .catch(() => undefined);
+    try {
+      const response = await fetch("/api/identity/device/session", { method: "DELETE", credentials: "include" });
+      if (!response.ok) throw new Error("revocation_failed");
+      const supportResponse = await fetch("/api/support/session", { method: "DELETE", credentials: "include" });
+      if (!supportResponse.ok) throw new Error("support_revocation_failed");
+      await Promise.all([clearSupportDeviceDraft(), clearRememberedSupportRequests()]);
+    } catch {
+      setError("La déconnexion n’a pas abouti. Réessayez avant de changer de personne.");
+      setBusy(false);
+      return;
+    }
     setContact("");
     setClaimedFirstName("");
     setClaimedLastName("");
@@ -1528,6 +1545,7 @@ function IdentityDeviceAccessPanel({
     setError(null);
     setState("identify");
     onVerificationChange?.(false);
+    onForgot?.();
     setBusy(false);
   }
 
@@ -1540,7 +1558,8 @@ function IdentityDeviceAccessPanel({
       <section className="lycee-identity-device is-verified" aria-label="Identité vérifiée">
         <BadgeCheck aria-hidden="true" />
         <div><strong>Identité confirmée</strong><p>{profileLabel}. L’assistant peut maintenant traiter les services personnels autorisés.</p></div>
-        <button type="button" disabled={busy} onClick={() => void forgetIdentity()}>Oublier mon identité</button>
+        <button type="button" disabled={busy} onClick={() => void forgetIdentity()}>Changer de personne</button>
+        {error ? <p role="alert">{error}</p> : null}
       </section>
     );
   }
@@ -1548,11 +1567,12 @@ function IdentityDeviceAccessPanel({
     <section className="lycee-identity-device" aria-labelledby="identity-device-title">
       <KeyRound aria-hidden="true" />
       <div className="lycee-identity-device-copy">
-        <strong id="identity-device-title">Confirmer mon identité pour cette demande</strong>
-        <p>Indiquez qui vous êtes, puis utilisez un email ou un téléphone déjà présent dans l’annuaire du lycée.</p>
+        <strong id="identity-device-title">{state === "identify" ? identityStep === "person" ? "Présentons-nous : qui êtes-vous ?" : "Où souhaitez-vous recevoir votre code ?" : state === "awaiting_code" ? "Quel code avez-vous reçu ?" : "Vérifions votre accès"}</strong>
+        <p>{identityStep === "person" ? "Ces informations servent uniquement à vous retrouver dans l’annuaire du lycée." : "Choisissez un email ou un téléphone déjà connu du lycée."}</p>
       </div>
       {state === "identify" ? (
         <form onSubmit={requestCode}>
+          {identityStep === "person" ? <>
           <select value={claimedProfile} onChange={(event) => setClaimedProfile(event.target.value as "student" | "guardian" | "staff")} aria-label="Votre profil">
             <option value="student">Élève</option>
             <option value="guardian">Parent ou responsable</option>
@@ -1560,20 +1580,23 @@ function IdentityDeviceAccessPanel({
           </select>
           <input autoComplete="given-name" value={claimedFirstName} onChange={(event) => setClaimedFirstName(event.target.value)} placeholder="Prénom" aria-label="Votre prénom" required />
           <input autoComplete="family-name" value={claimedLastName} onChange={(event) => setClaimedLastName(event.target.value)} placeholder="Nom" aria-label="Votre nom" required />
+          </> : <>
           <select value={contactType} onChange={(event) => { setContactType(event.target.value as "email" | "phone"); setContact(""); }} aria-label="Moyen de vérification">
             <option value="email">Email connu du lycée</option>
             <option value="phone">Téléphone connu du lycée</option>
           </select>
           <input type={contactType === "email" ? "email" : "tel"} autoComplete={contactType === "email" ? "email" : "tel"} value={contact} onChange={(event) => setContact(event.target.value)} placeholder={contactType === "email" ? "Votre adresse connue" : "Votre numéro connu"} aria-label={contactType === "email" ? "Adresse email connue du lycée" : "Téléphone connu du lycée"} required />
           <label><input type="checkbox" checked={rememberDevice} onChange={(event) => setRememberDevice(event.target.checked)} /> Appareil personnel</label>
-          <button type="submit" disabled={busy}>{busy ? "Recherche…" : "Rechercher et envoyer le code"}</button>
+          <button type="button" disabled={busy} onClick={() => setIdentityStep("person")}>Modifier mon identité</button>
+          </>}
+          <button type="submit" disabled={busy}>{busy ? "Recherche…" : identityStep === "person" ? "Continuer" : "Recevoir mon code"}</button>
         </form>
       ) : state === "checking_contact" ? (
         <div className="lycee-identity-device-progress" role="status"><RefreshCw className="is-spinning" aria-hidden="true" /><span>Recherche dans l’annuaire et contrôle du moyen de contact…</span></div>
       ) : state === "needs_contact_update" ? (
         <div className="lycee-identity-device-actions">
           <button type="button" onClick={() => { setState("identify"); setError(null); }}>Corriger ma saisie</button>
-          <button type="button" onClick={onContactUpdate}>Demander l’ajout ou la correction</button>
+          <button type="button" onClick={onContactUpdate}>Faire vérifier mes coordonnées</button>
         </div>
       ) : (
         <form onSubmit={verifyCode}>
@@ -1584,6 +1607,7 @@ function IdentityDeviceAccessPanel({
         </form>
       )}
       {error ? <p className="lycee-identity-device-error" role="alert">{error}</p> : null}
+      {!busy && state !== "checking_contact" ? <button className="lycee-identity-skip" type="button" onClick={onSkip}>Je préfère transmettre ma demande sans vérifier mon identité</button> : null}
     </section>
   );
 }
@@ -1655,7 +1679,8 @@ function HelpDeskView({
   const requesterMessages = chatMessages.filter((message) => message.role === "requester");
   const conversationDescription = requesterMessages.map((message) => message.content).join("\n\n").trim();
   const selectedCategory = supportCategories.find((item) => item.value === category);
-  const identityRequiredForCurrentRequest = requesterMessages.length > 0 && [
+  const personalRequestText = conversationDescription.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+  const identityRequiredForCurrentRequest = insight?.scope !== "safescol" && requesterMessages.length > 0 && /\b(mon|ma|mes|moi|notre|enfant|je veux|je souhaite|je voudrais)\b/.test(personalRequestText) && [
     "affectation_classe",
     "documents_scolarite",
     "ent",
@@ -1757,7 +1782,9 @@ function HelpDeskView({
   async function askAssistant(nextMessages: AssistantChatMessage[], identityJustVerified = false) {
     setAssistantBusy(true);
     setSubmitError(null);
-    let result: AssistantInsight = localAssistantFallback(nextMessages, files);
+    const lastRequesterIndex = nextMessages.findLastIndex(message => message.role === "requester");
+    const requestMessages = nextMessages.slice(0, lastRequesterIndex + 1);
+    let result: AssistantInsight = localAssistantFallback(requestMessages, files);
     let routingReceipt: string | null = null;
     let normalizationReceipt: string | null = null;
     let requestActionAuthorized = false;
@@ -1768,7 +1795,7 @@ function HelpDeskView({
           headers: { "X-Support-Device": assistantSessionId },
           body: JSON.stringify({
             sessionId: assistantSessionId,
-            messages: nextMessages.slice(-21).map(({ role, content }) => ({ role, content })),
+            messages: requestMessages.slice(-21).map(({ role, content }) => ({ role, content })),
             attachments: files.map((file) => ({ name: file.name, type: file.type, size: file.size })),
           }),
         });
@@ -1808,10 +1835,10 @@ function HelpDeskView({
       "restauration_bourse",
       "vie_scolaire",
     ].includes(result.category);
-    if (requiresIdentity && !identityVerified && !identityJustVerified) {
+    if (requiresIdentity && result.scope !== "safescol" && !schoolInformationIntent(nextMessages) && !identityVerified && !identityJustVerified) {
       result = {
         ...result,
-        reply: "Je peux traiter cette demande de manière personnalisée. Confirmez d’abord votre profil, votre prénom et votre nom, puis choisissez un email ou un téléphone déjà connu du lycée. Le champ du code apparaîtra seulement après son envoi réel.",
+        reply: "Je vais vous accompagner. Pour accéder à vos informations personnelles, confirmons d’abord votre identité ici.",
         readyToCreate: false,
         action: "continue",
         missingInformation: ["Votre profil", "Votre prénom et votre nom", "Un email ou un téléphone connu du lycée"],
@@ -1843,7 +1870,6 @@ function HelpDeskView({
     if (shouldCollectContact) {
       setClassicForm(false);
       setShowDetails(true);
-      window.requestAnimationFrame(() => caseFormRef.current?.scrollIntoView({ block: "start" }));
     }
     setAssistantBusy(false);
   }
@@ -2135,22 +2161,14 @@ function HelpDeskView({
         title={initialContactCollection ? "Demander une modification de mes coordonnées" : "Dites simplement ce qu’il vous faut"}
         description={initialContactCollection
           ? "Demandez l’ajout, la correction ou le retrait d’un email ou d’un téléphone. Le lycée vérifie votre demande avant toute modification."
-          : "Écrivez avec vos mots, dans la langue qui vous convient. Vous pourrez enregistrer la demande et suivre la réponse."}
+          : "Une question, un document ou un accès ? On s’en occupe ensemble, ici."}
         onBack={onBack}
       />
-
-      {IDENTITY_DEVICE_ACCESS_ENABLED && !initialContactCollection && identityRequiredForCurrentRequest
-        ? <IdentityDeviceAccessPanel onVerified={() => {
-            if (!assistantBusy && chatMessages.some((message) => message.role === "requester")) {
-              void askAssistant(chatMessages, true);
-            }
-          }} onVerificationChange={setIdentityVerified} onContactUpdate={onCollect} />
-        : null}
 
       <div className={`lycee-guided-chat${initialContactCollection ? " is-contact-collection" : ""}`}>
         {!initialContactCollection ? (
           <>
-        <div className="lycee-guided-chat-head"><span><Bot aria-hidden="true" /></span><div><strong>Assistant Blaise</strong><small>Vous guide et prépare votre demande</small></div><em><span /> Assistant numérique</em></div>
+        <div className="lycee-guided-chat-head"><span><Bot aria-hidden="true" /></span><div><strong>Blaise, votre assistant</strong><small>Les services du lycée, dans une conversation</small></div><em><span /> En ligne</em></div>
         {SAFESCOL_ACCESS_ENABLED && SAFESCOL_URL ? (
           <a className="lycee-safescol-chat-link" href={SAFESCOL_URL} target="_blank" rel="noreferrer">
             <ShieldCheck aria-hidden="true" /> Accéder directement à SafeScol <ExternalLink aria-hidden="true" />
@@ -2184,22 +2202,25 @@ function HelpDeskView({
         ) : null}
 
         <div className="lycee-chat-workspace">
+          <input id="lycee-support-files" name="supportFiles" aria-label="Documents à joindre" ref={fileInputRef} className="lycee-file-input" type="file" multiple accept={SUPPORT_FILE_TYPES.join(",")} onChange={selectFiles} />
+          {IDENTITY_DEVICE_ACCESS_ENABLED && !initialContactCollection && identityRequiredForCurrentRequest && !showDetails
+            ? <IdentityDeviceAccessPanel onVerified={() => {
+                if (!assistantBusy && chatMessages.some(message => message.role === "requester")) void askAssistant(chatMessages, true);
+              }} onVerificationChange={setIdentityVerified} onContactUpdate={onCollect} onForgot={restartConversation} onSkip={() => setShowDetails(true)} /> : null}
           {!initialContactCollection ? (
             <>
-          <div className="lycee-language-help"><Languages aria-hidden="true" /><span><strong>Écrivez dans la langue de votre choix</strong><small>Quelques mots suffisent pour commencer. L’assistant peut vous aider à reformuler votre demande.</small></span></div>
           {draftNotice ? <div className="lycee-contact-guidance lycee-draft-guidance" role="status"><CheckCircle2 aria-hidden="true" /><span><strong>Brouillon récupéré</strong><small>{draftNotice}</small></span><button type="button" onClick={restartConversation}><Trash2 aria-hidden="true" /> Effacer</button></div> : null}
-          {insight ? (
+          {insight?.urgency === "urgente" ? (
             <div className="lycee-live-analysis">
               <WandSparkles aria-hidden="true" />
-              <span><strong>{schoolInformationIntent(chatMessages) ? "Information du lycée" : selectedCategory?.label}</strong><small>{insight.urgency === "urgente" ? "Blocage ou échéance proche signalé" : insight.readyToCreate ? "Prêt pour le formulaire" : "Réponse de l’assistant"}</small></span>
+              <span><strong>Demande urgente</strong><small>Si nécessaire, appelez le lycée au 01 49 36 20 50.</small></span>
               {insight.suggestedDocuments.length > 0 ? <em>{insight.suggestedDocuments.length} {insight.suggestedDocuments.length > 1 ? "pièces suggérées" : "pièce suggérée"}</em> : null}
             </div>
           ) : null}
 
-          {!conversationStopped && !(canCreateRequest && showDetails) ? (
+          {!conversationStopped && !showDetails && !(IDENTITY_DEVICE_ACCESS_ENABLED && identityRequiredForCurrentRequest && !identityVerified) ? (
             <form className="lycee-chat-composer" onSubmit={sendChatMessage}>
               <textarea id="lycee-chat-message" name="chatMessage" value={chatInput} onChange={(event) => setChatInput(event.target.value)} rows={2} maxLength={1500} placeholder="Écrivez comme si vous parliez à l’accueil du lycée…" aria-label="Votre message" />
-              <input id="lycee-support-files" name="supportFiles" aria-label="Documents à joindre" ref={fileInputRef} className="lycee-file-input" type="file" multiple accept={SUPPORT_FILE_TYPES.join(",")} onChange={selectFiles} />
               <button className="lycee-chat-attach" type="button" aria-label="Joindre un document" title="Joindre un document" disabled={files.length >= MAX_SUPPORT_FILES} onClick={() => fileInputRef.current?.click()}><Paperclip aria-hidden="true" /></button>
               <button className="lycee-chat-send" type="submit" aria-label="Envoyer le message" title="Envoyer" disabled={!chatInput.trim() || assistantBusy}><Send aria-hidden="true" /></button>
             </form>
@@ -2217,7 +2238,7 @@ function HelpDeskView({
             <div className={`lycee-chat-next${canCreateRequest ? " is-ready" : " is-form-only"}`}>
               {canCreateRequest ? <div className="lycee-case-ready"><CheckCircle2 aria-hidden="true" /><span><strong>{insight?.action === "human_transfer" ? "Une personne du lycée doit vous accompagner" : "Votre demande est prête"}</strong><small>Ajoutez maintenant votre prénom, votre nom et un moyen de réponse pour l’envoyer au lycée.</small></span></div> : null}
               <div className="lycee-chat-next-actions">
-                {canCreateRequest ? <button className="lycee-primary-action" type="button" onClick={() => setShowDetails(true)}>{insight?.action === "human_transfer" ? "Indiquer mes coordonnées" : "Continuer avec mes coordonnées"} <ChevronRight aria-hidden="true" /></button> : null}
+                {canCreateRequest ? <button className="lycee-primary-action" type="button" onClick={() => setShowDetails(true)}>Préparer l’envoi <ChevronRight aria-hidden="true" /></button> : null}
                 <button type="button" onClick={() => { setClassicDescription((current) => current.trim() ? current : conversationDescription); setClassicForm(true); setShowDetails(true); }}>Je préfère remplir le formulaire</button>
               </div>
             </div>
@@ -2241,7 +2262,7 @@ function HelpDeskView({
 
             </>
           ) : null}
-          {showDetails ? (
+          {showDetails && !classicForm && !initialContactCollection ? <ChatRequestIntake profile={profile} setProfile={value => setProfile(value as RequesterProfile)} values={formValues} update={updateFormValue} description={conversationDescription} category={selectedCategory?.label ?? "Demande au lycée"} fileNames={files.map(file => file.name)} busy={submitting} error={submitError} onSubmit={submitRequest} onBack={() => setShowDetails(false)} onAttach={() => fileInputRef.current?.click()} /> : showDetails ? (
             <form ref={caseFormRef} className="lycee-case-form" onSubmit={submitRequest}>
               <div className="lycee-case-form-head"><span><ShieldCheck aria-hidden="true" /></span><div><h2>{initialContactCollection ? "Coordonnées à vérifier" : classicForm ? "Votre demande au lycée" : "Vos coordonnées pour recevoir la réponse"}</h2><p>{initialContactCollection ? "Un agent habilité vérifie votre identité et la modification demandée avant de l’appliquer." : classicForm ? "Décrivez votre besoin et indiquez comment vous joindre. Seuls les champs nécessaires sont obligatoires." : "Indiquez votre prénom, votre nom et au moins un moyen de contact. L’email est conseillé pour conserver une trace."}</p></div>{!initialContactCollection ? <button type="button" aria-label="Fermer" onClick={() => { setShowDetails(false); setClassicForm(false); }}>Fermer</button> : null}</div>
               <div className="lycee-fields-grid">
@@ -2901,7 +2922,7 @@ function ConnectedRequestsView({ ticketCode, onBack, accessLinkError }: { ticket
       <div className="lycee-shared-device-action">
         <span><ShieldCheck aria-hidden="true" /><span><strong>Appareil partagé ?</strong><small>Fermez l’accès avant de le quitter.</small></span></span>
         <div className="lycee-device-action-buttons">
-          {requests.length > 0 && notificationPermission !== "unsupported" ? <button type="button" aria-pressed={notificationsEnabled} disabled={notificationPermission === "denied"} onClick={() => void toggleActiveNotifications()} title="Alerte uniquement pendant cette session"><Bell aria-hidden="true" />{notificationPermission === "denied" ? "Alertes bloquées" : notificationsEnabled ? "Alertes actives" : "Activer les alertes"}</button> : null}
+          {requests.length > 0 ? <PushNotificationsButton /> : null}
           <button type="button" disabled={forgettingDevice} onClick={() => void forgetThisDevice()}><LogOut aria-hidden="true" />{forgettingDevice ? "Fermeture…" : "Oublier les demandes"}</button>
         </div>
       </div>
@@ -3662,7 +3683,10 @@ function ConnectedAgentView({ onBack }: { onBack: () => void }) {
   const [pagination, setPagination] = useState<AgentQueuePagination>({ page: 1, pageSize: 30, total: 0, totalPages: 1 });
   const [access, setAccess] = useState<AgentAccess | null>(null);
   const [queueMode, setQueueMode] = useState<"all" | "qualify" | "urgent" | "overdue" | "waiting" | "internal" | "unassigned" | "callbacks" | "duplicates" | "mine">("all");
-  const [serviceFilter, setServiceFilter] = useState("");
+  const [serviceFilter, setServiceFilter] = useState(() => {
+    const service = new URLSearchParams(window.location.search).get("service") ?? "";
+    return supportTeams.some(team => team.value === service) ? service : "";
+  });
   const [page, setPage] = useState(1);
   const [selectedCode, setSelectedCode] = useState<string | null>(null);
   const [detail, setDetail] = useState<AgentRequestDetail | null>(null);
@@ -4460,6 +4484,7 @@ function ConnectedAgentView({ onBack }: { onBack: () => void }) {
         {nextQueueAction.mode && nextQueueAction.actionLabel ? <button type="button" onClick={() => { setQueueMode(nextQueueAction.mode ?? "all"); setPage(1); setSelectedCode(null); }}><b>{nextQueueAction.count}</b><span>{nextQueueAction.actionLabel}</span><ChevronRight aria-hidden="true" /></button> : <b className="lycee-agent-next-action-done"><CheckCircle2 aria-hidden="true" /> À jour</b>}
       </section> : null}
       {access?.canViewAll && orderedServiceStats.length > 0 ? <section className="lycee-service-load" aria-label="Charge par service"><div><small>Vue de gestion</small><strong>Charge par service</strong></div><nav aria-label="Filtrer par charge de service">{orderedServiceStats.map((item) => { const value = item.service ?? "unassigned"; return <button type="button" aria-pressed={serviceFilter === value} className={serviceFilter === value ? "is-active" : ""} onClick={() => { setServiceFilter(value); setPage(1); }} key={value}><span>{supportTeamLabel(item.service)}</span><strong>{item.open}</strong><small>{item.urgent > 0 ? `${item.urgent} urgente${item.urgent > 1 ? "s" : ""}` : "Aucune urgence"}{item.overdue > 0 ? ` · ${item.overdue} en retard` : ""}</small></button>; })}</nav></section> : null}
+      <PushNotificationsButton audience="agent" />
       <div className="lycee-agent-workspace">
         <section className="lycee-agent-queue" aria-label="File des demandes">
           <div className="lycee-agent-toolbar"><label><Search aria-hidden="true" /><input aria-label="Rechercher une demande" maxLength={80} value={query} onChange={(event) => { setQuery(event.target.value); setPage(1); }} placeholder="Nom, numéro ou objet" /></label><button className={queueMode === "mine" ? "is-active" : ""} type="button" aria-label="Afficher mes demandes" aria-pressed={queueMode === "mine"} title="Afficher mes demandes" onClick={() => { setQueueMode((current) => current === "mine" ? "all" : "mine"); setPage(1); }}><Filter aria-hidden="true" /></button><button type="button" aria-label="Réinitialiser les filtres" title="Réinitialiser les filtres" disabled={!hasQueueFilters} onClick={resetQueueFilters}><RotateCcw aria-hidden="true" /></button><select aria-label="Filtrer par service" value={serviceFilter} onChange={(event) => { setServiceFilter(event.target.value); setPage(1); }}><option value="">{access?.canViewAll ? "Tous les services" : "Mon périmètre"}</option>{access?.canViewAll ? <option value="unassigned">À orienter</option> : null}{availableTeams.map((team) => <option value={team.value} key={team.value}>{team.label}</option>)}</select></div>

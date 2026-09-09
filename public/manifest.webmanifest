@@ -10,25 +10,43 @@
   "theme_color": "#155eef",
   "lang": "fr",
   "orientation": "any",
-  "categories": ["education", "productivity"],
+  "categories": [
+    "education",
+    "productivity"
+  ],
   "shortcuts": [
     {
-      "name": "Demander de l'aide",
+      "name": "Parler � Blaise",
       "short_name": "Aide",
-      "url": "/prototype?view=help",
-      "icons": [{ "src": "/pwa-icon-192.png", "sizes": "192x192" }]
+      "url": "/?view=help",
+      "icons": [
+        {
+          "src": "/pwa-icon-192.png",
+          "sizes": "192x192"
+        }
+      ]
     },
     {
       "name": "Suivre mes demandes",
       "short_name": "Suivi",
-      "url": "/prototype?view=requests",
-      "icons": [{ "src": "/pwa-icon-192.png", "sizes": "192x192" }]
+      "url": "/?view=requests",
+      "icons": [
+        {
+          "src": "/pwa-icon-192.png",
+          "sizes": "192x192"
+        }
+      ]
     },
     {
       "name": "Informations du lycée",
       "short_name": "Le lycée",
-      "url": "/prototype?view=school",
-      "icons": [{ "src": "/pwa-icon-192.png", "sizes": "192x192" }]
+      "url": "/?view=school",
+      "icons": [
+        {
+          "src": "/pwa-icon-192.png",
+          "sizes": "192x192"
+        }
+      ]
     }
   ],
   "icons": [

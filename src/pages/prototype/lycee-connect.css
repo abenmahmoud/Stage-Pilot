@@ -1405,3 +1405,55 @@
   .lycee-empty-actions { align-items: stretch; flex-direction: column; width: 100%; }
   .lycee-formations, .lycee-specialties, .lycee-programs, .lycee-school-life, .lycee-practical { scroll-margin-top: 176px; }
 }
+
+/* Conversation workspace: progressive private controls, one clear next action. */
+.lycee-guided-chat { max-width: 900px; margin-inline: auto; border-radius: 22px; overflow: hidden; box-shadow: 0 14px 44px #19374d0c; }
+.lycee-guided-thread { min-height: 220px; max-height: 48dvh; }
+.lycee-chat-workspace { padding: 20px; }
+.lycee-chat-workspace .lycee-identity-device { margin: 0 0 16px; padding: 18px; border-radius: 16px; display: flex; flex-wrap: wrap; gap: 12px; }
+.lycee-chat-workspace .lycee-identity-device-copy { flex: 1; min-width: 200px; }
+.lycee-chat-workspace .lycee-identity-device form { flex-basis: 100%; display: flex; flex-wrap: wrap; gap: 10px; }
+.lycee-chat-workspace .lycee-identity-device form input:not([type=checkbox]), .lycee-chat-workspace .lycee-identity-device form select { flex: 1 1 180px; min-width: 0; min-height: 48px; }
+.lycee-chat-step { padding: 20px; border: 1px solid #cfddeb; background: #f8fbff; border-radius: 18px; }
+.lycee-chat-step-heading { display: flex; justify-content: space-between; gap: 12px; align-items: start; margin-bottom: 18px; }
+.lycee-chat-step-heading strong { color: #17354b; font-size: 18px; }
+.lycee-chat-step-heading small { color: #52677d; white-space: nowrap; }
+.lycee-chat-step-fields { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 14px; }
+.lycee-chat-step-fields label { display: flex; flex-direction: column; gap: 6px; font-size: 14px; color: #294357; }
+.lycee-chat-step-fields input:not([type=checkbox]), .lycee-chat-step-fields select { width: 100%; min-width: 0; min-height: 48px; border-radius: 10px; border: 1px solid #bed0e0; background: white; padding: 10px 12px; font: inherit; }
+.lycee-chat-step-fields details, .lycee-chat-review { grid-column: 1/-1; }
+.lycee-chat-step-fields details summary { cursor: pointer; padding-block: 12px; color: #315c7c; font-size: 14px; }
+.lycee-chat-step-fields details label { margin-block: 10px; }
+.lycee-chat-step-fields .lycee-chat-check { display: flex; flex-direction: row; align-items: center; }
+.lycee-chat-check input { width: 18px; height: 18px; flex-shrink: 0; }
+.lycee-chat-step-actions { display: flex; justify-content: space-between; gap: 12px; margin-top: 20px; }
+.lycee-chat-step button { min-height: 44px; display: inline-flex; align-items: center; gap: 8px; }
+.lycee-chat-step button svg { width: 18px; height: 18px; }
+.lycee-chat-review { display: grid; gap: 12px; min-width: 0; }
+.lycee-chat-review span { display: flex; align-items: center; gap: 8px; color: #14725c; font-weight: 600; }
+.lycee-chat-review span svg { width: 19px; }
+.lycee-chat-review p { margin: 0; white-space: pre-wrap; overflow-wrap: anywhere; }
+.lycee-chat-review small { overflow-wrap: anywhere; color: #52677d; }
+.lycee-chat-review .lycee-chat-review-note { font-size: 14px; color: #52677d; }
+.lycee-chat-next.is-form-only { margin-top: 8px; padding: 0; border: none; background: transparent; }
+.lycee-chat-next.is-form-only button { font-size: 13px; color: #52677d; }
+@media (max-width: 600px) {
+ .lycee-guided-chat { border-radius: 16px; }
+ .lycee-chat-workspace { padding: 12px; }
+ .lycee-chat-step { padding: 14px; }
+ .lycee-chat-step-fields { grid-template-columns: minmax(0,1fr); }
+ .lycee-chat-step-heading { flex-direction: column; gap: 5px; }
+ .lycee-chat-step-heading strong { font-size: 16px; }
+ .lycee-chat-step-actions { flex-wrap: wrap; }
+ .lycee-chat-step-actions button { flex: 1; justify-content: center; }
+ .lycee-guided-chat-head em { display: none; }
+ .lycee-guided-thread { min-height: 170px; max-height: 44dvh; }
+ .lycee-chat-composer textarea { font-size: 16px; }
+}
+@media (prefers-reduced-motion: reduce) { .lycee-guided-chat *, .lycee-chat-step * { scroll-behavior: auto !important; animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; } }
+
+.lycee-push-control { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-block: 12px; }
+.lycee-push-control button { display: inline-flex; gap: 8px; align-items: center; min-height: 44px; padding: 10px 16px; background: #edf5ff; border: 1px solid #c7daf3; border-radius: 12px; color: #164478; font-weight: 600; }
+.lycee-push-control button svg { width: 18px; height: 18px; }
+.lycee-push-control small { flex-basis: 100%; color: #52677d; max-width: 500px; }
+.lycee-chat-workspace .lycee-identity-device .lycee-identity-skip { flex-basis: 100%; background: transparent; border: none; padding: 8px 0; text-align: left; color: #52677d; font-size: 13px; }
