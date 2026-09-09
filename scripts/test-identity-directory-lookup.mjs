@@ -181,7 +181,7 @@ assert.match(route, /requireIdentityDirectoryManager/);
 assert.match(route, /justificationHash/);
 assert.doesNotMatch(route + pollRoute, /support\/assistant|openai|agentSkill/);
 assert.match(worker, /i\.status = 'active'/);
-assert.match(worker, /limit 2/);
+assert.match(worker, /limit \$\{payload.searchType === 'identity' \? 100 : 2\}/);
 assert.match(worker, /decryptIdentityVaultPayload/);
 assert.match(worker, /expireStaleRequests/);
 assert.match(worker, /request_ciphertext = null/);

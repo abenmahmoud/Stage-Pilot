@@ -6005,3 +6005,14 @@ Publication vérifiée : `51abb48`, statut Vercel réussi, déploiement
 `AmB67mpCwJvunFoRshGysf16U99V`. Module `LyceeConnectPrototype-CkLPsokx.js`
 HTTP 200 sur le domaine principal. Parcours d’entrée du site déployé vérifié
 à 390 px avec API simulées, sans envoi ni demande d’identité à l’ouverture.
+### 9 septembre 2026 — choix du contact connu après identification
+
+Décision explicite d'Adel : proposer directement les contacts masqués du lycée,
+SMS ou email, après identification unique. Un seul canal choisi suffit ; aucun
+contact à ressaisir et aucun code avant le clic. Sans accès à ces contacts,
+demande de rectification humaine avec identité préremplie. Aucune modification
+automatique de l'annuaire.
+
+Réalisation et recette : `docs/operations/CHOIX_CONTACT_OTP_2026-09-09.md`.
+Le complément ENT reste un chantier distinct ; ne pas confondre la préparation
+locale avec des adresses déjà disponibles dans l'annuaire actif.

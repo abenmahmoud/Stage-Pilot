@@ -267,3 +267,14 @@ export async function enforceIdentityOtpVerificationLimit(input: {
     personalHash(`identity-otp-verify:${input.institutionId}:${input.deviceId}`)
   );
 }
+
+export async function enforceIdentityOtpContactLimits(input: {
+  institutionId: string;
+  contact: string;
+}): Promise<void> {
+  const keyHash = personalHash(`identity-otp-contact:${input.institutionId}:${input.contact}`);
+  await enforceSupportRateLimits([
+    { ...SUPPORT_RATE_LIMIT_POLICIES.identityOtpContactBurst, keyHash },
+    { ...SUPPORT_RATE_LIMIT_POLICIES.identityOtpContactDaily, keyHash },
+  ]);
+}

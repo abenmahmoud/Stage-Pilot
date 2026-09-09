@@ -28,6 +28,8 @@ import {
   readChallengeReceipt,
 } from "../../_shared/identity-device-access.js";
 import { handleApi, methodNotAllowed } from "../../_shared/response.js";
+import { readDeviceChoiceResult } from '../../_shared/identity-contact-choices.js';
+import { publicIdentityContactOptions, maskIdentityContact } from '../../../shared/identity-contact-choices.mjs';
 
 type DeviceLookupResult = {
   firstName: string;
@@ -134,6 +136,24 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       throw new HttpError(410, "Ce code a expiré. Demandez un nouveau code.");
     }
 
+    if (claims.schema === 2) {
+      if (row.challenge.status === 'code_sent') return { ...codeSentPayload,
+        destination: claims.contactType && claims.contact ? maskIdentityContact(claims.contactType, claims.contact) : undefined };
+      if (row.challenge.status === 'failed' || row.lookup.status === 'failed') {
+        throw new HttpError(503, 'La vérification est momentanément indisponible. Réessayez.');
+      }
+      if (row.challenge.status === 'lookup_queued' && ['not_found', 'ambiguous'].includes(row.lookup.status)) {
+        return { status: 'needs_contact_update', message: 'Nous ne pouvons pas vous proposer de coordonnées avec ces informations. Vérifiez votre nom, votre prénom et votre profil, ou demandez une rectification.' };
+      }
+      if (row.challenge.status === 'lookup_queued' && row.lookup.status === 'completed') {
+        const result = await readDeviceChoiceResult(claims, row.lookup);
+        return result.contacts.length ? { status: 'choose_contact', options: publicIdentityContactOptions(result.contacts), expiresAt: row.lookup.expiresAt.toISOString() }
+          : { status: 'needs_contact_update', message: 'Aucun email ni téléphone utilisable n’est renseigné. Vous pouvez demander l’ajout ou la rectification de vos coordonnées.' };
+      }
+      if (row.lookup.status === 'expired' || ['expired', 'ineligible'].includes(row.challenge.status)) throw new HttpError(410, 'Cette recherche a expiré. Recommencez.');
+      return publicPayload;
+    }
+    if (!claims.contactType || !claims.contact) throw new HttpError(401, 'Vérification expirée ou invalide.');
     if (row.challenge.status === "code_sent") return codeSentPayload;
     if (["ineligible", "failed"].includes(row.challenge.status)) return contactUpdatePayload;
 

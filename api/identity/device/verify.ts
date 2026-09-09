@@ -31,6 +31,7 @@ import { personalHash } from "../../_shared/support.js";
 type LockedChallenge = {
   id: string;
   device_key_hash: string;
+  contact_hash: string;
   remember_device: boolean;
   status: string;
   code_hash: string | null;
@@ -67,7 +68,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const session = newIdentityDeviceSessionToken();
     const outcome = await db.transaction(async (tx) => {
       const rows = await tx.execute(sql<LockedChallenge>`
-        select id, device_key_hash, remember_device, status, code_hash,
+        select id, device_key_hash, contact_hash, remember_device, status, code_hash,
                attempt_count, matched_import_id, matched_person_ref,
                matched_person_type, expires_at
         from public.identity_device_challenges
@@ -82,6 +83,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       );
       if (
         !challenge ||
+        !claims.contactType || !claims.contact ||
+        new Date(claims.expiresAt) <= now ||
+        challenge.contact_hash !== personalHash(`identity-device-contact:${claims.institutionId}:${claims.contactType}:${claims.contact}`) ||
         challenge.device_key_hash !== expectedDeviceHash ||
         challenge.status !== "code_sent" ||
         !challenge.code_hash ||
@@ -173,6 +177,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       status: "verified" as const,
       personType: outcome.personType,
       expiresAt: outcome.expiresAt.toISOString(),
+      ...(claims.schema === 2 ? { verifiedContact: {
+        profile: outcome.personType, firstName: claims.claimedFirstName, lastName: claims.claimedLastName,
+        contactType: claims.contactType, contact: claims.contact,
+      } } : {}),
     };
   });
 }

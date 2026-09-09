@@ -19,6 +19,7 @@ import {
   identityDeviceFeatureEnabled,
   identityDeviceReadyPayload,
   parseIdentityDeviceRequestInput,
+  parseIdentityDeviceIdentifyInput,
 } from "../../../shared/identity-device-access.js";
 import { HttpError } from "../../_shared/auth.js";
 import {
@@ -40,8 +41,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       throw new HttpError(503, "La vérification d’identité n’est pas encore activée.");
     }
     let input;
+    const choiceFlow = req.body?.flow === 'contact_choices';
     try {
-      input = parseIdentityDeviceRequestInput(req.body);
+      if (choiceFlow) {
+        const { flow, ...identity } = req.body;
+        input = { ...parseIdentityDeviceIdentifyInput(identity), contactType: null, contact: null };
+      } else input = parseIdentityDeviceRequestInput(req.body);
     } catch {
       throw new HttpError(400, "Vérifiez votre identité et le moyen de contact saisis.");
     }
@@ -59,11 +64,17 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (!activeDirectory) {
       throw new HttpError(503, "La vérification d’identité n’est pas encore disponible.");
     }
+    const searchType = choiceFlow ? 'identity' : input.contactType!;
+    const query = choiceFlow ? {
+      claimedProfile: input.claimedProfile,
+      claimedFirstName: input.claimedFirstName,
+      claimedLastName: input.claimedLastName,
+    } : input.contact!;
     await enforceIdentityOtpRequestLimits({
       req,
       institutionId: institution.id,
       deviceId: input.deviceId,
-      contact: input.contact,
+      contact: choiceFlow ? `identity:${JSON.stringify(query).normalize('NFD').replace(/\p{M}/gu, '').toLowerCase()}` : input.contact!,
     });
 
     let config;
@@ -86,8 +97,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         requestId,
         institutionId: institution.id,
         actorId: challengeId,
-        searchType: input.contactType,
-        query: input.contact,
+        searchType,
+        query,
         reasonCategory: "identity_verification",
         justification: JUSTIFICATION,
         responseKey: responseKey.toString("base64"),
@@ -104,7 +115,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       `identity-device:${institution.id}:${input.deviceId}`
     );
     const contactHash = personalHash(
-      `identity-device-contact:${institution.id}:${input.contactType}:${input.contact}`
+      `identity-device-contact:${institution.id}:${searchType}:${choiceFlow ? challengeId : input.contact}`
     );
 
     await db.transaction(async (tx) => {
@@ -113,7 +124,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         institutionId: institution.id,
         actorId: null,
         publicActorId: challengeId,
-        searchType: input.contactType,
+        searchType,
         reasonCategory: "identity_verification",
         justificationHash,
         requestSchema: envelope.schema,
@@ -140,7 +151,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         action: "request_lookup",
         actorId: null,
         summary: {
-          searchType: input.contactType,
+          searchType,
           reasonCategory: "identity_verification",
           publicSelfService: true,
           expiresAt: lookupExpiresAt.toISOString(),
@@ -160,7 +171,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     const receipt = sealIdentityLookupReceipt(
       {
-        schema: 1,
+        schema: choiceFlow ? 2 : 1,
         challengeId,
         requestId,
         institutionId: institution.id,

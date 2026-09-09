@@ -1,5 +1,6 @@
 import { createHash, createHmac } from "node:crypto";
 import postgres from "postgres";
+import { comparableIdentityName, directoryIdentityMatches, directoryContactOptions } from "../shared/identity-contact-choices.mjs";
 import {
   decryptIdentityLookupRequest,
   encryptIdentityLookupResult,
@@ -70,13 +71,13 @@ function requestPayload(value, row) {
   ]) {
     if (value[field] !== expected) throw new Error("lookup_request_context_mismatch");
   }
-  if (!["academic_email", "personal_email", "email", "phone", "person_ref"].includes(value.searchType)) {
+  if (!["academic_email", "personal_email", "email", "phone", "person_ref", "identity"].includes(value.searchType)) {
     throw new Error("lookup_request_invalid");
   }
   const publicSelfService = row.actor_id === null && row.public_actor_id !== null;
   if (
-    (publicSelfService && (!["email", "phone"].includes(value.searchType) || value.reasonCategory !== "identity_verification"))
-    || (!publicSelfService && value.searchType === "email")
+    (publicSelfService && (!["email", "phone", "identity"].includes(value.searchType) || value.reasonCategory !== "identity_verification"))
+    || (!publicSelfService && ["email", "identity"].includes(value.searchType))
   ) {
     throw new Error("lookup_request_invalid");
   }
@@ -99,6 +100,13 @@ function requestPayload(value, row) {
 }
 
 function lookupFactor(searchType, query) {
+  if (searchType === "identity") {
+    if (!query || typeof query !== 'object' || !['student', 'guardian', 'staff'].includes(query.claimedProfile)
+      || ![query.claimedFirstName, query.claimedLastName].every(name => typeof name === 'string' && name.length <= 100 && comparableIdentityName(name))) {
+      throw new Error('lookup_query_invalid');
+    }
+    return { column: 'name_lookup_hash', value: nameLookupHash(query.claimedLastName) };
+  }
   if (searchType === "person_ref") return { column: "person_ref", value: normalizeRef(query) };
   const normalized = searchType === "phone" ? normalizePhone(query) : normalizeEmail(query);
   if (searchType === "email") {
@@ -140,8 +148,9 @@ async function findMatches(row, payload) {
       and (r.valid_from is null or r.valid_from <= current_date)
       and (r.valid_until is null or r.valid_until >= current_date)
       and ${factorPredicate}
+      and (${payload.searchType !== 'identity'} or r.person_type = ${payload.searchType === 'identity' ? payload.query.claimedProfile : null})
     order by r.row_number
-    limit 2
+    limit ${payload.searchType === 'identity' ? 100 : 2}
   `;
 }
 
@@ -246,24 +255,18 @@ async function processMessage(message) {
     privateKey: lookupConfig.privateKey,
   });
   const payload = requestPayload(decrypted, row);
-  const matches = await findMatches(row, payload);
+  let matches = await findMatches(row, payload);
+  if (payload.searchType === 'identity') {
+    // Refuse a truncated set: uniqueness must be proved before returning hints.
+    if (matches.length === 100) return finalize(row, 'ambiguous', { resultCount: 2 });
+    matches = matches.map(match => ({ ...match, vault: openPersonVault(row.institution_id, match) }))
+      .filter(match => directoryIdentityMatches(payload.query, { ...match.vault, personType: match.person_type }));
+  }
   if (matches.length === 0) return finalize(row, "not_found", { resultCount: 0 });
   if (matches.length > 1) return finalize(row, "ambiguous", { resultCount: 2 });
 
   const match = matches[0];
-  const vault = decryptIdentityVaultPayload({
-    envelope: {
-      keyVersion: match.key_version,
-      payloadSchema: match.payload_schema,
-      iv: match.iv,
-      authTag: match.auth_tag,
-      ciphertext: match.ciphertext,
-    },
-    institutionId: row.institution_id,
-    importId: match.import_id,
-    personRef: match.person_ref,
-    key: identityVaultKeyForVersion(match.key_version),
-  });
+  const vault = match.vault ?? openPersonVault(row.institution_id, match);
   const result = {
     firstName: vault.firstName,
     lastName: vault.lastName,
@@ -274,6 +277,7 @@ async function processMessage(message) {
     matchedBy: payload.searchType,
     directoryVersionId: match.import_id,
     directoryActivatedAt: match.activated_at.toISOString(),
+    ...(payload.searchType === 'identity' ? { contacts: directoryContactOptions(vault) } : {}),
   };
   const envelope = encryptIdentityLookupResult({
     value: result,
@@ -287,6 +291,49 @@ async function processMessage(message) {
     matchedImportId: match.import_id,
     envelope,
   });
+}
+
+function openPersonVault(institutionId, match) {
+  return decryptIdentityVaultPayload({
+    envelope: {
+      keyVersion: match.key_version,
+      payloadSchema: match.payload_schema,
+      iv: match.iv,
+      authTag: match.auth_tag,
+      ciphertext: match.ciphertext,
+    },
+    institutionId,
+    importId: match.import_id,
+    personRef: match.person_ref,
+    key: identityVaultKeyForVersion(match.key_version),
+  });
+}
+
+function nameLookupHash(name) {
+  return createHmac('sha256', contactPepper).update(`identity-name:${comparableIdentityName(name)}`).digest('hex');
+}
+
+async function ensureNameIndex() {
+  // Also covers later manually activated imports. Never index or reveal plaintext.
+  for (let batch = 0; batch < 20; batch += 1) {
+    const missing = await sql`
+      select r.id, r.institution_id, r.import_id, r.person_ref,
+             p.key_version, p.payload_schema, p.iv, p.auth_tag, p.ciphertext
+      from public.identity_directory_rows r
+      join public.identity_directory_imports i on i.id = r.import_id and i.institution_id = r.institution_id
+      join public.identity_directory_private_rows p on p.import_id = r.import_id
+        and p.institution_id = r.institution_id and p.person_ref = r.person_ref
+      where i.status = 'active' and r.record_type = 'person' and r.name_lookup_hash is null
+        and r.validation_status in ('valid', 'warning')
+      order by r.id limit 500
+    `;
+    if (!missing.length) return true;
+    const indexed = missing.map(row => ({ id: row.id, name_lookup_hash: nameLookupHash(openPersonVault(row.institution_id, row).lastName) }));
+    await sql`update public.identity_directory_rows r set name_lookup_hash = x.name_lookup_hash
+      from jsonb_to_recordset(${sql.json(indexed)}::jsonb) as x(id bigint, name_lookup_hash text)
+      where r.id = x.id and r.name_lookup_hash is null`;
+  }
+  return false;
 }
 
 async function expireStaleRequests() {
@@ -327,6 +374,7 @@ async function expireStaleRequests() {
 
 async function main() {
   await expireStaleRequests();
+  if (!await ensureNameIndex()) return;
   const messages = await sql`
     select msg_id, read_ct, message
     from pgmq.read('identity_directory_lookup', 90, 50)

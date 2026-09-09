@@ -350,6 +350,7 @@ export const identityDirectoryRows = pgTable(
     academicEmailHash: text("academic_email_hash"),
     personalEmailHash: text("personal_email_hash"),
     phoneHash: text("phone_hash"),
+    nameLookupHash: text("name_lookup_hash"),
     validFrom: date("valid_from"),
     validUntil: date("valid_until"),
     validationStatus: text("validation_status").notNull(),

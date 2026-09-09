@@ -614,6 +614,7 @@ export default function LyceeConnectPrototype() {
   const view = publicPortalView(location.search);
   const [message, setMessage] = useState("");
   const [helpInitialMessage, setHelpInitialMessage] = useState("");
+  const [contactCorrectionIdentity, setContactCorrectionIdentity] = useState<IdentityPersonDraft | undefined>();
   const [hasHelpDraft, setHasHelpDraft] = useState(false);
   const [helpMode, setHelpMode] = useState<"chat" | "form">("chat");
   const [menuOpen, setMenuOpen] = useState(false);
@@ -1003,7 +1004,7 @@ export default function LyceeConnectPrototype() {
             onBack={() => changeView("home")}
             onTicketCreated={setTicketCreated}
             onTrack={() => changeView("requests")}
-            onCollect={() => changeView("collect")}
+            onCollect={(identity) => { setContactCorrectionIdentity(identity); changeView("collect"); }}
           />
         )}
         {view === "collect" && (
@@ -1011,6 +1012,7 @@ export default function LyceeConnectPrototype() {
             initialMessage=""
             initialClassicForm
             initialContactCollection
+            initialIdentity={contactCorrectionIdentity}
             onBack={() => changeView("home")}
             onTicketCreated={setTicketCreated}
             onTrack={() => changeView("requests")}
@@ -1394,7 +1396,7 @@ function localAssistantFallback(messages: AssistantChatMessage[], files: File[])
   };
 }
 
-type IdentityDeviceUiState = "checking_session" | "identify" | "checking_contact" | "awaiting_code" | "needs_contact_update" | "verified";
+type IdentityDeviceUiState = "checking_session" | "identify" | "checking_contact" | "choosing_contact" | "awaiting_code" | "needs_contact_update" | "unavailable" | "verified";
 type IdentityContactDraft = {
   profile: "student" | "guardian" | "staff";
   firstName: string;
@@ -1402,6 +1404,7 @@ type IdentityContactDraft = {
   contactType: "email" | "phone";
   contact: string;
 };
+type IdentityPersonDraft = Pick<IdentityContactDraft, 'profile' | 'firstName' | 'lastName'>;
 
 function IdentityDeviceAccessPanel({
   onVerified,
@@ -1412,17 +1415,16 @@ function IdentityDeviceAccessPanel({
 }: {
   onVerified?: (details?: IdentityContactDraft) => void;
   onVerificationChange?: (verified: boolean) => void;
-  onContactUpdate: () => void;
+  onContactUpdate: (identity?: IdentityPersonDraft) => void;
   onForgot?: () => void;
   onSkip: () => void;
 }) {
   const [state, setState] = useState<IdentityDeviceUiState>("checking_session");
-  const [identityStep, setIdentityStep] = useState<"person" | "contact">("person");
   const [claimedProfile, setClaimedProfile] = useState<"student" | "guardian" | "staff">("student");
   const [claimedFirstName, setClaimedFirstName] = useState("");
   const [claimedLastName, setClaimedLastName] = useState("");
-  const [contactType, setContactType] = useState<"email" | "phone">("email");
-  const [contact, setContact] = useState("");
+  const [contactOptions, setContactOptions] = useState<Array<{ id: string; type: "email" | "phone"; label: string }>>([]);
+  const [destination, setDestination] = useState("");
   const [code, setCode] = useState("");
   const [rememberDevice, setRememberDevice] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -1430,11 +1432,12 @@ function IdentityDeviceAccessPanel({
   const [personType, setPersonType] = useState<string | null>(null);
   const [confirmForget, setConfirmForget] = useState(false);
   const deviceId = useRef(supportAssistantSessionId());
+  const requestContactCorrection = () => onContactUpdate({ profile: claimedProfile, firstName: claimedFirstName.trim(), lastName: claimedLastName.trim() });
 
   useEffect(() => {
     let active = true;
     void fetch("/api/identity/device/session", { credentials: "include" })
-      .then((response) => readJsonApiResponse<Record<string, unknown>>(response, { maxBytes: 16 * 1024 }))
+      .then((response) => readJsonApiResponse<Record<string, unknown>>(response, { maxBytes: 16 * 1024, requireOk: false }))
       .then((payload) => {
         if (!active) return;
         if (payload.status === "verified") {
@@ -1467,23 +1470,29 @@ function IdentityDeviceAccessPanel({
           method: "POST",
           credentials: "include",
         });
-        const payload = await readJsonApiResponse<Record<string, unknown>>(response, { maxBytes: 16 * 1024 });
+        const payload = await readJsonApiResponse<Record<string, unknown>>(response, { maxBytes: 16 * 1024, requireOk: false });
         if (!active) return;
-        if (payload.status === "code_sent") {
+        if (payload.status === "choose_contact" && Array.isArray(payload.options) && payload.options.length > 0) {
+          setContactOptions(payload.options as typeof contactOptions);
+          setError(null);
+          setState("choosing_contact");
+        } else if (payload.status === "code_sent") {
+          setDestination(typeof payload.destination === 'string' ? payload.destination : 'le contact choisi');
           setState("awaiting_code");
         } else if (payload.status === "needs_contact_update") {
           setError(typeof payload.message === "string" ? payload.message : "Aucun code n’a pu être envoyé.");
           setState("needs_contact_update");
         } else if (!response.ok) {
-          throw new Error("status_failed");
+          setError(typeof payload.error === 'string' ? payload.error : "La vérification est momentanément indisponible.");
+          setState("unavailable");
         } else if (attempts >= 40) {
           setError("La recherche prend trop de temps. Vérifiez les informations ou recommencez.");
-          setState("needs_contact_update");
+          setState("unavailable");
         }
       } catch {
         if (active) {
-          setError("La vérification est momentanément indisponible. Réessayez ou demandez la correction de vos coordonnées.");
-          if (attempts >= 40) setState("needs_contact_update");
+          setError("La vérification est momentanément indisponible. Réessayez dans quelques instants.");
+          if (attempts >= 40) setState("unavailable");
         }
       }
     };
@@ -1494,7 +1503,6 @@ function IdentityDeviceAccessPanel({
 
   async function requestCode(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (identityStep === "person") { setIdentityStep("contact"); return; }
     setBusy(true);
     setError(null);
     try {
@@ -1503,8 +1511,7 @@ function IdentityDeviceAccessPanel({
         credentials: "include",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          contactType,
-          contact,
+          flow: "contact_choices",
           claimedProfile,
           claimedFirstName,
           claimedLastName,
@@ -1512,14 +1519,41 @@ function IdentityDeviceAccessPanel({
           rememberDevice,
         }),
       });
-      const payload = await readJsonApiResponse<Record<string, unknown>>(response, { maxBytes: 16 * 1024 });
-      if (!response.ok || payload.status !== "checking") throw new Error("request_failed");
+      const payload = await readJsonApiResponse<Record<string, unknown>>(response, { maxBytes: 16 * 1024, requireOk: false });
+      if (!response.ok || payload.status !== "checking") {
+        setError(typeof payload.error === 'string' ? payload.error : "La vérification est indisponible. Réessayez.");
+        return;
+      }
       setState("checking_contact");
     } catch {
       setError("La vérification est indisponible. Vous pouvez transmettre votre demande ici sans vérifier votre identité.");
     } finally {
       setBusy(false);
     }
+  }
+
+  async function chooseContact(option: typeof contactOptions[number]) {
+    if (busy) return;
+    setBusy(true);
+    setError(null);
+    try {
+      const response = await fetch('/api/identity/device/select', {
+        method: 'POST', credentials: 'include', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ optionId: option.id }),
+      });
+      const payload = await readJsonApiResponse<Record<string, unknown>>(response, { maxBytes: 16 * 1024, requireOk: false });
+      if (!response.ok || payload.status !== 'code_sent') {
+        setError(typeof payload.error === 'string' ? payload.error : "L’envoi du code n’a pas pu être confirmé.");
+        setState('unavailable');
+        return;
+      }
+      setDestination(typeof payload.destination === 'string' ? payload.destination : option.label);
+      setState('awaiting_code');
+    } catch {
+      // A lost response is not permission to resend: ask the server for its state.
+      setDestination(option.label);
+      setState('checking_contact');
+    } finally { setBusy(false); }
   }
 
   async function verifyCode(event: React.FormEvent<HTMLFormElement>) {
@@ -1533,19 +1567,13 @@ function IdentityDeviceAccessPanel({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ code }),
       });
-      const payload = await readJsonApiResponse<Record<string, unknown>>(response, { maxBytes: 16 * 1024 });
+      const payload = await readJsonApiResponse<Record<string, unknown>>(response, { maxBytes: 16 * 1024, requireOk: false });
       if (!response.ok || payload.status !== "verified") throw new Error("verify_failed");
       setPersonType(typeof payload.personType === "string" ? payload.personType : null);
       setCode("");
       setState("verified");
       onVerificationChange?.(true);
-      onVerified?.({
-        profile: claimedProfile,
-        firstName: claimedFirstName.trim(),
-        lastName: claimedLastName.trim(),
-        contactType,
-        contact: contact.trim(),
-      });
+      onVerified?.(payload.verifiedContact as IdentityContactDraft | undefined);
     } catch {
       setError("Ce code est invalide ou expiré. Vérifiez le code reçu par email ou SMS, ou recommencez.");
     } finally {
@@ -1566,7 +1594,8 @@ function IdentityDeviceAccessPanel({
       setBusy(false);
       return;
     }
-    setContact("");
+    setContactOptions([]);
+    setDestination("");
     setClaimedFirstName("");
     setClaimedLastName("");
     setCode("");
@@ -1597,12 +1626,11 @@ function IdentityDeviceAccessPanel({
     <section className="lycee-identity-device" aria-labelledby="identity-device-title">
       <KeyRound aria-hidden="true" />
       <div className="lycee-identity-device-copy">
-        <strong id="identity-device-title">{state === "identify" ? identityStep === "person" ? "Présentons-nous : qui êtes-vous ?" : "Où souhaitez-vous recevoir votre code ?" : state === "awaiting_code" ? "Quel code avez-vous reçu ?" : "Vérifions votre accès"}</strong>
-        <p>{identityStep === "person" ? "Ces informations servent uniquement à vous retrouver dans l’annuaire du lycée." : "Choisissez un email ou un téléphone déjà connu du lycée."}</p>
+        <strong id="identity-device-title">{state === "identify" ? "Présentons-nous : qui êtes-vous ?" : state === "choosing_contact" ? "Où souhaitez-vous recevoir votre code ?" : state === "awaiting_code" ? "Quel code avez-vous reçu ?" : "Vérifions votre accès"}</strong>
+        <p>{state === "identify" ? "Indiquez votre identité telle qu’elle est enregistrée au lycée. Si vous êtes parent, indiquez votre propre nom." : state === "choosing_contact" ? "Choisissez un seul moyen parmi les coordonnées connues du lycée." : state === "awaiting_code" ? "Ce code confirme votre identité et ouvre votre accès personnel." : "Vos informations personnelles restent protégées."}</p>
       </div>
       {state === "identify" ? (
         <form onSubmit={requestCode}>
-          {identityStep === "person" ? <>
           <select value={claimedProfile} onChange={(event) => setClaimedProfile(event.target.value as "student" | "guardian" | "staff")} aria-label="Votre profil">
             <option value="student">Élève</option>
             <option value="guardian">Parent ou responsable</option>
@@ -1610,27 +1638,30 @@ function IdentityDeviceAccessPanel({
           </select>
           <input autoComplete="given-name" value={claimedFirstName} onChange={(event) => setClaimedFirstName(event.target.value)} placeholder="Prénom" aria-label="Votre prénom" required />
           <input autoComplete="family-name" value={claimedLastName} onChange={(event) => setClaimedLastName(event.target.value)} placeholder="Nom" aria-label="Votre nom" required />
-          </> : <>
-          <select value={contactType} onChange={(event) => { setContactType(event.target.value as "email" | "phone"); setContact(""); }} aria-label="Moyen de vérification">
-            <option value="email">Email connu du lycée</option>
-            <option value="phone">Téléphone connu du lycée</option>
-          </select>
-          <input type={contactType === "email" ? "email" : "tel"} autoComplete={contactType === "email" ? "email" : "tel"} value={contact} onChange={(event) => setContact(event.target.value)} placeholder={contactType === "email" ? "Votre adresse connue" : "Votre numéro connu"} aria-label={contactType === "email" ? "Adresse email connue du lycée" : "Téléphone connu du lycée"} required />
           <label><input type="checkbox" checked={rememberDevice} onChange={(event) => setRememberDevice(event.target.checked)} /> Appareil personnel</label>
-          <button type="button" disabled={busy} onClick={() => setIdentityStep("person")}>Modifier mon identité</button>
-          </>}
-          <button type="submit" disabled={busy}>{busy ? "Recherche…" : identityStep === "person" ? "Continuer" : "Recevoir mon code"}</button>
+          <button type="submit" disabled={busy}>{busy ? "Recherche…" : "Continuer"}</button>
         </form>
+      ) : state === 'choosing_contact' ? (
+        <div className="lycee-identity-contact-choices" aria-label="Choix du moyen de vérification">
+          {contactOptions.map(option => <button type="button" className="lycee-identity-contact-option" key={option.id} disabled={busy} onClick={() => void chooseContact(option)}>
+            {option.type === 'phone' ? <Smartphone aria-hidden="true" /> : <Mail aria-hidden="true" />}
+            <span><strong>{option.type === 'phone' ? 'Par SMS' : 'Par email'}</strong><span>{option.label}</span></span>
+            <ChevronRight aria-hidden="true" />
+          </button>)}
+          {busy ? <p role="status">Envoi du code…</p> : null}
+          <button type="button" className="lycee-identity-contact-alternative" disabled={busy} onClick={requestContactCorrection}>Je n’ai plus accès à ces coordonnées</button>
+          <button type="button" className="lycee-identity-contact-alternative" disabled={busy} onClick={() => { setContactOptions([]); setState('identify'); setError(null); }}>Modifier mon identité</button>
+        </div>
       ) : state === "checking_contact" ? (
-        <div className="lycee-identity-device-progress" role="status"><RefreshCw className="is-spinning" aria-hidden="true" /><span>Recherche dans l’annuaire et contrôle du moyen de contact…</span></div>
-      ) : state === "needs_contact_update" ? (
+        <div className="lycee-identity-device-progress" role="status"><RefreshCw className="is-spinning" aria-hidden="true" /><span>Recherche dans l’annuaire du lycée…</span></div>
+      ) : state === "needs_contact_update" || state === 'unavailable' ? (
         <div className="lycee-identity-device-actions">
-          <button type="button" onClick={() => { setState("identify"); setError(null); }}>Corriger ma saisie</button>
-          <button type="button" onClick={onContactUpdate}>Faire vérifier mes coordonnées</button>
+          <button type="button" onClick={() => { setState("identify"); setError(null); }}>{state === 'unavailable' ? 'Réessayer' : 'Corriger ma saisie'}</button>
+          {state === 'needs_contact_update' ? <button type="button" onClick={requestContactCorrection}>Demander une rectification</button> : null}
         </div>
       ) : (
         <form onSubmit={verifyCode}>
-          <span>Le code a bien été envoyé au moyen de contact trouvé dans l’annuaire. Saisissez-le ici.</span>
+          <span>Code envoyé à {destination}. Il est valable 10 minutes.</span>
           <input inputMode="numeric" autoComplete="one-time-code" pattern="[0-9]{6}" maxLength={6} value={code} onChange={(event) => setCode(event.target.value.replace(/\D/g, "").slice(0, 6))} placeholder="Code à 6 chiffres" aria-label="Code de vérification à six chiffres" required />
           <button type="submit" disabled={busy || code.length !== 6}>{busy ? "Contrôle…" : "Vérifier"}</button>
           <button type="button" disabled={busy} onClick={() => { setState("identify"); setCode(""); setError(null); }}>Recommencer</button>
@@ -1647,6 +1678,7 @@ function HelpDeskView({
   onEntryConsumed,
   initialClassicForm,
   initialContactCollection,
+  initialIdentity,
   onBack,
   onTicketCreated,
   onTrack,
@@ -1656,10 +1688,11 @@ function HelpDeskView({
   onEntryConsumed?: () => void;
   initialClassicForm: boolean;
   initialContactCollection: boolean;
+  initialIdentity?: IdentityPersonDraft;
   onBack: () => void;
   onTicketCreated: (code: string) => void;
   onTrack: () => void;
-  onCollect: () => void;
+  onCollect: (identity?: IdentityPersonDraft) => void;
 }) {
   const welcomeMessage: AssistantChatMessage = {
     id: "welcome",
@@ -1680,7 +1713,7 @@ function HelpDeskView({
   const [assistantBusy, setAssistantBusy] = useState(false);
   const [showDetails, setShowDetails] = useState(initialClassicForm);
   const [classicForm, setClassicForm] = useState(initialClassicForm);
-  const [profile, setProfile] = useState<RequesterProfile>("");
+  const [profile, setProfile] = useState<RequesterProfile>(initialIdentity?.profile === 'student' ? 'eleve' : initialIdentity?.profile === 'guardian' ? 'parent' : initialIdentity?.profile === 'staff' ? 'personnel' : '');
   const [category, setCategory] = useState<SupportCategory>(() =>
     initialContactCollection ? "email_academique" : inferSupportCategory(initialMessage)
   );
@@ -1696,6 +1729,7 @@ function HelpDeskView({
   const [files, setFiles] = useState<File[]>([]);
   const [formValues, setFormValues] = useState<SupportDraftFormValues>(() => ({
     ...defaultSupportFormValues(),
+    requesterFirstName: initialIdentity?.firstName ?? '', requesterLastName: initialIdentity?.lastName ?? '',
     fallbackAllowed: initialContactCollection ? false : defaultSupportFormValues().fallbackAllowed,
   }));
   const fileInputRef = useRef<HTMLInputElement>(null);

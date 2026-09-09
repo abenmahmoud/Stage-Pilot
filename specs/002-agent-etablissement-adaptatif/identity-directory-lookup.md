@@ -48,6 +48,12 @@ ni dans les journaux fonctionnels, ni dans un prompt IA.
 
 ## Hors périmètre V1
 
+Le périmètre ci-dessous concerne la consultation administrative V1. L'extension
+publique du 9 septembre 2026 dispose d'un flux distinct `search_type=identity`,
+documenté dans `identity-device-access.md` : nom et profil, contacts masqués,
+puis choix explicite et OTP. Elle n'ouvre pas la recherche administrative aux
+visiteurs et ne transmet pas l'annuaire au modèle.
+
 - recherche approximative ou par nom ;
 - consultation par un usager public ;
 - export des résultats ou affichage de plusieurs fiches ;

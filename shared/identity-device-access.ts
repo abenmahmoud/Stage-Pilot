@@ -107,6 +107,20 @@ export function normalizeIdentityDeviceId(value: unknown): string {
   return normalized;
 }
 
+export function parseIdentityDeviceIdentifyInput(value: unknown): Omit<IdentityDeviceRequestInput, 'contactType' | 'contact'> {
+  const input = plainObject(value);
+  exactFields(input, ['claimedProfile', 'claimedFirstName', 'claimedLastName', 'deviceId', 'rememberDevice']);
+  if (typeof input.rememberDevice !== 'boolean' || !['student', 'guardian', 'staff'].includes(String(input.claimedProfile))) {
+    throw new Error('identity_device_input_invalid');
+  }
+  return {
+    claimedProfile: input.claimedProfile as IdentityDeviceRequestInput['claimedProfile'],
+    claimedFirstName: normalizeIdentityDeviceClaimName(input.claimedFirstName),
+    claimedLastName: normalizeIdentityDeviceClaimName(input.claimedLastName),
+    deviceId: normalizeIdentityDeviceId(input.deviceId), rememberDevice: input.rememberDevice,
+  };
+}
+
 export function parseIdentityDeviceRequestInput(value: unknown): IdentityDeviceRequestInput {
   const input = plainObject(value);
   exactFields(input, [

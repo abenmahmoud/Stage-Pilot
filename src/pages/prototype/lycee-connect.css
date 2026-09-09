@@ -1506,3 +1506,12 @@
 .lycee-push-control button svg { width: 18px; height: 18px; }
 .lycee-push-control small { flex-basis: 100%; color: #52677d; max-width: 500px; }
 .lycee-chat-workspace .lycee-identity-device .lycee-identity-skip { flex-basis: 100%; background: transparent; border: none; padding: 8px 0; text-align: left; color: #52677d; font-size: 13px; }
+.lycee-identity-contact-choices { display: grid; gap: 10px; width: 100%; min-width: 0; }
+.lycee-identity-device .lycee-identity-contact-option { display: flex; align-items: center; gap: 12px; width: 100%; min-height: 64px; padding: 12px 14px; border-radius: 12px; text-align: left; white-space: normal; }
+.lycee-identity-contact-option > svg { width: 22px; height: 22px; flex-shrink: 0; color: #1767d9; }
+.lycee-identity-contact-option > svg:last-child { margin-left: auto; width: 18px; }
+.lycee-identity-contact-option > span { min-width: 0; overflow-wrap: anywhere; }
+.lycee-identity-contact-option > span > span { display: block; margin-top: 4px; color: #506880; font-weight: 500; }
+.lycee-identity-device .lycee-identity-contact-option:hover:not(:disabled) { border-color: #1767d9; background: #f1f7ff; }
+.lycee-identity-device .lycee-identity-contact-alternative { border: 0; background: transparent; text-align: left; padding: 6px 2px; font-weight: 500; white-space: normal; min-height: 40px; }
+.lycee-identity-device .lycee-identity-contact-alternative:hover { text-decoration: underline; }

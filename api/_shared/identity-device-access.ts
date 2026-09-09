@@ -19,14 +19,14 @@ import { opaqueToken, personalHash } from "./support.js";
 export const IDENTITY_DEVICE_CHALLENGE_COOKIE = "lyceegest_identity_challenge";
 export const IDENTITY_DEVICE_SESSION_COOKIE = "lyceegest_identity_session";
 
-type ChallengeReceipt = {
-  schema: 1;
+export type ChallengeReceipt = {
+  schema: 1 | 2;
   challengeId: string;
   requestId: string;
   institutionId: string;
   responseKey: string;
-  contactType: "email" | "phone";
-  contact: string;
+  contactType: "email" | "phone" | null;
+  contact: string | null;
   claimedProfile: "student" | "guardian" | "staff";
   claimedFirstName: string;
   claimedLastName: string;
@@ -115,14 +115,14 @@ export function challengeReceiptClaims(value: unknown): ChallengeReceipt {
     throw new HttpError(401, "Vérification expirée ou invalide.");
   }
   if (
-    input.schema !== 1 ||
+    ![1, 2].includes(Number(input.schema)) ||
     ![input.challengeId, input.requestId, input.institutionId].every(
       (entry) => typeof entry === "string" && /^[0-9a-f-]{36}$/i.test(entry)
     ) ||
     typeof input.responseKey !== "string" ||
     Buffer.from(input.responseKey, "base64").length !== 32 ||
-    !["email", "phone"].includes(String(input.contactType)) ||
-    typeof input.contact !== "string" ||
+    !((input.schema === 2 && input.contactType === null && input.contact === null)
+      || (["email", "phone"].includes(String(input.contactType)) && typeof input.contact === "string")) ||
     !["student", "guardian", "staff"].includes(String(input.claimedProfile)) ||
     typeof input.claimedFirstName !== "string" ||
     typeof input.claimedLastName !== "string" ||
