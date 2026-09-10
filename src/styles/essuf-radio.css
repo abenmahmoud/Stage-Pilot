@@ -26,11 +26,23 @@
 .essuf-radio-welcome-link { display: inline-flex; min-height: 44px; align-items: center; margin-bottom: -8px; font-size: 12px; }
 .essuf-radio-error { font-size: 13px; line-height: 1.6; }
 .essuf-radio-loading { animation: essuf-radio-spin 1s linear infinite; }
+.essuf-spotify-dock { position: fixed; top: 80px; right: 24px; z-index: 45; }
+.essuf-spotify-dock .essuf-spotify-panel { position: static; width: min(380px, calc(100vw - 32px)); max-height: calc(100dvh - 170px); }
+.essuf-spotify-consent { padding-top: 22px; }
+.essuf-spotify-consent > svg { width: 26px; height: 26px; color: var(--school-blue); }
+.essuf-spotify-consent > p:first-of-type { font-size: 16px; font-weight: 650; color: var(--school-ink); }
+.essuf-spotify-consent > p { line-height: 1.6; }
+.essuf-spotify-consent .essuf-radio-actions button { width: 100%; }
+.essuf-spotify-panel iframe { display: block; width: 100%; border: 0; border-radius: 12px; margin-top: 16px; }
+.essuf-spotify-panel > p { line-height: 1.5; }
+.essuf-spotify-external { display: flex; align-items: center; gap: 8px; min-height: 44px; margin-top: 6px; font-size: 13px; }
+.essuf-spotify-privacy { display: inline-flex; align-items: center; min-height: 44px; font-size: 12px; }
 @keyframes essuf-radio-spin { to { transform: rotate(360deg); } }
 @media (max-width: 720px) {
   /* Installation remains available in the menu; leave room for the small word. */
   .lycee-top-actions:has(.essuf-radio) > .lycee-install-button { display: none; }
   .essuf-radio-panel, .essuf-radio-error { position: fixed; top: 74px; right: 16px; }
+  .essuf-spotify-dock { top: 74px; right: 16px; }
 }
 @media (prefers-reduced-motion: reduce) { .essuf-radio-loading { animation: none; } }
 @media print { .essuf-radio { display: none; } }

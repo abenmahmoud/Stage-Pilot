@@ -1,11 +1,13 @@
 import { createContext, useContext, useEffect, useRef, useState, type ReactNode } from "react";
 import { useLocation } from "react-router-dom";
 import { ESSUF_RADIO_INITIAL_VOLUME, ESSUF_RADIO_TRACKS } from "../lib/essuf-radio";
+import { EssufSpotifyPanel } from "./EssufSpotifyPanel";
 
 type Status = "paused" | "loading" | "playing" | "error";
 type RadioControls = {
   isPublic: boolean; available: boolean; title: string; status: Status; volume: number; error: string;
   startQuietly: () => void; pause: () => void;
+  spotifyAvailable: boolean; spotifyOpen: boolean; openSpotify: () => void; closeSpotify: () => void;
   toggle: () => void; setVolume: (value: number) => void; next: (() => void) | null;
 };
 const RadioContext = createContext<RadioControls | null>(null);
@@ -17,6 +19,8 @@ export function EssufRadioProvider({ children }: { children: ReactNode }) {
   const isPublic = ((pathname === "/" || pathname === "/prototype") && new URLSearchParams(search).get("view") !== "agent")
     || pathname === "/chromebook" || pathname.startsWith("/site/");
   const available = isPublic && ESSUF_RADIO_TRACKS.length > 0;
+  const spotifyAvailable = isPublic && !available;
+  const [spotifyOpen, setSpotifyOpen] = useState(false);
   const [status, setStatus] = useState<Status>("paused");
   const [volume, setVolumeState] = useState(ESSUF_RADIO_INITIAL_VOLUME);
   const [index, setIndex] = useState(0);
@@ -26,6 +30,15 @@ export function EssufRadioProvider({ children }: { children: ReactNode }) {
   const operation = useRef(0);
   const timeout = useRef<ReturnType<typeof setTimeout> | null>(null);
   const requested = useRef(false);
+
+  useEffect(() => {
+    if (!isPublic || new URLSearchParams(search).get("bienvenue") === "1") setSpotifyOpen(false);
+  }, [isPublic, search]);
+
+  function closeSpotify() {
+    setSpotifyOpen(false);
+    requestAnimationFrame(() => document.querySelector<HTMLButtonElement>(".essuf-radio-word")?.focus({ preventScroll: true }));
+  }
 
   const clearLoadingTimer = () => { if (timeout.current) clearTimeout(timeout.current); timeout.current = null; };
 
@@ -108,6 +121,9 @@ export function EssufRadioProvider({ children }: { children: ReactNode }) {
 
   return <RadioContext.Provider value={{
     isPublic, available, title: ESSUF_RADIO_TRACKS[index]?.title ?? "Radio ESSUF", status, volume, error,
+    spotifyAvailable, spotifyOpen,
+    openSpotify: () => { if (spotifyAvailable) { pause(); setSpotifyOpen(true); } },
+    closeSpotify,
     startQuietly: () => {
       setVolume(ESSUF_RADIO_INITIAL_VOLUME);
       void playAt(index, ESSUF_RADIO_INITIAL_VOLUME);
@@ -117,6 +133,7 @@ export function EssufRadioProvider({ children }: { children: ReactNode }) {
     next: ESSUF_RADIO_TRACKS.length > 1 ? () => void playAt((index + 1) % ESSUF_RADIO_TRACKS.length) : null,
   }}>
     {children}
+    {spotifyAvailable && spotifyOpen ? <EssufSpotifyPanel onClose={closeSpotify} /> : null}
     <audio ref={audio} preload="none" crossOrigin="anonymous" aria-hidden="true"
       onEnded={() => { if (requested.current) void playAt((index + 1) % ESSUF_RADIO_TRACKS.length); }}
       onError={() => { if (requested.current) fail("La radio est momentanément indisponible. Réessayez plus tard."); }}

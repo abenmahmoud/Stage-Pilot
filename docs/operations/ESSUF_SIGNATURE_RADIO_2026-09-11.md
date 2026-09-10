@@ -48,3 +48,7 @@ Adel souhaite voir le dispositif dès maintenant : une entrée moderne qui lance
 Design, écarts justifiés et contrôles visuels : `docs/design/ACCUEIL_RADIO_2026-09-11.md`. Preuves de ce lot hors dépôt : `../ACCUEIL_RADIO_2026-09-11/`. Les preuves de la première version ci-dessus restent historiques.
 
 Recette locale de l’évolution réussie le 11 septembre : build TypeScript/Vite, preview-security-gate et spec-integrity (646 tâches). Chromium en 1440 × 1000, 390 × 844 et 320 × 740 : accueil, clavier, fermeture, réouverture, visite unique, stockage bloqué, six routes directes, zone tactile, aucune requête avant consentement, démarrage natif à 1 %, silence, pause, continuité, passage naturel en fin de piste, arrêt privé et message d’erreur. Zéro erreur JavaScript relevée. Preuve : ../ACCUEIL_RADIO_2026-09-11/qa/checks.json. Capture de la référence et captures réelles examinées ; écarts d’adaptation documentés dans la charte du lot. Aucun envoi, aucune donnée nominative, aucun flux réel utilisé. Avertissement de taille XLSX existant au build.
+
+## Source reçue : lecteur Spotify
+
+La passation suivante fournit la playlist Spotify officielle 2QHUYT3UGNRrO3F8xHHrZ6. Elle est branchée comme lecteur externe à la demande, pas comme flux natif à 1 %. Le texte d’attente et les commandes inapplicables sont remplacés. Fonctionnement, limites et preuves de ce branchement : docs/operations/RADIO_SPOTIFY_2026-09-11.md. La demande exacte d’ambiance à 1 % reste ouverte tant qu’un flux direct n’est pas fourni.

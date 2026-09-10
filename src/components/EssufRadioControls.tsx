@@ -22,6 +22,11 @@ export function EssufRadioControls() {
     return () => { window.removeEventListener("keydown", onKey); window.removeEventListener("pointerdown", onPointer); };
   }, [open]);
   if (!radio?.isPublic) return null;
+  if (radio.spotifyAvailable) return <div className="essuf-radio">
+    <button type="button" className="essuf-radio-word" title="Radio ESSUF"
+      aria-label="Radio ESSUF — ouvrir le lecteur" aria-expanded={radio.spotifyOpen}
+      aria-controls="essuf-spotify-panel" onClick={radio.spotifyOpen ? radio.closeSpotify : radio.openSpotify}>radio</button>
+  </div>;
   const active = radio.status === "playing" || radio.status === "loading";
   return <div className="essuf-radio" ref={container} onBlur={event => {
     if (!event.currentTarget.contains(event.relatedTarget as Node | null)) setOpen(false);

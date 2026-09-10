@@ -46,16 +46,21 @@ export function PublicPortalWelcome() {
     return () => { element.close(); document.body.style.overflow = previousOverflow; };
   }, [visible]);
 
-  function enter(withMusic: boolean) {
+  function enter(withMusic: boolean, discoverSpotify = false) {
     // Stay inside this click's activation: start the audio before any navigation.
     if (withMusic && radio?.available) radio.startQuietly();
     else radio?.pause();
+    if (discoverSpotify) radio?.openSpotify();
+    else if (radio?.spotifyOpen) radio.closeSpotify();
     setOpen(false);
     if (preview) {
       params.delete("bienvenue");
       navigate({ pathname: location.pathname, search: params.toString() }, { replace: true });
     }
-    requestAnimationFrame(() => document.getElementById("lycee-main")?.focus({ preventScroll: true }));
+    requestAnimationFrame(() => {
+      const target = discoverSpotify ? document.querySelector<HTMLButtonElement>("#essuf-spotify-panel button") : document.getElementById("lycee-main");
+      target?.focus({ preventScroll: true });
+    });
   }
 
   if (!visible) return null;
@@ -67,8 +72,9 @@ export function PublicPortalWelcome() {
           <h1 id="portal-welcome-title">Bienvenue<br />au lycée<br /><span>Blaise Cendrars.</span></h1>
           <p id="portal-welcome-description">Vos informations, vos services et la vie du lycée, au même endroit.</p>
           <button ref={enterButton} className="portal-welcome-enter" type="button" onClick={() => enter(true)}>Entrer au lycée <ArrowRight aria-hidden="true" /></button>
-          <p className="portal-welcome-audio-note">{radio?.available ? "Une ambiance musicale très douce, à 1 %." : "La radio ESSUF arrive bientôt."}</p>
+          <p className="portal-welcome-audio-note">{radio?.available ? "Une ambiance musicale très douce, à 1 %." : "Radio ESSUF vous accompagne, quand vous le souhaitez."}</p>
           {radio?.available ? <button className="portal-welcome-silent" type="button" onClick={() => enter(false)}>Continuer sans musique</button> : null}
+          {radio?.spotifyAvailable ? <button className="portal-welcome-silent" type="button" onClick={() => enter(false, true)}>Découvrir la radio</button> : null}
         </div>
         <a className="portal-welcome-credit" href="https://essuf.fr/" target="_blank" rel="noopener noreferrer">Powered by ESSUF Group</a>
       </div>
