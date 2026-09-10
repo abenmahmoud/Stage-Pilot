@@ -26,6 +26,14 @@ Les API de cette recette locale sont simulées ; aucune demande, aucun OTP, emai
 
 ## Publication
 
-En attente de déploiement et de recette du domaine. Version de retour arrière au début du lot : `25560eb`, déploiement `dpl_F1oZ5KGjD1HXcrsBZ8wUU2TGotfh` (`lyceegest-go1ewgrah-safe-scol.vercel.app`).
+Publication confirmée le 10 septembre 2026. Commit fonctionnel `c13156186d743c4abfa21b76ce798ef20288052b`, déploiement READY `dpl_5Mr613m12WsRRrn7c65oiEsqmwHS` (`lyceegest-p9hp6131h-safe-scol.vercel.app`). Version de retour arrière : `25560eb`, déploiement `dpl_F1oZ5KGjD1HXcrsBZ8wUU2TGotfh` (`lyceegest-go1ewgrah-safe-scol.vercel.app`).
 
-La vérification distante doit couvrir le domaine principal, les pages publiques et le chemin guide → réponse publique dans le chat. Elle ne doit pas créer de dossier ni envoyer une communication aux familles.
+Recette réussie sur l’URL immuable, puis affectation explicite des deux alias (domaine principal et alias de branche), puis même recette réussie sur `https://lycee-blaise-cendrars-sevran.fr` :
+
+- Accueil, guide, services, aide et suivi sur ordinateur et téléphone : dix états de page par cible, marque et variables de la charte confirmées, aucune erreur JavaScript ou console et aucun débordement horizontal.
+- Trois réponses serveur publiques : distribution, QR sans smartphone, SAV. Chaque réponse cite ses sources, sans IA générative, sans création de dossier et sans formulaire imposé.
+- Lien de la FAQ SAV vers le chat, réponse réelle et lien de retour au guide vérifiés sur mobile.
+- Liste anonyme des demandes vide (`200`, exactement `{requests: []}`) ; liste professionnelle protégée (`401`).
+- Captures finales relues. Preuves hors dépôt dans `../Harmonisation_2026-09-10/live-lycee-blaise-cendrars-sevran.fr/` et `live-lyceegest-p9hp6131h-safe-scol.vercel.app/`, script `verify-live.mjs`.
+
+Aucun dossier créé et aucun OTP, email, SMS ou push envoyé. La vérification ne couvre pas une nouvelle remise de document personnel, l’installation native réelle ni le traitement humain des demandes en attente. Le commit documentaire de clôture conserve le même code fonctionnel.
