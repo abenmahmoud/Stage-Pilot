@@ -4,7 +4,7 @@
 
 Ajouter « Powered by ESSUF Group », lié à `https://essuf.fr/`, pour valoriser la réalisation. Adel indique que la proviseure autorise une radio discrète. Volume initial demandé : 1 %, réglable par l’utilisateur ; playlist ESSUF à relier. Il prévoit de confier essuf.fr à un autre agent.
 
-## Réalisation
+## Première réalisation — avant la demande d’accueil de bienvenue
 
 - Crédit visible dans le pied de page public partagé, lien HTML réel vers essuf.fr, sans texte caché ni mots-clés artificiels. Les informations éditoriales restent celles du lycée. Aucun classement dans un moteur de recherche n’est garanti par ce lien.
 - Lecteur global `EssufRadioProvider` conservé entre les routes publiques, commande compacte `EssufRadioControls`, réglages repliés par défaut. Lecture uniquement après un clic ; volume initial de 1 % via un gain Web Audio de 0,01. Pause, volume zéro, piste suivante et boucle de la playlist.
@@ -33,3 +33,18 @@ Publication du crédit et de la préparation technique confirmée le 11 septembr
 Crédit et lien vers essuf.fr vérifiés sur accueil, guide et aide, en 1440 et 390 px : six états de page par cible, aucun débordement ni erreur JavaScript. Lecteur masqué, aucune source sur l’élément audio et aucune requête audio. Captures finales relues ; preuves `../ESSUF_SIGNATURE_RADIO_2026-09-10/live-lycee-blaise-cendrars-sevran.fr/checks.json`. Version de retour arrière : `lyceegest-p9hp6131h-safe-scol.vercel.app` (harmonisation, code c131561).
 
 **Radio non activée : URL réelle toujours attendue.** T075 reste ouverte pour ce branchement ; ne pas confondre le test sur WAV fictif et une diffusion ESSUF opérationnelle.
+
+## Évolution demandée par Adel : accueil de bienvenue et contrôle visible
+
+Adel souhaite voir le dispositif dès maintenant : une entrée moderne qui lance la playlist au clic, puis un mot « radio » très discret dans un coin. La règle précédente de masquage du lecteur sans source est remplacée : le contrôle est désormais visible et indique honnêtement que la playlist est à venir.
+
+- Accueil plein écran sur la première arrivée à l’accueil du portail, photo et identité existantes. Un clic entre ; avec source configurée, ce même clic lance la playlist à 1 %. La lecture ne retarde jamais l’accès au site.
+- Sans musique : bouton secondaire quand une source existe, croix ou Échap. Ces actions arrêtent aussi une lecture déjà en cours.
+- Petite mention « radio » dans le coin supérieur droit, panneau replié. Zone tactile de 44 px, volume réglable jusqu’au silence, pause, navigation des pistes. Pas de commande flottante au-dessus du chat.
+- Accueil non répété dans la session du navigateur. Liens directs d’aide, demandes, documents, guide et connexion immédiatement accessibles. `/?bienvenue=1` et lien « Revoir l’accueil de bienvenue » permettent de le revoir.
+- Avec playlist vide : « La radio ESSUF arrive bientôt. », panneau disponible et bouton de lecture désactivé. Aucune URL de substitution, aucun téléchargement audio.
+- Volume initial et entrée musicale : gain natif de 0,01 ; la lecture reste dans le geste utilisateur. Pas d’autoplay au rechargement. La session d’identité n’est ni lue ni modifiée.
+
+Design, écarts justifiés et contrôles visuels : `docs/design/ACCUEIL_RADIO_2026-09-11.md`. Preuves de ce lot hors dépôt : `../ACCUEIL_RADIO_2026-09-11/`. Les preuves de la première version ci-dessus restent historiques.
+
+Recette locale de l’évolution réussie le 11 septembre : build TypeScript/Vite, preview-security-gate et spec-integrity (646 tâches). Chromium en 1440 × 1000, 390 × 844 et 320 × 740 : accueil, clavier, fermeture, réouverture, visite unique, stockage bloqué, six routes directes, zone tactile, aucune requête avant consentement, démarrage natif à 1 %, silence, pause, continuité, passage naturel en fin de piste, arrêt privé et message d’erreur. Zéro erreur JavaScript relevée. Preuve : ../ACCUEIL_RADIO_2026-09-11/qa/checks.json. Capture de la référence et captures réelles examinées ; écarts d’adaptation documentés dans la charte du lot. Aucun envoi, aucune donnée nominative, aucun flux réel utilisé. Avertissement de taille XLSX existant au build.

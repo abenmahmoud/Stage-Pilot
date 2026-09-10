@@ -4,7 +4,8 @@ import { ESSUF_RADIO_INITIAL_VOLUME, ESSUF_RADIO_TRACKS } from "../lib/essuf-rad
 
 type Status = "paused" | "loading" | "playing" | "error";
 type RadioControls = {
-  available: boolean; title: string; status: Status; volume: number; error: string;
+  isPublic: boolean; available: boolean; title: string; status: Status; volume: number; error: string;
+  startQuietly: () => void; pause: () => void;
   toggle: () => void; setVolume: (value: number) => void; next: (() => void) | null;
 };
 const RadioContext = createContext<RadioControls | null>(null);
@@ -61,7 +62,7 @@ export function EssufRadioProvider({ children }: { children: ReactNode }) {
     void engine.current?.context.close().catch(() => undefined);
   }, []);
 
-  async function playAt(nextIndex: number) {
+  async function playAt(nextIndex: number, playbackVolume = volume) {
     const element = audio.current;
     const track = ESSUF_RADIO_TRACKS[nextIndex];
     if (!available || !element || !track) return;
@@ -75,12 +76,12 @@ export function EssufRadioProvider({ children }: { children: ReactNode }) {
       if (!engine.current) {
         const context = new AudioContext();
         const gain = context.createGain();
-        gain.gain.value = volume / 100;
+        gain.gain.value = playbackVolume / 100;
         context.createMediaElementSource(element).connect(gain);
         gain.connect(context.destination);
         engine.current = { context, gain };
       }
-      engine.current.gain.gain.value = volume / 100;
+      engine.current.gain.gain.value = playbackVolume / 100;
       const source = new URL(track.src, window.location.origin);
       if (source.protocol !== "https:" && source.origin !== window.location.origin) throw new Error("Unsupported radio source");
       if (element.src !== source.href) element.src = source.href;
@@ -106,9 +107,13 @@ export function EssufRadioProvider({ children }: { children: ReactNode }) {
   }
 
   return <RadioContext.Provider value={{
-    available, title: ESSUF_RADIO_TRACKS[index]?.title ?? "Radio ESSUF", status, volume, error,
+    isPublic, available, title: ESSUF_RADIO_TRACKS[index]?.title ?? "Radio ESSUF", status, volume, error,
+    startQuietly: () => {
+      setVolume(ESSUF_RADIO_INITIAL_VOLUME);
+      void playAt(index, ESSUF_RADIO_INITIAL_VOLUME);
+    },
     toggle: () => status === "playing" || status === "loading" ? pause() : void playAt(index),
-    setVolume,
+    setVolume, pause,
     next: ESSUF_RADIO_TRACKS.length > 1 ? () => void playAt((index + 1) % ESSUF_RADIO_TRACKS.length) : null,
   }}>
     {children}

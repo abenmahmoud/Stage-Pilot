@@ -168,7 +168,6 @@ export function PublicPortalShell({view, onNavigate, children, className = ""}: 
             </div>
           </div>
           <div className="lycee-top-actions">
-            <EssufRadioControls />
             <button className="lycee-top-tool" type="button" onClick={() => changeView("news")} title="Voir les informations du lycée"><Newspaper aria-hidden="true" /><span>À la une</span></button>
             {installAvailable ? <button className="lycee-top-tool lycee-install-button" type="button" aria-label="Installer l’application du lycée" onClick={() => void installPortalApp()} title="Installer l’application du lycée"><Download aria-hidden="true" /><span>Installer</span></button> : null}
             <a className="lycee-top-tool" href={WEBMAIL_URL} target="_blank" rel="noreferrer" title="Ouvrir le Webmail"><Mail aria-hidden="true" /><span>Webmail</span></a>
@@ -176,6 +175,7 @@ export function PublicPortalShell({view, onNavigate, children, className = ""}: 
               <CircleUserRound aria-hidden="true" />
               <span>Espace agent</span>
             </button>
+            <EssufRadioControls />
           </div>
         </header>
 

@@ -2,6 +2,7 @@ import { lazy, Suspense, useEffect, useState } from "react";
 import { Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { AuthProvider } from "./components/AuthProvider";
 import { EssufRadioProvider } from "./components/EssufRadioProvider";
+import { PublicPortalWelcome } from "./components/PublicPortalWelcome";
 import { useAuth } from "./lib/auth-context";
 import { apiFetch } from "./lib/api";
 import { ROLE_HOME } from "./lib/types";
@@ -389,6 +390,7 @@ export default function App() {
         <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </Suspense>
+      <PublicPortalWelcome />
       </EssufRadioProvider>
     </AuthProvider>
   );

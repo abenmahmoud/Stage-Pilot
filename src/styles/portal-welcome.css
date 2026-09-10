@@ -1,0 +1,42 @@
+/* First entrance uses the same photo, fonts and colors as the public homepage. */
+.portal-welcome { width: 100%; max-width: none; height: 100dvh; max-height: none; margin: 0; padding: 0; border: 0; background: white; color: var(--school-ink); overflow: auto; overscroll-behavior: contain; }
+.portal-welcome::backdrop { background: white; }
+.portal-welcome-layout { display: grid; grid-template-columns: 43% 57%; min-height: 100%; }
+.portal-welcome-copy { display: flex; flex-direction: column; padding: clamp(28px, 4vw, 64px); }
+.portal-welcome-brand { display: grid; gap: 4px; font-size: 18px; line-height: 1.3; }
+.portal-welcome-brand strong { font-weight: 700; letter-spacing: -.025em; }
+.portal-welcome-brand span { color: var(--school-muted); font-size: 14px; }
+.portal-welcome-message { margin-block: auto; padding-block: 64px; }
+.portal-welcome-message h1 { margin: 0; font-family: "Space Grotesk", sans-serif; font-size: clamp(38px, 4.2vw, 64px); letter-spacing: -.045em; line-height: 1.09; font-weight: 700; }
+.portal-welcome-message h1 span { color: var(--school-blue); }
+.portal-welcome-message > p { max-width: 380px; margin: 28px 0 36px; color: var(--school-muted); font-size: 18px; line-height: 1.6; }
+.portal-welcome button, .portal-welcome a { -webkit-tap-highlight-color: transparent; }
+.portal-welcome :is(button,a):focus-visible { outline: 3px solid var(--school-blue); outline-offset: 4px; }
+.portal-welcome-enter { width: 100%; max-width: 380px; min-height: 56px; display: flex; align-items: center; justify-content: center; gap: 24px; border: 0; border-radius: 10px; padding: 14px 24px; background: var(--school-blue); color: white; font-size: 16px; font-weight: 650; cursor: pointer; transition: background .18s; }
+.portal-welcome-enter:hover { background: #104bcc; }
+.portal-welcome-enter svg { width: 24px; height: 24px; }
+.portal-welcome-message > .portal-welcome-audio-note { margin: 20px 0 0; font-size: 13px; line-height: 1.5; }
+.portal-welcome-silent { min-height: 44px; padding: 8px 0; color: var(--school-muted); background: transparent; border: 0; font-size: 13px; text-decoration: underline; text-underline-offset: 4px; cursor: pointer; }
+.portal-welcome-credit { width: fit-content; display: inline-flex; align-items: center; min-height: 44px; color: var(--school-muted); font-size: 12px; text-decoration: none; }
+.portal-welcome-credit:hover { text-decoration: underline; text-underline-offset: 3px; }
+.portal-welcome-photo { width: 100%; height: 100%; min-height: 0; object-fit: cover; object-position: right center; }
+.portal-welcome-close { position: absolute; top: max(20px, env(safe-area-inset-top)); right: max(20px, env(safe-area-inset-right)); display: flex; align-items: center; justify-content: center; width: 44px; height: 44px; border: 0; border-radius: 50%; background: #fffffff0; color: var(--school-ink); cursor: pointer; }
+.portal-welcome-close svg { width: 22px; height: 22px; }
+.portal-welcome-close:hover { background: white; }
+.portal-welcome[open] .portal-welcome-message { animation: portal-welcome-arrive .32s ease-out; }
+@keyframes portal-welcome-arrive { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+@media (max-width: 720px) {
+  .portal-welcome-layout { display: flex; flex-direction: column; }
+  .portal-welcome-photo { order: -1; height: clamp(180px, 32svh, 300px); flex-shrink: 0; object-position: 73% 52%; }
+  .portal-welcome-copy { flex: 1; padding: 24px 24px calc(12px + env(safe-area-inset-bottom)); }
+  .portal-welcome-brand { font-size: 16px; }
+  .portal-welcome-brand span { font-size: 13px; }
+  .portal-welcome-message { padding-block: 28px 24px; }
+  .portal-welcome-message h1 { font-size: clamp(32px, 9.3vw, 42px); }
+  .portal-welcome-message > p { margin: 20px 0 24px; font-size: 15px; line-height: 1.55; }
+  .portal-welcome-enter { max-width: none; min-height: 52px; }
+  .portal-welcome-message > .portal-welcome-audio-note { font-size: 12px; margin-top: 18px; }
+  .portal-welcome-close { top: max(12px, env(safe-area-inset-top)); right: max(12px, env(safe-area-inset-right)); }
+}
+@media (prefers-reduced-motion: reduce) { .portal-welcome[open] .portal-welcome-message { animation: none; } .portal-welcome-enter { transition: none; } }
+@media print { .portal-welcome { display: none !important; } }
