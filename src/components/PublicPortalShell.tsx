@@ -3,6 +3,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { BarChart3, ChevronRight, CircleUserRound, Download, ExternalLink, GraduationCap, Headphones, Home, LifeBuoy, Mail, Menu, Newspaper, ShieldCheck, Smartphone, TicketCheck } from "lucide-react";
 import { PublicPortalFooter } from "./PublicPortalFooter";
 import { FlashPublicBulletin } from "./FlashPublicBulletin";
+import { EssufRadioControls } from "./EssufRadioControls";
 import type { PublicPortalView as View } from "../../shared/public-portal-navigation";
 import "../pages/prototype/lycee-connect.css";
 import "../styles/portal-charter.css";
@@ -167,6 +168,7 @@ export function PublicPortalShell({view, onNavigate, children, className = ""}: 
             </div>
           </div>
           <div className="lycee-top-actions">
+            <EssufRadioControls />
             <button className="lycee-top-tool" type="button" onClick={() => changeView("news")} title="Voir les informations du lycée"><Newspaper aria-hidden="true" /><span>À la une</span></button>
             {installAvailable ? <button className="lycee-top-tool lycee-install-button" type="button" aria-label="Installer l’application du lycée" onClick={() => void installPortalApp()} title="Installer l’application du lycée"><Download aria-hidden="true" /><span>Installer</span></button> : null}
             <a className="lycee-top-tool" href={WEBMAIL_URL} target="_blank" rel="noreferrer" title="Ouvrir le Webmail"><Mail aria-hidden="true" /><span>Webmail</span></a>
@@ -192,6 +194,7 @@ export function PublicPortalShell({view, onNavigate, children, className = ""}: 
             <button type="button" onClick={() => changeView("news")}><Newspaper aria-hidden="true" /> À la une</button>
             <a href={WEBMAIL_URL} target="_blank" rel="noreferrer"><Mail aria-hidden="true" /> Webmail du lycée</a>
             <a href={LYCEEGEST_URL}><BarChart3 aria-hidden="true" /> LyceeGest · Stages et Grand Oral</a>
+            {installAvailable ? <button type="button" onClick={() => { setMenuOpen(false); void installPortalApp(); }}><Download aria-hidden="true" /> Installer l’application du lycée</button> : null}
           </nav>
         )}
 

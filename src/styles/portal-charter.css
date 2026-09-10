@@ -53,6 +53,10 @@
 .lycee-connect .lycee-article-documents a small { font-size: 12px; }
 .lycee-connect .lycee-public-footer { padding-top: 24px; font-size: 13px; }
 .lycee-connect .lycee-public-footer nav a { display: inline-flex; min-height: 44px; align-items: center; font-size: 13px; }
+.lycee-connect .lycee-public-footer .lycee-site-credit { flex-basis: 100%; display: flex; justify-content: flex-end; border-top: 1px solid var(--lc-line); padding-top: 8px; }
+.lycee-connect .lycee-site-credit a { gap: 5px; color: var(--lc-muted); text-decoration: none; font-size: 12px; }
+.lycee-connect .lycee-site-credit strong { color: var(--lc-ink); font-size: 12px; font-weight: 650; }
+.lycee-connect .lycee-site-credit a:hover strong { color: var(--lc-blue); text-decoration: underline; }
 .lycee-connect .lycee-guided-chat { border-radius: var(--school-radius); }
 .lycee-connect .lycee-guided-chat-head { background: var(--school-navy); }
 .lycee-connect .lycee-guided-chat-head strong { font-size: 15px; }

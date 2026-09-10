@@ -11,6 +11,11 @@ export function PublicPortalFooter() {
         <Link to="/?view=trust">Confidentialité</Link>
         <a href={school.phoneHref}>{school.phone}</a>
       </nav>
+      <div className="lycee-site-credit">
+        <a href="https://essuf.fr/" target="_blank" rel="noopener noreferrer" aria-label="Powered by ESSUF Group — conception et réalisation du site, nouvel onglet">
+          <span>Powered by</span> <strong>ESSUF Group</strong>
+        </a>
+      </div>
     </footer>
   );
 }

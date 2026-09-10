@@ -1,0 +1,36 @@
+.essuf-radio { position: relative; color: var(--school-ink); }
+.essuf-radio-compact { display: flex; background: white; border: 1px solid var(--school-line); border-radius: 10px; }
+.essuf-radio button { min-height: 44px; min-width: 44px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; border: 0; padding: 0 10px; border-radius: 9px; background: transparent; color: var(--school-muted); cursor: pointer; }
+.essuf-radio svg { width: 17px; height: 17px; flex-shrink: 0; }
+.essuf-radio-compact[data-active=true] { background: var(--school-blue-soft); }
+.essuf-radio-compact[data-active=true] button { color: var(--school-blue); }
+.essuf-radio button:hover { background: var(--school-blue-soft); color: var(--school-blue); }
+.essuf-radio button:focus-visible, .essuf-radio input:focus-visible { outline: 3px solid var(--school-blue); outline-offset: 2px; }
+.essuf-radio-panel, .essuf-radio-error { position: absolute; top: calc(100% + 12px); right: 0; z-index: 40; width: min(304px, calc(100vw - 32px)); padding: 18px; background: white; border: 1px solid var(--school-line); border-radius: 14px; box-shadow: 0 12px 36px #1322381c; }
+.essuf-radio-panel header { display: flex; align-items: flex-start; gap: 10px; justify-content: space-between; }
+.essuf-radio-panel header > div { display: grid; gap: 4px; min-width: 0; }
+.essuf-radio-panel strong { font-size: 15px; }
+.essuf-radio-panel header span { font-size: 13px; line-height: 1.5; color: var(--school-muted); overflow-wrap: anywhere; }
+.essuf-radio-panel header button { margin: -6px -6px 0 0; }
+.essuf-radio-actions { display: flex; gap: 8px; margin: 16px 0; }
+.essuf-radio-actions button { padding: 0 12px; font-size: 14px; border: 1px solid var(--school-line); }
+.essuf-radio-actions button:first-child { background: var(--school-blue); color: white; border-color: var(--school-blue); }
+.essuf-radio-panel label { display: flex; justify-content: space-between; gap: 12px; font-size: 14px; }
+.essuf-radio-panel output { color: var(--school-muted); }
+.essuf-radio-volume { display: flex; align-items: center; gap: 12px; }
+.essuf-radio-volume input { width: 100%; min-width: 0; min-height: 44px; accent-color: var(--school-blue); }
+.essuf-radio-panel p { margin: 10px 0 0; font-size: 12px; color: var(--school-muted); }
+.essuf-radio-panel a { color: var(--school-blue); text-underline-offset: 3px; }
+.essuf-radio-error { top: calc(100% + 12px); font-size: 13px; line-height: 1.6; }
+.essuf-radio-loading { animation: essuf-radio-spin 1s linear infinite; }
+@keyframes essuf-radio-spin { to { transform: rotate(360deg); } }
+@media (max-width: 720px) {
+  /* Keep four competing actions out of a narrow header; installation stays in the menu. */
+  .lycee-top-actions:has(.essuf-radio) > .lycee-install-button { display: none; }
+  .essuf-radio-panel, .essuf-radio-error { position: fixed; top: 74px; right: 16px; }
+  .essuf-radio-compact { border: 0; background: transparent; }
+  .lycee-top-actions .essuf-radio-settings { display: none; }
+  .essuf-radio-compact > button:first-child { border: 1px solid var(--school-line); }
+}
+@media (prefers-reduced-motion: reduce) { .essuf-radio-loading { animation: none; } }
+@media print { .essuf-radio { display: none; } }

@@ -1,6 +1,7 @@
 import { lazy, Suspense, useEffect, useState } from "react";
 import { Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { AuthProvider } from "./components/AuthProvider";
+import { EssufRadioProvider } from "./components/EssufRadioProvider";
 import { useAuth } from "./lib/auth-context";
 import { apiFetch } from "./lib/api";
 import { ROLE_HOME } from "./lib/types";
@@ -174,6 +175,7 @@ function FlashValidationRoute({ children }: { children: React.ReactNode }) {
 export default function App() {
   return (
     <AuthProvider>
+      <EssufRadioProvider>
       <Suspense fallback={<PageFallback />}>
         <Routes>
         <Route path="/" element={<LyceeConnectPrototype />} />
@@ -387,6 +389,7 @@ export default function App() {
         <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </Suspense>
+      </EssufRadioProvider>
     </AuthProvider>
   );
 }
