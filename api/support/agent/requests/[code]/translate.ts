@@ -73,10 +73,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       throw new HttpError(409, "Aucune autre langue fiable n’est disponible pour ce dossier");
     }
     const sensitiveIdentityPending = supportReplyNeedsIdentityCheck(request);
-    if (sensitiveIdentityPending && sourceMessage !== SUPPORT_IDENTITY_VERIFICATION_MESSAGE) {
+    if (sensitiveIdentityPending && sourceMessage !== SUPPORT_IDENTITY_VERIFICATION_MESSAGE && req.body.generalReplyConfirmed !== true) {
       throw new HttpError(
         409,
-        "Avant la confirmation d’identité, seul le message sécurisé peut être traduit"
+        "Confirmez que votre réponse ne contient ni donnée personnelle ni code d’accès avant de la traduire."
       );
     }
     await enforceSupportRateLimit({

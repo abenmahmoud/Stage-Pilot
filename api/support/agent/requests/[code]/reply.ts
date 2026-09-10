@@ -216,14 +216,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       if (attachmentIds.length > 0) {
         throw new HttpError(409, "Aucun document ne peut être transmis avant la confirmation d’identité");
       }
-      if (body.safeTemplate !== "identity_verification") {
-        throw new HttpError(409, "Avant la confirmation d’identité, utilisez uniquement le message sécurisé de vérification");
+      if (body.safeTemplate !== "identity_verification" && body.generalReplyConfirmed !== true) {
+        throw new HttpError(409, "Confirmez que votre réponse ne contient ni donnée personnelle ni code d’accès, ou utilisez le message sécurisé de vérification.");
       }
-      if (translatedReply) {
+      if (body.safeTemplate === "identity_verification" && translatedReply) {
         if (translatedReply.sourceMessage !== SUPPORT_IDENTITY_VERIFICATION_MESSAGE) {
           throw new HttpError(409, "Seule la traduction du message sécurisé peut être envoyée avant la confirmation d’identité");
         }
-      } else {
+      } else if (body.safeTemplate === "identity_verification") {
         messageText = SUPPORT_IDENTITY_VERIFICATION_MESSAGE;
       }
     }
@@ -432,6 +432,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           translated: Boolean(translatedReply),
           targetLanguage: translatedReply?.targetLanguage ?? null,
           translationHumanValidated: Boolean(translatedReply),
+          generalReplyHumanConfirmed: body.generalReplyConfirmed === true,
           attachmentCount: attachmentIds.length,
         },
         correlationId,

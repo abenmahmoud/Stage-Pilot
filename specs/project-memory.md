@@ -5,6 +5,21 @@
 **Depot** : `abenmahmoud/Stage-Pilot`
 **Dernier jalon de code verifie** : branche de preview Vercel
 
+## Correctif du 10 septembre — réponses humaines dans le guichet (T018C)
+
+Incident signalé par Adel : impossible de rédiger une réponse ENT, éditeur en
+lecture seule tant que l’identité scolaire n’est pas confirmée. Le dossier
+observé n’a pas le lien élève/professeur historique exigé par cette confirmation.
+Une simple réponse d’aide ne doit pas exiger une remise de données personnelles.
+
+Réponse d’accompagnement désormais éditable : l’agent humain atteste l’absence
+de données personnelles et de codes avant l’envoi ou la traduction. Attestation
+remise à zéro à chaque modification du texte, journalisée côté serveur. La
+consigne fixe reste disponible. Aucun changement des identités, des droits ou
+des règles sur les pièces sensibles. Confirmation d’enregistrement visible et
+brouillon conservé en cas d’échec. Preuve et limites :
+`docs/operations/CORRECTION_REPONSES_AGENT_2026-09-10.md`.
+
 ## Jalon du 10 septembre — iCal, identité et chat
 
 Code publié et domaine racine vérifié : `5ae719e`, déploiement

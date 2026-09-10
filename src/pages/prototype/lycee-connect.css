@@ -1091,6 +1091,12 @@
 .lycee-reply-box > div:first-child button { border: 0; background: transparent; color: var(--lc-blue); font-size: 9px; font-weight: 800; }
 .lycee-reply-box > div:first-child select { max-width: 210px; height: 30px; padding: 0 7px; border: 1px solid #cbd5e1; border-radius: 6px; background: #fff; color: var(--lc-ink); font-size: 9px; font-weight: 750; }
 .lycee-reply-box textarea { width: 100%; resize: vertical; border: 0; outline: 0; padding: 13px; color: var(--lc-ink); font-size: 12px; line-height: 1.5; }
+.lycee-reply-identity-help { padding: 12px 14px; background: #f8fafc; font-size: 12px; line-height: 1.5; color: var(--lc-muted); }
+.lycee-reply-identity-help p { margin: 0 0 10px; }
+.lycee-reply-general-confirm { display: flex; align-items: flex-start; gap: 10px; margin: 10px 14px; font-size: 12px; line-height: 1.5; cursor: pointer; }
+.lycee-reply-general-confirm input { width: 18px; height: 18px; flex: 0 0 18px; margin-top: 1px; accent-color: var(--lc-blue); }
+.lycee-reply-notice { margin: 12px; padding: 12px; border-radius: 8px; background: #ecfdf5; color: #065f46; font-size: 13px; line-height: 1.5; }
+.lycee-reply-box > .lycee-form-error { margin: 12px; }
 .lycee-agent-draft-state { display: block; padding: 0 13px 10px; color: #526b92; font-size: 9px; font-weight: 700; }
 .lycee-translation-command { display: grid; grid-template-columns: 24px minmax(0,1fr) auto; gap: 9px; align-items: center; padding: 10px 12px; border-top: 1px solid var(--lc-line); background: #f4f8ff; }
 .lycee-translation-command > svg { width: 16px; color: #145bd7; }

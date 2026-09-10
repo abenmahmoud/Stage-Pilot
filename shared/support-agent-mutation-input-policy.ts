@@ -48,6 +48,7 @@ const REPLY_FIELDS = new Set([
   "expectedUpdatedAt",
   "attachmentIds",
   "safeTemplate",
+  "generalReplyConfirmed",
   "translation",
 ]);
 const REPLY_REQUIRED_FIELDS = ["message", "expectedUpdatedAt", "attachmentIds"] as const;
@@ -97,6 +98,7 @@ export type SupportAgentReplyInput = {
   expectedUpdatedAt: string;
   attachmentIds: string[];
   safeTemplate?: "identity_verification";
+  generalReplyConfirmed?: true;
   translation?: {
     sourceMessage: string;
     targetLanguage: string;
@@ -225,7 +227,9 @@ export function isSupportAgentReplyInput(value: unknown): value is SupportAgentR
     || value.attachmentIds.length > 5
     || value.attachmentIds.some((id) => typeof id !== "string" || !UUID_PATTERN.test(id))
     || new Set(value.attachmentIds).size !== value.attachmentIds.length
-    || (value.safeTemplate !== undefined && value.safeTemplate !== "identity_verification")) {
+    || (value.safeTemplate !== undefined && value.safeTemplate !== "identity_verification")
+    || (value.generalReplyConfirmed !== undefined && value.generalReplyConfirmed !== true)
+    || (value.generalReplyConfirmed !== undefined && (value.safeTemplate !== undefined || value.attachmentIds.length > 0))) {
     return false;
   }
   if (value.translation === undefined) return true;

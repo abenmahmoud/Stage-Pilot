@@ -3816,6 +3816,8 @@ function ConnectedAgentView({ onBack }: { onBack: () => void }) {
   const [query, setQuery] = useState("");
   const [reply, setReply] = useState("");
   const [translationDraft, setTranslationDraft] = useState<AgentTranslationDraft | null>(null);
+  const [generalReplyConfirmed, setGeneralReplyConfirmed] = useState(false);
+  const [replyNotice, setReplyNotice] = useState<string | null>(null);
   const [translationValidated, setTranslationValidated] = useState(false);
   const [translating, setTranslating] = useState(false);
   const [agentUploading, setAgentUploading] = useState(false);
@@ -3927,6 +3929,8 @@ function ConnectedAgentView({ onBack }: { onBack: () => void }) {
     setDetailLoadError(null);
     setError(null);
     setReply(workDraft.reply);
+    setGeneralReplyConfirmed(false);
+    setReplyNotice(null);
     replySubmissionRef.current = null;
     internalNoteSubmissionRef.current = null;
     callbackCreateSubmissionRef.current = null;
@@ -3987,6 +3991,8 @@ function ConnectedAgentView({ onBack }: { onBack: () => void }) {
 
   function changeReply(value: string) {
     setReply(value);
+    setGeneralReplyConfirmed(false);
+    setReplyNotice(null);
     updateWorkDraft({ reply: value });
     setTranslationDraft(null);
     setTranslationValidated(false);
@@ -4015,18 +4021,19 @@ function ConnectedAgentView({ onBack }: { onBack: () => void }) {
   async function prepareTranslation() {
     const request = detail?.request;
     const code = selectedCode;
-    const sourceMessage = request && supportReplyNeedsIdentityCheck(request)
-      ? SUPPORT_IDENTITY_VERIFICATION_MESSAGE
-      : reply.trim();
+    const sourceMessage = reply.trim();
+    const generalReply = Boolean(request && supportReplyNeedsIdentityCheck(request)
+      && sourceMessage !== SUPPORT_IDENTITY_VERIFICATION_MESSAGE);
     const expectedTargetLanguage = supportTranslationTargetLanguage(
       request?.subjectContext.detectedLanguage
     );
     if (!request || !code || !sourceMessage || !expectedTargetLanguage) return;
+    if (generalReply && !generalReplyConfirmed) return;
     setTranslating(true);
     try {
       const payload = await apiFetch<unknown>(`support/agent/requests/${code}/translate`, {
         method: "POST",
-        body: JSON.stringify({ sourceMessage }),
+        body: JSON.stringify({ sourceMessage, ...(generalReply ? { generalReplyConfirmed: true } : {}) }),
       });
       if (!isValidSupportAgentTranslationPayload(payload, { expectedTargetLanguage })) {
         throw new Error("La proposition de traduction est incomplète");
@@ -4102,7 +4109,8 @@ function ConnectedAgentView({ onBack }: { onBack: () => void }) {
     const requiresSafeTemplate = Boolean(
       request && supportReplyNeedsIdentityCheck(request)
     );
-    const sourceMessage = requiresSafeTemplate ? SUPPORT_IDENTITY_VERIFICATION_MESSAGE : reply.trim();
+    const sourceMessage = reply.trim();
+    const generalReply = requiresSafeTemplate && sourceMessage !== SUPPORT_IDENTITY_VERIFICATION_MESSAGE;
     const useTranslation = Boolean(
       translationDraft
       && translationValidated
@@ -4110,11 +4118,13 @@ function ConnectedAgentView({ onBack }: { onBack: () => void }) {
     );
     const outgoingMessage = useTranslation ? translationDraft!.translatedText : sourceMessage;
     if (!selectedCode || !request || !outgoingMessage) return;
+    if (saving || (generalReply && !generalReplyConfirmed)) return;
     const replyAttachmentIds = requiresSafeTemplate ? [] : selectedAgentAttachmentIds;
     const submissionFingerprint = JSON.stringify({
       publicCode: selectedCode,
       message: outgoingMessage,
       attachmentIds: [...replyAttachmentIds].sort(),
+      generalReply,
     });
     if (replySubmissionRef.current?.fingerprint !== submissionFingerprint) {
       replySubmissionRef.current = {
@@ -4124,6 +4134,8 @@ function ConnectedAgentView({ onBack }: { onBack: () => void }) {
     }
     const idempotencyKey = replySubmissionRef.current.idempotencyKey;
     setSaving(true);
+    setError(null);
+    setReplyNotice(null);
     try {
       const payload = await apiFetch<unknown>(`support/agent/requests/${selectedCode}/reply`, {
         method: "POST",
@@ -4131,7 +4143,7 @@ function ConnectedAgentView({ onBack }: { onBack: () => void }) {
         body: JSON.stringify({
           message: outgoingMessage,
           expectedUpdatedAt: request.updatedAt,
-          ...(requiresSafeTemplate ? { safeTemplate: "identity_verification" } : {}),
+          ...(requiresSafeTemplate ? generalReply ? { generalReplyConfirmed: true } : { safeTemplate: "identity_verification" } : {}),
           ...(useTranslation && translationDraft ? {
             translation: {
               sourceMessage,
@@ -4165,6 +4177,11 @@ function ConnectedAgentView({ onBack }: { onBack: () => void }) {
       replySubmissionRef.current = null;
       writeSupportAgentWorkDraft(agentWorkDraftsRef.current, selectedCode, { reply: "" });
       setReply("");
+      setGeneralReplyConfirmed(false);
+      setError(null);
+      setReplyNotice(confirmation.channel === "email"
+        ? "Réponse enregistrée dans le dossier. L’envoi de l’email est en cours."
+        : "Réponse enregistrée dans le dossier. Un rappel téléphonique est à effectuer.");
       setSelectedAgentAttachmentIds([]);
       clearTranslation();
       await loadQueue();
@@ -4561,9 +4578,9 @@ function ConnectedAgentView({ onBack }: { onBack: () => void }) {
   const translationTargetLanguage = supportTranslationTargetLanguage(
     selected?.subjectContext.detectedLanguage
   );
-  const replySourceMessage = requiresSafeIdentityReply
-    ? SUPPORT_IDENTITY_VERIFICATION_MESSAGE
-    : reply.trim();
+  const replySourceMessage = reply.trim();
+  const generalReplyNeedsConfirmation = requiresSafeIdentityReply
+    && replySourceMessage !== SUPPORT_IDENTITY_VERIFICATION_MESSAGE && !generalReplyConfirmed;
   const translatedReplyReady = Boolean(
     translationDraft
     && translationValidated
@@ -4641,7 +4658,7 @@ function ConnectedAgentView({ onBack }: { onBack: () => void }) {
               {requests.map((request) => {
                 const queueState = assessSupportQueueItem(request, new Date().toISOString());
                 const isSelected = selectedCode === request.publicCode;
-                return <li key={request.publicCode}><button aria-pressed={isSelected} aria-current={isSelected ? "true" : undefined} className={isSelected ? "is-selected" : ""} type="button" onClick={() => setSelectedCode(request.publicCode)}>
+                return <li key={request.publicCode}><button aria-pressed={isSelected} aria-current={isSelected ? "true" : undefined} className={isSelected ? "is-selected" : ""} type="button" disabled={saving} onClick={() => setSelectedCode(request.publicCode)}>
                   <span className="lycee-request-avatar">{`${request.requesterFirstName[0] ?? ""}${request.requesterLastName[0] ?? ""}`}</span>
                   <span><strong>{request.subject}</strong><small>{request.requesterFirstName} {request.requesterLastName} · {requesterProfileLabels[request.requesterType] ?? request.requesterType}</small><em>{supportTeamLabel(request.assignedTeam)} · {supportCategoryLabel(request.category)} · {supportSlaLabel(request.slaDueAt)}</em></span>
                   <span className="lycee-request-flags"><b data-kind="status">{agentStatusLabels[request.status] ?? request.status}</b>{hasSupportAgentWorkDraft(agentWorkDraftsRef.current, request.publicCode) ? <b data-kind="draft">Brouillon</b> : null}{["p1", "p2"].includes(request.priority) ? <b>Urgent</b> : null}{request.callbackPending ? <b data-kind="callback">Rappel</b> : null}{request.duplicatePending ? <b data-kind="duplicate">Doublon ?</b> : null}{queueState.unassigned ? <b data-kind="unassigned">À attribuer</b> : null}{queueState.overdue ? <b data-kind="overdue">En retard</b> : null}</span>
@@ -4669,17 +4686,21 @@ function ConnectedAgentView({ onBack }: { onBack: () => void }) {
               />
               <section className="lycee-reply-box">
                 <div>
-                  <span><Sparkles aria-hidden="true" /> {requiresSafeIdentityReply ? "Consigne de vérification sécurisée" : "Réponse en français"}</span>
+                  <span><Sparkles aria-hidden="true" /> {requiresSafeIdentityReply ? "Réponse d’accompagnement" : "Réponse en français"}</span>
                   {requiresSafeIdentityReply ? null : <select aria-label="Choisir un modèle de réponse" defaultValue="" onChange={(event) => { applyReplyTemplate(event.target.value); event.currentTarget.value = ""; }}><option value="">Choisir un modèle</option>{visibleTemplates.map((template) => <option value={template.id} key={template.id}>{template.name}</option>)}</select>}
                 </div>
-                <textarea ref={replyFieldRef} aria-label="Réponse à envoyer" rows={5} maxLength={5000} value={requiresSafeIdentityReply ? SUPPORT_IDENTITY_VERIFICATION_MESSAGE : reply} readOnly={requiresSafeIdentityReply || selected.status === "clos"} onChange={(event) => changeReply(event.target.value)} placeholder="Écrivez une réponse claire. Aucun mot de passe ne doit être demandé." />
-                {!requiresSafeIdentityReply && reply.trim() ? <small className="lycee-agent-draft-state">Brouillon conservé dans cet onglet jusqu’à la confirmation de l’envoi.</small> : null}
-                {translationTargetLanguage ? <div className="lycee-translation-command"><Languages aria-hidden="true" /><span><strong>Répondre aussi en {translationTargetLanguage}</strong><small>La version française reste la référence. Vous comparerez les deux textes avant l’envoi.</small></span><button type="button" disabled={translating || saving || selected.status === "clos" || !replySourceMessage} onClick={() => void prepareTranslation()}>{translating ? "Traduction…" : translationDraft ? "Refaire la traduction" : "Préparer"}</button></div> : null}
+                {requiresSafeIdentityReply ? <div className="lycee-reply-identity-help"><p>Vous pouvez expliquer une démarche ou demander des précisions. La transmission de données personnelles, de codes ou de documents reste soumise à la vérification d’identité.</p><button className="lycee-secondary-action" type="button" disabled={saving || selected.status === "clos"} onClick={() => changeReply(SUPPORT_IDENTITY_VERIFICATION_MESSAGE)}>Utiliser la consigne de vérification</button></div> : null}
+                <textarea ref={replyFieldRef} aria-label="Réponse à envoyer" rows={5} maxLength={5000} value={reply} readOnly={saving || selected.status === "clos"} onChange={(event) => changeReply(event.target.value)} placeholder="Écrivez votre réponse ou indiquez la prochaine étape à suivre." />
+                {reply.trim() ? <small className="lycee-agent-draft-state">Brouillon conservé dans cet onglet jusqu’à la confirmation de l’envoi.</small> : null}
+                {requiresSafeIdentityReply && replySourceMessage && replySourceMessage !== SUPPORT_IDENTITY_VERIFICATION_MESSAGE ? <label className="lycee-reply-general-confirm"><input type="checkbox" checked={generalReplyConfirmed} disabled={saving} onChange={(event) => setGeneralReplyConfirmed(event.target.checked)} /><span>Je confirme que cette réponse ne contient ni donnée personnelle ni code d’accès.</span></label> : null}
+                {error ? <p className="lycee-form-error" role="alert">{error}</p> : null}
+                {replyNotice ? <p className="lycee-reply-notice" role="status">{replyNotice}</p> : null}
+                {translationTargetLanguage ? <div className="lycee-translation-command"><Languages aria-hidden="true" /><span><strong>Répondre aussi en {translationTargetLanguage}</strong><small>La version française reste la référence. Vous comparerez les deux textes avant l’envoi.</small></span><button type="button" disabled={translating || saving || selected.status === "clos" || !replySourceMessage || generalReplyNeedsConfirmation} onClick={() => void prepareTranslation()}>{translating ? "Traduction…" : translationDraft ? "Refaire la traduction" : "Préparer"}</button></div> : null}
                 {translationDraft ? <div className="lycee-translation-review" aria-live="polite"><div><Languages aria-hidden="true" /><strong>Version en {translationDraft.targetLanguage}</strong><button type="button" title="Abandonner la traduction" onClick={clearTranslation}><Trash2 aria-hidden="true" /><span>Garder le français</span></button></div><p dir="auto">{translationDraft.translatedText}</p><div className="lycee-translation-back"><small>Contrôle du sens en français</small><p>{translationDraft.backTranslationFr}</p></div>{translationDraft.warnings.length > 0 ? <ul>{translationDraft.warnings.map((warning) => <li key={warning}>{warning}</li>)}</ul> : null}<label><input type="checkbox" checked={translationValidated} onChange={(event) => setTranslationValidated(event.target.checked)} /><span><strong>J’ai comparé les deux versions.</strong><small>J’autorise l’envoi de cette traduction. L’agent humain reste responsable du message.</small></span></label></div> : null}
                 <input ref={agentFileInputRef} className="lycee-file-input" type="file" multiple accept={SUPPORT_FILE_TYPES.join(",")} aria-label="Documents à joindre à la réponse" onChange={(event) => void selectAgentFiles(event)} />
                 {!requiresSafeIdentityReply && agentDraftAttachments.length > 0 ? <div className="lycee-agent-reply-files" aria-label="Documents préparés pour la réponse">{agentDraftAttachments.map((attachment) => <div key={attachment.id} data-ready={attachment.canAttachToReply}><label><input type="checkbox" disabled={!attachment.canAttachToReply || saving || agentDeletingAttachmentId === attachment.id} checked={selectedAgentAttachmentIds.includes(attachment.id)} onChange={(event) => setSelectedAgentAttachmentIds((current) => event.target.checked ? [...new Set([...current, attachment.id])] : current.filter((id) => id !== attachment.id))} /><FileText aria-hidden="true" /><span><strong>{attachment.originalName}</strong><small>{attachment.canAttachToReply ? "Prêt à joindre" : attachment.scanStatus === "blocked" ? "Fichier refusé" : attachment.scanStatus === "scan_error" ? "Contrôle indisponible" : attachment.scanStatus === "removal_pending" ? "Retrait à reprendre" : "Contrôle antivirus en cours"}</small></span></label>{attachment.canRemoveDraft ? <button type="button" className="lycee-agent-file-remove" disabled={agentDeletingAttachmentId !== null || saving} title="Retirer ce brouillon" aria-label={`Retirer ${attachment.originalName}`} onClick={() => void removeAgentAttachment(attachment.id, attachment.originalName)}>{agentDeletingAttachmentId === attachment.id ? <RefreshCw className="is-spinning" aria-hidden="true" /> : <Trash2 aria-hidden="true" />}</button> : null}</div>)}</div> : null}
                 {showTemplateSave && !requiresSafeIdentityReply && access?.canManageTemplates ? <div className="lycee-template-save"><input aria-label="Nom du nouveau modèle" value={templateName} onChange={(event) => setTemplateName(event.target.value)} placeholder="Nom du modèle" maxLength={80} /><button type="button" disabled={saving || !templateName.trim() || !reply.trim()} onClick={() => void saveReplyTemplate()}>Enregistrer</button></div> : null}
-                <div>{requiresSafeIdentityReply || !access?.canManageTemplates ? null : <button className="lycee-secondary-action" type="button" disabled={selected.status === "clos"} onClick={() => setShowTemplateSave((current) => !current)}><BookOpenCheck aria-hidden="true" /> Modèle</button>}<button className="lycee-secondary-action" type="button" disabled={selected.status === "clos" || requiresSafeIdentityReply || saving || agentUploading || agentDraftAttachments.length >= MAX_SUPPORT_FILES} onClick={() => agentFileInputRef.current?.click()}><Paperclip aria-hidden="true" /> {agentUploading ? "Vérification…" : "Joindre"}</button><button className="lycee-primary-action" type="button" disabled={saving || agentUploading || translating || translationNeedsDecision || selected.status === "clos" || (!requiresSafeIdentityReply && !reply.trim())} onClick={() => void sendAgentReply()}><Send aria-hidden="true" /> {saving ? "Enregistrement…" : translatedReplyReady && translationDraft ? `Valider et envoyer en ${translationDraft.targetLanguage}` : "Valider et envoyer"}</button></div>
+                <div>{requiresSafeIdentityReply || !access?.canManageTemplates ? null : <button className="lycee-secondary-action" type="button" disabled={selected.status === "clos"} onClick={() => setShowTemplateSave((current) => !current)}><BookOpenCheck aria-hidden="true" /> Modèle</button>}<button className="lycee-secondary-action" type="button" disabled={selected.status === "clos" || requiresSafeIdentityReply || saving || agentUploading || agentDraftAttachments.length >= MAX_SUPPORT_FILES} onClick={() => agentFileInputRef.current?.click()}><Paperclip aria-hidden="true" /> {agentUploading ? "Vérification…" : "Joindre"}</button><button className="lycee-primary-action" type="button" disabled={saving || agentUploading || translating || translationNeedsDecision || selected.status === "clos" || !reply.trim() || generalReplyNeedsConfirmation} onClick={() => void sendAgentReply()}><Send aria-hidden="true" /> {saving ? "Enregistrement…" : translatedReplyReady && translationDraft ? `Valider et envoyer en ${translationDraft.targetLanguage}` : "Valider et envoyer"}</button></div>
               </section>
               <details key={selected.publicCode + "-historyPanelRef"} ref={historyPanelRef} className="lycee-agent-panel">
                 <summary><strong>Échanges et documents</strong><span>{detail.messages.length} messages · {detail.attachments.length} documents</span></summary>

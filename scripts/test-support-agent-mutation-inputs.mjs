@@ -128,6 +128,12 @@ test("accepts only exact replies, attachments and signed translation fields", ()
   };
   assert.equal(isSupportAgentReplyInput(reply), true);
   assert.equal(isSupportAgentReplyInput({ ...reply, safeTemplate: "identity_verification" }), true);
+  assert.equal(isSupportAgentReplyInput({ ...reply, attachmentIds: [], generalReplyConfirmed: true }), true);
+  for (const generalReplyConfirmed of [false, "true", 1, null]) {
+    assert.equal(isSupportAgentReplyInput({ ...reply, generalReplyConfirmed }), false);
+  }
+  assert.equal(isSupportAgentReplyInput({ ...reply, generalReplyConfirmed: true, safeTemplate: "identity_verification" }), false);
+  assert.equal(isSupportAgentReplyInput({ ...reply, generalReplyConfirmed: true, attachmentIds: [uuid] }), false);
   assert.equal(isSupportAgentReplyInput({
     ...reply,
     translation: {

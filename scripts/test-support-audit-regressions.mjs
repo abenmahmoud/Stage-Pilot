@@ -310,6 +310,17 @@ test("real reply handler denies attachments even with the safe template", async 
   } }), (error) => error instanceof HttpError && error.status === 409 && /Aucun document/.test(error.message));
 });
 
+test("human-confirmed general guidance passes without granting school identity or documents", async () => {
+  for (const identityStatus of ["non_verifiee", "contact_verifie"]) {
+    const context = { requiredIdentity: "I3", identityStatus };
+    await assert.rejects(() => checkReplyGate({ context, body: { generalReplyConfirmed: true } }), /passed-identity-gate/);
+    assert.equal(context.identityStatus, identityStatus);
+    await assert.rejects(() => checkReplyGate({ context, body: {
+      generalReplyConfirmed: true, attachmentIds: ["11111111-1111-4111-8111-111111111111"],
+    } }), (error) => error instanceof HttpError && error.status === 409 && /Aucun document/.test(error.message));
+  }
+});
+
 test("real reply handler allows the safe text, confirmed I3 and emergency I0 to continue", async () => {
   for (const input of [
     { context: { requiredIdentity: "I3" }, body: { safeTemplate: "identity_verification" } },

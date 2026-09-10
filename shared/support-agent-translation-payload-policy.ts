@@ -1,6 +1,6 @@
 import { supportTranslationTargetLanguage } from "./support-reply-policy.js";
 
-const INPUT_FIELDS = new Set(["sourceMessage"]);
+const INPUT_FIELDS = new Set(["sourceMessage", "generalReplyConfirmed"]);
 const PAYLOAD_FIELDS = new Set(["translation"]);
 const TRANSLATION_FIELDS = new Set([
   "translatedText",
@@ -14,6 +14,7 @@ const RECEIPT_PATTERN = /^[A-Za-z0-9_-]{1,1800}\.[A-Za-z0-9_-]{16,200}$/;
 
 export type SupportAgentTranslationInput = {
   sourceMessage: string;
+  generalReplyConfirmed?: true;
 };
 
 export type SupportAgentTranslationPayload = {
@@ -50,7 +51,8 @@ export function isSupportAgentTranslationInput(
   value: unknown
 ): value is SupportAgentTranslationInput {
   return isRecord(value)
-    && hasExactFields(value, INPUT_FIELDS)
+    && Object.keys(value).every((key) => INPUT_FIELDS.has(key))
+    && (value.generalReplyConfirmed === undefined || value.generalReplyConfirmed === true)
     && isBoundedText(value.sourceMessage, 5_000);
 }
 

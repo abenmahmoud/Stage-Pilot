@@ -122,6 +122,13 @@ quarantaine. Une panne d'envoi externe n'affecte pas le dossier.
   auditer le retrait sans nom de fichier et sérialiser ce retrait avec l'envoi.
   Un document déjà envoyé, appartenant à un autre agent ou encore analysé reste
   impossible à retirer.
+- [x] **T018C** Débloquer les réponses humaines d’accompagnement sur une demande
+  sensible dont l’identité reste à confirmer : texte éditable, attestation
+  explicite sans donnée personnelle ni code, journalisation, traduction avec
+  validation et aucune pièce jointe. Garder les restrictions de remise et de
+  résolution sensibles. Recette navigateur : six parcours fictifs, mobile et
+  ordinateur, erreur puis reprise avec la même clé d’envoi. Voir
+  `docs/operations/CORRECTION_REPONSES_AGENT_2026-09-10.md`.
 - [x] **T019** Ajouter les modèles de réponse et variables autorisées. Trois
   modèles prudents sont disponibles et les agents peuvent enregistrer un modèle
   limité aux variables `prenom`, `numero` et `objet`.
@@ -245,8 +252,9 @@ voir sa réponse dans le dossier. L'agent traite tout depuis une seule file.
   vérifier », sans remplacer l'original ni influencer les droits ou le routage.
 - [x] **T036G2** Permettre à l'agent de préparer une réponse traduite avec
   rétrotraduction française, masquage avant IA, reçu signé de quinze minutes et
-  validation humaine explicite. Une demande sensible non vérifiée limite la
-  traduction au message sécurisé de confirmation d'identité.
+  validation humaine explicite. Une demande sensible non vérifiée autorise la
+  consigne de vérification ou une réponse générale attestée sans donnée
+  personnelle ni code (T018C).
 - [ ] **T036H** Reprendre et faire valider toutes les rubriques de l'ancien site
   selon `content-migration.md` avant toute bascule du domaine principal.
 - [x] **T036I** Ajouter les premières pages détaillées STMG, STL, MELEC, PCEPC et

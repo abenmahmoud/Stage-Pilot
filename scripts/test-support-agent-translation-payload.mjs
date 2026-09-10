@@ -31,6 +31,10 @@ function validPayload() {
 
 test("accepts only one exact bounded translation command", () => {
   assert.equal(isSupportAgentTranslationInput({ sourceMessage: "Bonjour" }), true);
+  assert.equal(isSupportAgentTranslationInput({ sourceMessage: "Bonjour", generalReplyConfirmed: true }), true);
+  for (const generalReplyConfirmed of [false, "true", 1, null]) {
+    assert.equal(isSupportAgentTranslationInput({ sourceMessage: "Bonjour", generalReplyConfirmed }), false);
+  }
   assert.equal(isSupportAgentTranslationInput({ sourceMessage: "Bonjour", targetLanguage: "arabe" }), false);
   assert.equal(isSupportAgentTranslationInput({ sourceMessage: "" }), false);
   assert.equal(isSupportAgentTranslationInput({ sourceMessage: 42 }), false);
