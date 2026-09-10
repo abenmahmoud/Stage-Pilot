@@ -52,7 +52,15 @@ existant reste appliqué avant les écritures et la traduction.
 
 ## Publication et limites
 
-Contrôles complets réussis, publication en préparation. Aucun message réel, email, SMS
+Code publié : `741c70062940eccb7c1301cd2372d9e352052139`, déploiement
+`dpl_EARBMu7LcYnxRUuCMRKdNNaTX9HT`, état READY. Les alias ne suivaient pas le
+push : l’ancien éditeur en lecture seule a été reproduit sur l’alias de branche.
+Après recette réussie sur l’URL immuable, rattachement explicite des alias racine
+et branche via Vercel CLI 59.11.2. Domaine racine relu par API : même déploiement
+et même SHA. Les six parcours fictifs passent aussi sur les ressources de
+`https://lycee-blaise-cendrars-sevran.fr/?view=agent`.
+
+Aucun message réel, email, SMS
 ou code OTP envoyé pendant les tests ; aucune modification des demandes
 existantes, des contacts, des comptes, du périmètre des services ou de la MFA.
 Le rapprochement des anciennes demandes avec le nouveau répertoire reste

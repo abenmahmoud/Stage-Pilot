@@ -7,6 +7,11 @@
 
 ## Correctif du 10 septembre — réponses humaines dans le guichet (T018C)
 
+Publié : `741c700`, déploiement `dpl_EARBMu7LcYnxRUuCMRKdNNaTX9HT` READY,
+domaine racine vérifié après rattachement explicite des alias racine et branche.
+Attention : les alias n’ont pas suivi le push lors de cette livraison. Six
+parcours navigateur fictifs réussis localement puis sur la version publiée.
+
 Incident signalé par Adel : impossible de rédiger une réponse ENT, éditeur en
 lecture seule tant que l’identité scolaire n’est pas confirmée. Le dossier
 observé n’a pas le lien élève/professeur historique exigé par cette confirmation.
