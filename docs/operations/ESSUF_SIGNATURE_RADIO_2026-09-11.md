@@ -28,4 +28,8 @@ La lecture après clic tient compte des [restrictions d’autoplay des navigateu
 - Preuves et captures hors dépôt : `../ESSUF_SIGNATURE_RADIO_2026-09-10/qa/`, script `verify.mjs`. Le dossier porte la date de début du travail avant minuit.
 - Passation portfolio et contrat du flux pour l’autre agent : `../ESSUF_SIGNATURE_RADIO_2026-09-10/PASSATION_SITE_ESSUF.md`.
 
-Publication du crédit et de la préparation technique à confirmer après recette distante. La radio ne peut pas être déclarée opérationnelle sans sa source.
+Publication du crédit et de la préparation technique confirmée le 11 septembre 2026 (Europe/Paris) : commit fonctionnel `2daf5f5a808a4efce9a2878cde7127f8e67d686a`, déploiement READY `dpl_Da2ATPF1wdpgsGc12EgZ7NRoqdVz`, URL immuable `lyceegest-n4pd1zxwf-safe-scol.vercel.app`. Recette immuable réussie, deux alias affectés explicitement, même recette réussie sur le domaine principal.
+
+Crédit et lien vers essuf.fr vérifiés sur accueil, guide et aide, en 1440 et 390 px : six états de page par cible, aucun débordement ni erreur JavaScript. Lecteur masqué, aucune source sur l’élément audio et aucune requête audio. Captures finales relues ; preuves `../ESSUF_SIGNATURE_RADIO_2026-09-10/live-lycee-blaise-cendrars-sevran.fr/checks.json`. Version de retour arrière : `lyceegest-p9hp6131h-safe-scol.vercel.app` (harmonisation, code c131561).
+
+**Radio non activée : URL réelle toujours attendue.** T075 reste ouverte pour ce branchement ; ne pas confondre le test sur WAV fictif et une diffusion ESSUF opérationnelle.
