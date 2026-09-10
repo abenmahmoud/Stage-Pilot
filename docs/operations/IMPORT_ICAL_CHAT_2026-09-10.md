@@ -1,5 +1,26 @@
 # Emplois du temps iCal et réponses dans le chat — 10 septembre 2026
 
+**Publication vérifiée** : commit `5ae719e`, déploiement Vercel
+`dpl_51iwswSSkEYrRrmHDgU4WXzeDpCK`, état READY et alias
+`https://lycee-blaise-cendrars-sevran.fr/`. Les 8 scénarios navigateur passent
+sur les fichiers de cette version publiée avec identités et horaires fictifs.
+La nouvelle route de revue refuse un accès anonyme (401, no-store).
+
+**Dépôts réels reçus et scannés** : classes
+`da2868a4-e016-4546-9b68-50af04e366d2`, professeurs
+`ea60fe51-cf58-475f-b2dc-24319c2caa6a`. Les deux sont en `review`, antivirus
+`clean`, 149 calendriers préparés, aucune approbation/activation attribuée
+artificiellement à un humain. Le compte technique du Dépôt Lycée a effectué
+l’envoi via le contrat existant et le secret de service actuellement configuré.
+Le fichier `/srv/depot/.env` et le conteneur du Dépôt portent encore un ancien
+jeton refusé ; le secret de service valide est dans l’environnement dédié sous
+`/etc/lycee-support-preview`. Aucun jeton n’a été affiché ni modifié.
+
+**Action suivante pour le gestionnaire** : ouvrir Gestion → Emplois du temps,
+vérifier les correspondances proposées, rattacher ou exclure explicitement les
+calendriers restants, puis approuver et activer les deux versions. Les cours
+personnels ne sont pas annoncés disponibles avant cette activation.
+
 Le défaut était double : les exports iCal locaux n’étaient pas raccordés au lecteur privé, et les personnels portant un avertissement non bloquant dans l’annuaire étaient acceptés par l’OTP puis refusés par le lecteur EDT. Les 193 personnels de l’annuaire actif ont notamment l’avertissement `staff_without_service`.
 
 ## Réalisation

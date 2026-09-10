@@ -7,6 +7,12 @@
 
 ## Jalon du 10 septembre — iCal, identité et chat
 
+Code publié et domaine racine vérifié : `5ae719e`, déploiement
+`dpl_51iwswSSkEYrRrmHDgU4WXzeDpCK`. Deux imports réels désormais en `review`,
+antivirus propre : classes `da2868a4-e016-4546-9b68-50af04e366d2`, professeurs
+`ea60fe51-cf58-475f-b2dc-24319c2caa6a`. 149 calendriers préparés. Validation
+humaine restant à effectuer dans Gestion → Emplois du temps avant accès réel.
+
 Implémentation native de l’import iCal avec antivirus, propositions privées de
 correspondances, décisions humaines et écriture atomique par calendrier. Lots
 locaux : 45 classes (64 600 cours, 43 correspondances) et 104 professeurs
