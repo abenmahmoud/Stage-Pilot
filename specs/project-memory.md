@@ -6061,3 +6061,21 @@ privées fictives. API publique réelle HTTP 200 au second tour ; aucun envoi r�
 L’audit Supabase du matin confirme toujours zéro version EDT. Les connecteurs
 Supabase et Vercel fonctionnent à nouveau ; SSH VPS expire sur ce réseau.
 Preuves : `docs/operations/INCIDENT_BOUCLE_CHAT_2026-09-10.md`.
+
+### 10 septembre 2026 — correction du diagnostic sur les emplois du temps
+
+Adel indique un import iCal. Retrouvé dans ses téléchargements : `EDT 8-9-26`
+(45 fichiers, 65 064 événements), `ical` (104 fichiers, 44 876 événements),
+`ical 2` (45 fichiers, 65 064 événements). Période 01/09/2026–03/07/2027,
+occurrences datées sans RRULE. Les deux dossiers de 45 fichiers ont les mêmes
+comptages, mais aucun SHA-256 identique entre eux : ne pas les dédupliquer sur
+les seuls noms ou comptages. Aucun fichier brut ni horaire nominatif dans Git.
+
+Les 43 classes de l’annuaire actif ont un calendrier correspondant exactement ;
+deux références supplémentaires à qualifier, et aucun lien `member_of` actif.
+Le chat ne les lit pas parce que son pipeline n’implémente pas ICS et n’a reçu
+aucune version exploitable. Les limites CSV/Excel (20 000 lignes, 80 par groupe)
+empêchent une conversion annuelle naïve. Ne plus dire que les fichiers manquent :
+le raccordement manque. T066C ouvert ; voir
+`docs/operations/DIAGNOSTIC_ICAL_2026-09-10.md`. Audit seulement, aucun nouveau
+déploiement ni import en production pendant ce diagnostic.

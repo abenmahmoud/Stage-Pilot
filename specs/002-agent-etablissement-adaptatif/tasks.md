@@ -1191,6 +1191,13 @@
   cinq minutes. L'activation reste humaine et le XML partenaire Index demeure
   fermé sans contrat technique. Preuve :
   `docs/operations/SYNCHRONISATION_EDT_2026-09-08.md`.
+- [ ] T066C Brancher les exports iCal annuels retrouvés au lecteur privé et au
+  chat : import par lots avec reprise, rapprochement des personnes/classes/groupes,
+  revue des sources, cartes de cours et absence de bascule automatique au formulaire.
+  Diagnostic réel : 194 fichiers locaux, 43 classes de l’annuaire rapprochées
+  exactement, format ICS absent du code publié, aucun lien `member_of` dans
+  l’annuaire actif. Aucun import ou écran nouveau n’est livré à ce stade.
+  Critères : `docs/operations/DIAGNOSTIC_ICAL_2026-09-10.md`.
 - [ ] T067 Programmer les contrôles de connaissances à 08:00, 13:00 et 18:00
   Europe/Paris, la détection des conflits, les alertes immédiates et le digest
   dédupliqué des questions inconnues.

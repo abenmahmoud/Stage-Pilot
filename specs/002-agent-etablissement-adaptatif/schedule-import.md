@@ -1,5 +1,15 @@
 # Import privé des emplois du temps
 
+## Données iCal retrouvées le 10 septembre 2026
+
+Les fichiers existent dans les téléchargements : 45 calendriers dans `EDT 8-9-26`,
+104 dans `ical`, 45 dans `ical 2`, couvrant l’année 2026-2027. Le lecteur du chat
+n’est pas encore relié à ces exports. Le format ICS n’est pas pris en charge par
+l’import publié ; une conversion annuelle dépasse également les limites actuelles
+du pipeline tabulaire. L’annuaire fournit 43 correspondances exactes de classe,
+mais aucun lien d’appartenance aux groupes. Voir le diagnostic et les critères
+de livraison T066C dans `docs/operations/DIAGNOSTIC_ICAL_2026-09-10.md`.
+
 ## Consultation par le chat — état du 9 septembre 2026
 
 Le lecteur personnel peut répondre dans le chat pour le prochain cours,
