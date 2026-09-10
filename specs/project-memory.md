@@ -6144,3 +6144,6 @@ empêchent une conversion annuelle naïve. Ne plus dire que les fichiers manquen
 le raccordement manque. T066C ouvert ; voir
 `docs/operations/DIAGNOSTIC_ICAL_2026-09-10.md`. Audit seulement, aucun nouveau
 déploiement ni import en production pendant ce diagnostic.
+
+## 10 septembre 2026 — Guide Chromebook annuel (002/T073)
+Adel confirme la distribution des secondes les 14 et 15 septembre en grande salle polyvalente, planning communiqué aux professeurs. Le pack reçu est vérifié contre sept originaux régionaux. Rubrique /chromebook, lien accueil et Mes services, corpus public unique partagé avec le chat, réponses directes sans formulaire ni OTP pour les informations publiques. Expiration autonome de l’annonce du 15 septembre ; guide conservé toute l’année. Le SAV distingue ASUS/Chromebook et UNOWHY/Y13. Aucun horaire par classe inventé, aucune procédure interne diffusée. Email unique et notification préparés hors dépôt, sans envoi. L’audit EDT reste en pause. Détails et recette : docs/operations/CHROMEBOOK_2026-09-10.md. Publication distante à confirmer dans ce compte rendu après recette réelle.

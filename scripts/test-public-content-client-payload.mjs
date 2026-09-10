@@ -68,7 +68,8 @@ test("validates the dedicated article response and binds it to the requested slu
 });
 
 test("renders public markdown through one media and link policy", () => {
-  assert.equal(page.match(/<PublicContentMarkdown>/g)?.length, 1);
+  // The news and assistant bubbles share the same safe Markdown renderer.
+  assert.equal(page.match(/<PublicContentMarkdown>/g)?.length, 2);
   assert.equal(articlePage.match(/<PublicContentMarkdown>/g)?.length, 1);
   assert.equal(contentManager.match(/<PublicContentMarkdown>/g)?.length, 1);
   assert.match(markdown, /isAllowedPublicContentSignedUrl\(src\)/);

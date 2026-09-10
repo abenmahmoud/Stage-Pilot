@@ -1,6 +1,9 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { SchoolParentsMeeting } from "../../components/SchoolParentsMeeting";
+import { ChromebookNotice } from "../../components/ChromebookNotice";
+import { chromebookQuestion } from "../../../shared/chromebook-information";
+import { chromebookReferenceAnswer } from "../../../shared/chromebook-assistant";
 import { PushNotificationsButton } from "../../components/PushNotificationsButton";
 import { ChatRequestIntake } from "../../components/ChatRequestIntake";
 import { SCHOOL_PUBLIC_INFORMATION } from "../../../shared/school-public-information";
@@ -617,7 +620,7 @@ export default function LyceeConnectPrototype() {
   const navigate = useNavigate();
   const view = publicPortalView(location.search);
   const [message, setMessage] = useState("");
-  const [helpInitialMessage, setHelpInitialMessage] = useState("");
+  const [helpInitialMessage, setHelpInitialMessage] = useState(() => chromebookQuestion(location.state?.chromebookQuestion));
   const [contactCorrectionIdentity, setContactCorrectionIdentity] = useState<IdentityPersonDraft | undefined>();
   const [hasHelpDraft, setHasHelpDraft] = useState(false);
   const [helpMode, setHelpMode] = useState<"chat" | "form">("chat");
@@ -875,6 +878,7 @@ export default function LyceeConnectPrototype() {
         </section>
 
         <div className="lycee-content">
+          <ChromebookNotice />
           <SchoolParentsMeeting />
           <section className="lycee-assistant" aria-labelledby="lycee-assistant-title">
             <div className="lycee-assistant-heading">
@@ -1348,6 +1352,8 @@ function inferSupportCategory(text: string): SupportCategory {
 
 function localAssistantFallback(messages: AssistantChatMessage[], files: File[]): AssistantInsight {
   const policy = evaluateConversationPolicy(messages);
+  const chromebookAnswer = policy.deterministicReply ? null : chromebookReferenceAnswer(messages);
+  if (chromebookAnswer) return { ...chromebookAnswer, requesterType: "inconnu", detectedLanguage: "fr", turnCount: policy.turnCount, remainingTurns: policy.remainingTurns, limitReached: policy.limitReached };
   const text = messages.filter((message) => message.role === "requester").map((message) => message.content).join("\n");
   const normalizedText = text.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
   const category = inferSupportCategory(text);
@@ -1903,8 +1909,9 @@ function HelpDeskView({
         normalizationReceipt = signedNormalizationReceipt;
         requestActionAuthorized = authorizedAction;
       } catch {
-        responseFailed = true;
-        result = {
+        const publicChromebookAnswer = evaluateConversationPolicy(requestMessages).deterministicReply ? null : chromebookReferenceAnswer(requestMessages);
+        responseFailed = !publicChromebookAnswer;
+        result = publicChromebookAnswer ? { ...result, ...publicChromebookAnswer } : {
           ...result,
           reply: "Je n’ai pas pu poursuivre cet échange à cause d’un problème technique. Votre message est conservé. Vous pouvez réessayer ici ou préparer l’envoi au lycée.",
           readyToCreate: false,
@@ -2268,7 +2275,7 @@ function HelpDeskView({
             <div data-speaker={message.role} key={message.id}>
               {message.role === "assistant" ? <span><Bot aria-hidden="true" /></span> : null}
               <div className="lycee-chat-message-body">
-                {message.schedule ? <ScheduleChatCard value={message.schedule} /> : <p>{message.content}</p>}
+                {message.schedule ? <ScheduleChatCard value={message.schedule} /> : message.role === "assistant" ? <div className="lycee-chat-markdown"><PublicContentMarkdown>{message.content}</PublicContentMarkdown></div> : <p>{message.content}</p>}
                 {message.sourceReferences?.length ? (
                   <div className="lycee-agent-sources" aria-label="Sources utilisées">
                     <BookOpenCheck aria-hidden="true" />
@@ -3152,6 +3159,7 @@ function DemoRequestsView({ ticketCode, onBack }: { ticketCode: string | null; o
 
 function ServicesView({ onHelp, onCollect, onBack }: { onHelp: (prompt?: string) => void; onCollect: () => void; onBack: () => void }) {
   const serviceGroups = [
+    { title: "Mon Chromebook", description: "Préparer la remise, se connecter, travailler et trouver le bon dépannage.", icon: Laptop, color: "blue", progress: "Le guide pour toute l’année", action: "Consulter le guide", href: "/chromebook" },
     { title: "Assistance du lycée", description: "Une question de scolarité ou une difficulté de connexion ? Décrivez votre besoin.", icon: LifeBuoy, color: "coral", progress: "Démarches dans le chat", action: "Demander de l’aide", help: true },
     { title: "Webmail du lycée", description: "Accès à la messagerie du lycée pour les utilisateurs autorisés.", icon: Mail, color: "green", progress: "Connexion à la messagerie", action: "Ouvrir le Webmail", href: WEBMAIL_URL, external: true },
     { title: "Inscriptions et dossiers", description: "Réinscription, pièces manquantes, classe et documents de scolarité", icon: FolderCheck, color: "gold", progress: "Traitement par le service concerné", action: "Préparer une demande", help: true },

@@ -144,6 +144,10 @@ function explicitScope(content: string): AssistantScope {
     return "privacy_request";
   }
 
+  if (/\b(chromebooks?|monordi|mon ordi|unowhy|y13|class connect|classconnect)\b/.test(text)) {
+    return "school_support";
+  }
+
   if (
     /\b(cours|devoir|examen|controle|revision|resume|exercice|corrige|fraction|equation|mathematiques?|maths?|sciences?|physique|chimie|svt|francais|histoire|geographie|anglais|dissertation|probleme scolaire)\b/.test(
       text

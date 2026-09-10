@@ -21,6 +21,7 @@ import {
 
 const LyceeConnectPrototype = lazy(() => import("./pages/prototype/LyceeConnectPrototype"));
 const PublicContentPage = lazy(() => import("./pages/prototype/PublicContentPage"));
+const ChromebookPage = lazy(() => import("./pages/prototype/ChromebookPage"));
 const LoginPage = lazy(() => import("./pages/LoginPage"));
 const MfaSecurityPage = lazy(() => import("./pages/MfaSecurityPage"));
 const ResetPasswordPage = lazy(() => import("./pages/ResetPasswordPage"));
@@ -182,6 +183,8 @@ export default function App() {
             <LyceeConnectPrototype />
           }
         />
+        <Route path="/chromebook" element={<ChromebookPage />} />
+        <Route path="/site/chromebook" element={<Navigate to="/chromebook" replace />} />
         <Route path="/site/:slug" element={<PublicContentPage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/reset-password" element={<ResetPasswordPage />} />

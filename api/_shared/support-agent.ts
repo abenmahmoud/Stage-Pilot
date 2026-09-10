@@ -13,6 +13,7 @@ import {
 } from "../../shared/agent-context-window.js";
 import { MISSING_OPENING_HOURS_REPLY, schoolClock, schoolDayBoundsUtc, schoolInformationIntent, schoolRuntimeInstructions, supportFormReady } from "../../shared/assistant-school-context.js";
 import { schoolReferenceAnswer } from "../../shared/school-reference-answers.js";
+import { chromebookReferenceAnswer, CHROMEBOOK_MODULE_INSTRUCTIONS } from "../../shared/chromebook-assistant.js";
 import { isCateringSupportTopic } from "../../shared/support-topic-context.js";
 import { readAiProviderJsonResponse } from "../../shared/ai-provider-response.js";
 import { evaluateLaptopIntake } from "../../shared/laptop-intake.js";
@@ -484,6 +485,12 @@ export async function analyzeSupportConversation(input: {
     await recordRuntime("deterministic", false, false);
     return deterministicResult(policy, fallback);
   }
+  const chromebookAnswer = chromebookReferenceAnswer(input.messages, now);
+  if (chromebookAnswer && !accessGuidanceKind(input.messages)) {
+    runtimeSourceCount = chromebookAnswer.sourceReferences.length;
+    await recordRuntime("deterministic", false, false);
+    return { ...fallback, ...chromebookAnswer };
+  }
   const informationIntent = schoolInformationIntent(input.messages);
   const referenceAnswer = schoolReferenceAnswer(input.messages, now);
   if (referenceAnswer) {
@@ -696,7 +703,7 @@ export async function analyzeSupportConversation(input: {
         reasoning: { effort: "low" },
         max_output_tokens: 450,
         safety_identifier: input.safetyIdentifier,
-        instructions: `${INSTRUCTIONS}\n\n${publicKnowledgeContext.instructions}\n\n${schoolRuntimeInstructions(now)}`,
+        instructions: `${INSTRUCTIONS}\n\n${CHROMEBOOK_MODULE_INSTRUCTIONS}\n\n${publicKnowledgeContext.instructions}\n\n${schoolRuntimeInstructions(now)}`,
         input: JSON.stringify({
           // Le modele voit la meme fenetre que celle acceptee par l'interface,
           // besoin initial conserve : une conversation de vingt messages ne

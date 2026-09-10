@@ -1389,3 +1389,5 @@
 - [ ] T072 Prototyper la dictée navigateur en texte éditable dans le chat, les
   formulaires et les informations flash : langue automatique corrigeable,
   segments de deux minutes, reprise manuelle et aucune conservation audio.
+
+- [ ] T073 Publier le guide Chromebook annuel et ses réponses directes dans le chat depuis un corpus public commun et sourcé. Encadrer les dates locales, le SAV, les sources internes et les changements de sujet. Plan : docs/operations/CHROMEBOOK_2026-09-10.md. Recette ordinateur, téléphone, assistant et publication réelle.

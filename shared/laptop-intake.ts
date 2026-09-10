@@ -43,7 +43,7 @@ export function evaluateLaptopIntake(
   const text = turns.join("\n");
   const latest = turns.at(-1) ?? "";
   const concernsLaptop =
-    /\b(pc|ordinateur|portable|tablette|chargeur|batterie|clavier|ecran|trackpad)\b/.test(text);
+    /\b(pc|ordinateur|chromebooks?|portable|tablette|chargeur|batterie|clavier|ecran|trackpad)\b/.test(text);
   if (!concernsLaptop) return null;
 
   if (
