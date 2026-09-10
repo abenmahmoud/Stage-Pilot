@@ -205,6 +205,13 @@
   privées fictives ; API publique réelle HTTP 200. Publication `df1d8df` vérifiée
   sur le domaine principal le 10 septembre 2026. Preuves :
   `docs/operations/INCIDENT_BOUCLE_CHAT_2026-09-10.md`.
+- [x] T010B4B2 Fluidifier les nouvelles conversations après audit des demandes :
+  classe personnelle issue de l’annuaire actif après preuve serveur, explications
+  publiques sans OTP, récupération déjà échouée prise en compte et préparation
+  après accord sans boucle d’identité. Aucun traitement rétroactif implicite.
+  46 tests ciblés, 16 parcours navigateur fictifs, build et contrôle de sécurité
+  réussis localement le 10 septembre 2026. Publication suivie dans le compte rendu.
+  Preuves : `docs/operations/FLUIDITE_CHAT_2026-09-10.md`.
 - [x] T010C Définir les liens élève-responsable, personnel-service et classe-groupe,
   puis tester qu'un compte ne consulte jamais les données d'un autre foyer.
 - [x] T011 Implémenter le parseur et le validateur du format de compétence.

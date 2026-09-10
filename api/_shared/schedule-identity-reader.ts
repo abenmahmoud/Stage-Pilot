@@ -8,6 +8,7 @@ import {
   schoolRelationships,
 } from "../../db/schema.js";
 import type { ScheduleDayReadResult, ScheduleReadResult } from "../../shared/schedule-policy.js";
+import type { OwnClassReadResult } from "../../shared/support-service-intent.js";
 import { HttpError, requireUser } from "./auth.js";
 import { readIdentityDeviceSession } from "./identity-device-access.js";
 import { requireConfiguredInstitution } from "./institution-context.js";
@@ -224,6 +225,16 @@ export async function resolveVerifiedScheduleScope(
       authorizedTeacherRefs: [],
     };
   }, { isolationLevel: "repeatable read", accessMode: "read only" });
+}
+
+// Only the server-authenticated person's own class. No caller-selected target,
+// timetable activation, or model interpretation is needed for this directory fact.
+export async function readOwnClassForVerifiedIdentity(req: VercelRequest): Promise<OwnClassReadResult> {
+  const scope = await resolveVerifiedScheduleScope(req);
+  if (scope.authorizedClassRefs.length !== 1 || scope.authorizedTeacherRefs.length !== 0) {
+    return { ok: false, reason: "class_unavailable" };
+  }
+  return { ok: true, classRef: scope.authorizedClassRefs[0] };
 }
 
 export async function readNextCourseForVerifiedIdentity(input: {

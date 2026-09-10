@@ -102,6 +102,7 @@ import { verifySupportRequestPersistenceConfirmation } from "../../../shared/sup
 import { verifySupportCreateRequestActionConfirmation } from "../../../shared/support-create-request-action-confirmation";
 import { verifySupportRequestMutationConfirmation } from "../../../shared/support-request-mutation-confirmation";
 import { verifySupportAgentReplyConfirmation } from "../../../shared/support-agent-reply-confirmation";
+import { requiresIdentityForPersonalSupport } from "../../../shared/support-service-intent";
 import { verifySupportInternalNoteConfirmation } from "../../../shared/support-internal-note-confirmation";
 import { verifySupportCallbackConfirmation } from "../../../shared/support-callback-confirmation";
 import { verifySupportAttachmentRemovalConfirmation } from "../../../shared/support-attachment-removal-confirmation";
@@ -1762,16 +1763,8 @@ function HelpDeskView({
   const requesterMessages = chatMessages.filter((message) => message.role === "requester");
   const conversationDescription = requesterMessages.map((message) => message.content).join("\n\n").trim();
   const selectedCategory = supportCategories.find((item) => item.value === category);
-  const personalRequestText = conversationDescription.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
-  const identityRequiredForCurrentRequest = insight?.scope !== "safescol" && requesterMessages.length > 0 && /\b(mon|ma|mes|moi|notre|enfant|je veux|je souhaite|je voudrais)\b/.test(personalRequestText) && [
-    "affectation_classe",
-    "documents_scolarite",
-    "ent",
-    "email_academique",
-    "logiciel",
-    "restauration_bourse",
-    "vie_scolaire",
-  ].includes(category);
+  const identityRequiredForCurrentRequest = insight?.scope !== "safescol"
+    && requiresIdentityForPersonalSupport(chatMessages, category);
 
   useEffect(() => {
     threadRef.current?.scrollTo({ top: threadRef.current.scrollHeight, behavior: "smooth" });
@@ -1921,23 +1914,7 @@ function HelpDeskView({
     }
     if (controller.signal.aborted) return;
     setAssistantFailed(responseFailed);
-    const requesterText = nextMessages
-      .filter((message) => message.role === "requester")
-      .map((message) => message.content)
-      .join(" ")
-      .normalize("NFD")
-      .replace(/[\u0300-\u036f]/g, "")
-      .toLowerCase();
-    const asksForOwnPersonalService = /\b(mon|ma|mes|moi|pour moi|je veux|je souhaite|donne(?:z)? moi)\b/.test(requesterText);
-    const requiresIdentity = asksForOwnPersonalService && [
-      "affectation_classe",
-      "documents_scolarite",
-      "ent",
-      "email_academique",
-      "logiciel",
-      "restauration_bourse",
-      "vie_scolaire",
-    ].includes(result.category);
+    const requiresIdentity = requiresIdentityForPersonalSupport(nextMessages, result.category);
     if (!responseFailed && requiresIdentity && result.scope !== "safescol" && !schoolInformationIntent(nextMessages) && !identityVerified && !identityJustVerified) {
       result = {
         ...result,

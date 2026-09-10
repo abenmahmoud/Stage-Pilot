@@ -106,6 +106,7 @@ function fixture() {
   vm.runInNewContext(compiled, { exports, Date: FixedDate,
     require: (name) => { assert.ok(Object.hasOwn(dependencies, name), name); return dependencies[name]; } });
   return { state,
+    readClass: async () => structuredClone(await exports.readOwnClassForVerifiedIdentity({ headers: {} })),
     resolve: async (target) => structuredClone(await exports.resolveVerifiedScheduleScope({ headers: {} }, target)),
     read: (target) => exports.readNextCourseForVerifiedIdentity({ req: { headers: {} }, targetPersonRef: target, now: NOW, requestedAt: NOW }),
     readDay: (target) => exports.readCoursesForDayForVerifiedIdentity({
@@ -281,4 +282,26 @@ test("the day reader goes through the same verified-identity resolution, scoped 
 test("the day reader rejects an unverified identity before ever calling the private reader", async () => {
   const f = fixture(); f.state.user = null;
   await assert.rejects(f.readDay(), { status: 401 }); assert.equal(f.state.readCalls.length, 0);
+});
+
+test('own class comes only from the current verified directory, without a schedule import', async () => {
+  const f = fixture();
+  f.state.user = null;
+  f.state.deviceIdentity = { sourceImportId: 'import-fixture', personRef: 'STUDENT-001', personType: 'student', assuranceLevel: 'directory_email_otp' };
+  f.state.data.rows.push(person({ id: 'other', personRef: 'OTHER-001', classRef: 'OTHER-CLASS' }));
+  assert.deepEqual(await f.readClass(), { ok: true, classRef: 'CLASS-001' });
+  assert.equal(f.state.readCalls.length, 0);
+  f.state.data.imports[0].status = 'superseded';
+  await assert.rejects(f.readClass(), { status: 403 });
+});
+
+test('class lookup refuses an anonymous user, an ambiguous directory and an implicit child', async () => {
+  const anonymous = fixture(); anonymous.state.user = null;
+  await assert.rejects(anonymous.readClass(), { status: 401 });
+  const ambiguous = fixture(); ambiguous.state.data.rows.push(person({ id: 'duplicate', classRef: 'OTHER-CLASS' }));
+  await assert.rejects(ambiguous.readClass(), { status: 403 });
+  await assert.rejects(guardianFixture().readClass(), { status: 403 });
+  const staff = fixture(); staff.state.data.identities[0] = identity({ personType: 'staff' });
+  staff.state.data.rows[0].personType = 'staff';
+  assert.deepEqual(await staff.readClass(), { ok: false, reason: 'class_unavailable' });
 });

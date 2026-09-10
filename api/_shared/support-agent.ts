@@ -1,3 +1,4 @@
+import { accessGuidanceKind, requestsOwnClass, type OwnClassReadResult } from "../../shared/support-service-intent.js";
 import {
   evaluateConversationPolicy,
   resolveAssistantAction,
@@ -425,6 +426,7 @@ export async function analyzeSupportConversation(input: {
     dayEnd: Date;
   }) => Promise<ScheduleDayReadResult>;
   identityVerified?: boolean;
+  ownClassReader?: () => Promise<OwnClassReadResult>;
   now?: Date;
 }): Promise<SupportAgentResult> {
   const startedAt = Date.now();
@@ -502,6 +504,39 @@ export async function analyzeSupportConversation(input: {
     };
   }
   const requestedScheduleDayOffset = requestedOwnCoursesDayOffset(input.messages);
+  if (input.ownClassReader && requestsOwnClass(input.messages)) {
+    let result: OwnClassReadResult;
+    try { result = await input.ownClassReader(); }
+    catch { result = { ok: false, reason: "class_unavailable" }; }
+    // A trusted reader still has to satisfy a bounded display contract.
+    if (result.ok && !/^[A-Za-z0-9][A-Za-z0-9._:-]{1,79}$/.test(result.classRef)) {
+      result = { ok: false, reason: "class_unavailable" };
+    }
+    const identityRequired = !result.ok && result.reason === "identity_required";
+    const unavailable = !result.ok && !identityRequired;
+    await recordRuntime("deterministic", false, false);
+    return { ...fallback,
+      reply: result.ok ? `Selon l’annuaire actif du lycée, votre classe est ${result.classRef}.`
+        : identityRequired ? "Je peux retrouver votre classe dans l’annuaire du lycée. Confirmez votre identité ici, par SMS ou par email, pour que je vous la communique directement."
+        : "Votre classe n’est pas disponible pour cette consultation. Je peux préparer une demande à la vie scolaire pour la faire vérifier. Souhaitez-vous la préparer ici ?",
+      category: "affectation_classe", readyToCreate: unavailable, action: unavailable ? "offer_case" : "continue",
+      scope: "school_support", confidence: "high", usedAi: false, suggestedDocuments: [],
+      missingInformation: identityRequired ? ["Identité scolaire confirmée"] : [], safetyNotice: null,
+      internalSummaryFr: result.ok ? "La classe personnelle a été consultée dans l’annuaire actif." : null,
+    };
+  }
+  const accessGuidance = accessGuidanceKind(input.messages);
+  if (accessGuidance) {
+    await recordRuntime("deterministic", false, false);
+    return { ...fallback, category: "ent", scope: "school_support", confidence: "high", usedAi: false,
+      reply: accessGuidance === "recovery_failed"
+        ? "La récupération d’accès a déjà échoué ou le message attendu n’arrive pas. Je garde cette précision : vous n’avez pas à refaire le même essai. Le référent numérique doit vérifier les coordonnées connues du lycée ; je ne peux pas les modifier moi-même. Souhaitez-vous préparer cette demande ici ?"
+        : "Pour récupérer votre accès, utilisez « Mot de passe oublié » sur la page de connexion du service concerné, puis suivez les indications avec les coordonnées déjà connues de ce service. Si vous avez déjà essayé ou si le message n’arrive pas, dites-le-moi ici : je préparerai la vérification par le référent numérique sans vous faire recommencer.",
+      readyToCreate: accessGuidance === "recovery_failed", action: accessGuidance === "recovery_failed" ? "offer_case" : "continue",
+      missingInformation: [], suggestedDocuments: [], safetyNotice: null,
+      internalSummaryFr: accessGuidance === "recovery_failed" ? "La récupération a échoué ou le message attendu n’est pas reçu. Vérifier les coordonnées avant une nouvelle tentative." : "Consigne générale de récupération d’accès présentée, sans réinitialisation exécutée.",
+    };
+  }
   if (requestsOwnSchedule(input.messages) && requestedScheduleDayOffset === null) {
     await recordRuntime("deterministic", false, false);
     return {

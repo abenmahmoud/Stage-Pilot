@@ -13,6 +13,7 @@ import { recordAgentRuntimeMetric } from "../_shared/agent-runtime-metrics.js";
 import { reserveAgentAiDailyBudget } from "../_shared/agent-ai-budget.js";
 import {
   readCoursesForDayForVerifiedIdentity,
+  readOwnClassForVerifiedIdentity,
   readNextCourseForVerifiedIdentity,
 } from "../_shared/schedule-identity-reader.js";
 import { routeSupportRequest } from "../../shared/support-routing.js";
@@ -50,6 +51,20 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         : undefined,
       aiBudgetGuard: () => reserveAgentAiDailyBudget("support_assistant"),
       identityVerified: identitySession !== null,
+      ownClassReader: async () => {
+        if (identitySession && identitySession.personType !== "student") {
+          return { ok: false, reason: "class_unavailable" } as const;
+        }
+        try {
+          return await readOwnClassForVerifiedIdentity(req);
+        } catch (error) {
+          if (error instanceof HttpError && (error.status === 401 || (error.status === 403 && !identitySession))) {
+            return { ok: false, reason: "identity_required" } as const;
+          }
+          // A verified person with no usable class needs help, not another OTP loop.
+          return { ok: false, reason: "class_unavailable" } as const;
+        }
+      },
       scheduleReader: async ({ requestedAt }) => {
         try {
           return await readNextCourseForVerifiedIdentity({

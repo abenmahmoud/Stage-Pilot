@@ -5,6 +5,19 @@
 **Depot** : `abenmahmoud/Stage-Pilot`
 **Dernier jalon de code verifie** : branche de preview Vercel
 
+## Lot du 10 septembre — reprise des demandes et fluidité (T010B4B2)
+
+Audit en lecture seule : 23 dossiers dont 22 sans réponse humaine enregistrée.
+Liste de reprise conservée hors Git dans `REPRISE_DEMANDES_2026-09-10.md`, à la
+racine du workspace. Aucun ancien dossier modifié ni réponse envoyée.
+Correctif vérifié localement : propre classe depuis l’annuaire actif après identité
+serveur vérifiée ; explications générales sans OTP ; échec de récupération
+conservé et préparation après accord sans nouvelle boucle d’identification.
+46 tests ciblés, 16 parcours navigateur fictifs, build et contrôle de sécurité
+réussis. La recette du bundle publié reste à enregistrer après le push.
+Les deux versions EDT restent en revue et le coffre sans affectation exploitable.
+Preuve : `docs/operations/FLUIDITE_CHAT_2026-09-10.md`.
+
 ## Correctif du 10 septembre — réponses humaines dans le guichet (T018C)
 
 Publié : `741c700`, déploiement `dpl_EARBMu7LcYnxRUuCMRKdNNaTX9HT` READY,
