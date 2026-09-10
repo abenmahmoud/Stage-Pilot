@@ -104,14 +104,12 @@ export default function AppLayout() {
     <>
       <div className="px-4 py-6 border-b border-white/10">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-white/20 backdrop-blur flex items-center justify-center">
-            <GraduationCap className="w-5 h-5 text-white" />
-          </div>
+          <img src="/blaise-cendrars-portrait.webp" alt="" className="h-12 w-10 rounded-lg object-cover grayscale" />
           <div>
             <p className="text-sm font-bold text-white font-heading">
-              LycéeGest
+              Blaise Cendrars
             </p>
-            <p className="text-[11px] text-white/50">Blaise Cendrars</p>
+            <p className="text-xs text-white/75">LycéeGest · Services du lycée</p>
           </div>
         </div>
       </div>
@@ -372,7 +370,7 @@ export default function AppLayout() {
             <Menu className="w-5 h-5" />
           </button>
           <div className="flex items-center gap-1.5 text-sm text-gray-500">
-            <span className="font-medium text-gray-900">LycéeGest</span>
+            <span className="font-medium text-gray-900">Blaise Cendrars</span>
             <ChevronRight className="w-3.5 h-3.5" />
             <span>Portail du lycée</span>
           </div>

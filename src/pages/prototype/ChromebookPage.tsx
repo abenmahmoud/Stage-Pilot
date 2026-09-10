@@ -3,7 +3,7 @@ import { Link, useLocation } from "react-router-dom";
 import { ArrowLeft, ArrowRight, ArrowUpRight, CalendarDays, Check, ChevronDown, ExternalLink, KeyRound, Laptop, LifeBuoy, MessageCircleMore, Search, ShieldCheck, Smartphone, X } from "lucide-react";
 import { CHROMEBOOK_DISTRIBUTION, CHROMEBOOK_PORTAL, CHROMEBOOK_SECTIONS, chromebookAnswers, distributionIsUpcoming, type ChromebookSection } from "../../../shared/chromebook-information";
 import { PublicContentMarkdown } from "../../components/PublicContentMarkdown";
-import { PublicPortalFooter } from "../../components/PublicPortalFooter";
+import { PublicPortalShell } from "../../components/PublicPortalShell";
 import { useChromebookDate } from "../../components/ChromebookNotice";
 import "./lycee-connect.css";
 import "./chromebook.css";
@@ -39,28 +39,21 @@ export default function ChromebookPage() {
   };
 
   return (
-    <div className="lycee-connect lycee-article-page cb-page">
-      <a className="lycee-skip-link" href="#chromebook-main">Aller au contenu</a>
-      <header className="lycee-article-header">
-        <Link to="/" className="lycee-article-brand"><img src="/lycee-blaise-logo.png" alt="" /><span><strong>Blaise Cendrars</strong><small>Lycée polyvalent · Sevran</small></span></Link>
-        <Link to="/" className="lycee-article-back"><ArrowLeft aria-hidden="true" /> Accueil</Link>
-      </header>
-      <main id="chromebook-main" className="cb-main" tabIndex={-1}>
+    <PublicPortalShell view="services" className="cb-page">
+      <div id="chromebook-main" className="cb-main">
+        <Link to="/?view=services" className="lycee-breadcrumb"><ArrowLeft aria-hidden="true" /> Mes services</Link>
         <section className="cb-hero" aria-labelledby="chromebook-title">
           <div className="cb-hero-copy">
-            <p className="cb-eyebrow">Rentrée 2026–2027 · Région Île-de-France</p>
-            <h1 id="chromebook-title">Mon Chromebook.<br /><span>Prêt pour l’année.</span></h1>
-            <p className="cb-lead">De la première connexion aux travaux de classe : un guide simple, à retrouver quand vous en avez besoin.</p>
-            <a className="cb-primary" href="#guide">Trouver ma réponse <ArrowRight aria-hidden="true" /></a>
-          </div>
-          <div className="cb-device" aria-hidden="true">
-            <div className="cb-device-screen"><span className="cb-device-bar"><i /><i /><i /></span><span className="cb-device-school">BLAISE CENDRARS</span><Laptop /><strong>Un outil pour apprendre.</strong><span className="cb-device-check"><Check /> Monlycée.net · Mes cours · Mes projets</span></div><div className="cb-device-base" />
+            <p className="cb-eyebrow">Mes services · Équipement numérique</p>
+            <h1 id="chromebook-title">Mon Chromebook</h1>
+            <p className="cb-lead">Préparer la remise, se connecter, trouver de l’aide : votre guide pour toute l’année.</p>
+            <div className="cb-hero-actions"><a className="cb-primary" href="#guide">Consulter le guide <ArrowRight aria-hidden="true" /></a><Link className="cb-secondary" to="/?view=help" state={{ chromebookQuestion: "preparer" }}>Poser une question <MessageCircleMore aria-hidden="true" /></Link></div>
           </div>
         </section>
 
         {upcoming ? <section className="cb-distribution" aria-labelledby="distribution-title">
           <span className="cb-date-icon"><CalendarDays aria-hidden="true" /></span>
-          <div><p className="cb-eyebrow">Distribution · Élèves de seconde</p><h2 id="distribution-title">14 &amp; 15 septembre</h2><p><strong>{CHROMEBOOK_DISTRIBUTION.location}</strong> · {CHROMEBOOK_DISTRIBUTION.planning}</p></div>
+          <div><p className="cb-eyebrow">Distribution · Élèves de seconde</p><h2 id="distribution-title">Lundi 14 et mardi 15 septembre</h2><p><strong>{CHROMEBOOK_DISTRIBUTION.location}</strong> · {CHROMEBOOK_DISTRIBUTION.planning}</p></div>
           <button type="button" onClick={() => openGuide("preparer")}>Je me prépare <ArrowRight aria-hidden="true" /></button>
         </section> : null}
 
@@ -74,7 +67,7 @@ export default function ChromebookPage() {
         </section>
 
         <section id="guide" className="cb-guide" aria-labelledby="guide-title">
-          <div className="cb-section-heading"><p className="cb-eyebrow">Votre guide, toute l’année</p><h2 id="guide-title">Une question ? La réponse est ici.</h2></div>
+          <div className="cb-section-heading"><p className="cb-eyebrow">Votre guide, toute l’année</p><h2 id="guide-title">Les réponses à vos questions</h2></div>
           <div className="cb-search"><Search aria-hidden="true" /><input id="chromebook-search" type="search" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Wi-Fi, mot de passe, réparation…" aria-label="Rechercher dans le guide Chromebook" />{query ? <button type="button" aria-label="Effacer la recherche" onClick={() => setQuery("")}><X aria-hidden="true" /></button> : null}</div>
           <div className="cb-filters" aria-label="Rubriques du guide"><button type="button" aria-pressed={section === "toutes"} onClick={() => setSection("toutes")}>Tout le guide</button>{CHROMEBOOK_SECTIONS.map((item) => <button key={item.id} type="button" aria-pressed={section === item.id} onClick={() => setSection(item.id)}>{item.shortLabel}</button>)}</div>
           <p className="cb-result-count" aria-live="polite">{filtered.length} réponse{filtered.length !== 1 ? "s" : ""}{query ? ` pour « ${query} »` : " à consulter"}</p>
@@ -95,8 +88,7 @@ export default function ChromebookPage() {
           <div className="cb-help-card cb-help-card-light"><LifeBuoy aria-hidden="true" /><h2>Le portail de la Région</h2><p>Tutoriels, prise en main et assistance ASUS : retrouvez les ressources du dispositif régional et le point de départ du SAV.</p><a href={CHROMEBOOK_PORTAL} target="_blank" rel="noreferrer">Ouvrir le portail régional <ExternalLink aria-hidden="true" /></a><a className="cb-poster-link" href="/chromebook/affiche-region.jpg" target="_blank" rel="noreferrer">Voir l’affiche MonOrdi IdF et ses QR codes <ExternalLink aria-hidden="true" /></a></div>
         </section>
         <p className="cb-source-note"><ShieldCheck aria-hidden="true" /><span>Informations vérifiées à partir des documents de la Région Île-de-France et de l’organisation du lycée. Mise à jour : 10 septembre 2026. Les horaires de passage et les situations individuelles sont confirmés par l’établissement.</span></p>
-      </main>
-      <PublicPortalFooter />
-    </div>
+      </div>
+    </PublicPortalShell>
   );
 }

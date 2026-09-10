@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { ArrowLeft, ExternalLink, FileText, LoaderCircle } from "lucide-react";
 import { Link, useParams } from "react-router-dom";
 import { PublicContentMarkdown } from "../../components/PublicContentMarkdown";
-import { PublicPortalFooter } from "../../components/PublicPortalFooter";
+import { PublicPortalShell } from "../../components/PublicPortalShell";
 import { publicPageAlternative } from "../../../shared/public-portal-navigation";
 import {
   readPublicContentPagePayload,
@@ -44,17 +44,9 @@ export default function PublicContentPage() {
   const documents = item?.assets.filter((asset) => asset.assetKind === "document" && asset.signedUrl) ?? [];
 
   return (
-    <div className="lycee-connect lycee-article-page">
-      <a className="lycee-skip-link" href="#lycee-article-main">Aller au contenu</a>
-      <header className="lycee-article-header">
-        <Link to="/?view=school" className="lycee-article-brand">
-          <img src="/lycee-blaise-logo.png" alt="" />
-          <span><strong>Blaise Cendrars</strong><small>Lycée polyvalent · Sevran</small></span>
-        </Link>
-        <Link to="/" className="lycee-article-back"><ArrowLeft aria-hidden="true" /> Accueil</Link>
-      </header>
-
-      <main className="lycee-article-main" id="lycee-article-main" tabIndex={-1}>
+    <PublicPortalShell view="school" className="lycee-content-page">
+      <div className="lycee-article-main" id="lycee-article-main">
+        <Link to="/?view=school" className="lycee-breadcrumb"><ArrowLeft aria-hidden="true" /> Vie du lycée</Link>
         {loading ? <div className="lycee-article-state"><LoaderCircle className="is-spinning" aria-hidden="true" /><p>Chargement de la page…</p></div> : null}
         {!loading && (error || !item) ? <section className="lycee-article-state"><h1>{error ? "Chargement interrompu" : "Cette page n’est pas encore disponible"}</h1><p>{error || "Retrouvez les informations du lycée à l’accueil ou posez votre question à l’assistant."}</p><div className="lycee-empty-actions">{error ? <button type="button" onClick={() => setAttempt((value) => value + 1)}>Réessayer</button> : null}<Link to={alternative.href}>{alternative.label}</Link><Link to="/?view=help">Demander de l’aide</Link></div><Link to="/">Revenir à l’accueil</Link></section> : null}
         {!loading && !error && item?.slug === slug ? <article className="lycee-article-content">
@@ -64,8 +56,7 @@ export default function PublicContentPage() {
           <div className="lycee-public-markdown"><PublicContentMarkdown>{item.bodyMarkdown}</PublicContentMarkdown></div>
           {documents.length ? <section className="lycee-article-documents" aria-labelledby="documents-title"><h2 id="documents-title">Documents</h2><div>{documents.map((asset) => <a key={asset.id} href={asset.signedUrl ?? "#"} target="_blank" rel="noreferrer"><FileText aria-hidden="true" /><span><strong>{asset.label}</strong><small>{asset.originalName}</small></span><ExternalLink aria-hidden="true" /></a>)}</div></section> : null}
         </article> : null}
-      </main>
-      <PublicPortalFooter />
-    </div>
+      </div>
+    </PublicPortalShell>
   );
 }

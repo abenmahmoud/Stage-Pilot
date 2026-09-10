@@ -138,7 +138,7 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="flex min-h-screen">
+    <div className="lycee-login flex min-h-screen">
       <div className="hidden lg:flex lg:w-1/2 bg-primary-500 flex-col justify-between p-12 text-white relative overflow-hidden">
         <div className="absolute inset-0 opacity-10">
           <div className="absolute top-20 -left-10 w-72 h-72 rounded-full bg-white/20 blur-3xl" />
@@ -146,14 +146,12 @@ export default function LoginPage() {
         </div>
         <div className="relative z-10">
           <div className="flex items-center gap-3 mb-2">
-            <div className="w-12 h-12 rounded-xl bg-white/20 backdrop-blur flex items-center justify-center">
-              <GraduationCap className="w-7 h-7" />
-            </div>
+            <img src="/blaise-cendrars-portrait.webp" alt="" className="h-14 w-12 rounded-lg object-cover grayscale" />
             <div>
               <h1 className="text-2xl font-bold font-heading tracking-tight">
-                LycéeGest
+                Blaise Cendrars
               </h1>
-              <p className="text-sm text-white/70">Blaise Cendrars — Sevran</p>
+              <p className="text-sm text-white/70">Lycée polyvalent · Sevran</p>
             </div>
           </div>
         </div>
@@ -177,14 +175,12 @@ export default function LoginPage() {
       <div className="flex w-full lg:w-1/2 flex-col justify-center px-6 sm:px-12 py-12 bg-white">
         <div className="mx-auto w-full max-w-md space-y-6">
           <div className="lg:hidden flex items-center gap-3 mb-6">
-            <div className="w-10 h-10 rounded-xl bg-primary-500 flex items-center justify-center text-white">
-              <GraduationCap className="w-6 h-6" />
-            </div>
+            <img src="/blaise-cendrars-portrait.webp" alt="" className="h-12 w-10 rounded-lg object-cover grayscale" />
             <div>
               <h1 className="text-xl font-bold font-heading text-gray-900">
-                LycéeGest
+                Blaise Cendrars
               </h1>
-              <p className="text-xs text-gray-500">Blaise Cendrars — Sevran</p>
+              <p className="text-xs text-gray-500">Lycée polyvalent · Sevran</p>
             </div>
           </div>
 
