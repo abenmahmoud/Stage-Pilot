@@ -41,7 +41,22 @@ recette navigateur simulait l’API sans valider son entrée et avait manqué ce
   envoi externe ni dossier réel. Une vérification maximum, aucun HTTP 400,
   une lecture EDT par parcours, aucune erreur JavaScript ni débordement.
 - `npm run test:preview-security-gate` : réussi, jusqu’au contrôle des 117
-  migrations. `npm run test:spec-integrity` : réussi. Publication à vérifier.
+  migrations. `npm run test:spec-integrity` : réussi.
+
+## Livraison vérifiée
+
+Commit `df1d8df`, déploiement `4N3M9Y7xeudTNXijLtvqAcg6pXcE` prêt et associé à
+`lycee-blaise-cendrars-sevran.fr`. Le domaine sert en HTTP 200 le module
+`LyceeConnectPrototype-99k6yteE.js`, avec la correction et le bouton de reprise.
+
+Les huit parcours navigateur ont aussi réussi sur ce bundle publié, avec les
+API privées simulées et le véritable validateur d’entrée. Un appel réel à l’API
+publique avec un historique fictif « mon emploi du temps » puis « Demain » retourne
+HTTP 200, tour 2, catégorie EDT et poursuite de la vérification ; zéro source privée
+communiquée sans identité. Aucun OTP réel, SMS, email ou dossier de test envoyé.
+
+Une actualisation recharge la correction. La navigation de la PWA utilise déjà le
+réseau sans cache pour le HTML ; aucune purge des données de l’usager n’est requise.
 
 ## Limite distincte
 

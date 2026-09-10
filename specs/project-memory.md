@@ -6044,3 +6044,20 @@ Publication vérifiée : `f275706`, déploiement
 servi en HTTP 200 sur le domaine principal. Les deux appels de recette de l’API
 reconnaissent la demande EDT et « demain », puis exigent l’identité ; aucun
 code envoyé, aucun dossier créé, aucune donnée personnelle utilisée.
+
+### 10 septembre 2026 — incident de boucle après vérification d’identité
+
+Régression reproduite : la reprise après OTP ajoutait deux réponses assistant
+consécutives. Le message suivant était refusé par le vrai parseur HTTP 400, puis
+masqué par un repli générique. Corrigé : une réponse par question, normalisation
+des anciens brouillons et bouton de reprise explicite en cas d’erreur technique.
+La recette précédente n’exécutait pas le parseur réel ; elle a été remplacée pour
+ce parcours par `scripts/qa-assistant-identity-continuity.mjs`.
+
+Publication `df1d8df`, déploiement `4N3M9Y7xeudTNXijLtvqAcg6pXcE`, module public
+`LyceeConnectPrototype-99k6yteE.js`. Build, sécurité complète, 10 tests ciblés et
+8 parcours mobile/bureau réussis localement puis sur le bundle publié avec API
+privées fictives. API publique réelle HTTP 200 au second tour ; aucun envoi réel.
+L’audit Supabase du matin confirme toujours zéro version EDT. Les connecteurs
+Supabase et Vercel fonctionnent à nouveau ; SSH VPS expire sur ce réseau.
+Preuves : `docs/operations/INCIDENT_BOUCLE_CHAT_2026-09-10.md`.
