@@ -198,6 +198,11 @@
   reste ouverte jusqu'au rejeu PostgreSQL local de la 94e migration, à une
   livraison d'email fictive durable avec reprise, puis à la recette complète du
   worker sur un répertoire synthétique. Aucune donnée réelle n'est activée.
+- [ ] T010B4B1 Corriger l’historique du chat après OTP : reprise de la question
+  courante, récupération des anciens doubles messages et erreur technique
+  explicite. Régression reproduite avec le vrai validateur HTTP ; 10 tests et
+  8 parcours navigateur réussis. Publication à vérifier. Preuves :
+  `docs/operations/INCIDENT_BOUCLE_CHAT_2026-09-10.md`.
 - [x] T010C Définir les liens élève-responsable, personnel-service et classe-groupe,
   puis tester qu'un compte ne consulte jamais les données d'un autre foyer.
 - [x] T011 Implémenter le parseur et le validateur du format de compétence.

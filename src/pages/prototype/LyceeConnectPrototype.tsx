@@ -7,6 +7,7 @@ import { SCHOOL_PUBLIC_INFORMATION } from "../../../shared/school-public-informa
 import { PublicPortalFooter } from "../../components/PublicPortalFooter";
 import { publicPortalView, PUBLIC_PORTAL_TITLES, type PublicPortalView as View } from "../../../shared/public-portal-navigation";
 import { MISSING_OPENING_HOURS_REPLY, schoolInformationIntent, supportFormReady } from "../../../shared/assistant-school-context";
+import { applyAssistantReply, compactAssistantReplies } from "../../../shared/assistant-transcript";
 import {
   ArrowLeft,
   ArrowRightLeft,
@@ -1724,6 +1725,7 @@ function HelpDeskView({
   const [confirmationChannel, setConfirmationChannel] = useState<"email" | "phone">("email");
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [assistantFailed, setAssistantFailed] = useState(false);
   const [attachmentWarning, setAttachmentWarning] = useState<string | null>(null);
   const [draftNotice, setDraftNotice] = useState<string | null>(null);
   const [files, setFiles] = useState<File[]>([]);
@@ -1780,7 +1782,7 @@ function HelpDeskView({
     void readSupportDeviceDraft<AssistantInsight>().then((draft) => {
       if (!active || !draft) return;
       setRequestKey(draft.requestKey);
-      setChatMessages(draft.chatMessages.map((message) => ({ ...message, id: crypto.randomUUID() })));
+      setChatMessages(compactAssistantReplies(draft.chatMessages).map((message) => ({ ...message, id: crypto.randomUUID() })));
       setInsight(draft.insight);
       setShowDetails(draft.showDetails);
       setClassicForm(draft.classicForm);
@@ -1867,9 +1869,11 @@ function HelpDeskView({
     const controller = new AbortController();
     assistantAbortRef.current = controller;
     setAssistantBusy(true);
+    setAssistantFailed(false);
     setSubmitError(null);
     const lastRequesterIndex = nextMessages.findLastIndex(message => message.role === "requester");
-    const requestMessages = nextMessages.slice(0, lastRequesterIndex + 1);
+    const requestMessages = compactAssistantReplies(nextMessages.slice(0, lastRequesterIndex + 1));
+    let responseFailed = false;
     let result: AssistantInsight = localAssistantFallback(requestMessages, files);
     let routingReceipt: string | null = null;
     let normalizationReceipt: string | null = null;
@@ -1902,10 +1906,17 @@ function HelpDeskView({
         normalizationReceipt = signedNormalizationReceipt;
         requestActionAuthorized = authorizedAction;
       } catch {
-        result = localAssistantFallback(nextMessages, files);
+        responseFailed = true;
+        result = {
+          ...result,
+          reply: "Je n’ai pas pu poursuivre cet échange à cause d’un problème technique. Votre message est conservé. Vous pouvez réessayer ici ou préparer l’envoi au lycée.",
+          readyToCreate: false,
+          action: "continue",
+        };
       }
     }
     if (controller.signal.aborted) return;
+    setAssistantFailed(responseFailed);
     const requesterText = nextMessages
       .filter((message) => message.role === "requester")
       .map((message) => message.content)
@@ -1923,7 +1934,7 @@ function HelpDeskView({
       "restauration_bourse",
       "vie_scolaire",
     ].includes(result.category);
-    if (requiresIdentity && result.scope !== "safescol" && !schoolInformationIntent(nextMessages) && !identityVerified && !identityJustVerified) {
+    if (!responseFailed && requiresIdentity && result.scope !== "safescol" && !schoolInformationIntent(nextMessages) && !identityVerified && !identityJustVerified) {
       result = {
         ...result,
         reply: "Je vais vous accompagner. Pour accéder à vos informations personnelles, confirmons d’abord votre identité ici.",
@@ -1944,15 +1955,14 @@ function HelpDeskView({
     setInsight(result);
     setCategory(result.category);
     if (result.requesterType !== "inconnu" && !profile && !identityJustVerified) setProfile(result.requesterType);
-    setChatMessages((current) => [
-      ...current,
+    setChatMessages((current) => applyAssistantReply(current, nextMessages[lastRequesterIndex].id,
       {
         id: crypto.randomUUID(),
         role: "assistant",
         content: result.reply,
         sourceReferences: result.sourceReferences,
       },
-    ]);
+    ));
     const shouldCollectContact =
       (result.action === "offer_case" || result.action === "human_transfer")
       && result.readyToCreate;
@@ -1982,6 +1992,7 @@ function HelpDeskView({
     (insight?.action === "offer_case" && insight.readyToCreate === true);
 
   function restartConversation() {
+    setAssistantFailed(false);
     assistantAbortRef.current?.abort();
     setAssistantBusy(false);
     pendingDraftSaveRef.current = null;
@@ -2296,6 +2307,10 @@ function HelpDeskView({
         ) : null}
 
         <div className="lycee-chat-workspace">
+          {assistantFailed && !showDetails ? <div className="lycee-chat-next-actions" role="status">
+            <button type="button" disabled={assistantBusy} onClick={() => void askAssistant(chatMessages)}>Réessayer ma demande</button>
+            <button type="button" onClick={() => { setClassicForm(false); setShowDetails(true); }}>Préparer l’envoi au lycée</button>
+          </div> : null}
           <input id="lycee-support-files" name="supportFiles" aria-label="Documents à joindre" ref={fileInputRef} className="lycee-file-input" type="file" multiple accept={SUPPORT_FILE_TYPES.join(",")} onChange={selectFiles} />
           {IDENTITY_DEVICE_ACCESS_ENABLED && !initialContactCollection && identityRequiredForCurrentRequest && !showDetails
             ? <IdentityDeviceAccessPanel onVerified={(details) => {

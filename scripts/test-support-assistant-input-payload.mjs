@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { readFileSync } from "node:fs";
+import { applyAssistantReply, compactAssistantReplies } from "../shared/assistant-transcript.ts";
 import {
   parseSupportAssistantInput,
   SUPPORT_ASSISTANT_INPUT_LIMITS,
@@ -122,7 +123,50 @@ test("the browser sends only the documented input fields", () => {
     page.indexOf("if (!isAssistantApiResult(apiResult))")
   );
   assert.match(call, /sessionId: assistantSessionId/);
-  assert.match(page, /const requestMessages = nextMessages\.slice\(0, lastRequesterIndex \+ 1\)/);
+  assert.match(page, /const requestMessages = compactAssistantReplies\(nextMessages\.slice\(0, lastRequesterIndex \+ 1\)\)/);
   assert.match(call, /messages: requestMessages\.slice\(-21\)\.map\(\(\{ role, content \}\) => \(\{ role, content \}\)\)/);
   assert.match(call, /attachments: files\.map\(\(file\) => \(\{ name: file\.name, type: file\.type, size: file\.size \}\)\)/);
+});
+
+test("identity continuation remains valid for the next requester turn", () => {
+  const start = [
+    { id: "welcome", role: "assistant", content: "Bonjour." },
+    { id: "question", role: "requester", content: "Je souhaite mon emploi du temps." },
+    { id: "identity", role: "assistant", content: "Confirmez votre identité." },
+  ];
+  const resumed = applyAssistantReply(start, "question", {
+    id: "day", role: "assistant", content: "Aujourd’hui ou demain ?",
+  });
+  assert.equal(resumed.length, 3);
+  assert.equal(start[2].id, "identity", "The original state must remain unchanged");
+  const messages = [...resumed, { role: "requester", content: "Demain" }]
+    .map(({ role, content }) => ({ role, content }));
+  assert.ok(parseSupportAssistantInput({ ...validInput, messages }));
+  assert.equal(messages.filter(m => m.role === "requester").length, 2);
+});
+
+test("recovers old double-reply drafts without erasing requester history", () => {
+  const messages = [
+    { role: "requester", content: "Je souhaite mon emploi du temps." },
+    { role: "assistant", content: "Confirmez votre identité." },
+    { role: "assistant", content: "Aujourd’hui ou demain ?" },
+    { role: "requester", content: "Demain" },
+  ];
+  assert.equal(parseSupportAssistantInput({ ...validInput, messages }), null);
+  const recovered = compactAssistantReplies(messages);
+  assert.ok(parseSupportAssistantInput({ ...validInput, messages: recovered }));
+  assert.deepEqual(recovered.filter(m => m.role === "requester"), messages.filter(m => m.role === "requester"));
+  assert.equal(recovered[1].content, "Aujourd’hui ou demain ?");
+  assert.deepEqual(compactAssistantReplies(recovered), recovered);
+});
+
+test("late replies cannot replace a newer question and duplicate requesters stay invalid", () => {
+  const current = [
+    { id: "old", role: "requester", content: "Ma première question" },
+    { id: "reply", role: "assistant", content: "Une réponse" },
+    { id: "new", role: "requester", content: "Ma deuxième question" },
+  ];
+  assert.equal(applyAssistantReply(current, "old", { id: "late", role: "assistant", content: "Trop tard" }), current);
+  const invalid = compactAssistantReplies([current[0], current[2]]).map(({ role, content }) => ({ role, content }));
+  assert.equal(parseSupportAssistantInput({ ...validInput, messages: invalid }), null);
 });
