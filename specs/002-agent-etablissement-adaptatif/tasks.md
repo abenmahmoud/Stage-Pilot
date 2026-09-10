@@ -210,7 +210,8 @@
   publiques sans OTP, récupération déjà échouée prise en compte et préparation
   après accord sans boucle d’identité. Aucun traitement rétroactif implicite.
   46 tests ciblés, 16 parcours navigateur fictifs, build et contrôle de sécurité
-  réussis localement le 10 septembre 2026. Publication suivie dans le compte rendu.
+  réussis localement le 10 septembre 2026. Publication `6bdeba6` vérifiée sur
+  le domaine principal : huit parcours fictifs et quatre appels à l’API réelle.
   Preuves : `docs/operations/FLUIDITE_CHAT_2026-09-10.md`.
 - [x] T010C Définir les liens élève-responsable, personnel-service et classe-groupe,
   puis tester qu'un compte ne consulte jamais les données d'un autre foyer.

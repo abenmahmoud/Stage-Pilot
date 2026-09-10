@@ -19,7 +19,25 @@ Les deux décisions d’affichage de l’identification utilisent désormais le 
 - `npm run build`, `npm run test:preview-security-gate` et `npm run test:spec-integrity` réussis. Avertissement de taille de certains bundles existant, pas d’échec de compilation.
 - Preuves ignorées par Git : `.vercel/flow-targeted.log`, `.vercel/flow-build.log`, `.vercel/flow-security-gate.log`, `.vercel/flow-spec.log`, `.vercel/qa-support-service-flow/` et `.vercel/qa-identity-continuity/`.
 
-Publication à vérifier après le push, avec rattachement explicite des deux alias. L’ancienne version publique est `741c700` (`lyceegest-k6waeb9a9-safe-scol.vercel.app`), cible disponible pour un retour arrière.
+## Publication vérifiée
+
+Code `6bdeba66af354b25266aa62ee985658ee501db2e`, déploiement READY
+`dpl_GVo2TuV93zTyJGVJyEhgGK8WPW2y`, URL immuable
+`lyceegest-ac82wwuqe-safe-scol.vercel.app`.
+Les alias racine `lycee-blaise-cendrars-sevran.fr` et branche ont été rattachés
+explicitement. La résolution du domaine racine confirme ce SHA et ce déploiement.
+
+Huit parcours navigateur synthétiques ont été rejoués sur l’URL immuable puis
+sur le domaine racine, avec succès. Quatre appels au véritable serveur ont
+également réussi sur chacun : consigne de récupération, échec déjà rencontré,
+acceptation de la préparation, demande de classe anonyme. HTTP 200, aucun appel
+au modèle pour ces cas, réponses non mises en cache et aucune classe divulguée
+à l’anonyme. Aucun email/SMS envoyé ni ancien dossier modifié par cette recette.
+Journaux : `.vercel/flow-preview-api.log`, `.vercel/flow-preview-browser.log`,
+`.vercel/flow-live-api.log`, `.vercel/flow-live-browser.log`.
+
+Retour arrière possible : version `741c700`, URL
+`lyceegest-k6waeb9a9-safe-scol.vercel.app`.
 
 ## Limites
 
