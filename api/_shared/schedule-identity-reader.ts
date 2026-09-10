@@ -53,7 +53,7 @@ async function readCurrentPerson(
       eq(identityDirectoryRows.importId, scope.importId),
       eq(identityDirectoryRows.recordType, "person"),
       eq(identityDirectoryRows.personRef, scope.personRef),
-      eq(identityDirectoryRows.validationStatus, "valid"),
+      or(eq(identityDirectoryRows.validationStatus, "valid"), eq(identityDirectoryRows.validationStatus, "warning")),
       lte(identityDirectoryRows.validFrom, scope.today),
       or(isNull(identityDirectoryRows.validUntil), gte(identityDirectoryRows.validUntil, scope.today)),
       eq(identityDirectoryImports.status, "active")

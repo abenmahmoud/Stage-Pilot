@@ -1194,6 +1194,19 @@ export const scheduleSourceVersions = pgTable(
   ]
 );
 
+export const scheduleIcalCandidates = pgTable('schedule_ical_candidates', {
+  id: uuid('id').primaryKey().default(sql`gen_random_uuid()`),
+  institutionId: uuid('institution_id').notNull().references(() => institutions.id),
+  sourceVersionId: uuid('source_version_id').notNull().references(() => scheduleSourceVersions.id, { onDelete: 'cascade' }),
+  calendarNumber: integer('calendar_number').notNull(), calendarLabel: text('calendar_label').notNull(),
+  suggestedRef: text('suggested_ref'), subjectRef: text('subject_ref'), directoryImportId: uuid('directory_import_id').references(() => identityDirectoryImports.id),
+  matchStatus: text('match_status').notNull(), events: jsonb('events').notNull(), stats: jsonb('stats').notNull(),
+  decision: text('decision'), status: text('status').notNull().default('pending'),
+  approvedBy: uuid('approved_by'), approvedAt: timestamp('approved_at', { withTimezone: true }),
+  appliedAt: timestamp('applied_at', { withTimezone: true }), failureCode: text('failure_code'),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+});
+
 export const schedulePageIndexes = pgTable(
   "schedule_page_indexes",
   {

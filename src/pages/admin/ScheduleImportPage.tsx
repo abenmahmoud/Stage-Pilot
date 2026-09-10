@@ -37,6 +37,7 @@ import {
 } from "../../../shared/schedule-import-input";
 import { parseScheduleSlotWritePayload, type ScheduleSlotWritePayload } from "../../../shared/schedule-slot-write-payload";
 import ScheduleSlotEditor from "./ScheduleSlotEditor";
+import ScheduleIcalReviewPanel from "./ScheduleIcalReviewPanel";
 import ScheduleTabularMappingPanel, { type ScheduleTabularComputedPage } from "./ScheduleTabularMappingPanel";
 
 const STATUS: Record<ScheduleStatus, { label: string; style: string }> = {
@@ -101,6 +102,8 @@ export default function ScheduleImportPage() {
   const fileInput = useRef<HTMLInputElement>(null);
   const [imports, setImports] = useState<ScheduleImport[]>([]);
   const [file, setFile] = useState<File | null>(null);
+  const [fileCount, setFileCount] = useState(0);
+  const [pageReloadToken, setPageReloadToken] = useState(0);
   const [sourceKind, setSourceKind] = useState<ScheduleSourceKind>("classes");
   const [sourceFormat, setSourceFormat] = useState<ScheduleSourceFormat>("pdf_import");
   const [tabularPendingId, setTabularPendingId] = useState("");
@@ -209,7 +212,7 @@ export default function ScheduleImportPage() {
     return () => {
       cancelled = true;
     };
-  }, [selectedImportId]);
+  }, [selectedImportId, pageReloadToken]);
 
   async function openPrivatePdf() {
     if (!selectedImportId) return;
@@ -438,10 +441,10 @@ export default function ScheduleImportPage() {
   async function submit(event: React.FormEvent) {
     event.preventDefault();
     if (!file) {
-      setError(sourceFormat === "pdf_import" ? "Choisissez le PDF à déposer." : "Choisissez le fichier CSV ou Excel à déposer.");
+      setError("Choisissez les fichiers à déposer.");
       return;
     }
-    const mimeType = sourceFormat === "pdf_import" ? SCHEDULE_IMPORT_MIME : tabularMimeForFileName(file.name);
+    const mimeType = sourceFormat === "pdf_import" ? SCHEDULE_IMPORT_MIME : sourceFormat === "ical_import" ? "text/calendar" : tabularMimeForFileName(file.name);
     if (!mimeType) {
       setError("Seuls les fichiers CSV ou Excel (.xlsx) sont acceptés.");
       return;
@@ -486,7 +489,9 @@ export default function ScheduleImportPage() {
           ? "Ce fichier avait déjà été reçu. Son état actuel a été relu sans créer un second contrôle."
           : sourceFormat === "pdf_import"
             ? "PDF reçu dans l'espace privé. Il reste bloqué jusqu'au contrôle antivirus, à l'indexation des pages et à l'approbation humaine."
-            : "Fichier reçu dans l'espace privé. Il reste bloqué jusqu'au contrôle antivirus, puis attendra la correspondance des colonnes."
+            : sourceFormat === "ical_import"
+              ? "Calendriers reçus. Après le contrôle de sécurité, vérifiez les correspondances proposées avec l’annuaire, puis approuvez et activez la version."
+              : "Fichier reçu dans l'espace privé. Il reste bloqué jusqu'au contrôle antivirus, puis attendra la correspondance des colonnes."
       );
       setFile(null);
       setTitle("");
@@ -506,10 +511,11 @@ export default function ScheduleImportPage() {
       file.size > SCHEDULE_IMPORT_MAX_BYTES ||
       (sourceFormat === "pdf_import"
         ? !file.name.toLowerCase().endsWith(".pdf") && file.type !== SCHEDULE_IMPORT_MIME
-        : !tabularMimeForFileName(file.name))
+        : sourceFormat === "ical_import" ? !file.name.toLowerCase().endsWith(".ics") : !tabularMimeForFileName(file.name))
     )
   );
   const reviewImports = imports.filter((item) => item.status === "review" && item.pageCount);
+  const selectedIsIcal = imports.find(item => item.id === selectedImportId)?.originalName.toLowerCase().endsWith(".ics") ?? false;
   const pageByNumber = new Map(pages.map((page) => [page.pageNumber, page]));
   const verifiedCount = pages.filter((page) => page.reviewStatus === "verified").length;
   const slotWriteTotalPages = Object.keys(slotWriteReports).length;
@@ -579,7 +585,7 @@ export default function ScheduleImportPage() {
       <section className="grid gap-3 md:grid-cols-3" aria-label="Protections des emplois du temps">
         <div className="flex gap-3 border-l-4 border-emerald-600 bg-white p-4 shadow-sm">
           <FileLock2 className="h-5 w-5 shrink-0 text-emerald-700" />
-          <span><strong className="block text-sm">PDF privé</strong><small className="text-slate-500">Aucune URL publique</small></span>
+          <span><strong className="block text-sm">Sources privées</strong><small className="text-slate-500">Accès réservé aux personnes autorisées</small></span>
         </div>
         <div className="flex gap-3 border-l-4 border-blue-600 bg-white p-4 shadow-sm">
           <ShieldCheck className="h-5 w-5 shrink-0 text-blue-700" />
@@ -608,6 +614,7 @@ export default function ScheduleImportPage() {
             }}
           >
             <option value="pdf_import">PDF officiel (une page par classe ou par professeur)</option>
+            <option value="ical_import">Calendriers iCal (.ics), un ou plusieurs fichiers</option>
             <option value="tabular_import">Export tabulaire (CSV ou Excel), colonnes à faire correspondre</option>
           </select>
         </label>
@@ -621,13 +628,21 @@ export default function ScheduleImportPage() {
             ref={fileInput}
             className="sr-only"
             type="file"
-            accept={sourceFormat === "pdf_import" ? ".pdf,application/pdf" : ".csv,.xlsx,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"}
+            accept={sourceFormat === "pdf_import" ? ".pdf,application/pdf" : sourceFormat === "ical_import" ? ".ics,text/calendar" : ".csv,.xlsx,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"}
+            multiple={sourceFormat === "ical_import"}
             required
             disabled={busy}
             onChange={(event) => {
-              const next = event.target.files?.[0] ?? null;
+              const chosen = Array.from(event.target.files ?? []);
+              if (sourceFormat === "ical_import" && chosen.some(item => !item.name.toLowerCase().endsWith(".ics"))) {
+                setError("Sélectionnez uniquement des fichiers .ics."); setFile(null); return;
+              }
+              const next = sourceFormat === "ical_import" && chosen.length > 1
+                ? new File(chosen.flatMap(item => [item, "\r\n"]), `calendriers-${sourceKind}-${schoolYear}.ics`, { type: "text/calendar" })
+                : chosen[0] ?? null;
+              setFileCount(chosen.length);
               setFile(next);
-              if (next && !title) setTitle(next.name.replace(/\.(pdf|csv|xlsx)$/i, ""));
+              if (next && !title) setTitle(next.name.replace(/\.(pdf|csv|xlsx|ics)$/i, ""));
             }}
           />
         </label>
@@ -636,8 +651,8 @@ export default function ScheduleImportPage() {
             {invalidFile
               ? sourceFormat === "pdf_import"
                 ? "Ce fichier n'est pas un PDF valide de moins de 50 Mo."
-                : "Ce fichier n'est pas un CSV ou Excel valide de moins de 50 Mo."
-              : formatBytes(file.size)}
+                : "Vérifiez le format et la taille totale : 50 Mo maximum."
+              : `${sourceFormat === "ical_import" ? `${fileCount} calendrier(s) · ` : ""}${formatBytes(file.size)}`}
           </small>
         ) : null}
 
@@ -849,7 +864,7 @@ export default function ScheduleImportPage() {
       <section className="space-y-4 border-t border-slate-200 pt-6">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <h2 className="text-lg font-bold text-slate-950">Index des pages</h2>
+            <h2 className="text-lg font-bold text-slate-950">{selectedIsIcal ? "Correspondances des calendriers" : "Index des pages"}</h2>
             <p className="text-sm text-slate-500">{verifiedCount} page{verifiedCount > 1 ? "s" : ""} vérifiée{verifiedCount > 1 ? "s" : ""} sur {totalPages}</p>
             {slotWriteTotalSlots > 0 ? (
               <p className="text-sm font-medium text-emerald-700">
@@ -858,7 +873,7 @@ export default function ScheduleImportPage() {
               </p>
             ) : null}
           </div>
-          {selectedImportId ? (
+          {selectedImportId && !selectedIsIcal ? (
             <button
               type="button"
               onClick={() => void openPrivatePdf()}
@@ -893,7 +908,9 @@ export default function ScheduleImportPage() {
           <div className="flex min-h-32 items-center justify-center"><LoaderCircle className="h-7 w-7 animate-spin text-emerald-700" /></div>
         ) : null}
 
-        {!pageLoading && pageSource?.pageCount ? (
+        {selectedIsIcal && selectedImportId ? <ScheduleIcalReviewPanel importId={selectedImportId} onApplied={() => setPageReloadToken(n => n + 1)} /> : null}
+
+        {!selectedIsIcal && !pageLoading && pageSource?.pageCount ? (
           <div className="border-y border-slate-200 bg-white">
             {Array.from({ length: pageSource.pageCount }, (_, index) => index + 1).map((pageNumber) => {
               const mapping = pageByNumber.get(pageNumber);

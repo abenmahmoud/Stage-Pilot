@@ -63,6 +63,7 @@ function schoolYearFor(day) {
 
 function fileFormat(filePath) {
   const extension = extname(filePath).toLowerCase();
+  if (extension === '.ics') return { sourceFormat: 'ical_import', mimeType: 'text/calendar' };
   if (extension === ".pdf") {
     return { sourceFormat: "pdf_import", mimeType: "application/pdf" };
   }

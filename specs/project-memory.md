@@ -1,9 +1,32 @@
 # Memoire durable - Portail numerique du Lycee Blaise Cendrars
 
-**Derniere mise a jour** : 8 septembre 2026
+**Derniere mise a jour** : 10 septembre 2026
 **Branche de travail** : `codex/lycee-connect-prototype`
 **Depot** : `abenmahmoud/Stage-Pilot`
 **Dernier jalon de code verifie** : branche de preview Vercel
+
+## Jalon du 10 septembre — iCal, identité et chat
+
+Implémentation native de l’import iCal avec antivirus, propositions privées de
+correspondances, décisions humaines et écriture atomique par calendrier. Lots
+locaux : 45 classes (64 600 cours, 43 correspondances) et 104 professeurs
+(43 940 cours, 88 correspondances). Le calendrier d’Adel correspond exactement.
+Ne pas prétendre que les emplois du temps manquent : les fichiers existent.
+
+Défaut supplémentaire confirmé : les 193 personnels portent un avertissement
+`staff_without_service`. L’OTP acceptait ces personnes mais le lecteur EDT les
+refusait. Le lecteur accepte désormais les lignes `warning` de l’annuaire actif,
+en maintenant la preuve d’identité, les dates, la portée personnelle et le refus
+des lignes invalides. Les liens parent/enfant et groupe restent validés séparément.
+
+Cartes de cours dans le chat et vue imprimable/PDF ; une proposition ne force
+plus le formulaire. Tests téléphone/ordinateur, PostgreSQL jetable (1 200 cours,
+reprises concurrentes, immutabilité, RLS), build et barrière de sécurité.
+Migration appliquée, worker installé. T066C reste ouvert tant que les lots réels
+ne sont pas validés/activés humainement ; 8 correspondances à qualifier et
+10 calendriers vides. Aucun `member_of` actif : listes élèves potentiellement
+incomplètes. Ne pas annoncer de disponibilité globale de salles ni de connexion
+PRONOTE permanente. Preuves : `docs/operations/IMPORT_ICAL_CHAT_2026-09-10.md`.
 
 ## Jalon du 8 septembre 2026 - Dépôt Lycée mis en ligne
 

@@ -1,3 +1,5 @@
+import { isSchedulePresentation } from './schedule-presentation.js';
+
 const CATEGORIES = [
   "inscription",
   "affectation_classe",
@@ -137,7 +139,8 @@ function hasValidNormalizationReceipt(value: Record<string, unknown>, nowMs: num
 
 export function isValidSupportAssistantPayload(value: unknown, nowMs = Date.now()): boolean {
   if (!isRecord(value)
-    || !hasOnlyKeys(value, PAYLOAD_FIELDS)
+    || !hasOnlyKeys(value, 'schedule' in value ? new Set([...PAYLOAD_FIELDS, 'schedule']) : PAYLOAD_FIELDS)
+    || ('schedule' in value && (!isSchedulePresentation(value.schedule) || value.usedAi !== false || value.category !== 'affectation_classe' || value.readyToCreate !== false || value.action !== 'continue'))
     || !Number.isFinite(nowMs)
     || !isBoundedText(value.reply, SUPPORT_ASSISTANT_PAYLOAD_LIMITS.reply)
     || !isKnownValue(value.category, CATEGORIES)

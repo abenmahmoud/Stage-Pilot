@@ -65,7 +65,7 @@ try {
                   assert.equal(verified, true, 'No private schedule before verification');
                   counts.reads++;
                   if (scenario === 'missing_timetable') return { ok: false, reason: 'source_unavailable' };
-                  return { ok: true, courses: [{ subjectCode: 'MATH', subjectLabel: 'Mathématiques', roomCode: 'B204', startsAt: '2026-09-11T06:00:00Z', endsAt: '2026-09-11T07:00:00Z', state: 'scheduled' }], source: { versionId: '00000000-0000-4000-8000-000000000001', sourceType: 'official_export', activatedAt: '2026-09-10T06:00:00.000Z', freshUntil: '2026-09-15T22:00:00.000Z' } };
+                  return { ok: true, courses: [{ subjectCode: 'MATH', subjectLabel: 'Mathématiques', roomCode: 'B204', startsAt: '2026-09-11T06:00:00.000Z', endsAt: '2026-09-11T07:00:00.000Z', state: 'scheduled' }], source: { versionId: '00000000-0000-4000-8000-000000000001', sourceType: 'official_export', activatedAt: '2026-09-10T06:00:00.000Z', freshUntil: '2026-09-15T22:00:00.000Z' } };
                 },
               }),
               routingReceipt: null, routingReceiptExpiresAt: null, normalizationReceipt: null, normalizationReceiptExpiresAt: null, requestActionAuthorized: false,
@@ -101,11 +101,24 @@ try {
       }
       if (scenario === 'missing_timetable') {
         await page.getByText("Aucun emploi du temps validé n'est disponible", { exact: false }).waitFor();
+        assert.equal(await page.getByRole('button', { name: 'Confirmer et envoyer', exact: true }).count(), 0);
+        assert.equal(await composer.isVisible(), true, 'An offer must keep the chat open');
+        await page.getByRole('button', { name: 'Préparer l’envoi', exact: true }).click();
         await page.getByRole('button', { name: 'Confirmer et envoyer', exact: true }).waitFor();
       } else {
-        const answer = page.locator('.lycee-guided-thread p').filter({ hasText: 'Voici vos cours pour demain' });
+        const answer = page.getByRole('region', { name: 'Votre emploi du temps de demain', exact: true });
         await answer.waitFor();
-        assert.match(await answer.innerText(), /08:00 – 09:00 · Mathématiques · Salle B204/);
+        assert.match(await answer.innerText(), /08:00/);
+        assert.match(await answer.innerText(), /09:00/);
+        assert.match(await answer.innerText(), /Mathématiques/);
+        assert.match(await answer.innerText(), /Salle B204/);
+        const popupPromise = context.waitForEvent('page');
+        await answer.getByRole('button', { name: 'Imprimer / PDF' }).click();
+        const popup = await popupPromise;
+        await popup.getByRole('table').waitFor();
+        assert.match(await popup.locator('table').innerText(), /B204/);
+        assert.equal(await popup.evaluate(() => window.opener === null), true);
+        await popup.close();
         await answer.scrollIntoViewIfNeeded();
         assert.equal(await page.getByRole('button', { name: 'Confirmer et envoyer', exact: true }).count(), 0);
       }

@@ -7,7 +7,7 @@ export const SCHEDULE_TABULAR_MIME_TYPES = [
 export type ScheduleTabularMimeType = (typeof SCHEDULE_TABULAR_MIME_TYPES)[number];
 
 export type ScheduleSourceKind = "classes" | "teachers";
-export type ScheduleSourceFormat = "pdf_import" | "tabular_import";
+export type ScheduleSourceFormat = "pdf_import" | "tabular_import" | "ical_import";
 
 export type ScheduleImportInput = {
   sourceKind: ScheduleSourceKind;
@@ -19,7 +19,7 @@ export type ScheduleImportInput = {
   effectiveUntil: string | null;
   freshUntil: string;
   originalName: string;
-  mimeType: typeof SCHEDULE_IMPORT_MIME | ScheduleTabularMimeType;
+  mimeType: typeof SCHEDULE_IMPORT_MIME | ScheduleTabularMimeType | "text/calendar";
   sizeBytes: number;
 };
 
@@ -32,6 +32,7 @@ export function scheduleImportFileExtension(
   sourceFormat: ScheduleSourceFormat | undefined,
   mimeType: string
 ): string {
+  if (sourceFormat === "ical_import") return ".ics";
   if (sourceFormat !== "tabular_import") return ".pdf";
   return TABULAR_EXTENSIONS[mimeType as ScheduleTabularMimeType] ?? ".csv";
 }
@@ -88,12 +89,12 @@ function fileName(value: unknown, sourceFormat: ScheduleSourceFormat): string {
   const validExtension =
     sourceFormat === "pdf_import"
       ? lower.endsWith(".pdf")
-      : lower.endsWith(".csv") || lower.endsWith(".xlsx");
+      : sourceFormat === "ical_import" ? lower.endsWith(".ics") : lower.endsWith(".csv") || lower.endsWith(".xlsx");
   if (cleaned.includes("/") || cleaned.includes("\\") || cleaned.startsWith(".") || !validExtension) {
     throw new Error(
       sourceFormat === "pdf_import"
         ? "Choisissez un fichier PDF dont le nom est valide."
-        : "Choisissez un fichier CSV ou Excel (.xlsx) dont le nom est valide."
+        : sourceFormat === "ical_import" ? "Choisissez un calendrier iCal (.ics) dont le nom est valide." : "Choisissez un fichier CSV ou Excel (.xlsx) dont le nom est valide."
     );
   }
   return cleaned;
@@ -105,8 +106,8 @@ export function parseScheduleImportInput(value: unknown): ScheduleImportInput {
     throw new Error("Le type d'emploi du temps est invalide.");
   }
   const sourceFormat: ScheduleSourceFormat =
-    input.sourceFormat === "tabular_import"
-      ? "tabular_import"
+    input.sourceFormat === "tabular_import" || input.sourceFormat === "ical_import"
+      ? input.sourceFormat
       : input.sourceFormat === undefined || input.sourceFormat === "pdf_import"
         ? "pdf_import"
         : (() => {
@@ -127,12 +128,12 @@ export function parseScheduleImportInput(value: unknown): ScheduleImportInput {
   const validMime =
     sourceFormat === "pdf_import"
       ? input.mimeType === SCHEDULE_IMPORT_MIME
-      : SCHEDULE_TABULAR_MIME_TYPES.includes(input.mimeType as ScheduleTabularMimeType);
+      : sourceFormat === "ical_import" ? input.mimeType === "text/calendar" : SCHEDULE_TABULAR_MIME_TYPES.includes(input.mimeType as ScheduleTabularMimeType);
   if (!validMime) {
     throw new Error(
       sourceFormat === "pdf_import"
         ? "Seuls les documents PDF sont acceptés."
-        : "Seuls les fichiers CSV ou Excel (.xlsx) sont acceptés."
+        : sourceFormat === "ical_import" ? "Seuls les calendriers iCal (.ics) sont acceptés." : "Seuls les fichiers CSV ou Excel (.xlsx) sont acceptés."
     );
   }
   if (

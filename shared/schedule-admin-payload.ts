@@ -126,7 +126,7 @@ function schoolYear(value: unknown): string | null {
   return match && Number(match[2]) === Number(match[1]) + 1 ? value : null;
 }
 
-const SCHEDULE_IMPORT_EXTENSIONS = [".pdf", ".csv", ".xlsx"];
+const SCHEDULE_IMPORT_EXTENSIONS = [".pdf", ".csv", ".xlsx", ".ics"];
 
 function importFileName(value: unknown): string | null {
   const name = boundedText(value, 5, 255);

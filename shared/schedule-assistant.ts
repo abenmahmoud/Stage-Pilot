@@ -217,7 +217,7 @@ export function scheduleAssistantDayAnswer(
     const sourceNotice = `Version du ${reviewDate(result.source.activatedAt)}.`;
     if (result.courses.length === 0) {
       return {
-        reply: `Vous n'avez aucun cours prévu ${requestedDay} selon l'emploi du temps validé. ${sourceNotice}`,
+        reply: result.incompleteGroups ? `Je ne dispose pas encore des rattachements nécessaires pour afficher vos cours de groupe ${requestedDay}. L’absence de cours affiché ne signifie pas que vous êtes libre. ${sourceNotice}` : `Vous n'avez aucun cours prévu ${requestedDay} selon l'emploi du temps validé. ${sourceNotice}`,
         readyToCreate: false,
         safetyNotice: null,
         sourceReferences: [{ title: "Emploi du temps validé", updatedAt: result.source.activatedAt }],
@@ -225,7 +225,7 @@ export function scheduleAssistantDayAnswer(
     }
     const sentences = result.courses.map(dayCourseSentence).join("\n");
     return {
-      reply: `Voici vos cours pour ${requestedDay} :\n\n${sentences}\n\n${sourceNotice}`,
+      reply: `Voici vos cours pour ${requestedDay} :\n\n${sentences}\n\n${result.incompleteGroups ? "Les cours de groupe dont le rattachement reste à confirmer ne sont pas affichés. " : ""}${sourceNotice}`.slice(0, 1500),
       readyToCreate: false,
       safetyNotice: null,
       sourceReferences: [{ title: "Emploi du temps validé", updatedAt: result.source.activatedAt }],

@@ -254,6 +254,17 @@ test("pins the source snapshot and observes revocation on the next call", async 
   const f = fixture(); f.state.afterQuery = (number) => { if (number === 1) f.state.data.imports[0].status = "superseded"; };
   assert.deepEqual(await f.resolve(), studentScope); await assert.rejects(f.read(), { status: 403 }); assert.equal(f.state.readCalls.length, 0);
 });
+
+test('a verified staff member with non-blocking directory warnings can read only their own schedule', async () => {
+  const f = fixture();
+  f.state.user = null;
+  f.state.deviceIdentity = { sourceImportId: 'import-fixture', personRef: 'PROF-001', personType: 'staff', assuranceLevel: 'directory_email_otp' };
+  f.state.data.rows = [person({ personRef: 'PROF-001', personType: 'staff', classRef: null, validationStatus: 'warning' })];
+  assert.deepEqual(await f.resolve(), { institutionId: 'school-fixture', identityLevel: 'I3', authorizedClassRefs: [], authorizedGroupRefs: [], authorizedTeacherRefs: ['PROF-001'] });
+  await assert.rejects(f.resolve('PROF-002'), { status: 403 });
+  f.state.data.rows[0].validationStatus = 'invalid';
+  await assert.rejects(f.resolve(), { status: 403 });
+});
 test("database errors cannot fall back to a private reader call", async () => {
   const f = fixture(); f.state.dbFailure = true; await assert.rejects(f.read(), /synthetic-database-failure/); assert.equal(f.state.readCalls.length, 0);
 });

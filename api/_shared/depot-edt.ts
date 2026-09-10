@@ -45,6 +45,7 @@ function edtFileMetadata(originalName: string): {
   mimeType: ScheduleImportInput["mimeType"];
 } {
   const lower = originalName.toLowerCase();
+  if (lower.endsWith(".ics")) return { sourceFormat: "ical_import", mimeType: "text/calendar" };
   if (lower.endsWith(".csv")) {
     return { sourceFormat: "tabular_import", mimeType: "text/csv" };
   }

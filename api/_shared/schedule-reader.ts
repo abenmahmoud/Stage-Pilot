@@ -1,6 +1,7 @@
 import { and, asc, eq, gt, gte, inArray, isNull, lt, lte, or } from "drizzle-orm";
 import { db } from "../../db/index.js";
-import { scheduleSlots, scheduleSourceVersions } from "../../db/schema.js";
+import { scheduleSlots, scheduleSourceVersions, schedulePageIndexes } from "../../db/schema.js";
+import { schoolDayBoundsUtc } from '../../shared/assistant-school-context.js';
 import {
   readAuthorizedCoursesForDay,
   readNextAuthorizedCourse,
@@ -30,6 +31,16 @@ function boundedRefs(values: string[]): string[] {
     throw new Error("Invalid trusted schedule scope");
   }
   return refs;
+}
+
+async function hasMappedSubjects(institutionId: string, versions: { id: string }[], refs: string[]): Promise<boolean> {
+  if (!refs.length) return true;
+  const mapped = await db.select({ ref: schedulePageIndexes.subjectRef }).from(schedulePageIndexes).where(and(
+    eq(schedulePageIndexes.institutionId, institutionId),
+    inArray(schedulePageIndexes.sourceVersionId, versions.map(version => version.id)),
+    eq(schedulePageIndexes.reviewStatus, 'verified'), inArray(schedulePageIndexes.subjectRef, refs),
+  ));
+  return refs.every(ref => mapped.some(page => page.ref === ref));
 }
 
 function failurePriority(result: ScheduleReadResult | ScheduleDayReadResult): number {
@@ -106,6 +117,8 @@ export async function readNextCourseFromPrivateSchedule(input: {
 
   if (versions.length === 0) return { ok: false, reason: scheduleSourceUnavailableReason(viewer) };
 
+  if (!await hasMappedSubjects(input.scope.institutionId, versions, [...classRefs, ...teacherRefs])) return { ok: false, reason: 'no_authorized_course' };
+
   const scopePredicates = [
     ...(classRefs.length > 0 ? [inArray(scheduleSlots.classRef, classRefs)] : []),
     ...(groupRefs.length > 0 ? [inArray(scheduleSlots.groupRef, groupRefs)] : []),
@@ -145,11 +158,11 @@ export async function readNextCourseFromPrivateSchedule(input: {
       requestedAt: input.requestedAt.toISOString(),
       versions: sourceVersions.map((version) => ({
         id: version.id,
-        sourceType: version.sourceFormat as ScheduleSourceType,
+        sourceType: (version.sourceFormat === 'pdf_import' ? 'pdf_import' : 'official_export') as ScheduleSourceType,
         status: version.status as "active",
-        effectiveFrom: `${version.effectiveFrom}T00:00:00.000Z`,
+        effectiveFrom: schoolDayBoundsUtc(new Date(`${version.effectiveFrom}T12:00:00.000Z`)).dayStart.toISOString(),
         effectiveUntil: version.effectiveUntil
-          ? `${version.effectiveUntil}T23:59:59.999Z`
+          ? new Date(schoolDayBoundsUtc(new Date(`${version.effectiveUntil}T12:00:00.000Z`)).dayEnd.getTime() - 1).toISOString()
           : null,
         activatedAt: version.activatedAt?.toISOString() ?? null,
         freshUntil: version.freshUntil?.toISOString() ?? "1970-01-01T00:00:00.000Z",
@@ -216,6 +229,8 @@ export async function readCoursesForDayFromPrivateSchedule(input: {
 
   if (versions.length === 0) return { ok: false, reason: scheduleSourceUnavailableReason(viewer) };
 
+  // Directory identity alone is insufficient when its calendar was not imported.
+  if (!await hasMappedSubjects(input.scope.institutionId, versions, [...classRefs, ...teacherRefs])) return { ok: false, reason: 'no_authorized_course' };
   const scopePredicates = [
     ...(classRefs.length > 0 ? [inArray(scheduleSlots.classRef, classRefs)] : []),
     ...(groupRefs.length > 0 ? [inArray(scheduleSlots.groupRef, groupRefs)] : []),
@@ -257,11 +272,11 @@ export async function readCoursesForDayFromPrivateSchedule(input: {
       dayEnd: input.dayEnd.toISOString(),
       versions: sourceVersions.map((version) => ({
         id: version.id,
-        sourceType: version.sourceFormat as ScheduleSourceType,
+        sourceType: (version.sourceFormat === 'pdf_import' ? 'pdf_import' : 'official_export') as ScheduleSourceType,
         status: version.status as "active",
-        effectiveFrom: `${version.effectiveFrom}T00:00:00.000Z`,
+        effectiveFrom: schoolDayBoundsUtc(new Date(`${version.effectiveFrom}T12:00:00.000Z`)).dayStart.toISOString(),
         effectiveUntil: version.effectiveUntil
-          ? `${version.effectiveUntil}T23:59:59.999Z`
+          ? new Date(schoolDayBoundsUtc(new Date(`${version.effectiveUntil}T12:00:00.000Z`)).dayEnd.getTime() - 1).toISOString()
           : null,
         activatedAt: version.activatedAt?.toISOString() ?? null,
         freshUntil: version.freshUntil?.toISOString() ?? "1970-01-01T00:00:00.000Z",
@@ -284,6 +299,7 @@ export async function readCoursesForDayFromPrivateSchedule(input: {
   if (successes.length > 0) {
     return {
       ok: true,
+      incompleteGroups: successes.some(result => result.incompleteGroups),
       courses: successes
         .flatMap((result) => result.courses)
         .sort((left, right) => Date.parse(left.startsAt) - Date.parse(right.startsAt)),

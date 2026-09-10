@@ -30,6 +30,7 @@ import {
 } from "../../shared/agent-runtime-metrics.js";
 import type { AgentAiBudgetReservationResult } from "../../shared/agent-ai-budget.js";
 import type { ScheduleDayReadResult, ScheduleReadResult } from "../../shared/schedule-policy.js";
+import type { SchedulePresentation } from "../../shared/schedule-presentation.js";
 import {
   requestedOwnCoursesDayOffset,
   requestsOwnSchedule,
@@ -72,6 +73,7 @@ type RuntimeKnowledgeContext = {
 };
 
 export type SupportAgentResult = {
+  schedule?: SchedulePresentation;
   reply: string;
   category:
     | "inscription"
@@ -108,7 +110,7 @@ export type SupportAgentResult = {
 
 type SupportAgentModelResult = Omit<
   SupportAgentResult,
-  "scope" | "action" | "turnCount" | "remainingTurns" | "limitReached" | "sourceReferences"
+  "scope" | "action" | "turnCount" | "remainingTurns" | "limitReached" | "sourceReferences" | "schedule"
 >;
 
 const CATEGORY_LABELS: Record<SupportAgentResult["category"], string> = {
@@ -533,6 +535,7 @@ export async function analyzeSupportConversation(input: {
     return {
       ...fallback,
       ...answer,
+      ...(dayResult.ok ? { schedule: { title: requestedScheduleDayOffset === 1 ? "Votre emploi du temps de demain" : "Votre emploi du temps du jour", courses: dayResult.courses, updatedAt: dayResult.source.activatedAt, incompleteGroups: dayResult.incompleteGroups === true } } : {}),
       category: "affectation_classe",
       confidence: "high",
       missingInformation: [],

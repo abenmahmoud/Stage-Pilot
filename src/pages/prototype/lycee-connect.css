@@ -1515,3 +1515,25 @@
 .lycee-identity-device .lycee-identity-contact-option:hover:not(:disabled) { border-color: #1767d9; background: #f1f7ff; }
 .lycee-identity-device .lycee-identity-contact-alternative { border: 0; background: transparent; text-align: left; padding: 6px 2px; font-weight: 500; white-space: normal; min-height: 40px; }
 .lycee-identity-device .lycee-identity-contact-alternative:hover { text-decoration: underline; }
+
+/* Private schedule responses keep the conversation readable on a phone. */
+.lycee-schedule-card { width: min(620px, 100%); min-width: 0; overflow: hidden; border: 1px solid #d8e4ee; border-radius: 18px; background: #fff; color: #17344c; }
+.lycee-schedule-card > header { display: flex; align-items: center; gap: 12px; padding: 18px; background: #eef6fb; }
+.lycee-schedule-card > header > svg { width: 26px; height: 26px; flex-shrink: 0; color: #236ed1; }
+.lycee-schedule-card header strong, .lycee-schedule-card header small { display: block; }
+.lycee-schedule-card small { color: #52677a; font-size: 12px; }
+.lycee-schedule-card ol { list-style: none; padding: 0 18px; margin: 0; }
+.lycee-schedule-card li { display: flex; gap: 16px; padding: 17px 0; border-bottom: 1px solid #edf1f5; }
+.lycee-schedule-time { min-width: 48px; display: flex; flex-direction: column; gap: 3px; font-variant-numeric: tabular-nums; }
+.lycee-schedule-time span { font-size: 12px; color: #61768a; }
+.lycee-schedule-course { min-width: 0; border-left: 3px solid #20a58b; padding-left: 13px; display: flex; flex-direction: column; gap: 5px; overflow-wrap: anywhere; }
+.lycee-schedule-course > span { display: flex; align-items: center; gap: 5px; font-size: 13px; }
+.lycee-schedule-course svg { width: 15px; height: 15px; }
+.lycee-schedule-card li[data-state="cancelled"] .lycee-schedule-course { border-color: #b25656; }
+.lycee-schedule-card li[data-state="cancelled"] .lycee-schedule-course > strong { text-decoration: line-through; }
+.lycee-schedule-card > p { margin: 14px 18px; }
+.lycee-schedule-notice { padding: 12px; border-radius: 8px; background: #fff8e9; font-size: 13px; }
+.lycee-schedule-card footer { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; padding: 16px 18px; }
+.lycee-schedule-card footer button { display: inline-flex; align-items: center; gap: 7px; min-height: 42px; padding: 8px 12px; border: 1px solid #cad9e6; border-radius: 8px; background: white; color: #17344c; font: inherit; font-size: 13px; cursor: pointer; }
+.lycee-schedule-card footer svg { width: 17px; height: 17px; }
+@media (max-width: 520px) { .lycee-schedule-card > header, .lycee-schedule-card footer { padding: 14px; } .lycee-schedule-card ol { padding: 0 12px; } .lycee-schedule-card li { gap: 10px; } }

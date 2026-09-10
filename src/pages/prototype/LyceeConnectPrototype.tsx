@@ -174,6 +174,8 @@ import {
   type PublicContentScope,
 } from "./public-content-client";
 import "./lycee-connect.css";
+import ScheduleChatCard from './ScheduleChatCard';
+import { resolveAssistantConversationTransition } from '../../../shared/assistant-conversation-state';
 
 type RequesterProfile = "eleve" | "parent" | "professeur" | "personnel" | "autre" | "";
 
@@ -1285,6 +1287,7 @@ function TrustView({ onBack }: { onBack: () => void }) {
 }
 
 type AssistantChatMessage = {
+  schedule?: import('../../../shared/schedule-presentation').SchedulePresentation;
   id: string;
   role: "assistant" | "requester";
   content: string;
@@ -1297,6 +1300,7 @@ type AssistantSourceReference = {
 };
 
 type AssistantInsight = {
+  schedule?: import('../../../shared/schedule-presentation').SchedulePresentation;
   reply: string;
   category: SupportCategory;
   requesterType: "eleve" | "parent" | "professeur" | "personnel" | "autre" | "inconnu";
@@ -1961,11 +1965,14 @@ function HelpDeskView({
         role: "assistant",
         content: result.reply,
         sourceReferences: result.sourceReferences,
+        schedule: result.schedule,
       },
     ));
     const shouldCollectContact =
       (result.action === "offer_case" || result.action === "human_transfer")
-      && result.readyToCreate;
+      && result.readyToCreate
+      && !identityJustVerified
+      && resolveAssistantConversationTransition(requestMessages).stage === 'action_confirmed';
     if (shouldCollectContact) {
       setClassicForm(false);
       setShowDetails(true);
@@ -2284,7 +2291,7 @@ function HelpDeskView({
             <div data-speaker={message.role} key={message.id}>
               {message.role === "assistant" ? <span><Bot aria-hidden="true" /></span> : null}
               <div className="lycee-chat-message-body">
-                <p>{message.content}</p>
+                {message.schedule ? <ScheduleChatCard value={message.schedule} /> : <p>{message.content}</p>}
                 {message.sourceReferences?.length ? (
                   <div className="lycee-agent-sources" aria-label="Sources utilisées">
                     <BookOpenCheck aria-hidden="true" />

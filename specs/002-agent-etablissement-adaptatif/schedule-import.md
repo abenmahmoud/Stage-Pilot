@@ -1,5 +1,22 @@
 # Import privé des emplois du temps
 
+## Implémentation iCal du 10 septembre 2026
+
+Le format natif `ical_import` relie désormais les occurrences UTC exportées aux
+calendriers privés vérifiés. Plusieurs fichiers ICS peuvent former un lot, sans
+conversion Excel ni limite de 80 cours annuels. Le worker propose les correspondances
+depuis l’annuaire actif ; les lignes avec avertissement non bloquant sont admises
+comme pour l’OTP. Les chiffres des classes restent significatifs. Toute ambiguïté
+reste à résoudre humainement. Les associations de groupes ne sont jamais déduites.
+
+Un gestionnaire choisit explicitement les rattachements/exclusions, puis approuve
+et active la version. Le chat affiche les cours autorisés, les salles et horaires
+de Paris dans des cartes imprimables. Une proposition de demande laisse le chat
+ouvert ; le formulaire ne s’ouvre qu’à la demande de l’utilisateur. Voir
+`docs/operations/IMPORT_ICAL_CHAT_2026-09-10.md` pour la recette et les limites.
+
+Les sections datées antérieures ci-dessous conservent le diagnostic historique.
+
 ## Données iCal retrouvées le 10 septembre 2026
 
 Les fichiers existent dans les téléchargements : 45 calendriers dans `EDT 8-9-26`,

@@ -6,6 +6,8 @@ import { promisify } from "node:util";
 import { createClient } from "@supabase/supabase-js";
 import postgres from "postgres";
 import WebSocket from "ws";
+import { parseScheduleIcalBytes, ScheduleIcalError } from "./schedule-ical-parser.mjs";
+import { persistIcalReview, applyQueuedIcalCalendar } from "./schedule-ical-staging.mjs";
 import { boundedBlobToBuffer } from "./bounded-download.mjs";
 import {
   inspectSchedulePdf,
@@ -69,7 +71,7 @@ async function clamScan(bytes, name) {
 
 async function loadSource(job) {
   const [source] = await sql`
-    select id, institution_id, original_name, mime_type, size_bytes, source_format,
+    select id, institution_id, original_name, mime_type, size_bytes, source_format, source_kind,
            storage_bucket, storage_path, status, uploaded_by
     from public.schedule_source_versions
     where id = ${job.source_version_id} and institution_id = ${job.institution_id}
@@ -325,6 +327,11 @@ async function processMessage(row) {
           )
       where id = ${loaded.source.id} and status = 'quarantined'
     `;
+    if (loaded.source.source_format === "ical_import") {
+      const result = parseScheduleIcalBytes(bytes);
+      await persistIcalReview(sql, loaded.source, result, row.msg_id);
+      return "ical_review";
+    }
     if (loaded.source.source_format === "tabular_import") {
       const result = parseScheduleTabularBytes({ bytes, fileName: loaded.source.original_name });
       await persistMappingPending(loaded.source, result, row.msg_id);
@@ -335,7 +342,7 @@ async function processMessage(row) {
     await persistReview(loaded.source, result, pageAssets, row.msg_id);
     return "review";
   } catch (error) {
-    const code = error instanceof ScheduleDocumentInspectionError
+    const code = error instanceof ScheduleIcalError || error instanceof ScheduleDocumentInspectionError
       || error instanceof SchedulePageAssetError
       || error instanceof ScheduleTabularParseError
       ? error.code
@@ -344,7 +351,7 @@ async function processMessage(row) {
         : "unknown_error";
     if (
       loaded?.source
-      && (error instanceof ScheduleDocumentInspectionError
+      && (error instanceof ScheduleIcalError || error instanceof ScheduleDocumentInspectionError
         || error instanceof SchedulePageAssetError
         || error instanceof ScheduleTabularParseError)
     ) {
@@ -381,6 +388,18 @@ async function main() {
   `;
   const outcomes = [];
   for (const row of rows) outcomes.push(await processMessage(row));
+  const calendarDeadline = Date.now() + 45_000;
+  const calendars = await sql`select id from public.schedule_ical_candidates where status='queued' order by approved_at,id limit 250`;
+  for (const calendar of calendars) {
+    if (Date.now() >= calendarDeadline) break; // Remaining jobs stay queued for the next minute.
+    try { outcomes.push(await applyQueuedIcalCalendar(sql, calendar.id)); }
+    catch (error) {
+      const code = typeof error?.message==='string' && /^ical_[a-z_]+$/.test(error.message) ? error.message : 'ical_apply_failed';
+      await sql`update public.schedule_ical_candidates c set status='failed',failure_code=${code}
+        where c.id=${calendar.id} and c.status='queued' and exists(select 1 from public.schedule_source_versions s where s.id=c.source_version_id and s.institution_id=c.institution_id and s.status='review')`;
+      outcomes.push(code);
+    }
+  }
   console.log(JSON.stringify({ claimed: rows.length, outcomes }));
   await sql.end();
 }

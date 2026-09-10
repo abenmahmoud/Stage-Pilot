@@ -191,6 +191,12 @@ export async function findVerifiedPagesWithoutSlots(
         and p.institution_id = ${params.institutionId}
         and p.review_status = 'verified'
         and not exists (
+          select 1 from public.schedule_ical_candidates c
+          where c.source_version_id = p.source_version_id and c.institution_id = p.institution_id
+            and c.calendar_number = p.page_number and c.status = 'applied' and c.decision = 'exclude'
+            and c.approved_by = p.reviewed_by
+        )
+        and not exists (
           select 1 from public.schedule_slots s
           where s.source_version_id = p.source_version_id
             and s.institution_id = p.institution_id

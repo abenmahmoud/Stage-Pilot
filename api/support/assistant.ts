@@ -139,6 +139,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         })
       : null;
     const payload = {
+      ...(result.schedule ? { schedule: result.schedule } : {}),
       reply: result.reply,
       category: result.category,
       requesterType: result.requesterType,

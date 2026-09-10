@@ -1195,9 +1195,14 @@
   chat : import par lots avec reprise, rapprochement des personnes/classes/groupes,
   revue des sources, cartes de cours et absence de bascule automatique au formulaire.
   Diagnostic réel : 194 fichiers locaux, 43 classes de l’annuaire rapprochées
-  exactement, format ICS absent du code publié, aucun lien `member_of` dans
-  l’annuaire actif. Aucun import ou écran nouveau n’est livré à ce stade.
-  Critères : `docs/operations/DIAGNOSTIC_ICAL_2026-09-10.md`.
+  exactement, aucun lien `member_of` dans l’annuaire actif.
+  Implémentation du 10/09 : lecteur natif, staging privé, correspondances et
+  validation, lots atomiques, cartes de cours et impression PDF ; 88 calendriers
+  professeurs rapprochés exactement. Correction des personnels `warning`
+  acceptés par l’OTP mais auparavant refusés par la lecture EDT.
+  Restent : validation/activation humaines des lots réels, qualification de
+  8 correspondances absentes et 10 calendriers vides, groupes et flux renouvelé.
+  Preuves : `docs/operations/IMPORT_ICAL_CHAT_2026-09-10.md`.
 - [ ] T067 Programmer les contrôles de connaissances à 08:00, 13:00 et 18:00
   Europe/Paris, la détection des conflits, les alertes immédiates et le digest
   dédupliqué des questions inconnues.

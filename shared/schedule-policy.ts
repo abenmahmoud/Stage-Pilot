@@ -119,6 +119,7 @@ export type ScheduleDayReadResult =
   | {
       ok: true;
       courses: ScheduleDayCourse[];
+      incompleteGroups?: boolean;
       source: {
         versionId: string;
         sourceType: ScheduleSourceType;
@@ -256,6 +257,12 @@ export function readNextAuthorizedCourse(input: {
     .sort((left, right) => timestamp(left.startsAt) - timestamp(right.startsAt))[0];
 
   if (!slot) return { ok: false, reason: "no_authorized_course" };
+  if (input.slots.some(candidate => candidate.sourceVersionId === version.id && candidate.reviewStatus === 'approved'
+    && candidate.classRef !== null && input.viewer.authorizedClassRefs.includes(candidate.classRef)
+    && candidate.groupRef !== null && !isAuthorized(input.viewer, candidate)
+    && timestamp(candidate.endsAt) >= requestedAt && timestamp(candidate.startsAt) <= timestamp(slot.startsAt))) {
+    return { ok: false, reason: 'no_authorized_course' };
+  }
 
   const change = selectChange(input.changes, slot.id, now);
   if (change === "conflict") return { ok: false, reason: "conflicting_changes" };
@@ -316,6 +323,10 @@ export function readAuthorizedCoursesForDay(input: {
   return {
     ok: true,
     courses,
+    incompleteGroups: input.slots.some(slot => slot.sourceVersionId === version.id && slot.reviewStatus === "approved"
+      && slot.classRef !== null && input.viewer.authorizedClassRefs.includes(slot.classRef)
+      && slot.groupRef !== null && !isAuthorized(input.viewer, slot)
+      && timestamp(slot.startsAt) < dayEnd && timestamp(slot.endsAt) > dayStart),
     source: {
       versionId: version.id,
       sourceType: version.sourceType,
