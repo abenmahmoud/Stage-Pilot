@@ -1390,4 +1390,4 @@
   formulaires et les informations flash : langue automatique corrigeable,
   segments de deux minutes, reprise manuelle et aucune conservation audio.
 
-- [ ] T073 Publier le guide Chromebook annuel et ses réponses directes dans le chat depuis un corpus public commun et sourcé. Encadrer les dates locales, le SAV, les sources internes et les changements de sujet. Plan : docs/operations/CHROMEBOOK_2026-09-10.md. Recette ordinateur, téléphone, assistant et publication réelle.
+- [x] T073 Publier le guide Chromebook annuel et ses réponses directes dans le chat depuis un corpus public commun et sourcé. Encadrer les dates locales, le SAV, les sources internes et les changements de sujet. Preuves : docs/operations/CHROMEBOOK_2026-09-10.md. Build, security gate, 29 FAQ et contrats API, Chromium ordinateur/mobile et conversations réelles sur le domaine principal vérifiés le 10 septembre 2026. Commit fonctionnel 4f333c4 ; aucun envoi de communication.

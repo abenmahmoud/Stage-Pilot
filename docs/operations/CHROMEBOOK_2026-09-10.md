@@ -95,3 +95,27 @@ les pages publiques. Une erreur de format ISO des références a été détecté
 corrigée avant publication ; le contrat API couvre désormais toutes ces réponses.
 
 Build et suite complète test:preview-security-gate exécutés avec succès avant le commit de publication. Aucun changement de migration, d’annuaire, de code personnel ou de paramètre d’envoi.
+
+## Publication vérifiée
+
+- Commit fonctionnel : `4f333c4257e8ccf1d14041d682d16def0a6fc6e6`.
+- Déploiement READY : `dpl_FHb1HBvR4kTXAsTcEosYkEHcM4qQ`,
+  `lyceegest-2lv0vs44k-safe-scol.vercel.app`.
+- Les deux alias, domaine principal et alias de branche utilisé par le lycée,
+  ont été explicitement affectés à ce déploiement après recette de l’URL immuable.
+- Recette du domaine principal terminée le **10 septembre 2026 à 21:11:29 UTC** :
+  page native, 29 réponses, mobile, affiche JPEG et conversation réelle sans
+  compte. Trois réponses serveur vérifiées (distribution, suite QR, SAV), plus
+  passage FAQ → chat avec réponse serveur visible et liens cliquables.
+- Réponses publiques : `usedAi=false`, `readyToCreate=false`, `action=continue`,
+  références présentes. Aucun dossier créé, email, SMS ou push envoyé.
+- Preuves hors dépôt : `tmp/qa-chromebook-live/report-immutable.json`,
+  `report.json`, `desktop.png`, `mobile.png`, `mobile-chat.png` dans le dossier
+  de préparation. Pas d’erreur JavaScript relevée. Test en Chromium uniquement ;
+  pas de test sur iPhone physique ou de campagne de notification.
+- Retour arrière possible : ancien déploiement
+  `lyceegest-ac82wwuqe-safe-scol.vercel.app` (`6bdeba6`).
+
+T073 est livrée. Le commit documentaire de clôture ne change pas le code du
+déploiement vérifié. L’envoi des communications et la confirmation logistique
+avec le prestataire sont distincts de cette publication.
