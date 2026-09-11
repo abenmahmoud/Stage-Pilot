@@ -72,9 +72,8 @@ export function PublicPortalWelcome() {
           <h1 id="portal-welcome-title">Bienvenue<br />au lycée<br /><span>Blaise Cendrars.</span></h1>
           <p id="portal-welcome-description">Vos informations, vos services et la vie du lycée, au même endroit.</p>
           <button ref={enterButton} className="portal-welcome-enter" type="button" onClick={() => enter(true)}>Entrer au lycée <ArrowRight aria-hidden="true" /></button>
-          <p className="portal-welcome-audio-note">{radio?.available ? "Une ambiance musicale très douce, à 1 %." : "Radio ESSUF vous accompagne, quand vous le souhaitez."}</p>
+          {radio?.available ? <p className="portal-welcome-audio-note">Une ambiance musicale très douce, à 1 %.</p> : null}
           {radio?.available ? <button className="portal-welcome-silent" type="button" onClick={() => enter(false)}>Continuer sans musique</button> : null}
-          {radio?.spotifyAvailable ? <button className="portal-welcome-silent" type="button" onClick={() => enter(false, true)}>Découvrir la radio</button> : null}
         </div>
         <a className="portal-welcome-credit" href="https://essuf.fr/" target="_blank" rel="noopener noreferrer">Powered by ESSUF Group</a>
       </div>
