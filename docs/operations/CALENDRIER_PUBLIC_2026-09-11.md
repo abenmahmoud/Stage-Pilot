@@ -31,6 +31,10 @@ Navigateur : plugin de navigateur indisponible, utilisation de Playwright Chromi
 
 Édition testée avec identité entièrement fictive et API simulée, requêtes externes bloquées : ajout d’une date, heure inconnue conservée, enregistrement du payload et relecture après rechargement. Aucune publication de test ni session administrative réelle utilisée. Aucun test sur téléphone physique ou Safari/iOS. L’appel IA payant de l’atelier Hebdo n’a pas été déclenché ; validation de son schéma et des payloads avec les tests.
 
-## Publication
+## Publication vérifiée
 
-En attente du dernier gate et du déploiement, puis contrôle de l’API, des téléchargements et du rendu sur l’URL immuable et le domaine principal. Ne pas déclarer cette étape accomplie avant les résultats.
+Commit fonctionnel `68d8dab9ab36ef1a4ab003a67d614a3d12f2686f`, déploiement READY `dpl_89zzHP3nRLHVEy9Qf5fbTzi1CUcf`, URL immuable `https://lyceegest-839wc7oi6-safe-scol.vercel.app`. Alias principal confirmé : `https://lycee-blaise-cendrars-sevran.fr`. Retour arrière vers `https://lyceegest-g1gt3baj0-safe-scol.vercel.app` (`b383f05`) possible ; les métadonnées ajoutées sont compatibles avec cette version.
+
+Gate complet réussi, intégrité Spec Kit réussie. Recette réelle réussie sur l’URL immuable puis le domaine principal en 1440/390/320 px : six rendez-vous, photos, filtre du jour, article aller-retour, accueil, mois vide, téléchargement natif ICS et zéro erreur JavaScript ou débordement. Captures du domaine relues visuellement. Sept contrôles HTTP par domaine : calendrier 200, six événements version 2, un seul horaire connu, mois suivant vide, mois invalide 400, événement inexistant 404, fichier du mois avec six VEVENT, brouillon non exposé et détail administratif anonyme 401.
+
+Preuves : `../Calendrier_lycee_2026-09-11/{local,lyceegest-839wc7oi6-safe-scol.vercel.app,lycee-blaise-cendrars-sevran.fr}/`, scripts de recette, captures et fichiers ICS. Le générateur d’import Gmail a aussi été exécuté en préparation seulement avec huit cartes et onze dates ; aucune insertion supplémentaire. Le serveur d’aperçu local a été arrêté.
