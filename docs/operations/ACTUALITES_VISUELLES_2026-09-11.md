@@ -19,4 +19,11 @@ Recette locale réussie sur les trois tailles : navigation aide/actualités, six
 
 Référence visuelle : capture fournie par Adel et charte de l’accueil existante ; ajustement dans ce système sans refonte du cadre public. Les contrôles portent sur les couleurs, polices, marges, proportions des images, lisibilité des titres et boutons. Contenu factuel et dates des articles conservés.
 
-La publication de ce lot concerne la présentation et les images. Aucun brouillon n’est publié par ces changements, aucun email ni push envoyé, aucune modification des comptes, des droits, de l’EDT ou de la radio. La publication et la recette distante sont à consigner après les contrôles locaux.
+La publication de ce lot concerne la présentation et les images. Aucun brouillon n’est publié par ces changements, aucun email ni push envoyé, aucune modification des comptes, des droits, de l’EDT ou de la radio.
+
+## Publication vérifiée
+Commit fonctionnel `9dea25de36aaccec20f53f69dd25bba61d027645`, déploiement READY `dpl_FoPgyqdwVJxeJLkwrb5dcuzXFM2j`, URL immuable `https://lyceegest-n7g5h7jv5-safe-scol.vercel.app`. Le domaine `https://lycee-blaise-cendrars-sevran.fr` pointe sur cette version. Retour arrière possible vers `https://lyceegest-gy2yuxi8i-safe-scol.vercel.app` (`6b4377e`).
+
+La même recette passe sur l’URL immuable puis le domaine principal, en 1440, 390 et 320 px, sans simulation des API distantes : six articles réellement publiés, images chargées, accès aide/actualités et pages individuelles fonctionnels, aucune erreur JavaScript ou console, aucun débordement. Captures ordinateur et téléphone du domaine relues avec `view_image` : même charte, images compactes, CTA côte à côte, aucun texte factuel modifié. Preuves : dossiers nommés par le domaine dans `../Actualites_visuelles_2026-09-11/`.
+
+Observation éditoriale séparée : une publication « Changement de spécialité… - copie » coexiste avec l’original. Signalée à Adel ; aucun archivage automatique. Limites de recette : Chromium sur trois tailles, pas de test physique Safari/iOS ni de modification d’article depuis une session administrateur réelle.
