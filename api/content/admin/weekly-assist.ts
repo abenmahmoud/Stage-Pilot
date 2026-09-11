@@ -28,6 +28,18 @@ const CARD_SCHEMA = {
       maxItems: 3,
     },
     eventDate: { type: "string", pattern: "^\\d{4}-\\d{2}-\\d{2}$" },
+    calendarEvents: { type: "array", maxItems: 12, items: {
+      type: "object", additionalProperties: false,
+      properties: {
+        key: { type: "string", pattern: "^[a-z0-9]+(?:-[a-z0-9]+)*$", maxLength: 80 },
+        title: { type: "string", minLength: 1, maxLength: 180 },
+        startDate: { type: "string", pattern: "^\\d{4}-\\d{2}-\\d{2}$" },
+        endDate: { type: "string", pattern: "^\\d{4}-\\d{2}-\\d{2}$" },
+        startTime: { type: ["string", "null"] }, endTime: { type: ["string", "null"] },
+        location: { type: "string", maxLength: 180 },
+      },
+      required: ["key", "title", "startDate", "endDate", "startTime", "endTime", "location"],
+    } },
     expiresAt: { type: "string" },
     featured: { type: "boolean" },
     sourceExcerpt: { type: "string", minLength: 1, maxLength: 300 },
@@ -35,7 +47,7 @@ const CARD_SCHEMA = {
   },
   required: [
     "key", "title", "summary", "bodyMarkdown", "category", "audience", "importance",
-    "channels", "eventDate", "expiresAt", "featured", "sourceExcerpt", "openQuestions",
+    "channels", "eventDate", "calendarEvents", "expiresAt", "featured", "sourceExcerpt", "openQuestions",
   ],
 } as const;
 
@@ -66,6 +78,7 @@ Règles absolues :
 - sourceExcerpt doit être un extrait court réellement présent dans le texte fourni.
 - Si une information utile manque ou paraît contradictoire, écris-la dans openQuestions et reviewNotes. Ne la complète pas.
 - eventDate est la première date explicitement associée à l'événement. Si aucune date exploitable n'est fournie, ne crée pas la carte.
+- calendarEvents contient les rendez-vous publics explicitement datés : une clé stable, un titre bref, startDate et endDate inclusives YYYY-MM-DD, startTime et endTime HH:mm uniquement si annoncées, sinon null, location uniquement si annoncée sinon vide. Sépare les événements distincts d'une même carte. Ne transforme jamais expiresAt en date ou heure de rendez-vous. Si seule la date de début est connue, endDate égale startDate et endTime reste null. Les rendez-vous seront relus avec l'article avant publication.
 - expiresAt doit être une date ISO située après la fin connue de l'événement. Pour une date unique, utilise 23:59 heure de Paris ce jour-là. Pour une période, utilise 23:59 le dernier jour.
 - Une information normale reste sur le site : importance normale et channels vide.
 - Une information importante propose push, et éventuellement email ; jamais SMS.

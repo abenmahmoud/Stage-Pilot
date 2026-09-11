@@ -1,4 +1,5 @@
 import { detectForbiddenSupportSecret } from "./support-secret-policy.js";
+import { parseSchoolCalendarDates, type SchoolCalendarDate } from "./school-calendar.js";
 export const WEEKLY_BRIEF_IMPORTANCE_LEVELS = ["normale", "importante", "urgente"] as const;
 export const WEEKLY_BRIEF_CHANNELS = ["push", "email", "sms"] as const;
 export const WEEKLY_BRIEF_CATEGORIES = ["Rentrée", "Vie du lycée", "Événement", "Orientation"] as const;
@@ -19,6 +20,7 @@ export type WeeklyBriefCard = {
   importance: WeeklyBriefImportance;
   channels: WeeklyBriefChannel[];
   eventDate: string;
+  calendarEvents?: SchoolCalendarDate[];
   expiresAt: string;
   featured: boolean;
   sourceExcerpt: string;
@@ -186,7 +188,9 @@ export function parseWeeklyBriefAssistInput(value: unknown): {
 }
 
 function parseCard(value: unknown): WeeklyBriefCard {
-  const card = exactRecord(value, CARD_FIELDS, "card_invalid");
+  const hasCalendar = Boolean(value && typeof value === "object" && Object.prototype.hasOwnProperty.call(value, "calendarEvents"));
+  const card = exactRecord(value, hasCalendar ? new Set([...CARD_FIELDS, "calendarEvents"]) : CARD_FIELDS, "card_invalid");
+  const calendarEvents = hasCalendar ? parseSchoolCalendarDates(card.calendarEvents).map(event => ({ ...event, title: text(event.title, "calendar_title_invalid", 1, 180), location: text(event.location, "calendar_location_invalid", 0, 180) })) : undefined;
   const key = text(card.key, "card_key_invalid", 2, 80);
   if (!KEY_PATTERN.test(key)) throw new Error("card_key_invalid");
   const importance = enumValue(card.importance, WEEKLY_BRIEF_IMPORTANCE_LEVELS, "importance_invalid");
@@ -203,6 +207,7 @@ function parseCard(value: unknown): WeeklyBriefCard {
     importance,
     channels: validChannels(card.channels, importance),
     eventDate,
+    ...(calendarEvents ? { calendarEvents } : {}),
     expiresAt,
     featured: card.featured === true,
     sourceExcerpt: text(card.sourceExcerpt, "source_excerpt_invalid", 1, 300),

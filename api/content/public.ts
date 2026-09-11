@@ -46,9 +46,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     } catch {
       throw new HttpError(400, "Pagination invalide");
     }
-    if (requestedSlug && scope !== "current") {
-      throw new HttpError(400, "Une archive doit être consultée depuis le flux.");
-    }
     if (cursor && cursor.scope !== scope) throw new HttpError(400, "Pagination invalide");
     const olderInSamePriority = cursor
       ? or(
@@ -168,6 +165,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         featured: content.featured,
         publishedAt: item.publishedAt,
         publishAt: content.publishAt,
+        calendarEvents: content.calendarEvents ?? [],
         assets: signedAssets.map(({ importKey: _importKey, ...asset }) => asset),
       };
     }));

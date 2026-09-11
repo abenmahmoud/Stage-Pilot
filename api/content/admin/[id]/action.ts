@@ -15,6 +15,7 @@ import {
 } from "../../../../shared/legacy-editorial-action.js";
 import { applyLegacyPreviewEditorialCorrections } from "../../../../shared/legacy-editorial-corrections.js";
 import { parseSiteContentInput } from "../../../../shared/site-content.js";
+import { parseSchoolCalendarDates } from "../../../../shared/school-calendar.js";
 import { projectSiteContentAdminMutationPayload } from "../../../../shared/site-content-admin-payload.js";
 import {
   siteContentActionAccess,
@@ -60,6 +61,12 @@ async function contentLinks(contentId: string) {
     .innerJoin(siteContentAssets, eq(siteContentAssets.id, siteContentAssetLinks.assetId))
     .where(eq(siteContentAssetLinks.contentId, contentId))
     .orderBy(asc(siteContentAssetLinks.position));
+}
+
+async function contentCalendar(contentId: string, version: number) {
+  const [row] = await db.select({ snapshot: siteContentVersions.snapshot }).from(siteContentVersions)
+    .where(and(eq(siteContentVersions.contentId, contentId), eq(siteContentVersions.version, version))).limit(1);
+  return parseSchoolCalendarDates((row?.snapshot as Record<string, unknown> | undefined)?.calendarEvents);
 }
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
@@ -117,6 +124,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           contentType: current.contentType,
           slug: current.slug,
           title: editorial.draft.title,
+          calendarEvents: await contentCalendar(id, current.version),
           summary: editorial.draft.summary,
           bodyMarkdown: editorial.draft.bodyMarkdown,
           category: current.category,
@@ -310,6 +318,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           .returning();
         const input = parseSiteContentInput({
           ...item,
+          calendarEvents: await contentCalendar(id, current.version),
           assets: links.map(({ status: _status, ...asset }) => asset),
         });
         await tx.insert(siteContentVersions).values({

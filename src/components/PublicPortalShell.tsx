@@ -1,6 +1,6 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { BarChart3, ChevronRight, CircleUserRound, Download, ExternalLink, GraduationCap, Headphones, Home, LifeBuoy, Mail, Menu, Newspaper, ShieldCheck, Smartphone, TicketCheck } from "lucide-react";
+import { BarChart3, CalendarDays, ChevronRight, CircleUserRound, Download, ExternalLink, GraduationCap, Headphones, Home, LifeBuoy, Mail, Menu, Newspaper, ShieldCheck, Smartphone, TicketCheck } from "lucide-react";
 import { PublicPortalFooter } from "./PublicPortalFooter";
 import { FlashPublicBulletin } from "./FlashPublicBulletin";
 import { EssufRadioControls } from "./EssufRadioControls";
@@ -21,6 +21,7 @@ const navigation = [
   { label: "Aide et demandes", icon: LifeBuoy, view: "help" as View },
   { label: "Mes demandes", icon: TicketCheck, view: "requests" as View },
   { label: "Vie du lycée", icon: Newspaper, view: "school" as View },
+  { label: "Calendrier", icon: CalendarDays, view: "calendar" as View },
 ];
 
 
@@ -213,7 +214,7 @@ export function PublicPortalShell({view, onNavigate, children, className = ""}: 
         {view !== "agent" ? <PublicPortalFooter /> : null}
 
         <nav className="lycee-bottom-nav" aria-label="Navigation mobile">
-          {navigation.map((item, index) => (
+          {navigation.filter((item) => item.view !== "calendar").map((item, index) => (
             <button
               className={view === item.view ? "is-active" : ""}
               aria-current={view === item.view ? "page" : undefined}

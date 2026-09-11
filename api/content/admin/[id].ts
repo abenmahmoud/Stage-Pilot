@@ -9,6 +9,7 @@ import {
   siteContentVersions,
 } from "../../../db/schema.js";
 import { parseSiteContentInput } from "../../../shared/site-content.js";
+import { parseSchoolCalendarDates } from "../../../shared/school-calendar.js";
 import {
   SITE_CONTENT_ADMIN_PAYLOAD_LIMITS,
   projectSiteContentAdminDetailPayload,
@@ -92,7 +93,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           .limit(SITE_CONTENT_ADMIN_PAYLOAD_LIMITS.versions),
       ]);
       const configuredOrigin = process.env.NEXT_PUBLIC_SUPABASE_URL ?? process.env.VITE_SUPABASE_URL;
-      return projectSiteContentAdminDetailPayload({ item, assets, versions }, configuredOrigin);
+      const [currentVersion] = await db.select({ snapshot: siteContentVersions.snapshot }).from(siteContentVersions)
+        .where(and(eq(siteContentVersions.contentId, id), eq(siteContentVersions.version, item.version))).limit(1);
+      const currentSnapshot = currentVersion?.snapshot as Record<string, unknown> | undefined;
+      return projectSiteContentAdminDetailPayload({ item: { ...item, calendarEvents: parseSchoolCalendarDates(currentSnapshot?.calendarEvents) }, assets, versions }, configuredOrigin);
     });
   }
 
@@ -108,6 +112,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       }
       const [current] = await db.select().from(siteContentItems).where(eq(siteContentItems.id, id)).limit(1);
       if (!current) throw new HttpError(404, "Contenu introuvable");
+      // An older client may not send this optional field; preserve its dates.
+      if (!Object.prototype.hasOwnProperty.call(req.body, "calendarEvents")) {
+        const [previous] = await db.select({ snapshot: siteContentVersions.snapshot }).from(siteContentVersions)
+          .where(and(eq(siteContentVersions.contentId, id), eq(siteContentVersions.version, current.version))).limit(1);
+        input.calendarEvents = parseSchoolCalendarDates((previous?.snapshot as Record<string, unknown> | undefined)?.calendarEvents);
+      }
       if (current.status === "archive") {
         throw new HttpError(409, "Restaurez d’abord ce contenu archivé");
       }

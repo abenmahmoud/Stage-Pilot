@@ -1,5 +1,5 @@
 export const PUBLIC_PORTAL_VIEWS = [
-  "home", "services", "help", "collect", "requests", "school", "news", "agent", "trust",
+  "home", "services", "help", "collect", "requests", "school", "news", "calendar", "agent", "trust",
 ] as const;
 
 export type PublicPortalView = (typeof PUBLIC_PORTAL_VIEWS)[number];
@@ -19,6 +19,7 @@ export const PUBLIC_PORTAL_TITLES: Record<PublicPortalView, string> = {
   requests: "Suivre une demande · Lycée Blaise Cendrars",
   school: "Formations et vie du lycée · Blaise Cendrars",
   news: "À la une · Lycée Blaise Cendrars",
+  calendar: "Calendrier · Lycée Blaise Cendrars",
   agent: "Espace agent · Lycée Blaise Cendrars",
   trust: "Confidentialité · Lycée Blaise Cendrars",
 };

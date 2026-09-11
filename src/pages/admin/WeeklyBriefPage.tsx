@@ -1,5 +1,6 @@
 import { useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
+import { CalendarDatesEditor } from "../../components/CalendarDatesEditor";
 import {
   AlertCircle,
   BellRing,
@@ -237,6 +238,7 @@ export default function WeeklyBriefPage() {
         publishAt: null,
         expiresAt: card.expiresAt,
         assets: [],
+        calendarEvents: card.calendarEvents ?? [{ key: card.key, title: card.title, startDate: card.eventDate, endDate: card.eventDate, startTime: null, endTime: null, location: "" }],
       }),
     });
     const parsed = parseSiteContentAdminMutationPayload(response, { action: "create" });
@@ -451,9 +453,9 @@ export default function WeeklyBriefPage() {
                           {IMPORTANCE.map((importance) => <option key={importance.value} value={importance.value}>{importance.label} · {importance.help}</option>)}
                         </select>
                       </label>
-                      <label className="text-xs font-semibold text-slate-600">Date de l’événement
-                        <input type="date" value={card.eventDate} onChange={(event) => updateCard(index, { eventDate: event.target.value })} className="mt-1.5 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm text-slate-900" />
-                      </label>
+                      <div className="text-xs font-semibold text-slate-600">Première date
+                        <p className="mt-1.5 py-2.5 text-sm text-slate-900">{readableDate(card.eventDate)} · modifiable dans le calendrier ci-dessous</p>
+                      </div>
                       <label className="text-xs font-semibold text-slate-600">Expiration
                         <input type="datetime-local" value={localDateTime(card.expiresAt)} onChange={(event) => {
                           const date = new Date(event.target.value);
@@ -498,6 +500,7 @@ export default function WeeklyBriefPage() {
                       {card.error && <p role="alert" className="text-sm font-semibold text-rose-700">{card.error}</p>}
                     </div>
                   </div>
+                  <div className="mt-5"><CalendarDatesEditor articleTitle={card.title} value={card.calendarEvents ?? [{ key: card.key, title: card.title, startDate: card.eventDate, endDate: card.eventDate, startTime: null, endTime: null, location: "" }]} onChange={calendarEvents => updateCard(index, { calendarEvents, ...(calendarEvents.length ? { eventDate: [...calendarEvents].map(event => event.startDate).filter(Boolean).sort()[0] || card.eventDate } : {}) })} /></div>
                 </article>
               ))}
             </div>

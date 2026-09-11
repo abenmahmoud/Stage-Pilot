@@ -54,6 +54,9 @@ const suggestion = {
 };
 
 assert.deepEqual(parseWeeklyBriefSuggestion(suggestion), suggestion);
+const calendarEvents = [{key:'mathematiques',title:'Tests de mathématiques',startDate:'2026-09-14',endDate:'2026-09-18',startTime:null,endTime:null,location:''},{key:'francais',title:'Tests de français',startDate:'2026-09-21',endDate:'2026-09-25',startTime:null,endTime:null,location:''}];
+assert.deepEqual(parseWeeklyBriefSuggestion({...suggestion,cards:[{...suggestion.cards[0],calendarEvents}]}).cards[0].calendarEvents,calendarEvents);
+assert.throws(()=>parseWeeklyBriefSuggestion({...suggestion,cards:[{...suggestion.cards[0],calendarEvents:[{...calendarEvents[0],startTime:'25:00'}]}]}));
 assert.equal(weeklyAudienceGroupRef("parents"), "public:parents");
 assert.throws(() => parseWeeklyBriefSuggestion({
   ...suggestion,

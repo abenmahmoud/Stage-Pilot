@@ -10,6 +10,7 @@ import {
 } from "./site-content.js";
 import type { SiteContentAction } from "./site-content-policy.js";
 import { isAllowedPublicContentSignedUrlForOrigin } from "./public-content-signed-url.js";
+import { parseSchoolCalendarDates, type SchoolCalendarDate } from "./school-calendar.js";
 
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const ISO_PATTERN = /^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}\.[0-9]{3}Z$/;
@@ -114,6 +115,7 @@ export type SiteContentAdminDetail = {
   metaDescription: string | null;
   publishAt: string | null;
   expiresAt: string | null;
+  calendarEvents?: SchoolCalendarDate[];
   sourceSystem: SourceSystem | null;
   sourceUrl: string | null;
   sourceUpdatedAt: string | null;
@@ -317,7 +319,10 @@ export function parseSiteContentAdminAsset(value: unknown): SiteContentAdminAsse
 }
 
 function parseDetail(value: unknown): SiteContentAdminDetail | null {
-  const row = exactRecord(value, [
+  const supplied = record(value);
+  let calendarEvents: SchoolCalendarDate[];
+  try { calendarEvents = parseSchoolCalendarDates(supplied?.calendarEvents); } catch { return null; }
+  const row = exactRecord(supplied ? Object.fromEntries(Object.entries(supplied).filter(([key]) => key !== "calendarEvents")) : value, [
     "id", "contentType", "slug", "title", "summary", "bodyMarkdown", "category",
     "audience", "status", "templateId", "featured", "metaTitle", "metaDescription",
     "publishAt", "expiresAt", "sourceSystem", "sourceUrl", "sourceUpdatedAt",
@@ -358,6 +363,7 @@ function parseDetail(value: unknown): SiteContentAdminDetail | null {
     templateId, featured: row.featured, metaTitle, metaDescription, publishAt, expiresAt,
     sourceSystem, sourceUrl, sourceUpdatedAt, sourceDisposition,
     needsReview: row.needsReview, importedAt, reviewedAt,
+    ...(supplied && "calendarEvents" in supplied ? { calendarEvents } : {}),
   };
 }
 
@@ -553,6 +559,7 @@ export function projectSiteContentAdminDetailPayload(
       metaDescription: row?.metaDescription ?? null,
       publishAt: nullableProjectedTimestamp(row?.publishAt),
       expiresAt: nullableProjectedTimestamp(row?.expiresAt),
+      calendarEvents: parseSchoolCalendarDates(row?.calendarEvents),
       sourceSystem: row?.sourceSystem ?? null,
       sourceUrl: row?.sourceUrl ?? null,
       sourceUpdatedAt: nullableProjectedTimestamp(row?.sourceUpdatedAt),

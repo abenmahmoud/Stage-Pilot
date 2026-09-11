@@ -96,6 +96,7 @@ function detailItem(overrides = {}) {
     needsReview: false,
     importedAt: null,
     reviewedAt: null,
+    calendarEvents: [],
     ...overrides,
   };
 }
@@ -125,6 +126,15 @@ test("accepts exact bounded list and detail payloads", () => {
     parseSiteContentAdminDetailPayload(detail(), { itemId: ITEM_ID, configuredOrigin: ORIGIN }),
     detail(),
   );
+});
+
+test("dates de calendrier bornées et compatibilité des anciens éditeurs", () => {
+  const legacy = detail(); delete legacy.item.calendarEvents;
+  assert.ok(parseSiteContentAdminDetailPayload(legacy, { itemId: ITEM_ID, configuredOrigin: ORIGIN }));
+  const date = { key: "reunion", title: "Réunion", startDate: "2026-09-14", endDate: "2026-09-14", startTime: null, endTime: null, location: "" };
+  const payload = detail({item:detailItem({calendarEvents:[date]})});
+  assert.deepEqual(parseSiteContentAdminDetailPayload(payload, {itemId:ITEM_ID, configuredOrigin:ORIGIN}).item.calendarEvents,[date]);
+  assert.equal(parseSiteContentAdminDetailPayload(detail({item:detailItem({calendarEvents:[{...date,startDate:"2026-02-30"}]})}), {itemId:ITEM_ID,configuredOrigin:ORIGIN}),null);
 });
 
 test("rejects internal fields, duplicate rows and oversized collections", () => {

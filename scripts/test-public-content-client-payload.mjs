@@ -60,7 +60,8 @@ test("accepts signed media only from the configured private content bucket", () 
 });
 
 test("validates the dedicated article response and binds it to the requested slug", () => {
-  assert.match(articlePage, /readPublicContentPagePayload\(response, slug\)/);
+  assert.match(articlePage, /readPublicContentPagePayload\(response, slug, scope\)/);
+  assert.match(client, /readPublicContentPayload\(response, expectedScope\)/);
   assert.doesNotMatch(articlePage, /response\.json\(\)/);
   assert.match(client, /payload\.items\.length > 1/);
   assert.match(client, /payload\.nextCursor !== null/);

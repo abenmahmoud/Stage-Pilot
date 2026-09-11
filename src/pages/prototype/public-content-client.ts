@@ -1,4 +1,5 @@
 import { readJsonApiResponse } from "../../../shared/json-api-response";
+import { parseSchoolCalendarDates, type SchoolCalendarDate } from "../../../shared/school-calendar";
 import { isAllowedPublicContentSignedUrlForOrigin } from "../../../shared/public-content-signed-url";
 
 export type PublicContentAsset = {
@@ -27,6 +28,7 @@ export type PublicContent = {
   publishedAt: string;
   publishAt: string | null;
   assets: PublicContentAsset[];
+  calendarEvents?: SchoolCalendarDate[];
 };
 
 export type PublicContentScope = "current" | "expired";
@@ -87,6 +89,7 @@ function isPublicContentAsset(value: unknown): value is PublicContentAsset {
 
 function isPublicContent(value: unknown): value is PublicContent {
   if (!isRecord(value)) return false;
+  try { parseSchoolCalendarDates(value.calendarEvents); } catch { return false; }
   return typeof value.id === "string"
     && /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value.id)
     && ["article", "alerte", "page", "document"].includes(String(value.contentType))
@@ -134,12 +137,13 @@ export async function readPublicContentPayload(
 
 export async function readPublicContentPagePayload(
   response: Response,
-  expectedSlug: string
+  expectedSlug: string,
+  expectedScope: PublicContentScope = "current"
 ): Promise<PublicContent | null> {
   if (!isBoundedString(expectedSlug, 140) || !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(expectedSlug)) {
     throw new Error("L’adresse de cette page est invalide.");
   }
-  const payload = await readPublicContentPayload(response);
+  const payload = await readPublicContentPayload(response, expectedScope);
   if (payload.nextCursor !== null || payload.items.length > 1) {
     throw new Error("La réponse de cette page est invalide.");
   }

@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { SchoolParentsMeeting } from "../../components/SchoolParentsMeeting";
+import SchoolCalendarPage, { HomeCalendarPreview } from "./SchoolCalendarPage";
 import { ChromebookNotice } from "../../components/ChromebookNotice";
 import { chromebookQuestion } from "../../../shared/chromebook-information";
 import { chromebookReferenceAnswer } from "../../../shared/chromebook-assistant";
@@ -701,6 +702,7 @@ export default function LyceeConnectPrototype() {
         <div className="lycee-content">
           <ChromebookNotice />
           <SchoolParentsMeeting />
+          <HomeCalendarPreview />
           <section className="lycee-assistant" aria-labelledby="lycee-assistant-title">
             <div className="lycee-assistant-heading">
               <span className="lycee-ai-icon"><Bot aria-hidden="true" /></span>
@@ -852,6 +854,7 @@ export default function LyceeConnectPrototype() {
         {view === "services" && <ServicesView onHelp={startHelp} onCollect={() => changeView("collect")} onBack={() => changeView("home")} />}
         {view === "school" && <SchoolView onBack={() => changeView("home")} onHelp={startHelp} />}
         {view === "news" && <NewsView onBack={() => changeView("home")} />}
+        {view === "calendar" && <SchoolCalendarPage />}
         {view === "agent" && <AgentView onBack={() => changeView("home")} />}
         {view === "trust" && <TrustView onBack={() => changeView("home")} />}
 
@@ -974,6 +977,7 @@ function NewsView({ onBack }: { onBack: () => void }) {
           <Archive aria-hidden="true" /> Archives
         </button>
       </div>
+      <div className="school-calendar-article-links"><Link to="/?view=calendar"><CalendarDays aria-hidden="true" /> Voir le calendrier du lycée</Link></div>
       {loading ? <div className="lycee-loading-state"><RefreshCw aria-hidden="true" /> Chargement des informations…</div> : null}
       {error ? <div className="lycee-form-error"><CircleAlert aria-hidden="true" />{error}</div> : null}
       {!loading && !error && items.length > 0 ? (
@@ -1012,6 +1016,7 @@ function NewsView({ onBack }: { onBack: () => void }) {
               <h2>{selected.title}</h2>
               <time dateTime={selected.publishedAt ?? undefined}>{publicContentDateLabel(selected.publishedAt)}</time>
               {selected.summary ? <p className="lycee-news-summary">{selected.summary}</p> : null}
+              {selected.calendarEvents?.length ? <div className="school-calendar-article-links"><Link to={`/?view=calendar&date=${selected.calendarEvents[0].startDate}`}><CalendarDays aria-hidden="true" /> Retrouver les dates dans le calendrier</Link></div> : null}
               </div>
             </header>
             <div className="lycee-news-feature-body">

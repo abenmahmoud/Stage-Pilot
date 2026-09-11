@@ -43,6 +43,7 @@ export function contentSnapshot(
     expiresAt: input.expiresAt?.toISOString() ?? null,
     status,
     assets: input.assets,
+    calendarEvents: input.calendarEvents ?? [],
     version,
   };
 }

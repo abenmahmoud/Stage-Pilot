@@ -1,3 +1,4 @@
+import { parseSchoolCalendarDates, type SchoolCalendarDate } from "./school-calendar.js";
 export const SITE_CONTENT_TYPES = ["article", "alerte", "page", "document"] as const;
 export const SITE_CONTENT_STATUSES = ["brouillon", "a_valider", "publie", "archive"] as const;
 export const SITE_CONTENT_AUDIENCES = ["tous", "eleves", "parents", "personnels", "professeurs"] as const;
@@ -30,6 +31,7 @@ export type SiteContentInput = {
   publishAt: Date | null;
   expiresAt: Date | null;
   assets: SiteContentAssetLinkInput[];
+  calendarEvents?: SchoolCalendarDate[];
 };
 
 export type SiteContentTemplateInput = {
@@ -171,6 +173,7 @@ export function parseSiteContentInput(value: unknown): SiteContentInput {
     publishAt,
     expiresAt,
     assets: parseAssetLinks(input.assets),
+    calendarEvents: parseSchoolCalendarDates(input.calendarEvents),
   };
 }
 
