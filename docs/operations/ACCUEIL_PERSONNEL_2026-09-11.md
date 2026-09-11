@@ -1,6 +1,6 @@
 # Accueil « Pour moi, aujourd’hui » — 11 septembre 2026
 
-Lot 002/T074C demandé par Adel après la publication du calendrier. En cours de recette ; ne pas confondre développement et publication.
+Lot 002/T074C demandé par Adel après la publication du calendrier. Livré et vérifié sur le domaine du lycée.
 
 ## Parcours et périmètre
 
@@ -36,4 +36,4 @@ Browser plugin non disponible dans cette session : recette navigateur avec Playw
 
 Version fonctionnelle `6480144` publiée : déploiement `dpl_BrDqJ13FLcvuf4MYf3KkZLQFzTsY` READY, URL immuable `https://lyceegest-e250mdcwu-safe-scol.vercel.app`, domaine principal confirmé. Recette publique réelle sur les deux adresses en 1440/390/320 px : entrée anonyme → identification → retour accueil, calendrier conservé, zéro erreur JavaScript et zéro écriture API. GET personnel sans identité renvoie uniquement `status: unavailable`, paramètres interdits refusés en 400, réponses sans cache. Aucun OTP réel n’a été envoyé.
 
-Un dernier ajustement visuel masque, uniquement dans cette entrée dédiée, le lien de sortie redondant de la carte d’identité : « Continuer dans le chat » reste disponible en dessous. « Réessayer » oublie un ancien choix d’enfant pour récupérer les choix de la session actuelle. Build, gate et recette locale rejoués ; reprise après refus 403 de l’ancien choix vérifiée dans les trois formats. Publication de cet ajustement à confirmer.
+Le correctif `db5a199` masque, uniquement dans cette entrée dédiée, le lien de sortie redondant de la carte d’identité : « Continuer dans le chat » reste disponible en dessous. « Réessayer » oublie un ancien choix d’enfant pour récupérer les choix de la session actuelle. Build, gate et recette locale rejoués ; reprise après refus 403 de l’ancien choix vérifiée dans les trois formats. Déploiement `dpl_AHYpQXkNpWZkvXUNZWwUQUd2wmsT` READY, URL immuable `https://lyceegest-3lfwquy3w-safe-scol.vercel.app`, domaine principal affecté. Les contrôles publics réels ont été rejoués avec succès sur les deux adresses, dont absence du doublon visuel, 1440/390/320 px, cinq réponses API attendues, aucun appel d’écriture et aucune erreur JavaScript. T074C close.
