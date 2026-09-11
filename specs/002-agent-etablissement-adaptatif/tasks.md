@@ -1396,3 +1396,5 @@
   Ajustement du 11 septembre demandé par Adel : phrase de présentation Spotify et bouton « Découvrir la radio » retirés de la bienvenue ; lecteur et reste du portail conservés. Recette ciblée documentée dans RADIO_SPOTIFY_2026-09-11.md.
 
 - [x] T071H Récupérer l’hebdo de la proviseure et préparer les mises à jour sourcées du site. Gmail vérifié, premier lot de huit brouillons enregistré dans l’administration avec versions et audits ; rejeux sans doublon et confidentialité vérifiés. Suivi Codex vendredi 18 h 30 actif. Publication et alimentation de l’agent uniquement après validation humaine ; ce suivi dépend de Codex, sans connecteur serveur permanent. Preuves : docs/operations/HEBDO_GMAIL_2026-09-11.md.
+
+- [ ] T074A Illustrer les articles avec des photographies cohérentes et ajouter l’accès « À la une » à droite de l’aide sur l’accueil. Collection de six thèmes, couverture de l’éditeur prioritaire, aperçu administratif commun et adaptation mobile. Vérification/publication : docs/operations/ACTUALITES_VISUELLES_2026-09-11.md.

@@ -68,6 +68,7 @@ import {
 import { supabase } from "../../lib/supabase-browser";
 import { apiFetch } from "../../lib/api";
 import { PublicContentMarkdown } from "../../components/PublicContentMarkdown";
+import { NewsPhoto } from "../../components/NewsPhoto";
 import { SupportAccessRecovery } from "./SupportAccessRecovery";
 import { SupportRequestOverview } from "./SupportRequestOverview";
 import { latestRequesterMessage, type SupportWorkSection } from "../../../shared/support-request-focus";
@@ -682,11 +683,18 @@ export default function LyceeConnectPrototype() {
             <div className="lycee-hero-tracks" role="list" aria-label="Parcours proposés">
               <span role="listitem">Général</span><span role="listitem">Technologique</span><span role="listitem">Professionnel</span><span role="listitem">CAP</span>
             </div>
+            <div className="lycee-hero-actions">
             <button className="lycee-hero-help" type="button" onClick={() => startHelp()}>
               <MessageCircleMore aria-hidden="true" />
               <span><strong>Besoin d’aide&nbsp;?</strong><small>Parler à l’assistant du lycée</small></span>
               <ChevronRight aria-hidden="true" />
             </button>
+            <button className="lycee-hero-help lycee-hero-news" type="button" onClick={() => changeView("news")}>
+              <Newspaper aria-hidden="true" />
+              <span><strong>À la une</strong><small>Les actualités du lycée</small></span>
+              <ChevronRight aria-hidden="true" />
+            </button>
+            </div>
           </div>
         </section>
 
@@ -942,7 +950,6 @@ function NewsView({ onBack }: { onBack: () => void }) {
   const categories = publicContentFeedCategories(items);
   const filteredItems = filterPublicContentFeed(items, query, category);
   const selected = filteredItems.find((item) => item.id === selectedId) ?? filteredItems[0];
-  const selectedImage = selected?.assets.find((asset) => asset.assetKind === "image" && asset.signedUrl);
   const selectedDocuments = selected?.assets.filter((asset) => asset.assetKind === "document" && asset.signedUrl) ?? [];
   const changeScope = (nextScope: PublicContentScope) => {
     if (nextScope === scope) return;
@@ -998,17 +1005,28 @@ function NewsView({ onBack }: { onBack: () => void }) {
       {selected ? (
         <>
           <article className="lycee-news-feature">
-            {selectedImage ? <img src={selectedImage.signedUrl ?? ""} alt={selectedImage.altText ?? ""} /> : null}
-            <div>
+            <header className="lycee-news-feature-heading">
+              <NewsPhoto content={selected} />
+              <div>
               <span>{scope === "expired" ? "Archive · " : selected.featured ? "À retenir · " : ""}{selected.category}</span>
               <h2>{selected.title}</h2>
               <time dateTime={selected.publishedAt ?? undefined}>{publicContentDateLabel(selected.publishedAt)}</time>
               {selected.summary ? <p className="lycee-news-summary">{selected.summary}</p> : null}
+              </div>
+            </header>
+            <div className="lycee-news-feature-body">
               <div className="lycee-public-markdown"><PublicContentMarkdown>{selected.bodyMarkdown}</PublicContentMarkdown></div>
               {selectedDocuments.length ? <div className="lycee-news-documents">{selectedDocuments.map((asset) => <a key={asset.id} href={asset.signedUrl ?? "#"} target="_blank" rel="noreferrer"><FileText aria-hidden="true" /><span><strong>{asset.label}</strong><small>{asset.originalName}</small></span><ExternalLink aria-hidden="true" /></a>)}</div> : null}
             </div>
           </article>
-          {filteredItems.length > 1 ? <section className="lycee-news-list" aria-labelledby="news-list-title"><div className="lycee-section-title"><div><span className="lycee-eyebrow">Toutes les informations</span><h2 id="news-list-title">Publié par le lycée</h2></div></div><div>{filteredItems.map((item) => { const image = item.assets.find((asset) => asset.assetKind === "image" && asset.signedUrl); return <button className={item.id === selected.id ? "is-active" : ""} type="button" key={item.id} onClick={() => { setSelectedId(item.id); window.scrollTo({ top: 0, behavior: "smooth" }); }}>{image ? <img src={image.signedUrl ?? ""} alt="" /> : <span><Newspaper aria-hidden="true" /></span>}<div><small>{scope === "expired" ? "Archive · " : item.featured ? "À retenir · " : ""}{item.category}</small><strong>{item.title}</strong><time dateTime={item.publishedAt ?? undefined}>{publicContentDateLabel(item.publishedAt)}</time><p>{item.summary}</p></div><ChevronRight aria-hidden="true" /></button>; })}</div></section> : null}
+          {filteredItems.length > 1 ? <section className="lycee-news-list" aria-labelledby="news-list-title">
+            <div className="lycee-section-title"><div><h2 id="news-list-title">Toutes les actualités</h2></div></div>
+            <div>{filteredItems.map((item) => <button className={item.id === selected.id ? "is-active" : ""} aria-pressed={item.id === selected.id} type="button" key={item.id} onClick={() => { setSelectedId(item.id); window.scrollTo({ top: 0, behavior: "smooth" }); }}>
+              <NewsPhoto content={item} compact />
+              <div><small>{scope === "expired" ? "Archive · " : item.featured ? "À retenir · " : ""}{item.category}</small><strong>{item.title}</strong><time dateTime={item.publishedAt ?? undefined}>{publicContentDateLabel(item.publishedAt)}</time><p>{item.summary}</p></div>
+              <ChevronRight aria-hidden="true" />
+            </button>)}</div>
+          </section> : null}
         </>
       ) : null}
       {!loading && !error && nextCursor ? (

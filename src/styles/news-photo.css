@@ -1,0 +1,4 @@
+.news-photo { position: relative; min-width: 0; margin: 0; overflow: hidden; background: #edf1f5; }
+.news-photo img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.news-photo figcaption { position: absolute; right: 9px; bottom: 9px; margin: 0; padding: 3px 7px; border-radius: 5px; background: rgba(255,255,255,.94); color: #42536a; font: 500 10px/1.5 "DM Sans",sans-serif; }
+.news-photo--compact { aspect-ratio: 1; border-radius: 9px; }

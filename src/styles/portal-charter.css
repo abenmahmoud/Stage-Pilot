@@ -108,6 +108,51 @@
   .lycee-connect :is(input,textarea,select) { font-size: 16px; }
   .lycee-connect .lycee-public-footer { margin-inline: 16px; }
 }
+/* Two equally accessible entrances, including on the smallest phones. */
+.lycee-connect .lycee-hero-actions { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 12px; max-width: 590px; margin-top: 24px; }
+.lycee-connect .lycee-hero-actions .lycee-hero-help { width: 100%; min-width: 0; max-width: none; margin: 0; min-height: 64px; border-radius: 10px; gap: 10px; box-shadow: 0 6px 20px #071c3320; }
+.lycee-connect .lycee-hero-news { background: #eaf1ff; border-color: #eaf1ff; }
+.lycee-connect .lycee-hero-actions strong { font-size: 14px; }
+.lycee-connect .lycee-hero-actions small { font-size: 11px; line-height: 1.4; }
+
+/* Compact editorial photography, shared by the feed and article pages. */
+.lycee-connect .lycee-news-feature { border-radius: var(--school-radius); }
+.lycee-connect .lycee-news-feature-heading { display: grid; grid-template-columns: minmax(220px, .8fr) minmax(0, 1.4fr); gap: 28px; padding: 24px 24px 0; align-items: center; }
+.lycee-connect .lycee-news-feature-heading > .news-photo { width: 100%; aspect-ratio: 3/2; max-height: 250px; border-radius: 10px; }
+.lycee-connect .lycee-news-feature-heading > div { min-width: 0; padding: 6px 4px; }
+.lycee-connect .lycee-news-feature-heading > div > span { color: var(--lc-muted); font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; }
+.lycee-connect .lycee-news-feature h2 { font-size: clamp(23px, 2.2vw, 30px); line-height: 1.2; letter-spacing: -.025em; text-wrap: pretty; }
+.lycee-connect .lycee-news-feature time { font-size: 12px; font-weight: 500; }
+.lycee-connect .lycee-news-summary { font-size: 15px; line-height: 1.65; }
+.lycee-connect .lycee-news-feature > .lycee-news-feature-body { max-width: none; padding: 24px 28px 28px; }
+.lycee-connect .lycee-news-feature-body .lycee-public-markdown { font-size: 16px; line-height: 1.8; }
+.lycee-connect .lycee-news-list button { grid-template-columns: 94px minmax(0,1fr) 16px; gap: 14px; padding: 12px; border-radius: 12px; }
+.lycee-connect .lycee-news-list button > .news-photo { width: 94px; height: 94px; }
+.lycee-connect .lycee-news-list strong { display: -webkit-box; font-size: 14px; line-height: 1.4; white-space: normal; -webkit-box-orient: vertical; -webkit-line-clamp: 3; }
+.lycee-connect .lycee-news-list small { font-size: 10px; color: var(--lc-muted); }
+.lycee-connect .lycee-news-list time { font-size: 11px; }
+.lycee-connect .lycee-news-list p { font-size: 12px; }
+.lycee-connect .lycee-news-list button:hover { border-color: #9cb6db; background: #f6f9fe; }
+.lycee-connect .lycee-article-photo { aspect-ratio: 5/2; max-height: 280px; margin-bottom: 24px; border-radius: 10px; }
+@media (max-width: 1100px) {
+  .lycee-connect .lycee-hero-actions .lycee-hero-help { grid-template-columns: 22px minmax(0,1fr); }
+  .lycee-connect .lycee-hero-actions .lycee-hero-help > svg:last-child { display: none; }
+}
+@media (max-width: 640px) {
+  .lycee-connect .lycee-hero-actions { gap: 10px; margin-top: 22px; }
+  .lycee-connect .lycee-hero-actions .lycee-hero-help { gap: 8px; min-height: 70px; padding: 10px; }
+  .lycee-connect .lycee-hero-actions strong { font-size: 13px; }
+  .lycee-connect .lycee-hero-actions small { font-size: 10px; }
+  .lycee-connect .lycee-news-feature-heading { grid-template-columns: 1fr; gap: 16px; padding: 14px 14px 0; }
+  .lycee-connect .lycee-news-feature-heading > .news-photo { aspect-ratio: 2/1; max-height: 180px; }
+  .lycee-connect .lycee-news-feature-heading > div { padding: 0 4px; }
+  .lycee-connect .lycee-news-feature > .lycee-news-feature-body { padding: 16px 18px 22px; }
+  .lycee-connect .lycee-news-feature h2 { font-size: 24px; }
+  .lycee-connect .lycee-news-list button { grid-template-columns: 80px minmax(0,1fr) 14px; gap: 10px; padding: 10px; }
+  .lycee-connect .lycee-news-list button > .news-photo { width: 80px; height: 88px; }
+  .lycee-connect .lycee-news-list p { display: none; }
+  .lycee-connect .lycee-article-photo { aspect-ratio: 2/1; margin-bottom: 20px; }
+}
 @media print {
   .lycee-connect :is(.lycee-sidebar,.lycee-topbar,.lycee-bottom-nav,.lycee-mobile-menu,.lycee-breadcrumb) { display: none !important; }
   .lycee-connect, .lycee-connect .lycee-workspace { display: block; padding: 0; background: white; }
