@@ -36,11 +36,15 @@
   minutes, blocages, erreurs, dernier reçu antivirus et fonds WordPress non
   rescanné. Une panne de cette lecture n'interrompt pas l'édition et aucun nom,
   chemin privé, acteur ou contenu de fichier n'est transmis au navigateur.
-- [ ] T009C2A Corriger le chargement de cette supervision sur PostgreSQL :
+- [x] T009C2A Corriger le chargement de cette supervision sur PostgreSQL :
   transmettre le seuil de quinze minutes au format UTC sérialisé et décoder
   les dates agrégées avec les codecs Drizzle. Vérifier le contrat réel de la
   route, les états vides et l'absence de lecture sans rôle éditeur, puis publier
   le correctif sans masquer les médias historiques encore à rescanner.
+  Huit tests dédiés, build, gate et parcours fictifs 1440/390 réussis ;
+  cc86f33 déployé READY sur le domaine principal le 12 septembre 2026.
+  Détails et limite de recette distante :
+  `docs/operations/CONTROLE_FICHIERS_2026-09-12.md`.
 - [x] T009C3 Exécuter le véritable worker éditorial sur une pile locale rejouant
   les 93 migrations, avec PostgreSQL, PGMQ, Storage privé et ClamAV épinglé.
   Vérifier un PDF sain, un DOCX EICAR bloqué, la reprise après panne scanner,

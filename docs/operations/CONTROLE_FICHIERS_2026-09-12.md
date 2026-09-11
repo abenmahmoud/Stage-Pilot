@@ -34,7 +34,20 @@ Aucun changement de droits, d'état de fichier, de contenu ou de worker.
   aucune écriture API. Captures relues. Preuves hors Git :
   `Infos_personnelles_2026-09-12/file-health/` et logs `Controle-fichiers-*`.
   Il s'agit d'une recette fictive locale, pas d'une connexion réelle à un
-  compte éditeur distant. Mise en ligne à compléter après confirmation.
+  compte éditeur distant.
+
+## Mise en ligne confirmée
+
+Commit cc86f33303d49f56395c59e89817eefc9b6fe6bd, déploiement
+`dpl_7GVFoTbdF3KJjvQqGq9LYg7JWXuj` READY. Domaine principal associé au correctif.
+URL immuable : https://lyceegest-ekrxhk6rr-safe-scol.vercel.app.
+Les deux adresses passent les contrôles HTTP en lecture seule : accueil et
+administration 200, supervision anonyme 401 sans compteurs et sans cache,
+méthode non autorisée 405 avec Allow: GET. Aucun compte éditeur distant n'était
+accessible dans le navigateur connecté ; l'affichage authentifié a été testé
+localement, les compteurs distants vérifiés par SQL agrégé. Le premier
+rafraîchissement dans la session d'Adel reste la confirmation visuelle réelle.
+T009C2A close ; T009C reste ouverte pour l'exploitation antivirus et le rescan.
 
 ## Livraison et retour arrière
 
