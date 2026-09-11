@@ -11,13 +11,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   return handleApi(res, async () => {
     await requireSiteEditor(req);
-    const waitingSince = new Date(Date.now() - 15 * 60 * 1000);
+    // Raw SQL parameters do not inherit the timestamp column's Date encoder.
+    const waitingSince = new Date(Date.now() - 15 * 60 * 1000).toISOString();
     const [stats] = await db
       .select({
         total: sql<number>`count(*)`.mapWith(Number),
         pending: sql<number>`count(*) filter (where ${siteContentAssets.status} = 'pending')`.mapWith(Number),
         quarantine: sql<number>`count(*) filter (where ${siteContentAssets.status} = 'quarantine')`.mapWith(Number),
-        quarantineOver15m: sql<number>`count(*) filter (where ${siteContentAssets.status} = 'quarantine' and ${siteContentAssets.updatedAt} < ${waitingSince})`.mapWith(Number),
+        quarantineOver15m: sql<number>`count(*) filter (where ${siteContentAssets.status} = 'quarantine' and ${siteContentAssets.updatedAt} < ${waitingSince}::timestamptz)`.mapWith(Number),
         ready: sql<number>`count(*) filter (where ${siteContentAssets.status} = 'ready')`.mapWith(Number),
         blocked: sql<number>`count(*) filter (where ${siteContentAssets.status} = 'blocked')`.mapWith(Number),
         scanError: sql<number>`count(*) filter (where ${siteContentAssets.status} = 'scan_error')`.mapWith(Number),
@@ -31,8 +32,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
               or ${siteContentAssets.scannedAt} is null
             )
         )`.mapWith(Number),
-        oldestQuarantineAt: sql<Date | null>`min(${siteContentAssets.updatedAt}) filter (where ${siteContentAssets.status} = 'quarantine')`,
-        lastScanAt: sql<Date | null>`max(${siteContentAssets.scannedAt})`,
+        oldestQuarantineAt: sql<Date | null>`min(${siteContentAssets.updatedAt}) filter (where ${siteContentAssets.status} = 'quarantine')`.mapWith(siteContentAssets.updatedAt),
+        lastScanAt: sql<Date | null>`max(${siteContentAssets.scannedAt})`.mapWith(siteContentAssets.scannedAt),
       })
       .from(siteContentAssets);
 
