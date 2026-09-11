@@ -11,7 +11,7 @@ export function publicCalendarEvents(item: Publication, snapshot: unknown, month
   const publishedAt = new Date(item.publishedAt);
   if (!Number.isFinite(publishedAt.getTime()) || publishedAt > now) return [];
   const content = parseSiteContentInput(snapshot);
-  if (content.audience !== "tous" || (content.publishAt && content.publishAt > now)) return [];
+  if (content.audience !== "tous" || content.targeting || (content.publishAt && content.publishAt > now)) return [];
   return (content.calendarEvents ?? [])
     .filter(event => event.startDate <= bounds.end && event.endDate >= bounds.start)
     .map(event => ({ ...event, id: `${item.id}:${event.key}`, articleId: item.id,

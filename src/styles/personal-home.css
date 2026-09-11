@@ -39,3 +39,36 @@
 @media(max-width:760px){.school-personal-heading{align-items:flex-start;flex-direction:column;gap:12px}.school-personal-access{display:flex;align-items:center;justify-content:space-between;width:100%;gap:12px}.school-personal-heading p{font-size:14px}.school-personal-panels{display:block;padding:0;background:none;border:0}.school-personal-schedule,.school-personal-requests{background:#fff;border:1px solid #dbe3ec;border-radius:14px;padding:18px}.school-personal-requests{margin-top:16px}.school-personal-panels h3{font-size:20px;margin-bottom:16px}.school-personal-courses li{gap:16px}.school-personal-courses li>span{font-size:13px;padding-left:9px}.school-personal-courses strong{font-size:15px}.school-personal-courses small{font-size:13px}.school-personal-chat{padding:16px;display:grid;grid-template-columns:24px 1fr;gap:12px}.school-personal-chat>svg{width:24px;height:24px}.school-personal-chat p{display:none}.school-personal-chat>button{grid-column:1/-1;width:100%}.school-personal-entry{flex-wrap:wrap;padding:18px;gap:14px}.school-personal-entry>svg{display:none}.school-personal-entry>div{flex-basis:100%}.school-personal-entry>button{width:100%}.school-personal-request button{width:100%;justify-content:space-between;margin-top:4px}.school-personal .lycee-schedule-card{margin:0;max-width:100%}.school-personal .lycee-schedule-card footer{flex-wrap:wrap}.school-personal .lycee-schedule-card li{min-width:0}}
 .school-identity-entry{padding-top:28px}.school-identity-entry h1{font-family:"Space Grotesk",sans-serif;font-size:clamp(24px,3vw,32px);margin:0}.school-identity-entry-actions{display:flex;gap:16px;flex-wrap:wrap;margin-top:20px}.school-identity-entry-actions button,.school-identity-entry>.lycee-back-link{display:inline-flex;align-items:center;gap:8px;min-height:44px;border:0;background:none;color:#155eef;font:inherit;cursor:pointer}.school-identity-entry-actions svg,.school-identity-entry>.lycee-back-link svg{width:20px;height:20px}.school-identity-entry button.school-identity-entry-primary{background:#155eef;color:white;border-radius:10px;padding:12px 20px}.school-identity-entry>.lycee-back-link{margin-bottom:16px}.school-identity-entry .lycee-identity-device{margin:20px 0 0}
 .school-identity-entry .lycee-identity-skip{display:none}
+
+.school-personal-news{margin-top:24px;border-top:1px solid #dce5ed;padding-top:24px;color:#18324b}
+.school-personal-news h3{display:flex;align-items:center;gap:10px;font-size:1.15rem;font-weight:700;margin:0 0 8px}
+.school-personal-news header p{color:#60758c;font-size:.9rem;margin:0 0 18px}
+.school-personal-news svg{width:18px;height:18px;flex-shrink:0}
+.school-personal-news-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+.school-personal-news-grid article{min-width:0;border:1px solid #dce5ed;border-radius:16px;background:#fff;overflow:hidden}
+.school-personal-news-grid .news-photo{height:118px;width:100%;margin:0;border-radius:0}
+.school-personal-news-grid .news-photo img{width:100%;height:100%;object-fit:cover}
+.school-personal-news-grid article>div{padding:16px}
+.school-personal-news-grid small{font-size:.72rem;font-weight:700;color:#008578}
+.school-personal-news-grid h4{font-size:1rem;font-weight:700;line-height:1.45;margin:7px 0;overflow-wrap:anywhere}
+.school-personal-news-grid p{font-size:.86rem;line-height:1.6;color:#526b82;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.school-personal-news button,.school-personal-news a{display:inline-flex;align-items:center;gap:8px;min-height:44px;font-size:.85rem;font-weight:600;color:#165de8;text-decoration:none;text-align:left}
+.school-personal-news-grid p.school-personal-news-date{display:flex;gap:7px;align-items:center;color:#18324b;font-size:.8rem}
+.school-personal-news-detail{scroll-margin-top:90px;max-width:900px}
+.school-personal-news-detail h3{margin-top:12px;line-height:1.4;overflow-wrap:anywhere}
+.school-personal-news-summary{color:#526b82;line-height:1.7}
+.school-personal-news-dates{border-radius:14px;background:#eef5fb;padding:18px;margin:20px 0}
+.school-personal-news-dates h4{display:flex;gap:8px;align-items:center;font-weight:700;margin:0 0 12px}
+.school-personal-news-dates p{margin:10px 0;font-size:.9rem}
+.school-personal-news-dates span,.school-personal-news-dates small{display:block;margin-top:5px;line-height:1.5;color:#526b82}
+.school-personal-news-dates small{font-size:.75rem}
+.school-personal-news-body{line-height:1.8;overflow-wrap:anywhere}
+.school-personal-news-body p,.school-personal-news-body ul,.school-personal-news-body ol{margin:14px 0}
+.school-personal-news-body ul{list-style:disc;padding-left:22px}.school-personal-news-body ol{list-style:decimal;padding-left:22px}
+.school-personal-news-body h2,.school-personal-news-body h3{font-weight:700;margin-top:24px}
+.school-personal-news-body table{display:block;overflow:auto;max-width:100%}
+.school-personal-news-documents{display:grid;gap:6px;margin-top:20px;padding-top:18px;border-top:1px solid #dce5ed}
+.school-personal-news-documents h4{font-weight:700}
+.school-personal-news :focus-visible{outline:3px solid #1d63ec;outline-offset:4px;border-radius:4px}
+@media(max-width:900px){.school-personal-news-grid{grid-template-columns:1fr}.school-personal-news-grid article{display:grid;grid-template-columns:96px minmax(0,1fr)}.school-personal-news-grid .news-photo{height:100%;min-height:130px}.school-personal-news-grid article>div{padding:12px}.school-personal-news-grid h4{font-size:.95rem}}
+@media(max-width:360px){.school-personal-news-grid article{grid-template-columns:72px minmax(0,1fr)}.school-personal-news-grid p{font-size:.8rem}}

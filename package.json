@@ -410,7 +410,8 @@
     "test:knowledge-source-proposal-boundaries": "node --test scripts/test-knowledge-source-proposal-structural-boundaries.mjs",
     "recipe:local-knowledge-source-proposal-flow": "node --import ./scripts/ts-test-resolver.mjs --experimental-transform-types scripts/test-local-knowledge-source-proposal-flow.mjs --local-stack-only",
     "test:knowledge-recall-adverse": "node --import ./scripts/ts-test-resolver.mjs --experimental-strip-types scripts/test-knowledge-recall-adverse.mjs",
-    "recipe:local-knowledge-recall-adversarial": "node --import ./scripts/ts-test-resolver.mjs --experimental-transform-types scripts/test-local-knowledge-recall-adversarial.mjs --local-stack-only"
+    "recipe:local-knowledge-recall-adversarial": "node --import ./scripts/ts-test-resolver.mjs --experimental-transform-types scripts/test-local-knowledge-recall-adversarial.mjs --local-stack-only",
+    "test:personal-news": "node --import ./scripts/ts-test-resolver.mjs --experimental-strip-types scripts/test-personal-news.mjs"
   },
   "license": "ISC",
   "dependencies": {

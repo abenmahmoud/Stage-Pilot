@@ -11,6 +11,7 @@ export function usePersonalHome() {
   const [attempt, setAttempt] = useState(0);
   const [, setClockTick] = useState(0);
   const abort = useRef<AbortController | null>(null);
+  const softRefresh = useRef(false);
   const clear = () => { abort.current?.abort(); setData(null); setError(false); };
   useEffect(() => {
     const reset = () => { clear(); setQuery({ day: 'today' }); setAttempt(value => value + 1); };
@@ -29,7 +30,8 @@ export function usePersonalHome() {
   useEffect(() => {
     if (document.hidden) return;
     const controller = new AbortController(); abort.current = controller;
-    setData(null); setError(false);
+    if (!softRefresh.current) setData(null);
+    softRefresh.current = false; setError(false);
     const timeout = window.setTimeout(() => controller.abort('timeout'), 20_000);
     const search = new URLSearchParams({ day: query.day, ...(query.target ? { target: query.target } : {}) });
     fetch(`/api/identity/device/today?${search}`, { credentials: 'include', cache: 'no-store', signal: controller.signal })
@@ -50,13 +52,14 @@ export function usePersonalHome() {
     const expire = window.setTimeout(() => { clear(); setData({ status: 'unavailable' }); }, Math.min(2_147_483_647, Math.max(0, Date.parse(data.expiresAt) - Date.now())));
     const freshness = data.schedule.status === 'ready' ? window.setTimeout(() => { clear(); setAttempt(value => value + 1); }, Math.min(2_147_483_647, Math.max(0, Date.parse(data.schedule.validUntil) - Date.now()))) : null;
     const referenceDay = parisToday();
+    const newsRefresh = data.news ? window.setTimeout(() => { softRefresh.current = true; setAttempt(value => value + 1); }, Math.max(1000, Date.parse(data.news.validUntil) - Date.now())) : null;
     const clock = window.setInterval(() => {
       setClockTick(value => value + 1);
       if (parisToday() !== referenceDay) {
         clear(); setAttempt(value => value + 1);
       }
     }, 30_000);
-    return () => { window.clearTimeout(expire); if (freshness !== null) window.clearTimeout(freshness); window.clearInterval(clock); };
+    return () => { window.clearTimeout(expire); if (freshness !== null) window.clearTimeout(freshness); if (newsRefresh !== null) window.clearTimeout(newsRefresh); window.clearInterval(clock); };
   }, [data]);
   return { data, error, day: query.day,
     selectDay: (day: 'today' | 'tomorrow') => { clear(); setQuery(current => ({ ...current, day })); },

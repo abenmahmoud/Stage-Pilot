@@ -110,7 +110,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         if (!hasPublicSiteContentVersion(row.item)) return [];
         const content = parseSiteContentInput(row.snapshot);
         const visible = scope === "expired"
-          ? content.audience === "tous"
+          ? content.audience === "tous" && !content.targeting
             && (!content.publishAt || content.publishAt <= now)
             && Boolean(content.expiresAt && content.expiresAt <= now)
           : isSiteContentPublicAt(content, now);

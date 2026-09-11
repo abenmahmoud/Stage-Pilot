@@ -4,6 +4,7 @@ import { isPersonalHome } from '../../../shared/personal-home.js';
 import { HttpError } from '../../_shared/auth.js';
 import { readIdentityDeviceSession } from '../../_shared/identity-device-access.js';
 import { personalHomeService } from '../../_shared/personal-home-service.js';
+import { readPersonalNewsFeed } from '../../_shared/personal-news-reader.js';
 import { readPersonalHomeRequests, readPersonalHomeTargets } from '../../_shared/personal-home-reader.js';
 import { readCoursesForDayForVerifiedIdentity } from '../../_shared/schedule-identity-reader.js';
 import { handleApi, methodNotAllowed } from '../../_shared/response.js';
@@ -34,6 +35,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       targets: identity => readPersonalHomeTargets(identity, now),
       schedule: (target, bounds) => readCoursesForDayForVerifiedIdentity({ req, targetPersonRef: target.personRef, now, dayStart: bounds.dayStart, dayEnd: bounds.dayEnd }),
       requests: identity => readPersonalHomeRequests(req, identity),
+      news: (identity, targets) => readPersonalNewsFeed(identity, targets, now),
     });
     if (!isPersonalHome(result)) throw new Error('Invalid personal home result');
     return result;

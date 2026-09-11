@@ -11,6 +11,7 @@ import {
 import type { SiteContentAction } from "./site-content-policy.js";
 import { isAllowedPublicContentSignedUrlForOrigin } from "./public-content-signed-url.js";
 import { parseSchoolCalendarDates, type SchoolCalendarDate } from "./school-calendar.js";
+import { parseContentTargeting, type ContentTargeting } from "./content-targeting.js";
 
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const ISO_PATTERN = /^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}\.[0-9]{3}Z$/;
@@ -116,6 +117,7 @@ export type SiteContentAdminDetail = {
   publishAt: string | null;
   expiresAt: string | null;
   calendarEvents?: SchoolCalendarDate[];
+  targeting?: ContentTargeting | null;
   sourceSystem: SourceSystem | null;
   sourceUrl: string | null;
   sourceUpdatedAt: string | null;
@@ -321,8 +323,10 @@ export function parseSiteContentAdminAsset(value: unknown): SiteContentAdminAsse
 function parseDetail(value: unknown): SiteContentAdminDetail | null {
   const supplied = record(value);
   let calendarEvents: SchoolCalendarDate[];
+  let targeting: ContentTargeting | null;
+  try { targeting = parseContentTargeting(supplied?.targeting); } catch { return null; }
   try { calendarEvents = parseSchoolCalendarDates(supplied?.calendarEvents); } catch { return null; }
-  const row = exactRecord(supplied ? Object.fromEntries(Object.entries(supplied).filter(([key]) => key !== "calendarEvents")) : value, [
+  const row = exactRecord(supplied ? Object.fromEntries(Object.entries(supplied).filter(([key]) => !['calendarEvents', 'targeting'].includes(key))) : value, [
     "id", "contentType", "slug", "title", "summary", "bodyMarkdown", "category",
     "audience", "status", "templateId", "featured", "metaTitle", "metaDescription",
     "publishAt", "expiresAt", "sourceSystem", "sourceUrl", "sourceUpdatedAt",
@@ -364,6 +368,7 @@ function parseDetail(value: unknown): SiteContentAdminDetail | null {
     sourceSystem, sourceUrl, sourceUpdatedAt, sourceDisposition,
     needsReview: row.needsReview, importedAt, reviewedAt,
     ...(supplied && "calendarEvents" in supplied ? { calendarEvents } : {}),
+    ...(supplied && "targeting" in supplied ? { targeting } : {}),
   };
 }
 
@@ -560,6 +565,7 @@ export function projectSiteContentAdminDetailPayload(
       publishAt: nullableProjectedTimestamp(row?.publishAt),
       expiresAt: nullableProjectedTimestamp(row?.expiresAt),
       calendarEvents: parseSchoolCalendarDates(row?.calendarEvents),
+      targeting: parseContentTargeting(row?.targeting),
       sourceSystem: row?.sourceSystem ?? null,
       sourceUrl: row?.sourceUrl ?? null,
       sourceUpdatedAt: nullableProjectedTimestamp(row?.sourceUpdatedAt),

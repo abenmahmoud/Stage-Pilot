@@ -9,6 +9,7 @@ import {
   siteContentVersions,
 } from "../../../db/schema.js";
 import { parseSiteContentInput } from "../../../shared/site-content.js";
+import { parseContentTargeting } from "../../../shared/content-targeting.js";
 import { parseSchoolCalendarDates } from "../../../shared/school-calendar.js";
 import {
   SITE_CONTENT_ADMIN_PAYLOAD_LIMITS,
@@ -96,7 +97,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       const [currentVersion] = await db.select({ snapshot: siteContentVersions.snapshot }).from(siteContentVersions)
         .where(and(eq(siteContentVersions.contentId, id), eq(siteContentVersions.version, item.version))).limit(1);
       const currentSnapshot = currentVersion?.snapshot as Record<string, unknown> | undefined;
-      return projectSiteContentAdminDetailPayload({ item: { ...item, calendarEvents: parseSchoolCalendarDates(currentSnapshot?.calendarEvents) }, assets, versions }, configuredOrigin);
+      return projectSiteContentAdminDetailPayload({ item: { ...item, calendarEvents: parseSchoolCalendarDates(currentSnapshot?.calendarEvents), targeting: parseContentTargeting(currentSnapshot?.targeting) }, assets, versions }, configuredOrigin);
     });
   }
 
@@ -117,6 +118,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         const [previous] = await db.select({ snapshot: siteContentVersions.snapshot }).from(siteContentVersions)
           .where(and(eq(siteContentVersions.contentId, id), eq(siteContentVersions.version, current.version))).limit(1);
         input.calendarEvents = parseSchoolCalendarDates((previous?.snapshot as Record<string, unknown> | undefined)?.calendarEvents);
+      }
+      if (!Object.prototype.hasOwnProperty.call(req.body, "targeting")) {
+        const [previousTarget] = await db.select({ snapshot: siteContentVersions.snapshot }).from(siteContentVersions).where(and(eq(siteContentVersions.contentId, id), eq(siteContentVersions.version, current.version))).limit(1);
+        input.targeting = parseContentTargeting((previousTarget?.snapshot as Record<string, unknown> | undefined)?.targeting);
+        if (input.targeting) input.audience = input.targeting.profiles[0];
       }
       if (current.status === "archive") {
         throw new HttpError(409, "Restaurez d’abord ce contenu archivé");

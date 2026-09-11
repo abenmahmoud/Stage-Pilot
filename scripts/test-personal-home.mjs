@@ -106,7 +106,7 @@ test('HTTP route rejects arbitrary identities/dates and wrong methods without pr
   const route = load('../api/identity/device/today.ts', {
     '../../../shared/identity-device-access.js': { identityDeviceFeatureEnabled: () => true }, '../../../shared/personal-home.js': { isPersonalHome },
     '../../_shared/auth.js': { HttpError }, '../../_shared/identity-device-access.js': { readIdentityDeviceSession: async () => null },
-    '../../_shared/personal-home-service.js': { personalHomeService }, '../../_shared/personal-home-reader.js': { readPersonalHomeRequests: async () => assert.fail(), readPersonalHomeTargets: async () => assert.fail() },
+    '../../_shared/personal-home-service.js': { personalHomeService }, '../../_shared/personal-news-reader.js': { readPersonalNewsFeed: async () => assert.fail() }, '../../_shared/personal-home-reader.js': { readPersonalHomeRequests: async () => assert.fail(), readPersonalHomeTargets: async () => assert.fail() },
     '../../_shared/schedule-identity-reader.js': { readCoursesForDayForVerifiedIdentity: async () => assert.fail() },
     '../../_shared/support.js': { enforceSupportRateLimit: async () => assert.fail(), personalHash: () => assert.fail() },
     '../../_shared/response.js': { handleApi: async (res, fn) => { try { res.body = await fn(); } catch (error) { res.statusCode = error.status; } }, methodNotAllowed: res => { res.statusCode = 405; } },

@@ -3,6 +3,7 @@ import { ArrowRight, BadgeCheck, FileText, MessageCircleMore, RefreshCw, UserRou
 import { PERSONAL_HOME_STATUS_LABELS } from '../../../shared/personal-home';
 import { usePersonalHome } from '../../lib/personal-home-client';
 import ScheduleChatCard from './ScheduleChatCard';
+import PersonalNews from './PersonalNews';
 import '../../styles/personal-home.css';
 
 const time = (value: string) => new Intl.DateTimeFormat('fr-FR', { timeZone: 'Europe/Paris', hour: '2-digit', minute: '2-digit' }).format(new Date(value));
@@ -41,6 +42,7 @@ export default function PersonalHome({ onIdentity, onHelp, onRequests }: { onIde
         <button type="button" className="school-personal-all-requests" onClick={() => onRequests()}>{data.requests.items.length ? 'Toutes mes demandes' : 'Retrouver mes demandes'}<ArrowRight aria-hidden="true" /></button>
       </section>
     </div>
+    {data.news && <PersonalNews feed={data.news} />}
     <div className="school-personal-chat"><MessageCircleMore aria-hidden="true" /><div><strong>Une question ? Continuons dans le chat.</strong><p>Blaise vous accompagne dans vos démarches.</p></div><button className="school-personal-primary" type="button" onClick={() => onHelp()}>Parler à Blaise</button></div>
   </section>;
 }

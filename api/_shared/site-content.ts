@@ -44,6 +44,7 @@ export function contentSnapshot(
     status,
     assets: input.assets,
     calendarEvents: input.calendarEvents ?? [],
+    targeting: input.targeting ?? null,
     version,
   };
 }

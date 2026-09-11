@@ -15,6 +15,8 @@ import {
 } from "../../../../shared/legacy-editorial-action.js";
 import { applyLegacyPreviewEditorialCorrections } from "../../../../shared/legacy-editorial-corrections.js";
 import { parseSiteContentInput } from "../../../../shared/site-content.js";
+import { parseContentTargeting } from "../../../../shared/content-targeting.js";
+import { validateContentAudienceClasses } from "../../../_shared/content-audiences.js";
 import { parseSchoolCalendarDates } from "../../../../shared/school-calendar.js";
 import { projectSiteContentAdminMutationPayload } from "../../../../shared/site-content-admin-payload.js";
 import {
@@ -66,7 +68,8 @@ async function contentLinks(contentId: string) {
 async function contentCalendar(contentId: string, version: number) {
   const [row] = await db.select({ snapshot: siteContentVersions.snapshot }).from(siteContentVersions)
     .where(and(eq(siteContentVersions.contentId, contentId), eq(siteContentVersions.version, version))).limit(1);
-  return parseSchoolCalendarDates((row?.snapshot as Record<string, unknown> | undefined)?.calendarEvents);
+  const snapshot = row?.snapshot as Record<string, unknown> | undefined;
+  return { calendarEvents: parseSchoolCalendarDates(snapshot?.calendarEvents), targeting: parseContentTargeting(snapshot?.targeting) };
 }
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
@@ -124,7 +127,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           contentType: current.contentType,
           slug: current.slug,
           title: editorial.draft.title,
-          calendarEvents: await contentCalendar(id, current.version),
+          ...await contentCalendar(id, current.version),
           summary: editorial.draft.summary,
           bodyMarkdown: editorial.draft.bodyMarkdown,
           category: current.category,
@@ -233,6 +236,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
 
     if (action === "publish") {
+      const expectedVersion = (req.body as Record<string, unknown>).expectedVersion;
+      if (expectedVersion !== undefined && (!Number.isInteger(expectedVersion) || expectedVersion !== current.version)) {
+        throw new HttpError(409, 'Cette information a été modifiée. Rechargez-la et relisez le public choisi avant de publier.');
+      }
+      await validateContentAudienceClasses((await contentCalendar(id, current.version)).targeting);
       if (current.needsReview) {
         throw new HttpError(409, "Vérifiez d’abord les informations reprises de l’ancien site");
       }
@@ -255,8 +263,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           publishedVersion: current.version,
           updatedBy: user.id,
         })
-        .where(eq(siteContentItems.id, id))
+        .where(and(eq(siteContentItems.id, id), eq(siteContentItems.version, current.version), eq(siteContentItems.status, current.status)))
         .returning();
+      if (!item) throw new HttpError(409, 'Cette information a changé pendant la publication. Rechargez-la avant de réessayer.');
       await db.insert(siteContentAudit).values({
         resourceType: "content",
         resourceId: id,
@@ -318,7 +327,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           .returning();
         const input = parseSiteContentInput({
           ...item,
-          calendarEvents: await contentCalendar(id, current.version),
+          ...await contentCalendar(id, current.version),
           assets: links.map(({ status: _status, ...asset }) => asset),
         });
         await tx.insert(siteContentVersions).values({

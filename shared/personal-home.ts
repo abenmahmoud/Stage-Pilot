@@ -1,5 +1,6 @@
 import { isSchedulePresentation, type SchedulePresentation } from './schedule-presentation.js';
 import { validCalendarDay } from './school-calendar.js';
+import { isPersonalNewsFeed, type PersonalNewsFeed } from './personal-news.js';
 
 export type PersonalHomeTarget = { key: string; label: string };
 export type PersonalHomeRequest = { publicCode: string; subject: string; status: string; hasDocument: boolean };
@@ -9,6 +10,7 @@ export type PersonalHome = { status: 'unavailable' } | {
   schedule: { status: 'ready'; value: SchedulePresentation; validUntil: string }
     | { status: 'unavailable'; message: string };
   requests: { status: 'available' | 'unavailable'; items: PersonalHomeRequest[]; more: boolean };
+  news?: PersonalNewsFeed;
 };
 
 export const PERSONAL_HOME_STATUS_LABELS: Record<string, string> = {
@@ -23,7 +25,8 @@ const instant = (v: unknown): v is string => typeof v === 'string' && /^\d{4}-\d
 export function isPersonalHome(value: unknown): value is PersonalHome {
   if (!record(value)) return false;
   if (value.status === 'unavailable') return exact(value, ['status']);
-  if (value.status !== 'verified' || !exact(value, ['status', 'personType', 'expiresAt', 'date', 'targets', 'selectedTarget', 'schedule', 'requests'])
+  if ('news' in value && !isPersonalNewsFeed(value.news)) return false;
+  if (value.status !== 'verified' || !exact(value, ['status', 'personType', 'expiresAt', 'date', 'targets', 'selectedTarget', 'schedule', 'requests', ...('news' in value ? ['news'] : [])])
     || !['student', 'guardian', 'staff'].includes(String(value.personType)) || !instant(value.expiresAt) || !validCalendarDay(value.date)
     || !Array.isArray(value.targets) || value.targets.length > 20) return false;
   if (!value.targets.every(t => record(t) && exact(t, ['key', 'label']) && typeof t.key === 'string' && /^[a-f0-9]{64}$/.test(t.key) && text(t.label, 120))

@@ -34,6 +34,7 @@ export async function readPersonalHomeTargets(identity: HomeIdentity, now: Date)
   // A malformed or ambiguous directory must never broaden an access scope.
   if (people.length > 20 || (identity.personType !== 'guardian' && people.length !== 1)) return [];
   return people.filter(p => p.personRef && /^[A-Za-z0-9][A-Za-z0-9._:-]{2,119}$/.test(p.personRef)).map((person, index) => ({
+    classRef: person.classRef,
     personRef: person.personRef!, key: personalHash(`personal-home-target-v1:${identity.id}:${person.personRef}`),
     label: identity.personType === 'guardian'
       ? `Enfant ${index + 1}${person.classRef ? ` · ${person.classRef.slice(0, 80)}` : ''}`

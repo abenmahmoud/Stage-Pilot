@@ -1,4 +1,5 @@
 import { parseSchoolCalendarDates, type SchoolCalendarDate } from "./school-calendar.js";
+import { parseContentTargeting, type ContentTargeting } from "./content-targeting.js";
 export const SITE_CONTENT_TYPES = ["article", "alerte", "page", "document"] as const;
 export const SITE_CONTENT_STATUSES = ["brouillon", "a_valider", "publie", "archive"] as const;
 export const SITE_CONTENT_AUDIENCES = ["tous", "eleves", "parents", "personnels", "professeurs"] as const;
@@ -32,6 +33,7 @@ export type SiteContentInput = {
   expiresAt: Date | null;
   assets: SiteContentAssetLinkInput[];
   calendarEvents?: SchoolCalendarDate[];
+  targeting?: ContentTargeting | null;
 };
 
 export type SiteContentTemplateInput = {
@@ -155,6 +157,8 @@ export function parseSiteContentInput(value: unknown): SiteContentInput {
   if (!slug || !SLUG_PATTERN.test(slug)) throw new Error("L’adresse de la page est invalide");
   const publishAt = nullableDate(input.publishAt, "Date de publication");
   const expiresAt = nullableDate(input.expiresAt, "Date d’expiration");
+  const targeting = parseContentTargeting(input.targeting);
+  if (targeting && input.audience !== targeting.profiles[0]) throw new Error('Enregistrez le public correspondant aux profils choisis.');
   if (publishAt && expiresAt && expiresAt <= publishAt) {
     throw new Error("La date d’expiration doit être postérieure à la publication");
   }
@@ -174,6 +178,7 @@ export function parseSiteContentInput(value: unknown): SiteContentInput {
     expiresAt,
     assets: parseAssetLinks(input.assets),
     calendarEvents: parseSchoolCalendarDates(input.calendarEvents),
+    targeting,
   };
 }
 
@@ -181,7 +186,7 @@ export function isSiteContentPublicAt(
   content: SiteContentInput,
   at: Date = new Date()
 ): boolean {
-  if (content.audience !== "tous") return false;
+  if (content.audience !== "tous" || content.targeting) return false;
   if (content.publishAt && content.publishAt > at) return false;
   if (content.expiresAt && content.expiresAt <= at) return false;
   return true;

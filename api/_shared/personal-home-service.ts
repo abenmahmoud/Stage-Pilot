@@ -2,14 +2,16 @@ import type { PersonalHome, PersonalHomeRequest, PersonalHomeTarget } from '../.
 import type { ScheduleDayReadResult } from '../../shared/schedule-policy.js';
 import { schoolDayBoundsUtc } from '../../shared/assistant-school-context.js';
 import { HttpError } from './auth.js';
+import type { PersonalNewsFeed } from '../../shared/personal-news.js';
 
 export type HomeIdentity = { id: string; institutionId: string; personRef: string; sourceImportId: string; personType: 'student' | 'guardian' | 'staff'; expiresAt: Date };
-export type HomeTarget = PersonalHomeTarget & { personRef: string };
+export type HomeTarget = PersonalHomeTarget & { personRef: string; classRef?: string | null };
 export type PersonalHomeReaders = {
   identity: () => Promise<HomeIdentity | null>;
   targets: (identity: HomeIdentity) => Promise<HomeTarget[]>;
   schedule: (target: HomeTarget, bounds: ReturnType<typeof schoolDayBoundsUtc>) => Promise<ScheduleDayReadResult>;
   requests: (identity: HomeIdentity) => Promise<PersonalHomeRequest[]>;
+  news?: (identity: HomeIdentity, targets: HomeTarget[]) => Promise<PersonalNewsFeed>;
 };
 
 /** Only authenticated server readers supply facts. No model call or client-supplied identity. */
@@ -20,8 +22,9 @@ export async function personalHomeService(input: { day: 0 | 1; target?: string; 
   const selected = input.target ? targets.find(target => target.key === input.target) : targets[0];
   if (input.target && !selected) throw new HttpError(403, 'Cet emploi du temps n’est pas accessible depuis votre espace.');
   const bounds = schoolDayBoundsUtc(input.now, input.day);
-  const [courses, requests] = await Promise.allSettled([
+  const [courses, requests, news] = await Promise.allSettled([
     selected ? readers.schedule(selected, bounds) : Promise.resolve(null), readers.requests(identity),
+    readers.news?.(identity, selected ? [selected] : []) ?? Promise.resolve(null),
   ]);
   // Discard in-flight results if the identity expired, was replaced, or was revoked.
   const confirmed = await readers.identity();
@@ -41,6 +44,7 @@ export async function personalHomeService(input: { day: 0 | 1; target?: string; 
   return {
     status: 'verified', personType: identity.personType, expiresAt: confirmed.expiresAt.toISOString(), date: bounds.dayDate,
     targets: targets.map(({ key, label }) => ({ key, label })), selectedTarget: selected?.key ?? null, schedule,
+    ...(readers.news ? { news: news.status === 'fulfilled' && news.value ? news.value : { status: 'unavailable' as const, items: [], more: false, validUntil: new Date(input.now.getTime() + 60_000).toISOString() } } : {}),
     requests: requests.status === 'fulfilled'
       ? { status: 'available', items: requests.value.slice(0, 3), more: requests.value.length > 3 }
       : { status: 'unavailable', items: [], more: false },

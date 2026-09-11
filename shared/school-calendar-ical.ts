@@ -14,7 +14,7 @@ function foldLine(line: string) {
   }
   return [...lines, current].join("\r\n");
 }
-export function schoolCalendarIcal(events: SchoolCalendarEvent[]) {
+export function schoolCalendarIcal(events: SchoolCalendarEvent[], options?: { personal: boolean }) {
   const lines = ["BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//Lycee Blaise Cendrars//Calendrier public//FR", "CALSCALE:GREGORIAN", "X-WR-CALNAME:Calendrier du lycée Blaise Cendrars"];
   if (events.some(event => event.startTime)) lines.push(
     "BEGIN:VTIMEZONE", "TZID:Europe/Paris", "BEGIN:DAYLIGHT", "DTSTART:19960331T020000",
@@ -28,7 +28,8 @@ export function schoolCalendarIcal(events: SchoolCalendarEvent[]) {
       lines.push(`DTSTART;TZID=Europe/Paris:${day(event.startDate)}T${event.startTime.replace(":", "")}00`);
       if (event.endTime) lines.push(`DTEND;TZID=Europe/Paris:${day(event.endDate)}T${event.endTime.replace(":", "")}00`);
     } else lines.push(`DTSTART;VALUE=DATE:${day(event.startDate)}`, `DTEND;VALUE=DATE:${day(shiftCalendarDay(event.endDate, 1))}`);
-    const url = `${ORIGIN}${calendarArticleHref(event)}`;
+    const url = options?.personal ? `${ORIGIN}/?view=home` : `${ORIGIN}${calendarArticleHref(event)}`;
+    if (options?.personal) lines.push('CLASS:PRIVATE');
     lines.push(`DESCRIPTION:${escapeText(`${event.summary}${event.startTime ? "" : "\nHoraire non communiqué : consultez les précisions du lycée."}\n${url}`)}`, `URL:${url}`, "TRANSP:TRANSPARENT");
     if (event.location) lines.push(`LOCATION:${escapeText(event.location)}`);
     lines.push("END:VEVENT");
