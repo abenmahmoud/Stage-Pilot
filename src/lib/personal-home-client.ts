@@ -61,6 +61,6 @@ export function usePersonalHome() {
   return { data, error, day: query.day,
     selectDay: (day: 'today' | 'tomorrow') => { clear(); setQuery(current => ({ ...current, day })); },
     selectTarget: (target: string) => { clear(); setQuery(current => ({ ...current, target })); },
-    retry: () => { clear(); setAttempt(value => value + 1); },
+    retry: () => { clear(); setQuery(current => ({ day: current.day })); setAttempt(value => value + 1); },
   };
 }
