@@ -27,3 +27,13 @@ L’accueil présente trois cartes, extensibles jusqu’à huit informations en 
 Les articles sont relus après un délai de 60 secondes maximum. Les réponses privées sont sans cache ; les liens de fichiers propres sont délivrés uniquement après contrôle d’accès, pour au plus 60 secondes et dans la limite de l’expiration. Les copies déjà téléchargées restent sous le contrôle du destinataire. Aucun changement aux règles OTP, rôles ou durées de session.
 
 Aucune publication réelle ni notification de démonstration. La préparation IA existante reste disponible ; le ciblage est choisi et validé par une personne habilitée. Les envois ciblés et l’utilisation conversationnelle du contenu réservé sont à traiter séparément.
+
+## Livraison vérifiée
+
+Version fonctionnelle `9cf78d312b8fbb6c4a50c7fd0b3b1e68550d0432` poussée sur `codex/lycee-connect-prototype`. Déploiement `dpl_9q6TrBxwbCwpGpuuzycdHb2fFzuw` READY, URL immuable `https://lyceegest-1ihj7lncj-safe-scol.vercel.app`, domaine `https://lycee-blaise-cendrars-sevran.fr/` affecté.
+
+Recette réelle en lecture seule réussie sur l’URL immuable puis sur le domaine : neuf contrôles HTTP attendus (200/400/401), accès anonyme aux nouvelles routes refusé, réponses privées sans cache, navigation accueil → identité → retour → calendrier en 1440/390/320 px. Aucune erreur JavaScript, aucun débordement, aucun appel d’écriture API pendant ces parcours. La recette d’un lecteur identifié reste celle des profils fictifs locaux ; aucun accès réel n’a été fabriqué pour les essais.
+
+Accès de gestion : `/admin/contenus`, ouvrir un article, sélectionner « Profils ou classes · espace personnel », choisir profils et classes, enregistrer puis publier avec un compte habilité. L’espace personnel reprend la version publiée, ses dates et ses documents autorisés. Aucun brouillon existant n’a été publié pour cette livraison. T074D close.
+
+Retour arrière applicatif disponible : version `ef369a1`, déploiement précédent `dpl_DQFZJpfZAHUSbPnLyT5ZnWDpjAP5`. Pas de migration ni de changement d’environnement dans ce lot. Avant une réaffectation, vérifier qu’aucune publication réservée créée depuis ne dépend des nouveaux lecteurs ; le lecteur ancien la laisse masquée au public grâce à l’audience non publique.
