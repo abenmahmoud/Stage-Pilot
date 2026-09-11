@@ -140,6 +140,9 @@ async function replayFixture({ cookie = "owner", expired = false, revoked = fals
       supportAgentCreateRequestActionEnabled: () => false, supportAssistantRoutingReviewEnabled: () => false,
     },
     "../../_shared/support-create-request-action.js": {},
+    "../../_shared/identity-device-access.js": { readIdentityDeviceSession: async () => null },
+    "../../../shared/identity-device-access.js": { identityDeviceFeatureEnabled: () => false },
+    "../../_shared/personal-home-reader.js": {},
     "../../_shared/auth.js": { HttpError },
     "../../_shared/response.js": { handleApi: async (_res, callback) => {
       try { return await callback(); } catch (error) {

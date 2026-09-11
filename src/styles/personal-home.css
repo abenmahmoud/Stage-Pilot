@@ -1,0 +1,40 @@
+.lycee-connect .lycee-content.has-personal-home{margin-top:28px}
+.school-personal,.school-personal-entry,.school-personal-loading{margin:0 0 28px;color:var(--school-text,#132238);scroll-margin-top:90px}
+.school-personal button,.school-personal-entry button{font:inherit;cursor:pointer;min-height:44px;display:inline-flex;align-items:center;justify-content:center;gap:8px;border:0;background:none;color:var(--school-blue,#155eef);padding:8px 0;text-align:left}
+.school-personal button:focus-visible,.school-personal-entry button:focus-visible,.school-personal select:focus-visible{outline:3px solid #155eef;outline-offset:4px}
+.school-personal svg,.school-personal-entry button svg{width:20px;height:20px;flex-shrink:0}
+.school-personal-heading{display:flex;align-items:center;justify-content:space-between;gap:20px;margin-bottom:20px}
+.school-personal-heading h2{font-family:"Space Grotesk",sans-serif;font-size:clamp(25px,3vw,34px);font-weight:700;line-height:1.15;margin:0;color:#193550;letter-spacing:-.8px}
+.school-personal-heading p{color:#586b82;font-size:16px;margin:8px 0 0}
+.school-personal-access{text-align:right;flex-shrink:0;font-size:13px}
+.school-personal-access span{display:flex;align-items:center;gap:8px;color:#586b82}
+.school-personal-access button{font-size:13px;text-decoration:underline;min-height:36px}
+.school-personal-panels{background:#fff;border:1px solid #dbe3ec;border-radius:14px;display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);padding:24px;gap:24px}
+.school-personal-panels h3{font-family:"Space Grotesk",sans-serif;font-size:21px;font-weight:600;line-height:1.3;color:#193550;margin:0 0 18px}
+.school-personal-schedule{min-width:0}
+.school-personal-requests{border-left:1px solid #dbe3ec;padding-left:24px;min-width:0}
+.school-personal-days{display:flex;background:#f4f7fb;border:1px solid #dbe3ec;border-radius:10px;overflow:hidden;margin:16px 0}
+.school-personal-days button{width:50%;padding:10px;color:#586b82;min-height:44px;text-align:center}
+.school-personal-days button[aria-pressed=true]{background:#155eef;color:#fff;border-radius:8px}
+.school-personal-date{font-weight:600;margin:12px 0}.school-personal-date::first-letter{text-transform:uppercase}
+.school-personal-courses{list-style:none;padding:0;margin:0}
+.school-personal-courses li{display:flex;align-items:center;gap:20px;padding:18px 0;border-bottom:1px solid #dbe3ec;min-height:80px}
+.school-personal-courses li>span{font-size:14px;color:#586b82;border-left:3px solid #155eef;padding-left:12px;flex-shrink:0}
+.school-personal-courses li>div{display:grid;gap:4px;min-width:0;overflow-wrap:anywhere}
+.school-personal-courses strong{font-size:16px;font-weight:600}.school-personal-courses small{font-size:14px;color:#586b82}
+.school-personal-courses li[data-cancelled=true]>span{border-color:#8090a4}.school-personal-courses li[data-cancelled=true] strong{text-decoration:line-through}
+.school-personal-schedule-footer{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-top:18px}
+.school-personal-schedule-footer small{color:#586b82;font-size:12px}
+.school-personal-request{display:flex;gap:12px;padding:16px;background:#fbfcff;border:1px solid #dbe3ec;border-radius:12px;margin-bottom:12px}
+.school-personal-request>svg{margin-top:3px;color:#586b82;flex-shrink:0}.school-personal-request>div{min-width:0;flex:1}
+.school-personal-request h4{font-size:15px;line-height:1.45;margin:0 0 4px;overflow-wrap:anywhere}.school-personal-request p{color:#586b82;font-size:14px;margin:0 0 4px}.school-personal-request small{display:block;color:#11735b;font-size:13px}
+.school-personal-request button{font-size:14px}.school-personal-all-requests{font-size:14px!important}
+.school-personal-empty{color:#586b82;line-height:1.65;font-size:15px;margin:12px 0;overflow-wrap:anywhere}.school-personal-empty p{margin:0 0 12px}
+.school-personal-note{font-size:13px;line-height:1.5;color:#586b82;padding:12px;background:#f4f7fb;border-radius:8px}
+.school-personal-target{display:grid;gap:6px;font-size:13px;color:#586b82}.school-personal-target select{font:inherit;font-size:16px;border:1px solid #dbe3ec;background:#fff;border-radius:10px;padding:10px;width:100%;min-height:44px;color:#193550}.school-personal-target-label{font-size:14px;color:#586b82;margin:-8px 0 8px}
+.school-personal-chat{background:#eaf2ff;border:1px solid #d6e4ff;border-radius:12px;padding:18px 24px;display:flex;align-items:center;gap:20px;margin-top:16px}
+.school-personal-chat>svg{color:#155eef;width:28px;height:28px}.school-personal-chat>div{flex:1}.school-personal-chat strong{font-size:16px;line-height:1.5}.school-personal-chat p{color:#586b82;font-size:14px;margin:4px 0 0}
+.school-personal button.school-personal-primary,.school-personal-entry button.school-personal-primary{background:#155eef;color:#fff;padding:12px 20px;border-radius:10px;text-align:center;flex-shrink:0}
+.school-personal-entry{display:flex;align-items:center;gap:20px;background:#fff;border:1px solid #dbe3ec;border-radius:14px;padding:20px 24px}.school-personal-entry>svg{color:#586b82;background:#edf2f7;padding:12px;width:52px;height:52px;border-radius:50%;flex-shrink:0}.school-personal-entry>div{flex:1}.school-personal-entry h2{font-size:18px;font-family:"Space Grotesk",sans-serif;margin:0 0 6px;color:#193550}.school-personal-entry p{font-size:14px;line-height:1.5;color:#586b82;margin:0}.school-personal-loading{display:flex;gap:10px;align-items:center;min-height:108px;color:#586b82;font-size:14px}.school-personal-loading svg{width:18px}
+@media(max-width:760px){.school-personal-heading{align-items:flex-start;flex-direction:column;gap:12px}.school-personal-access{display:flex;align-items:center;justify-content:space-between;width:100%;gap:12px}.school-personal-heading p{font-size:14px}.school-personal-panels{display:block;padding:0;background:none;border:0}.school-personal-schedule,.school-personal-requests{background:#fff;border:1px solid #dbe3ec;border-radius:14px;padding:18px}.school-personal-requests{margin-top:16px}.school-personal-panels h3{font-size:20px;margin-bottom:16px}.school-personal-courses li{gap:16px}.school-personal-courses li>span{font-size:13px;padding-left:9px}.school-personal-courses strong{font-size:15px}.school-personal-courses small{font-size:13px}.school-personal-chat{padding:16px;display:grid;grid-template-columns:24px 1fr;gap:12px}.school-personal-chat>svg{width:24px;height:24px}.school-personal-chat p{display:none}.school-personal-chat>button{grid-column:1/-1;width:100%}.school-personal-entry{flex-wrap:wrap;padding:18px;gap:14px}.school-personal-entry>svg{display:none}.school-personal-entry>div{flex-basis:100%}.school-personal-entry>button{width:100%}.school-personal-request button{width:100%;justify-content:space-between;margin-top:4px}.school-personal .lycee-schedule-card{margin:0;max-width:100%}.school-personal .lycee-schedule-card footer{flex-wrap:wrap}.school-personal .lycee-schedule-card li{min-width:0}}
+.school-identity-entry{padding-top:28px}.school-identity-entry h1{font-family:"Space Grotesk",sans-serif;font-size:clamp(24px,3vw,32px);margin:0}.school-identity-entry-actions{display:flex;gap:16px;flex-wrap:wrap;margin-top:20px}.school-identity-entry-actions button,.school-identity-entry>.lycee-back-link{display:inline-flex;align-items:center;gap:8px;min-height:44px;border:0;background:none;color:#155eef;font:inherit;cursor:pointer}.school-identity-entry-actions svg,.school-identity-entry>.lycee-back-link svg{width:20px;height:20px}.school-identity-entry button.school-identity-entry-primary{background:#155eef;color:white;border-radius:10px;padding:12px 20px}.school-identity-entry>.lycee-back-link{margin-bottom:16px}.school-identity-entry .lycee-identity-device{margin:20px 0 0}

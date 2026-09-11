@@ -46,3 +46,7 @@ Toute nouvelle page publique réutilise `PublicPortalShell`. Ne pas recréer un 
 ### Calendrier public — 11 septembre 2026
 
 Sur ordinateur : mois à gauche, rendez-vous illustrés à droite, marges sobres et cartes blanches. Sur téléphone : liste par défaut, choix Liste/Mois visible et titre lisible à 320 px. Le jour sélectionné est bleu ; les points signalent les dates publiées. Les miniatures reprennent les photos des actualités. L’accueil montre deux prochains rendez-vous et l’accès au calendrier. Les heures inconnues sont signalées ; ne pas créer un horaire pour remplir un vide. Un fichier agenda reste présenté comme une copie à importer.
+
+### Accueil personnel — 11 septembre 2026
+
+Le bloc « Pour moi, aujourd’hui » suit la photo avec une marge positive de 28 px. Deux colonnes dans une surface blanche sur ordinateur, emploi du temps puis demandes sur téléphone. Le bandeau final conduit au chat. Sans session, une invitation compacte ouvre le parcours d’identité existant ; aucun envoi de code à l’ouverture de la page. Les états indisponibles restent sobres et proposent une action utile. Les informations communes du calendrier sont visuellement séparées des données personnelles. Couleurs, typographies, navigation et commande radio restent celles du portail.

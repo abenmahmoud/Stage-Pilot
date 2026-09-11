@@ -47,6 +47,9 @@ import {
 import { requireConfiguredInstitution } from "../../_shared/institution-context.js";
 import { SUPPORT_PUBLIC_LIST_LIMITS } from "../../../shared/support-public-list-payload-policy.js";
 import { supportNormalizationProvenance } from "../../_shared/support-normalization.js";
+import { readIdentityDeviceSession } from "../../_shared/identity-device-access.js";
+import { identityDeviceFeatureEnabled } from "../../../shared/identity-device-access.js";
+import { PERSONAL_HOME_BINDING_EVENT, personalHomeIdentityHash } from "../../_shared/personal-home-reader.js";
 
 type DeviceSession = { id: string; rawToken: string | null };
 
@@ -97,6 +100,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       }
       await enforceSupportRequestCreationLimits({ parsed: input, deviceKey });
       const institution = await requireConfiguredInstitution();
+      // An optional association for the personal overview, never an access grant.
+      // A failure here must not prevent an ordinary support request.
+      const homeIdentity = identityDeviceFeatureEnabled()
+        ? await readIdentityDeviceSession(req).catch(() => null) : null;
       const routingReviewEnabled = supportAssistantRoutingReviewEnabled();
       const createRequestActionEnabled = supportAgentCreateRequestActionEnabled();
       const verifiedRoutingReceipt = (routingReviewEnabled || createRequestActionEnabled)
@@ -343,6 +350,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           select ${session.id}::uuid, ${created.id}::uuid
           from inserted_event
         `);
+
+        if (homeIdentity && homeIdentity.institutionId === institution.id && homeIdentity.expiresAt > new Date()) {
+          await tx.insert(supportEvents).values({
+            requestId: created.id, eventType: PERSONAL_HOME_BINDING_EVENT, actorType: "system",
+            actorId: personalHomeIdentityHash(homeIdentity), correlationId,
+          });
+        }
 
         if (duplicateCandidate) {
           await tx.insert(supportEvents).values({

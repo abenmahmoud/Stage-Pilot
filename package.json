@@ -191,6 +191,7 @@
     "test:schedule-policy": "node --import ./scripts/ts-test-resolver.mjs --experimental-strip-types scripts/test-schedule-policy.mjs",
     "test:schedule-private-reader": "node scripts/test-private-schedule-reader.mjs",
     "test:schedule-identity-reader": "node scripts/test-schedule-identity-reader.mjs && node scripts/test-schedule-identity-scope.mjs",
+    "test:personal-home": "node --import ./scripts/ts-test-resolver.mjs --experimental-strip-types scripts/test-personal-home.mjs",
     "test:schedule-assistant": "node --import ./scripts/ts-test-resolver.mjs --experimental-strip-types scripts/test-schedule-assistant.mjs",
     "test:schedule-import-input": "node --experimental-strip-types scripts/test-schedule-import-input.mjs && node scripts/test-schedule-ical.mjs && node --import ./scripts/ts-test-resolver.mjs --experimental-transform-types scripts/test-schedule-ical-contract.mjs",
     "test:schedule-import-security": "node scripts/test-schedule-import-security.mjs && npm run test:schedule-identity-reader",

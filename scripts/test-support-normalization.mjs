@@ -207,6 +207,7 @@ test("the real creation handler persists server-derived provenance before any re
   imports["../../_shared/support-normalization.js"] = {
     supportNormalizationProvenance: (input) => supportNormalizationProvenance({ ...input, now }),
   };
+  imports["../../../shared/identity-device-access.js"] = { identityDeviceFeatureEnabled: () => false };
   let captured;
   imports["../../../db/index.js"] = { db: { transaction: async (callback) => callback({
     select() {

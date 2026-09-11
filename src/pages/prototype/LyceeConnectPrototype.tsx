@@ -2,6 +2,8 @@ import { useEffect, useRef, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { SchoolParentsMeeting } from "../../components/SchoolParentsMeeting";
 import SchoolCalendarPage, { HomeCalendarPreview } from "./SchoolCalendarPage";
+import PersonalHome from "./PersonalHome";
+import { notifyIdentitySessionChanged } from "../../lib/identity-session-events";
 import { ChromebookNotice } from "../../components/ChromebookNotice";
 import { chromebookQuestion } from "../../../shared/chromebook-information";
 import { chromebookReferenceAnswer } from "../../../shared/chromebook-assistant";
@@ -608,6 +610,7 @@ export default function LyceeConnectPrototype() {
   const [contactCorrectionIdentity, setContactCorrectionIdentity] = useState<IdentityPersonDraft | undefined>();
   const [hasHelpDraft, setHasHelpDraft] = useState(false);
   const [helpMode, setHelpMode] = useState<"chat" | "form">("chat");
+  const [helpIdentityEntry, setHelpIdentityEntry] = useState(false);
   const [ticketCreated, setTicketCreated] = useState<string | null>(null);
   const [accessLinkError, setAccessLinkError] = useState<string | null>(null);
 
@@ -659,11 +662,13 @@ export default function LyceeConnectPrototype() {
   }, []);
 
   function changeView(nextView: View) {
+    if (nextView !== "help") setHelpIdentityEntry(false);
     if (nextView !== "help") setHelpMode("chat");
     navigate(nextView === "home" ? "/" : `/?view=${nextView}`);
   }
 
   function startHelp(prompt = "", mode: "chat" | "form" = "chat") {
+    setHelpIdentityEntry(false);
     setHelpInitialMessage(prompt);
     if (prompt.trim()) setMessage("");
     setHelpMode(mode);
@@ -699,7 +704,12 @@ export default function LyceeConnectPrototype() {
           </div>
         </section>
 
-        <div className="lycee-content">
+        <div className={`lycee-content${IDENTITY_DEVICE_ACCESS_ENABLED ? " has-personal-home" : ""}`}>
+          {IDENTITY_DEVICE_ACCESS_ENABLED && <PersonalHome
+            onIdentity={() => { setHelpIdentityEntry(true); changeView("help"); }}
+            onHelp={startHelp}
+            onRequests={(code) => { setTicketCreated(code ?? null); changeView("requests"); }}
+          />}
           <ChromebookNotice />
           <SchoolParentsMeeting />
           <HomeCalendarPreview />
@@ -826,7 +836,12 @@ export default function LyceeConnectPrototype() {
           </>
         )}
 
-        {view === "help" && (
+        {view === "help" && helpIdentityEntry && <IdentityChatEntry
+          onBack={() => changeView("home")}
+          onContinue={() => startHelp()}
+          onCollect={(identity) => { setContactCorrectionIdentity(identity); changeView("collect"); }}
+        />}
+        {view === "help" && !helpIdentityEntry && (
           <HelpDeskView
             initialMessage={helpInitialMessage}
             onEntryConsumed={() => setHelpInitialMessage("")}
@@ -1238,18 +1253,38 @@ type IdentityContactDraft = {
 };
 type IdentityPersonDraft = Pick<IdentityContactDraft, 'profile' | 'firstName' | 'lastName'>;
 
+function IdentityChatEntry({ onBack, onContinue, onCollect }: {
+  onBack: () => void; onContinue: () => void; onCollect: (identity?: IdentityPersonDraft) => void;
+}) {
+  const [verified, setVerified] = useState(false);
+  return <div className="lycee-content school-identity-entry">
+    <button type="button" className="lycee-back-link" onClick={onBack}><ArrowLeft aria-hidden="true" />Retour à l’accueil</button>
+    <section className="lycee-assistant" aria-labelledby="identity-entry-title">
+      <div className="lycee-assistant-heading"><span className="lycee-ai-icon"><Bot aria-hidden="true" /></span><div><h1 id="identity-entry-title">Votre espace personnel</h1></div></div>
+      <p>{verified ? 'Votre identité est confirmée. Retrouvez les services disponibles pour vous ou poursuivez votre conversation avec Blaise.' : 'Pour ouvrir votre espace, indiquez qui vous êtes. Vous pourrez ensuite choisir un moyen de contact connu du lycée et y recevoir votre code.'}</p>
+      <IdentityDeviceAccessPanel onVerificationChange={setVerified} onForgot={() => setVerified(false)} onContactUpdate={onCollect} onSkip={onContinue} skipLabel="Continuer sans m’identifier" />
+      <div className="school-identity-entry-actions">
+        {verified && <button type="button" className="school-identity-entry-primary" onClick={onBack}>Voir mon espace<ChevronRight aria-hidden="true" /></button>}
+        <button type="button" onClick={onContinue}>Continuer dans le chat<MessageCircleMore aria-hidden="true" /></button>
+      </div>
+    </section>
+  </div>;
+}
+
 function IdentityDeviceAccessPanel({
   onVerified,
   onVerificationChange,
   onContactUpdate,
   onForgot,
   onSkip,
+  skipLabel = "Je préfère transmettre ma demande sans vérifier mon identité",
 }: {
   onVerified?: (details?: IdentityContactDraft) => void;
   onVerificationChange?: (verified: boolean) => void;
   onContactUpdate: (identity?: IdentityPersonDraft) => void;
   onForgot?: () => void;
   onSkip: () => void;
+  skipLabel?: string;
 }) {
   const [state, setState] = useState<IdentityDeviceUiState>("checking_session");
   const [claimedProfile, setClaimedProfile] = useState<"student" | "guardian" | "staff">("student");
@@ -1401,6 +1436,7 @@ function IdentityDeviceAccessPanel({
       });
       const payload = await readJsonApiResponse<Record<string, unknown>>(response, { maxBytes: 16 * 1024, requireOk: false });
       if (!response.ok || payload.status !== "verified") throw new Error("verify_failed");
+      notifyIdentitySessionChanged();
       setPersonType(typeof payload.personType === "string" ? payload.personType : null);
       setCode("");
       setState("verified");
@@ -1418,6 +1454,7 @@ function IdentityDeviceAccessPanel({
     try {
       const response = await fetch("/api/identity/device/session", { method: "DELETE", credentials: "include" });
       if (!response.ok) throw new Error("revocation_failed");
+      notifyIdentitySessionChanged();
       const supportResponse = await fetch("/api/support/session", { method: "DELETE", credentials: "include" });
       if (!supportResponse.ok) throw new Error("support_revocation_failed");
       await Promise.all([clearSupportDeviceDraft(), clearRememberedSupportRequests()]);
@@ -1500,7 +1537,7 @@ function IdentityDeviceAccessPanel({
         </form>
       )}
       {error ? <p className="lycee-identity-device-error" role="alert">{error}</p> : null}
-      {!busy ? <button className="lycee-identity-skip" type="button" onClick={onSkip}>Je préfère transmettre ma demande sans vérifier mon identité</button> : null}
+      {!busy ? <button className="lycee-identity-skip" type="button" onClick={onSkip}>{skipLabel}</button> : null}
     </section>
   );
 }
