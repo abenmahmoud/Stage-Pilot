@@ -5,6 +5,25 @@
 **Depot** : `abenmahmoud/Stage-Pilot`
 **Dernier jalon de code verifie** : branche de preview Vercel
 
+## Lot du 12 septembre — manuel du superadmin (T074F)
+
+Adel demande une page expliquant tous les outils et les démarches. Livré :
+`/gestion/manuel`, 27 fiches en six thèmes, recherche et filtre, liens directs,
+pré requis et limites, trois parcours rapides (famille, ordinateurs, hebdo).
+Entrée réservée au superadmin dans la gestion, absente du public et des stages.
+Documentation générale statique, aucun appel IA ni donnée personnelle ; les
+autorisations des outils restent inchangées. Simulation nominative, état EDT,
+coffre, canaux de diffusion et recette physique push sont distingués.
+
+Compilation, 17 contrôles de navigation/sécurité, dix parcours navigateur à
+profils fictifs (1440/390/320 px) réussis. Commit fonctionnel `d6f3f5e`,
+déploiement `dpl_Cxvg9rASbuYFTEea6ds2RQuqfEaX` READY et domaine principal
+confirmé. Lecture réelle sur URL immuable et domaine : nouveau module,
+redirection du visiteur et API privées 401, aucun incident JavaScript.
+Rapport : `docs/operations/MANUEL_SUPERADMIN_2026-09-12.md`.
+Maintenir les fiches dans `src/data/superadmin-manual.ts` à chaque changement
+de parcours ; ne pas présenter cette documentation comme une supervision live.
+
 ## Lot du 12 septembre — gestion privée et coûts IA (T074E / T049C9A)
 
 Décision d’Adel : masquer l’espace agent public et séparer la gestion du lycée
