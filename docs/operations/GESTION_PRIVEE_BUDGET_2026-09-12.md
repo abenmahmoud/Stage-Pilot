@@ -63,7 +63,21 @@ La page n’affiche ni coordonnées, ni conversations, ni secret fournisseur.
   (`xijocumlwivhbmffrnlj`), RLS forcée vérifiée. Les seize variables non
   secrètes du budget sont limitées à Preview / `codex/lycee-connect-prototype`,
   projet Vercel `safe-scol/lyceegest`. Aucune clé remplacée.
-- Publication : en cours de vérification.
+- Publication fonctionnelle `15c725a8fd942d29dba4111bc804d401ba43d0d0`,
+  déploiement `dpl_3yUozkqpS2xepgSJQWp5uxwPsTyq` READY,
+  `lyceegest-oqgcbu7y9-safe-scol.vercel.app`; domaine principal rattaché et
+  confirmé le 12 septembre à 18 h 40 (Paris). Contrôles réels réussis sur
+  l’URL immuable puis le domaine à 1440, 390 et 320 px : entrée agent masquée,
+  connexion privée, ancien filtre de service conservé, API budget HTTP 401
+  sans authentification, absence de cache et de référencement de `/gestion`.
+- Un appel IA réel avec message fictif, sans création de dossier ni envoi :
+  HTTP 200, `usedAi: true`, `model_success`; 2 142 jetons entrants, 147 sortants,
+  coût estimé 522 micro-euros (0,000522 €). Réservation initiale 40 000,
+  solde engagé après clôture 522, plafond 1 000 000 : comptabilisation et
+  restitution effectives confirmées dans la base active.
+- La base PostgreSQL de recette temporaire et son tunnel SSH ont été arrêtés.
+  Le registre distant de migration a été aligné sur la version CLI du dépôt
+  `20260912160352`, sans réexécuter le SQL.
 
 Preuves locales : `../Gestion_privee_2026-09-12/`, journaux
 `../gestion-budget-*.log`. Scripts unitaires dans le dépôt; recette SQL
@@ -76,3 +90,7 @@ Pas d’envoi à une famille, pas de diffusion flash ni d’achat d’API dans c
 L’activation des EDT, le remplissage du coffre et la réception push réelle
 nécessitent leurs validations/recettes propres. Les permissions administratives
 historiques des stages sont conservées; aucune réduction silencieuse de droits.
+
+Les essais de rôles utilisent des identités et réponses privées fictives;
+la recette publiée réelle vérifie les refus anonymes et le chat public. Aucun
+compte réel n’a été emprunté pour ouvrir la page financière.

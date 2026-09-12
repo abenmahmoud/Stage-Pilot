@@ -14,8 +14,11 @@ Suivi financier `/gestion/budget-ia` réservé au superadmin avec appartenance
 administrative active. Configuration initiale : 1 € estimé/jour Paris, 0,04 €
 réservé par appel puis ajusté à la consommation connue. Aucun crédit acheté.
 Même modèle Luna conservé; traductions incluses. Tests unitaires, concurrence
-PostgreSQL isolée et contrôle de sécurité réussis. Publication en cours de
-vérification. Rapport : `docs/operations/GESTION_PRIVEE_BUDGET_2026-09-12.md`.
+PostgreSQL isolée et contrôle de sécurité réussis. Publié `15c725a`, déploiement
+`dpl_3yUozkqpS2xepgSJQWp5uxwPsTyq` READY et domaine principal vérifié.
+Douze parcours fictifs mobile/bureau, six contrôles publics réels, refus budget
+anonyme; appel IA réel et clôture de réservation confirmés (0,000522 € estimé).
+Rapport : `docs/operations/GESTION_PRIVEE_BUDGET_2026-09-12.md`.
 
 ## Lot du 10 septembre — reprise des demandes et fluidité (T010B4B2)
 
