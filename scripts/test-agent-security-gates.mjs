@@ -231,7 +231,7 @@ test("the public shell and enrollment remain reachable, with an explicit securit
   assert.doesNotMatch(mfa, /Cette session peut accéder aux dossiers sensibles/);
   const consolePage = read("src/pages/prototype/LyceeConnectPrototype.tsx");
   assert.match(consolePage, /double vérification\|vérification renforcée/);
-  assert.match(consolePage, /href="\/security\?returnTo=%2Fprototype%3Fview%3Dagent"/);
+  assert.match(consolePage, /href="\/security\?returnTo=%2Fgestion%2Fdemandes"/);
 });
 
 test("the real route guards send AAL1 staff to enrollment while keeping enrollment and other roles reachable", () => {

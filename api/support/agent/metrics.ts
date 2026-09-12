@@ -37,6 +37,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const since = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
     const scope = and(
       eq(agentRuntimeMetrics.institutionId, context.institutionId),
+      eq(agentRuntimeMetrics.operation, "support_assistant"),
       gte(agentRuntimeMetrics.createdAt, since)
     );
 

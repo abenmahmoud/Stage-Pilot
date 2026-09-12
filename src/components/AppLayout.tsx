@@ -1,9 +1,8 @@
-import { Outlet, NavLink, useNavigate } from "react-router-dom";
+import { Outlet, NavLink, useNavigate, useLocation } from "react-router-dom";
 import { useEffect, useRef, useState } from "react";
 import { useAuth } from "../lib/auth-context";
 import { ROLE_LABELS } from "../lib/types";
 import {
-  GraduationCap,
   Briefcase,
   Mic2,
   Settings,
@@ -17,24 +16,9 @@ import {
   UsersRound,
   FolderOpen,
   ShieldCheck,
-  Newspaper,
-  BookOpenCheck,
-  IdCard,
-  Activity,
-  CalendarDays,
-  BadgeCheck,
-  Inbox,
-  MessagesSquare,
-  Zap,
-  WandSparkles,
 } from "lucide-react";
-import {
-  COMMUNICATIONS_UI_ENABLED,
-  FLASH_INFO_UI_ENABLED,
-  FLASH_VALIDATION_UI_ENABLED,
-  NOMINATIVE_SEND_UI_ENABLED,
-  WEEKLY_BRIEF_UI_ENABLED,
-} from "../lib/feature-flags";
+import ManagementNavigation from "./ManagementNavigation";
+import { isStageWorkspace } from "../../shared/management-navigation";
 
 const navCls = ({ isActive }: { isActive: boolean }) =>
   `flex items-center gap-3 rounded-xl px-4 py-2.5 text-sm font-medium transition-all ${
@@ -46,6 +30,8 @@ const navCls = ({ isActive }: { isActive: boolean }) =>
 export default function AppLayout() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+  const stageWorkspace = isStageWorkspace(location.pathname);
   const [open, setOpen] = useState(false);
   const mobileMenuButtonRef = useRef<HTMLButtonElement>(null);
   const mobileCloseButtonRef = useRef<HTMLButtonElement>(null);
@@ -91,13 +77,11 @@ export default function AppLayout() {
   const isAdmin = ["superadmin", "administration"].includes(user.role);
   const isProviseur = user.role === "proviseur";
   const isEleve = user.role === "eleve";
-  const isSupportAgent = ["superadmin", "administration", "agent", "proviseur"].includes(
-    user.role
-  );
+
 
   async function handleLogout() {
     await logout();
-    navigate("/login", { replace: true });
+    navigate(stageWorkspace ? "/login" : "/login?mode=staff&returnTo=%2Fgestion", { replace: true });
   }
 
   const navContent = (
@@ -109,7 +93,7 @@ export default function AppLayout() {
             <p className="text-sm font-bold text-white font-heading">
               Blaise Cendrars
             </p>
-            <p className="text-xs text-white/75">LycéeGest · Services du lycée</p>
+            <p className="text-xs text-white/75">{stageWorkspace ? "Stages et Grand Oral" : "Gestion du lycée"}</p>
           </div>
         </div>
       </div>
@@ -121,6 +105,7 @@ export default function AppLayout() {
           if ((event.target as HTMLElement).closest("a")) closeMobileMenu("main");
         }}
       >
+        {stageWorkspace ? <>
         {!isEleve && (
           <NavLink to="/stages" end className={navCls}>
             <Briefcase className="w-4 h-4" />
@@ -196,94 +181,8 @@ export default function AppLayout() {
           </NavLink>
         )}
 
-        {isSupportAgent && (
-          <>
-            <div className="pt-4 pb-2 px-4">
-              <p className="text-[10px] font-semibold uppercase tracking-wider text-white/40">
-                Espace agent
-              </p>
-            </div>
-            <NavLink to="/prototype?view=agent" className={navCls}>
-              <Inbox className="w-4 h-4" />
-              Demandes
-            </NavLink>
-              {["superadmin", "proviseur"].includes(user.role) ? <NavLink to="/admin/services" className={navCls}>Équipes et services</NavLink> : null}
-            <NavLink to="/admin/validations-agent" className={navCls}>
-              <BadgeCheck className="w-4 h-4" />
-              Validations
-            </NavLink>
-          </>
-        )}
-
-        {(isAdmin || isProviseur) && (
-          <>
-            <NavLink to="/admin/contenus" className={navCls}>
-              <Newspaper className="w-4 h-4" />
-              Contenus du site
-            </NavLink>
-            {WEEKLY_BRIEF_UI_ENABLED && (
-              <NavLink to="/admin/hebdo" className={navCls}>
-                <WandSparkles className="w-4 h-4" />
-                Hebdo vers À la une
-              </NavLink>
-            )}
-            {COMMUNICATIONS_UI_ENABLED && (
-              <NavLink to="/admin/communications" className={navCls}>
-                <MessagesSquare className="w-4 h-4" />
-                Communications
-              </NavLink>
-            )}
-            {NOMINATIVE_SEND_UI_ENABLED && (
-              <NavLink to="/admin/envois-nominatifs" className={navCls}>
-                <MessagesSquare className="w-4 h-4" />
-                Envois nominatifs
-              </NavLink>
-            )}
-            {FLASH_INFO_UI_ENABLED && (
-              <NavLink to="/admin/informations-flash/proposer" className={navCls}>
-                <Zap className="w-4 h-4" />
-                Information flash
-              </NavLink>
-            )}
-            {FLASH_VALIDATION_UI_ENABLED && (
-              <NavLink to="/admin/informations-flash/valider" className={navCls}>
-                <ShieldCheck className="w-4 h-4" />
-                Valider les flash
-              </NavLink>
-            )}
-            {(user.role === "superadmin" || isProviseur) && (
-              <>
-                <NavLink to="/admin/connaissances-agent" className={navCls}>
-                  <BookOpenCheck className="w-4 h-4" />
-                  Connaissances IA
-                </NavLink>
-                <NavLink to="/admin/repertoire-identites" className={navCls}>
-                  <IdCard className="w-4 h-4" />
-                  Identités du lycée
-                </NavLink>
-                <NavLink to="/admin/sante-demandes" className={navCls}>
-                  <Activity className="w-4 h-4" />
-                  Santé des demandes
-                </NavLink>
-                <NavLink to="/admin/emplois-du-temps" className={navCls}>
-                  <CalendarDays className="w-4 h-4" />
-                  Emplois du temps
-                </NavLink>
-              </>
-            )}
-            <NavLink to="/security" className={navCls}>
-              <ShieldCheck className="w-4 h-4" />
-              Sécurité du compte
-            </NavLink>
-          </>
-        )}
-
-        {user.role === "agent" && (
-          <NavLink to="/security" className={navCls}>
-            <ShieldCheck className="w-4 h-4" />
-            Sécurité du compte
-          </NavLink>
-        )}
+        <NavLink to="/security" className={navCls}><ShieldCheck className="w-4 h-4" />Sécurité du compte</NavLink>
+        </> : <ManagementNavigation role={user.role} userId={user.id} />}
       </nav>
 
       <div className="p-4 border-t border-white/10">
@@ -372,7 +271,8 @@ export default function AppLayout() {
           <div className="flex items-center gap-1.5 text-sm text-gray-500">
             <span className="font-medium text-gray-900">Blaise Cendrars</span>
             <ChevronRight className="w-3.5 h-3.5" />
-            <span>Portail du lycée</span>
+            <span>{stageWorkspace ? "Stages et Grand Oral" : "Gestion du lycée"}</span>
+            <a href="/" className="ml-3 text-xs text-emerald-700 hover:underline">Voir le site</a>
           </div>
         </header>
         <main id="main-content" tabIndex={-1} className="flex-1 overflow-y-auto p-4 lg:p-8">

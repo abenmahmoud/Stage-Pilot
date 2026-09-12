@@ -1,9 +1,21 @@
 # Memoire durable - Portail numerique du Lycee Blaise Cendrars
 
-**Derniere mise a jour** : 10 septembre 2026
+**Derniere mise a jour** : 12 septembre 2026
 **Branche de travail** : `codex/lycee-connect-prototype`
 **Depot** : `abenmahmoud/Stage-Pilot`
 **Dernier jalon de code verifie** : branche de preview Vercel
+
+## Lot du 12 septembre — gestion privée et coûts IA (T074E / T049C9A)
+
+Décision d’Adel : masquer l’espace agent public et séparer la gestion du lycée
+des stages; distinguer superadmin et administrateurs. Entrées `/gestion` et
+`/gestion/demandes`, ancienne adresse redirigée, aucun nouveau droit accordé.
+Suivi financier `/gestion/budget-ia` réservé au superadmin avec appartenance
+administrative active. Configuration initiale : 1 € estimé/jour Paris, 0,04 €
+réservé par appel puis ajusté à la consommation connue. Aucun crédit acheté.
+Même modèle Luna conservé; traductions incluses. Tests unitaires, concurrence
+PostgreSQL isolée et contrôle de sécurité réussis. Publication en cours de
+vérification. Rapport : `docs/operations/GESTION_PRIVEE_BUDGET_2026-09-12.md`.
 
 ## Lot du 10 septembre — reprise des demandes et fluidité (T010B4B2)
 

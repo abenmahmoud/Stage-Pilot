@@ -1,3 +1,5 @@
+import { reserveAgentAiDailyBudget } from "../../../../_shared/agent-ai-budget.js";
+import { recordSupplementaryAiUsage } from "../../../../_shared/supplementary-ai-usage.js";
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { and, eq } from "drizzle-orm";
 import { db } from "../../../../../db/index.js";
@@ -86,8 +88,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       windowSeconds: 24 * 60 * 60,
     });
 
+    const budget = await reserveAgentAiDailyBudget("support_translation");
+    if (budget.status === "unavailable") throw new HttpError(503, "Le budget de traduction est indisponible. Votre réponse en français est conservée.");
+    if (budget.status === "exhausted") throw new HttpError(429, "Le budget IA du jour est atteint. Votre réponse en français est conservée.");
+    const startedAt = Date.now();
     try {
       const draft = await prepareSupportTranslation({
+        usageRecorder: (payload, model) => recordSupplementaryAiUsage({ operation: "support_translation", payload, model, reservationId: budget.reservationId, startedAt }),
         sourceMessage,
         targetLanguage,
         safetyIdentifier: personalHash(`support-translation:${user.id}`),

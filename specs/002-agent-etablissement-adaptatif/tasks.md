@@ -1022,6 +1022,7 @@
   respectent la borne et laissent zéro fixture. Le plafond dur du projet OpenAI,
   les prix vérifiés, les montants et l'activation restent dans T049C.
 - [ ] T050 Ouvrir un pilote limité avec agents nommés et canal de retour.
+- [ ] T049C9A Activer le budget commun des cinq points d’appel OpenAI, ajuster les réservations à la consommation mesurée et fournir une supervision superadmin. Configuration initiale 1 € estimé/jour, 0,04 €/réservation, tarifs et change vérifiés. Code et concurrence PostgreSQL isolée vérifiés; publication à confirmer. Rapport GESTION_PRIVEE_BUDGET_2026-09-12.
 - [ ] T051 Mesurer deux semaines : classement, délai, transferts, corrections, coût et incidents.
 - [ ] T052 Corriger les écarts puis exécuter `/speckit.analyze` et `/speckit.converge` avant généralisation.
 - [x] T052A Réexécuter l'analyse transversale après les lots de restauration,
@@ -1408,3 +1409,4 @@
 - [x] T074C Créer l’accueil « Pour moi, aujourd’hui » : session OTP existante, cours aujourd’hui/demain selon le périmètre autorisé, aperçu des demandes liées à l’identité et documents disponibles, accès direct au chat et au suivi. Rendez-vous publics communs conservés. Commits 6480144 puis db5a199 publiés ; build, gate, 13 tests dédiés, parcours fictifs complets et contrôles publics sur URL immuable puis domaine en 1440/390/320 px réussis. Limites des anciennes demandes et des sources EDT documentées. Preuves : docs/operations/ACCUEIL_PERSONNEL_2026-09-11.md.
 
 - [x] T074D Relier les informations publiées aux profils et classes vérifiés : ciblage éditorial versionné, lecture personnelle protégée, dates et documents communs, exclusion des flux publics et recette mobile. Version 9cf78d3 publiée et vérifiée sur URL immuable et domaine principal en 1440/390/320 px ; build, gate, 24 tests dédiés et parcours éditorial fictif réussis. Preuves et limites : docs/operations/INFOS_PERSONNELLES_2026-09-12.md.
+- [ ] T074E Séparer la gestion privée `/gestion` de l’espace stages et retirer l’entrée agent des pages publiques, avec menus par rôles et anciennes adresses redirigées. Code et gardes vérifiés; recette mobile et publication en cours. Rapport GESTION_PRIVEE_BUDGET_2026-09-12.

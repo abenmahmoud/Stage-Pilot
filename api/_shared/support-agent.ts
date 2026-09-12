@@ -1,3 +1,4 @@
+import { encodeBudgetedAiRequest } from "../../shared/budgeted-ai-request.js";
 import { accessGuidanceKind, requestsOwnClass, type OwnClassReadResult } from "../../shared/support-service-intent.js";
 import {
   evaluateConversationPolicy,
@@ -420,6 +421,7 @@ export async function analyzeSupportConversation(input: {
   }) => Promise<void>;
   runtimeMetricsRecorder?: (metric: AgentRuntimeMetric) => Promise<void>;
   aiBudgetGuard?: () => Promise<AgentAiBudgetReservationResult>;
+  aiBudgetSettler?: (reservationId: string | undefined, costMicros: number | null) => Promise<void>;
   scheduleReader?: (input: { requestedAt: Date }) => Promise<ScheduleReadResult>;
   scheduleDayReader?: (input: {
     requestedAt: Date;
@@ -436,6 +438,7 @@ export async function analyzeSupportConversation(input: {
   const policy = evaluateConversationPolicy(input.messages);
   const fallback = localFallback(input.messages, input.attachments, policy);
   let metricRecorded = false;
+  let budgetReservationId: string | undefined;
   let runtimeSourceCount = 0;
   const emptyUsage: AgentTokenUsage = {
     inputTokens: null,
@@ -448,12 +451,14 @@ export async function analyzeSupportConversation(input: {
     usedAi: boolean,
     usage: AgentTokenUsage = emptyUsage
   ): Promise<void> => {
-    if (!input.runtimeMetricsRecorder || metricRecorded) return;
+    if (metricRecorded) return;
     metricRecorded = true;
     const cost = estimateAgentCostMicros(usage, {
       inputEurPerMillion: process.env.OPENAI_SUPPORT_INPUT_EUR_PER_MILLION_TOKENS,
       outputEurPerMillion: process.env.OPENAI_SUPPORT_OUTPUT_EUR_PER_MILLION_TOKENS,
     });
+    await input.aiBudgetSettler?.(budgetReservationId, cost.estimatedCostMicros);
+    if (!input.runtimeMetricsRecorder) return;
     try {
       await input.runtimeMetricsRecorder({
         operation: "support_assistant",
@@ -685,6 +690,7 @@ export async function analyzeSupportConversation(input: {
       await recordRuntime("budget_exhausted", false, false);
       return fallback;
     }
+    budgetReservationId = budget.reservationId;
   }
 
   const controller = new AbortController();
@@ -697,7 +703,7 @@ export async function analyzeSupportConversation(input: {
         Authorization: `Bearer ${apiKey}`,
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({
+      body: encodeBudgetedAiRequest({
         model,
         store: false,
         reasoning: { effort: "low" },

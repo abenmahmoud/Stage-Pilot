@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Link, Navigate, useLocation, useNavigate } from "react-router-dom";
+import { legacyAgentDestination } from "../../../shared/management-navigation";
 import { SchoolParentsMeeting } from "../../components/SchoolParentsMeeting";
 import SchoolCalendarPage, { HomeCalendarPreview } from "./SchoolCalendarPage";
 import PersonalHome from "./PersonalHome";
@@ -675,6 +676,8 @@ export default function LyceeConnectPrototype() {
     changeView("help");
   }
 
+  if (view === "agent") return <Navigate to={legacyAgentDestination(location.search)} replace />;
+
   return (
     <PublicPortalShell view={view} onNavigate={changeView}>
         {view === "home" && (
@@ -870,7 +873,6 @@ export default function LyceeConnectPrototype() {
         {view === "school" && <SchoolView onBack={() => changeView("home")} onHelp={startHelp} />}
         {view === "news" && <NewsView onBack={() => changeView("home")} />}
         {view === "calendar" && <SchoolCalendarPage />}
-        {view === "agent" && <AgentView onBack={() => changeView("home")} />}
         {view === "trust" && <TrustView onBack={() => changeView("home")} />}
 
     </PublicPortalShell>
@@ -3636,6 +3638,11 @@ function isAllowedSupportAttachmentPayload(value: unknown): value is { url: stri
   return isSupportAttachmentLinkPayload(value, configuredUrl);
 }
 
+export function AgentManagementRequests() {
+  const navigate = useNavigate();
+  return <div className="lycee-connect lycee-management-requests" data-view="agent"><AgentView onBack={() => navigate("/gestion")} /></div>;
+}
+
 function AgentView({ onBack }: { onBack: () => void }) {
   if (!SUPPORT_API_ENABLED) return <DemoAgentView onBack={onBack} />;
   return <ConnectedAgentView onBack={onBack} />;
@@ -4466,7 +4473,7 @@ function ConnectedAgentView({ onBack }: { onBack: () => void }) {
   return (
     <div className="lycee-page lycee-agent-page">
       <PageIntro eyebrow="Espace agent" title="Demandes du lycée" description="Classez, répondez et gardez chaque échange dans le même dossier." onBack={onBack} />
-      {agentError ? <div className="lycee-form-error" role="alert"><CircleAlert aria-hidden="true" /><span>{agentError}</span>{needsAgentSecurity ? <a href="/security?returnTo=%2Fprototype%3Fview%3Dagent">Sécuriser le compte</a> : needsAgentLogin ? <a href="/login?returnTo=%2Fprototype%3Fview%3Dagent&mode=staff">Se connecter</a> : queueLoadError ? <button type="button" disabled={queueLoading} onClick={() => void loadQueue()}>{queueLoading ? "Nouvel essai…" : "Réessayer"}</button> : detailLoadError && selectedCode ? <button type="button" disabled={detailLoading} onClick={() => void loadDetail(selectedCode)}>{detailLoading ? "Nouvel essai…" : "Recharger le dossier"}</button> : null}</div> : null}
+      {agentError ? <div className="lycee-form-error" role="alert"><CircleAlert aria-hidden="true" /><span>{agentError}</span>{needsAgentSecurity ? <a href="/security?returnTo=%2Fgestion%2Fdemandes">Sécuriser le compte</a> : needsAgentLogin ? <a href="/login?returnTo=%2Fgestion%2Fdemandes&mode=staff">Se connecter</a> : queueLoadError ? <button type="button" disabled={queueLoading} onClick={() => void loadQueue()}>{queueLoading ? "Nouvel essai…" : "Réessayer"}</button> : detailLoadError && selectedCode ? <button type="button" disabled={detailLoading} onClick={() => void loadDetail(selectedCode)}>{detailLoading ? "Nouvel essai…" : "Recharger le dossier"}</button> : null}</div> : null}
       {access ? <details className="lycee-agent-dashboard lycee-agent-panel">
         <summary><strong>Vue d’ensemble des services</strong><span>{stats.total} demandes · {stats.urgent} urgentes · {stats.unassigned} à attribuer</span></summary>
         <div className="lycee-agent-panel-content">

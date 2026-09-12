@@ -1,3 +1,5 @@
+import { recordSupplementaryAiUsage } from "../../_shared/supplementary-ai-usage.js";
+import { encodeBudgetedAiRequest } from "../../../shared/budgeted-ai-request.js";
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { readAiProviderJsonResponse } from "../../../shared/ai-provider-response.js";
 import { parseSiteContentAiInput } from "../../../shared/site-content.js";
@@ -70,6 +72,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       throw new HttpError(429, "Le budget quotidien de l’aide à la rédaction est atteint");
     }
 
+    const model = process.env.OPENAI_CONTENT_MODEL || process.env.OPENAI_SUPPORT_MODEL || "gpt-5.6-luna";
+    const startedAt = Date.now();
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 20_000);
     try {
@@ -77,8 +81,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         method: "POST",
         signal: controller.signal,
         headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
-        body: JSON.stringify({
-          model: process.env.OPENAI_CONTENT_MODEL || process.env.OPENAI_SUPPORT_MODEL || "gpt-5.6-luna",
+        body: encodeBudgetedAiRequest({
+          model,
           store: false,
           reasoning: { effort: "low" },
           max_output_tokens: 900,
@@ -99,7 +103,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         }),
       });
       if (!response.ok) throw new HttpError(502, "L’aide à la rédaction ne répond pas pour le moment");
-      const text = outputText(await readAiProviderJsonResponse<unknown>(response));
+      const providerPayload = await readAiProviderJsonResponse<unknown>(response);
+      await recordSupplementaryAiUsage({ operation: "content_assist", model, reservationId: budget.reservationId, payload: providerPayload, startedAt });
+      const text = outputText(providerPayload);
       if (!text) throw new HttpError(502, "La proposition reçue est incomplète");
       return projectSiteContentAssistPayload({ suggestion: JSON.parse(text) as unknown });
     } catch (error) {

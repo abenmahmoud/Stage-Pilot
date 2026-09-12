@@ -14,6 +14,7 @@ import {
   FLASH_PROPOSAL_ROLES,
   roleIsAllowed,
 } from "../shared/role-access";
+import { SCHOOL_MANAGEMENT_ROLES, AI_BUDGET_ROLES } from "../shared/management-navigation";
 import type { LyceeGestRole } from "../shared/role-access";
 import { isValidFlashValidationScreenAccessPayload } from "../shared/flash-payload-policy";
 import {
@@ -35,6 +36,9 @@ const LivretStage = lazy(() => import("./pages/stages/LivretStage"));
 const GrandOralDashboard = lazy(() => import("./pages/grand-oral/GrandOralDashboard"));
 const MaFiche = lazy(() => import("./pages/grand-oral/MaFiche"));
 const FicheDetail = lazy(() => import("./pages/grand-oral/FicheDetail"));
+const ManagementHomePage = lazy(() => import("./pages/admin/ManagementHomePage"));
+const AiBudgetPage = lazy(() => import("./pages/admin/AiBudgetPage"));
+const AgentManagementRequests = lazy(() => import("./pages/prototype/LyceeConnectPrototype").then(module => ({ default: module.AgentManagementRequests })));
 const AdminDashboard = lazy(() => import("./pages/admin/AdminDashboard"));
 const ImportPage = lazy(() => import("./pages/admin/ImportPage"));
 const ServiceAccessPage = lazy(() => import("./pages/admin/ServiceAccessPage"));
@@ -76,7 +80,7 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
     );
   if (!user) {
     const returnTo = `${location.pathname}${location.search}`;
-    const mode = location.pathname.startsWith("/admin") ? "&mode=staff" : "";
+    const mode = (location.pathname.startsWith("/admin") || location.pathname.startsWith("/gestion")) ? "&mode=staff" : "";
     return (
       <Navigate
         to={`/login?returnTo=${encodeURIComponent(returnTo)}${mode}`}
@@ -216,6 +220,9 @@ export default function App() {
             </ProtectedRoute>
           }
         >
+          <Route path="gestion" element={<RoleRoute allowedRoles={SCHOOL_MANAGEMENT_ROLES}><ManagementHomePage /></RoleRoute>} />
+          <Route path="gestion/demandes" element={<RoleRoute allowedRoles={SCHOOL_MANAGEMENT_ROLES}><AgentManagementRequests /></RoleRoute>} />
+          <Route path="gestion/budget-ia" element={<RoleRoute allowedRoles={AI_BUDGET_ROLES}><AiBudgetPage /></RoleRoute>} />
           <Route path="dashboard" element={<DashboardRedirect />} />
           <Route path="stages" element={<StagesDashboard />} />
           <Route path="stages/mon-stage/livret" element={<LivretStage />} />

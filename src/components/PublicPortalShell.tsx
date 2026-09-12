@@ -1,6 +1,6 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { BarChart3, CalendarDays, ChevronRight, CircleUserRound, Download, ExternalLink, GraduationCap, Headphones, Home, LifeBuoy, Mail, Menu, Newspaper, ShieldCheck, Smartphone, TicketCheck } from "lucide-react";
+import { BarChart3, CalendarDays, ChevronRight, Download, ExternalLink, GraduationCap, Home, LifeBuoy, Mail, Menu, Newspaper, ShieldCheck, Smartphone, TicketCheck } from "lucide-react";
 import { PublicPortalFooter } from "./PublicPortalFooter";
 import { FlashPublicBulletin } from "./FlashPublicBulletin";
 import { EssufRadioControls } from "./EssufRadioControls";
@@ -76,10 +76,6 @@ export function PublicPortalShell({view, onNavigate, children, className = ""}: 
     if (onNavigate) onNavigate(nextView);
     else navigate(nextView === "home" ? "/" : "/?view=" + nextView);
   }
-  function openAgentLogin() {
-    const returnTo = encodeURIComponent("/prototype?view=agent");
-    window.location.assign(`/login?returnTo=${returnTo}&mode=staff`);
-  }
 
   async function installPortalApp() {
     if (installPrompt) {
@@ -132,13 +128,6 @@ export function PublicPortalShell({view, onNavigate, children, className = ""}: 
           <button type="button" onClick={() => changeView("trust")}><ShieldCheck aria-hidden="true" /><span><strong>Confidentialité</strong><small>Protection et utilisation des données</small></span><ChevronRight aria-hidden="true" /></button>
         </div>
 
-        <button className="lycee-agent-link" type="button" onClick={openAgentLogin}>
-          <Headphones aria-hidden="true" />
-          <span>
-            <strong>Espace agent</strong>
-            <small>Connexion professionnelle</small>
-          </span>
-        </button>
 
         <div className="lycee-sidebar-status">
           <span className="lycee-live-dot" />
@@ -172,10 +161,6 @@ export function PublicPortalShell({view, onNavigate, children, className = ""}: 
             <button className="lycee-top-tool" type="button" onClick={() => changeView("news")} title="Voir les informations du lycée"><Newspaper aria-hidden="true" /><span>À la une</span></button>
             {installAvailable ? <button className="lycee-top-tool lycee-install-button" type="button" aria-label="Installer l’application du lycée" onClick={() => void installPortalApp()} title="Installer l’application du lycée"><Download aria-hidden="true" /><span>Installer</span></button> : null}
             <a className="lycee-top-tool" href={WEBMAIL_URL} target="_blank" rel="noreferrer" title="Ouvrir le Webmail"><Mail aria-hidden="true" /><span>Webmail</span></a>
-            <button className="lycee-profile-button" type="button" aria-label="Se connecter à l’espace agent" onClick={openAgentLogin}>
-              <CircleUserRound aria-hidden="true" />
-              <span>Espace agent</span>
-            </button>
             <EssufRadioControls />
           </div>
         </header>

@@ -28,7 +28,7 @@ export const ROLE_LABELS: Record<UserRole, string> = {
 export const ROLE_HOME: Record<UserRole, string> = {
   superadmin: "/admin",
   administration: "/stages",
-  agent: "/prototype?view=agent",
+  agent: "/gestion/demandes",
   pp: "/stages",
   professeur: "/stages",
   proviseur: "/grand-oral",

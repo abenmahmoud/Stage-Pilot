@@ -1558,3 +1558,7 @@
 .lycee-push-control .lycee-push-actions button {display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:44px;padding:10px 14px;background:#edf7f3;color:#006956;border:1px solid #c8e5db;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer}
 .lycee-push-control button:disabled {opacity:.65;cursor:default}.lycee-push-control small {font-size:12px;line-height:1.6;overflow-wrap:anywhere}
 @media(max-width:480px){.lycee-push-control {padding:16px}.lycee-push-actions {flex-direction:column}.lycee-push-actions button {width:100%}}
+
+/* The private request console reuses its cards inside the school management shell. */
+.lycee-connect.lycee-management-requests { display: block; min-height: 0; background: transparent; }
+.lycee-management-requests > .lycee-page { width: 100%; padding: 0; margin: 0; max-width: none; }

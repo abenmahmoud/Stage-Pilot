@@ -1,3 +1,5 @@
+import { AGENT_AI_BUDGET_OPERATIONS, type AgentAiBudgetOperation } from "./agent-ai-budget.js";
+
 export const AGENT_RUNTIME_OUTCOMES = [
   "deterministic",
   "pretriage",
@@ -22,7 +24,7 @@ export type AgentTokenUsage = {
 };
 
 export type AgentRuntimeMetric = AgentTokenUsage & {
-  operation: "support_assistant";
+  operation: AgentAiBudgetOperation;
   outcome: AgentRuntimeOutcome;
   model: string | null;
   aiAttempted: boolean;
@@ -98,7 +100,7 @@ export function normalizeAgentRuntimeMetric(
   const aiAttempted = Boolean(input.aiAttempted || input.usedAi);
   const pricingConfigured = Boolean(input.pricingConfigured);
   return {
-    operation: "support_assistant",
+    operation: AGENT_AI_BUDGET_OPERATIONS.includes(input.operation) ? input.operation : "support_assistant",
     outcome: AGENT_RUNTIME_OUTCOMES.includes(input.outcome)
       ? input.outcome
       : "provider_error",

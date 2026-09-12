@@ -1,3 +1,4 @@
+import { encodeBudgetedAiRequest } from "../../shared/budgeted-ai-request.js";
 import { createHash, createHmac, timingSafeEqual } from "node:crypto";
 import { readAiProviderJsonResponse } from "../../shared/ai-provider-response.js";
 import {
@@ -201,6 +202,7 @@ export async function prepareSupportTranslation(input: {
   knownNames: Array<{ value: string | null | undefined; marker: string }>;
   safetyIdentifier: string;
   fetchImpl?: typeof fetch;
+  usageRecorder?: (payload: unknown, model: string) => Promise<void>;
 }): Promise<SupportTranslationDraft> {
   const apiKey = process.env.OPENAI_API_KEY;
   if (!apiKey) {
@@ -213,6 +215,7 @@ export async function prepareSupportTranslation(input: {
   const activeMarkers = input.knownNames.filter(
     (known) => countMarker(maskedSource, known.marker) > 0 && known.value?.trim()
   );
+  const model = process.env.OPENAI_SUPPORT_TRANSLATION_MODEL || process.env.OPENAI_SUPPORT_MODEL || "gpt-5.6-luna";
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 20_000);
   try {
@@ -220,8 +223,8 @@ export async function prepareSupportTranslation(input: {
       method: "POST",
       signal: controller.signal,
       headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
-      body: JSON.stringify({
-        model: process.env.OPENAI_SUPPORT_TRANSLATION_MODEL || process.env.OPENAI_SUPPORT_MODEL || "gpt-5.6-luna",
+      body: encodeBudgetedAiRequest({
+        model,
         store: false,
         reasoning: { effort: "low" },
         max_output_tokens: 1_200,
@@ -242,7 +245,9 @@ export async function prepareSupportTranslation(input: {
     if (!response.ok) {
       throw new SupportTranslationFailure("unavailable", "Le service de traduction ne répond pas");
     }
-    const text = outputText(await readAiProviderJsonResponse<unknown>(response));
+    const providerPayload = await readAiProviderJsonResponse<unknown>(response);
+    await input.usageRecorder?.(providerPayload, model);
+    const text = outputText(providerPayload);
     if (!text) {
       throw new SupportTranslationFailure("invalid_output", "La traduction reçue est incomplète");
     }

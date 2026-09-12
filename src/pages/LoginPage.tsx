@@ -47,6 +47,7 @@ export default function LoginPage() {
   const staffRequested =
     searchParams.get("mode") === "staff" ||
     requestedReturn?.startsWith("/admin") ||
+    requestedReturn?.startsWith("/gestion") ||
     requestedReturn?.includes("view=agent") ||
     requestedReturn === "/security";
 

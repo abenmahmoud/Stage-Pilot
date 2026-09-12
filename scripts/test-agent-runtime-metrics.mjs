@@ -78,7 +78,7 @@ test("records one local outcome when the model is unavailable", async () => {
   const metrics = [];
   try {
     const result = await analyzeSupportConversation({
-      messages: messages("Mon ENT ne fonctionne plus depuis ce matin et je dois consulter mon emploi du temps."),
+      messages: messages("Mon accès ENT reste bloqué depuis hier et je souhaite ouvrir une demande."),
       attachments: [],
       safetyIdentifier: "runtime-test-session",
       runtimeMetricsRecorder: async (metric) => metrics.push(metric),
@@ -127,7 +127,7 @@ test("records provider usage and ignores a failing metrics sink", async () => {
 
   try {
     const result = await analyzeSupportConversation({
-      messages: messages("Je suis élève, mon ENT est bloqué depuis hier malgré plusieurs essais et je dois consulter mon emploi du temps."),
+      messages: messages("Mon accès ENT reste bloqué depuis hier et je souhaite ouvrir une demande."),
       attachments: [],
       safetyIdentifier: "runtime-test-session",
       knowledgeContextLoader: async () => "",
@@ -141,7 +141,7 @@ test("records provider usage and ignores a failing metrics sink", async () => {
     assert.equal(metrics[0].estimatedCostMicros, 2_800);
 
     const resilient = await analyzeSupportConversation({
-      messages: messages("Je suis élève, mon ENT est bloqué depuis hier malgré plusieurs essais et je dois consulter mon emploi du temps."),
+      messages: messages("Mon accès ENT reste bloqué depuis hier et je souhaite ouvrir une demande."),
       attachments: [],
       safetyIdentifier: "runtime-test-session-2",
       knowledgeContextLoader: async () => "",

@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
+import { encodeBudgetedAiRequest, isAiReservationPriced } from "../shared/budgeted-ai-request.ts";
 import { analyzeSupportConversation } from "../api/_shared/support-agent.ts";
 import {
   parseCanonicalEuroMicros,
@@ -13,6 +14,16 @@ function messages() {
     { role: "requester", content: "Mon accès ENT reste bloqué depuis hier et je souhaite ouvrir une demande." },
   ];
 }
+
+test("prices the whole request envelope and rejects unbounded or differently priced calls", () => {
+  const env={OPENAI_BUDGET_GUARD_ENABLED:"true",OPENAI_BUDGET_PRICED_MODEL:"gpt-5.6-luna",OPENAI_SUPPORT_INPUT_EUR_PER_MILLION_TOKENS:"0.172533",OPENAI_SUPPORT_OUTPUT_EUR_PER_MILLION_TOKENS:"1.035197"};
+  assert(isAiReservationPriced(40000,env));
+  assert.equal(isAiReservationPriced(1000,env),false);
+  assert.equal(isAiReservationPriced(40000,{...env,OPENAI_SUPPORT_INPUT_EUR_PER_MILLION_TOKENS:undefined}),false);
+  const body={model:"gpt-5.6-luna",input:"Message fictif",max_output_tokens:1000,store:false};
+  assert.equal(JSON.parse(encodeBudgetedAiRequest(body,env)).store,false);
+  for(const extra of [{model:"other-model"},{max_output_tokens:4001},{input:"é".repeat(80000)},{previous_response_id:"unbounded"},{tools:[{}]},{conversation:"unbounded"}])assert.throws(()=>encodeBudgetedAiRequest({...body,...extra},env),/outside_budget_envelope/);
+});
 
 test("lit uniquement des montants canoniques positifs bornés", () => {
   assert.equal(parseCanonicalEuroMicros("12.345678"), 12_345_678);
@@ -36,6 +47,9 @@ test("reste désactivé par défaut et échoue fermé si la configuration est in
     OPENAI_BUDGET_GUARD_ENABLED: "true",
     OPENAI_DAILY_BUDGET_EUR: "10",
     OPENAI_SUPPORT_MAX_CALL_EUR: "0.05",
+    OPENAI_BUDGET_PRICED_MODEL: "gpt-5.6-luna",
+    OPENAI_SUPPORT_INPUT_EUR_PER_MILLION_TOKENS: "0.172533",
+    OPENAI_SUPPORT_OUTPUT_EUR_PER_MILLION_TOKENS: "1.035197",
   }), {
     status: "enabled",
     dailyLimitMicros: 10_000_000,
