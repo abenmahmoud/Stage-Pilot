@@ -46,7 +46,7 @@ const STATUS: Record<ScheduleStatus, { label: string; style: string }> = {
   quarantined: { label: "Contrôle de sécurité", style: "bg-amber-100 text-amber-900" },
   processing: { label: "Lecture technique", style: "bg-cyan-100 text-cyan-900" },
   mapping_pending: { label: "Correspondance des colonnes à faire", style: "bg-amber-100 text-amber-900" },
-  review: { label: "Index à vérifier", style: "bg-amber-100 text-amber-900" },
+  review: { label: "Correspondances à vérifier", style: "bg-amber-100 text-amber-900" },
   approved: { label: "Approuvé", style: "bg-emerald-100 text-emerald-800" },
   active: { label: "Version active", style: "bg-emerald-700 text-white" },
   superseded: { label: "Version remplacée", style: "bg-slate-200 text-slate-700" },
@@ -118,6 +118,7 @@ export default function ScheduleImportPage() {
     "Emploi du temps officiel à indexer par page et à consulter uniquement après validation humaine."
   );
   const [loading, setLoading] = useState(true);
+  const [listAvailable, setListAvailable] = useState(false);
   const [busy, setBusy] = useState(false);
   const [progress, setProgress] = useState(0);
   const [error, setError] = useState("");
@@ -148,6 +149,7 @@ export default function ScheduleImportPage() {
       const result = parseScheduleImportListPayload(response);
       if (!result) throw new Error("La liste des emplois du temps reçue est invalide.");
       setImports(result.imports);
+      setListAvailable(true);
       setSelectedImportId((current) => {
         if (current && result.imports.some((item) => item.id === current && item.status === "review")) {
           return current;
@@ -171,6 +173,7 @@ export default function ScheduleImportPage() {
         return candidates.some((item) => item.id === current) ? current : candidates[0]?.id ?? "";
       });
     } catch (reason) {
+      setListAvailable(false);
       setError(reason instanceof Error ? reason.message : "Chargement impossible.");
     } finally {
       setLoading(false);
@@ -582,6 +585,20 @@ export default function ScheduleImportPage() {
         </button>
       </header>
 
+      <section className="space-y-3 rounded-xl border border-slate-200 bg-white p-4 sm:p-6" aria-label="Étapes de mise en service">
+        <h2 className="text-lg font-bold text-slate-950">Des fichiers reçus aux réponses dans le chat</h2>
+        <p className="text-sm text-slate-600">1. Déposer un export officiel · 2. Vérifier les correspondances · 3. Approuver et activer la version</p>
+        <p role="status" className="text-sm font-semibold text-slate-800">
+          {loading ? "Actualisation du bilan…" : !listAvailable ? "Le bilan n’a pas pu être actualisé." : `${imports.filter(item => item.status === 'active').length} version(s) active(s) · ${imports.filter(item => item.status === 'review').length} à vérifier · ${imports.filter(item => item.status === 'approved').length} à activer`}
+        </p>
+        <p className="text-sm text-slate-600">Une version reçue ou rattachée reste privée jusqu’à son activation. Le chat vérifie ensuite sa validité, l’identité et les droits de la personne. Les groupes et les salles doivent être renseignés pour une réponse complète.</p>
+        <nav className="flex flex-wrap gap-2" aria-label="Étapes des emplois du temps">
+          {reviewImports.length > 0 && <a href="#edt-correspondances" className="rounded-lg bg-emerald-700 px-4 py-2.5 text-sm font-semibold text-white">Vérifier les correspondances</a>}
+          {actionCandidates.length > 0 && <a href="#edt-activation" className="rounded-lg border px-4 py-2.5 text-sm font-semibold">Approuver et activer</a>}
+          <a href="#edt-depot" className="rounded-lg border px-4 py-2.5 text-sm font-semibold">Déposer un export</a>
+        </nav>
+      </section>
+
       <section className="grid gap-3 md:grid-cols-3" aria-label="Protections des emplois du temps">
         <div className="flex gap-3 border-l-4 border-emerald-600 bg-white p-4 shadow-sm">
           <FileLock2 className="h-5 w-5 shrink-0 text-emerald-700" />
@@ -600,7 +617,7 @@ export default function ScheduleImportPage() {
       {error ? <p role="alert" className="border border-red-200 bg-red-50 p-3 text-sm text-red-800">{error}</p> : null}
       {notice ? <p role="status" className="border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-800">{notice}</p> : null}
 
-      <form onSubmit={submit} className="grid gap-4 border-y border-slate-200 bg-white p-4 sm:grid-cols-2 sm:p-6">
+      <form id="edt-depot" onSubmit={submit} className="grid scroll-mt-6 gap-4 border-y border-slate-200 bg-white p-4 sm:grid-cols-2 sm:p-6">
         <label className="text-sm font-medium text-slate-700 sm:col-span-2">
           Format du fichier
           <select
@@ -621,7 +638,7 @@ export default function ScheduleImportPage() {
         <label className="flex min-h-32 cursor-pointer flex-col items-center justify-center border-2 border-dashed border-slate-300 px-4 py-5 text-center sm:col-span-2 hover:border-emerald-600">
           <Upload className="h-6 w-6 text-emerald-700" />
           <strong className="mt-2 text-sm">
-            {file ? file.name : sourceFormat === "pdf_import" ? "Choisir un PDF officiel" : "Choisir un export CSV ou Excel"}
+            {file ? file.name : sourceFormat === "pdf_import" ? "Choisir un PDF officiel" : sourceFormat === "ical_import" ? "Choisir un ou plusieurs calendriers iCal" : "Choisir un export CSV ou Excel"}
           </strong>
           <span className="mt-1 text-xs text-slate-500">50 Mo maximum</span>
           <input
@@ -711,7 +728,8 @@ export default function ScheduleImportPage() {
                 </div>
                 <div>
                   <span className={`inline-flex max-w-full px-2.5 py-1 text-xs font-semibold ${STATUS[item.status].style}`}>{STATUS[item.status].label}</span>
-                  <small className="mt-1 block text-slate-500">{item.pageCount ? `${item.pageCount} pages` : formatBytes(item.sizeBytes)}</small>
+                  <small className="mt-1 block text-slate-500">{item.pageCount ? `${item.pageCount} ${item.originalName.toLowerCase().endsWith('.ics') ? 'calendriers' : 'pages'}` : formatBytes(item.sizeBytes)}</small>
+                  {item.status === 'review' && <a href="#edt-correspondances" className="mt-2 inline-block py-2 text-sm font-semibold text-emerald-800 underline" onClick={() => { setSelectedImportId(item.id); setActionTargetId(item.id); setActionConfirmation(''); setActionJustification(''); }}>Vérifier cette version</a>}
                 </div>
                 <div className="text-xs text-slate-500">
                   <span className="block">Effet : {formatDate(item.effectiveFrom)}</span>
@@ -720,13 +738,13 @@ export default function ScheduleImportPage() {
                 </div>
               </article>
             ))}
-            {imports.length === 0 ? <p className="px-4 py-10 text-center text-sm text-slate-500">Aucun PDF n'a encore été déposé.</p> : null}
+            {imports.length === 0 && listAvailable ? <p className="px-4 py-10 text-center text-sm text-slate-500">Aucun export n’a encore été déposé.</p> : null}
           </div>
         ) : null}
       </section>
 
       {actionCandidates.length > 0 ? (
-        <section className="space-y-4 border-y border-slate-200 bg-white p-4 sm:p-6">
+        <section id="edt-activation" className="scroll-mt-6 space-y-4 border-y border-slate-200 bg-white p-4 sm:p-6">
           <div>
             <h2 className="text-lg font-bold text-slate-950">Validation de la version</h2>
             <p className="text-sm text-slate-500">Approbation, mise en service ou retour arrière avec preuve.</p>
@@ -778,7 +796,7 @@ export default function ScheduleImportPage() {
           ) : null}
           {actionTarget?.status === "review" && !mappingComplete ? (
             <p className="text-sm font-medium text-amber-800">
-              Vérifiez d'abord les {actionTarget.pageCount ?? 0} pages de cette version.
+              Vérifiez d’abord les {actionTarget.pageCount ?? 0} {actionTarget.originalName.toLowerCase().endsWith('.ics') ? 'calendriers' : 'pages'} de cette version.
             </p>
           ) : null}
           <button
@@ -861,11 +879,11 @@ export default function ScheduleImportPage() {
         />
       ) : null}
 
-      <section className="space-y-4 border-t border-slate-200 pt-6">
+      <section id="edt-correspondances" className="scroll-mt-6 space-y-4 border-t border-slate-200 pt-6">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <h2 className="text-lg font-bold text-slate-950">{selectedIsIcal ? "Correspondances des calendriers" : "Index des pages"}</h2>
-            <p className="text-sm text-slate-500">{verifiedCount} page{verifiedCount > 1 ? "s" : ""} vérifiée{verifiedCount > 1 ? "s" : ""} sur {totalPages}</p>
+            {!selectedIsIcal && <p className="text-sm text-slate-500">{verifiedCount} page{verifiedCount > 1 ? "s" : ""} vérifiée{verifiedCount > 1 ? "s" : ""} sur {totalPages}</p>}
             {slotWriteTotalSlots > 0 ? (
               <p className="text-sm font-medium text-emerald-700">
                 {slotWriteTotalSlots} créneau{slotWriteTotalSlots > 1 ? "x" : ""} écrit{slotWriteTotalSlots > 1 ? "s" : ""} cette session,
@@ -887,20 +905,20 @@ export default function ScheduleImportPage() {
 
         {reviewImports.length > 0 ? (
           <label className="block max-w-xl text-sm font-medium text-slate-700">
-            Version à indexer
+            Version à vérifier
             <select
               className="field mt-1 bg-white"
               value={selectedImportId}
-              onChange={(event) => setSelectedImportId(event.target.value)}
+              onChange={(event) => { setSelectedImportId(event.target.value); setActionTargetId(event.target.value); setActionConfirmation(''); setActionJustification(''); }}
             >
               {reviewImports.map((item) => (
-                <option key={item.id} value={item.id}>{item.title} · {item.pageCount} pages</option>
+                <option key={item.id} value={item.id}>{item.title} · {item.pageCount} {item.originalName.toLowerCase().endsWith('.ics') ? 'calendriers' : 'pages'}</option>
               ))}
             </select>
           </label>
         ) : (
           <p className="border-y border-slate-200 bg-white px-4 py-8 text-center text-sm text-slate-500">
-            L'indexation apparaîtra après le contrôle antivirus et le comptage des pages.
+            Les correspondances apparaîtront après le contrôle antivirus et la lecture de l’export.
           </p>
         )}
 
@@ -908,7 +926,7 @@ export default function ScheduleImportPage() {
           <div className="flex min-h-32 items-center justify-center"><LoaderCircle className="h-7 w-7 animate-spin text-emerald-700" /></div>
         ) : null}
 
-        {selectedIsIcal && selectedImportId ? <ScheduleIcalReviewPanel importId={selectedImportId} onApplied={() => setPageReloadToken(n => n + 1)} /> : null}
+        {selectedIsIcal && selectedImportId ? <ScheduleIcalReviewPanel key={selectedImportId} importId={selectedImportId} onApplied={() => setPageReloadToken(n => n + 1)} /> : null}
 
         {!selectedIsIcal && !pageLoading && pageSource?.pageCount ? (
           <div className="border-y border-slate-200 bg-white">

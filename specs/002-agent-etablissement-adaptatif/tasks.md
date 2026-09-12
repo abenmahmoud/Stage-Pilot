@@ -5,6 +5,8 @@
 - [ ] T001 Nommer un responsable métier pour secrétariat, vie scolaire, intendance, direction et numérique.
 - [ ] T002 Inventorier les procédures, formulaires, calendriers, contacts et modèles de réponse réellement utilisés.
 - [ ] T003 Vérifier licence, hébergement, ENT et connecteurs PRONOTE disponibles.
+  Hébergement confirmé par Adel le 12/09/2026 : Index Éducation. Connecteur régional,
+  souscription applicable au lycée et contrat technique du flux restent à vérifier.
 - [ ] T004 Classer les données et fixer leur durée de conservation avec le DPO.
 - [ ] T005 Décider si une AIPD est nécessaire et enregistrer la décision.
 - [ ] T006 Définir les actions A0 à A4 et les rôles habilités pour le lycée pilote.
@@ -1212,6 +1214,12 @@
   Restent : validation/activation humaines des lots réels, qualification de
   8 correspondances absentes et 10 calendriers vides, groupes et flux renouvelé.
   Preuves : `docs/operations/IMPORT_ICAL_CHAT_2026-09-10.md`.
+- [x] T066C1 Faciliter la revue iCal sans modifier les décisions réelles : recherche,
+  filtres, correspondances exactes et exclusions de calendriers vides préparées
+  seulement, maintien des choix manuels, bilan des versions et salles manquantes.
+  Corriger l’installateur Windows `.ics` et sa syntaxe PowerShell. Compilation,
+  tests métier/sécurité et recette fictive 1440/390/320 px réussis. Preuve :
+  `docs/operations/REPRISE_EDT_PRONOTE_2026-09-12.md`.
 - [ ] T067 Programmer les contrôles de connaissances à 08:00, 13:00 et 18:00
   Europe/Paris, la détection des conflits, les alertes immédiates et le digest
   dédupliqué des questions inconnues.

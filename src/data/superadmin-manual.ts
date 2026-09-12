@@ -291,7 +291,8 @@ export const MANUAL_ARTICLES: ManualArticle[] = [
     steps: [
       "Dans Emplois du temps, choisissez PDF officiel, calendriers iCal (.ics) ou export CSV/Excel. Séparez les périmètres classes et professeurs.",
       "Renseignez l’année scolaire, la date d’effet, la date de recontrôle et l’usage autorisé, puis Déposer la nouvelle version.",
-      "Dans les correspondances des calendriers ou l’index des pages, reliez chaque élément à la bonne référence de classe ou de personne. Traitez les éléments introuvables sans déduire un identifiant du seul nom.",
+      "Utilisez Vérifier les correspondances, puis le filtre À vérifier et la recherche. Les calendriers déjà rattachés restent consultables dans Déjà traités. Reliez les éléments incertains à la bonne référence de l’annuaire, sans déduire un identifiant du seul nom.",
+      "Sélectionner les correspondances exactes et Préparer l’exclusion des calendriers vides préparent uniquement des choix, pour toute la version. Relisez le nombre de rattachements et d’exclusions, modifiez-les si nécessaire puis validez. Aucun de ces choix n’active une version.",
       "Contrôlez le bilan, les créneaux, les dates et les correspondances. Suivez Approuver puis Activer avec les vérifications humaines demandées.",
       "Testez une demande d’emploi du temps dans le chat avec une identité autorisée. Vérifiez le jour, la salle et le document ou les créneaux disponibles.",
     ],

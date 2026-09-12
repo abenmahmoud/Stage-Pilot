@@ -193,7 +193,7 @@
     "test:schedule-identity-reader": "node scripts/test-schedule-identity-reader.mjs && node scripts/test-schedule-identity-scope.mjs",
     "test:personal-home": "node --import ./scripts/ts-test-resolver.mjs --experimental-strip-types scripts/test-personal-home.mjs",
     "test:schedule-assistant": "node --import ./scripts/ts-test-resolver.mjs --experimental-strip-types scripts/test-schedule-assistant.mjs",
-    "test:schedule-import-input": "node --experimental-strip-types scripts/test-schedule-import-input.mjs && node scripts/test-schedule-ical.mjs && node --import ./scripts/ts-test-resolver.mjs --experimental-transform-types scripts/test-schedule-ical-contract.mjs",
+    "test:schedule-import-input": "node --experimental-strip-types scripts/test-schedule-import-input.mjs && node scripts/test-schedule-ical.mjs && node --import ./scripts/ts-test-resolver.mjs --experimental-transform-types scripts/test-schedule-ical-contract.mjs && node --import ./scripts/ts-test-resolver.mjs --experimental-strip-types scripts/test-schedule-ical-review.mjs",
     "test:schedule-import-security": "node scripts/test-schedule-import-security.mjs && npm run test:schedule-identity-reader",
     "test:schedule-document-worker": "node scripts/test-schedule-document-worker.mjs",
     "test:schedule-page-assets": "node scripts/test-schedule-page-assets.mjs",

@@ -12,12 +12,12 @@ param(
 )
 
 $ErrorActionPreference = 'Stop'
-$allowedExtensions = @('.pdf', '.csv', '.xlsx')
+$allowedExtensions = @('.pdf', '.csv', '.xlsx', '.ics')
 
 function Assert-ExportPath([string]$Path, [string]$Label) {
   if (-not [IO.Path]::IsPathRooted($Path)) { throw "$Label doit être un chemin absolu." }
   if ($allowedExtensions -notcontains [IO.Path]::GetExtension($Path).ToLowerInvariant()) {
-    throw "$Label doit viser un fichier PDF, CSV ou Excel (.xlsx)."
+    throw "$Label doit viser un fichier PDF, CSV, Excel (.xlsx) ou iCal (.ics)."
   }
 }
 
@@ -65,8 +65,8 @@ $taskName = 'LyceeGest - Synchronisation EDT'
 $invoker = Join-Path $installDirectory 'Invoke-LyceeGestEdtSync.ps1'
 $taskCommand = "powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -File `"$invoker`" -InstallDirectory `"$installDirectory`""
 & schtasks.exe /Create /F /SC MINUTE /MO $EveryMinutes /TN $taskName /TR $taskCommand | Out-Null
-if ($LASTEXITCODE -ne 0) { throw 'La tâche planifiée Windows n’a pas pu être créée.' }
+if ($LASTEXITCODE -ne 0) { throw "La tâche planifiée Windows n’a pas pu être créée." }
 
 Write-Host "Synchronisation installée dans $installDirectory"
 Write-Host "Tâche planifiée : $taskName (toutes les $EveryMinutes minutes)"
-Write-Host 'Le premier envoi restera en attente de contrôle et d’activation dans LyceeGest.'
+Write-Host "Le premier envoi restera en attente de contrôle et d’activation dans LyceeGest."

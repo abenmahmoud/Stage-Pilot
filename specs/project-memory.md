@@ -5,6 +5,26 @@
 **Depot** : `abenmahmoud/Stage-Pilot`
 **Dernier jalon de code verifie** : branche de preview Vercel
 
+## Lot du 12 septembre — reprise EDT / PRONOTE (T003, T066C)
+
+Adel confirme **PRONOTE hébergé chez Index Éducation**. Reprise du chantier EDT,
+salles et liaison ENT. Revue améliorée : bilan des versions, filtres, recherche,
+choix groupés préparés sans enregistrer, préservation des décisions manuelles,
+brouillons séparés par source, cours sans salle visibles. Installateur Windows
+compatible `.ics` et syntaxe PowerShell corrigée. Manuel superadmin mis à jour.
+
+Audit en lecture seule : 88 calendriers professeurs rattachés sur 104 ;
+43 correspondances exactes proposées sur 45 classes ; 8 introuvables et 10 vides
+restent à décider. Les deux lots restent en `review`, aucun actif. Aucun
+rattachement, exclusion ou activation réel effectué pendant ce lot.
+
+Le raccordement permanent n’est pas établi. Index annonce une prise en charge
+régionale possible du connecteur en Île-de-France ; vérifier le contrat du lycée
+et le protocole avant tout achat ou endpoint XML. L’export ENEJ/Vienne des anciennes
+captures n’est pas celui du lycée. Une salle sans créneau ne peut être déclarée
+libre sans couverture complète des cours et réservations.
+Preuves et suite : `docs/operations/REPRISE_EDT_PRONOTE_2026-09-12.md`.
+
 ## Lot du 12 septembre — manuel du superadmin (T074F)
 
 Adel demande une page expliquant tous les outils et les démarches. Livré :
