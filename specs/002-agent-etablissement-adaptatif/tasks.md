@@ -1220,6 +1220,12 @@
   Corriger l’installateur Windows `.ics` et sa syntaxe PowerShell. Compilation,
   tests métier/sécurité et recette fictive 1440/390/320 px réussis. Preuve :
   `docs/operations/REPRISE_EDT_PRONOTE_2026-09-12.md`.
+- [ ] T066C2 Relier les exports officiels et le profil vérifié aux réponses du chat :
+  classe, groupes, liens familiaux et pédagogiques autorisés ; produire un PDF
+  personnel à partir des données validées dans l’espace de demandes. Réconcilier
+  les différences de périmètre ENT/SIECLE avant remplacement, traiter les conflits
+  sans fusion par nom et vérifier identité, concurrence et documents. Plan :
+  `docs/operations/PLAN_PROFIL_SCOLAIRE_DOCUMENTS_2026-09-12.md`.
 - [ ] T067 Programmer les contrôles de connaissances à 08:00, 13:00 et 18:00
   Europe/Paris, la détection des conflits, les alertes immédiates et le digest
   dédupliqué des questions inconnues.

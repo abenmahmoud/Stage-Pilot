@@ -5,6 +5,24 @@
 **Depot** : `abenmahmoud/Stage-Pilot`
 **Dernier jalon de code verifie** : branche de preview Vercel
 
+## Cadrage du 12 septembre — contexte scolaire et documents (T066C2)
+
+Adel veut terminer ce week-end un parcours durable : après vérification d’identité,
+l’agent retrouve classe/groupes, enseignants, liens familiaux autorisés et EDT,
+puis répond clairement avec un document adapté. Il dispose des accès admin ENT,
+client EDT et PRONOTE hébergé, et peut fournir les exports. Réutiliser le travail
+de Claude ; ne pas redemander les décisions déjà prises sur les sessions et OTP.
+
+Audit : le fichier local `annuaire_import_valide.csv` correspond exactement
+(SHA-256) à l’annuaire actif, 4 398 personnes. Les exports ENT du 10/09 ont
+3 288/3 285 lignes contre 4 406 dans celui du 05/09 ; confirmer le périmètre,
+les doublons et les éventuels départs avant remplacement. Les 476 fiches élèves
+sans classe ne prouvent pas à elles seules une erreur d’inscription actuelle.
+Le chat ne lit pas encore tout le contexte relationnel ; le PDF EDT actuel est
+une impression navigateur, pas un document généré et conservé dans Mes demandes.
+Plan et recette à réaliser :
+`docs/operations/PLAN_PROFIL_SCOLAIRE_DOCUMENTS_2026-09-12.md`.
+
 ## Lot du 12 septembre — reprise EDT / PRONOTE (T003, T066C)
 
 Adel confirme **PRONOTE hébergé chez Index Éducation**. Reprise du chantier EDT,
