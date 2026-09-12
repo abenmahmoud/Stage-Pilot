@@ -36,7 +36,7 @@ Migrations additives appliquées par le connecteur Supabase : `school_flash_push
 
 `SUPPORT_FLASH_PUSH_ENABLED=true` ajouté uniquement à la Preview de cette branche. Le worker existant `/opt/lycee-support-preview/workers/support-push-worker.mjs` est raccordé au dispatch flash ; son timer reste réglé à une minute. Exécution distante vérifiée : `Result=success`, `ExecMainStatus=0`, aucune livraison faute d’abonnés. Retour arrière du worker et de sa configuration disponible dans `/opt/lycee-support-preview/.rollback-push-20260912` ; conserver les colonnes additives en cas de retour au précédent frontend.
 
-Au contrôle précédant la livraison : zéro abonnement et zéro version flash. Aucun push, email ou SMS réel envoyé pendant cette intervention. Les confirmations de déploiement frontend sont ajoutées après la vérification du domaine public.
+Au contrôle précédant la livraison : zéro abonnement et zéro version flash. Aucun push, email ou SMS réel envoyé pendant cette intervention. Déploiement frontend confirmé `READY` : `dpl_13GUi2yxXhUFc4kNpRz2huKn3G5H`, commit `c9d35b838137bb3bca6eff23c3ad842fc4fee3be`, URL `https://lyceegest-epw17m2xk-safe-scol.vercel.app`. Le domaine `https://lycee-blaise-cendrars-sevran.fr` pointe sur cette version. Quatorze contrôles HTTP ont réussi sur les deux adresses : pages 200, audiences et flashs privés anonymes 401 avec absence de cache, flux public 200, configuration push/flash active et service worker v10. Le timer a exécuté le nouveau worker sans erreur après livraison. Le conteneur PostgreSQL de recette, son volume et le tunnel ont été supprimés après les tests.
 
 ## Limites explicites et suite
 

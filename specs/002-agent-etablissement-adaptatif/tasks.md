@@ -1217,10 +1217,14 @@
 - [ ] T068 Mettre en œuvre la matrice de routage par établissement, le
   superadministrateur sur toutes les demandes de son établissement, les
   notifications push/email idempotentes et le SMS limité par consentement et budget.
-- [ ] T068A Raccorder les appareils identifiés et les classes réelles aux notifications
+- [x] T068A Raccorder les appareils identifiés et les classes réelles aux notifications
   flash ; activation explicite, expiration et révocation contrôlées, dédoublonnage
   durable, contenu privé consultable dans l’espace personnel. Recette isolée,
-  contrôle mobile et déploiement vérifié requis (12 septembre 2026).
+  contrôle mobile et déploiement vérifiés (12 septembre 2026). Preuve :
+  `docs/operations/PUSH_FLASH_2026-09-12.md`. Réception physique : T068B.
+- [ ] T068B Confirmer avec Adel la réception d’un push sur un téléphone réellement
+  abonné, puis l’ouverture de l’espace et l’absence de nouvelle alerte lors
+  d’une correction publiée sans notification. Aucun envoi réel effectué en recette.
 - [ ] T069 Construire avec données fictives les parcours ENT inactif et actif,
   cantine, Koxo et messagerie académique : preuve sur coordonnée officielle,
   composant sécurisé, aucun secret dans le modèle ou les journaux, et formulaire
@@ -1228,15 +1232,13 @@
 - [ ] T070 Ajouter les documents versionnés téléchargeables et leur retour depuis
   l'assistant, avec routage générale/technologique vers l'administration et
   professionnel vers la DDFPT.
-- [ ] T071G Rendre une correction publiable, et ne jamais faire disparaître une
-  information en la corrigeant. Aujourd'hui `modifiee` est un état terminal et
-  la route publique ne sert que `publiee` : corriger une information visible la
-  retire du site, ce qui retourne exactement l'intention de la règle de
-  correction. Ouvrir `modifiee` -> `publiee` par le même geste humain que la
-  première parution, garder la version publiée précédente affichée jusque-là,
-  et rappeler à l'enregistrement de la correction qu'il faut publier pour
-  qu'elle prenne effet. L'écran doit dire que le public voit encore l'ancienne
-  version. Décision d'Adel du 5 septembre 2026.
+- [x] T071G Rendre une correction publiable sans retirer la version encore publiée.
+  La correction crée une nouvelle version validée, puis sa publication explicite
+  remplace l’ancienne. Le texte historique reste inchangé, la version remplacée
+  devient terminale et le serveur refuse une publication fondée sur une ancienne
+  version. Réponse à la décision d’Adel du 5 septembre 2026, vérifiée le
+  12 septembre sur les routes réelles et PostgreSQL jetable, puis déployée.
+  Preuve : `docs/operations/PUSH_FLASH_2026-09-12.md`.
 - [x] T071F Écrire la transition `validee` -> `publiee` comme un geste humain
   distinct, ouvert par le même service que la validation. C'est ce geste qui
   rend l'information visible publiquement et qui ouvre les notifications ;
