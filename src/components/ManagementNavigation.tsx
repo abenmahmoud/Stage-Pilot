@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { NavLink } from "react-router-dom";
-import { Activity, BadgeCheck, BookOpenCheck, CalendarDays, Coins, IdCard, Inbox, LayoutDashboard, MessagesSquare, Newspaper, ShieldCheck, UsersRound, WandSparkles, Zap } from "lucide-react";
+import { Activity, BadgeCheck, BookOpen, BookOpenCheck, CalendarDays, Coins, IdCard, Inbox, LayoutDashboard, MessagesSquare, Newspaper, ShieldCheck, UsersRound, WandSparkles, Zap } from "lucide-react";
 import type { UserRole } from "../lib/types";
 import { apiFetch } from "../lib/api";
 import { isValidFlashValidationScreenAccessPayload } from "../../shared/flash-payload-policy";
@@ -35,6 +35,7 @@ export function useManagementLinks(role: UserRole, userId: string) {
     { to: "/admin/connaissances-agent", label: "Connaissances de l’IA", icon: BookOpenCheck, group: "Administration du lycée", show: direction },
     { to: "/admin/sante-demandes", label: "Suivi du fonctionnement", icon: Activity, group: "Administration du lycée", show: direction },
     { to: "/gestion/budget-ia", label: "Coûts et budget IA", icon: Coins, group: "Superadministration", show: role === "superadmin" },
+    { to: "/gestion/manuel", label: "Manuel d’utilisation", icon: BookOpen, group: "Superadministration", show: role === "superadmin" },
     { to: "/security", label: "Sécurité de mon compte", icon: ShieldCheck, group: "Mon compte", show: true },
   ].filter(item => item.show);
 }
