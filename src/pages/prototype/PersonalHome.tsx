@@ -4,6 +4,8 @@ import { PERSONAL_HOME_STATUS_LABELS } from '../../../shared/personal-home';
 import { usePersonalHome } from '../../lib/personal-home-client';
 import ScheduleChatCard from './ScheduleChatCard';
 import PersonalNews from './PersonalNews';
+import { PushNotificationsButton } from '../../components/PushNotificationsButton';
+import { PersonalFlashFeed } from '../../components/PersonalFlashFeed';
 import '../../styles/personal-home.css';
 
 const time = (value: string) => new Intl.DateTimeFormat('fr-FR', { timeZone: 'Europe/Paris', hour: '2-digit', minute: '2-digit' }).format(new Date(value));
@@ -43,6 +45,8 @@ export default function PersonalHome({ onIdentity, onHelp, onRequests }: { onIde
       </section>
     </div>
     {data.news && <PersonalNews feed={data.news} />}
+    <PersonalFlashFeed />
+    <PushNotificationsButton audience="identity" />
     <div className="school-personal-chat"><MessageCircleMore aria-hidden="true" /><div><strong>Une question ? Continuons dans le chat.</strong><p>Blaise vous accompagne dans vos démarches.</p></div><button className="school-personal-primary" type="button" onClick={() => onHelp()}>Parler à Blaise</button></div>
   </section>;
 }

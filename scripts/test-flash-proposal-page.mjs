@@ -1,3 +1,4 @@
+import { flashAudienceOptions } from '../shared/flash-audience-groups.mjs';
 // Verifications statiques de l'ecran de proposition d'information flash
 // (LOT 6 : branchement sur /api/flash/proposals). Pas de rendu reel dans un
 // navigateur : ce script relit le code source et verifie par expressions
@@ -14,6 +15,7 @@ import {
   FlashAudienceError,
 } from "../shared/flash-audience-correction.ts";
 
+const picker=readFileSync(new URL("../src/components/FlashAudiencePicker.tsx",import.meta.url),"utf8");
 const page = readFileSync(
   new URL("../src/pages/admin/FlashProposalPage.tsx", import.meta.url),
   "utf8"
@@ -55,8 +57,8 @@ test("rend l'expiration obligatoire et l'importance decidee par la personne, pas
 });
 
 test("le SMS reste rattache a des personnes choisies, jamais a un groupe, et est desormais envoye au serveur sous smsContactRefs (LOT 3 du plan de publication publique, contrat etendu depuis le LOT 1)", () => {
-  assert.match(page, /FICTITIOUS_FLASH_SMS_CONTACTS/);
-  assert.match(page, /jamais à un groupe/);
+  assert.doesNotMatch(page, /FICTITIOUS_FLASH_SMS_CONTACTS/);
+  assert.match(page, /Aucun SMS ne part de cet écran/);
   const bodyMatch = page.match(/body: JSON\.stringify\(\{([\s\S]*?)\}\),/);
   assert.ok(bodyMatch, "le corps de la requete POST doit etre identifiable");
   assert.match(bodyMatch[1], /smsContactRefs:\s*smsContacts/);
@@ -65,7 +67,7 @@ test("le SMS reste rattache a des personnes choisies, jamais a un groupe, et est
 test("reste mobile-first : pas de largeur fixe superieure a 320 px qui casserait l'ecran le plus etroit", () => {
   assert.doesNotMatch(page, /min-w-\[(3[3-9]\d|[4-9]\d{2}|\d{4,})px\]/);
   assert.doesNotMatch(page, /<table/);
-  assert.match(page, /grid-cols-1 gap-2 sm:grid-cols-2/);
+  assert.match(picker, /grid-cols-1 gap-2 sm:grid-cols-2/);
 });
 
 test("garde des cibles tactiles d'au moins 40 pixels sur les champs a cocher", () => {
@@ -78,26 +80,15 @@ test("garde des cibles tactiles d'au moins 40 pixels sur les champs a cocher", (
 // donc aucune flash proposee ne pouvait jamais atteindre la route publique
 // par un usage normal.
 
-test("offre un choix explicite pour rendre une information visible par tous sur le site, sans exposer le code technique", () => {
-  assert.match(
-    page,
-    /import \{ FLASH_PUBLIC_AUDIENCE_GROUP_REF \} from "\.\.\/\.\.\/\.\.\/shared\/flash-visibility"/
-  );
-  assert.match(page, /Visible par tous sur le site/);
-  assert.match(
-    page,
-    /checked=\{selectedGroups\.includes\(FLASH_PUBLIC_AUDIENCE_GROUP_REF\)\}/
-  );
-  assert.match(
-    page,
-    /onChange=\{\(\) => toggleGroup\(FLASH_PUBLIC_AUDIENCE_GROUP_REF\)\}/
-  );
-  assert.doesNotMatch(page, /public:site/);
+test("le sélecteur commun distingue le site public des audiences issues de l’annuaire",()=>{
+  assert.match(page,/FlashAudiencePicker/);
+  assert.match(picker,/Visible par tous, sans connexion/);
+  assert.match(picker,/flash\/audiences/);
 });
 
-test("les references de groupes fictifs respectent le meme filtre que la base (group_ref, LOT 1/LOT 2)", () => {
-  const refs = [...page.matchAll(/ref: "([a-z0-9:_-]+)"/g)].map((match) => match[1]);
-  assert.ok(refs.length >= 6, "au moins les groupes et contacts fictifs attendus");
+test("les references de groupes issues des classes respectent le meme filtre que la base (group_ref, LOT 1/LOT 2)", () => {
+  const refs = flashAudienceOptions(["2GT A","2GT B"]).map(group=>group.ref);
+  assert.ok(refs.length >= 6, "profils et classes fictives de recette");
   for (const ref of refs) {
     assert.doesNotThrow(() => parseFlashGroupRef(ref), `${ref} devrait rester un group_ref valide`);
   }

@@ -15,7 +15,7 @@ test("les transitions legales sont acceptees", () => {
   assert.equal(isLegalFlashVersionTransition("validee", "publiee"), true);
   assert.equal(isLegalFlashVersionTransition("validee", "expiree_sans_publication"), true);
   assert.equal(isLegalFlashVersionTransition("publiee", "modifiee"), true);
-  assert.equal(isLegalFlashVersionTransition("modifiee", "publiee"), true);
+  assert.equal(isLegalFlashVersionTransition("modifiee", "publiee"), false);
 });
 
 test("une transition illegale est refusee", () => {
@@ -53,8 +53,8 @@ test("un etat inconnu est refuse explicitement", () => {
 // terminal depuis que `modifiee -> publiee` est ouvert, symetrique de
 // `publiee -> modifiee`. `refusee`, `expiree_sans_validation` et
 // `expiree_sans_publication` restent les seuls etats sans issue.
-test("refusee, expiree_sans_validation et expiree_sans_publication sont terminaux ; modifiee ne l'est plus", () => {
-  assert.equal(isFlashVersionStatusTerminal("modifiee"), false);
+test("refusee, expiree_sans_validation et expiree_sans_publication sont terminaux ; modifiee est également terminal", () => {
+  assert.equal(isFlashVersionStatusTerminal("modifiee"), true);
   assert.equal(isFlashVersionStatusTerminal("refusee"), true);
   assert.equal(isFlashVersionStatusTerminal("expiree_sans_validation"), true);
   assert.equal(isFlashVersionStatusTerminal("expiree_sans_publication"), true);
@@ -86,7 +86,7 @@ test("double modification successive : la chaine complete reste legale a chaque 
   status = assertLegalFlashVersionTransition(status, "publiee");
   status = assertLegalFlashVersionTransition(status, "modifiee");
   assert.equal(status, "modifiee");
-  assert.equal(isFlashVersionStatusTerminal(status), false);
+  assert.equal(isFlashVersionStatusTerminal(status), true);
 
   // version 2 (nouvelle ligne, previous_version_id = version 1) : meme chaine,
   // rejouee independamment, puis corrigee une seconde fois par version 3.
@@ -97,18 +97,7 @@ test("double modification successive : la chaine complete reste legale a chaque 
   assert.equal(status2, "modifiee");
 });
 
-// LOT 1 du plan de correction visible : `modifiee -> publiee` permet a une
-// meme ligne d'etre corrigee, republiee, puis corrigee a nouveau, autant de
-// fois que necessaire (aller-retour, pas un aller simple).
-test("une correction publiee peut etre corrigee et republiee a nouveau, indefiniment", () => {
-  let status = "proposee";
-  status = assertLegalFlashVersionTransition(status, "validee");
-  status = assertLegalFlashVersionTransition(status, "publiee");
-  status = assertLegalFlashVersionTransition(status, "modifiee");
-  status = assertLegalFlashVersionTransition(status, "publiee");
-  assert.equal(status, "publiee");
-  status = assertLegalFlashVersionTransition(status, "modifiee");
-  status = assertLegalFlashVersionTransition(status, "publiee");
-  assert.equal(status, "publiee");
-  assert.equal(isFlashVersionStatusTerminal(status), false);
+test("une correction utilise une nouvelle version, sans réouvrir la version remplacée",()=>{
+  assert.throws(()=>assertLegalFlashVersionTransition('modifiee','publiee'),FlashTransitionError);
+  assert.equal(assertLegalFlashVersionTransition(assertLegalFlashVersionTransition('proposee','validee'),'publiee'),'publiee');
 });

@@ -1,4 +1,4 @@
-const CACHE_NAME = "blaise-cendrars-connect-v9";
+const CACHE_NAME = "blaise-cendrars-connect-v10";
 const APP_SHELL = [
   "/",
   "/manifest.webmanifest",
@@ -60,23 +60,24 @@ self.addEventListener("fetch", (event) => {
 self.addEventListener("push", event => {
   let notice;
   try { notice = event.data?.json(); } catch { notice = null; }
+  const flash = ['flash','flash_removed'].includes(notice?.kind);
   const agent = notice?.destination === "/?view=agent";
   event.waitUntil(self.registration.showNotification("Lycée Blaise Cendrars", {
-    body: agent ? "Une demande attend votre attention dans votre espace service." : "Une réponse ou une mise à jour est disponible dans Mes demandes.",
+    body: flash ? (notice.kind === "flash_removed" ? "Une information a été corrigée et ne vous concerne plus." : "Une information du lycée est à consulter dans votre espace.") : agent ? "Une demande attend votre attention dans votre espace service." : "Une réponse ou une mise à jour est disponible dans Mes demandes.",
     icon: "/pwa-icon-192.png", badge: "/pwa-icon-192.png",
-    tag: agent ? "lycee-service" : "lycee-demandes", renotify: false,
-    data: { destination: agent ? "/?view=agent" : "/?view=requests" },
+    tag: flash ? "lycee-flash" : agent ? "lycee-service" : "lycee-demandes", renotify: false,
+    data: { destination: flash ? "/?view=home" : agent ? "/?view=agent" : "/?view=requests" },
   }));
 });
 
 self.addEventListener("notificationclick", (event) => {
   event.notification.close();
-  const destination = event.notification.data?.destination === "/?view=agent" ? "/?view=agent" : "/?view=requests";
+  const requested = event.notification.data?.destination;
+  const destination = ["/?view=agent", "/?view=home", "/?view=requests"].includes(requested) ? requested : "/?view=requests";
   event.waitUntil(
     self.clients.matchAll({ type: "window", includeUncontrolled: true }).then(async (clients) => {
-      const existing = clients.find((client) => new URL(client.url).origin === self.location.origin);
+      const existing = clients.find((client) => client.url === new URL(destination,self.location.origin).href);
       if (existing) {
-        await existing.navigate(destination);
         return existing.focus();
       }
       return self.clients.openWindow(destination);

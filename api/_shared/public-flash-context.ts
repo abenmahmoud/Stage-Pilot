@@ -34,7 +34,7 @@ export async function loadPublicFlashAgentContext(input: {
       flashInfoVersions,
       and(
         eq(flashInfoVersions.flashInfoId, flashInfos.id),
-        eq(flashInfoVersions.version, flashInfos.currentVersion),
+        eq(flashInfoVersions.version, flashInfos.publishedVersion),
         eq(flashInfoVersions.institutionId, input.institutionId)
       )
     )

@@ -44,7 +44,7 @@ test("decide via POST /api/flash/proposals/[id]/decision, sans recalculer la tra
 test("publie via POST /api/flash/proposals/[id]/publication, sans corps ni recalcul cote client", () => {
   assert.match(
     page,
-    /apiFetch<unknown>\(`flash\/proposals\/\$\{flashInfoId\}\/publication`,\s*\{\s*\n\s*method: "POST",\s*\n\s*\}\);/
+    /apiFetch<unknown>\(`flash\/proposals\/\$\{flashInfoId\}\/publication\?version=\$\{version\}&notify=\$\{Boolean\(notifyCorrection\[flashInfoId\]\)\}`,\s*\{\s*\n\s*method: "POST",\s*\n\s*\}\);/
   );
 });
 
@@ -121,7 +121,7 @@ test("le rappel de non-visibilite nomme explicitement l'ancienne version encore 
 });
 
 test("le bouton de publication du rappel appelle la meme fonction publish(), sans nouvelle route ni recalcul", () => {
-  assert.match(page, /onClick=\{\(\) => void publish\(correctionResult\.version\.flashInfoId\)\}/);
+  assert.match(page, /onClick=\{\(\) => void publish\(correctionResult\.version\.flashInfoId, correctionResult\.version\.version\)\}/);
   assert.match(page, /Publier la correction maintenant/);
 });
 

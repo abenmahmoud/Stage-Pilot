@@ -1,3 +1,4 @@
+import { FlashAudiencePicker } from "../../components/FlashAudiencePicker";
 import { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
@@ -30,7 +31,7 @@ import {
   type FlashValidationAccessPayload,
   type FlashAudienceTreatmentPayload,
 } from "../../../shared/flash-payload-policy";
-import { FICTITIOUS_FLASH_GROUPS, flashChannelRequirement } from "./FlashProposalPage";
+import { flashChannelRequirement } from "./FlashProposalPage";
 
 const IMPORTANCE_LABEL: Record<FlashImportance, string> = {
   normale: "Normale",
@@ -204,6 +205,7 @@ export default function FlashValidationPage() {
   const [publishingId, setPublishingId] = useState<string | null>(null);
   const [published, setPublished] = useState<FlashPublishedItem[]>([]);
 
+  const [notifyCorrection, setNotifyCorrection] = useState<Record<string,boolean>>({});
   const [correctingId, setCorrectingId] = useState<string | null>(null);
   const [correctionTitle, setCorrectionTitle] = useState("");
   const [correctionBody, setCorrectionBody] = useState("");
@@ -297,12 +299,12 @@ export default function FlashValidationPage() {
   // LOT 1 du plan de publication, branché ici (LOT 3) : transition
   // `validee -> publiee`, aucun paramètre. Aucun envoi n'est déclenché par
   // cette route (les canaux de notification restent fermés).
-  async function publish(flashInfoId: string) {
+  async function publish(flashInfoId: string, version: number) {
     setPublishingId(flashInfoId);
     setError("");
     setNotice("");
     try {
-      const confirmation = await apiFetch<unknown>(`flash/proposals/${flashInfoId}/publication`, {
+      const confirmation = await apiFetch<unknown>(`flash/proposals/${flashInfoId}/publication?version=${version}&notify=${Boolean(notifyCorrection[flashInfoId])}`, {
         method: "POST",
       });
       if (!isFlashPublicationResultPayload(confirmation)) {
@@ -311,7 +313,7 @@ export default function FlashValidationPage() {
       setNotice(
         confirmation.alreadyPublished
           ? "Cette information était déjà publiée : aucune seconde publication n'a eu lieu."
-          : "Publication enregistrée : l'information est désormais visible. Aucun envoi n'est déclenché, les canaux de notification restent fermés."
+          : "Publication enregistrée. Les alertes autorisées seront traitées pour les appareils abonnés ; cela ne confirme pas leur réception."
       );
       // Le rappel « pas encore visible » n'a plus lieu d'être une fois cette
       // même information réellement republiée (LOT 2 du plan de correction
@@ -346,11 +348,7 @@ export default function FlashValidationPage() {
     setCorrectionError("");
   }
 
-  function toggleCorrectionGroup(ref: string) {
-    setCorrectionGroups((previous) =>
-      previous.includes(ref) ? previous.filter((item) => item !== ref) : [...previous, ref]
-    );
-  }
+
 
   // T071B : brancher enfin POST .../correction (écrit au LOT 4 du plan de
   // persistance, jamais appelé jusqu'ici). Le serveur recalcule les trois
@@ -564,8 +562,7 @@ export default function FlashValidationPage() {
             Validées, en attente de publication ({publishable.length})
           </h2>
           <p className="text-xs text-gray-500">
-            Publier rend l'information visible. Aucun envoi n'est déclenché : les canaux de
-            notification restent fermés.
+            Publier rend l’information visible aux personnes choisies. Les alertes importantes sont traitées pour les appareils abonnés. Pour une correction, choisissez explicitement si une nouvelle alerte est utile.
           </p>
         </CardHeader>
         <CardContent className="space-y-3">
@@ -593,10 +590,11 @@ export default function FlashValidationPage() {
               Canaux : {version.channels.length > 0 ? version.channels.join(", ") : "aucun (site seul)"}
             </p>
             <div className="flex flex-wrap items-center gap-2 border-t border-gray-100 pt-3">
-              {access.allowed ? (
+              {access.allowed ? (<>
+                {version.version > 1 && <label className="my-3 flex items-center gap-2 text-sm"><input type="checkbox" checked={Boolean(notifyCorrection[version.flashInfoId])} onChange={e=>setNotifyCorrection(values=>({...values,[version.flashInfoId]:e.target.checked}))}/>Envoyer une alerte de correction aux appareils concernés</label>}
                 <button
                   type="button"
-                  onClick={() => void publish(version.flashInfoId)}
+                  onClick={() => void publish(version.flashInfoId, version.version)}
                   disabled={publishingId === version.flashInfoId}
                   className="inline-flex min-h-[40px] items-center gap-1.5 rounded-lg bg-primary-600 px-3 py-2 text-xs font-medium text-white disabled:opacity-50"
                 >
@@ -606,7 +604,7 @@ export default function FlashValidationPage() {
                     <Send className="h-4 w-4" />
                   )}
                   Publier
-                </button>
+                </button></>
               ) : (
                 <span className="inline-flex items-center gap-1.5 text-xs font-medium text-gray-600">
                   <XCircle className="h-4 w-4" />
@@ -745,22 +743,7 @@ export default function FlashValidationPage() {
                   <span className="block text-xs font-medium text-gray-600">
                     Public ({correctionGroups.length} groupe(s))
                   </span>
-                  <div className="grid grid-cols-1 gap-1.5 sm:grid-cols-2">
-                    {FICTITIOUS_FLASH_GROUPS.map((group) => (
-                      <label
-                        key={group.ref}
-                        className="flex min-h-[40px] items-center gap-2 rounded-lg border border-gray-200 bg-white px-2.5 py-1.5 text-xs"
-                      >
-                        <input
-                          type="checkbox"
-                          checked={correctionGroups.includes(group.ref)}
-                          onChange={() => toggleCorrectionGroup(group.ref)}
-                          className="h-4 w-4 shrink-0"
-                        />
-                        <span className="min-w-0 truncate text-gray-800">{group.label}</span>
-                      </label>
-                    ))}
-                  </div>
+                  <FlashAudiencePicker selected={correctionGroups} onChange={setCorrectionGroups} />
                 </div>
 
                 <label className="block text-sm">
@@ -815,9 +798,10 @@ export default function FlashValidationPage() {
                 Tant que cette publication n'a pas eu lieu, le public voit toujours l'ancienne
                 version : « {correctionResult.previousVersion.title} ».
               </p>
+              <label className="my-3 flex items-center gap-2 text-sm"><input type="checkbox" checked={Boolean(notifyCorrection[correctionResult.version.flashInfoId])} onChange={e=>setNotifyCorrection(values=>({...values,[correctionResult.version.flashInfoId]:e.target.checked}))}/>Envoyer une alerte de correction aux appareils concernés</label>
               <button
                 type="button"
-                onClick={() => void publish(correctionResult.version.flashInfoId)}
+                onClick={() => void publish(correctionResult.version.flashInfoId, correctionResult.version.version)}
                 disabled={publishingId === correctionResult.version.flashInfoId}
                 className="inline-flex min-h-[40px] items-center gap-1.5 rounded-lg bg-primary-600 px-3 py-2 text-xs font-medium text-white disabled:opacity-50"
               >

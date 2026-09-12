@@ -39,7 +39,8 @@
 // distinctement de `validated_by` qui enregistre qui a validé.
 
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { and, eq } from "drizzle-orm";
+import { assertKnownFlashAudiences, readKnownFlashAudiences } from "../../../_shared/flash-audiences.js";
+import { and, eq, sql } from "drizzle-orm";
 import { db } from "../../../../db/index.js";
 import {
   flashInfoAudiences,
@@ -91,6 +92,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   return handleApi(res, async () => {
     const actor = await requireFlashActor(req);
+    if (req.query.notify !== undefined && (typeof req.query.notify !== "string" || !["true", "false"].includes(req.query.notify))) throw new HttpError(400, "Choix de notification invalide.");
+    const knownGroups = await readKnownFlashAudiences();
     const flashInfoId = flashProposalRouteId(req);
 
     const outcome = await db.transaction(async (tx) => {
@@ -113,6 +116,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       if (!current) {
         throw new HttpError(404, "Information flash introuvable.");
       }
+      if (req.query.version !== undefined && String(current.version) !== req.query.version) throw new HttpError(409, "Cette information a changé. Relisez sa version avant publication.");
 
       const access = assertFlashValidationAccess(actor, current.proposedBy);
 
@@ -137,7 +141,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
       const [updated] = await tx
         .update(flashInfoVersions)
-        .set({ status: "publiee", publishedBy: actor.user.id, publishedAt: now })
+        .set({ status: "publiee", publishedBy: actor.user.id, publishedAt: now,
+          pushAuthorizedAt: process.env.SUPPORT_FLASH_PUSH_ENABLED === "true" &&
+            ((current.version === 1 && (current.channels as string[]).includes("push")) || (current.version > 1 && req.query.notify === "true")) ? now : null })
         .where(
           and(
             eq(flashInfoVersions.id, current.id),
@@ -186,7 +192,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         smsContactRefs: smsContactRows.map((row) => row.contactRef),
       });
 
-      if (dispatchPlan.length > 0) {
+      await assertKnownFlashAudiences(audienceRows.map(row => row.groupRef), smsContactRows.map(row => row.contactRef), knownGroups);
+      if(current.version>1) await tx.update(flashInfoVersions).set({status:"modifiee",supersededAt:now})
+        .where(and(eq(flashInfoVersions.flashInfoId,current.flashInfoId),eq(flashInfoVersions.institutionId,actor.institutionId),eq(flashInfoVersions.status,"publiee"),sql`${flashInfoVersions.version} < ${current.version}`));
+      await tx.update(flashInfos).set({ publishedVersion: current.version })
+        .where(and(eq(flashInfos.id,current.flashInfoId),eq(flashInfos.institutionId,actor.institutionId)));
+
+      if ((current.version === 1 || req.query.notify === "true") && dispatchPlan.length > 0) {
         // État `simulated`, jamais `sent`, tant que les drapeaux d'envoi sont
         // fermés (voir l'en-tête du fichier). `onConflictDoNothing` sans
         // cible retombe sur les deux index uniques partiels de la migration
@@ -216,7 +228,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         flashInfoVersionId: updated.id,
         title: updated.title,
         bodyMarkdown: updated.bodyMarkdown,
-        dispatchTargets: dispatchPlan,
+        dispatchTargets: current.version === 1 || req.query.notify === "true" ? dispatchPlan : [],
       });
       const communicationBridgeOutcome = await persistFlashCommunicationBridge({
         tx,

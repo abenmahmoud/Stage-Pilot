@@ -28,6 +28,7 @@
 // autorise explicitement depuis "en_attente".
 
 import type { VercelRequest, VercelResponse } from "@vercel/node";
+import { assertKnownFlashAudiences } from "../../../_shared/flash-audiences.js";
 import { and, eq } from "drizzle-orm";
 import { db } from "../../../../db/index.js";
 import {
@@ -97,6 +98,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const actor = await requireFlashActor(req);
     const flashInfoId = flashProposalRouteId(req);
     const input = parseInput(req.body);
+    await assertKnownFlashAudiences(input.groupRefs, input.smsContactRefs);
 
     const outcome = await db.transaction(async (tx) => {
       const [current] = await tx
@@ -170,22 +172,27 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
       const now = new Date();
 
-      const [updated] = await tx
-        .update(flashInfoVersions)
-        .set({
-          status: "modifiee",
+      if (current.version >= 10000) throw new HttpError(409, "La limite de versions est atteinte.");
+      // Preserve the published row and its audience until the new version is published.
+      const [draft] = await tx.insert(flashInfoVersions).values({
+          institutionId: actor.institutionId,
+          flashInfoId: current.flashInfoId,
+          version: current.version + 1,
+          previousVersionId: current.id,
+          proposedBy: current.proposedBy,
           title: input.title,
           bodyMarkdown: input.bodyMarkdown,
           importance: input.importance,
           channels: input.channels,
           expiresAt: input.expiresAt,
-          supersededAt: now,
-        })
+        }).returning({ id: flashInfoVersions.id });
+      const [updated] = await tx.update(flashInfoVersions)
+        .set({ status: "validee", validatedBy: actor.user.id, validatedAt: now })
         .where(
           and(
-            eq(flashInfoVersions.id, current.id),
+            eq(flashInfoVersions.id, draft.id),
             eq(flashInfoVersions.institutionId, actor.institutionId),
-            eq(flashInfoVersions.status, "publiee")
+            eq(flashInfoVersions.status, "proposee")
           )
         )
         .returning(VERSION_COLUMNS);
@@ -196,6 +203,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         // (même motif que decision.ts, LOT 3).
         throw new HttpError(409, "Cette information vient d'être corrigée par quelqu'un d'autre.");
       }
+      await tx.update(flashInfos).set({ currentVersion: updated.version })
+        .where(and(eq(flashInfos.id,current.flashInfoId),eq(flashInfos.institutionId,actor.institutionId)));
 
       // LOT 5 du plan de connaissance OB1 (2026-09-05, bullet 3) : une
       // actualite corrigee doit retirer IMMEDIATEMENT la connaissance qui en
@@ -226,11 +235,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         });
       }
 
-      await tx.delete(flashInfoAudiences).where(eq(flashInfoAudiences.versionId, current.id));
       await tx.insert(flashInfoAudiences).values(
         input.groupRefs.map((groupRef) => ({
           institutionId: actor.institutionId,
-          versionId: current.id,
+          versionId: updated.id,
           groupRef,
         }))
       );
@@ -240,7 +248,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         .values({
           institutionId: actor.institutionId,
           flashInfoId: current.flashInfoId,
-          versionId: current.id,
+          versionId: updated.id,
           gapKind: gap.kind,
           initiatedBy: "human",
           requestedBy: actor.user.id,

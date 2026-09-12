@@ -72,3 +72,11 @@
 .school-personal-news :focus-visible{outline:3px solid #1d63ec;outline-offset:4px;border-radius:4px}
 @media(max-width:900px){.school-personal-news-grid{grid-template-columns:1fr}.school-personal-news-grid article{display:grid;grid-template-columns:96px minmax(0,1fr)}.school-personal-news-grid .news-photo{height:100%;min-height:130px}.school-personal-news-grid article>div{padding:12px}.school-personal-news-grid h4{font-size:.95rem}}
 @media(max-width:360px){.school-personal-news-grid article{grid-template-columns:72px minmax(0,1fr)}.school-personal-news-grid p{font-size:.8rem}}
+
+.school-personal-flash {padding:22px;background:#fff;border:1px solid #dbe4ee;border-radius:20px;margin-block:20px}
+.school-personal-flash h3 {display:flex;align-items:center;gap:8px;margin:0 0 14px;font-size:18px;color:#19364f}
+.school-personal-flash h3 svg {width:20px;color:#008875}
+.school-personal-flash details {border-top:1px solid #e6ecf3;padding:14px 0;overflow-wrap:anywhere}
+.school-personal-flash summary {cursor:pointer;font-weight:600;line-height:1.6}
+.school-personal-flash summary span {font-size:11px;background:#e8f5f1;color:#006956;border-radius:6px;margin-right:8px;padding:4px 7px}
+.school-personal-flash p {font-size:15px;line-height:1.7;color:#29455e}.school-personal-flash small {color:#526b82}

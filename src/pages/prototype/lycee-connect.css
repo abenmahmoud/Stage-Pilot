@@ -1549,3 +1549,12 @@
 .lycee-schedule-card footer button { display: inline-flex; align-items: center; gap: 7px; min-height: 42px; padding: 8px 12px; border: 1px solid #cad9e6; border-radius: 8px; background: white; color: #17344c; font: inherit; font-size: 13px; cursor: pointer; }
 .lycee-schedule-card footer svg { width: 17px; height: 17px; }
 @media (max-width: 520px) { .lycee-schedule-card > header, .lycee-schedule-card footer { padding: 14px; } .lycee-schedule-card ol { padding: 0 12px; } .lycee-schedule-card li { gap: 10px; } }
+
+/* Device notifications: explicit opt-in, readable on narrow phones. */
+.lycee-push-control {display:flex;flex-direction:column;align-items:stretch;gap:12px;padding:20px;border:1px solid #dbe4ee;border-radius:18px;background:#fff;color:#19364f;max-width:100%;margin-block:16px}
+.lycee-push-control strong {display:flex;align-items:center;gap:8px;font-size:15px}.lycee-push-control svg {width:18px;height:18px;flex-shrink:0}
+.lycee-push-control p {font-size:13px;line-height:1.6;margin:6px 0 0;color:#526b82}.lycee-push-control label {display:flex;gap:10px;align-items:center;font-size:13px;line-height:1.5;cursor:pointer}
+.lycee-push-control input {width:18px;height:18px;flex-shrink:0;accent-color:#006e61}.lycee-push-actions {display:flex;gap:8px;flex-wrap:wrap}
+.lycee-push-control .lycee-push-actions button {display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:44px;padding:10px 14px;background:#edf7f3;color:#006956;border:1px solid #c8e5db;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer}
+.lycee-push-control button:disabled {opacity:.65;cursor:default}.lycee-push-control small {font-size:12px;line-height:1.6;overflow-wrap:anywhere}
+@media(max-width:480px){.lycee-push-control {padding:16px}.lycee-push-actions {flex-direction:column}.lycee-push-actions button {width:100%}}

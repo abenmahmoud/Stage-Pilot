@@ -26,7 +26,7 @@ import {
   isValidFlashInfoVersionPayload,
   type FlashInfoVersionPayload,
 } from "../../../shared/flash-payload-policy";
-import { FLASH_PUBLIC_AUDIENCE_GROUP_REF } from "../../../shared/flash-visibility";
+import { FlashAudiencePicker } from "../../components/FlashAudiencePicker";
 
 // Meme adresse que celle deja utilisee (en lecture seule, aucune mutation)
 // dans src/pages/prototype/LyceeConnectPrototype.tsx pour ouvrir la
@@ -34,30 +34,6 @@ import { FLASH_PUBLIC_AUDIENCE_GROUP_REF } from "../../../shared/flash-visibilit
 // devinee, pour renvoyer vers le meme outil quand une personne doit joindre
 // son public tout de suite (exigence du LOT 3).
 const WEBMAIL_URL = "https://mail.lycee-blaise-cendrars-sevran.fr/";
-
-type FictitiousGroup = { ref: string; label: string };
-type FictitiousContact = { ref: string; label: string };
-
-// Public fictif pour cet ecran de proposition (aucune donnee reelle, aucun
-// nom d'eleve, de parent ou de personnel). Exporte pour etre reutilise tel
-// quel par l'ecran de correction (FlashValidationPage.tsx, LOT 3 du plan de
-// publication) : le meme jeu d'essai fictif, jamais un second invente.
-export const FICTITIOUS_FLASH_GROUPS: readonly FictitiousGroup[] = [
-  { ref: "classe:2ndea", label: "Seconde A" },
-  { ref: "classe:1stmga", label: "Première STMG A" },
-  { ref: "niveau:terminale", label: "Tout le niveau terminale" },
-  { ref: "personnel:enseignants", label: "Personnel enseignant" },
-  { ref: "personnel:administratif", label: "Personnel administratif" },
-  { ref: "parents:cantine", label: "Parents inscrits à la cantine" },
-];
-
-// Contacts fictifs pour le SMS (§13 : « SMS aux seules personnes choisies »,
-// jamais a un groupe). Roles inventes, pas des personnes reelles.
-const FICTITIOUS_FLASH_SMS_CONTACTS: readonly FictitiousContact[] = [
-  { ref: "contact:referent-numerique-fictif", label: "Référent numérique (compte fictif)" },
-  { ref: "contact:vie-scolaire-fictif", label: "Vie scolaire (compte fictif)" },
-  { ref: "contact:cpe-fictif", label: "CPE (compte fictif)" },
-];
 
 const IMPORTANCE_LABEL: Record<FlashImportance, string> = {
   normale: "Normale",
@@ -164,7 +140,7 @@ export default function FlashProposalPage() {
   const [selectedGroups, setSelectedGroups] = useState<string[]>([]);
   const [importance, setImportance] = useState<FlashImportance | null>(null);
   const [emailOptIn, setEmailOptIn] = useState(false);
-  const [smsContacts, setSmsContacts] = useState<string[]>([]);
+  const smsContacts: string[] = [];
   const [expiresAt, setExpiresAt] = useState("");
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -174,25 +150,11 @@ export default function FlashProposalPage() {
   const suggestion = useMemo(() => suggestFlashImportance(title, body), [title, body]);
   const requirement = importance ? flashChannelRequirement(importance) : null;
 
-  function toggleGroup(ref: string) {
-    setSubmitted(null);
-    setSelectedGroups((previous) =>
-      previous.includes(ref) ? previous.filter((item) => item !== ref) : [...previous, ref]
-    );
-  }
-
-  function toggleSmsContact(ref: string) {
-    setSubmitted(null);
-    setSmsContacts((previous) =>
-      previous.includes(ref) ? previous.filter((item) => item !== ref) : [...previous, ref]
-    );
-  }
-
   function chooseImportance(next: FlashImportance) {
     setSubmitted(null);
     setImportance(next);
     if (next !== "importante") setEmailOptIn(false);
-    if (next !== "urgente") setSmsContacts([]);
+
   }
 
   async function submitProposal() {
@@ -284,8 +246,7 @@ export default function FlashProposalPage() {
         </h1>
         <p className="text-sm text-gray-500">
           Un canal supplémentaire, jamais le canal d'urgence. Le texte, l'importance et
-          l'expiration sont enregistrés sur le serveur ; le public visé reste un jeu d'essai
-          fictif. Rien n'est envoyé sans validation.
+          l’expiration et le public sont vérifiés avant publication. Les alertes sont réservées aux appareils abonnés.
         </p>
       </div>
 
@@ -314,8 +275,7 @@ export default function FlashProposalPage() {
       <div className="flex items-start gap-2 rounded-xl border border-gray-200 bg-gray-50 p-3 text-xs text-gray-600">
         <Lock className="mt-0.5 h-4 w-4 shrink-0" />
         <p>
-          Le public visé (groupes ci-dessous) est un jeu d'essai fictif, non branché à un
-          annuaire réel. Le bouton en bas de page envoie une vraie requête au serveur.
+          Choisissez les personnes concernées. La validation puis la publication restent deux étapes distinctes.
         </p>
       </div>
 
@@ -366,39 +326,7 @@ export default function FlashProposalPage() {
           <p className="text-xs text-gray-500">{selectedGroups.length} groupe(s) sélectionné(s)</p>
         </CardHeader>
         <CardContent className="space-y-3">
-          <label className="flex min-h-[40px] items-start gap-2 rounded-xl border border-primary-200 bg-primary-50 px-3 py-2 text-sm">
-            <input
-              type="checkbox"
-              checked={selectedGroups.includes(FLASH_PUBLIC_AUDIENCE_GROUP_REF)}
-              onChange={() => toggleGroup(FLASH_PUBLIC_AUDIENCE_GROUP_REF)}
-              className="mt-0.5 h-4 w-4 shrink-0"
-            />
-            <span className="min-w-0">
-              <span className="block font-medium text-primary-900">
-                Visible par tous sur le site
-              </span>
-              <span className="block text-xs text-primary-800">
-                Cette case, elle seule, publie l'information sur la page publique du site,
-                sans compte ni connexion. Les groupes ci-dessous restent un public fictif.
-              </span>
-            </span>
-          </label>
-          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-            {FICTITIOUS_FLASH_GROUPS.map((group) => (
-              <label
-                key={group.ref}
-                className="flex min-h-[40px] items-center gap-2 rounded-xl border border-gray-200 px-3 py-2 text-sm"
-              >
-                <input
-                  type="checkbox"
-                  checked={selectedGroups.includes(group.ref)}
-                  onChange={() => toggleGroup(group.ref)}
-                  className="h-4 w-4 shrink-0"
-                />
-                <span className="min-w-0 truncate text-gray-800">{group.label}</span>
-              </label>
-            ))}
-          </div>
+          <FlashAudiencePicker selected={selectedGroups} onChange={setSelectedGroups} />
         </CardContent>
       </Card>
 
@@ -499,29 +427,7 @@ export default function FlashProposalPage() {
                   </li>
                 )
               )}
-              {importance === "urgente" && (
-                <li className="space-y-2 rounded-xl bg-gray-50 p-3">
-                  <p className="text-xs text-gray-600">
-                    SMS facultatif, uniquement à des personnes choisies (jamais à un groupe) :
-                  </p>
-                  <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-                    {FICTITIOUS_FLASH_SMS_CONTACTS.map((contact) => (
-                      <label
-                        key={contact.ref}
-                        className="flex min-h-[40px] items-center gap-2 rounded-lg border border-gray-200 bg-white px-3 py-2 text-xs"
-                      >
-                        <input
-                          type="checkbox"
-                          checked={smsContacts.includes(contact.ref)}
-                          onChange={() => toggleSmsContact(contact.ref)}
-                          className="h-4 w-4 shrink-0"
-                        />
-                        <span className="min-w-0 truncate text-gray-800">{contact.label}</span>
-                      </label>
-                    ))}
-                  </div>
-                </li>
-              )}
+              {importance === "urgente" && <li className="rounded-xl bg-gray-50 p-3 text-xs text-gray-600">Le SMS nominatif se prépare séparément dans le centre de communication. Aucun SMS ne part de cet écran.</li>}
             </ul>
           )}
         </CardContent>

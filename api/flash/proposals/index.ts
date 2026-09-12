@@ -8,6 +8,7 @@
 // `api/support/requests/index.ts`.
 
 import type { VercelRequest, VercelResponse } from "@vercel/node";
+import { assertKnownFlashAudiences } from "../../_shared/flash-audiences.js";
 import { and, eq } from "drizzle-orm";
 import { db } from "../../../db/index.js";
 import {
@@ -67,6 +68,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const actor = await requireFlashActor(req);
     const idempotencyHash = flashIdempotencyHash(flashIdempotencyKey(req));
     const input = parseInput(req.body);
+    await assertKnownFlashAudiences(input.groupRefs, input.smsContactRefs);
 
     let outcome: { version: FlashVersionRow; duplicate: boolean };
     try {

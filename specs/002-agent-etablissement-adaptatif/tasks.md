@@ -1217,6 +1217,10 @@
 - [ ] T068 Mettre en œuvre la matrice de routage par établissement, le
   superadministrateur sur toutes les demandes de son établissement, les
   notifications push/email idempotentes et le SMS limité par consentement et budget.
+- [ ] T068A Raccorder les appareils identifiés et les classes réelles aux notifications
+  flash ; activation explicite, expiration et révocation contrôlées, dédoublonnage
+  durable, contenu privé consultable dans l’espace personnel. Recette isolée,
+  contrôle mobile et déploiement vérifié requis (12 septembre 2026).
 - [ ] T069 Construire avec données fictives les parcours ENT inactif et actif,
   cantine, Koxo et messagerie académique : preuve sur coordonnée officielle,
   composant sécurisé, aucun secret dans le modèle ou les journaux, et formulaire

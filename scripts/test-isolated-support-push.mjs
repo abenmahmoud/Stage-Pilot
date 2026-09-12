@@ -1,3 +1,4 @@
+import {addPushFlashSchema} from './fixtures/push-flash-schema.mjs';
 import assert from 'node:assert/strict';
 import postgres from 'postgres';
 import { readFile } from 'node:fs/promises';
@@ -7,7 +8,7 @@ if (target.hostname !== '127.0.0.1' || target.port !== '55446' || target.pathnam
 const sql = postgres(target.toString(), { max: 1 });
 const id = n => `00000000-0000-4000-8000-${String(n).padStart(12,'0')}`;
 try {
-  await sql.unsafe(`create role anon; create role authenticated; create role service_role;
+  await sql.unsafe(`do $$ begin if not exists(select 1 from pg_roles where rolname='anon') then create role anon; end if; if not exists(select 1 from pg_roles where rolname='authenticated') then create role authenticated; end if; if not exists(select 1 from pg_roles where rolname='service_role') then create role service_role; end if; end $$;
     create schema auth;
     create table auth.users(id uuid primary key,raw_app_meta_data jsonb,banned_until timestamptz);
     create table public.institutions(id uuid primary key,status text);
@@ -18,12 +19,13 @@ try {
     create table public.support_session_requests(session_id uuid,request_id uuid);
     create table public.support_events(id bigint generated always as identity primary key,request_id uuid,event_type text,actor_type text,created_at timestamptz default now());`);
   await sql.unsafe(await readFile(new URL('../supabase/migrations/20260909000432_support_web_push.sql',import.meta.url),'utf8'));
+  await addPushFlashSchema(sql);
   await sql`insert into public.institutions values (${id(1)},'pilot'),(${id(2)},'pilot')`;
   await sql`insert into auth.users values (${id(3)},' {"role":"agent"}',null),(${id(4)},'{"role":"agent"}',null)`;
   await sql`insert into public.institution_memberships values (${id(3)},${id(1)},'active','agent',array['intendance']),(${id(4)},${id(1)},'active','agent',array['ddfpt'])`;
   await sql`insert into public.support_device_sessions values(${id(5)},null,now()+interval '1 day',null),(${id(6)},now(),now()+interval '1 day',null),(${id(15)},null,now()+interval '1 day',${id(16)})`;
   await sql`insert into public.support_contacts values(${id(16)},${id(7)},'email','support',now())`;
-  await sql`insert into public.support_requests values(${id(7)},${id(1)},'intendance'),(${id(8)},${id(2)},'intendance')`;
+  await sql`insert into public.support_requests(id,institution_id,assigned_team) values(${id(7)},${id(1)},'intendance'),(${id(8)},${id(2)},'intendance')`;
   await sql`insert into public.support_session_requests values(${id(5)},${id(7)}),(${id(6)},${id(7)}),(${id(15)},${id(7)})`;
   const subscription = {endpoint:'https://fcm.googleapis.com/fcm/send/fictitious',keys:{p256dh:'B'.repeat(87),auth:'A'.repeat(22)}};
   for (const [n,session,user] of [[9,id(5),null],[10,id(6),null],[11,null,id(3)],[12,null,id(4)],[17,id(15),null]]) {

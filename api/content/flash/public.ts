@@ -1,3 +1,4 @@
+import { requireConfiguredInstitution } from "../../_shared/institution-context.js";
 // GET /api/content/flash/public — LOT 2 du plan de visibilité publique
 // (docs/operations/PLAN_FLASH_PUBLIC_2026-09-05.md). Route anonyme, sans
 // authentification : le site public affiche uniquement les informations
@@ -40,6 +41,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   return handleApi(res, async () => {
     const now = new Date();
+    const institution = await requireConfiguredInstitution();
 
     const rows = await db
       .select({
@@ -56,7 +58,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         flashInfoVersions,
         and(
           eq(flashInfoVersions.flashInfoId, flashInfos.id),
-          eq(flashInfoVersions.version, flashInfos.currentVersion)
+          eq(flashInfoVersions.version, flashInfos.publishedVersion)
         )
       )
       .innerJoin(
@@ -66,7 +68,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           eq(flashInfoAudiences.groupRef, FLASH_PUBLIC_AUDIENCE_GROUP_REF)
         )
       )
-      .where(and(eq(flashInfoVersions.status, "publiee"), gt(flashInfoVersions.expiresAt, now)))
+      .where(and(eq(flashInfoVersions.institutionId,institution.id),eq(flashInfos.institutionId,institution.id),eq(flashInfoAudiences.institutionId,institution.id),eq(flashInfoVersions.status, "publiee"), gt(flashInfoVersions.expiresAt, now)))
       .orderBy(desc(flashInfoVersions.publishedAt))
       .limit(FLASH_PUBLIC_CANDIDATE_QUERY_LIMIT);
 
