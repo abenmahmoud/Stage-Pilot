@@ -5,6 +5,30 @@
 **Depot** : `abenmahmoud/Stage-Pilot`
 **Dernier jalon de code verifie** : branche de preview Vercel
 
+## Export ENT du 12 septembre à 22 h 44 — contrôle effectué
+
+Adel a déposé `export_users_20260912_224415.csv` dans le dossier privé de préparation.
+Audit local en lecture seule : 3 338 lignes, 3 328 ID ENT distincts, 10 répétitions
+identiques hors code temporaire. Profils distincts : 1 159 élèves, 1 994 responsables,
+102 enseignants et 73 non-enseignants. Comptes activés et non activés présents.
+43 classes connues ; 34 élèves distincts sans classe. 2 028 liens familiaux
+réciproques résolus par identifiant externe, dont 622 absents du livrable actif.
+Des extrémités familiales restent absentes ; ne pas inventer ces rattachements.
+
+L’ancien annuaire actif reste identique à la copie validée locale. 1 173 anciennes
+références absentes du nouvel export, 103 nouvelles ; aucune suppression ni
+activation effectuée. Les 3 225 ID ENT communs avec l’export brut du 05/09 n’ont
+pas changé de nom normalisé ni d’identifiant ; examiner séparément les différences
+de noms du livrable transformé. 333 liens enseignant-classe, dont 326 vers une
+classe connue ; les 7 autres ne prouvent pas des groupes ou classes officiels.
+
+Prochaine donnée : export SIECLE actuel élèves/responsables, classes, identifiants,
+relations et dates/statuts disponibles. Vérifier les inscriptions, départs,
+liens familiaux et classes manquantes avant préparation du remplacement.
+Preuves privées : `../Preparation_agent_2026-09-12/02_Controles/`, avec
+`audit_ent.py`, `audit_ent_agregats.json`, requête de comparaison de l’annuaire
+actif et `BILAN_ENT_2026-09-12.md`. Aucune valeur de code dans les rapports.
+
 ## Cadrage du 12 septembre — contexte scolaire et documents (T066C2)
 
 Adel veut terminer ce week-end un parcours durable : après vérification d’identité,

@@ -1226,6 +1226,9 @@
   les différences de périmètre ENT/SIECLE avant remplacement, traiter les conflits
   sans fusion par nom et vérifier identité, concurrence et documents. Plan :
   `docs/operations/PLAN_PROFIL_SCOLAIRE_DOCUMENTS_2026-09-12.md`.
+  Contrôle ENT du 12/09 effectué hors ligne : 3 328 comptes distincts,
+  2 028 paires familiales réciproques, 43 classes. Aucun remplacement de données.
+  Reste à croiser l’export SIECLE actuel, les groupes EDT et les cas absents.
 - [ ] T067 Programmer les contrôles de connaissances à 08:00, 13:00 et 18:00
   Europe/Paris, la détection des conflits, les alertes immédiates et le digest
   dédupliqué des questions inconnues.
