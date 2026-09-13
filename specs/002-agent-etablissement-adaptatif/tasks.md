@@ -1240,7 +1240,8 @@
   OTP supplémentaire, invalidation et masquage des réponses privées. 90 tests
   ciblés, neuf parcours familiaux et huit régressions d’identité fictifs réussis.
   Affichage nominatif complet et archivage PDF restent ouverts ; aucun nouveau
-  lot ENT/SIECLE/EDT activé. Déploiement de ce lot à confirmer.
+  lot ENT/SIECLE/EDT activé. Publié `d3f5ca8`, déploiement
+  `dpl_CKmd6tDp5sYCCyWsmX4r9QqFhU8P` READY, domaine vérifié le 13/09.
 - [ ] T067 Programmer les contrôles de connaissances à 08:00, 13:00 et 18:00
   Europe/Paris, la détection des conflits, les alertes immédiates et le digest
   dédupliqué des questions inconnues.

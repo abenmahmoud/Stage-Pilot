@@ -18,7 +18,10 @@ ni les réponses personnelles ne sont conservés dans le brouillon ou transmis
 dans l’historique au modèle. Expiration de session : réponses retirées de l’écran.
 
 Recette : 90 tests ciblés, neuf parcours familiaux fictifs sur 1440/390/320 px,
-huit régressions de continuité d’identité, build. Publication à confirmer.
+huit régressions de continuité d’identité, build. Publié le 13/09 : `d3f5ca8`,
+`dpl_CKmd6tDp5sYCCyWsmX4r9QqFhU8P` READY. Le domaine et l’URL immuable servent
+`LyceeConnectPrototype-DGaLy1g9.js`. Deux API privées 401, assistant GET 405,
+accueil personnel indisponible anonymement, aucun débordement ni erreur JS.
 Scripts : `scripts/test-family-school-chat.mjs`, `scripts/qa-family-school-chat.mjs`.
 Preuves hors Git dans `../Preparation_agent_2026-09-12/02_Controles/`.
 
@@ -27,6 +30,14 @@ d’affichage autorisés, les liens pédagogiques complets et le PDF rangé dans
 Mes demandes ne sont pas encore livrés. Aucun import réel remplacé, aucun EDT
 activé, aucun SMS/email réel envoyé. La disponibilité des vrais cours dépend
 toujours des versions et des correspondances validées.
+
+Le contrôle en base du 13/09 confirme que les cours sont présents dans les
+candidats : 64 600 événements de classe, dont 64 460 pour 43 correspondances
+exactes en attente. Deux calendriers de classe introuvables représentent 140
+événements. Aucun créneau classe n’est encore appliqué. Côté enseignants,
+88 calendriers appliqués, six introuvables, dix vides, 40 695 créneaux appliqués.
+Les deux versions restent `review`, aucune active. Ces chiffres décrivent les
+états d’import, pas la validation métier des cours ou des correspondances.
 
 Statut : procédure préparée, audit initial effectué ; les fonctions futures
 décrites ici ne sont pas déclarées opérationnelles. Demande d’Adel le 12/09/2026 :

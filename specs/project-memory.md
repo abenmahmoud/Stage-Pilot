@@ -23,7 +23,12 @@ et l’historique envoyé au modèle ; l’expiration de session les retire de l
 
 90 tests ciblés et neuf parcours familiaux fictifs (1440/390/320 px), huit
 régressions d’identification existantes, build réussis. Aucun appel réel d’envoi
-de code ni modification de données. Publication à confirmer après déploiement.
+de code ni modification de données. Publié le 13/09 : code `d3f5ca8`, déploiement
+`dpl_CKmd6tDp5sYCCyWsmX4r9QqFhU8P` READY ; URL immuable
+`lyceegest-752bon6y2-safe-scol.vercel.app` et domaine du lycée vérifiés.
+Module `LyceeConnectPrototype-DGaLy1g9.js` sur les deux URLs, API privées 401,
+assistant GET 405, espace personnel anonyme indisponible, `no-store`, aucun
+débordement mobile ni erreur JS. Preuve : `family-live-checks.json`.
 Preuves privées : `../Preparation_agent_2026-09-12/02_Controles/qa-family-school-chat/`
 et journaux `test-family-school-chat.log`, `qa-existing-continuity.log`.
 
@@ -31,6 +36,15 @@ Limites conservées : les repères affichent « Enfant 1/2 · classe » du lecte
 existant, pas encore les noms déchiffrés ; noms/enseignants/groupes complets et
 PDF archivé côté serveur restent à finaliser. Les nouvelles correspondances
 ENT/SIECLE et les imports EDT n’ont pas été activés par ce lot. T066C2 reste ouvert.
+
+Contrôle SQL en lecture seule du 13/09 : aucune version EDT active, deux imports
+`review`. Leurs tableaux de candidats contiennent bien des événements : classes,
+43 calendriers exacts en attente (64 460 événements) et deux introuvables (140) ;
+enseignants, 88 exacts appliqués, six introuvables, dix vides. `schedule_slots`
+contient 40 695 créneaux enseignants et zéro créneau classe appliqué : distinguer
+les événements importés des créneaux effectivement appliqués. Fraîcheur déclarée
+jusqu’au 17/09 23:59:59.999 UTC. Preuves : `etat_edt_2026-09-13.json` et
+`correspondances_edt_2026-09-13.json` dans le même dossier privé de contrôles.
 
 Adel a fourni ce qu’il possède et demande une démarche intuitive. Le ZIP
 SIECLE contient un XLS daté du 04/09/2026, dernière Date Modification également
