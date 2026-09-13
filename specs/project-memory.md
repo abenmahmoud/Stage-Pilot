@@ -31,6 +31,14 @@ déploiement `dpl_DPSYC5TobmKsq69guaaiktacgToN` READY, URL immuable
 login, API privée 401/no-store, aucun débordement mobile ni erreur JS. Preuve :
 `zip-live-checks.json`. Aucun import réel activé.
 
+Adel confirme ensuite son dépôt. Contrôle en lecture seule du 13/09 : nouvelle
+version classes n°2 reçue à 15:55 Paris, antivirus clean, lecture terminée à 15:56,
+statut `review`. 45 calendriers, 64 826 cours importés, 43 correspondances exactes
+en attente et deux non trouvées (140 cours). Prochaine étape : préparer les
+43 correspondances exactes dans la nouvelle version, puis résoudre les deux cas
+restants avec Adel avant activation. Aucun rattachement ni activation effectué
+par cette vérification. Le dépôt professeurs reste la version n°1 du 10/09.
+
 ## SIECLE reçu le 13 septembre — contrôle et parcours intuitif
 
 ### Chat familial — lot du 13 septembre
