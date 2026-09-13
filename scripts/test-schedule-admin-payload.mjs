@@ -113,6 +113,18 @@ test("binds a signed reservation to the exact requested PDF", () => {
   ]) assert.equal(parseScheduleImportReservationPayload(payload, input), null);
 });
 
+test("accepts the ICS reservation and binds it to the requested format, scope and private path", () => {
+  const expected = { ...input, sourceFormat: "ical_import", mimeType: "text/calendar", originalName: "calendriers.ics" };
+  const reservation = {
+    import: scheduleImport({ originalName: expected.originalName }),
+    upload: { bucket: SCHEDULE_IMPORT_BUCKET, path: `${INSTITUTION_ID}/2026-2027/classes/${ACTOR_ID}/${FILE_ID}.ics`, token: "header.payload.signature-with-safe-ascii" },
+  };
+  assert.deepEqual(parseScheduleImportReservationPayload(reservation, expected), reservation);
+  assert.equal(parseScheduleImportReservationPayload(reservation, { ...expected, sourceFormat: "pdf_import" }), null);
+  assert.equal(parseScheduleImportReservationPayload({ ...reservation, upload: { ...reservation.upload, path: reservation.upload.path.replace('.ics', '.zip') } }, expected), null);
+  assert.equal(parseScheduleImportReservationPayload(reservation, { ...expected, sourceKind: "teachers" }), null);
+});
+
 test("requires exact state transitions before a success is visible", () => {
   const quarantined = scheduleImport({ status: "quarantined", uploadedAt: UPLOADED_AT });
   assert.deepEqual(

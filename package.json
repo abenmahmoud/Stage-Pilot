@@ -418,6 +418,7 @@
   "dependencies": {
     "@supabase/ssr": "^0.6.1",
     "@supabase/supabase-js": "^2.49.4",
+    "@zip.js/zip.js": "2.14.1",
     "busboy": "^1.6.0",
     "date-fns": "^4.1.0",
     "drizzle-orm": "^0.45.2",

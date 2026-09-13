@@ -1221,6 +1221,10 @@
   tests métier/sécurité et recette fictive 1440/390/320 px réussis. Preuve :
   `docs/operations/REPRISE_EDT_PRONOTE_2026-09-12.md`.
 - [ ] T066C2 Relier les exports officiels et le profil vérifié aux réponses du chat :
+  Lot dépôt du 13/09 : ZIP de calendriers ou sélection multiple ICS préparés en
+  un seul dépôt privé, bornes et intégrité vérifiées, réservation iCal corrigée.
+  32 tests ciblés, 13 contrôles UI et parcours complet fictif 45 fichiers sur
+  1440/390/320 px avec CSP de production ; aucun import réel activé.
   classe, groupes, liens familiaux et pédagogiques autorisés ; produire un PDF
   personnel à partir des données validées dans l’espace de demandes. Réconcilier
   les différences de périmètre ENT/SIECLE avant remplacement, traiter les conflits

@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { apiFetch } from "../../lib/api";
 import { uploadPrivateFile } from "../../lib/resumable-upload";
+import { prepareCalendarFiles } from "../../lib/schedule-calendar-files";
 import {
   parseScheduleImportListPayload,
   parseScheduleImportMutationPayload,
@@ -100,6 +101,10 @@ function tabularMimeForFileName(name: string): (typeof SCHEDULE_TABULAR_MIME_TYP
 
 export default function ScheduleImportPage() {
   const fileInput = useRef<HTMLInputElement>(null);
+  const preparation = useRef<AbortController | null>(null);
+  const [preparing, setPreparing] = useState(false);
+  const [preparedCount, setPreparedCount] = useState(0);
+  const [selectedFileName, setSelectedFileName] = useState("");
   const [imports, setImports] = useState<ScheduleImport[]>([]);
   const [file, setFile] = useState<File | null>(null);
   const [fileCount, setFileCount] = useState(0);
@@ -140,6 +145,51 @@ export default function ScheduleImportPage() {
   const [pageOpening, setPageOpening] = useState<number | null>(null);
   const [slotEditorPage, setSlotEditorPage] = useState<number | null>(null);
   const [slotWriteReports, setSlotWriteReports] = useState<Record<number, ScheduleSlotWritePayload[]>>({});
+
+  useEffect(() => () => preparation.current?.abort(), []);
+
+  function resetFile() {
+    preparation.current?.abort();
+    preparation.current = null;
+    setPreparing(false);
+    setFile(null);
+    setFileCount(0);
+    setPreparedCount(0);
+    setSelectedFileName("");
+    if (fileInput.current) fileInput.current.value = "";
+  }
+
+  async function selectFiles(chosen: File[]) {
+    preparation.current?.abort();
+    const controller = new AbortController();
+    preparation.current = controller;
+    setFile(null);
+    setFileCount(0);
+    setPreparedCount(0);
+    setError("");
+    setNotice("");
+    setSelectedFileName(chosen.length === 1 ? chosen[0].name : "Calendriers sélectionnés");
+    setPreparing(chosen.length > 0 && sourceFormat === "ical_import");
+    try {
+      if (!chosen.length) return;
+      const result = sourceFormat === "ical_import"
+        ? await prepareCalendarFiles(chosen, `calendriers-${sourceKind}-${schoolYear}.ics`, {
+          signal: controller.signal,
+          onProgress: count => { if (!controller.signal.aborted) setPreparedCount(count); },
+        })
+        : { file: chosen[0], fileCount: 1 };
+      if (controller.signal.aborted) return;
+      setFile(result.file);
+      setFileCount(result.fileCount);
+      setTitle(current => current || (chosen.length === 1 ? chosen[0].name : result.file.name).replace(/\.(pdf|csv|xlsx|ics|zip)$/i, "").slice(0, 180));
+    } catch (reason) {
+      if (controller.signal.aborted) return;
+      setError(reason instanceof Error ? reason.message : "Impossible de préparer les calendriers.");
+      if (fileInput.current) fileInput.current.value = "";
+    } finally {
+      if (!controller.signal.aborted) setPreparing(false);
+    }
+  }
 
   async function load() {
     setLoading(true);
@@ -443,6 +493,7 @@ export default function ScheduleImportPage() {
 
   async function submit(event: React.FormEvent) {
     event.preventDefault();
+    if (preparing || busy) return;
     if (!file) {
       setError("Choisissez les fichiers à déposer.");
       return;
@@ -496,9 +547,8 @@ export default function ScheduleImportPage() {
               ? "Calendriers reçus. Après le contrôle de sécurité, vérifiez les correspondances proposées avec l’annuaire, puis approuvez et activez la version."
               : "Fichier reçu dans l'espace privé. Il reste bloqué jusqu'au contrôle antivirus, puis attendra la correspondance des colonnes."
       );
-      setFile(null);
+      resetFile();
       setTitle("");
-      if (fileInput.current) fileInput.current.value = "";
       await load();
     } catch (reason) {
       setError(reason instanceof Error ? reason.message : "Le dépôt a échoué.");
@@ -626,50 +676,41 @@ export default function ScheduleImportPage() {
             disabled={busy}
             onChange={(event) => {
               setSourceFormat(event.target.value as ScheduleSourceFormat);
-              setFile(null);
-              if (fileInput.current) fileInput.current.value = "";
+              resetFile();
+              setError("");
             }}
           >
             <option value="pdf_import">PDF officiel (une page par classe ou par professeur)</option>
-            <option value="ical_import">Calendriers iCal (.ics), un ou plusieurs fichiers</option>
+            <option value="ical_import">Calendriers iCal : un ZIP ou plusieurs fichiers .ics</option>
             <option value="tabular_import">Export tabulaire (CSV ou Excel), colonnes à faire correspondre</option>
           </select>
         </label>
         <label className="flex min-h-32 cursor-pointer flex-col items-center justify-center border-2 border-dashed border-slate-300 px-4 py-5 text-center sm:col-span-2 hover:border-emerald-600">
           <Upload className="h-6 w-6 text-emerald-700" />
-          <strong className="mt-2 text-sm">
-            {file ? file.name : sourceFormat === "pdf_import" ? "Choisir un PDF officiel" : sourceFormat === "ical_import" ? "Choisir un ou plusieurs calendriers iCal" : "Choisir un export CSV ou Excel"}
+          <strong className="mt-2 max-w-full break-all text-sm">
+            {preparing ? "Préparation des calendriers…" : file ? selectedFileName : sourceFormat === "pdf_import" ? "Choisir un PDF officiel" : sourceFormat === "ical_import" ? "Choisir un ZIP ou les fichiers .ics ensemble" : "Choisir un export CSV ou Excel"}
           </strong>
-          <span className="mt-1 text-xs text-slate-500">50 Mo maximum</span>
+          <span className="mt-1 text-xs text-slate-500">{sourceFormat === "ical_import" ? "Un seul dépôt · jusqu’à 250 calendriers · 50 Mo après ouverture" : "50 Mo maximum"}</span>
           <input
             ref={fileInput}
             className="sr-only"
             type="file"
-            accept={sourceFormat === "pdf_import" ? ".pdf,application/pdf" : sourceFormat === "ical_import" ? ".ics,text/calendar" : ".csv,.xlsx,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"}
+            accept={sourceFormat === "pdf_import" ? ".pdf,application/pdf" : sourceFormat === "ical_import" ? ".zip,.ics,application/zip,application/x-zip-compressed,text/calendar" : ".csv,.xlsx,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"}
             multiple={sourceFormat === "ical_import"}
             required
             disabled={busy}
-            onChange={(event) => {
-              const chosen = Array.from(event.target.files ?? []);
-              if (sourceFormat === "ical_import" && chosen.some(item => !item.name.toLowerCase().endsWith(".ics"))) {
-                setError("Sélectionnez uniquement des fichiers .ics."); setFile(null); return;
-              }
-              const next = sourceFormat === "ical_import" && chosen.length > 1
-                ? new File(chosen.flatMap(item => [item, "\r\n"]), `calendriers-${sourceKind}-${schoolYear}.ics`, { type: "text/calendar" })
-                : chosen[0] ?? null;
-              setFileCount(chosen.length);
-              setFile(next);
-              if (next && !title) setTitle(next.name.replace(/\.(pdf|csv|xlsx|ics)$/i, ""));
-            }}
+            onChange={(event) => void selectFiles(Array.from(event.target.files ?? []))}
           />
         </label>
+        {preparing ? <p role="status" className="text-sm text-emerald-800 sm:col-span-2">Préparation en cours · {preparedCount} fichier(s) lu(s)…</p> : null}
+        {sourceFormat === "ical_import" ? <p className="text-sm text-slate-600 sm:col-span-2">Déposez les classes et les professeurs séparément. À chaque mise à jour, revenez ici avec le nouvel export complet du périmètre choisi.</p> : null}
         {file ? (
-          <small className={`sm:col-span-2 ${invalidFile ? "text-red-700" : "text-slate-500"}`}>
+          <small role="status" className={`sm:col-span-2 ${invalidFile ? "text-red-700" : "text-slate-500"}`}>
             {invalidFile
               ? sourceFormat === "pdf_import"
                 ? "Ce fichier n'est pas un PDF valide de moins de 50 Mo."
                 : "Vérifiez le format et la taille totale : 50 Mo maximum."
-              : `${sourceFormat === "ical_import" ? `${fileCount} calendrier(s) · ` : ""}${formatBytes(file.size)}`}
+              : `${sourceFormat === "ical_import" ? `${fileCount} fichier(s) iCal regroupé(s) · un seul dépôt · ` : ""}${formatBytes(file.size)}`}
           </small>
         ) : null}
 
@@ -707,7 +748,7 @@ export default function ScheduleImportPage() {
         </label>
         {progress > 0 ? <p className="text-sm text-slate-600 sm:col-span-2" role="status">Transfert : {progress} %</p> : null}
         <div className="sm:col-span-2">
-          <button type="submit" disabled={busy || invalidFile} className="inline-flex items-center gap-2 rounded-md bg-emerald-700 px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-50">
+          <button type="submit" disabled={busy || preparing || !file || invalidFile} className="inline-flex items-center gap-2 rounded-md bg-emerald-700 px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-50">
             {busy ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
             Déposer la nouvelle version
           </button>

@@ -5,6 +5,27 @@
 **Depot** : `abenmahmoud/Stage-Pilot`
 **Dernier jalon de code verifie** : branche de preview Vercel
 
+## Dépôt EDT en ZIP — 13 septembre
+
+Adel veut déposer régulièrement ses exports de 45 fichiers sans les envoyer un
+par un. L’administration accepte maintenant un ZIP contenant des ICS ou une
+sélection multiple d’ICS, regroupés localement en un seul fichier privé. Classes
+et professeurs restent deux dépôts distincts. Extraction bornée à 50 Mo réels et
+250 calendriers, contrôle d’intégrité, refus des archives chiffrées, ambiguës ou
+contenant d’autres documents. Aucun fichier personnel transmis au modèle.
+L’envoi reste soumis au contrôle antivirus, aux correspondances puis à
+l’approbation et l’activation existantes. Aucune synchronisation PRONOTE implicite.
+
+Correction liée : le validateur de réservation côté navigateur refusait
+`text/calendar` malgré le support iCal du serveur. La réservation ICS est désormais
+acceptée et liée au périmètre, au fichier et au chemin privé attendus.
+Recette locale : 32 tests ciblés, 13 contrôles UI, build, dépôt fictif complet de
+45 calendriers sur 1440/390/320 px avec la CSP de production. Un transfert et une
+confirmation par lot, ZIP invalide bloqué, sélection multiple conservée, annulation
+du résultat obsolète lors d’un changement de format. Preuves privées :
+`../Preparation_agent_2026-09-12/02_Controles/zip-browser-checks.json`,
+`test-zip.log`, `build-zip.log`. Publication à confirmer. Aucun import réel activé.
+
 ## SIECLE reçu le 13 septembre — contrôle et parcours intuitif
 
 ### Chat familial — lot du 13 septembre

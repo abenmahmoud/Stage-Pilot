@@ -265,6 +265,7 @@ export function parseScheduleImportReservationPayload(
   if (
     expected.mimeType !== SCHEDULE_IMPORT_MIME
     && !SCHEDULE_TABULAR_MIME_TYPES.includes(expected.mimeType as ScheduleTabularMimeType)
+    && !(expected.sourceFormat === "ical_import" && expected.mimeType === "text/calendar")
   ) return null;
   const root = exactRecord(value, ["import", "upload"]);
   const source = root ? parseImportRecord(root.import) : null;

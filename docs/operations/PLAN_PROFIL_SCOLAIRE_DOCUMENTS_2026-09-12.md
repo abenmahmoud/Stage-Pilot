@@ -1,5 +1,17 @@
 # Profil scolaire et documents — plan de travail du week-end
 
+## Simplification du dépôt EDT — 13 septembre
+
+Un ZIP de calendriers ICS ou plusieurs ICS sélectionnés ensemble deviennent un
+seul dépôt dans Emplois du temps. Les mises à jour manuelles utilisent cette même
+page, séparément pour les classes et les professeurs. Le nombre de fichiers est
+affiché avant l’envoi. Les bornes et l’intégrité sont contrôlées localement, puis
+le circuit privé existant conserve antivirus, correspondances et activation.
+Correction du refus des réservations iCal côté navigateur. 32 tests ciblés,
+13 contrôles UI, build et parcours fictif de 45 calendriers validés sur trois
+largeurs sous CSP de production. Aucun rapprochement ni activation de données
+réelles ; les étapes de réconciliation ci-dessous restent nécessaires.
+
 ## Lot chat familial du 13 septembre
 
 Développé et vérifié localement : choix d’un enfant autorisé directement dans

@@ -1,5 +1,26 @@
 # Import privé des emplois du temps
 
+## Dépôt groupé du 13 septembre 2026
+
+Le format iCal accepte un ZIP de fichiers `.ics` ou plusieurs `.ics` sélectionnés
+ensemble. Le navigateur prépare un seul fichier iCal, sans modifier les noms de
+calendriers, UID, horaires ou salles. Le ZIP peut contenir un dossier d’export ;
+seuls les fichiers accessoires connus de Windows/macOS sont ignorés. Autre
+document, chiffrement, corruption, doublon ambigu ou chemin dangereux : aucun
+dépôt partiel. Limites : 50 Mo compressés et décompressés, 250 calendriers, 1 000
+entrées ZIP, 60 secondes de préparation. Extraction séquentielle avec plafond
+sur les octets réellement émis, CRC et contrôles de structure zip.js 2.14.1.
+
+Un seul transfert dans `schedule-ingest`, puis le circuit existant de quarantaine,
+antivirus, lecture, correspondances, approbation et activation. La réservation
+du format `text/calendar` est reconnue dans le validateur strict du navigateur.
+Chaque mise à jour manuelle repasse par cette page avec l’export complet du
+périmètre ; classes et professeurs restent séparés.
+
+Tests : `scripts/test-schedule-calendar-files.mjs`, réservation iCal dans
+`scripts/test-schedule-admin-payload.mjs`, parcours fictif complet de 45 calendriers
+sur ordinateur et téléphone avec CSP de production. Aucun import réel dans ce lot.
+
 ## Implémentation iCal du 10 septembre 2026
 
 Le format natif `ical_import` relie désormais les occurrences UTC exportées aux

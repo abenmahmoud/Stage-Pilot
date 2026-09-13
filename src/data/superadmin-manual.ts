@@ -290,7 +290,7 @@ export const MANUAL_ARTICLES: ManualArticle[] = [
     access: "Superadmin et direction habilitée, avec les validations exigées.",
     prerequisite: "Un export officiel à jour et des correspondances fiables avec l’annuaire.",
     steps: [
-      "Dans Emplois du temps, choisissez PDF officiel, calendriers iCal (.ics) ou export CSV/Excel. Séparez les périmètres classes et professeurs.",
+      "Dans Emplois du temps, choisissez PDF officiel, calendriers iCal (ZIP ou .ics) ou export CSV/Excel. Pour iCal, choisissez un seul ZIP contenant les fichiers .ics, ou sélectionnez les fichiers .ics ensemble : ils sont regroupés en un seul dépôt. Séparez les périmètres classes et professeurs.",
       "Renseignez l’année scolaire, la date d’effet, la date de recontrôle et l’usage autorisé, puis Déposer la nouvelle version.",
       "Utilisez Vérifier les correspondances, puis le filtre À vérifier et la recherche. Les calendriers déjà rattachés restent consultables dans Déjà traités. Reliez les éléments incertains à la bonne référence de l’annuaire, sans déduire un identifiant du seul nom.",
       "Sélectionner les correspondances exactes et Préparer l’exclusion des calendriers vides préparent uniquement des choix, pour toute la version. Relisez le nombre de rattachements et d’exclusions, modifiez-les si nécessaire puis validez. Aucun de ces choix n’active une version.",
