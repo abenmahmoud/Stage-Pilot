@@ -7,6 +7,16 @@
 
 ## Aperçu EDT avant activation — 13 septembre
 
+Contrôle de l’espace personnel professeur après signalement d’Adel : le calendrier
+du compte concerné est rattaché exactement à l’annuaire actif, appliqué, et contient
+des créneaux approuvés pour le lendemain. Le blocage est la version enseignants
+encore `review`, sans approbation ni activation, et non l’identité ou l’export.
+88 calendriers sont appliqués ; restent 10 calendriers vides et 6 sans
+correspondance (2 356 événements importés). L’aperçu administratif livré ci-dessous
+ne rend donc pas les EDT visibles dans l’espace personnel. Ne pas demander un
+nouvel export ou un nouvel OTP pour ce cas, ni exclure les 16 calendriers sans
+décision d’Adel. Aucune donnée réelle modifiée lors de ce diagnostic.
+
 Adel reporte les deux calendriers non rattachés et les spécialités, mais demande
 d’avancer. Ajout d’un aperçu privé « Tester une journée » dans les correspondances
 iCal : choix d’un calendrier rattaché/appliqué et d’une date, horaires de Paris,
