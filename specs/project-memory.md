@@ -21,7 +21,12 @@ le lecteur personnel. Normalisation de l’abréviation EDT et de « emplois du
 temps » avant la reconnaissance du besoin. Les tests reproduisent l’ancien
 échec, puis vérifient la demande d’identité, le jour choisi, la lecture protégée
 et le choix d’enfant autorisé pour un parent. Aucun changement des habilitations.
-74 tests ciblés réussis. Livraison du correctif à confirmer après déploiement.
+74 tests ciblés et build réussis. Correctif `d106f16` déployé READY sur le domaine
+principal (`dpl_FRWQwGzYGPzNzivVqMDxNKfk4BzD`). Trois appels réels de l’API
+confirment le parcours EDT abrégé, la reprise « demain » sous contrôle d’identité
+et la réponse publique sur rendez-vous sans formulaire forcé. Aucun OTP envoyé,
+aucune donnée personnelle consultée et aucun dossier créé par cette recette.
+Preuve privée : `../Preparation_agent_2026-09-12/02_Controles/edt-chat-live-checks.json`.
 
 Adel demande de pouvoir activer les calendriers validés en gardant les 16 autres
 en attente, sans les exclure. Ajout d’un bilan privé et du bouton « Activer les
