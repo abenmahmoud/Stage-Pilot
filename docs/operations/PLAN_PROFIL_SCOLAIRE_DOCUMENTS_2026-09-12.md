@@ -138,6 +138,30 @@ flux officiel PRONOTE hébergé / ENT une fois son contrat technique confirmé.
 Ne pas présenter le transfert périodique d’un fichier inchangé comme une
 synchronisation des modifications faites dans PRONOTE.
 
-Première question restante : les exports ENT du 10 septembre ont-ils un périmètre
-filtré, ou suivent-ils un nettoyage des comptes ? Aucun nouvel export ni
-remplacement de l’annuaire n’a été effectué pendant cette préparation.
+### Contrôle SIECLE reçu le 13 septembre
+
+Le fichier fourni contient des données au 4 septembre, avec 1 604 identifiants
+élèves et 1 678 lignes. Les 74 répétitions correspondent à une division et un
+groupe : conserver ces liens sans dupliquer les personnes. 488 dossiers ont une
+sortie renseignée ; 1 116 ont une entrée passée sans sortie passée renseignée,
+dont 41 sans division. Ce n’est pas une certification de l’effectif au 13/09.
+
+Pas de clé commune directe avec l’ID externe ENT dans les colonnes disponibles.
+1 130 propositions nominatives uniques dans les deux sens ont été préparées
+hors Git, dont 1 060 avec même classe. Aucune n’est une autorisation d’accès.
+29 comptes ne disposent pas d’une correspondance nominative unique. Les cinq
+codes de groupe SIECLE ne prouvent pas la couverture des groupes EDT.
+
+La comparaison des anciennes références absentes suggère des sorties mais
+la fraîcheur, le périmètre et les cas incertains restent à confirmer avant
+remplacement. Les contacts et liens ne sont jamais corrigés silencieusement.
+Preuves : `../Preparation_agent_2026-09-12/02_Controles/BILAN_SIECLE_2026-09-13.md`.
+
+### Expérience administrative
+
+L’annuaire distingue désormais recherche, mise à jour et compléments de fiches.
+La mise à jour suit dépôt, examen du bilan, validation/activation. Les originaux
+ENT/SIECLE restent à préparer avant le dépôt pris en charge actuellement ;
+ne pas prétendre que le ZIP et les exports bruts sont fusionnés par cette page.
+La saisie d’import reste présente entre les vues ; une confirmation d’activation
+ne se reporte jamais sur une autre version. Vérifications locales réussies.

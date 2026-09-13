@@ -1228,7 +1228,12 @@
   `docs/operations/PLAN_PROFIL_SCOLAIRE_DOCUMENTS_2026-09-12.md`.
   Contrôle ENT du 12/09 effectué hors ligne : 3 328 comptes distincts,
   2 028 paires familiales réciproques, 43 classes. Aucun remplacement de données.
-  Reste à croiser l’export SIECLE actuel, les groupes EDT et les cas absents.
+  SIECLE reçu le 13/09 et contrôlé : données au 04/09, 1 604 élèves distincts,
+  74 doubles lignes division/groupe préservées, 488 sorties renseignées.
+  1 130 propositions nominatives privées, aucune fusion ni activation.
+  Reste à confirmer la fraîcheur et les correspondances, puis les groupes EDT
+  et les lecteurs/documents. Parcours annuaire simplifié et vérifié localement :
+  trois vues, fichier conservé, confirmation propre à la version examinée.
 - [ ] T067 Programmer les contrôles de connaissances à 08:00, 13:00 et 18:00
   Europe/Paris, la détection des conflits, les alertes immédiates et le digest
   dédupliqué des questions inconnues.

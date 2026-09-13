@@ -1,12 +1,9 @@
 import { useEffect, useRef, useState } from "react";
 import {
-  Database,
   Download,
   FileSpreadsheet,
   LoaderCircle,
-  LockKeyhole,
   RefreshCw,
-  ShieldCheck,
   Upload,
 } from "lucide-react";
 import { apiFetch } from "../../lib/api";
@@ -86,6 +83,7 @@ export default function IdentityDirectoryPage() {
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
   const [selectedImportId, setSelectedImportId] = useState<string | null>(null);
+  const [section, setSection] = useState<"lookup" | "imports" | "attributes">("lookup");
 
   async function load() {
     setLoading(true);
@@ -213,10 +211,10 @@ export default function IdentityDirectoryPage() {
         <div>
           <p className="text-sm font-semibold text-emerald-700">Identité et accès</p>
           <h1 className="mt-1 text-2xl font-bold text-slate-950 sm:text-3xl">
-            Répertoire privé du lycée
+            Annuaire du lycée
           </h1>
           <p className="mt-2 max-w-3xl text-sm text-slate-600">
-            Déposez une version préparée des élèves, responsables ou personnels. Ces données servent uniquement à vérifier l’identité et les droits.
+            Retrouvez une personne, mettez à jour l’annuaire ou complétez les fiches utilisées par les services du lycée.
           </p>
         </div>
         <button
@@ -231,34 +229,47 @@ export default function IdentityDirectoryPage() {
         </button>
       </header>
 
-      <section className="grid gap-3 md:grid-cols-3" aria-label="Protections du répertoire">
-        <div className="flex gap-3 border-l-4 border-emerald-600 bg-white p-4 shadow-sm">
-          <LockKeyhole className="h-5 w-5 shrink-0 text-emerald-700" />
-          <span><strong className="block text-sm">Dépôt privé</strong><small className="text-slate-500">Double vérification obligatoire</small></span>
-        </div>
-        <div className="flex gap-3 border-l-4 border-blue-600 bg-white p-4 shadow-sm">
-          <ShieldCheck className="h-5 w-5 shrink-0 text-blue-700" />
-          <span><strong className="block text-sm">Activation humaine</strong><small className="text-slate-500">Aucune identité créée automatiquement</small></span>
-        </div>
-        <div className="flex gap-3 border-l-4 border-slate-500 bg-white p-4 shadow-sm">
-          <Database className="h-5 w-5 shrink-0 text-slate-700" />
-          <span><strong className="block text-sm">Séparé de l’IA</strong><small className="text-slate-500">Jamais utilisé comme connaissance générale</small></span>
-        </div>
-      </section>
+      <nav className="grid gap-2 rounded-xl border border-slate-200 bg-white p-2 sm:grid-cols-3" aria-label="Actions de l’annuaire">
+        {([
+          ["lookup", "Rechercher une personne"],
+          ["imports", "Mettre à jour l’annuaire"],
+          ["attributes", "Compléter les fiches"],
+        ] as const).map(([value, label]) => (
+          <button key={value} type="button" aria-pressed={section === value} aria-controls={`directory-${value}`}
+            onClick={() => setSection(value)}
+            className={`min-h-12 rounded-lg px-3 py-3 text-sm font-semibold transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-700 ${section === value ? "bg-emerald-700 text-white" : "text-slate-600 hover:bg-slate-100 hover:text-slate-950"}`}>
+            {label}
+          </button>
+        ))}
+      </nav>
 
       {error ? <p role="alert" className="border border-red-200 bg-red-50 p-3 text-sm text-red-800">{error}</p> : null}
       {notice ? <p role="status" className="border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-800">{notice}</p> : null}
 
-      <IdentityDirectoryLookupPanel />
+      <section id="directory-lookup" hidden={section !== "lookup"} aria-label="Rechercher une personne">
+        <IdentityDirectoryLookupPanel />
+      </section>
 
-      <PersonAttributeImportPanel />
+      <section id="directory-attributes" hidden={section !== "attributes"} aria-label="Compléter les fiches">
+        <PersonAttributeImportPanel />
+      </section>
+
+      <section id="directory-imports" hidden={section !== "imports"} aria-label="Mettre à jour l’annuaire">
+      <div className="mb-5">
+        <h2 className="text-lg font-bold text-slate-950">Préparer une nouvelle version</h2>
+        <ol className="mt-3 grid gap-3 text-sm sm:grid-cols-3" aria-label="Étapes de mise à jour">
+          <li><strong className="block text-slate-900">1. Déposer le fichier préparé</strong><span className="text-slate-600">Annuaire et rapport de vérification.</span></li>
+          <li><strong className="block text-slate-900">2. Examiner le bilan</strong><span className="text-slate-600">Personnes, liens et points à corriger.</span></li>
+          <li><strong className="block text-slate-900">3. Valider et activer</strong><span className="text-slate-600">Après les validations requises.</span></li>
+        </ol>
+      </div>
 
       <form onSubmit={submit} className="grid gap-4 border-y border-slate-200 bg-white p-4 sm:grid-cols-2 sm:p-6">
         <div className="sm:col-span-2">
           <label className="flex min-h-32 cursor-pointer flex-col items-center justify-center border-2 border-dashed border-slate-300 px-4 py-5 text-center hover:border-emerald-600">
             <Upload className="h-6 w-6 text-emerald-700" />
-            <strong className="mt-2 text-sm">{file ? file.name : "Choisir un CSV ou un fichier Excel"}</strong>
-            <span className="mt-1 text-xs text-slate-500">50 Mo maximum · aucun PDF ni document libre ici</span>
+            <strong className="mt-2 max-w-full break-all text-sm">{file ? file.name : "Choisir l’annuaire préparé"}</strong>
+            <span className="mt-1 text-xs text-slate-500">CSV ou Excel .xlsx · 50 Mo maximum</span>
             <input
               ref={fileInputRef}
               className="sr-only"
@@ -278,6 +289,9 @@ export default function IdentityDirectoryPage() {
               {tooLarge ? "Ce fichier dépasse 50 Mo." : unsupported ? "Ce format n’est pas accepté." : formatBytes(file.size)}
             </small>
           ) : null}
+          <p className="mt-3 text-sm text-slate-600">Les exports bruts ENT et SIECLE doivent d’abord être rapprochés et préparés au format de l’annuaire. Le ZIP SIECLE et les fichiers contenant des codes ne peuvent pas être déposés ici directement.</p>
+          <details className="mt-3 text-sm">
+          <summary className="cursor-pointer font-semibold text-slate-700">Modèles et fichiers de test</summary>
           <div className="mt-3 flex flex-wrap gap-x-4 gap-y-2">
             <a
               href="/modeles/repertoire-identites-fictif.csv"
@@ -294,6 +308,7 @@ export default function IdentityDirectoryPage() {
               <FileSpreadsheet className="h-4 w-4" /> Générer 4 000 personnes fictives
             </button>
           </div>
+          </details>
           <p className="mt-3 border-l-4 border-amber-500 bg-amber-50 p-3 text-sm text-amber-950">
             N’ajoutez jamais de mot de passe, code ENT ou PRONOTE, secret
             d’activation, donnée médicale ou note disciplinaire. Toute colonne
@@ -340,7 +355,7 @@ export default function IdentityDirectoryPage() {
           Contenu et usage autorisé
           <textarea
             className="field mt-1 bg-white"
-            rows={5}
+            rows={3}
             required
             minLength={20}
             maxLength={2000}
@@ -362,7 +377,7 @@ export default function IdentityDirectoryPage() {
         </div>
       </form>
 
-      <section className="space-y-3">
+      <section className="mt-6 space-y-3">
         <div><h2 className="text-lg font-bold text-slate-950">Versions reçues</h2><p className="text-sm text-slate-500">Une seule version pourra être active après contrôle et approbation.</p></div>
         {loading ? <div className="flex min-h-40 items-center justify-center"><LoaderCircle className="h-7 w-7 animate-spin text-emerald-700" /></div> : null}
         {!loading ? <div className="divide-y border-y border-slate-200 bg-white">
@@ -391,7 +406,8 @@ export default function IdentityDirectoryPage() {
           ))}
           {imports.length === 0 ? <p className="px-4 py-10 text-center text-sm text-slate-500">Aucun répertoire n’a encore été déposé.</p> : null}
         </div> : null}
-        {selectedImportId ? <IdentityDirectoryReport importId={selectedImportId} onChanged={load} /> : null}
+        {selectedImportId ? <IdentityDirectoryReport key={selectedImportId} importId={selectedImportId} onChanged={load} /> : null}
+      </section>
       </section>
     </div>
   );

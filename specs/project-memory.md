@@ -1,9 +1,43 @@
 # Memoire durable - Portail numerique du Lycee Blaise Cendrars
 
-**Derniere mise a jour** : 12 septembre 2026
+**Derniere mise a jour** : 13 septembre 2026
 **Branche de travail** : `codex/lycee-connect-prototype`
 **Depot** : `abenmahmoud/Stage-Pilot`
 **Dernier jalon de code verifie** : branche de preview Vercel
+
+## SIECLE reçu le 13 septembre — contrôle et parcours intuitif
+
+Adel a fourni ce qu’il possède et demande une démarche intuitive. Le ZIP
+SIECLE contient un XLS daté du 04/09/2026, dernière Date Modification également
+au 04/09 : ne pas le présenter comme un export frais du 13/09. 1 678 lignes,
+1 604 identifiants élèves distincts. 74 répétitions sont des couples division D
+et groupe G, sans conflit des champs d’identité/contacts conservés. 488 élèves
+ont une sortie renseignée ; 1 116 ont une entrée passée sans sortie passée,
+dont 41 sans division. 75 liens de groupe sur cinq codes ne couvrent pas
+nécessairement les groupes EDT.
+
+Aucune clé d’identité commune directe entre les colonnes élèves SIECLE et les
+ID externes ENT. Préparation privée de 1 130 propositions nominatives uniques
+dans les deux sens (1 060 avec même classe, 70 classe absente/différente),
+29 comptes sans proposition unique. Ce sont des pistes, jamais des droits.
+Les références de représentants légaux ne sont pas présentes dans le XLS ;
+conserver les liens ENT explicites, ne pas les recréer à partir d’un nom seul.
+Les rapprochements restent en brouillon, hors Git et non importables. Aucun
+contact, compte, lien ni EDT actif modifié.
+
+Parcours admin simplifié dans l’annuaire : Rechercher une personne, Mettre à
+jour l’annuaire, Compléter les fiches. Le fichier choisi et la saisie d’import
+restent présents en changeant de vue. Trois étapes exposées pour la mise à
+jour, modèles de test repliés, format préparé clairement distingué des exports
+bruts. Le changement de rapport réinitialise justification et confirmation.
+Build, 11 tests de contrats, recette fictive 1440/390/320 px réussis, zéro
+mutation réelle. Statut de publication à confirmer après déploiement.
+
+Preuves privées dans `../Preparation_agent_2026-09-12/02_Controles/` :
+`BILAN_SIECLE_2026-09-13.md`, scripts de lecture/audit, agrégats, propositions
+privées et recette `verify-annuaire.mjs`. Suite : confirmer les écarts de dates
+et de correspondance, finaliser EDT/groupes et les lecteurs de profil/document.
+Pas de nouvelle question sur les règles OTP/session déjà décidées.
 
 ## Export ENT du 12 septembre à 22 h 44 — contrôle effectué
 
@@ -22,9 +56,9 @@ pas changé de nom normalisé ni d’identifiant ; examiner séparément les dif
 de noms du livrable transformé. 333 liens enseignant-classe, dont 326 vers une
 classe connue ; les 7 autres ne prouvent pas des groupes ou classes officiels.
 
-Prochaine donnée : export SIECLE actuel élèves/responsables, classes, identifiants,
-relations et dates/statuts disponibles. Vérifier les inscriptions, départs,
-liens familiaux et classes manquantes avant préparation du remplacement.
+SIECLE reçu et contrôlé le 13/09, avec données au 04/09 : voir le bilan ci-dessus.
+Vérifier les inscriptions, départs, liens familiaux et classes manquantes avant
+préparation du remplacement.
 Preuves privées : `../Preparation_agent_2026-09-12/02_Controles/`, avec
 `audit_ent.py`, `audit_ent_agregats.json`, requête de comparaison de l’annuaire
 actif et `BILAN_ENT_2026-09-12.md`. Aucune valeur de code dans les rapports.
