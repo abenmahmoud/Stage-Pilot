@@ -1235,6 +1235,12 @@
   et les lecteurs/documents. Parcours annuaire simplifié, vérifié et publié
   (`d4000fd`, domaine confirmé le 13/09) :
   trois vues, fichier conservé, confirmation propre à la version examinée.
+  Lot chat familial du 13/09 : lecteur protégé des enfants liés, choix dans la
+  conversation, classe et cours jour/demain selon disponibilité, reprise sans
+  OTP supplémentaire, invalidation et masquage des réponses privées. 90 tests
+  ciblés, neuf parcours familiaux et huit régressions d’identité fictifs réussis.
+  Affichage nominatif complet et archivage PDF restent ouverts ; aucun nouveau
+  lot ENT/SIECLE/EDT activé. Déploiement de ce lot à confirmer.
 - [ ] T067 Programmer les contrôles de connaissances à 08:00, 13:00 et 18:00
   Europe/Paris, la détection des conflits, les alertes immédiates et le digest
   dédupliqué des questions inconnues.

@@ -1,5 +1,8 @@
 import { encodeBudgetedAiRequest } from "../../shared/budgeted-ai-request.js";
 import { accessGuidanceKind, requestsOwnClass, type OwnClassReadResult } from "../../shared/support-service-intent.js";
+import { familySchoolIntent, type FamilySchoolIntent, type SchoolTargetChoices } from "../../shared/family-school-chat.js";
+import { familySchoolAnswer } from "./family-school-chat-answer.js";
+import type { FamilySchoolResult } from "./family-school-chat-service.js";
 import {
   evaluateConversationPolicy,
   resolveAssistantAction,
@@ -76,6 +79,7 @@ type RuntimeKnowledgeContext = {
 };
 
 export type SupportAgentResult = {
+  schoolTargets?: SchoolTargetChoices;
   schedule?: SchedulePresentation;
   reply: string;
   category:
@@ -113,7 +117,7 @@ export type SupportAgentResult = {
 
 type SupportAgentModelResult = Omit<
   SupportAgentResult,
-  "scope" | "action" | "turnCount" | "remainingTurns" | "limitReached" | "sourceReferences" | "schedule"
+  "scope" | "action" | "turnCount" | "remainingTurns" | "limitReached" | "sourceReferences" | "schedule" | "schoolTargets"
 >;
 
 const CATEGORY_LABELS: Record<SupportAgentResult["category"], string> = {
@@ -430,12 +434,13 @@ export async function analyzeSupportConversation(input: {
   }) => Promise<ScheduleDayReadResult>;
   identityVerified?: boolean;
   ownClassReader?: () => Promise<OwnClassReadResult>;
+  familySchoolReader?: (intent: FamilySchoolIntent) => Promise<FamilySchoolResult | null>;
   now?: Date;
 }): Promise<SupportAgentResult> {
   const startedAt = Date.now();
   const now = input.now ?? new Date();
   const model = process.env.OPENAI_SUPPORT_MODEL || "gpt-5.6-luna";
-  const policy = evaluateConversationPolicy(input.messages);
+  const policy = evaluateConversationPolicy(input.messages, { familySchoolReaderAvailable: !!input.familySchoolReader });
   const fallback = localFallback(input.messages, input.attachments, policy);
   let metricRecorded = false;
   let budgetReservationId: string | undefined;
@@ -516,6 +521,19 @@ export async function analyzeSupportConversation(input: {
     };
   }
   const requestedScheduleDayOffset = requestedOwnCoursesDayOffset(input.messages);
+  const familyIntent = familySchoolIntent(input.messages);
+  if (familyIntent && input.familySchoolReader) {
+    let familyResult: FamilySchoolResult | null;
+    try { familyResult = await input.familySchoolReader(familyIntent); }
+    catch { familyResult = { status: "unavailable" }; }
+    if (!familyResult && familyIntent.explicitChild) familyResult = { status: "unavailable" };
+    if (familyResult) {
+      const answer = familySchoolAnswer(familyResult);
+      runtimeSourceCount = answer.sourceReferences?.length ?? 0;
+      await recordRuntime("deterministic", false, false);
+      return { ...fallback, ...answer };
+    }
+  }
   if (input.ownClassReader && requestsOwnClass(input.messages)) {
     let result: OwnClassReadResult;
     try { result = await input.ownClassReader(); }

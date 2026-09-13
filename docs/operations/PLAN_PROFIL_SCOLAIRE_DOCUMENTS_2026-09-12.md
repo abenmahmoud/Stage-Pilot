@@ -1,5 +1,33 @@
 # Profil scolaire et documents — plan de travail du week-end
 
+## Lot chat familial du 13 septembre
+
+Développé et vérifié localement : choix d’un enfant autorisé directement dans
+la conversation ; reprise de la même question après ce choix, puis du jour
+souhaité. Un seul enfant lié évite le choix supplémentaire. La classe vient
+du lecteur d’annuaire ; les cours réutilisent les contrôles EDT et la carte
+existante avec impression/PDF navigateur. Le choix utilise une clé opaque liée
+à la session et est résolu de nouveau côté serveur, jamais un nom fourni au chat.
+Session, liens et fraîcheur sont revérifiés avant diffusion. Données absentes :
+proposition de vérification humaine, aucune nouvelle vérification OTP imposée.
+
+Les choix sont affichés quatre minutes au maximum, puis actualisables sans OTP
+tant que l’identité reste valide. Leur clé ne confère pas de droit : la session
+active et les liens courants sont obligatoires à chaque requête. Ni les choix
+ni les réponses personnelles ne sont conservés dans le brouillon ou transmis
+dans l’historique au modèle. Expiration de session : réponses retirées de l’écran.
+
+Recette : 90 tests ciblés, neuf parcours familiaux fictifs sur 1440/390/320 px,
+huit régressions de continuité d’identité, build. Publication à confirmer.
+Scripts : `scripts/test-family-school-chat.mjs`, `scripts/qa-family-school-chat.mjs`.
+Preuves hors Git dans `../Preparation_agent_2026-09-12/02_Controles/`.
+
+Ce lot conserve les libellés du lecteur existant « Enfant N · classe ». Les noms
+d’affichage autorisés, les liens pédagogiques complets et le PDF rangé dans
+Mes demandes ne sont pas encore livrés. Aucun import réel remplacé, aucun EDT
+activé, aucun SMS/email réel envoyé. La disponibilité des vrais cours dépend
+toujours des versions et des correspondances validées.
+
 Statut : procédure préparée, audit initial effectué ; les fonctions futures
 décrites ici ne sont pas déclarées opérationnelles. Demande d’Adel le 12/09/2026 :
 exploiter ses accès administrateur ENT et clients EDT/PRONOTE pour obtenir un

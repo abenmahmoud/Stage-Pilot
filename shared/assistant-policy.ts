@@ -1,4 +1,5 @@
 import { resolveAssistantConversationTransition } from "./assistant-conversation-state.js";
+import { familySchoolIntent } from "./family-school-chat.js";
 
 export type AssistantPolicyMessage = {
   role: "assistant" | "requester";
@@ -191,7 +192,8 @@ function conversationScopes(messages: AssistantPolicyMessage[]): AssistantScope[
 }
 
 export function evaluateConversationPolicy(
-  messages: AssistantPolicyMessage[]
+  messages: AssistantPolicyMessage[],
+  options: { familySchoolReaderAvailable?: boolean } = {}
 ): ConversationPolicy {
   const requesterMessages = messages.filter(
     (message) => message.role === "requester"
@@ -202,7 +204,11 @@ export function evaluateConversationPolicy(
   const explicitScopes = requesterMessages.map((message) =>
     explicitScope(message.content)
   );
-  const lastScope = scopes.at(-1) ?? "unknown";
+  const rawLastScope = scopes.at(-1) ?? "unknown";
+  // This server capability only routes a narrow class/timetable request to an
+  // authenticated reader. It grants no identity, relationship or personal data.
+  const familyLookup = options.familySchoolReaderAvailable === true && !!familySchoolIntent(messages);
+  const lastScope = familyLookup && !['safescol', 'wellbeing', 'privacy_request'].includes(rawLastScope) ? 'school_support' : rawLastScope;
   const latestRequesterText = normalizeText(requesterMessages.at(-1)?.content ?? "");
   const transition = resolveAssistantConversationTransition(messages);
 
@@ -302,7 +308,7 @@ export function evaluateConversationPolicy(
     };
   }
 
-  if (isThirdPartySchoolDataRequest(requesterMessages.at(-1)?.content ?? "")) {
+  if (isThirdPartySchoolDataRequest(requesterMessages.at(-1)?.content ?? "") && !familyLookup) {
     return {
       scope: "school_support",
       action: "offer_case",

@@ -1,4 +1,5 @@
 import { isSchedulePresentation } from './schedule-presentation.js';
+import { isSchoolTargetChoices } from './family-school-chat.js';
 
 const CATEGORIES = [
   "inscription",
@@ -139,7 +140,8 @@ function hasValidNormalizationReceipt(value: Record<string, unknown>, nowMs: num
 
 export function isValidSupportAssistantPayload(value: unknown, nowMs = Date.now()): boolean {
   if (!isRecord(value)
-    || !hasOnlyKeys(value, 'schedule' in value ? new Set([...PAYLOAD_FIELDS, 'schedule']) : PAYLOAD_FIELDS)
+    || !hasOnlyKeys(value, new Set([...PAYLOAD_FIELDS, ...('schedule' in value ? ['schedule'] : []), ...('schoolTargets' in value ? ['schoolTargets'] : [])]))
+    || ('schoolTargets' in value && (!isSchoolTargetChoices(value.schoolTargets, nowMs) || 'schedule' in value || value.usedAi !== false || value.category !== 'affectation_classe' || value.readyToCreate !== false || value.action !== 'continue'))
     || ('schedule' in value && (!isSchedulePresentation(value.schedule) || value.usedAi !== false || value.category !== 'affectation_classe' || value.readyToCreate !== false || value.action !== 'continue'))
     || !Number.isFinite(nowMs)
     || !isBoundedText(value.reply, SUPPORT_ASSISTANT_PAYLOAD_LIMITS.reply)

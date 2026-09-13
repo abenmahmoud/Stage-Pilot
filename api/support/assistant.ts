@@ -28,8 +28,12 @@ import { parseSupportAssistantInput } from "../../shared/support-assistant-input
 import { loadPublicKnowledgeContext } from "../_shared/public-knowledge-context.js";
 import { createSupportNormalizationReceipt } from "../_shared/support-normalization.js";
 import { readIdentityDeviceSession } from "../_shared/identity-device-access.js";
+import { familySchoolChatService } from "../_shared/family-school-chat-service.js";
+import { readPersonalHomeTargets } from "../_shared/personal-home-reader.js";
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
+  res.setHeader('Cache-Control', 'private, no-store, max-age=0');
+  res.setHeader('Vary', 'Cookie');
   if (req.method !== "POST") return methodNotAllowed(res, ["POST"]);
   return handleApi(res, async () => {
     const input = parseSupportAssistantInput(req.body);
@@ -52,6 +56,18 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       aiBudgetGuard: () => reserveAgentAiDailyBudget("support_assistant"),
       aiBudgetSettler: settleAgentAiBudget,
       identityVerified: identitySession !== null,
+      familySchoolReader: intent => familySchoolChatService(intent, input.schoolTargetKey, {
+        identity: () => readIdentityDeviceSession(req),
+        targets: identity => readPersonalHomeTargets(identity, new Date()),
+        schedule: async (target, bounds) => {
+          try {
+            return await readCoursesForDayForVerifiedIdentity({ req, targetPersonRef: target.personRef, now: new Date(), dayStart: bounds.dayStart, dayEnd: bounds.dayEnd });
+          } catch {
+            // A verified parent with missing school data must not enter a new OTP loop.
+            return { ok: false, reason: 'source_unavailable' } as const;
+          }
+        },
+      }),
       ownClassReader: async () => {
         if (identitySession && identitySession.personType !== "student") {
           return { ok: false, reason: "class_unavailable" } as const;
@@ -155,6 +171,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         })
       : null;
     const payload = {
+      ...(result.schoolTargets ? { schoolTargets: result.schoolTargets } : {}),
       ...(result.schedule ? { schedule: result.schedule } : {}),
       reply: result.reply,
       category: result.category,

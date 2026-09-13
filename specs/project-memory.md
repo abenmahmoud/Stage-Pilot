@@ -7,6 +7,31 @@
 
 ## SIECLE reçu le 13 septembre — contrôle et parcours intuitif
 
+### Chat familial — lot du 13 septembre
+
+Raccordement développé et vérifié localement : le parent identifié choisit dans
+le chat parmi les enfants liés par `guardian_of` dans l’annuaire actif. Un seul
+enfant est sélectionné directement ; plusieurs nécessitent un choix explicite.
+Classe lue dans l’annuaire, cours du jour/demain lus dans la source EDT validée.
+La réponse conserve le repère de l’enfant. Aucun nom ou identifiant saisi dans
+le chat ne donne de droit. Relecture de la session et des liens après accès,
+contrôle de fraîcheur, réponse d’indisponibilité sans boucle OTP. La règle
+historique qui bloquait toutes les demandes concernant son enfant cède seulement
+au lecteur authentifié de classe/cours ; SafeScol, notes, absences et coordonnées
+restent hors de ce lecteur. Les réponses privées sont masquées dans le brouillon
+et l’historique envoyé au modèle ; l’expiration de session les retire de l’écran.
+
+90 tests ciblés et neuf parcours familiaux fictifs (1440/390/320 px), huit
+régressions d’identification existantes, build réussis. Aucun appel réel d’envoi
+de code ni modification de données. Publication à confirmer après déploiement.
+Preuves privées : `../Preparation_agent_2026-09-12/02_Controles/qa-family-school-chat/`
+et journaux `test-family-school-chat.log`, `qa-existing-continuity.log`.
+
+Limites conservées : les repères affichent « Enfant 1/2 · classe » du lecteur
+existant, pas encore les noms déchiffrés ; noms/enseignants/groupes complets et
+PDF archivé côté serveur restent à finaliser. Les nouvelles correspondances
+ENT/SIECLE et les imports EDT n’ont pas été activés par ce lot. T066C2 reste ouvert.
+
 Adel a fourni ce qu’il possède et demande une démarche intuitive. Le ZIP
 SIECLE contient un XLS daté du 04/09/2026, dernière Date Modification également
 au 04/09 : ne pas le présenter comme un export frais du 13/09. 1 678 lignes,

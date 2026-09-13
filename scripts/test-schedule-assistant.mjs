@@ -390,5 +390,7 @@ test("the public assistant route injects only the verified-identity readers", as
   assert.match(route, /readNextCourseForVerifiedIdentity/);
   assert.match(route, /readCoursesForDayForVerifiedIdentity/);
   assert.match(route, /error\.status === 401 \|\| error\.status === 403/);
-  assert.doesNotMatch(route, /targetPersonRef\s*:/);
+  assert.match(route, /familySchoolChatService\(intent, input\.schoolTargetKey/);
+  assert.match(route, /targetPersonRef: target\.personRef/);
+  assert.doesNotMatch(route, /targetPersonRef:\s*(?:input|req|body)\./);
 });

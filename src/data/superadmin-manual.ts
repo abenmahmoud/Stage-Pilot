@@ -98,6 +98,7 @@ export const MANUAL_ARTICLES: ManualArticle[] = [
     steps: [
       "Testez une question publique dont la réponse figure dans une source publiée : le chat peut répondre directement.",
       "Pour un emploi du temps ou un autre service personnel, faites vérifier l’identité puis contrôlez que la source correspondante est active, datée et reliée à la bonne personne.",
+      "Un parent vérifié peut demander la classe ou les cours de son enfant dans le chat. S’il a plusieurs enfants liés dans l’annuaire, il choisit l’enfant concerné, puis indique aujourd’hui ou demain. Ce choix ne nécessite pas un nouveau code tant que la session est valide.",
       "Si une information manque, est périmée ou exige une décision humaine, l’agent prépare le relais vers le service compétent.",
       "Corrigez une réponse en mettant à jour sa source officielle et en la faisant valider. Une affirmation dans une conversation ne devient pas une nouvelle règle du lycée.",
       "Pour améliorer un parcours, conservez la référence de demande et l’étape qui bloque ; vérifiez de nouveau le scénario après correction.",

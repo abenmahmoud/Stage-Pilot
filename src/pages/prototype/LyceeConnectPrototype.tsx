@@ -15,6 +15,9 @@ import { PublicPortalShell } from "../../components/PublicPortalShell";
 import { publicPortalView, PUBLIC_PORTAL_TITLES, type PublicPortalView as View } from "../../../shared/public-portal-navigation";
 import { MISSING_OPENING_HOURS_REPLY, schoolInformationIntent, supportFormReady } from "../../../shared/assistant-school-context";
 import { applyAssistantReply, compactAssistantReplies } from "../../../shared/assistant-transcript";
+import { familySchoolIntent, isSchoolDayFollowup, type SchoolTargetChoices } from "../../../shared/family-school-chat";
+import { schoolChatTranscript, PRIVATE_SCHOOL_PLACEHOLDER } from "../../../shared/school-chat-privacy";
+import { SchoolTargetChoiceButtons } from "../../components/SchoolTargetChoiceButtons";
 import {
   ArrowLeft,
   ArrowRightLeft,
@@ -1129,6 +1132,8 @@ function TrustView({ onBack }: { onBack: () => void }) {
 }
 
 type AssistantChatMessage = {
+  schoolTargets?: SchoolTargetChoices;
+  privateSchoolReply?: boolean;
   schedule?: import('../../../shared/schedule-presentation').SchedulePresentation;
   id: string;
   role: "assistant" | "requester";
@@ -1142,6 +1147,7 @@ type AssistantSourceReference = {
 };
 
 type AssistantInsight = {
+  schoolTargets?: SchoolTargetChoices;
   schedule?: import('../../../shared/schedule-presentation').SchedulePresentation;
   reply: string;
   category: SupportCategory;
@@ -1300,6 +1306,9 @@ function IdentityDeviceAccessPanel({
   const [error, setError] = useState<string | null>(null);
   const [personType, setPersonType] = useState<string | null>(null);
   const [confirmForget, setConfirmForget] = useState(false);
+  const [sessionExpiresAt, setSessionExpiresAt] = useState<string | null>(null);
+  const onVerificationChangeRef = useRef(onVerificationChange);
+  onVerificationChangeRef.current = onVerificationChange;
   const deviceId = useRef(supportAssistantSessionId());
   const requestContactCorrection = () => onContactUpdate({ profile: claimedProfile, firstName: claimedFirstName.trim(), lastName: claimedLastName.trim() });
 
@@ -1310,6 +1319,7 @@ function IdentityDeviceAccessPanel({
       .then((payload) => {
         if (!active) return;
         if (payload.status === "verified") {
+          setSessionExpiresAt(typeof payload.expiresAt === 'string' ? payload.expiresAt : null);
           setPersonType(typeof payload.personType === "string" ? payload.personType : null);
           setState("verified");
           onVerificationChange?.(true);
@@ -1326,6 +1336,23 @@ function IdentityDeviceAccessPanel({
       });
     return () => { active = false; };
   }, []);
+
+  useEffect(() => {
+    if (state !== 'verified' || !sessionExpiresAt) return;
+    const expire = () => {
+      setSessionExpiresAt(null);
+      setState('identify');
+      setPersonType(null);
+      onVerificationChangeRef.current?.(false);
+    };
+    const remaining = Date.parse(sessionExpiresAt) - Date.now();
+    if (!Number.isFinite(remaining) || remaining <= 0) { expire(); return; }
+    const timer = window.setTimeout(expire, Math.min(remaining, 2_147_483_647));
+    const check = () => { if (Date.parse(sessionExpiresAt) <= Date.now()) expire(); };
+    window.addEventListener('focus', check);
+    document.addEventListener('visibilitychange', check);
+    return () => { window.clearTimeout(timer); window.removeEventListener('focus', check); document.removeEventListener('visibilitychange', check); };
+  }, [state, sessionExpiresAt]);
 
   useEffect(() => {
     if (state !== "checking_contact") return;
@@ -1438,6 +1465,7 @@ function IdentityDeviceAccessPanel({
       });
       const payload = await readJsonApiResponse<Record<string, unknown>>(response, { maxBytes: 16 * 1024, requireOk: false });
       if (!response.ok || payload.status !== "verified") throw new Error("verify_failed");
+      setSessionExpiresAt(typeof payload.expiresAt === 'string' ? payload.expiresAt : null);
       notifyIdentitySessionChanged();
       setPersonType(typeof payload.personType === "string" ? payload.personType : null);
       setCode("");
@@ -1616,6 +1644,7 @@ function HelpDeskView({
   const [reuseIdentityDetails, setReuseIdentityDetails] = useState(false);
   const pendingDraftSaveRef = useRef<(() => void) | null>(null);
   const assistantAbortRef = useRef<AbortController | null>(null);
+  const selectedSchoolTargetRef = useRef<{ key: string; expiresAt: string; requestId: string } | null>(null);
 
   useEffect(() => {
     onEntryConsumed?.();
@@ -1684,8 +1713,8 @@ function HelpDeskView({
       pendingDraftSaveRef.current = null;
       void saveSupportDeviceDraft<AssistantInsight>({
         requestKey,
-        chatMessages: chatMessages.map(({ role, content }) => ({ role, content })),
-        insight,
+        chatMessages: schoolChatTranscript(chatMessages),
+        insight: chatMessages.at(-1)?.privateSchoolReply ? null : insight,
         showDetails,
         classicForm,
         profile,
@@ -1726,7 +1755,7 @@ function HelpDeskView({
     window.requestAnimationFrame(() => caseFormRef.current?.scrollIntoView({ block: "start" }));
   }, []);
 
-  async function askAssistant(nextMessages: AssistantChatMessage[], identityJustVerified = false) {
+  async function askAssistant(nextMessages: AssistantChatMessage[], identityJustVerified = false, selectedTarget?: { key: string; expiresAt: string }) {
     assistantAbortRef.current?.abort();
     const controller = new AbortController();
     assistantAbortRef.current = controller;
@@ -1735,6 +1764,13 @@ function HelpDeskView({
     setSubmitError(null);
     const lastRequesterIndex = nextMessages.findLastIndex(message => message.role === "requester");
     const requestMessages = compactAssistantReplies(nextMessages.slice(0, lastRequesterIndex + 1));
+    const lastRequest = nextMessages[lastRequesterIndex];
+    if (identityJustVerified) selectedSchoolTargetRef.current = null;
+    if (selectedTarget) selectedSchoolTargetRef.current = { ...selectedTarget, requestId: lastRequest.id };
+    const target = selectedSchoolTargetRef.current;
+    if (target && (Date.parse(target.expiresAt) <= Date.now() || !familySchoolIntent(requestMessages)
+      || (target.requestId !== lastRequest.id && !isSchoolDayFollowup(lastRequest.content)))) selectedSchoolTargetRef.current = null;
+    const schoolTargetKey = selectedSchoolTargetRef.current?.key;
     let responseFailed = false;
     let result: AssistantInsight = localAssistantFallback(requestMessages, files);
     let routingReceipt: string | null = null;
@@ -1748,7 +1784,8 @@ function HelpDeskView({
           headers: { "X-Support-Device": assistantSessionId },
           body: JSON.stringify({
             sessionId: assistantSessionId,
-            messages: requestMessages.slice(-21).map(({ role, content }) => ({ role, content })),
+            ...(schoolTargetKey ? { schoolTargetKey } : {}),
+            messages: schoolChatTranscript(requestMessages.slice(-21)),
             attachments: files.map((file) => ({ name: file.name, type: file.type, size: file.size })),
           }),
         });
@@ -1782,13 +1819,16 @@ function HelpDeskView({
     setAssistantFailed(responseFailed);
     const requiresIdentity = requiresIdentityForPersonalSupport(nextMessages, result.category);
     if (!responseFailed && requiresIdentity && result.scope !== "safescol" && !schoolInformationIntent(nextMessages) && !identityVerified && !identityJustVerified) {
+      const { schedule: _privateSchedule, schoolTargets: _privateTargets, ...publicResult } = result;
       result = {
-        ...result,
+        ...publicResult,
         reply: "Je vais vous accompagner. Pour accéder à vos informations personnelles, confirmons d’abord votre identité ici.",
         readyToCreate: false,
         action: "continue",
         missingInformation: ["Votre profil", "Votre prénom et votre nom", "Un email ou un téléphone connu du lycée"],
         safetyNotice: "Aucune donnée personnelle n’est affichée avant la confirmation par code.",
+        sourceReferences: [],
+        internalSummaryFr: null,
       };
     }
     setAssistantRoutingReceipt(routingReceipt);
@@ -1809,6 +1849,8 @@ function HelpDeskView({
         content: result.reply,
         sourceReferences: result.sourceReferences,
         schedule: result.schedule,
+        schoolTargets: result.schoolTargets,
+        privateSchoolReply: !!(result.schedule || result.schoolTargets || ((identityVerified || identityJustVerified) && result.scope === 'school_support' && familySchoolIntent(requestMessages))),
       },
     ));
     const shouldCollectContact =
@@ -1842,6 +1884,7 @@ function HelpDeskView({
     (insight?.action === "offer_case" && insight.readyToCreate === true);
 
   function restartConversation() {
+    selectedSchoolTargetRef.current = null;
     setAssistantFailed(false);
     assistantAbortRef.current?.abort();
     setAssistantBusy(false);
@@ -2135,6 +2178,10 @@ function HelpDeskView({
               {message.role === "assistant" ? <span><Bot aria-hidden="true" /></span> : null}
               <div className="lycee-chat-message-body">
                 {message.schedule ? <ScheduleChatCard value={message.schedule} /> : message.role === "assistant" ? <div className="lycee-chat-markdown"><PublicContentMarkdown>{message.content}</PublicContentMarkdown></div> : <p>{message.content}</p>}
+                {message.schoolTargets && message.id === chatMessages.at(-1)?.id && identityVerified ? <SchoolTargetChoiceButtons
+                  choices={message.schoolTargets} busy={assistantBusy}
+                  onSelect={(key, expiresAt) => void askAssistant(chatMessages, false, { key, expiresAt })}
+                  onRefresh={() => { selectedSchoolTargetRef.current = null; void askAssistant(chatMessages); }} /> : null}
                 {message.sourceReferences?.length ? (
                   <div className="lycee-agent-sources" aria-label="Sources utilisées">
                     <BookOpenCheck aria-hidden="true" />
@@ -2172,7 +2219,19 @@ function HelpDeskView({
                   setReuseIdentityDetails(true);
                 }
                 if (!identityVerified && !assistantBusy && chatMessages.some(message => message.role === "requester")) void askAssistant(chatMessages, true);
-              }} onVerificationChange={setIdentityVerified} onContactUpdate={onCollect} onForgot={restartConversation} onSkip={() => setShowDetails(true)} /> : null}
+              }} onVerificationChange={(verified) => {
+                setIdentityVerified(verified);
+                if (!verified) {
+                  selectedSchoolTargetRef.current = null;
+                  assistantAbortRef.current?.abort();
+                  setAssistantBusy(false);
+                  setChatMessages(current => current.map(message => message.privateSchoolReply
+                    ? { id: message.id, role: message.role, content: PRIVATE_SCHOOL_PLACEHOLDER } : message));
+                  setInsight(current => current?.category === 'affectation_classe' ? null : current);
+                  pendingDraftSaveRef.current = null;
+                  void clearSupportDeviceDraft();
+                }
+              }} onContactUpdate={onCollect} onForgot={restartConversation} onSkip={() => setShowDetails(true)} /> : null}
           {!initialContactCollection ? (
             <>
           {draftNotice ? <div className="lycee-contact-guidance lycee-draft-guidance" role="status"><CheckCircle2 aria-hidden="true" /><span><strong>Brouillon récupéré</strong><small>{draftNotice}</small></span><button type="button" onClick={restartConversation}><Trash2 aria-hidden="true" /> Effacer</button></div> : null}

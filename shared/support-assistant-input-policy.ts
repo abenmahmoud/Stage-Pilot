@@ -10,6 +10,7 @@ export type SupportAssistantInputAttachment = {
 };
 
 export type SupportAssistantInput = {
+  schoolTargetKey?: string;
   sessionId: string;
   messages: SupportAssistantInputMessage[];
   attachments: SupportAssistantInputAttachment[];
@@ -27,7 +28,7 @@ export const SUPPORT_ASSISTANT_INPUT_LIMITS = Object.freeze({
 });
 
 const SESSION_PATTERN = /^[a-zA-Z0-9-]{16,80}$/;
-const ROOT_FIELDS = new Set(["sessionId", "messages", "attachments"]);
+const ROOT_FIELDS = new Set(["sessionId", "messages", "attachments", "schoolTargetKey"]);
 const MESSAGE_FIELDS = new Set(["role", "content"]);
 const ATTACHMENT_FIELDS = new Set(["name", "type", "size"]);
 const SAFE_ATTACHMENT_MIME_TYPES = new Set([
@@ -116,14 +117,15 @@ function parseAttachments(value: unknown): SupportAssistantInputAttachment[] | n
 
 export function parseSupportAssistantInput(value: unknown): SupportAssistantInput | null {
   if (!isRecord(value)) return null;
-  const expectedFieldCount = value.attachments === undefined ? 2 : ROOT_FIELDS.size;
+  const expectedFieldCount = 2 + (value.attachments === undefined ? 0 : 1) + ('schoolTargetKey' in value ? 1 : 0);
   if (!hasOnlyKnownKeys(value, ROOT_FIELDS, expectedFieldCount)
     || typeof value.sessionId !== "string"
-    || !SESSION_PATTERN.test(value.sessionId)) {
+    || !SESSION_PATTERN.test(value.sessionId)
+    || ('schoolTargetKey' in value && (typeof value.schoolTargetKey !== 'string' || !/^[a-f0-9]{64}$/.test(value.schoolTargetKey)))) {
     return null;
   }
   const messages = parseMessages(value.messages);
   const attachments = parseAttachments(value.attachments);
   if (!messages || !attachments) return null;
-  return { sessionId: value.sessionId, messages, attachments };
+  return { sessionId: value.sessionId, messages, attachments, ...('schoolTargetKey' in value ? { schoolTargetKey: value.schoolTargetKey as string } : {}) };
 }
