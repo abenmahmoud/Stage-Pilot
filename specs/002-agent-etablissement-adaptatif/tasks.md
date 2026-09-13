@@ -1232,7 +1232,8 @@
   74 doubles lignes division/groupe préservées, 488 sorties renseignées.
   1 130 propositions nominatives privées, aucune fusion ni activation.
   Reste à confirmer la fraîcheur et les correspondances, puis les groupes EDT
-  et les lecteurs/documents. Parcours annuaire simplifié et vérifié localement :
+  et les lecteurs/documents. Parcours annuaire simplifié, vérifié et publié
+  (`d4000fd`, domaine confirmé le 13/09) :
   trois vues, fichier conservé, confirmation propre à la version examinée.
 - [ ] T067 Programmer les contrôles de connaissances à 08:00, 13:00 et 18:00
   Europe/Paris, la détection des conflits, les alertes immédiates et le digest

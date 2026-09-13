@@ -31,7 +31,10 @@ restent présents en changeant de vue. Trois étapes exposées pour la mise à
 jour, modèles de test repliés, format préparé clairement distingué des exports
 bruts. Le changement de rapport réinitialise justification et confirmation.
 Build, 11 tests de contrats, recette fictive 1440/390/320 px réussis, zéro
-mutation réelle. Statut de publication à confirmer après déploiement.
+mutation réelle. Publié : commit de code `d4000fd`, déploiement
+`dpl_5BJ67xHCCgtEdHRZbSC8P31CGijh` READY, domaine du lycée confirmé. Le module
+`IdentityDirectoryPage-DLutqOJf.js` est présent sur l’URL immuable et le domaine ;
+visiteur redirigé vers la connexion, trois API privées 401, aucun incident JS.
 
 Preuves privées dans `../Preparation_agent_2026-09-12/02_Controles/` :
 `BILAN_SIECLE_2026-09-13.md`, scripts de lecture/audit, agrégats, propositions

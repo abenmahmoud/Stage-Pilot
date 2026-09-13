@@ -164,4 +164,9 @@ La mise à jour suit dépôt, examen du bilan, validation/activation. Les origin
 ENT/SIECLE restent à préparer avant le dépôt pris en charge actuellement ;
 ne pas prétendre que le ZIP et les exports bruts sont fusionnés par cette page.
 La saisie d’import reste présente entre les vues ; une confirmation d’activation
-ne se reporte jamais sur une autre version. Vérifications locales réussies.
+ne se reporte jamais sur une autre version. Vérifications locales réussies
+(11 tests de contrats et parcours fictifs ordinateur/390/320 px). Publié sur le
+domaine du lycée le 13/09, commit de code `d4000fd`, déploiement
+`dpl_5BJ67xHCCgtEdHRZbSC8P31CGijh` READY. Nouveau module présent sur les deux
+URLs vérifiées, redirection anonyme et API privées 401. Preuves dans
+`../Preparation_agent_2026-09-12/02_Controles/annuaire-live-checks.json`.
