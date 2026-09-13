@@ -5,6 +5,27 @@
 **Depot** : `abenmahmoud/Stage-Pilot`
 **Dernier jalon de code verifie** : branche de preview Vercel
 
+## Aperçu EDT avant activation — 13 septembre
+
+Adel reporte les deux calendriers non rattachés et les spécialités, mais demande
+d’avancer. Ajout d’un aperçu privé « Tester une journée » dans les correspondances
+iCal : choix d’un calendrier rattaché/appliqué et d’une date, horaires de Paris,
+matières, salles, cours de classe entière et cours en groupe séparés. Cet aperçu
+administratif ne publie pas la version et ne simule aucune identité d’élève.
+Les deux calendriers incertains restent en attente ; aucune exclusion ni
+activation n’est réalisée par ce lot.
+
+API GET réservée à `requireScheduleManager`, portée établissement/source/calendrier,
+contrôle de l’antivirus et de la page vérifiée, créneaux approuvés uniquement,
+transaction en lecture seule avec vue cohérente, limite de 100 cours/jour,
+validation stricte des réponses et aucune mise en cache. Dates hors validité,
+réponses substituées et résultats obsolètes après changement de sélection refusés.
+Recette : 16 tests ciblés, build, 3 parcours fictifs 1440/390/320 px sous CSP de
+production. Preuves privées `test-preview.log`, `build-preview.log`,
+`admin-preview-browser-checks.json` dans le dossier habituel de contrôles.
+Lecture SQL réelle : les 43 classes sont admissibles à l’aperçu ; 382 créneaux
+le lundi 14/09, dont 102 en classe entière et 280 en groupe. Publication à confirmer.
+
 ## Dépôt EDT en ZIP — 13 septembre
 
 Adel veut déposer régulièrement ses exports de 45 fichiers sans les envoyer un

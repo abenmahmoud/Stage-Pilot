@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { apiFetch } from '../../lib/api';
 import { isIcalDecisionReceipt, parseIcalDecisions, parseIcalReview, type IcalDecision, type IcalReview } from '../../../shared/schedule-ical-contract';
 import { filterIcalCalendars, isUndecided, prepareIcalDrafts, type IcalReviewFilter } from '../../../shared/schedule-ical-review';
+import ScheduleAdminPreviewPanel from './ScheduleAdminPreviewPanel';
 
 export default function ScheduleIcalReviewPanel({ importId, onApplied }: { importId: string; onApplied: () => void }) {
   const [review, setReview] = useState<IcalReview | null>(null);
@@ -66,6 +67,7 @@ export default function ScheduleIcalReviewPanel({ importId, onApplied }: { impor
     {error && <p role="alert" className="text-sm text-red-800">{error}</p>}
     {!review && !error && <p role="status">Lecture des calendriers…</p>}
     {review && <>
+      <ScheduleAdminPreviewPanel key={review.sourceId} review={review} />
       <div role="status" className="rounded-lg bg-slate-50 p-3 text-sm text-slate-700">
         <strong>{pendingCount} calendrier{pendingCount > 1 ? 's' : ''} à vérifier</strong>
         <span className="mt-1 block">{review.calendars.filter(c => c.status === 'applied' && c.decision === 'include').length} rattachés · {review.calendars.filter(c => c.status === 'applied' && c.decision === 'exclude').length} exclus · {review.calendars.length} au total{review.calendars.some(c => c.status === 'queued') ? ' · Enregistrement en cours…' : ''}</span>

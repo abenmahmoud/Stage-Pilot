@@ -1221,6 +1221,11 @@
   tests métier/sécurité et recette fictive 1440/390/320 px réussis. Preuve :
   `docs/operations/REPRISE_EDT_PRONOTE_2026-09-12.md`.
 - [ ] T066C2 Relier les exports officiels et le profil vérifié aux réponses du chat :
+  Aperçu privé du 13/09 : « Tester une journée » par calendrier validé et date,
+  cours de classe entière/groupes séparés, horaires Paris, aucun changement
+  d’état. 16 tests ciblés, build et trois parcours fictifs sous CSP réussis.
+  Permet le contrôle des 43 classes sans exclure les deux calendriers en attente.
+  Cet aperçu ne remplace pas l’activation, les appartenances de groupe ni le PDF.
   Lot dépôt du 13/09 : ZIP de calendriers ou sélection multiple ICS préparés en
   un seul dépôt privé, bornes et intégrité vérifiées, réservation iCal corrigée.
   32 tests ciblés, 13 contrôles UI et parcours complet fictif 45 fichiers sur

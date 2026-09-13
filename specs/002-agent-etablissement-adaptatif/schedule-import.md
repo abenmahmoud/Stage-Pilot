@@ -1,5 +1,20 @@
 # Import privé des emplois du temps
 
+## Aperçu de contrôle avant activation — 13 septembre 2026
+
+Le gestionnaire peut choisir un calendrier iCal déjà rattaché/appliqué et un jour
+dans « Tester une journée ». Lecture directe des créneaux approuvés de cette
+version, sans changement d’état et sans identité d’élève simulée. Affichage
+séparé des cours en classe entière et en groupe ; une absence de créneau ne
+signifie ni journée ni salle libre. Le statut de version et le besoin de
+recontrôle sont explicites. Les deux calendriers en attente ne sont pas exclus
+pour débloquer cet aperçu.
+
+Endpoint GET privé `schedule/admin/imports/:id/preview`, contrôle gestionnaire,
+établissement, calendrier, source scannée et page vérifiée. Transaction cohérente
+en lecture seule, limite 101 lue/100 restituée, aucun résultat tronqué silencieux,
+dates Paris et contrat strict. Tests dans `scripts/test-schedule-admin-preview.mjs`.
+
 ## Dépôt groupé du 13 septembre 2026
 
 Le format iCal accepte un ZIP de fichiers `.ics` ou plusieurs `.ics` sélectionnés

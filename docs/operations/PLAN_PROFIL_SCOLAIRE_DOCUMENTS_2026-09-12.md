@@ -1,5 +1,17 @@
 # Profil scolaire et documents — plan de travail du week-end
 
+## Contrôler une journée avant publication — 13 septembre
+
+Adel souhaite poursuivre le contrôle malgré le report des groupes et des deux
+calendriers incertains. L’aperçu « Tester une journée » est ajouté à l’admin iCal,
+réservé aux calendriers rattachés/appliqués. Il lit les données sauvegardées pour
+une date, sépare cours de classe entière et de groupes, affiche horaires Paris
+et salles, et indique que la version n’est pas encore active. Aucun changement
+de statut, exclusion, identité simulée ou publication dans le chat.
+Recette : 16 tests ciblés, build et trois largeurs 1440/390/320 px avec CSP.
+Suite utilisateur : choisir une classe connue, le lundi 14/09 et comparer avec
+EDT/PRONOTE. Les liens individuels de groupes et l’activation restent distincts.
+
 ## Simplification du dépôt EDT — 13 septembre
 
 Un ZIP de calendriers ICS ou plusieurs ICS sélectionnés ensemble deviennent un

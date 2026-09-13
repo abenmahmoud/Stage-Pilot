@@ -294,6 +294,7 @@ export const MANUAL_ARTICLES: ManualArticle[] = [
       "Renseignez l’année scolaire, la date d’effet, la date de recontrôle et l’usage autorisé, puis Déposer la nouvelle version.",
       "Utilisez Vérifier les correspondances, puis le filtre À vérifier et la recherche. Les calendriers déjà rattachés restent consultables dans Déjà traités. Reliez les éléments incertains à la bonne référence de l’annuaire, sans déduire un identifiant du seul nom.",
       "Sélectionner les correspondances exactes et Préparer l’exclusion des calendriers vides préparent uniquement des choix, pour toute la version. Relisez le nombre de rattachements et d’exclusions, modifiez-les si nécessaire puis validez. Aucun de ces choix n’active une version.",
+      "Après les rattachements iCal, utilisez Tester une journée : choisissez une classe ou un professeur, un jour, puis Afficher les cours. Comparez horaires de Paris, matières et salles avec EDT/PRONOTE. Les cours en groupe sont séparés ; cet aperçu privé ne publie rien et ne constitue pas un emploi du temps individuel complet.",
       "Contrôlez le bilan, les créneaux, les dates et les correspondances. Suivez Approuver puis Activer avec les vérifications humaines demandées.",
       "Testez une demande d’emploi du temps dans le chat avec une identité autorisée. Vérifiez le jour, la salle et le document ou les créneaux disponibles.",
     ],
