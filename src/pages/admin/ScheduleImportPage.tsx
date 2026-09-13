@@ -837,7 +837,7 @@ export default function ScheduleImportPage() {
           ) : null}
           {actionTarget?.status === "review" && !mappingComplete ? (
             <p className="text-sm font-medium text-amber-800">
-              Vérifiez d’abord les {actionTarget.pageCount ?? 0} {actionTarget.originalName.toLowerCase().endsWith('.ics') ? 'calendriers' : 'pages'} de cette version.
+              {actionTarget.originalName.toLowerCase().endsWith('.ics') ? <><a href="#edt-publication" className="underline">Activer les calendriers déjà validés</a> et garder les autres en attente, ou vérifier tous les calendriers pour approuver l’import complet.</> : <>Vérifiez d’abord les {actionTarget.pageCount ?? 0} pages de cette version.</>}
             </p>
           ) : null}
           <button

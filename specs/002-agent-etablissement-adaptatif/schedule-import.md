@@ -1,5 +1,36 @@
 # Import privé des emplois du temps
 
+## Mise en service progressive — 13 septembre 2026
+
+Un gestionnaire peut activer les calendriers iCal appliqués/validés et garder les
+autres en attente. GET/POST `schedule/admin/imports/:id/publish`, réservé à
+`requireScheduleManager`. Un bilan strict donne les nombres prêts/en attente,
+une empreinte et la publication active. POST exige cette empreinte, la
+confirmation ACTIVER et une justification. Aucun nom, fichier, référence ou
+cours privé ne figure dans ce nouveau contrat public de gestion.
+
+Une nouvelle version conserve une copie privée de l’export scanné, la date
+d’effet, la fraîcheur et un lien `origin_source_id` vers l’import encore en
+revue. Seuls les calendriers inclus/appliqués, reliés à l’annuaire actif, avec
+page vérifiée et cours approuvés, sont copiés. Les pages sont renumérotées ;
+la preuve originale reste conservée intégralement. Les triggers existants
+approuvent/activent cette version complète du périmètre validé ; ils ne sont
+pas contournés. Les candidats en attente restent modifiables dans l’original.
+
+Un nouvel ajout validé peut ensuite faire l’objet d’une nouvelle publication,
+en conservant les calendriers déjà disponibles. Une tentative qui retirerait
+un calendrier actif est refusée. Verrous de périmètre et source, empreinte du
+contenu et contrôle avant copie, activation atomique, audit de l’acteur connecté,
+reprise idempotente après réponse perdue. Une copie de tentative échouée n’est
+supprimée qu’après reprise du verrou et confirmation de l’absence de référence
+committée. Une coupure empêchant ce nettoyage nécessite un contrôle d’exploitation.
+
+La migration distingue les publications dérivées des imports dédupliqués et
+verrouille leur preuve/fraîcheur. Aucune source périmée n’est prolongée par une
+publication. Les droits personnels, l’OTP, les groupes et les restrictions de
+lecture restent ceux des lecteurs existants. Tests de contrats dans
+`scripts/test-schedule-publication.mjs` et preuves d’intégration privées.
+
 ## Aperçu de contrôle avant activation — 13 septembre 2026
 
 Le gestionnaire peut choisir un calendrier iCal déjà rattaché/appliqué et un jour

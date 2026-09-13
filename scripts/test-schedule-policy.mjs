@@ -255,6 +255,7 @@ test("answers with an empty day rather than failing when the class has no course
   assert.deepEqual(result, {
     ok: true,
     courses: [],
+    incompleteGroups: false,
     source: {
       versionId: version.id,
       sourceType: version.sourceType,

@@ -1,5 +1,5 @@
 import { createHash, randomUUID } from "node:crypto";
-import { and, eq, inArray, sql } from "drizzle-orm";
+import { and, eq, inArray, isNull, sql } from "drizzle-orm";
 import { db } from "../../db/index.js";
 import { scheduleAudit, scheduleSourceVersions } from "../../db/schema.js";
 import {
@@ -116,6 +116,7 @@ async function findDepotEdtDuplicate(params: {
     eq(scheduleSourceVersions.sourceKind, params.input.sourceKind),
     eq(scheduleSourceVersions.schoolYear, params.input.schoolYear),
     eq(scheduleSourceVersions.checksum, params.checksum),
+    isNull(scheduleSourceVersions.originSourceId),
     inArray(scheduleSourceVersions.status, [...DEDUPLICATED_EDT_STATUSES])
   )).limit(1);
   if (!existing) return null;

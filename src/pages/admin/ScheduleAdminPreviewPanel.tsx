@@ -73,7 +73,7 @@ export default function ScheduleAdminPreviewPanel({ review }: { review: IcalRevi
     {preview && !visible && <p role="status" className="text-sm text-amber-900">La version a changé. Actualisez les calendriers puis relancez l’aperçu.</p>}
     {visible && <section className="space-y-4" aria-label="Aperçu des cours">
       <div><h4 className="break-words font-bold text-slate-950">{visible.label} · {date(visible.day)}</h4>
-        <p className="mt-1 text-xs text-slate-600">Horaires de Paris · {visible.sourceStatus === 'active' ? 'Version active' : visible.sourceStatus === 'superseded' ? 'Ancienne version remplacée' : 'Version à contrôler — pas encore active dans le chat'}</p>
+        <p className="mt-1 text-xs text-slate-600">Horaires de Paris · {visible.sourceStatus === 'active' ? 'Version active' : visible.sourceStatus === 'superseded' ? 'Ancienne version remplacée' : 'Aperçu de l’import — consultez le bilan de mise en service ci-dessus'}</p>
       </div>
       {Date.parse(visible.freshUntil) < Date.now() && <p className="rounded-lg bg-amber-50 p-3 text-sm text-amber-900">Cette version doit être recontrôlée. Cet aperçu décrit le fichier importé et ne confirme pas les horaires actuels.</p>}
       {review.sourceKind === 'classes' && <p className="text-sm text-slate-600">Cours en classe entière : {wholeClass.length}. Les cours en groupe sont présentés séparément ; leur attribution à chaque élève reste à vérifier.</p>}

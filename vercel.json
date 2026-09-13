@@ -6,6 +6,9 @@
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
   "functions": {
+    "api/schedule/admin/imports/**/publish.ts": {
+      "maxDuration": 60
+    },
     "api/import/*.ts": {
       "maxDuration": 300
     },

@@ -3,6 +3,7 @@ import { apiFetch } from '../../lib/api';
 import { isIcalDecisionReceipt, parseIcalDecisions, parseIcalReview, type IcalDecision, type IcalReview } from '../../../shared/schedule-ical-contract';
 import { filterIcalCalendars, isUndecided, prepareIcalDrafts, type IcalReviewFilter } from '../../../shared/schedule-ical-review';
 import ScheduleAdminPreviewPanel from './ScheduleAdminPreviewPanel';
+import SchedulePublicationPanel from './SchedulePublicationPanel';
 
 export default function ScheduleIcalReviewPanel({ importId, onApplied }: { importId: string; onApplied: () => void }) {
   const [review, setReview] = useState<IcalReview | null>(null);
@@ -67,6 +68,7 @@ export default function ScheduleIcalReviewPanel({ importId, onApplied }: { impor
     {error && <p role="alert" className="text-sm text-red-800">{error}</p>}
     {!review && !error && <p role="status">Lecture des calendriers…</p>}
     {review && <>
+      <SchedulePublicationPanel key={review.sourceId} review={review} onPublished={() => callback.current()} />
       <ScheduleAdminPreviewPanel key={review.sourceId} review={review} />
       <div role="status" className="rounded-lg bg-slate-50 p-3 text-sm text-slate-700">
         <strong>{pendingCount} calendrier{pendingCount > 1 ? 's' : ''} à vérifier</strong>

@@ -1142,6 +1142,7 @@ export const scheduleSourceVersions = pgTable(
       .references(() => institutions.id, { onDelete: "cascade" }),
     sourceKind: text("source_kind").notNull(),
     sourceFormat: text("source_format").notNull().default("pdf_import"),
+    originSourceId: uuid("origin_source_id"),
     schoolYear: text("school_year").notNull(),
     version: integer("version").notNull(),
     title: text("title").notNull(),
@@ -1185,7 +1186,8 @@ export const scheduleSourceVersions = pgTable(
     ),
     uniqueIndex("schedule_source_versions_checksum_uidx")
       .on(table.institutionId, table.sourceKind, table.schoolYear, table.checksum)
-      .where(sql`${table.checksum} is not null and ${table.status} not in ('rejected', 'failed', 'retired')`),
+      .where(sql`${table.checksum} is not null and ${table.originSourceId} is null and ${table.status} not in ('rejected', 'failed', 'retired')`),
+    index("schedule_publication_origin_idx").on(table.originSourceId, table.institutionId).where(sql`${table.originSourceId} is not null`),
     index("schedule_source_versions_institution_status_idx").on(
       table.institutionId,
       table.status,

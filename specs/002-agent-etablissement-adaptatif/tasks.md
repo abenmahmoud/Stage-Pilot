@@ -1221,6 +1221,11 @@
   tests métier/sécurité et recette fictive 1440/390/320 px réussis. Preuve :
   `docs/operations/REPRISE_EDT_PRONOTE_2026-09-12.md`.
 - [ ] T066C2 Relier les exports officiels et le profil vérifié aux réponses du chat :
+    Publication progressive du 13/09 : bouton Activer les calendriers validés,
+    copie immuable des pages/cours vérifiés et import original conservé en revue
+    pour compléter les calendriers en attente. Migration de provenance appliquée,
+    64 tests ciblés, intégration PostgreSQL/PGlite et 3 parcours navigateur réussis.
+    L’activation réelle et le contrôle dans l’espace professeur restent à vérifier.
   Aperçu privé du 13/09 : « Tester une journée » par calendrier validé et date,
   cours de classe entière/groupes séparés, horaires Paris, aucun changement
   d’état. 16 tests ciblés, build et trois parcours fictifs sous CSP réussis.

@@ -5,6 +5,35 @@
 **Depot** : `abenmahmoud/Stage-Pilot`
 **Dernier jalon de code verifie** : branche de preview Vercel
 
+## Publication des calendriers validés — 13 septembre
+
+Adel demande de pouvoir activer les calendriers validés en gardant les 16 autres
+en attente, sans les exclure. Ajout d’un bilan privé et du bouton « Activer les
+calendriers validés » dans la revue iCal. Confirmation ACTIVER et justification
+conservées. L’import original reste en `review`, avec ses candidats inchangés.
+Une publication distincte contient uniquement les pages vérifiées et leurs cours
+approuvés, avec une copie privée de la preuve scannée. Une activation suivante
+ajoute les calendriers nouvellement validés sans nouvel export ; aucun retrait
+silencieux de calendriers déjà en service n’est accepté.
+
+Migration `20260913174345_add_schedule_publication_snapshots.sql` appliquée à la
+branche `xijocumlwivhbmffrnlj`. Origine liée au même établissement, copie/preuve,
+dates et fraîcheur immuables. La déduplication des imports originaux reste active.
+Les contrôles d’approbation, d’identité et les lecteurs publics ne sont pas réduits.
+Verrouillage, bilan lié à une empreinte, reprise idempotente et copie orpheline
+nettoyée seulement après vérification d’un éventuel commit réussi.
+
+Recette : 64 tests ciblés, scénario PostgreSQL/PGlite jetable (publication,
+attente, ajout ultérieur, reprise, immutabilité, refus identité/scope/source
+périmée), 3 parcours navigateur 1440/390/320 sous CSP de production. Une attente
+obsolète de test a été alignée sur `incompleteGroups: false`, déjà fourni par le
+lecteur. Preuves privées : `publication-database-checks.json`,
+`publication-browser-checks.json`, `test-publication.log`, `build-publication.log`
+dans `../Preparation_agent_2026-09-12/02_Controles/`. Aucun envoi OTP ni identité
+réelle simulée. Avant déploiement : 88 professeurs appliqués, 16 toujours pending,
+zéro publication et zéro source active. Activation réelle à confirmer dans la
+session nominative de gestion ; ne pas annoncer encore l’EDT personnel disponible.
+
 ## Aperçu EDT avant activation — 13 septembre
 
 Contrôle de l’espace personnel professeur après signalement d’Adel : le calendrier
