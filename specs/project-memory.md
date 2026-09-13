@@ -39,6 +39,16 @@ en attente et deux non trouvées (140 cours). Prochaine étape : préparer les
 restants avec Adel avant activation. Aucun rattachement ni activation effectué
 par cette vérification. Le dépôt professeurs reste la version n°1 du 10/09.
 
+Contrôle suivant après validation par Adel : les 43 calendriers exacts sont
+`applied/include`, 43 pages vérifiées et 62 606 créneaux écrits à compter du
+14/09. La version reste `review`, non approuvée/non activée : les deux calendriers
+non trouvés restent à décider. 44 529 créneaux portent un groupe, 18 077 sont
+en classe entière ; zéro relation `member_of` valide dans l’annuaire actif.
+Un premier test après activation sera donc partiel pour les élèves/parents
+(spécialités, langues et demi-groupes à relier). Ne pas annoncer un EDT complet
+ou une plage libre sur cette base. L’exclusion des deux calendriers non rattachés
+n’a pas été autorisée ni effectuée lors de ce contrôle.
+
 ## SIECLE reçu le 13 septembre — contrôle et parcours intuitif
 
 ### Chat familial — lot du 13 septembre
