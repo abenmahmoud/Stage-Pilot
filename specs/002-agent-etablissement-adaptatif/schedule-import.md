@@ -1,5 +1,14 @@
 # Import privé des emplois du temps
 
+## Consultation dans le chat — 13 septembre 2026
+
+L’expression « mon EDT » suit le même parcours que « mon emploi du temps » :
+identité si nécessaire, jour à préciser s’il manque, puis réponse et carte des
+cours issus du lecteur privé. Un parent passe par les enfants autorisés de
+l’annuaire ; le texte saisi ne choisit jamais une autre identité. Aucun renvoi
+générique vers l’ENT ou le formulaire quand cette consultation est disponible.
+Les sources manquantes, périmées ou incomplètes sont annoncées comme telles.
+
 ## Mise en service progressive — 13 septembre 2026
 
 Un gestionnaire peut activer les calendriers iCal appliqués/validés et garder les

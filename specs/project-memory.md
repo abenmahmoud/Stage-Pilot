@@ -7,6 +7,22 @@
 
 ## Publication des calendriers validés — 13 septembre
 
+Précision d’Adel après activation : le chat est le parcours principal pour tous
+les profils. Une identité confirmée et une source autorisée disponible donnent
+une réponse personnelle directe ; une information générale validée ne nécessite
+pas d’identité ; une demande à un service n’est proposée qu’en cas de donnée
+manquante, de rectification ou d’intervention nécessaire. Ne pas présenter les
+consignes générales et le formulaire comme l’aboutissement d’une consultation
+personnelle réalisable. Les horaires d’ouverture/fermeture ne sont toujours pas
+validés dans la source publique actuelle ; l’accueil sur rendez-vous l’est.
+
+Défaut observé dans le brouillon du chat : « j ai besoin mon edt » n’empruntait pas
+le lecteur personnel. Normalisation de l’abréviation EDT et de « emplois du
+temps » avant la reconnaissance du besoin. Les tests reproduisent l’ancien
+échec, puis vérifient la demande d’identité, le jour choisi, la lecture protégée
+et le choix d’enfant autorisé pour un parent. Aucun changement des habilitations.
+74 tests ciblés réussis. Livraison du correctif à confirmer après déploiement.
+
 Adel demande de pouvoir activer les calendriers validés en gardant les 16 autres
 en attente, sans les exclure. Ajout d’un bilan privé et du bouton « Activer les
 calendriers validés » dans la revue iCal. Confirmation ACTIVER et justification

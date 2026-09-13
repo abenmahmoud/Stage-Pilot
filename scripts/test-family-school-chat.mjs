@@ -24,6 +24,18 @@ function fixture(overrides = {}) {
 }
 const fail = async () => assert.fail('unauthorized private read');
 
+test('a parent using mon EDT still selects an authorized child before the private read', async () => {
+  const wanted = familySchoolIntent([message('Mon EDT demain svp')]);
+  assert.deepEqual(wanted, { kind: 'schedule', day: 1, explicitChild: false });
+  const f = fixture();
+  assert.equal((await f.run(undefined, wanted)).status, 'choose_child');
+  assert.equal(f.calls.length, 0);
+  const result = await f.run(children[1].key, wanted);
+  assert.equal(result.status, 'schedule');
+  assert.equal(f.calls.length, 1);
+  assert.equal(f.calls[0].target.personRef, children[1].personRef);
+});
+
 test('anonymous, expired and non-parent identities cannot read children', async () => {
   for (const value of [null, { ...identity, expiresAt: now }]) {
     const f = fixture({ identity: async () => value, targets: fail, schedule: fail });

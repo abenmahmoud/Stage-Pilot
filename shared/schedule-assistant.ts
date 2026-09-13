@@ -22,7 +22,11 @@ function normalized(value: string): string {
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "")
     .replace(/[’`]/g, "'")
-    .toLowerCase();
+    .toLowerCase()
+    .replace(/\s+/g, " ")
+    // Recognize the same personal intent in common school wording. This does
+    // not resolve a person, authorize a child or bypass the private reader.
+    .replace(/\b(?:edt|emplois du temps)\b/g, "emploi du temps");
 }
 
 function requesterText(messages: ConversationMessage[]): string {

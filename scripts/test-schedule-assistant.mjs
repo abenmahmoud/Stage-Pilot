@@ -6,6 +6,43 @@ import { requestedOwnCoursesDayOffset, scheduleAssistantDayAnswer } from "../sha
 
 process.env.OPENAI_API_KEY = "";
 
+test("EDT abbreviations keep the personal chat journey instead of falling back to ENT", async () => {
+  for (const phrase of ["j ai besoin mon edt", "Bonjour, mon EDT svp", "Je veux mon emplois du temps"]) {
+    for (const identityVerified of [false, true]) {
+      const result = await analyzeSupportConversation({
+        messages: messages(phrase), attachments: [], identityVerified,
+        safetyIdentifier: "schedule-edt-abbreviation",
+      });
+      assert.equal(result.category, "affectation_classe");
+      assert.equal(result.readyToCreate, false);
+      assert.equal(result.action, "continue");
+      assert.equal(result.usedAi, false);
+      assert.deepEqual(result.missingInformation, identityVerified ? ["Le jour souhaité"] : ["Identité scolaire confirmée"]);
+      assert.doesNotMatch(result.reply, /consultez.*(?:ENT|PRONOTE)|formulaire/i);
+    }
+  }
+});
+
+test("EDT with a day calls the private reader and preserves the identity gate", async () => {
+  for (const phrase of ["Mon EDT demain", "Mon edt de demain svp", "mon EDT aujourd’hui"]) {
+    let calls = 0;
+    const result = await analyzeSupportConversation({
+      messages: messages(phrase), attachments: [], safetyIdentifier: "schedule-edt-day",
+      now: new Date("2026-09-13T12:00:00Z"),
+      scheduleDayReader: async ({ dayStart }) => {
+        calls++;
+        assert.equal(dayStart.toISOString(), phrase.includes("aujourd") ? "2026-09-12T22:00:00.000Z" : "2026-09-13T22:00:00.000Z");
+        return { ok: false, reason: "identity_i3_required" };
+      },
+    });
+    assert.equal(calls, 1);
+    assert.equal(result.readyToCreate, false);
+    assert.match(result.reply, /identité scolaire/i);
+    assert.equal(result.schedule, undefined);
+  }
+  assert.equal(requestedOwnCoursesDayOffset(messages("Mon EDT de mon fils demain")), null);
+});
+
 test("a short day answer continues the personal timetable request and reads the correct Paris day", async () => {
   const initial = messages("Je voudrais mon emploi du temps.");
   const first = await analyzeSupportConversation({ messages: initial, attachments: [], identityVerified: true, safetyIdentifier: "schedule-followup" });
