@@ -46,7 +46,22 @@ l’original. Contrôle croisé SQL et UI : un seul instantané enseignants acti
 L’espace personnel déjà identifié affiche maintenant les cours du lundi ;
 « Demain » puis « Voir toute la journée » montre cinq cours avec salles et
 le bouton Imprimer / PDF. Aucun nouvel OTP et aucune identité simulée.
-Les versions classes restent en revue, les groupes/spécialités restent à compléter.
+À cette étape, les versions classes restaient en revue.
+
+Activation des classes ensuite demandée explicitement par Adel et effectuée dans
+la même interface de gestion : 43 calendriers en service, 62 606 créneaux
+approuvés, dont 18 077 sans groupe. Les 2 calendriers non résolus restent en
+attente dans l’import original, sans exclusion. UI et SQL confirment la nouvelle
+version active, avec la fraîcheur originale conservée jusqu’au
+20 septembre 2026 à 23:59:59 UTC. Le contrôle agrégé de l’annuaire courant relie
+ces classes à 1 077 élèves et 1 368 responsables ; il ne remplace pas une recette
+sur un appareil réellement identifié comme élève ou parent.
+
+Les lecteurs existants réservent les cours à l’élève ou au responsable relié à
+cet enfant. Aucun lien `member_of` valide dans l’annuaire actif : groupes,
+spécialités et demi-groupes restent à compléter et les emplois du temps
+individuels peuvent être incomplets. Aucun OTP, envoi, changement d’identité ou
+assouplissement de droits pendant cette activation. Aucun nouveau code déployé.
 
 ## Aperçu EDT avant activation — 13 septembre
 

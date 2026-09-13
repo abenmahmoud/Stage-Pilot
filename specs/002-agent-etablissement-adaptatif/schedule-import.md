@@ -31,6 +31,16 @@ publication. Les droits personnels, l’OTP, les groupes et les restrictions de
 lecture restent ceux des lecteurs existants. Tests de contrats dans
 `scripts/test-schedule-publication.mjs` et preuves d’intégration privées.
 
+Mise en service réelle du 13 septembre, autorisée par Adel : 88 calendriers
+enseignants et 43 calendriers classes actifs ; les imports originaux gardent
+respectivement 16 et 2 candidats en attente, sans exclusion. L’interface et les
+agrégats SQL confirment l’activation. Les classes publiées sont reliées à
+1 077 élèves et 1 368 responsables de l’annuaire courant. Aucun groupe individuel
+confirmé dans cet annuaire : la publication ne rend pas les cours de groupe
+accessibles sans appartenance et ne garantit pas un EDT individuel complet.
+Un essai sur un vrai appareil élève/parent reste à effectuer ; l’activation ne
+crée aucune session d’identité et ne déclenche aucun OTP ou message.
+
 ## Aperçu de contrôle avant activation — 13 septembre 2026
 
 Le gestionnaire peut choisir un calendrier iCal déjà rattaché/appliqué et un jour

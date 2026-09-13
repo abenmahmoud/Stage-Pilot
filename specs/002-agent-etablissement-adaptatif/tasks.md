@@ -1228,7 +1228,10 @@
     Publié `7d5fb44`. Activation réelle des 88 calendriers enseignants effectuée
     dans l’interface ; les 16 autres restent en attente. Contrôle SQL et espace
     personnel réel : les cinq cours du lundi sont visibles après Demain puis
-    Voir toute la journée. Classes et groupes restent à finaliser.
+    Voir toute la journée. Puis activation réelle des 43 classes, demandée par
+    Adel : 2 calendriers conservés en attente, 62 606 créneaux approuvés ;
+    contrôle UI/SQL réussi. Les groupes/spécialités restent à compléter et la
+    recette sur appareil réellement identifié élève/parent reste à effectuer.
   Aperçu privé du 13/09 : « Tester une journée » par calendrier validé et date,
   cours de classe entière/groupes séparés, horaires Paris, aucun changement
   d’état. 16 tests ciblés, build et trois parcours fictifs sous CSP réussis.
