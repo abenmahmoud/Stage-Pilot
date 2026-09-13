@@ -24,7 +24,12 @@ Recette locale : 32 tests ciblés, 13 contrôles UI, build, dépôt fictif compl
 confirmation par lot, ZIP invalide bloqué, sélection multiple conservée, annulation
 du résultat obsolète lors d’un changement de format. Preuves privées :
 `../Preparation_agent_2026-09-12/02_Controles/zip-browser-checks.json`,
-`test-zip.log`, `build-zip.log`. Publication à confirmer. Aucun import réel activé.
+`test-zip.log`, `build-zip.log`. Publié le 13/09 à 15:53 Paris : code `8a417cd`,
+déploiement `dpl_DPSYC5TobmKsq69guaaiktacgToN` READY, URL immuable
+`lyceegest-btdo82mqe-safe-scol.vercel.app`. Cette URL et le domaine du lycée servent
+`index-Dsm0h1_j.js` et `ScheduleImportPage-Di9wJPiq.js`. Accès anonyme redirigé vers
+login, API privée 401/no-store, aucun débordement mobile ni erreur JS. Preuve :
+`zip-live-checks.json`. Aucun import réel activé.
 
 ## SIECLE reçu le 13 septembre — contrôle et parcours intuitif
 
