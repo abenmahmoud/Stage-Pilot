@@ -24,7 +24,13 @@ Recette : 16 tests ciblés, build, 3 parcours fictifs 1440/390/320 px sous CSP d
 production. Preuves privées `test-preview.log`, `build-preview.log`,
 `admin-preview-browser-checks.json` dans le dossier habituel de contrôles.
 Lecture SQL réelle : les 43 classes sont admissibles à l’aperçu ; 382 créneaux
-le lundi 14/09, dont 102 en classe entière et 280 en groupe. Publication à confirmer.
+le lundi 14/09, dont 102 en classe entière et 280 en groupe. Publié le 13/09 :
+`fe64ce0`, déploiement `dpl_GGLNEVmffKu9P2kMAawX1bHabT6c` READY, URL immuable
+`lyceegest-cnekqltma-safe-scol.vercel.app`. Cette URL et le domaine du lycée
+servent `index-c9mfkEze.js` et `ScheduleImportPage-CzcYiXwP.js`. API aperçu
+anonyme 401/no-store, écran privé redirigé vers login, aucun débordement ni erreur
+JS mobile. Preuve : `admin-preview-live-checks.json`. Le parcours authentifié
+complet reste à comparer par Adel à EDT/PRONOTE sur une classe connue.
 
 ## Dépôt EDT en ZIP — 13 septembre
 
