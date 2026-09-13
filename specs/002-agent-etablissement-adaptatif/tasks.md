@@ -1225,7 +1225,10 @@
     copie immuable des pages/cours vérifiés et import original conservé en revue
     pour compléter les calendriers en attente. Migration de provenance appliquée,
     64 tests ciblés, intégration PostgreSQL/PGlite et 3 parcours navigateur réussis.
-    L’activation réelle et le contrôle dans l’espace professeur restent à vérifier.
+    Publié `7d5fb44`. Activation réelle des 88 calendriers enseignants effectuée
+    dans l’interface ; les 16 autres restent en attente. Contrôle SQL et espace
+    personnel réel : les cinq cours du lundi sont visibles après Demain puis
+    Voir toute la journée. Classes et groupes restent à finaliser.
   Aperçu privé du 13/09 : « Tester une journée » par calendrier validé et date,
   cours de classe entière/groupes séparés, horaires Paris, aucun changement
   d’état. 16 tests ciblés, build et trois parcours fictifs sous CSP réussis.

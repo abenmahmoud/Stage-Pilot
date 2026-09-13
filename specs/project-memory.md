@@ -31,8 +31,22 @@ lecteur. Preuves privées : `publication-database-checks.json`,
 `publication-browser-checks.json`, `test-publication.log`, `build-publication.log`
 dans `../Preparation_agent_2026-09-12/02_Controles/`. Aucun envoi OTP ni identité
 réelle simulée. Avant déploiement : 88 professeurs appliqués, 16 toujours pending,
-zéro publication et zéro source active. Activation réelle à confirmer dans la
-session nominative de gestion ; ne pas annoncer encore l’EDT personnel disponible.
+zéro publication et zéro source active avant livraison.
+
+Publié et contrôlé sur le domaine du lycée : commit `7d5fb44`, déploiement
+`dpl_FdF222ZA1mBWMZvfGdjkr8Vvgd2c` READY, URL immuable
+`lyceegest-nijhbn58b-safe-scol.vercel.app`. Les deux servent `index-CEGvvFvL.js`
+et `ScheduleImportPage-BhKUdvUr.js`, GET de publication anonyme 401/no-store.
+Preuve privée `publication-live-checks.json`.
+
+Activation effectuée par l’interface dans la session de gestion existante, à la
+demande d’Adel, sans exclusion : 88 calendriers enseignants en service,
+40 695 créneaux approuvés, 16 candidats toujours `pending` sans décision dans
+l’original. Contrôle croisé SQL et UI : un seul instantané enseignants actif.
+L’espace personnel déjà identifié affiche maintenant les cours du lundi ;
+« Demain » puis « Voir toute la journée » montre cinq cours avec salles et
+le bouton Imprimer / PDF. Aucun nouvel OTP et aucune identité simulée.
+Les versions classes restent en revue, les groupes/spécialités restent à compléter.
 
 ## Aperçu EDT avant activation — 13 septembre
 
