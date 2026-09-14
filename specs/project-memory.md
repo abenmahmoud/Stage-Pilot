@@ -17,8 +17,12 @@ texte. Le menu ne généralise plus le rendez-vous à tout le lycée. Les questi
 sur les horaires de cours restent dans le parcours EDT personnel.
 
 52 tests ciblés et build réussis. Affichage contrôlé à 390 et 1440 pixels sans
-débordement, quatre services lisibles. Publication à confirmer. Aucune
-modification des comptes, services habilités, notifications ou données scolaires.
+débordement, quatre services lisibles. Publié `954e4ef`, déploiement
+`dpl_BQvTXAp3r7NMwrotw33F6ZuBtM69` READY et domaine principal confirmé. Deux
+réponses réelles de l’API et le bundle public vérifiés ; preuve privée
+`../Preparation_agent_2026-09-12/02_Controles/reception-live-checks.json`.
+Aucune modification des comptes, services habilités, notifications ou données
+scolaires ; aucun OTP ni dossier créé. Serveur local de recette arrêté.
 
 ## Publication des calendriers validés — 13 septembre
 
