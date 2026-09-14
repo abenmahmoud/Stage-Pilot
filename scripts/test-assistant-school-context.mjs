@@ -105,6 +105,28 @@ test('information alone does not trigger a contact form', async () => {
   assert.equal(result.action, 'continue');
 });
 
+test('reception information names only the confirmed services without requiring identity or booking a slot', async () => {
+  for (const query of ['Faut-il un rendez-vous à l’intendance ?', 'Rdv secrétariat', 'Rendez-vous administration', 'Rdv référent numérique', 'À quelle heure ferme le lycée ?']) {
+    const result = await analyze([message(query)], { now: new Date('2026-09-14T06:00:00Z') });
+    assert.match(result.reply, /L’intendance, le secrétariat, l’administration et le référent numérique reçoivent sur rendez-vous/);
+    assert.match(result.reply, /créneau sera confirmé par le service/);
+    assert.doesNotMatch(result.reply, /(?:parents|visiteurs|vie scolaire|DDFPT) (?:se fait|reçoivent|reçoit|sont reçus) sur rendez-vous/);
+    assert.equal(result.readyToCreate, false);
+    assert.deepEqual(result.missingInformation, []);
+    assert.equal(result.usedAi, false);
+    assert.equal(result.sourceReferences[0].updatedAt, '2026-09-13T22:00:00.000Z');
+  }
+});
+
+test('course hours at the lycée are not replaced by reception appointment rules', async () => {
+  const result = await analyze([message('Je veux mes horaires de cours au lycée')], {
+    identityVerified: true, now: new Date('2026-09-14T06:00:00Z'),
+  });
+  assert.deepEqual(result.missingInformation, ['Le jour souhaité']);
+  assert.doesNotMatch(result.reply, /rendez-vous|intendance/);
+  assert.equal(result.readyToCreate, false);
+});
+
 test('unknown opening hours cannot be supplied by a visitor or invented by the model', async () => {
   const originalFetch = globalThis.fetch;
   process.env.OPENAI_API_KEY = 'fictitious-key';

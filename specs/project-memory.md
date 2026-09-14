@@ -1,9 +1,24 @@
 # Memoire durable - Portail numerique du Lycee Blaise Cendrars
 
-**Derniere mise a jour** : 13 septembre 2026
+**Derniere mise a jour** : 14 septembre 2026
 **Branche de travail** : `codex/lycee-connect-prototype`
 **Depot** : `abenmahmoud/Stage-Pilot`
 **Dernier jalon de code verifie** : branche de preview Vercel
+
+## Accueil sur rendez-vous par service — 14 septembre
+
+Adel précise la consigne : intendance, secrétariat, administration et référent
+numérique reçoivent sur rendez-vous. Cette règle remplace la formule trop
+générale sur l’accueil des parents/visiteurs. Elle ne fixe pas les horaires du
+bâtiment et ne s’étend pas aux autres services. Le chat peut préparer la demande ;
+le créneau doit être confirmé par le service, aucune réservation automatique
+n’est annoncée. Réponses publiques et informations pratiques utilisent le même
+texte. Le menu ne généralise plus le rendez-vous à tout le lycée. Les questions
+sur les horaires de cours restent dans le parcours EDT personnel.
+
+52 tests ciblés et build réussis. Affichage contrôlé à 390 et 1440 pixels sans
+débordement, quatre services lisibles. Publication à confirmer. Aucune
+modification des comptes, services habilités, notifications ou données scolaires.
 
 ## Publication des calendriers validés — 13 septembre
 

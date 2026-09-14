@@ -133,7 +133,7 @@ export function PublicPortalShell({view, onNavigate, children, className = ""}: 
           <span className="lycee-live-dot" />
           <div>
             <strong>Portail du lycée</strong>
-            <span>Demandes en ligne · accueil sur rendez-vous</span>
+            <span>Informations et demandes en ligne</span>
           </div>
         </div>
       </aside>

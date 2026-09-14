@@ -464,6 +464,9 @@
 - [ ] T026B Faire une revue commune des informations pratiques avec Adel et les
   services : fiche unique, horaires distincts, contacts, démarches, documents,
   validité et responsables. Aligner ensuite site et sources approuvées de l'agent.
+  Le 14 septembre : accueil sur rendez-vous limité à l’intendance, au secrétariat,
+  à l’administration et au référent numérique, confirmé par Adel et aligné dans
+  le chat et les informations pratiques. Horaires du bâtiment encore à préciser.
 - [x] T026C Préparer un classeur local pour cette revue : 36 éléments à fournir,
   20 limites à relire et 44 scénarios avec résultats initialement à tester.
   Les propositions, protections présentes et circuits à raccorder sont séparés.

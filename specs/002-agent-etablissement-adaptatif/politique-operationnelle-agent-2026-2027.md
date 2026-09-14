@@ -1,7 +1,7 @@
 # Politique opérationnelle de l'agent 2026-2027
 
 **État** : décisions métier consolidées, mise en œuvre progressive  
-**Révision** : 5 septembre 2026  
+**Révision** : 14 septembre 2026  
 **Portée** : portail public, guichet de demandes, connaissances, identité,
 documents personnels, codes d'accès, notifications et exploitation multi-établissement
 
@@ -31,6 +31,12 @@ d'activation.
    des journaux, hors de Git et hors des contenus publics.
 
 ## 2. Cycle de vie des connaissances
+
+Précision d’accueil validée le 14 septembre : seuls l’intendance, le secrétariat,
+l’administration et le référent numérique sont confirmés ici comme services
+recevant sur rendez-vous. Ne pas généraliser aux autres services, ni assimiler
+cette règle aux horaires d’ouverture/fermeture du bâtiment. La demande peut
+être préparée dans le chat ; le service doit confirmer le créneau.
 
 Une information suit les états `brouillon -> validée -> publiée -> expirée`.
 L'agent public utilise uniquement l'état `publiée` et l'audience autorisée.

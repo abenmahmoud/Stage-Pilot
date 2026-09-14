@@ -3319,7 +3319,7 @@ function SchoolView({ onBack, onHelp }: { onBack: () => void; onHelp: (prompt?: 
           <a href={`mailto:${SCHOOL_PUBLIC_INFORMATION.email}`}><Mail aria-hidden="true" /><span><strong>{SCHOOL_PUBLIC_INFORMATION.email}</strong><small>Adresse académique officielle</small></span><ChevronRight aria-hidden="true" /></a>
           <a href="https://www.iledefrance-mobilites.fr/" target="_blank" rel="noreferrer"><GraduationCap aria-hidden="true" /><span><strong>Venir en transports en commun</strong><small>Vérifiez votre itinéraire et les horaires sur Île-de-France Mobilités.</small></span><ExternalLink aria-hidden="true" /></a>
         </div>
-        <div className="lycee-publication-note"><BadgeCheck aria-hidden="true" /><span><strong>Accueil sur rendez-vous</strong><small>{SCHOOL_PUBLIC_INFORMATION.welcome}</small></span></div>
+        <div className="lycee-publication-note"><BadgeCheck aria-hidden="true" /><span><strong>Rencontrer un service sur rendez-vous</strong><small>{SCHOOL_PUBLIC_INFORMATION.welcome}</small></span></div>
         <button className="lycee-primary-action" type="button" onClick={() => onHelp("Je souhaite demander un rendez-vous au lycée.")}>Demander un rendez-vous <ChevronRight aria-hidden="true" /></button>
       </section>
       <section className="lycee-quick-links"><div className="lycee-section-title"><div><span className="lycee-eyebrow">Liens utiles</span><h2>Accès rapides</h2></div></div><div>{links.map((link) => <a href={link.href} target="_blank" rel="noreferrer" key={link.label}><link.icon aria-hidden="true" /><span>{link.label}</span><ExternalLink aria-hidden="true" /></a>)}</div></section>
