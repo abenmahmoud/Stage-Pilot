@@ -73,5 +73,10 @@ réimport silencieux. Aucun import KOXO réel n’a été effectué dans ce lot.
   recours et états absent/expiré ; aucune erreur JavaScript.
 - Build TypeScript/Vite réussi. Aucun OTP, email, SMS ou dossier réel envoyé.
 
-Publication de la branche utilisée par le site en cours ; contrôle du domaine
-et de l’API anonyme à consigner après déploiement.
+Publié : commit `912f8b0`, déploiement `dpl_BVAxUAAoeXtkj5jakHmoHTfipjAN` READY,
+alias principal `lycee-blaise-cendrars-sevran.fr` confirmé. GET et POST anonymes
+sur l’API PC sont refusés 401, sans cache. Une demande fictive de code PC au
+chat publié renvoie 200, catégorie logiciel, poursuite de la conversation sans
+formulaire et sans appel IA, puis demande de vérification d’identité. Aucun
+dossier créé et aucune identité réelle usurpée. Le parcours authentifié complet
+reste contrôlé sur les données fictives ; la remise KOXO réelle attend l’export.

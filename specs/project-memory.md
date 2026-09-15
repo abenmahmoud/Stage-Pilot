@@ -17,6 +17,10 @@ texte pour éviter une comparaison Date/chaîne). **Aucune attribution KOXO dans
 le coffre actuel : export réel nécessaire**, demandé à Adel. ENT : 1 273
 attributions chiffrées disponibles, réception effective par un utilisateur à
 constater. Preuve et limites : `docs/operations/SESSIONS_PC_CHAT_2026-09-15.md`.
+Publié `912f8b0`, déploiement `dpl_BVAxUAAoeXtkj5jakHmoHTfipjAN` READY et domaine
+principal confirmé. API privée anonyme : 401 ; chat public : 200 avec invitation
+OTP, sans formulaire forcé ni appel IA. Remise KOXO réelle toujours en attente
+du fichier source.
 
 ## Incident de la page Validations — 15 septembre
 
