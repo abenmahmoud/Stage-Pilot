@@ -14,6 +14,11 @@ Correction paramétrée `ARRAY[...]::text[]` pour consultation et décision.
 18 tests, build et 16 exécutions PostgreSQL jetables réussis. Aucun changement
 d’habilitation ni validation réelle. Suivi de publication :
 `docs/operations/INCIDENT_VALIDATIONS_2026-09-15.md`.
+Publié `3b94404`, déploiement `dpl_ExZeuMJMfJ5LjMd3TRgjAy6QirHs` READY et domaine
+confirmé. Les trois onglets de Validations chargent sans erreur dans la console
+connectée ; mobile 390 px contrôlé. Zéro approbation réelle actuellement en base,
+distinct des demandes des familles. API anonyme refusée 401, aucun envoi ni
+approbation réelle pendant le contrôle.
 
 ## Réponses administratives et choix OTP — 15 septembre
 
