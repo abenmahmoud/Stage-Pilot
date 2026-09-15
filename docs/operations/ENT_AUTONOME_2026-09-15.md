@@ -81,4 +81,20 @@ Avant publication, l’alias principal pointait sur `dpl_BQvTXAp3r7NMwrotw33F6Zu
 actif. Les sources précédentes sont conservées, sans suppression. Un retour de
 données doit emprunter une procédure d’import/activation tracée, jamais une
 modification silencieuse des liens. Pour suspendre la remise, fermer le drapeau
-et redéployer la branche concernée. Publication distante à confirmer ci-dessous.
+et redéployer la branche concernée.
+
+## Publication confirmée
+
+Code `0a03d074b40ee73f628e72b2356a8c28344856c0`, déploiement
+`dpl_eZ5AmodQouvMJHgDn3ffzQmdEhCL` READY le 15 septembre à 09:32:04 UTC.
+Le domaine principal est rattaché automatiquement à ce déploiement. L’adresse
+immuable et le domaine principal servent le même bundle `index-c2klZnhZ.js`.
+Sur les deux adresses : GET/POST anonyme refusé 401, tentative de cible ou de
+phase cliente refusée 400, réponses sans cache ; demande ENT publique répondue
+avec vérification d’identité, sans formulaire forcé ni appel au modèle. Accueil
+200 et CSP présents, interface publique rechargée dans le navigateur. La
+conversation déjà présente sur l’appareil a été conservée.
+
+Brevo vérifié en lecture seule après recharge : compte SMTP actif, 29 995 crédits
+email et 442 crédits SMS déclarés par le fournisseur. Ceci confirme la capacité
+d’envoi, sans prétendre qu’un OTP de recette a été reçu sur un appareil réel.

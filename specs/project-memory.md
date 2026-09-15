@@ -26,6 +26,13 @@ pas de modification automatique. Les sessions de l’ancien annuaire doivent
 être revérifiées après cette activation. Publication et limites à suivre dans
 `docs/operations/ENT_AUTONOME_2026-09-15.md`.
 
+Publication confirmée : `0a03d07`, déploiement
+`dpl_eZ5AmodQouvMJHgDn3ffzQmdEhCL` READY, domaine principal vérifié sur le même
+bundle. Quatre refus HTTP attendus et parcours ENT anonyme sans formulaire
+forcé validés sur les deux adresses. Brevo actif et rechargé (29 995 crédits
+email au contrôle). Réception réelle et remise à un vrai parent restent à
+constater avec Adel ; aucun OTP de test envoyé.
+
 ## Accueil sur rendez-vous par service — 14 septembre
 
 Adel précise la consigne : intendance, secrétariat, administration et référent
