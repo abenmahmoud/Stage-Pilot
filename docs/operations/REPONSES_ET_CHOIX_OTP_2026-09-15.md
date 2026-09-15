@@ -28,5 +28,12 @@ Le volet coffre de cette livraison concerne l’ENT. Les réponses Koxo, cantine
 
 ## Publication
 
-Version précédente de retour : `e6c3a98`, déploiement `dpl_Ez5q6KXPsttyDR2AKFZJfYEFdtdh`, domaine confirmé avant travail. Publication via la branche existante `codex/lycee-connect-prototype`, sans changement de DNS ou de variables serveur. Contrôle distant à compléter après le déploiement.
+Publié le 15 septembre 2026 vers 19 h 05, commit `b3ad71ab32a40b3fb17de0bca9d5493b82b9ede8`, déploiement `dpl_BencfLDJ5vezNY3qQ8K5gwomzTdR` READY.
+
+- URL immuable : `https://lyceegest-a5fu06gts-safe-scol.vercel.app`.
+- Alias principal contrôlé par API Vercel : `lycee-blaise-cendrars-sevran.fr` pointe sur ce déploiement ; page `/gestion/demandes` HTTP 200, bundle `index-B730iI2S.js`.
+- Nouvelle API de proposition : accès anonyme refusé HTTP 401, `Cache-Control: no-store, max-age=0`.
+- Navigateur connecté, nouvel onglet sans brouillon utilisateur : liste chargée, vue d’ensemble repliée, panneau « Votre réponse », proposition chargée et bouton « Utiliser cette réponse » présents. Aucun envoi réel ni modification de dossier pendant ce contrôle.
+
+Version précédente de retour : `e6c3a98`, déploiement `dpl_Ez5q6KXPsttyDR2AKFZJfYEFdtdh`. Publication via la branche existante `codex/lycee-connect-prototype`, sans changement de DNS ou de variables serveur.
 

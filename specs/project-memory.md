@@ -18,6 +18,9 @@ sans lien : démarche publique et donnée manquante signalée. Koxo/cantine rest
 hors du volet coffre de ce lot. 15 tests ciblés et 10 contrôles sur base jetable
 réussis ; navigateur fictif bureau/téléphone. Suivi de publication et limites :
 `docs/operations/REPONSES_ET_CHOIX_OTP_2026-09-15.md`.
+Publié `b3ad71a`, déploiement `dpl_BencfLDJ5vezNY3qQ8K5gwomzTdR` READY et alias
+principal confirmé. API anonyme refusée 401 sans cache ; console connectée en
+ligne : liste, réponse et proposition chargées. Aucun envoi réel de test.
 
 ## Parcours parent et récupération ENT — 15 septembre
 
