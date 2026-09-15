@@ -5,6 +5,20 @@
 **Depot** : `abenmahmoud/Stage-Pilot`
 **Dernier jalon de code verifie** : branche de preview Vercel
 
+## Réponses administratives et choix OTP — 15 septembre
+
+Adel demande un traitement plus clair et des propositions fondées sur le coffre.
+Console allégée, notifications repliées avec la vue d’ensemble, dossier seul sur
+téléphone et brouillons conservés. Choix SMS/email en cartes communes au chat.
+Proposition explicite et modifiable, contrôlée par dossier/version et droits de
+service ; pour l’ENT, lecture de l’état du compte et des attributions sans lecture
+des codes. Source personnelle uniquement depuis le lien HMAC serveur de la demande
+vers l’annuaire actif. Aucun rapprochement par nom ou enfant. Anciennes demandes
+sans lien : démarche publique et donnée manquante signalée. Koxo/cantine restent
+hors du volet coffre de ce lot. 15 tests ciblés et 10 contrôles sur base jetable
+réussis ; navigateur fictif bureau/téléphone. Suivi de publication et limites :
+`docs/operations/REPONSES_ET_CHOIX_OTP_2026-09-15.md`.
+
 ## Parcours parent et récupération ENT — 15 septembre
 
 Adel demande une aide concrète même si les informations de l’enfant manquent.

@@ -5,7 +5,7 @@ import { decryptPersonAttributeValue } from '../../shared/person-attribute-crypt
 import { validEntAccount, type EntAccount } from '../../shared/ent-self-service.js';
 import type { IdentityDeviceSessionContext } from './identity-device-access.js';
 
-export async function readOwnEntAccount(identity: IdentityDeviceSessionContext, today: string, executor: Pick<typeof db,'select'> = db): Promise<EntAccount|null> {
+export async function readOwnEntAccount(identity: Pick<IdentityDeviceSessionContext, 'institutionId' | 'sourceImportId' | 'personRef'>, today: string, executor: Pick<typeof db,'select'> = db): Promise<EntAccount|null> {
   const rows = await executor.select({ row: personAttributeRows }).from(personAttributeRows)
     .innerJoin(personAttributeImports, and(eq(personAttributeImports.id,personAttributeRows.importId),
       eq(personAttributeImports.institutionId,personAttributeRows.institutionId),

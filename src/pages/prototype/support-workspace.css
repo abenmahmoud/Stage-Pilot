@@ -1,0 +1,95 @@
+/* Shared with the real chat and staff workspace; scoped to avoid other portal views. */
+.lycee-identity-device:has(.lycee-identity-contact-choices) { grid-template-columns: 30px minmax(0, 1fr); gap: 12px; padding: 24px; border-radius: 18px; background: #fff; }
+.lycee-identity-device:has(.lycee-identity-contact-choices) .lycee-identity-device-copy strong { font-size: 18px; line-height: 1.4; }
+.lycee-identity-device:has(.lycee-identity-contact-choices) .lycee-identity-device-copy p { font-size: 14px; margin-top: 6px; }
+.lycee-identity-device .lycee-identity-contact-choices { grid-column: 1 / -1; flex-basis: 100%; gap: 16px; }
+.lycee-identity-contact-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(240px, 100%), 1fr)); gap: 12px; min-width: 0; }
+.lycee-identity-device .lycee-identity-contact-option { min-height: 94px; padding: 18px; gap: 14px; border: 1px solid #ccdaea; border-radius: 14px; box-shadow: 0 2px 6px #17344c05; }
+.lycee-identity-device .lycee-contact-icon { display: grid; place-items: center; flex: 0 0 42px; width: 42px; height: 42px; border-radius: 12px; background: #edf4ff; color: #155ae6; }
+.lycee-contact-icon svg { width: 22px; height: 22px; }
+.lycee-identity-device .lycee-contact-copy { flex: 1; min-width: 0; }
+.lycee-identity-device .lycee-contact-copy strong { font-size: 15px; line-height: 1.4; }
+.lycee-identity-device .lycee-contact-copy > span { display: block; margin-top: 5px; font-size: 14px; font-weight: 500; color: #506880; overflow-wrap: anywhere; }
+.lycee-identity-device .lycee-contact-reassurance { font-size: 13px; margin: 0; }
+.lycee-contact-other-actions { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 4px 16px; padding-top: 10px; border-top: 1px solid #e5ebf2; }
+.lycee-identity-device .lycee-contact-other-actions button { width: auto; min-height: 44px; font-size: 13px; text-align: left; }
+.lycee-identity-device:has(.lycee-identity-contact-choices) > .lycee-identity-skip { grid-column: 1 / -1; width: auto; justify-self: start; border: 0; background: transparent; color: #52677d; padding: 4px 0; font-weight: 500; }
+.lycee-identity-device .lycee-identity-contact-option:focus-visible { outline: 3px solid #84aaff; outline-offset: 3px; }
+
+.lycee-agent-page .lycee-agent-workspace { grid-template-columns: 300px minmax(0, 1fr); border-radius: 18px; align-items: start; }
+.lycee-agent-page .lycee-agent-queue { position: sticky; top: 90px; border-right: 1px solid var(--lc-line); }
+.lycee-agent-page .lycee-agent-list { max-height: calc(100dvh - 400px); min-height: 220px; overflow-y: auto; }
+.lycee-agent-page .lycee-agent-tabs { display: flex; flex-wrap: wrap; gap: 4px; padding: 10px; }
+.lycee-agent-page .lycee-agent-tabs > button { flex: 0 0 auto; white-space: nowrap; padding: 6px 8px; border: 0; border-radius: 8px; min-height: 36px; font-size: 12px; }
+.lycee-agent-page .lycee-agent-tabs > button.is-active { background: #edf3ff; color: #155ae6; }
+.lycee-agent-page .lycee-agent-detail { padding: 24px; width: 100%; }
+.lycee-agent-page .lycee-agent-detail-head { gap: 14px; }
+.lycee-agent-page .lycee-agent-detail-head h2 { font-size: 23px; line-height: 1.25; }
+.lycee-agent-page .lycee-agent-detail-head p { font-size: 14px; margin-top: 8px; }
+.lycee-agent-page .lycee-agent-detail-head > div > span { font-size: 12px; }
+.lycee-agent-page .lycee-agent-controls { display: flex; flex-wrap: wrap; gap: 6px; }
+.lycee-agent-page .lycee-agent-detail-head select { font-size: 12px; min-height: 40px; }
+.lycee-agent-page .lycee-agent-focus { margin-block: 18px; }
+.lycee-agent-page .lycee-agent-focus-message { padding: 16px; border-radius: 12px; background: #f6f8fc; }
+.lycee-agent-page .lycee-agent-focus-message p { font-size: 15px; line-height: 1.65; margin-block: 10px; }
+.lycee-agent-page .lycee-agent-focus-next { padding: 10px 0; border: 0; background: transparent; gap: 10px; }
+.lycee-agent-page .lycee-agent-focus-next p { display: none; }
+.lycee-agent-page .lycee-agent-focus-next strong { font-size: 13px; }
+.lycee-agent-page .lycee-agent-focus-next button { min-height: 40px; padding: 8px 10px; }
+.lycee-agent-page .lycee-reply-box { border: 1px solid #c5d5ea; border-radius: 16px; overflow: hidden; background: #fff; }
+.lycee-agent-page .lycee-reply-box > div:first-child { background: #fff; padding: 16px 18px; gap: 10px; flex-wrap: wrap; }
+.lycee-agent-page .lycee-reply-box > div:first-child > span { font-size: 16px; }
+.lycee-agent-page .lycee-reply-box > textarea { font-size: 16px; min-height: 190px; padding: 18px; line-height: 1.65; resize: vertical; }
+.lycee-agent-page .lycee-reply-box > div:last-child { padding: 14px 18px; gap: 8px; flex-wrap: wrap; background: #f7f9fc; }
+.lycee-agent-page .lycee-reply-box > div:last-child button { min-height: 44px; font-size: 13px; }
+.lycee-agent-page .lycee-reply-box > div:last-child .lycee-primary-action { margin-left: auto; }
+.lycee-agent-page .lycee-reply-identity-help { padding: 12px 18px; gap: 10px; background: #fffaf0; }
+.lycee-agent-page .lycee-reply-identity-help p { font-size: 13px; line-height: 1.5; }
+.lycee-agent-page .lycee-agent-panel { border-radius: 12px; margin-top: 14px; }
+.lycee-agent-page .lycee-agent-panel > summary { min-height: 56px; font-size: 14px; }
+.lycee-agent-page .lycee-agent-back-to-list { display: none; }
+.lycee-agent-page .lycee-page-intro { margin-bottom: 16px; }
+.lycee-agent-page .lycee-page-intro h1 { font-size: 26px; }
+.lycee-agent-page .lycee-agent-dashboard > summary { min-height: 44px; padding-block: 10px; }
+.lycee-agent-page .lycee-agent-dashboard > summary > span { display: inline; margin-left: 12px; }
+
+.lycee-reply-suggestion { margin: 0 16px 12px; padding: 16px; border: 1px solid #cee4e0; border-radius: 12px; background: #f2faf7; color: #183e35; }
+.lycee-reply-suggestion > header { display: flex; align-items: center; gap: 10px; }
+.lycee-reply-suggestion > header > svg { width: 20px; flex-shrink: 0; color: #087866; }
+.lycee-reply-suggestion > header strong { flex: 1; font-size: 14px; line-height: 1.5; }
+.lycee-reply-suggestion button { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 44px; padding: 9px 12px; border: 1px solid #a5cbc3; border-radius: 9px; background: #fff; color: #175e50; font-size: 13px; font-weight: 650; cursor: pointer; }
+.lycee-reply-suggestion button svg { width: 18px; height: 18px; }
+.lycee-reply-suggestion > header button { width: 44px; flex-shrink: 0; padding: 8px; background: transparent; border-color: transparent; }
+.lycee-reply-suggestion .lycee-suggestion-apply { background: #0c705d; border-color: #0c705d; color: #fff; }
+.lycee-reply-suggestion button:disabled { opacity: .55; cursor: wait; }
+.lycee-reply-suggestion p { font-size: 14px; line-height: 1.65; overflow-wrap: anywhere; }
+.lycee-reply-suggestion .lycee-suggestion-preview { display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; white-space: pre-line; margin: 12px 0; }
+.lycee-reply-suggestion .lycee-suggestion-full { white-space: pre-line; }
+.lycee-suggestion-replace { display: flex; gap: 8px; flex-wrap: wrap; }
+.lycee-suggestion-replace p { width: 100%; margin-block: 0 4px; }
+.lycee-reply-suggestion small { display: block; margin-top: 8px; color: #506e66; font-size: 12px; line-height: 1.5; }
+.lycee-reply-suggestion details { margin-top: 12px; border-top: 1px solid #d7e8e2; padding-top: 8px; }
+.lycee-reply-suggestion summary { cursor: pointer; font-size: 12px; padding-block: 8px; }
+.lycee-reply-suggestion ul { margin: 8px 0; padding-left: 20px; font-size: 13px; line-height: 1.6; }
+
+@media (max-width: 1100px) {
+  .lycee-agent-page .lycee-agent-workspace { display: block; overflow: visible; border: 0; background: transparent; }
+  .lycee-agent-page .lycee-agent-queue { position: static; }
+  .lycee-agent-page .lycee-agent-list { max-height: none; }
+  .lycee-agent-page .lycee-agent-workspace.has-selection > .lycee-agent-queue { display: none; }
+  .lycee-agent-page .lycee-agent-workspace:not(.has-selection) > .lycee-agent-detail { display: none; }
+  .lycee-agent-page .lycee-agent-back-to-list { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 8px 0; margin-bottom: 12px; border: 0; background: transparent; color: #155ae6; font-size: 14px; }
+  .lycee-agent-back-to-list svg { width: 18px; }
+}
+@media (max-width: 600px) {
+  .lycee-identity-device:has(.lycee-identity-contact-choices) { padding: 16px; }
+  .lycee-identity-device .lycee-identity-contact-option { padding: 14px; min-height: 84px; }
+  .lycee-contact-other-actions { display: grid; gap: 0; }
+  .lycee-agent-page .lycee-agent-detail { padding: 14px; margin-top: 0; }
+  .lycee-agent-page .lycee-agent-detail-head h2 { font-size: 21px; }
+  .lycee-agent-page .lycee-agent-focus-meta { flex-wrap: wrap; }
+  .lycee-agent-page .lycee-agent-focus-next { flex-wrap: wrap; }
+  .lycee-agent-page .lycee-reply-box > div:last-child .lycee-primary-action { width: 100%; margin: 4px 0 0; }
+  .lycee-reply-suggestion { margin-inline: 10px; padding: 12px; }
+  .lycee-reply-suggestion .lycee-suggestion-apply { width: 100%; }
+}

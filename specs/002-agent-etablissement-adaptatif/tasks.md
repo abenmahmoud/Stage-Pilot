@@ -1103,6 +1103,11 @@
   un chargement, un upload ou une traduction. Une recette sur trois dossiers
   fictifs confirme le maintien du brouillon, zéro violation Axe et aucun
   débordement à 390 ou 1 440 px, sans nouvelle API ni permission.
+- [x] T056F Simplifier la console et le choix OTP SMS/email ; proposer un brouillon
+  ENT depuis le lien d’identité serveur, l’import actif et les métadonnées du
+  coffre, sous habilitation. Codes non lus, validation humaine avant envoi,
+  isolation des brouillons, bureau/téléphone et contrôles de données vérifiés.
+  Livraison distante suivie dans `docs/operations/REPONSES_ET_CHOIX_OTP_2026-09-15.md`.
 - [ ] T057 Ajouter supervision, alertes, sauvegarde restaurable, file d'échec,
   journal d'accès et procédure d'incident.
 - [x] T057A Signaler dans la santé des demandes les retraits de brouillons agent

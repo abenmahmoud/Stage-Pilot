@@ -51,6 +51,7 @@ export const MANUAL_ARTICLES: ManualArticle[] = [
     steps: [
       "Dans Demandes, recherchez le dossier ou filtrez par service, priorité ou statut. Lisez le besoin et les échanges précédents.",
       "Utilisez Prendre la demande si elle n’est pas attribuée. Vérifiez le service responsable : la cantine relève de l’intendance.",
+      "Dans Votre réponse, consultez la proposition et ses sources. Pour l’ENT, elle tient compte de l’identité liée au dossier, du dernier export actif et de l’attribution du coffre. Utiliser cette réponse prépare un brouillon modifiable ; aucun code n’est copié dans le message.",
       "Rédigez la réponse. Joindre permet d’ajouter une pièce ; attendez la fin de son contrôle. Pour une réponse sensible, respectez la vérification d’identité demandée à l’écran.",
       "Relisez le destinataire et le message, puis utilisez Valider et envoyer. Vérifiez la confirmation et l’apparition du message dans l’historique.",
       "Choisissez le statut adapté. Note interne sert à transmettre une consigne aux collègues. Pour clôturer, indiquez le motif ; Rouvrir le dossier permet de reprendre une demande clôturée.",
@@ -225,7 +226,7 @@ export const MANUAL_ARTICLES: ManualArticle[] = [
     prerequisite: "Un navigateur compatible, une connexion et l’accès à l’espace concerné.",
     steps: [
       "Ouvrez le site du lycée sur le téléphone. Sur iPhone ou iPad, utilisez Partager puis Sur l’écran d’accueil et ouvrez l’icône ajoutée. Sur Android, utilisez l’option d’installation proposée par le navigateur.",
-      "Dans l’espace personnel, Mes demandes ou l’espace de traitement, retrouvez Notifications sur cet appareil.",
+      "Dans l’espace personnel ou Mes demandes, retrouvez Notifications sur cet appareil. Dans la gestion des demandes, ouvrez Vue d’ensemble et notifications.",
       "Si souhaité, cochez Recevoir aussi les informations flash importantes du lycée.",
       "Appuyez sur Activer les notifications et autorisez-les dans le navigateur. Attendez Préférences enregistrées sur cet appareil.",
       "Vérifiez la réception d’une alerte autorisée sur un téléphone réellement abonné. Le même panneau permet de modifier le choix ou de désactiver les notifications.",
