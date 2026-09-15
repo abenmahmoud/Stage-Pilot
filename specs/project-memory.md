@@ -17,6 +17,9 @@ d’un nom. Carte avec copie, étapes adaptées, recours sans boucle, conservati
 de l’identifiant sur échec de code et effacement sur 401/expiration.
 32 tests ciblés et carte fictive 1440/390 contrôlés. Suivi de livraison et sources :
 `docs/operations/PARCOURS_PARENT_ENT_2026-09-15.md`. SIECLE complet toujours attendu.
+Publié `e6c3a98`, déploiement `dpl_Ez5q6KXPsttyDR2AKFZJfYEFdtdh` READY sur le
+domaine principal. Guide de récupération public et refus d’accès privé anonyme
+vérifiés sur URL immuable et domaine ; chat rechargé sans modifier le brouillon.
 
 ## Incident OTP email — 15 septembre
 

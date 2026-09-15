@@ -57,7 +57,7 @@ email, SMS ou demande réelle de test envoyé. Revue React : requêtes annulées
 démontage, sortie de page protégée, état privé sans persistance, vrais boutons et
 liens clavier, procédures repliables sur téléphone. Aucun nouveau prestataire.
 
-Build TypeScript/Vite réussi ; publication et contrôles distants à confirmer.
+Build TypeScript/Vite réussi.
 La disponibilité de l’identifiant et du code dépend toujours des exports validés
 et de la preuve d’identité. L’absence d’un enfant ne garantit pas que le compte
 parent figure lui-même dans l’export. L’activation réelle de l’ENT peut avoir
@@ -65,3 +65,14 @@ parent figure lui-même dans l’export. L’activation réelle de l’ENT peut 
 
 Retour arrière : déploiement OTP corrigé `dpl_m9pAy7Vg5TkaNiDLSK7KWvymvcT3`
 (`b8ba465`). Ce lot ne modifie aucune donnée ni configuration du fournisseur.
+
+## Publication confirmée
+
+Commit `e6c3a98bca394bae605d1440b89384337e588f9c`, déploiement
+`dpl_Ez5q6KXPsttyDR2AKFZJfYEFdtdh` READY et alias du domaine principal confirmé.
+URL immuable `lyceegest-3rqes4193-safe-scol.vercel.app` et domaine principal :
+accueil HTTP 200, même bundle `index-qYYBjF9-.js`, question publique de
+réinitialisation répondue avec lien officiel et étape « Valider », sans appel
+IA ni formulaire forcé. Accès ENT personnel anonyme refusé 401, sans cache.
+Chat rechargé dans le navigateur ; brouillon existant préservé, aucune nouvelle
+demande enregistrée ni identité réelle vérifiée pour la recette.
