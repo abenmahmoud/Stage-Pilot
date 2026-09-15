@@ -5,6 +5,16 @@
 **Depot** : `abenmahmoud/Stage-Pilot`
 **Dernier jalon de code verifie** : branche de preview Vercel
 
+## Incident de la page Validations — 15 septembre
+
+La capture précise que l’erreur concerne `/admin/validations-agent`, et non les
+réponses dans Demandes. Cause confirmée par logs et base jetable : Drizzle
+transformait les services en tuple PostgreSQL, refusé en `text[]` (42846).
+Correction paramétrée `ARRAY[...]::text[]` pour consultation et décision.
+18 tests, build et 16 exécutions PostgreSQL jetables réussis. Aucun changement
+d’habilitation ni validation réelle. Suivi de publication :
+`docs/operations/INCIDENT_VALIDATIONS_2026-09-15.md`.
+
 ## Réponses administratives et choix OTP — 15 septembre
 
 Adel demande un traitement plus clair et des propositions fondées sur le coffre.

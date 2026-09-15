@@ -1,6 +1,10 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
+import { runInNewContext } from "node:vm";
+import { sql } from "drizzle-orm";
+import { PgDialect } from "drizzle-orm/pg-core";
+import ts from "typescript";
 import {
   approvalIsExpired,
   canDecideAgentApproval,
@@ -32,11 +36,42 @@ const paths = {
   page: new URL("../src/pages/admin/AgentApprovalsPage.tsx", import.meta.url),
   layout: new URL("../src/components/AppLayout.tsx", import.meta.url),
   app: new URL("../src/App.tsx", import.meta.url),
+  navigation: new URL("../src/components/ManagementNavigation.tsx", import.meta.url),
 };
 
-const [migration, expiryMigration, transitionMigration, helper, list, decision, page, layout, app] = await Promise.all(
+const [migration, expiryMigration, transitionMigration, helper, list, decision, page, layout, app, navigation] = await Promise.all(
   Object.values(paths).map((path) => readFile(path, "utf8"))
 );
+
+// Compile the actual SQL sent by both endpoints, rather than testing a hand-written copy.
+for (const [name, source] of [["expiry", list], ["decision", decision]]) {
+  test(`${name} sends zero, one or many services as a bound PostgreSQL text array`, () => {
+    const ast = ts.createSourceFile(`${name}.ts`, source, ts.ScriptTarget.Latest, true);
+    let template;
+    function findQuery(node) {
+      if (ts.isCallExpression(node) && node.expression.getText(ast) === 'db.execute' && ts.isTaggedTemplateExpression(node.arguments[0])) template = node.arguments[0].template.getText(ast);
+      ts.forEachChild(node, findQuery);
+    }
+    findQuery(ast);
+    assert.ok(template, "Endpoint SQL template must be covered by this regression test");
+    for (const services of [[], ["referent_numerique"], ["referent_numerique", "ddfpt", "secretariat", "vie_scolaire", "intendance", "direction", "administration"], ["a'b,]::text[] --"]]) {
+      const query = runInNewContext('sql' + template, {
+        sql,
+        context: { institutionId: "11111111-1111-4111-8111-111111111111", user: { id: "22222222-2222-4222-8222-222222222222" }, decisionRole: "superadmin", access: { serviceCodes: services, canViewAll: false } },
+        approvalId: "33333333-3333-4333-8333-333333333333",
+        input: { decision: "approved", reason: null },
+      });
+      const compiled = new PgDialect().sqlToQuery(query);
+      const array = compiled.sql.match(/ARRAY\[([^\]]*)\]::text\[\]/);
+      assert.ok(array, "A row tuple cannot be cast to text[] (PostgreSQL 42846)");
+      assert.match(array[1], /^\s*(?:\$\d+(?:\s*,\s*\$\d+)*)?\s*$/);
+      const values = [...array[1].matchAll(/\$(\d+)/g)].map(match => compiled.params[Number(match[1]) - 1]);
+      assert.deepEqual(values, services);
+      for (const service of services) assert.ok(!compiled.sql.includes(service), "Services must remain parameters");
+      assert.equal(compiled.params.includes(false), true, "Restricted scope must not become all services");
+    }
+  });
+}
 
 test("accepts only a closed and bounded human decision", () => {
   assert.deepEqual(parseAgentApprovalDecision({ decision: "approved", reason: null }), {
@@ -207,7 +242,8 @@ test("returns a minimal presentation and never the raw action input", () => {
 test("adds a responsive approval inbox to every staff navigation", () => {
   assert.match(app, /path="admin\/validations-agent"/);
   assert.match(app, /"superadmin", "proviseur", "administration", "agent"/);
-  assert.match(layout, /to="\/admin\/validations-agent"/);
+  assert.match(layout, /<ManagementNavigation/);
+  assert.match(navigation, /to: "\/admin\/validations-agent"/);
   assert.match(page, /xl:grid-cols-\[minmax\(0,0\.9fr\)_minmax\(0,1\.1fr\)\]/);
   assert.match(page, /sm:items-center/);
   assert.match(page, /role="dialog"/);

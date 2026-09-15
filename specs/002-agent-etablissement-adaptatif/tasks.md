@@ -336,6 +336,11 @@
   partagés : au plus deux cents éléments uniques et cohérents avec le service du
   relecteur, champs et dates exacts, détails bornés, puis confirmation de décision
   liée à l'identifiant et au statut demandés avant toute annonce de réussite.
+- [x] T018D Corriger l’erreur PostgreSQL 42846 dans la consultation et la décision
+  des validations : services transmis comme tableau SQL paramétré, y compris
+  zéro ou plusieurs services. Tests des requêtes réelles et reproduction sur
+  base jetable, sans changer les habilitations. Publication suivie dans
+  `docs/operations/INCIDENT_VALIDATIONS_2026-09-15.md`.
 - [x] T019 Mettre les pièces dans un stockage privé avec antivirus, type, taille
   et URL temporaire. La recette de convergence confirme le bucket privé de 50 Mo,
   les formats bornés, la file ClamAV, le lien manager de 60 secondes, la RLS

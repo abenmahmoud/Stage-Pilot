@@ -63,7 +63,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           ${context.institutionId}::uuid,
           ${context.user.id}::uuid,
           ${context.decisionRole}::text,
-          ${context.access.serviceCodes}::text[],
+          ARRAY[${sql.join(context.access.serviceCodes.map(service => sql`${service}`), sql`, `)}]::text[],
           ${context.access.canViewAll}::boolean,
           ${input.decision}::text,
           ${input.reason}::text

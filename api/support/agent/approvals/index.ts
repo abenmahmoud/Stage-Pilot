@@ -73,7 +73,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     await db.execute(sql`
       select public.agent_expire_approvals(
         ${context.institutionId}::uuid,
-        ${context.access.serviceCodes}::text[],
+        ARRAY[${sql.join(context.access.serviceCodes.map(service => sql`${service}`), sql`, `)}]::text[],
         ${context.access.canViewAll}::boolean
       )
     `);
