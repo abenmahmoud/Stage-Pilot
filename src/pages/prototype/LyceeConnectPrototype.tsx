@@ -183,7 +183,7 @@ import {
 import "./lycee-connect.css";
 import ScheduleChatCard from './ScheduleChatCard';
 import EntAccessChatCard from './EntAccessChatCard';
-import { requestsEntAccess } from '../../../shared/ent-self-service';
+import { requestsEntAccess, entIdentityPrompt } from '../../../shared/ent-self-service';
 import { resolveAssistantConversationTransition } from '../../../shared/assistant-conversation-state';
 
 type RequesterProfile = "eleve" | "parent" | "professeur" | "personnel" | "autre" | "";
@@ -1824,7 +1824,8 @@ function HelpDeskView({
       const { schedule: _privateSchedule, schoolTargets: _privateTargets, ...publicResult } = result;
       result = {
         ...publicResult,
-        reply: "Je vais vous accompagner. Pour accéder à vos informations personnelles, confirmons d’abord votre identité ici.",
+        reply: requestsEntAccess(requestMessages) ? entIdentityPrompt()
+          : "Je vais vous accompagner. Pour accéder à vos informations personnelles, confirmons d’abord votre identité ici.",
         readyToCreate: false,
         action: "continue",
         missingInformation: ["Votre profil", "Votre prénom et votre nom", "Un email ou un téléphone connu du lycée"],
@@ -1869,7 +1870,10 @@ function HelpDeskView({
 
   function sendChatMessage(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    const content = chatInput.trim();
+    sendPreparedChatMessage(chatInput.trim());
+  }
+
+  function sendPreparedChatMessage(content: string) {
     if (!draftReady || !content || assistantBusy || insight?.limitReached) return;
     const nextMessages = [
       ...chatMessages,
@@ -2184,8 +2188,12 @@ function HelpDeskView({
                   choices={message.schoolTargets} busy={assistantBusy}
                   onSelect={(key, expiresAt) => void askAssistant(chatMessages, false, { key, expiresAt })}
                   onRefresh={() => { selectedSchoolTargetRef.current = null; void askAssistant(chatMessages); }} /> : null}
-                {message.role === 'assistant' && message.id === chatMessages.at(-1)?.id && identityVerified && insight?.category === 'ent' && insight.action === 'continue' && requestsEntAccess(chatMessages)
-                  ? <EntAccessChatCard onHelp={() => { setClassicForm(false); setShowDetails(true); }} /> : null}
+                {message.role === 'assistant' && message.id === chatMessages.at(-1)?.id && identityVerified && insight?.category === 'ent' && ['continue','offer_case'].includes(insight.action) && requestsEntAccess(chatMessages)
+                  ? <EntAccessChatCard recoveryFailed={insight.action === 'offer_case'} onHelp={() => { setClassicForm(false); setShowDetails(true); }} /> : null}
+                {message.role === 'assistant' && message.id === chatMessages.at(-1)?.id && !identityVerified && !identityRequiredForCurrentRequest && insight?.category === 'ent' && insight.action === 'continue' && requestsEntAccess(chatMessages)
+                  ? <div className="lycee-chat-next-actions"><button type="button" disabled={assistantBusy} onClick={() => sendPreparedChatMessage('Je veux retrouver mon identifiant ENT personnel')}>Retrouver mon identifiant ENT</button></div> : null}
+                {message.role === 'assistant' && message.id === chatMessages.at(-1)?.id && identityVerified && insight?.category === 'affectation_classe' && insight.action === 'offer_case' && familySchoolIntent(chatMessages)?.explicitChild
+                  ? <div className="lycee-chat-next-actions"><button type="button" disabled={assistantBusy} onClick={() => sendPreparedChatMessage('Je veux retrouver mon accès ENT personnel')}>Retrouver mon accès ENT</button></div> : null}
                 {message.sourceReferences?.length ? (
                   <div className="lycee-agent-sources" aria-label="Sources utilisées">
                     <BookOpenCheck aria-hidden="true" />

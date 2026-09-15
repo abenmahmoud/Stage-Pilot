@@ -1,15 +1,28 @@
 import type { AssistantConversationMessage } from './assistant-conversation-state.js';
 import { decideVaultAccess } from './code-vault-policy.js';
 
+// Public entry point verified against the Région FAQ and the live login page.
+// Reset URLs contain a temporary login session and must never be stored here.
+export const ENT_LOGIN_URL = 'https://auth.monlycee.net/';
+export const ENT_RESET_STEPS = [
+  'Ouvrez la page de connexion monlycée.net.',
+  'Choisissez « Mot de passe oublié ? », saisissez votre identifiant exact, puis cliquez sur « Valider ».',
+  'Suivez le lien de réinitialisation reçu et choisissez votre nouveau mot de passe.',
+] as const;
+
+export function entIdentityPrompt(): string {
+  return `Vous pouvez vous connecter sur [monlycée.net](${ENT_LOGIN_URL}). Si vous connaissez votre identifiant mais avez oublié votre mot de passe, choisissez « Mot de passe oublié ? », saisissez cet identifiant, puis cliquez sur « Valider » pour recevoir un lien de réinitialisation.\n\nPour retrouver votre identifiant exact ou votre code de première activation ici, confirmons votre identité par SMS ou email sur un contact connu du lycée. Si vous êtes parent, indiquez votre propre nom et prénom : vous utilisez votre compte personnel de parent.`;
+}
+
 export function requestsEntAccess(messages: readonly AssistantConversationMessage[]): boolean {
   const plain = (v: string) => v.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[’']/g, ' ');
   const latest = plain(messages.findLast(m => m.role === 'requester')?.content ?? '');
-  const history = plain(messages.filter(m => m.role === 'requester').map(m => m.content).join(' '));
-  if (/\bcomment\b/.test(latest) && /\b(reinitialis\w*|mot de passe oublie)\b/.test(latest)
-    && !/\b(mon identifiant|mes codes|mon code)\b/.test(latest)) return false;
   if (/\b(pronote|koxo|cantine|emploi|horaire|salle|certificat)\b/.test(latest)) return false;
+  const recentService = [...messages].reverse().find(m => m.role === 'requester'
+    && /\b(ent|monlycee|mon lycee|pronote|koxo|cantine|messagerie|academique)\b/.test(plain(m.content)));
+  const entContext = recentService ? /\b(ent|monlycee|mon lycee)\b/.test(plain(recentService.content)) : false;
   return /\b(ent|monlycee|mon lycee)\b/.test(latest)
-    || (/\b(ent|monlycee|mon lycee)\b/.test(history) && /\b(code|codes|identifiant|identifiants|activer|activation|connecter|connexion|acces|compte|mot de passe)\b/.test(latest));
+    || (entContext && /\b(code|codes|identifiant|identifiants|activer|activation|connecter|connexion|acces|compte|mot de passe|reinitialis\w*|oublie|perdu|deja essaye|deja fait)\b/.test(latest));
 }
 
 export type EntAccount = { identifier: string; activationState: 'active' | 'inactive' };

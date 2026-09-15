@@ -1,6 +1,7 @@
 import type { FamilySchoolResult } from './family-school-chat-service.js';
 import type { SupportAgentResult } from './support-agent.js';
 import { scheduleAssistantDayAnswer } from '../../shared/schedule-assistant.js';
+import { ENT_LOGIN_URL } from '../../shared/ent-self-service.js';
 
 /** Facts come from the protected readers; this answer never invokes a language model. */
 export function familySchoolAnswer(result: FamilySchoolResult): Partial<SupportAgentResult> {
@@ -26,7 +27,7 @@ export function familySchoolAnswer(result: FamilySchoolResult): Partial<SupportA
   if (result.status === 'schedule') {
     const answer = scheduleAssistantDayAnswer(result.result, result.day);
     // Keep the selected child visible, including when the timetable is unavailable.
-    const reply = `${result.label}\n\n${answer.reply.replace(/vos cours/g, 'les cours de cet enfant').replace(/Vous n'avez aucun cours prévu/g, 'Cet enfant n’a aucun cours prévu').replace(/vous êtes libre/g, 'cet enfant est libre')}`.slice(0, 1500);
+    const reply = `${result.label}\n\n${answer.reply.replace(/vos cours/g, 'les cours de cet enfant').replace(/Vous n'avez aucun cours prévu/g, 'Cet enfant n’a aucun cours prévu').replace(/vous êtes libre/g, 'cet enfant est libre')}${!result.result.ok ? `\n\nVous pouvez aussi consulter [monlycée.net](${ENT_LOGIN_URL}) avec votre compte personnel de parent, ou choisir « Retrouver mon accès ENT » ici.` : ''}`.slice(0, 1500);
     return { ...base, ...answer, reply, requesterType: 'parent', action: answer.readyToCreate ? 'offer_case' : 'continue',
       ...(result.result.ok ? { schedule: {
         title: `${result.label} · ${result.day === 1 ? 'Demain' : 'Aujourd’hui'}`.slice(0, 120),
@@ -37,7 +38,7 @@ export function familySchoolAnswer(result: FamilySchoolResult): Partial<SupportA
   }
   return { ...base, readyToCreate: true, action: 'offer_case',
     reply: result.status === 'forbidden'
-      ? 'Je ne peux pas accéder à cet enfant depuis votre identité actuelle. Je peux préparer une demande à l’administration pour faire vérifier le lien familial. Souhaitez-vous la préparer ici ?'
-      : 'Les informations scolaires de l’enfant ne sont pas disponibles pour cette consultation. Je peux préparer une demande à l’administration pour les faire vérifier. Souhaitez-vous la préparer ici ?',
+      ? `Le rattachement à cet enfant doit être vérifié par l’administration. Son nom et son prénom peuvent accompagner votre demande, sans créer automatiquement un lien familial. Votre propre accès ENT reste indépendant : vous pouvez choisir « Retrouver mon accès ENT » ici ou ouvrir [monlycée.net](${ENT_LOGIN_URL}). Souhaitez-vous préparer la demande de vérification du lien familial ?`
+      : `Les informations scolaires de l’enfant ne sont pas disponibles pour cette consultation. Votre propre accès ENT reste indépendant : vous pouvez choisir « Retrouver mon accès ENT » ici ou ouvrir [monlycée.net](${ENT_LOGIN_URL}). Je peux préparer une demande à l’administration avec le nom et le prénom de votre enfant pour faire vérifier ses informations. Souhaitez-vous la préparer ici ?`,
   };
 }

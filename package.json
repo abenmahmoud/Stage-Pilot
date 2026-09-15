@@ -239,6 +239,7 @@
     "test:identity-access": "node --import ./scripts/ts-test-resolver.mjs --experimental-strip-types scripts/test-identity-access-policy.mjs",
     "test:identity-device-access": "node --import ./scripts/ts-test-resolver.mjs --experimental-transform-types scripts/test-identity-device-access.mjs && npm run test:identity-email-delivery",
     "test:identity-email-delivery": "node --import ./scripts/ts-test-resolver.mjs --experimental-transform-types scripts/test-identity-email-delivery.mjs",
+    "test:ent-self-service": "node --import ./scripts/ts-test-resolver.mjs --experimental-transform-types scripts/test-ent-self-service.mjs",
     "test:requester-service-access": "node --import ./scripts/ts-test-resolver.mjs --experimental-strip-types scripts/test-requester-service-access-policy.mjs",
     "test:identity-directory": "node --experimental-strip-types scripts/test-identity-directory-ingestion.mjs",
     "test:private-ent-directory-preparation": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/test-prepare-private-ent-directory.ps1",

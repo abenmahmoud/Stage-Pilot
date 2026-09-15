@@ -1,6 +1,6 @@
 import { encodeBudgetedAiRequest } from "../../shared/budgeted-ai-request.js";
 import { accessGuidanceKind, requestsOwnClass, type OwnClassReadResult } from "../../shared/support-service-intent.js";
-import { requestsEntAccess } from '../../shared/ent-self-service.js';
+import { requestsEntAccess, entIdentityPrompt } from '../../shared/ent-self-service.js';
 import { familySchoolIntent, type FamilySchoolIntent, type SchoolTargetChoices } from "../../shared/family-school-chat.js";
 import { familySchoolAnswer } from "./family-school-chat-answer.js";
 import type { FamilySchoolResult } from "./family-school-chat-service.js";
@@ -522,7 +522,9 @@ export async function analyzeSupportConversation(input: {
     };
   }
   const requestedScheduleDayOffset = requestedOwnCoursesDayOffset(input.messages);
-  const familyIntent = familySchoolIntent(input.messages);
+  // A parent may mention a child's name/class while asking for their own ENT.
+  // Do not make that personal account request depend on the child's school data.
+  const familyIntent = requestsEntAccess(input.messages) ? null : familySchoolIntent(input.messages);
   if (familyIntent && input.familySchoolReader) {
     let familyResult: FamilySchoolResult | null;
     try { familyResult = await input.familySchoolReader(familyIntent); }
@@ -562,7 +564,7 @@ export async function analyzeSupportConversation(input: {
     return { ...fallback,category:'ent',scope:'school_support',confidence:'high',usedAi:false,
       reply:input.identityVerified
         ? 'Votre identité est confirmée. Retrouvez votre identifiant exact et la démarche adaptée à votre compte dans « Mon accès ENT » ci-dessous. Pour un parent, il s’agit de son compte personnel de parent.'
-        : 'Je peux vous aider à retrouver votre accès ENT. Confirmons votre identité avec un code envoyé par SMS ou email sur une coordonnée connue du lycée.',
+        : entIdentityPrompt(),
       readyToCreate:false,action:'continue',missingInformation:input.identityVerified?[]:['Votre identité'],suggestedDocuments:[],
       safetyNotice:null,internalSummaryFr:null,sourceReferences:[] };
   }

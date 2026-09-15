@@ -5,6 +5,19 @@
 **Depot** : `abenmahmoud/Stage-Pilot`
 **Dernier jalon de code verifie** : branche de preview Vercel
 
+## Parcours parent et récupération ENT — 15 septembre
+
+Adel demande une aide concrète même si les informations de l’enfant manquent.
+Le chat propose alors l’accès ENT personnel du parent indépendamment de la
+consultation enfant. Lien officiel `https://auth.monlycee.net/`, étapes publiques
+avant OTP, identifiant exact et code initial après preuve serveur si disponibles.
+Question générale de réinitialisation sans OTP obligatoire ; bouton pour demander
+l’identifiant oublié. Ne pas inventer de compte ou de lien familial à partir
+d’un nom. Carte avec copie, étapes adaptées, recours sans boucle, conservation
+de l’identifiant sur échec de code et effacement sur 401/expiration.
+32 tests ciblés et carte fictive 1440/390 contrôlés. Suivi de livraison et sources :
+`docs/operations/PARCOURS_PARENT_ENT_2026-09-15.md`. SIECLE complet toujours attendu.
+
 ## Incident OTP email — 15 septembre
 
 Refus d’envoi signalé sur l’adresse académique d’un professeur. Cause reproduite

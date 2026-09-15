@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { requestsEntAccess,ownEntAccessAllowed,codeFromEntVault,validEntAccessPayload } from '../shared/ent-self-service.ts';
+import { ENT_LOGIN_URL,requestsEntAccess,ownEntAccessAllowed,codeFromEntVault,validEntAccessPayload } from '../shared/ent-self-service.ts';
 import { requiresIdentityForPersonalSupport } from '../shared/support-service-intent.ts';
 import { analyzeSupportConversation } from '../api/_shared/support-agent.ts';
 process.env.OPENAI_API_KEY='';
@@ -30,8 +30,41 @@ test('chat resumes ENT after verification without a forced form or model call',a
   for(const identityVerified of [false,true]){
     const r=await analyzeSupportConversation({messages:[msg('Je suis parent, je veux mon code ENT')],attachments:[],safetyIdentifier:'synthetic-ent-test',identityVerified});
     assert.equal(r.category,'ent');assert.equal(r.action,'continue');assert.equal(r.readyToCreate,false);assert.equal(r.usedAi,false);
-    assert.match(r.reply,identityVerified ? /Mon accès ENT/ : /Confirmons votre identité/);
+    assert.match(r.reply,identityVerified ? /Mon accès ENT/ : /confirmons votre identité/i);
   }
+});
+
+test('reset and forgotten identifier keep the ENT context without stealing another service',async()=>{
+  for (const messages of [
+    [msg('Comment réinitialiser mon ENT ?')],
+    [msg('Je veux me connecter à monlycee.net'), msg('J’ai oublié mon identifiant')],
+    [msg('Mon accès ENT'), msg('Comment réinitialiser le mot de passe ?')],
+  ]) {
+    assert.equal(requestsEntAccess(messages),true);
+    const answer=await analyzeSupportConversation({messages,attachments:[],safetyIdentifier:'synthetic-reset-test',identityVerified:true});
+    assert.equal(answer.action,'continue');assert.equal(answer.category,'ent');assert.equal(answer.usedAi,false);
+    assert.match(answer.reply,/identifiant exact/);
+  }
+  assert.equal(requestsEntAccess([msg('Mon ENT'),msg('Ma messagerie académique'),msg('Identifiant oublié')]),false);
+  assert.equal(requestsEntAccess([msg('Mon ENT'),msg('Mon compte Pronote'),msg('Comment réinitialiser ?')]),false);
+});
+
+test('anonymous parent gets the public procedure, never credentials based on a child name',async()=>{
+  const result=await analyzeSupportConversation({messages:[msg('Je suis parent de Camille Exemple, son nom ne figure pas. Je veux mon identifiant ENT et le code')],attachments:[],safetyIdentifier:'synthetic-parent-test',identityVerified:false});
+  assert.equal(result.category,'ent');assert.equal(result.usedAi,false);assert.equal(result.readyToCreate,false);
+  assert.ok(result.reply.includes(ENT_LOGIN_URL));assert.match(result.reply,/Mot de passe oublié/);
+  assert.match(result.reply,/propre nom et prénom/);assert.equal('account' in result,false);assert.equal('code' in result,false);
+});
+
+test('missing child information does not prevent a verified parent from asking for their own ENT',async()=>{
+  const first=await analyzeSupportConversation({messages:[msg('Quelle est la classe de mon enfant Camille Exemple ?')],attachments:[],safetyIdentifier:'synthetic-child-test',identityVerified:true,familySchoolReader:async()=>({status:'unavailable'})});
+  assert.ok(first.reply.includes(ENT_LOGIN_URL));assert.match(first.reply,/Retrouver mon accès ENT/);
+  assert.equal(first.action,'offer_case');
+  const next=await analyzeSupportConversation({messages:[msg('Quelle est la classe de mon enfant Camille Exemple ?'),{role:'assistant',content:first.reply},msg('Je veux retrouver mon accès ENT personnel')],attachments:[],safetyIdentifier:'synthetic-child-test',identityVerified:true,familySchoolReader:async()=>{throw new Error('must not access child for personal ENT');}});
+  assert.equal(next.category,'ent');assert.equal(next.action,'continue');assert.equal(next.readyToCreate,false);assert.equal(next.usedAi,false);
+  let childReads=0;
+  const mixed=await analyzeSupportConversation({messages:[msg('Mon enfant Camille Exemple est en classe de seconde, je veux retrouver mon identifiant ENT de parent')],attachments:[],safetyIdentifier:'synthetic-child-test',identityVerified:true,familySchoolReader:async()=>{childReads++;return {status:'unavailable'};}});
+  assert.equal(mixed.category,'ent');assert.equal(mixed.action,'continue');assert.equal(childReads,0);
 });
 test('failed recovery preserves human referral instead of repeating the same advice',async()=>{
   const r=await analyzeSupportConversation({messages:[msg('Mon ENT ne marche pas'),msg('J’ai déjà essayé, je ne reçois pas de code')],attachments:[],safetyIdentifier:'synthetic-ent-test',identityVerified:true});
