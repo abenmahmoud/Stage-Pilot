@@ -63,8 +63,9 @@
 .lycee-reply-suggestion .lycee-suggestion-apply { background: #0c705d; border-color: #0c705d; color: #fff; }
 .lycee-reply-suggestion button:disabled { opacity: .55; cursor: wait; }
 .lycee-reply-suggestion p { font-size: 14px; line-height: 1.65; overflow-wrap: anywhere; }
-.lycee-reply-suggestion .lycee-suggestion-preview { display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; white-space: pre-line; margin: 12px 0; }
-.lycee-reply-suggestion .lycee-suggestion-full { white-space: pre-line; }
+.lycee-reply-suggestion .lycee-suggestion-context { margin: 10px 0; }
+.lycee-reply-suggestion .lycee-suggestion-context small { margin-top: 2px; }
+.lycee-reply-suggestion .lycee-suggestion-preview { white-space: pre-wrap; margin: 12px 0 16px; padding: 16px; border: 1px solid #d7e8e2; border-radius: 8px; background: #fff; color: #183247; }
 .lycee-suggestion-replace { display: flex; gap: 8px; flex-wrap: wrap; }
 .lycee-suggestion-replace p { width: 100%; margin-block: 0 4px; }
 .lycee-reply-suggestion small { display: block; margin-top: 8px; color: #506e66; font-size: 12px; line-height: 1.5; }

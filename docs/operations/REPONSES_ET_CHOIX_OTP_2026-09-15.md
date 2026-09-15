@@ -28,6 +28,14 @@ Le volet coffre de cette livraison concerne l’ENT. Les réponses Koxo, cantine
 
 ## Publication
 
+### Correction de visibilité après retour d’Adel
+
+Le texte de réponse était replié sous « Lire la proposition et ses sources » : la carte ne montrait que le constat interne et le bouton d’insertion. Le contrôle connecté l’a confirmé sur la version `b3ad71a`, sans erreur de chargement. Les classements à confirmer ne sont pas des réponses préparées ou envoyées.
+
+Le texte proposé est désormais affiché en entier dès l’ouverture, sans lignes tronquées. Seules les preuves et sources restent repliées. Après insertion, le texte reste dans le champ modifiable et l’aperçu disparaît pour éviter le doublon. Les propositions qui demandent seulement un complément sont clairement signalées comme ne résolvant pas encore le besoin. Aucun nouvel automatisme d’envoi ni rapprochement d’identité.
+
+Contrôles : build complet, six tests de proposition réussis ; navigateur fictif 1440/390 px, réponse de 835 caractères visible hors panneau replié, insertion exacte dans le brouillon sans envoi, aucun débordement horizontal. Publication de cette correction à confirmer.
+
 Publié le 15 septembre 2026 vers 19 h 05, commit `b3ad71ab32a40b3fb17de0bca9d5493b82b9ede8`, déploiement `dpl_BencfLDJ5vezNY3qQ8K5gwomzTdR` READY.
 
 - URL immuable : `https://lyceegest-a5fu06gts-safe-scol.vercel.app`.

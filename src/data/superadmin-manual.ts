@@ -51,7 +51,7 @@ export const MANUAL_ARTICLES: ManualArticle[] = [
     steps: [
       "Dans Demandes, recherchez le dossier ou filtrez par service, priorité ou statut. Lisez le besoin et les échanges précédents.",
       "Utilisez Prendre la demande si elle n’est pas attribuée. Vérifiez le service responsable : la cantine relève de l’intendance.",
-      "Dans Votre réponse, consultez la proposition et ses sources. Pour l’ENT, elle tient compte de l’identité liée au dossier, du dernier export actif et de l’attribution du coffre. Utiliser cette réponse prépare un brouillon modifiable ; aucun code n’est copié dans le message.",
+      "Dans Votre réponse, le texte proposé s’affiche en entier. Informations vérifiées et sources explique sur quoi il repose. Pour l’ENT, il tient compte de l’identité liée au dossier, du dernier export actif et de l’attribution du coffre. Utiliser cette réponse prépare un brouillon modifiable ; aucun code n’est copié dans le message. Si aucune procédure précise n’est disponible, le complément à demander est signalé et doit être adapté.",
       "Rédigez la réponse. Joindre permet d’ajouter une pièce ; attendez la fin de son contrôle. Pour une réponse sensible, respectez la vérification d’identité demandée à l’écran.",
       "Relisez le destinataire et le message, puis utilisez Valider et envoyer. Vérifiez la confirmation et l’apparition du message dans l’historique.",
       "Choisissez le statut adapté. Note interne sert à transmettre une consigne aux collègues. Pour clôturer, indiquez le motif ; Rouvrir le dossier permet de reprendre une demande clôturée.",

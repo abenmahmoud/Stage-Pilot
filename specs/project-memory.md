@@ -21,6 +21,11 @@ réussis ; navigateur fictif bureau/téléphone. Suivi de publication et limites
 Publié `b3ad71a`, déploiement `dpl_BencfLDJ5vezNY3qQ8K5gwomzTdR` READY et alias
 principal confirmé. API anonyme refusée 401 sans cache ; console connectée en
 ligne : liste, réponse et proposition chargées. Aucun envoi réel de test.
+Retour d’Adel : « il n’y a pas de réponses ». Texte auparavant replié derrière
+les sources ; correction pour afficher la proposition entière, puis insertion
+dans le brouillon. Les classements en attente ne sont pas des réponses rédigées.
+Les compléments demandés faute de procédure sont distingués d’une résolution.
+Build et six tests réussis, contrôle fictif 1440/390 px. Publication à confirmer.
 
 ## Parcours parent et récupération ENT — 15 septembre
 
