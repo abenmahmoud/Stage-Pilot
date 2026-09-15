@@ -156,7 +156,7 @@ assert.match(requestRoute, /encryptIdentityLookupRequest/);
 assert.match(requestRoute, /contactHash: personalHash|contactHash/);
 assert.doesNotMatch(requestRoute, /email:\s*input\.email[^,]*,[\s\S]{0,80}insert\(identityDeviceChallenges\)/);
 assert.match(statusRoute, /identityDeviceReadyPayload/);
-assert.match(statusRoute, /idempotencyKey: `identity-device-/);
+assert.match(statusRoute, /await deliverIdentityCode\(/);
 assert.match(statusRoute, /req\.method !== "POST"/);
 assert.doesNotMatch(statusRoute, /req\.method !== "GET"/);
 assert.match(verifyRoute, /for update/);

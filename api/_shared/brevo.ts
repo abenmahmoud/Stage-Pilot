@@ -22,6 +22,15 @@ type BrevoResponse = {
   message?: string;
 };
 
+function logProviderRejection(channel: "email" | "sms", status: number, code: unknown): void {
+  // Never log provider free text, addresses, payloads, codes or credentials.
+  const knownCodes = ["out_of_range", "invalid_parameter", "missing_parameter", "bad_request",
+    "unauthorized", "permission_denied", "not_enough_credits", "too_many_requests", "account_suspended"];
+  console.error("[brevo] delivery_rejected", {
+    channel, status, code: typeof code === "string" && knownCodes.includes(code) ? code : "provider_error",
+  });
+}
+
 export function escapeHtml(value: string): string {
   return value
     .replaceAll("&", "&amp;")
@@ -73,6 +82,7 @@ export async function sendTransactionalSms(input: {
   if (response.ok && payload.messageId !== undefined) {
     return { messageId: String(payload.messageId) };
   }
+  logProviderRejection("sms", response.status, payload.code);
   const error = new Error(payload.code || `brevo_sms_http_${response.status}`);
   error.name = response.status >= 400 && response.status < 500 && response.status !== 408
     ? "BrevoRejectedError" : "BrevoError";
@@ -124,6 +134,7 @@ export async function sendTransactionalEmail(
     return { messageId: `duplicate:${email.idempotencyKey}`, duplicate: true };
   }
 
+  logProviderRejection("email", response.status, payload.code);
   const error = new Error(payload.code || `brevo_http_${response.status}`);
   error.name = response.status >= 400 && response.status < 500 && response.status !== 408
     ? "BrevoRejectedError" : "BrevoError";

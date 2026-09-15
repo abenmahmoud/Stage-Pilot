@@ -10,6 +10,8 @@ export async function deliverIdentityCode(input: { challengeId: string; contactT
   } else {
     await sendTransactionalEmail({ to: { email: input.contact, name: input.firstName },
       ...buildIdentityVerificationEmail({ firstName: input.firstName, code }),
-      idempotencyKey: `identity-device-${input.challengeId}`, tags: ['lyceegest-identity'] });
+      // Brevo accepts at most 36 characters. The challenge UUID already uniquely
+      // identifies this delivery; a prefix made every email OTP fail with 400.
+      idempotencyKey: input.challengeId, tags: ['lyceegest-identity'] });
   }
 }

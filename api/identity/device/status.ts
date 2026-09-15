@@ -18,8 +18,7 @@ import {
   identityDeviceReadyPayload,
 } from "../../../shared/identity-device-access.js";
 import { HttpError } from "../../_shared/auth.js";
-import { sendTransactionalEmail, sendTransactionalSms } from "../../_shared/brevo.js";
-import { buildIdentityVerificationEmail } from "../../../shared/school-email-templates.mjs";
+import { deliverIdentityCode } from "../../_shared/identity-code-delivery.js";
 import {
   challengeReceiptClaims,
   clearChallengeReceiptCookie,
@@ -56,29 +55,6 @@ function parseDeviceLookupResult(value: unknown): DeviceLookupResult {
     throw new HttpError(503, "La vérification n’a pas pu être contrôlée.");
   }
   return input as unknown as DeviceLookupResult;
-}
-
-async function deliverCode(input: {
-  challengeId: string;
-  contactType: "email" | "phone";
-  contact: string;
-  firstName: string;
-}): Promise<void> {
-  const code = identityDeviceCode(input.challengeId);
-  if (input.contactType === "phone") {
-    await sendTransactionalSms({
-      recipient: input.contact,
-      content: `Lycée Blaise Cendrars : ${code}. Valable 10 min. Ne le partagez pas.`,
-      tag: "lyceegest-identity",
-    });
-    return;
-  }
-  await sendTransactionalEmail({
-    to: { email: input.contact, name: input.firstName },
-    ...buildIdentityVerificationEmail({ firstName: input.firstName, code }),
-    idempotencyKey: `identity-device-${input.challengeId}`,
-    tags: ["lyceegest-identity"],
-  });
 }
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
@@ -155,7 +131,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
     if (!claims.contactType || !claims.contact) throw new HttpError(401, 'Vérification expirée ou invalide.');
     if (row.challenge.status === "code_sent") return codeSentPayload;
-    if (["ineligible", "failed"].includes(row.challenge.status)) return contactUpdatePayload;
+    if (row.challenge.status === "ineligible") return contactUpdatePayload;
+    if (row.challenge.status === "failed") {
+      throw new HttpError(503, 'La vérification est momentanément indisponible. Recommencez dans quelques instants.');
+    }
 
     if (
       row.challenge.status === "lookup_queued" &&
@@ -170,6 +149,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             eq(identityDeviceChallenges.status, "lookup_queued")
           )
         );
+      if (row.lookup.status === "failed") {
+        throw new HttpError(503, 'La vérification est momentanément indisponible. Recommencez dans quelques instants.');
+      }
       return contactUpdatePayload;
     }
 
@@ -259,7 +241,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     if (shouldDeliver) {
       try {
-        await deliverCode({
+        await deliverIdentityCode({
           challengeId: claims.challengeId,
           contactType: claims.contactType,
           contact: claims.contact,
@@ -284,7 +266,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
               inArray(identityDeviceChallenges.status, ["delivery_pending"])
             )
           );
-        return contactUpdatePayload;
+        throw new HttpError(503, 'L’envoi du code n’a pas pu être confirmé. Recommencez dans quelques instants.');
       }
       return codeSentPayload;
     }

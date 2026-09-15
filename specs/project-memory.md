@@ -5,6 +5,17 @@
 **Depot** : `abenmahmoud/Stage-Pilot`
 **Dernier jalon de code verifie** : branche de preview Vercel
 
+## Incident OTP email — 15 septembre
+
+Refus d’envoi signalé sur l’adresse académique d’un professeur. Cause reproduite
+sans distribution dans le sandbox Brevo : clé d’idempotence de 52 caractères,
+refus `out_of_range`. L’UUID seul est accepté. Les deux parcours email partagent
+désormais l’expéditeur corrigé ; politique OTP, SMS et coordonnées inchangés.
+Régression email reproduite avant correction puis réussie. Publication et
+réception réelle à suivre dans `docs/operations/INCIDENT_OTP_EMAIL_2026-09-15.md`.
+Adel prépare un export SIECLE pour compléter les téléphones ; fichier attendu,
+aucune fusion supplémentaire effectuée à ce stade.
+
 ## ENT personnel dans le chat — 15 septembre
 
 Adel autorise l’import urgent de son nouvel export ENT depuis Téléchargements et
