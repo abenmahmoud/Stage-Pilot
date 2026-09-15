@@ -48,6 +48,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         proofChannel: input.proofChannel,
         schoolYear: input.schoolYear,
         now: new Date(),
+        // A caller-declared phase is not server-side OTP verification.
+        env: { ...process.env, CODE_VAULT_REVEAL_ENABLED: "false" },
       })
     );
 

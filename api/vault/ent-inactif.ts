@@ -50,6 +50,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         proofChannel: input.proofChannel,
         schoolYear: input.schoolYear,
         now: new Date(),
+        // Legacy phases are caller-declared, not an OTP proof. Keep this
+        // pre-existing route non-disclosing; /identity/device/ent verifies OTP.
+        env: { ...process.env, CODE_VAULT_REVEAL_ENABLED: "false" },
       })
     );
 

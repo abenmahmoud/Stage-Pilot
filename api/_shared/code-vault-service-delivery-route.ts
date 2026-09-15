@@ -122,7 +122,7 @@ export type ServiceDeliveryRouteInput = {
   now: Date;
   /** Cantine du professeur pour lui-même : « selon disponibilité validée » (§7). Non branché dans ce lot, voir en-tête. */
   cantineAvailabilityValidated?: boolean;
-  /** Recette locale uniquement : jamais fourni par `api/vault/cantine.ts` / `api/vault/koxo.ts`, qui laissent `resolveVaultCodeReveal` lire `process.env`. */
+  /** Tests ou fermeture explicite de la lecture pour une route sans preuve OTP serveur. */
   env?: NodeJS.ProcessEnv;
 };
 

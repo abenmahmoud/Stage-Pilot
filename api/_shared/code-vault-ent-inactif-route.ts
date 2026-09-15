@@ -107,7 +107,7 @@ export type EntInactifRouteInput = {
   proofChannel: VaultProofChannel;
   schoolYear: string;
   now: Date;
-  /** Recette locale uniquement : jamais fourni par `api/vault/ent-inactif.ts`, qui laisse `resolveVaultCodeReveal` lire `process.env`. */
+  /** Tests ou fermeture explicite de la lecture pour une route sans preuve OTP serveur. */
   env?: NodeJS.ProcessEnv;
 };
 

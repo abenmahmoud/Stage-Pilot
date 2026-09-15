@@ -208,12 +208,14 @@ export function decideVaultAccess(input: {
 
   if (actor.profile === "superadmin") return { allowed: true };
 
-  // La remise des codes d'un enfant à un parent reste désactivée (T064A) :
-  // ce n'est pas une question de relation ou d'établissement, c'est un refus
-  // de principe avec motif explicite.
-  if (actor.profile === "parent") return refuse("parent_to_child_forbidden");
-
   if (actor.institutionId !== target.institutionId) return refuse("institution_mismatch");
+
+  // Un responsable dispose de son propre compte ENT. Les codes de l'enfant
+  // restent personnels, même lorsque le lien familial est confirmé.
+  if (actor.profile === 'parent') {
+    if (target.service === 'ent' && target.subjectKind === 'self' && target.subjectPersonRef === actor.personRef) return { allowed: true };
+    return refuse('parent_to_child_forbidden');
+  }
 
   if (actor.profile === "eleve") {
     if (target.subjectKind === "self" && target.subjectPersonRef === actor.personRef) {

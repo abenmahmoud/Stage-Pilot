@@ -1,9 +1,30 @@
 # Memoire durable - Portail numerique du Lycee Blaise Cendrars
 
-**Derniere mise a jour** : 14 septembre 2026
+**Derniere mise a jour** : 15 septembre 2026
 **Branche de travail** : `codex/lycee-connect-prototype`
 **Depot** : `abenmahmoud/Stage-Pilot`
 **Dernier jalon de code verifie** : branche de preview Vercel
+
+## ENT personnel dans le chat — 15 septembre
+
+Adel autorise l’import urgent de son nouvel export ENT depuis Téléchargements et
+la remise autonome des accès après OTP connu du lycée. Import activé
+`a3a7aec0-3158-4a2b-a837-539888e02b39` : 4 518 personnes, 2 413 relations, aucun
+rejet ; 625 nouveaux liens parent-enfant réciproques, références existantes
+préservées. Attributs actifs `f468369c-a4de-4b02-aaf0-387a5a212781` : 10 026
+valeurs chiffrées. Coffre : 1 273 codes initiaux de comptes inactifs, stockés
+chiffrés. Aucun export nominatif ni code dans Git ou dans le modèle.
+
+Le chat propose l’identifiant exact, chiffres inclus, et la démarche adaptée.
+La lecture privée utilise exclusivement la session OTP serveur et la personne
+elle-même ; un parent reçoit son compte ENT personnel, jamais celui de son
+enfant. Révélation explicite, preuve de moins de 30 minutes, quota existant et
+effacement de l’affichage hors page ; compte actif sans code initial.
+Les anciennes routes reposant sur une phase déclarée restent sans lecture
+secrète. Coordonnées incorrectes et récupération échouée : référent numérique,
+pas de modification automatique. Les sessions de l’ancien annuaire doivent
+être revérifiées après cette activation. Publication et limites à suivre dans
+`docs/operations/ENT_AUTONOME_2026-09-15.md`.
 
 ## Accueil sur rendez-vous par service — 14 septembre
 

@@ -1,5 +1,6 @@
 import { encodeBudgetedAiRequest } from "../../shared/budgeted-ai-request.js";
 import { accessGuidanceKind, requestsOwnClass, type OwnClassReadResult } from "../../shared/support-service-intent.js";
+import { requestsEntAccess } from '../../shared/ent-self-service.js';
 import { familySchoolIntent, type FamilySchoolIntent, type SchoolTargetChoices } from "../../shared/family-school-chat.js";
 import { familySchoolAnswer } from "./family-school-chat-answer.js";
 import type { FamilySchoolResult } from "./family-school-chat-service.js";
@@ -556,6 +557,15 @@ export async function analyzeSupportConversation(input: {
     };
   }
   const accessGuidance = accessGuidanceKind(input.messages);
+  if (requestsEntAccess(input.messages) && accessGuidance !== 'recovery_failed') {
+    await recordRuntime('deterministic',false,false);
+    return { ...fallback,category:'ent',scope:'school_support',confidence:'high',usedAi:false,
+      reply:input.identityVerified
+        ? 'Votre identité est confirmée. Retrouvez votre identifiant exact et la démarche adaptée à votre compte dans « Mon accès ENT » ci-dessous. Pour un parent, il s’agit de son compte personnel de parent.'
+        : 'Je peux vous aider à retrouver votre accès ENT. Confirmons votre identité avec un code envoyé par SMS ou email sur une coordonnée connue du lycée.',
+      readyToCreate:false,action:'continue',missingInformation:input.identityVerified?[]:['Votre identité'],suggestedDocuments:[],
+      safetyNotice:null,internalSummaryFr:null,sourceReferences:[] };
+  }
   if (accessGuidance) {
     await recordRuntime("deterministic", false, false);
     return { ...fallback, category: "ent", scope: "school_support", confidence: "high", usedAi: false,

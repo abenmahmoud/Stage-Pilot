@@ -182,6 +182,8 @@ import {
 } from "./public-content-client";
 import "./lycee-connect.css";
 import ScheduleChatCard from './ScheduleChatCard';
+import EntAccessChatCard from './EntAccessChatCard';
+import { requestsEntAccess } from '../../../shared/ent-self-service';
 import { resolveAssistantConversationTransition } from '../../../shared/assistant-conversation-state';
 
 type RequesterProfile = "eleve" | "parent" | "professeur" | "personnel" | "autre" | "";
@@ -2182,6 +2184,8 @@ function HelpDeskView({
                   choices={message.schoolTargets} busy={assistantBusy}
                   onSelect={(key, expiresAt) => void askAssistant(chatMessages, false, { key, expiresAt })}
                   onRefresh={() => { selectedSchoolTargetRef.current = null; void askAssistant(chatMessages); }} /> : null}
+                {message.role === 'assistant' && message.id === chatMessages.at(-1)?.id && identityVerified && insight?.category === 'ent' && insight.action === 'continue' && requestsEntAccess(chatMessages)
+                  ? <EntAccessChatCard onHelp={() => { setClassicForm(false); setShowDetails(true); }} /> : null}
                 {message.sourceReferences?.length ? (
                   <div className="lycee-agent-sources" aria-label="Sources utilisées">
                     <BookOpenCheck aria-hidden="true" />
