@@ -17,7 +17,7 @@ export function entIdentityPrompt(): string {
 export function requestsEntAccess(messages: readonly AssistantConversationMessage[]): boolean {
   const plain = (v: string) => v.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[’']/g, ' ');
   const latest = plain(messages.findLast(m => m.role === 'requester')?.content ?? '');
-  if (/\b(pronote|koxo|cantine|emploi|horaire|salle|certificat)\b/.test(latest)) return false;
+  if (/\b(pronote|koxo|cantine|emploi|horaire|salle|certificat|pc|windows|session|reseau)\b/.test(latest)) return false;
   const recentService = [...messages].reverse().find(m => m.role === 'requester'
     && /\b(ent|monlycee|mon lycee|pronote|koxo|cantine|messagerie|academique)\b/.test(plain(m.content)));
   const entContext = recentService ? /\b(ent|monlycee|mon lycee)\b/.test(plain(recentService.content)) : false;

@@ -1297,6 +1297,14 @@
   cantine, Koxo et messagerie académique : preuve sur coordonnée officielle,
   composant sécurisé, aucun secret dans le modèle ou les journaux, et formulaire
   humain en cas d'échec. L'import réel reste fermé jusqu'à la recette du coffre.
+- [x] T069A Brancher le parcours personnel KOXO au chat et à la session OTP
+  serveur, identifiant exact et code dans un affichage privé. Vérifier le quota,
+  les expirations et les refus entre personnes/établissements. Tests fictifs,
+  PostgreSQL jetable, mobile et build réussis le 15/09/2026 ; voir
+  `docs/operations/SESSIONS_PC_CHAT_2026-09-15.md`.
+- [ ] T069B Recevoir l’export KOXO des professeurs, rapprocher les références
+  personnelles de l’annuaire actif, importer dans le coffre chiffré puis
+  constater une remise réelle après OTP. Aucun code KOXO actuellement en base.
 - [ ] T070 Ajouter les documents versionnés téléchargeables et leur retour depuis
   l'assistant, avec routage générale/technologique vers l'administration et
   professionnel vers la DDFPT.

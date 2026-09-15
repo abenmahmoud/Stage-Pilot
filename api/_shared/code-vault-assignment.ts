@@ -93,7 +93,7 @@ export async function recordVaultCodeDisplay(
   params: { assignmentId: string; institutionId: string; now: Date }
 ): Promise<VaultDisplayOutcome> {
   const locked = await tx.execute(sql`
-    select display_count, display_count_date, defective_flagged_at
+    select display_count, display_count_date::text as display_count_date, defective_flagged_at
     from public.code_vault_assignments
     where id = ${params.assignmentId} and institution_id = ${params.institutionId}
     for update

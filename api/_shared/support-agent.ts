@@ -1,6 +1,7 @@
 import { encodeBudgetedAiRequest } from "../../shared/budgeted-ai-request.js";
 import { accessGuidanceKind, requestsOwnClass, type OwnClassReadResult } from "../../shared/support-service-intent.js";
 import { requestsEntAccess, entIdentityPrompt } from '../../shared/ent-self-service.js';
+import { requestsPcSessionAccess, pcSessionIdentityPrompt, pcSessionRecoveryFailed } from '../../shared/pc-session-self-service.js';
 import { familySchoolIntent, type FamilySchoolIntent, type SchoolTargetChoices } from "../../shared/family-school-chat.js";
 import { familySchoolAnswer } from "./family-school-chat-answer.js";
 import type { FamilySchoolResult } from "./family-school-chat-service.js";
@@ -495,6 +496,19 @@ export async function analyzeSupportConversation(input: {
   if (policy.deterministicReply) {
     await recordRuntime("deterministic", false, false);
     return deterministicResult(policy, fallback);
+  }
+  if (requestsPcSessionAccess(input.messages)) {
+    await recordRuntime('deterministic', false, false);
+    if (pcSessionRecoveryFailed(input.messages)) return { ...fallback, category: 'logiciel', scope: 'school_support', confidence: 'high', usedAi: false,
+      reply: 'Votre accès PC ne fonctionne pas. Je peux préparer une demande au référent numérique avec le problème rencontré, sans recopier votre mot de passe. Souhaitez-vous transmettre cette demande ?',
+      readyToCreate: true, action: 'offer_case', missingInformation: [], suggestedDocuments: [], safetyNotice: null, internalSummaryFr: null, sourceReferences: [] };
+    return { ...fallback, category: 'logiciel', scope: 'school_support', confidence: 'high', usedAi: false,
+      reply: input.identityVerified
+        ? 'Votre identité est confirmée. Consultez « Ma session PC » ci-dessous : votre identifiant exact et votre code personnel y seront disponibles s’ils ont été ajoutés par le lycée. Si votre accès ne fonctionne pas, vous pouvez demander sa vérification ici.'
+        : pcSessionIdentityPrompt(),
+      readyToCreate: false, action: 'continue', missingInformation: input.identityVerified ? [] : ['Identité scolaire confirmée'],
+      suggestedDocuments: [], safetyNotice: null, internalSummaryFr: null, sourceReferences: [],
+    };
   }
   const chromebookAnswer = chromebookReferenceAnswer(input.messages, now);
   if (chromebookAnswer && !accessGuidanceKind(input.messages)) {

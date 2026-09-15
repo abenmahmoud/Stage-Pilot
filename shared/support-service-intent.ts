@@ -1,5 +1,6 @@
 import { resolveAssistantConversationTransition, type AssistantConversationMessage } from './assistant-conversation-state.js';
 import { requestsEntAccess } from './ent-self-service.js';
+import { requestsPcSessionAccess, pcSessionRecoveryFailed } from './pc-session-self-service.js';
 
 type Message = AssistantConversationMessage;
 
@@ -37,6 +38,7 @@ export function requiresIdentityForPersonalSupport(messages: readonly Message[],
   const transition = resolveAssistantConversationTransition([...messages]);
   if (transition.stage === 'action_confirmed' || transition.stage === 'action_declined') return false;
   if (requestsOwnClass(messages)) return true;
+  if (requestsPcSessionAccess(messages)) return !pcSessionRecoveryFailed(messages);
   if (accessGuidanceKind(messages) === 'reset' && /\b(comment|quelle procedure)\b/.test(latestText(messages))) return false;
   if (requestsEntAccess(messages) && accessGuidanceKind(messages) !== 'recovery_failed') return true;
   if (accessGuidanceKind(messages)) return false;

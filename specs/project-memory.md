@@ -5,6 +5,19 @@
 **Depot** : `abenmahmoud/Stage-Pilot`
 **Dernier jalon de code verifie** : branche de preview Vercel
 
+## Sessions PC personnelles dans le chat — 15 septembre
+
+À la demande d’Adel : parcours KOXO pour les professeurs et accès propre des
+élèves, après une preuve OTP serveur récente. Identifiant exact et code dans
+une carte sécurisée, sans secret dans les messages ou l’IA. Identité renouvelable
+dans le même échange, recours au référent si donnée absente ou accès défectueux.
+20 tests ciblés, 16 contrôles PostgreSQL jetables, build et carte mobile vérifiés.
+Le contrôle a également corrigé le compteur quotidien du coffre (date SQL en
+texte pour éviter une comparaison Date/chaîne). **Aucune attribution KOXO dans
+le coffre actuel : export réel nécessaire**, demandé à Adel. ENT : 1 273
+attributions chiffrées disponibles, réception effective par un utilisateur à
+constater. Preuve et limites : `docs/operations/SESSIONS_PC_CHAT_2026-09-15.md`.
+
 ## Incident de la page Validations — 15 septembre
 
 La capture précise que l’erreur concerne `/admin/validations-agent`, et non les

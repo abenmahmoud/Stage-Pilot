@@ -183,6 +183,8 @@ import {
 import "./lycee-connect.css";
 import ScheduleChatCard from './ScheduleChatCard';
 import EntAccessChatCard from './EntAccessChatCard';
+import PcSessionChatCard from './PcSessionChatCard';
+import { requestsPcSessionAccess, pcSessionIdentityPrompt } from '../../../shared/pc-session-self-service';
 import { IdentityContactChoices } from './IdentityContactChoices';
 import { SupportReplySuggestion } from './SupportReplySuggestion';
 import './support-workspace.css';
@@ -1520,6 +1522,7 @@ function IdentityDeviceAccessPanel({
       <section className="lycee-identity-device is-verified" aria-label="Identité vérifiée">
         <BadgeCheck aria-hidden="true" />
         <div><strong>Identité confirmée</strong><p>{profileLabel}. Vous pouvez accéder aux services personnels disponibles pour votre profil.</p></div>
+        <button type="button" disabled={busy} onClick={() => { setCode(''); setContactOptions([]); setDestination(''); setSessionExpiresAt(null); setError(null); setState('identify'); onVerificationChange?.(false); }}>Vérifier à nouveau mon identité</button>
         {!confirmForget ? <button type="button" disabled={busy} onClick={() => setConfirmForget(true)}>Changer de personne</button>
           : <div className="lycee-identity-device-actions"><p>Changer de personne ferme votre accès et efface le brouillon de cet appareil. Vos demandes déjà envoyées restent conservées.</p><button type="button" disabled={busy} onClick={() => setConfirmForget(false)}>Garder mon accès</button><button type="button" disabled={busy} onClick={() => void forgetIdentity()}>Fermer mon accès et changer</button></div>}
         {error ? <p role="alert">{error}</p> : null}
@@ -1819,7 +1822,7 @@ function HelpDeskView({
       const { schedule: _privateSchedule, schoolTargets: _privateTargets, ...publicResult } = result;
       result = {
         ...publicResult,
-        reply: requestsEntAccess(requestMessages) ? entIdentityPrompt()
+        reply: requestsPcSessionAccess(requestMessages) ? pcSessionIdentityPrompt() : requestsEntAccess(requestMessages) ? entIdentityPrompt()
           : "Je vais vous accompagner. Pour accéder à vos informations personnelles, confirmons d’abord votre identité ici.",
         readyToCreate: false,
         action: "continue",
@@ -2185,6 +2188,8 @@ function HelpDeskView({
                   onRefresh={() => { selectedSchoolTargetRef.current = null; void askAssistant(chatMessages); }} /> : null}
                 {message.role === 'assistant' && message.id === chatMessages.at(-1)?.id && identityVerified && insight?.category === 'ent' && ['continue','offer_case'].includes(insight.action) && requestsEntAccess(chatMessages)
                   ? <EntAccessChatCard recoveryFailed={insight.action === 'offer_case'} onHelp={() => { setClassicForm(false); setShowDetails(true); }} /> : null}
+                {message.role === 'assistant' && message.id === chatMessages.at(-1)?.id && identityVerified && insight?.category === 'logiciel' && insight.action === 'continue' && requestsPcSessionAccess(chatMessages)
+                  ? <PcSessionChatCard onHelp={() => { setClassicForm(false); setShowDetails(true); }} /> : null}
                 {message.role === 'assistant' && message.id === chatMessages.at(-1)?.id && !identityVerified && !identityRequiredForCurrentRequest && insight?.category === 'ent' && insight.action === 'continue' && requestsEntAccess(chatMessages)
                   ? <div className="lycee-chat-next-actions"><button type="button" disabled={assistantBusy} onClick={() => sendPreparedChatMessage('Je veux retrouver mon identifiant ENT personnel')}>Retrouver mon identifiant ENT</button></div> : null}
                 {message.role === 'assistant' && message.id === chatMessages.at(-1)?.id && identityVerified && insight?.category === 'affectation_classe' && insight.action === 'offer_case' && familySchoolIntent(chatMessages)?.explicitChild
