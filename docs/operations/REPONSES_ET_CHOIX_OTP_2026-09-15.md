@@ -34,7 +34,9 @@ Le texte de réponse était replié sous « Lire la proposition et ses sources �
 
 Le texte proposé est désormais affiché en entier dès l’ouverture, sans lignes tronquées. Seules les preuves et sources restent repliées. Après insertion, le texte reste dans le champ modifiable et l’aperçu disparaît pour éviter le doublon. Les propositions qui demandent seulement un complément sont clairement signalées comme ne résolvant pas encore le besoin. Aucun nouvel automatisme d’envoi ni rapprochement d’identité.
 
-Contrôles : build complet, six tests de proposition réussis ; navigateur fictif 1440/390 px, réponse de 835 caractères visible hors panneau replié, insertion exacte dans le brouillon sans envoi, aucun débordement horizontal. Publication de cette correction à confirmer.
+Contrôles : build complet, six tests de proposition réussis ; navigateur fictif 1440/390 px, réponse de 835 caractères visible hors panneau replié, insertion exacte dans le brouillon sans envoi, aucun débordement horizontal.
+
+Correction publiée : `923ebd5`, déploiement `dpl_J5Q9xjYipmgAL1vMiphfpLqWB1Bc` READY, alias principal confirmé par le connecteur Vercel, HTTP 200 et bundle `index-DPX2ye6Y.js`. Console connectée : proposition de 310 caractères affichée hors panneau replié, sources repliées, aucun message d’erreur, mention du complément à adapter visible. Aucune réponse réelle envoyée pendant la vérification.
 
 Publié le 15 septembre 2026 vers 19 h 05, commit `b3ad71ab32a40b3fb17de0bca9d5493b82b9ede8`, déploiement `dpl_BencfLDJ5vezNY3qQ8K5gwomzTdR` READY.
 

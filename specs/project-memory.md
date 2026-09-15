@@ -25,7 +25,9 @@ Retour d’Adel : « il n’y a pas de réponses ». Texte auparavant replié de
 les sources ; correction pour afficher la proposition entière, puis insertion
 dans le brouillon. Les classements en attente ne sont pas des réponses rédigées.
 Les compléments demandés faute de procédure sont distingués d’une résolution.
-Build et six tests réussis, contrôle fictif 1440/390 px. Publication à confirmer.
+Build et six tests réussis, contrôle fictif 1440/390 px. Publié `923ebd5`,
+déploiement `dpl_J5Q9xjYipmgAL1vMiphfpLqWB1Bc` READY et domaine confirmé.
+Texte proposé visible dans la console connectée ; aucun envoi réel de test.
 
 ## Parcours parent et récupération ENT — 15 septembre
 
