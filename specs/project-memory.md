@@ -13,6 +13,10 @@ refus `out_of_range`. L’UUID seul est accepté. Les deux parcours email partag
 désormais l’expéditeur corrigé ; politique OTP, SMS et coordonnées inchangés.
 Régression email reproduite avant correction puis réussie. Publication et
 réception réelle à suivre dans `docs/operations/INCIDENT_OTP_EMAIL_2026-09-15.md`.
+Publié `b8ba465`, déploiement `dpl_m9pAy7Vg5TkaNiDLSK7KWvymvcT3` READY sur le
+domaine principal. Build réussi, modèle réel accepté en sandbox ; six refus
+HTTP de sécurité attendus sur URL immuable et domaine. Chat et mobile vérifiés,
+aucun OTP réel de test envoyé ; réception académique à confirmer par Adel.
 Adel prépare un export SIECLE pour compléter les téléphones ; fichier attendu,
 aucune fusion supplémentaire effectuée à ce stade.
 
