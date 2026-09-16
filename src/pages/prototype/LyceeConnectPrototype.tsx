@@ -3090,6 +3090,7 @@ function DemoRequestsView({ ticketCode, onBack }: { ticketCode: string | null; o
 function ServicesView({ onHelp, onCollect, onBack }: { onHelp: (prompt?: string) => void; onCollect: () => void; onBack: () => void }) {
   const serviceGroups = [
     { title: "Mon Chromebook", description: "Préparer la remise, se connecter, travailler et trouver le bon dépannage.", icon: Laptop, color: "blue", progress: "Le guide pour toute l’année", action: "Consulter le guide", href: "/chromebook" },
+    { title: "Ordinateur en panne", description: "Choisir la bonne démarche SAV pour un PC UNOWHY ou un Chromebook ASUS.", icon: LifeBuoy, color: "coral", progress: "Guide régional pour les familles et les personnels", action: "Trouver le bon SAV", href: "/assistance-numerique" },
     { title: "Assistance du lycée", description: "Une question de scolarité ou une difficulté de connexion ? Décrivez votre besoin.", icon: LifeBuoy, color: "coral", progress: "Démarches dans le chat", action: "Demander de l’aide", help: true },
     { title: "Webmail du lycée", description: "Accès à la messagerie du lycée pour les utilisateurs autorisés.", icon: Mail, color: "green", progress: "Connexion à la messagerie", action: "Ouvrir le Webmail", href: WEBMAIL_URL, external: true },
     { title: "Inscriptions et dossiers", description: "Réinscription, pièces manquantes, classe et documents de scolarité", icon: FolderCheck, color: "gold", progress: "Traitement par le service concerné", action: "Préparer une demande", help: true },

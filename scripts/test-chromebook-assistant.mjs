@@ -51,7 +51,11 @@ test('unknown models are clarified and the legacy SAV is kept separate', async (
   assert.match(first.reply, /Chromebook ASUS.*UNOWHY Y13/s);
   const second = await analyze([user('Mon ordinateur est cassé'), answer(first.reply), user('Un Y13')]);
   assert.match(second.reply, /La Poste/);
+  assert.match(second.reply, /assistance-numerique#unowhy/);
   assert.doesNotMatch(second.reply, /déposez.*FNAC/);
+  const poste = await analyze([user('Comment faire le SAV La Poste ?')]);
+  assert.match(poste.reply, /Mes outils pédagogiques.*La Poste SAV/s);
+  assert.equal(poste.readyToCreate, false);
   const asus = await analyze([user('Mon ordinateur est cassé'), answer(first.reply), user('Un Chromebook')]);
   assert.match(asus.reply, /accord de retour RMA/);
 });

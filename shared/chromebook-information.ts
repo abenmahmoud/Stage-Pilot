@@ -2,8 +2,9 @@
  * Both the public page and the assistant read these reviewed answers.
  * Provenance and editorial decisions: docs/operations/CHROMEBOOK_2026-09-10.md.
  */
+import { UNOWHY_CHAT_ANSWER } from "./regional-device-sav.js";
 export const CHROMEBOOK_PATH = "/chromebook";
-export const CHROMEBOOK_UPDATED_AT = "2026-09-10T16:00:00.000Z";
+export const CHROMEBOOK_UPDATED_AT = "2026-09-16T08:00:00.000Z";
 export const CHROMEBOOK_PORTAL = "https://monordi-iledefrance.fr/";
 export const CHROMEBOOK_DISTRIBUTION = {
   start: "2026-09-14T00:00:00+02:00",
@@ -114,8 +115,8 @@ export function chromebookAnswers(now = new Date()): ChromebookAnswer[] {
       answer: "La Région n’annonce pas de stock complémentaire destiné au remplacement temporaire des Chromebooks. **Les possibilités d’aide au lycée doivent être vérifiées avec l’équipe**, sans garantie de prêt. Prévenez votre professeur pour organiser le travail pendant l’indisponibilité de votre appareil.",
       keywords: ["pret", "preter", "remplacement", "secours", "en attendant", "oublie ordinateur", "oublie mon", "pas mon ordinateur"], source: `${guide}, p. 8 ; vérification locale nécessaire` },
     { id: "ancien-pc", section: "depanner", question: "J’ai un ancien ordinateur UNOWHY Y13 : est-ce le même SAV ?",
-      answer: "**Les anciens UNOWHY Y13 ont leur propre parcours SAV.** Depuis Monlycée.net, ouvrez « Mes outils pédagogiques », puis l’entrée La Poste / SAV indiquée pour cet équipement. Le parcours ASUS et le retour en FNAC décrits ici concernent les Chromebooks. En cas de doute sur le modèle, demandez de l’aide au référent numérique.",
-      keywords: ["unowhy", "y13", "ancien", "ancien ordinateur", "ancien pc"], source: `${guide}, p. 9` },
+      answer: UNOWHY_CHAT_ANSWER,
+      keywords: ["unowhy", "y13", "ancien", "ancien ordinateur", "ancien pc", "la poste sav", "sav la poste"], source: "UNOWHY · FAQ SAV 2026 ; Région Île-de-France · Livret 2026-2027" },
     { id: "charte", section: "accompagner", question: "Faut-il signer une convention papier ?",
       answer: "Le livret régional n’annonce **pas de convention de prêt papier** pour cette remise. Les conditions figurent dans la charte Monlycée.net, acceptée lors de l’activation du compte. Le choix dans MonOrdi IdF et la confirmation de réception restent deux étapes distinctes : **confirmez la réception seulement après la remise effective**.",
       keywords: ["convention", "signer", "signature", "charte", "contrat", "confirmation", "confirmer reception"], source: `${guide}, p. 5-6 ; message régional après distribution` },

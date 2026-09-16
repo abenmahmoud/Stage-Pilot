@@ -145,7 +145,7 @@ function explicitScope(content: string): AssistantScope {
     return "privacy_request";
   }
 
-  if (/\b(chromebooks?|monordi|mon ordi|unowhy|y13|class connect|classconnect)\b/.test(text)) {
+  if (/\b(chromebooks?|monordi|mon ordi|unowhy|y13|la poste sav|sav la poste|class connect|classconnect)\b/.test(text)) {
     return "school_support";
   }
 

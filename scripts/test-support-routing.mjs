@@ -72,6 +72,10 @@ test("routes digital access and equipment to the digital lead", () => {
     description: "Le PC portable fourni par le lycée ne démarre plus",
   });
   assert.equal(laptop.service, "referent_numerique");
+  for (const description of ["Le SAV UNOWHY bloque", "Mon Chromebook ASUS ne démarre plus", "La Poste SAV ne s'ouvre pas"]) {
+    const regionalDevice = routeSupportRequest({ category: "autre", description });
+    assert.equal(regionalDevice.service, "referent_numerique", description);
+  }
 });
 
 test("routes PRONOTE access through the digital support service", () => {

@@ -1,0 +1,42 @@
+.sav-main { max-width: 1080px; }
+.sav-hero { padding: 16px 0 26px; }
+.sav-hero h1 { max-width: 720px; margin: 0 0 12px; color: var(--lc-ink); font-size: clamp(34px, 4vw, 52px); line-height: 1.08; letter-spacing: -.045em; }
+.sav-hero > p:not(.cb-eyebrow) { max-width: 690px; margin: 0; color: var(--lc-muted); font-size: 17px; line-height: 1.65; }
+.sav-hero-actions, .sav-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 20px; }
+.sav-model-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 14px; margin: 0 0 20px; }
+.sav-model-grid a { display: grid; grid-template-columns: 56px minmax(0,1fr) 20px; gap: 2px 14px; align-items: center; padding: 22px; border: 1px solid var(--lc-line); border-radius: var(--school-radius); color: var(--lc-ink); background: #fff; text-decoration: none; min-height: 142px; }
+.sav-model-grid a:hover { border-color: #91aeeb; box-shadow: 0 10px 26px rgba(24,54,93,.08); }
+.sav-model-grid .sav-model-icon { grid-row: 1 / 4; display: grid; place-items: center; width: 52px; height: 52px; border-radius: 13px; color: var(--lc-blue); background: var(--school-blue-soft); }
+.sav-model-icon svg { width: 26px; height: 26px; }
+.sav-model-grid small { grid-column: 2; grid-row: 1; color: var(--lc-muted); font-size: 12px; }
+.sav-model-grid strong { grid-column: 2; grid-row: 2; font-size: 20px; letter-spacing: -.025em; }
+.sav-model-grid a > span:nth-last-child(2) { grid-column: 2; grid-row: 3; color: var(--lc-muted); font-size: 13px; line-height: 1.5; }
+.sav-model-grid a > svg { grid-column: 3; grid-row: 2; width: 18px; color: var(--lc-blue); }
+.sav-panel { scroll-margin-top: 90px; padding: 28px; margin: 18px 0; border: 1px solid var(--lc-line); border-radius: var(--school-radius); background: #fff; }
+.sav-panel-head { display: flex; align-items: start; justify-content: space-between; gap: 20px; }
+.sav-panel h2, .sav-roles h2, .sav-help h2 { margin: 0; color: var(--lc-ink); font-size: clamp(23px, 2.5vw, 29px); line-height: 1.24; letter-spacing: -.03em; }
+.sav-panel-index { color: #b6c9e6; font-size: 32px; font-weight: 700; line-height: 1; }
+.sav-steps { list-style: none; margin: 24px 0 0; padding: 0; display: grid; gap: 0; }
+.sav-steps li { display: grid; grid-template-columns: 34px minmax(0,1fr); align-items: start; gap: 12px; padding: 14px 0; border-top: 1px solid var(--lc-line); }
+.sav-steps li span { color: var(--lc-blue); font-weight: 700; font-size: 13px; padding-top: 2px; }
+.sav-steps li p { margin: 0; color: var(--lc-ink); font-size: 15px; line-height: 1.7; }
+.sav-panel-lead { max-width: 690px; font-size: 16px; line-height: 1.7; color: var(--lc-muted); }
+.sav-note { padding: 13px 16px; border-radius: 9px; background: #f3f7fc; color: #415670; font-size: 13px; line-height: 1.7; margin: 18px 0 0; }
+.sav-note a, .sav-roles a, .sav-page .cb-source-note a { color: var(--lc-blue); }
+.sav-help { display: grid; grid-template-columns: 1.3fr .7fr; gap: 20px; border-radius: var(--school-radius); background: var(--school-navy); color: #fff; padding: 32px; margin: 26px 0 34px; }
+.sav-help .cb-eyebrow { color: #b9ceff; }
+.sav-help h2 { color: #fff; }
+.sav-help p:not(.cb-eyebrow) { max-width: 610px; color: #d5e0f0; font-size: 14px; line-height: 1.7; }
+.sav-help .cb-primary { background: #fff; color: var(--lc-blue); width: fit-content; margin-top: 8px; }
+.sav-help-icon { color: #b9ceff; display: inline-block; margin-bottom: 12px; }
+.sav-help-secondary { border-left: 1px solid #66809b; padding-left: 22px; align-self: stretch; }
+.sav-help-secondary > svg { width: 23px; color: #b9ceff; }
+.sav-help-secondary h3 { color: #fff; margin: 16px 0 10px; font-size: 17px; }
+.sav-roles { margin: 0 0 26px; }
+.sav-role-grid { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 14px; margin-top: 20px; }
+.sav-role-grid article { border: 1px solid var(--lc-line); border-radius: var(--school-radius); background: #fff; padding: 22px; }
+.sav-role-grid strong { display: block; color: var(--lc-ink); font-size: 16px; margin-bottom: 9px; }
+.sav-role-grid p, .sav-roles-foot { margin: 0; color: var(--lc-muted); font-size: 14px; line-height: 1.7; }
+.sav-roles-foot { margin-top: 16px; }
+@media (max-width: 720px) { .sav-hero { padding-top: 8px; } .sav-hero h1 { font-size: 35px; } .sav-hero > p:not(.cb-eyebrow) { font-size: 15px; } .sav-hero-actions > *, .sav-actions > * { flex: 1 1 auto; } .sav-model-grid, .sav-help, .sav-role-grid { grid-template-columns: 1fr; } .sav-model-grid a { min-height: 118px; padding: 18px; } .sav-panel { padding: 20px; } .sav-panel-index { display: none; } .sav-help { padding: 24px; } .sav-help-secondary { padding: 20px 0 0; border-left: 0; border-top: 1px solid #66809b; } }
+@media print { .sav-hero-actions, .sav-actions, .sav-help .cb-primary { display: none; } .sav-panel, .sav-model-grid a, .sav-role-grid article { break-inside: avoid; } }

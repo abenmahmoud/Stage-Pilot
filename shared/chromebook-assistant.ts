@@ -1,5 +1,6 @@
 import { chromebookAnswers, CHROMEBOOK_PATH, CHROMEBOOK_UPDATED_AT } from "./chromebook-information.js";
 import { evaluateLaptopIntake } from "./laptop-intake.js";
+import { REGIONAL_DEVICE_SAV_PATH } from "./regional-device-sav.js";
 
 type Message = { role: "requester" | "assistant"; content: string };
 
@@ -21,7 +22,7 @@ function normalize(value: string): string {
 }
 
 function mentionsComputer(text: string): boolean {
-  return /\b(chromebooks?|ordinateurs?|ordi|pc|monordi|mon ordi|unowhy|y13|asus|class connect|classconnect)\b/.test(text);
+  return /\b(chromebooks?|ordinateurs?|ordi|pc|monordi|mon ordi|unowhy|y13|asus|la poste sav|sav la poste|class connect|classconnect)\b/.test(text);
 }
 
 function mentionsOtherService(text: string): boolean {
@@ -70,7 +71,7 @@ export function chromebookReferenceAnswer(messages: Message[], now = new Date())
     [/\b(prix|cout|coute|payer|paye|gratuit|devis|garantie)\b/, "cout-sav"],
     [/\b(pret|preter|remplacement|en attendant)\b/, "pret"],
     [/\b(unowhy|y13)\b.*\b(rendre|restituer|restitution)\b|\b(rendre|restituer|restitution)\b.*\b(unowhy|y13)\b/, "restitution"],
-    [/\b(unowhy|y13)\b/, "ancien-pc"],
+    [/\b(unowhy|y13|la poste sav|sav la poste)\b/, "ancien-pc"],
     [/\b(panne|casse|cassee|ecran noir|allume plus|ne demarre|fonctionne plus|ne marche plus|reparer|reparation|charge plus|fissure|tombe)\b/, "sav"],
     [/\b(qr|smartphone|sans telephone|pas de telephone)\b/, "qr"],
     [/\b(cap|terminale|nouvel entrant|nouveau lycee)\b/, "eligibilite"],
@@ -88,7 +89,7 @@ export function chromebookReferenceAnswer(messages: Message[], now = new Date())
   const reply = needsModel
     ? "Pour vous indiquer le bon SAV : votre ordinateur est-il un **Chromebook ASUS** ou un ancien **UNOWHY Y13** ? Les démarches sont différentes. N’ouvrez pas l’appareil pour tenter de le réparer."
     : entry
-    ? `${entry.answer}\n\n[Retrouver le guide Chromebook](${CHROMEBOOK_PATH}#${entry.id}).`
+    ? `${entry.answer}\n\n[${entry.id === "ancien-pc" ? "Retrouver le guide SAV des ordinateurs" : "Retrouver le guide Chromebook"}](${entry.id === "ancien-pc" ? `${REGIONAL_DEVICE_SAV_PATH}#unowhy` : `${CHROMEBOOK_PATH}#${entry.id}`}).`
     : "Je peux vous aider pour votre Chromebook : préparer la remise, vous connecter, travailler avec vos fichiers ou trouver le bon dépannage. Quel point souhaitez-vous vérifier ? Pour une situation individuelle, je peux aussi vous aider à préparer une demande au lycée.";
   return {
     reply, category: "ordinateur" as const, scope: "school_support" as const, action: "continue" as const,

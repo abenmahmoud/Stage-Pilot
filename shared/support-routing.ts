@@ -94,7 +94,7 @@ export function routeSupportRequest(input: {
     };
   }
   if (
-    /\b(ent|educonnect|pronotes?|webmail|zimbra|email academique|wifi|reseau|ordinateur|pc|tablette|logiciel|connexion)\b/.test(text)
+    /\b(ent|educonnect|pronotes?|webmail|zimbra|email academique|wifi|reseau|ordinateur|pc|tablette|logiciel|connexion|unowhy|chromebook|asus|la poste sav|sav la poste)\b/.test(text)
   ) {
     return {
       service: "referent_numerique",

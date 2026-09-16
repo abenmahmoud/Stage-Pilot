@@ -1,8 +1,8 @@
-/** Guide révisé avec les écrans et rapports de livraison le 12 septembre 2026.
+/** Guide révisé avec les écrans et rapports de livraison le 16 septembre 2026.
  * Instructions générales uniquement : ni annuaire, ni secret, ni état opérationnel en temps réel.
  * Mettre à jour la fiche concernée lorsqu'un parcours ou une limite change.
  */
-export const MANUAL_REVIEW_DATE = "12 septembre 2026";
+export const MANUAL_REVIEW_DATE = "16 septembre 2026";
 
 export const MANUAL_GROUPS = [
   { id: "quotidien", label: "Demandes et accueil" },
@@ -235,6 +235,22 @@ export const MANUAL_ARTICLES: ManualArticle[] = [
     result: "Une seule information de référence, des rendez-vous visibles et une alerte ciblée, sans notifier inutilement tout le lycée.",
     check: "Un appareil sans abonnement ne recevra pas de push. Après la distribution, retirez l’annonce datée tout en conservant le guide annuel.",
     links: [{ label: "Préparer l’article", to: "/admin/contenus" }, { label: "Créer le flash", to: "/admin/informations-flash/proposer" }, { label: "Guide Chromebook", to: "/chromebook" }],
+  },
+  {
+    id: "sav-regional", group: "quotidien", title: "Orienter un SAV UNOWHY ou ASUS",
+    summary: "Une page publique et un circuit clair pour les ordinateurs régionaux.",
+    access: "Guide public pour les familles et personnels ; demandes individuelles dans la file du service numérique.",
+    prerequisite: "Identifier le modèle de l’appareil et le problème rencontré. Les conditions de retour sont confirmées par le SAV ; l’organisation locale de remise reste à fixer avec la direction.",
+    steps: [
+      "Ouvrez Assistance numérique. Le PC UNOWHY Y13 et le Chromebook ASUS ont deux parcours distincts.",
+      "Pour un PC UNOWHY d’un élève encore scolarisé, guidez vers Monlycée.net → Mes outils pédagogiques → La Poste SAV. Le chat UNOWHY n’est plus le canal des élèves.",
+      "Pour un Chromebook ASUS, ouvrez le diagnostic sur MonOrdi IdF puis suivez les consignes du SAV ASUS et du réseau Fnac-Darty.",
+      "Si l’ENT ou la démarche bloque, le chat prépare un dossier avec le modèle, le symptôme, le message d’erreur et les essais déjà faits. La catégorie ordinateur est routée au service numérique ; un agent reprend le dossier si une action locale est nécessaire.",
+      "La coordination numérique assure une orientation ponctuelle et remonte les incidents collectifs. Le RRUPN traite les usages pédagogiques. Aucun rendez-vous n’est annoncé avant confirmation d’un créneau par le lycée.",
+    ],
+    result: "La famille trouve d’abord le bon prestataire ; le service numérique reçoit uniquement les blocages à traiter au lycée.",
+    check: "Ne promettez ni réparation locale, ni prêt, ni délai, ni lieu de retour. La personne chargée de réceptionner un appareil revenu du SAV doit être désignée par la direction.",
+    links: [{ label: "Guide public", to: "/assistance-numerique" }, { label: "Demandes du lycée", to: "/gestion/demandes" }],
   },
   {
     id: "push-telephone", group: "diffusion", title: "Installer l’application et activer les notifications",
