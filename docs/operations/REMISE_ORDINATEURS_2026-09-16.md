@@ -2,9 +2,9 @@
 
 ## Source et périmètre
 
-Le document remis pour la « liste des absents » (`doc03277120260916123544.pdf`) contient 31 pages de feuilles d'émargement d'EPS des 8 et 10 septembre 2026. Il précède la distribution des PC des 14 et 15 septembre et ses cases de signature sont vierges. Il ne permet pas d'établir les élèves absents à la remise. Aucun nom n'en a été importé.
+Le document remis pour la « liste des absents » (`doc03277120260916123544.pdf`) contient 31 pages d'anciennes impressions remises par l'administration. Adel a précisé que les « A » non effacés indiquent les absents, à rapprocher du nom et de la classe de chaque page. La précédente conclusion fondée sur les dates et les cases de signature était erronée ; elle ne doit plus être utilisée. Aucun nom n'a encore été importé. Le lecteur `F:` contenant le PDF n'étant plus connecté lors de la reprise, la lecture des « A » reste à refaire sur le document source avant toute saisie nominative.
 
-Le suivi est manuel et privé, dans `/gestion/remise-ordinateurs`. L'ajout unitaire ou par lot (texte/CSV `Nom Prénom ; Classe`, 100 lignes maximum) ne s'active qu'après contrôle de la vraie liste. La saisie est relue à l'écran ; le fichier choisi reste dans le navigateur jusqu'à l'envoi volontaire des lignes. Aucune diffusion aux familles, aucun email ou push n'est déclenché.
+Le suivi est manuel et privé, dans `/gestion/remise-ordinateurs`. L'ajout unitaire ou par lot (texte/CSV `Nom Prénom ; Classe`, 100 lignes maximum) ne s'active qu'après contrôle des « A » non effacés, des noms et des classes. La saisie est relue à l'écran ; le fichier choisi reste dans le navigateur jusqu'à l'envoi volontaire des lignes. Aucune diffusion aux familles, aucun email ou push n'est déclenché.
 
 ## Utilisation
 

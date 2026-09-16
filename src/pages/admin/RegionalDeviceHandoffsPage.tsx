@@ -111,7 +111,7 @@ export default function RegionalDeviceHandoffsPage() {
 
     <section className="rounded-2xl border border-slate-200 bg-white p-4 sm:p-6">
       <div className="flex items-center gap-2"><Plus className="h-5 w-5 text-blue-700" /><h2 className="text-lg font-bold text-slate-950">Ajouter un élève</h2></div>
-      <p className="mt-1 text-sm text-slate-600">Ajoutez uniquement les élèves confirmés comme n’ayant pas reçu leur ordinateur. Le document d’EPS transmis ne constitue pas cette liste.</p>
+      <p className="mt-1 text-sm text-slate-600">Sur les feuilles remises par l’administration, vérifiez le « A » non effacé, le nom et la classe avant d’ajouter un élève. Contrôlez la remise effective avant de cocher « Marquer remis ».</p>
       <form className="mt-4 grid gap-3 sm:grid-cols-[1fr_140px_auto]" onSubmit={event => { event.preventDefault(); void add([{ studentName: name, className }]); }}>
         <label className="text-sm font-medium text-slate-700">Nom et prénom<input className="field mt-1" autoComplete="off" value={name} maxLength={160} onChange={event => setName(event.target.value)} required placeholder="Nom Prénom" /></label>
         <label className="text-sm font-medium text-slate-700">Classe<input className="field mt-1" autoComplete="off" value={className} maxLength={60} onChange={event => setClassName(event.target.value)} required placeholder="Ex. 2GT1" /></label>
