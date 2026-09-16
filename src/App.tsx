@@ -41,6 +41,7 @@ const ManagementHomePage = lazy(() => import("./pages/admin/ManagementHomePage")
 const AiBudgetPage = lazy(() => import("./pages/admin/AiBudgetPage"));
 const SuperadminManualPage = lazy(() => import("./pages/admin/SuperadminManualPage"));
 const CrossDataPage = lazy(() => import("./pages/admin/CrossDataPage"));
+const RegionalDeviceHandoffsPage = lazy(() => import("./pages/admin/RegionalDeviceHandoffsPage"));
 const AgentManagementRequests = lazy(() => import("./pages/prototype/LyceeConnectPrototype").then(module => ({ default: module.AgentManagementRequests })));
 const AdminDashboard = lazy(() => import("./pages/admin/AdminDashboard"));
 const ImportPage = lazy(() => import("./pages/admin/ImportPage"));
@@ -228,6 +229,7 @@ export default function App() {
           <Route path="gestion/demandes" element={<RoleRoute allowedRoles={SCHOOL_MANAGEMENT_ROLES}><AgentManagementRequests /></RoleRoute>} />
           <Route path="gestion/budget-ia" element={<RoleRoute allowedRoles={AI_BUDGET_ROLES}><AiBudgetPage /></RoleRoute>} />
           <Route path="gestion/donnees" element={<RoleRoute allowedRoles={["superadmin"]}><CrossDataPage /></RoleRoute>} />
+          <Route path="gestion/remise-ordinateurs" element={<RoleRoute allowedRoles={["superadmin"]}><RegionalDeviceHandoffsPage /></RoleRoute>} />
           <Route path="gestion/manuel" element={<RoleRoute allowedRoles={["superadmin"]}><SuperadminManualPage /></RoleRoute>} />
           <Route path="dashboard" element={<DashboardRedirect />} />
           <Route path="stages" element={<StagesDashboard />} />

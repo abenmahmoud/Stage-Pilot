@@ -2762,3 +2762,41 @@ export const codeVaultAccessEvents = pgTable(
       .where(sql`${table.eventType} = 'access_denied'`),
   ]
 );
+
+export const regionalDeviceHandoffs = pgTable(
+  "regional_device_handoffs",
+  {
+    id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+    institutionId: uuid("institution_id").notNull().references(() => institutions.id),
+    schoolYear: text("school_year").notNull().default("2026-2027"),
+    studentName: text("student_name").notNull(),
+    className: text("class_name").notNull(),
+    studentKey: text("student_key").notNull(),
+    status: text("status").notNull().default("pending"),
+    addedBy: uuid("added_by").notNull(),
+    deliveredBy: uuid("delivered_by"),
+    deliveredAt: timestamp("delivered_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    uniqueIndex("regional_device_handoffs_active_student")
+      .on(table.institutionId, table.schoolYear, table.studentKey)
+      .where(sql`${table.status} <> 'removed'`),
+    index("regional_device_handoffs_queue")
+      .on(table.institutionId, table.schoolYear, table.status, table.createdAt),
+  ]
+);
+
+export const regionalDeviceHandoffEvents = pgTable(
+  "regional_device_handoff_events",
+  {
+    id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+    institutionId: uuid("institution_id").notNull().references(() => institutions.id),
+    handoffId: uuid("handoff_id").notNull().references(() => regionalDeviceHandoffs.id),
+    action: text("action").notNull(),
+    actorId: uuid("actor_id").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [index("regional_device_handoff_events_history").on(table.handoffId, table.createdAt)]
+);

@@ -29,6 +29,22 @@ export type ManualArticle = {
 
 export const MANUAL_ARTICLES: ManualArticle[] = [
   {
+    id: "remise-ordinateurs", group: "pilotage", title: "Suivre la remise des ordinateurs",
+    summary: "Retrouver les élèves encore en attente d’un PC et confirmer chaque remise.",
+    access: "Superadmin uniquement, avec double vérification du compte.",
+    prerequisite: "Une liste fiable des élèves qui n’ont pas reçu leur PC lors de la distribution. Les feuilles d’émargement d’EPS ne permettent pas d’établir cette liste.",
+    steps: [
+      "Ouvrez Remise des ordinateurs dans Superadministration. Le compteur À remettre montre les élèves encore attendus.",
+      "Ajoutez chaque élève avec son nom, son prénom et sa classe. Si vous avez une liste vérifiée, utilisez Ajouter plusieurs élèves à la fois, une ligne Nom Prénom ; Classe par élève. Relisez les lignes avant l’ajout.",
+      "Lorsqu’un élève vient récupérer son ordinateur, recherchez son nom et vérifiez son identité selon la procédure du lycée.",
+      "Appuyez sur Marquer remis après la remise effective du PC. La date et le compte ayant effectué l’action sont enregistrés.",
+      "Si vous vous êtes trompé, ouvrez Remis puis Corriger. Une ligne ajoutée par erreur peut être retirée tant qu’aucune remise n’a été enregistrée.",
+    ],
+    result: "Une file de remise privée, actualisée entre vos appareils, avec l’historique des actions.",
+    check: "Un élève déjà présent dans la même classe n’est pas ajouté une seconde fois. Aucun absent n’est déduit d’une feuille de signatures vierges. Ce suivi ne remplace pas la vérification d’identité ni les documents officiels de la Région.",
+    links: [{ label: "Ouvrir le suivi des PC", to: "/gestion/remise-ordinateurs" }, { label: "Guide public Chromebook", to: "/chromebook" }],
+  },
+  {
     id: "donnees-croisees", group: "donnees", title: "Croiser les données du lycée",
     summary: "Retrouver une fiche, ses relations et les informations manquantes dans les sources validées.",
     access: "Superadmin uniquement, avec la vérification renforcée du répertoire.",
@@ -494,6 +510,7 @@ export const MANUAL_ARTICLES: ManualArticle[] = [
 ];
 
 export const MANUAL_SHORTCUTS = [
+  { id: "remise-ordinateurs", label: "Suivre les PC à remettre", hint: "Ajouter, rechercher, confirmer" },
   { id: "repondre-demande", label: "Répondre à une famille", hint: "Du dossier à la réponse" },
   { id: "distribution-pc", label: "Annoncer la distribution des PC", hint: "Article, calendrier et notification" },
   { id: "hebdo", label: "Publier les informations de la semaine", hint: "Du PDF aux actualités" },
