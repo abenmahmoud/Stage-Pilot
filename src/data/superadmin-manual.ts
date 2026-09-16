@@ -29,6 +29,23 @@ export type ManualArticle = {
 
 export const MANUAL_ARTICLES: ManualArticle[] = [
   {
+    id: "donnees-croisees", group: "donnees", title: "Croiser les données du lycée",
+    summary: "Retrouver une fiche, ses relations et les informations manquantes dans les sources validées.",
+    access: "Superadmin uniquement, avec la vérification renforcée du répertoire.",
+    prerequisite: "Un annuaire actif. Les attributs ENT, emplois du temps et attributions du coffre complètent la consultation lorsqu’ils sont disponibles.",
+    steps: [
+      "Ouvrez Données croisées dans Superadministration. Les compteurs décrivent la population de l’annuaire actif.",
+      "Choisissez un profil et une question rapide : téléphone manquant, aucun contact, personnel sans accès PC ou EDT absent. Recherchez une référence ENT exacte ou une classe ; les suffixes numériques font partie de l’identifiant.",
+      "Ouvrez une ligne pour voir les attributs ENT autorisés, les matières relevées dans l’EDT et les liens familiaux ou pédagogiques. Les liens vers une personne ouvrent sa fiche croisée.",
+      "Si vous connaissez uniquement un contact, utilisez la recherche sécurisée par email ou téléphone et indiquez le motif de consultation. Ouvrez ensuite les données croisées depuis le résultat.",
+      "Pour enrichir les résultats, passez par les imports existants, contrôlez puis activez la nouvelle version. Le tableau se recharge chaque minute lorsqu’il est visible, ou avec Actualiser.",
+      "Exporter cette page télécharge uniquement les lignes affichées, sans mot de passe. Conservez ce fichier dans votre espace professionnel privé.",
+    ],
+    result: "Une consultation sourcée des données actives, sans copie des codes ni fusion de correspondances ambiguës.",
+    check: "Personnel comprend les enseignants et les autres agents. Un accès PC absent ou un EDT absent n’est pas toujours une anomalie. La matière de l’EDT n’est pas nécessairement la discipline administrative. Un nouveau fichier SIECLE doit être rapproché et validé avant utilisation.",
+    links: [{ label: "Données croisées", to: "/gestion/donnees" }, { label: "Importer des données", to: "/admin/repertoire-identites" }],
+  },
+  {
     id: "bien-demarrer", group: "pilotage", title: "Se repérer dans les espaces",
     summary: "Retrouver la gestion du lycée, le site public et les outils de scolarité.",
     access: "Ce manuel est réservé au superadmin. Les outils conservent leurs propres habilitations.",

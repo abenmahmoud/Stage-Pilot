@@ -15,7 +15,7 @@ const PERSON_TYPE = {
   staff: "Personnel",
 } as const;
 
-export default function IdentityDirectoryLookupPanel() {
+export default function IdentityDirectoryLookupPanel({ onSelectPerson }: { onSelectPerson?: (personRef: string) => void } = {}) {
   const [availability, setAvailability] = useState<IdentityLookupAvailabilityPayload | null>(null);
   const [searchType, setSearchType] = useState("academic_email");
   const [query, setQuery] = useState("");
@@ -206,6 +206,7 @@ export default function IdentityDirectoryLookupPanel() {
                 {request.result.serviceCode ? ` · Service ${request.result.serviceCode}` : ""}
               </p>
               <p className="mt-2 break-all text-xs text-slate-500">Référence : {request.result.personRef}</p>
+              {onSelectPerson && <button className="mt-3 text-sm font-semibold text-blue-700" onClick={() => onSelectPerson(request.result!.personRef)}>Voir les données croisées</button>}
             </div>
           </div>
         </article>

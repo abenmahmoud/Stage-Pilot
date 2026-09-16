@@ -1306,6 +1306,11 @@
   l’annuaire actif et importer les accès certains dans le coffre chiffré.
   Le 16/09/2026 : 98 accès (89 enseignants, 9 personnels), 98 valeurs chiffrées
   et rattachements actifs vérifiés. Voir `docs/operations/IMPORT_KOXO_2026-09-16.md`.
+- [ ] T069D Fournir la liste privée sans codes et l’onglet superadmin Données
+  croisées : annuaire, attributs ENT, disponibilité KOXO, matières/liaisons EDT,
+  relations et filtres de qualité. Mise à jour après imports validés ; complément
+  SIECLE encore attendu. Recette et publication :
+  `docs/operations/DONNEES_CROISEES_2026-09-16.md`.
 - [ ] T069C Constater une remise KOXO réelle après OTP avec Adel ; compléter les
   24 enseignants sans code, confirmer les 9 absents du dernier export et examiner
   les 57 comptes non rattachés. Aucun rapprochement approximatif ni suppression.
