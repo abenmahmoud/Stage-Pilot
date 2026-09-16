@@ -67,3 +67,22 @@ Les scripts, le lot chiffré, le reçu et les rapports sont dans le dossier priv
 les neuf enseignants à confirmer, sans mots de passe. Le pack source reste local.
 La préparation ne remplace jamais un code existant : les renouvellements
 ultérieurs doivent suivre un remplacement humain versionné.
+
+## Contrôle du nouvel export Professeurs.XML
+
+Le fichier KOXO reçu ensuite le 16 septembre contient 165 comptes à identifiant
+distinct, avec un champ `Password` renseigné pour chacun. Les 164 identifiants du
+pack précédent s'y retrouvent : 98 enseignants, neuf autres personnels et 57
+comptes non rattachés. Les 24 enseignants sans KOXO dans le pack n'ont aucune
+correspondance nominative exacte dans le XML. Un compte supplémentaire porte le
+même nom qu'un enseignant déjà doté, avec un identifiant différent : examen humain
+obligatoire avant tout rapprochement. Aucun mot de passe XML n'est importé ou
+remplacé ; sa valeur encodée ne prouve pas le fonctionnement d'une connexion.
+
+Les 122 enseignants du précédent export ENT disposent d'un email renseigné,
+mais seuls huit ont un téléphone renseigné, dont un seul parmi les 89 comptes
+KOXO déjà importés. Vingt enseignants sont absents du dernier export ENT du pack
+(neuf avec KOXO, onze sans KOXO). Ces métadonnées ne prouvent pas que l'OTP email
+est délivrable. Rapport et compte supplémentaire, sans codes, dans le dossier
+privé `outputs/croisement-2026-09-16/`. Aucune remise réelle ni aucun import
+supplémentaire n'a été effectué par ce contrôle.

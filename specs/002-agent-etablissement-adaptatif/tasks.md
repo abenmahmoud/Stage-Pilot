@@ -1313,7 +1313,10 @@
   `docs/operations/DONNEES_CROISEES_2026-09-16.md`.
 - [ ] T069C Constater une remise KOXO réelle après OTP avec Adel ; compléter les
   24 enseignants sans code, confirmer les 9 absents du dernier export et examiner
-  les 57 comptes non rattachés. Aucun rapprochement approximatif ni suppression.
+  les 57 comptes non rattachés et le compte supplémentaire du XML du 16 septembre.
+  Vérifier les contacts utilisables, surtout l'email : un seul des 89 enseignants
+  déjà importés a un téléphone dans le précédent export. Aucun rapprochement
+  approximatif ni suppression.
 - [ ] T070 Ajouter les documents versionnés téléchargeables et leur retour depuis
   l'assistant, avec routage générale/technologique vers l'administration et
   professionnel vers la DDFPT.
