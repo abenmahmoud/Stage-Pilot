@@ -85,7 +85,9 @@ export function chromebookReferenceAnswer(messages: Message[], now = new Date())
   ];
   const preferred = priority.find(([pattern]) => pattern.test(`${query} ${latest}`));
   const entry = exactEntry ?? (preferred ? entries.find((item) => item.id === preferred[1]) : ranked[0]?.entry);
-  const needsModel = entry?.id === "sav" && !/\b(chromebooks?|asus|monordi|mon ordi)\b/.test(turns.join(" "));
+  const knownModel = /\b(chromebooks?|asus|monordi|mon ordi|unowhy|y13|la poste sav|sav la poste)\b/.test(turns.join(" "));
+  const genericIncident = /\b(ne fonctionne pas|ne marche pas|ne demarre|ne s allume pas|marche plus|fonctionne plus|panne|casse|reparer|sav)\b/.test(query);
+  const needsModel = !knownModel && (entry?.id === "sav" || genericIncident);
   const reply = needsModel
     ? "Pour vous indiquer le bon SAV : votre ordinateur est-il un **Chromebook ASUS** ou un ancien **UNOWHY Y13** ? Les démarches sont différentes. N’ouvrez pas l’appareil pour tenter de le réparer."
     : entry

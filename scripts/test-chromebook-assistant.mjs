@@ -49,6 +49,8 @@ test('follow-ups keep the module and specific issue, while a new service leaves 
 test('unknown models are clarified and the legacy SAV is kept separate', async () => {
   const first = await analyze([user('Mon ordinateur est cassé')]);
   assert.match(first.reply, /Chromebook ASUS.*UNOWHY Y13/s);
+  const homeShortcut = await analyze([user('Mon ordinateur fourni par la Région ne fonctionne pas.')]);
+  assert.match(homeShortcut.reply, /Chromebook ASUS.*UNOWHY Y13/s);
   const second = await analyze([user('Mon ordinateur est cassé'), answer(first.reply), user('Un Y13')]);
   assert.match(second.reply, /La Poste/);
   assert.match(second.reply, /assistance-numerique#unowhy/);

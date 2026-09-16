@@ -513,7 +513,7 @@ const services = [
     detail: "Panne, recharge, casse, perte ou connexion",
     icon: Laptop,
     tone: "coral",
-    prompt: "J’ai un problème avec l’ordinateur portable prêté par le lycée.",
+    prompt: "Mon ordinateur fourni par la Région ne fonctionne pas.",
   },
   {
     title: "Codes de connexion",
