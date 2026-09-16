@@ -1,9 +1,21 @@
 # Memoire durable - Portail numerique du Lycee Blaise Cendrars
 
-**Derniere mise a jour** : 15 septembre 2026
+**Derniere mise a jour** : 16 septembre 2026
 **Branche de travail** : `codex/lycee-connect-prototype`
 **Depot** : `abenmahmoud/Stage-Pilot`
 **Dernier jalon de code verifie** : branche de preview Vercel
+
+## Import réel KOXO — 16 septembre
+
+Pack Claude reçu dans `DepotPrive/05-Livrables-KOXO`, vérifié localement sans
+exposer les codes. **98 accès importés et chiffrés : 89 enseignants et 9 personnels**,
+tous liés à l’annuaire actif exact. API Dépôt : 202, 98 acceptés, zéro déjà présent.
+Contrôle base : 98 attributions et 98 valeurs chiffrées, RLS forcée, API anonyme
+refusée 401. Le parcours chat publié peut maintenant servir ces comptes après
+OTP ; réception réelle encore à constater. Restent : 24 enseignants sans code,
+9 enseignants absents du dernier export à confirmer et 57 comptes KOXO sans
+rattachement. Aucune suppression ni modification des contacts ou des accès ENT.
+Preuve : `docs/operations/IMPORT_KOXO_2026-09-16.md`.
 
 ## Sessions PC personnelles dans le chat — 15 septembre
 

@@ -1302,9 +1302,13 @@
   les expirations et les refus entre personnes/établissements. Tests fictifs,
   PostgreSQL jetable, mobile et build réussis le 15/09/2026 ; voir
   `docs/operations/SESSIONS_PC_CHAT_2026-09-15.md`.
-- [ ] T069B Recevoir l’export KOXO des professeurs, rapprocher les références
-  personnelles de l’annuaire actif, importer dans le coffre chiffré puis
-  constater une remise réelle après OTP. Aucun code KOXO actuellement en base.
+- [x] T069B Recevoir l’export KOXO, rapprocher les références personnelles de
+  l’annuaire actif et importer les accès certains dans le coffre chiffré.
+  Le 16/09/2026 : 98 accès (89 enseignants, 9 personnels), 98 valeurs chiffrées
+  et rattachements actifs vérifiés. Voir `docs/operations/IMPORT_KOXO_2026-09-16.md`.
+- [ ] T069C Constater une remise KOXO réelle après OTP avec Adel ; compléter les
+  24 enseignants sans code, confirmer les 9 absents du dernier export et examiner
+  les 57 comptes non rattachés. Aucun rapprochement approximatif ni suppression.
 - [ ] T070 Ajouter les documents versionnés téléchargeables et leur retour depuis
   l'assistant, avec routage générale/technologique vers l'administration et
   professionnel vers la DDFPT.
