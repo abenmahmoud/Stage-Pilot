@@ -27,4 +27,8 @@ Le brouillon de message aux personnels est hors Git dans `outputs/sav-numerique-
 
 ## Vérifications
 
-À compléter après recette ordinateur, téléphone, build final et publication.
+Publication confirmée le 16/09/2026 : commit fonctionnel `f664ab45e401ae96fc9aba7f1cabbc1eb416a7e9`, puis correction du raccourci d’accueil et de la question sur le modèle `5f46daa6c2bc78c6636518a0eb71fd25eb4f4763`. Déploiement final `dpl_3otduqyG8u58WJaR2se4n1nKk5My` READY et domaine principal `https://lycee-blaise-cendrars-sevran.fr/assistance-numerique` sur cette version.
+
+Build final réussi. Tests ciblés Chromebook/agent (7/7) et politique d’assistance (6/6 + 22/22) réussis. Routage explicite vers `referent_numerique` vérifié pour UNOWHY, ASUS et La Poste SAV. Le test global de routage conserve un échec historique sans lien avec ce lot, sur le texte exact d’une consigne de contact ; le nouveau test de routage numérique passe.
+
+Recette navigateur locale sur ordinateur et à 390 px : page lisible, aucun débordement, lien Mes services et guide Chromebook contrôlés. Domaine principal vérifié dans le navigateur : titre « Un ordinateur en panne ? », sections UNOWHY/ASUS, liens vers le guide Chromebook et le chat, aucun débordement. Email TXT/HTML préparé et liens vérifiés ; aucun envoi effectué.
