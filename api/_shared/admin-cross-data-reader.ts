@@ -6,6 +6,9 @@ import { decryptPersonAttributeValue } from '../../shared/person-attribute-crypt
 import { HttpError } from './auth.js';
 
 const ATTRIBUTE_LABELS: Record<string,string> = {ent_identifier:'Identifiant ENT',ent_activation_state:'État du compte ENT',discipline:'Discipline déclarée',teaching_subject:'Discipline déclarée'};
+// Same canonical form as schedule-reader.boundedRefs and the approved import.
+// Case is normalized; punctuation and numeric suffixes are preserved exactly.
+const scheduleRef=(ref:string)=>ref.normalize('NFKC').trim().toUpperCase();
 export async function readAdminCrossData(institutionId: string, query: CrossDataQuery, now=new Date()): Promise<CrossDataPayload> {
   const today=now.toISOString().slice(0,10);
   const year=now.getUTCMonth()>=8?now.getUTCFullYear():now.getUTCFullYear()-1;
@@ -38,18 +41,21 @@ export async function readAdminCrossData(institutionId: string, query: CrossData
     const persons=new Map<string, typeof rows>();
     for(const row of rows) if(row.recordType==='person'&&row.personRef) persons.set(row.personRef,[...(persons.get(row.personRef)??[]),row]);
     const relationships=rows.filter(r=>r.recordType==='relationship');
+    const staffRefCounts=new Map<string,number>();
+    for(const [ref,records] of persons) if(records.some(p=>p.personType==='staff')) {const key=scheduleRef(ref);staffRefCounts.set(key,(staffRefCounts.get(key)??0)+records.length);}
     const keyCounts=new Map<string,number>(); for(const a of attrKeys) {const key=`${a.personRef}|${a.key}`;keyCounts.set(key,(keyCounts.get(key)??0)+1);}
     const people: CrossPerson[]=Array.from(persons,([ref,candidates]): CrossPerson=>{
       const p=candidates[0]; const duplicates=candidates.length!==1;
       const koxo=vault.filter(v=>v.personRef===ref&&v.service==='koxo');
-      const available=indexes.filter(i=>(p.personType==='staff'&&i.type==='teacher'&&i.ref===ref)||(p.personType==='student'&&i.type==='class'&&i.ref===p.classRef));
+      const scheduleConflict=p.personType==='staff'&&staffRefCounts.get(scheduleRef(ref))!==1;
+      const available=indexes.filter(i=>(p.personType==='staff'&&!scheduleConflict&&i.type==='teacher'&&i.ref===scheduleRef(ref))||(p.personType==='student'&&i.type==='class'&&p.classRef&&i.ref===scheduleRef(p.classRef)));
       const fresh=available.filter(i=>{const s=schedules.find(s=>s.id===i.version)!;return s.fresh&&s.fresh>now&&s.from<=today&&(!s.until||s.until>=today);});
       const attrsConflict=Object.keys(ATTRIBUTE_LABELS).some(k=>(keyCounts.get(`${ref}|${k}`)??0)>1);
       return {personRef:ref,personType:p.personType??'unknown',classRef:duplicates?null:p.classRef,serviceCode:duplicates?null:p.serviceCode,
         phone:!duplicates&&!!p.phone,email:!duplicates&&!!(p.email||p.personalEmail),ent:!duplicates&&keyCounts.get(`${ref}|ent_identifier`)===1&&keyCounts.get(`${ref}|ent_activation_state`)===1,
         koxo:duplicates||koxo.length>1||koxo.some(k=>k.defective)?'review':koxo.length?'linked':'missing',
         schedule:p.personType==='guardian'?'not_applicable':duplicates?'missing':fresh.length===1?'linked':available.length?'stale':'missing',
-        relations:relationships.filter(r=>r.subject===ref||r.object===ref).length,conflict:duplicates||attrsConflict||koxo.length>1||available.length>1};
+        relations:relationships.filter(r=>r.subject===ref||r.object===ref).length,conflict:duplicates||scheduleConflict||attrsConflict||koxo.length>1||available.length>1};
     }).sort((a,b)=>a.personRef.localeCompare(b.personRef,'fr'));
     const filtered=filterCrossPeople(people,query); const page=Math.min(query.page,Math.max(0,Math.ceil(filtered.length/25)-1));
     let detail:CrossDataPayload['detail']=null;
@@ -64,8 +70,8 @@ export async function readAdminCrossData(institutionId: string, query: CrossData
         return [{key,label,value,source:conflict?'Plusieurs valeurs valides':a.source,conflict}];
       });
       const related=relationships.filter(r=>r.subject===person.personRef||r.object===person.personRef).map(r=>({type:r.relation??'',reference:(r.subject===person.personRef?r.object:r.subject)??'',direction:r.subject===person.personRef?'out' as const:'in' as const,linked:persons.has((r.subject===person.personRef?r.object:r.subject)??'')}));
-      const matching=indexes.filter(i=>person.personType==='staff'?i.type==='teacher'&&i.ref===person.personRef:person.personType==='student'&&i.type==='class'&&i.ref===person.classRef);
-      const subjects=matching.length===1?await tx.selectDistinct({label:scheduleSlots.subjectLabel}).from(scheduleSlots).where(and(eq(scheduleSlots.institutionId,institutionId),eq(scheduleSlots.sourceVersionId,matching[0].version),eq(scheduleSlots.reviewStatus,'approved'),person.personType==='staff'?eq(scheduleSlots.teacherRef,person.personRef):eq(scheduleSlots.classRef,person.classRef!))).limit(40):[];
+      const matching=indexes.filter(i=>person.personType==='staff'?staffRefCounts.get(scheduleRef(person.personRef))===1&&i.type==='teacher'&&i.ref===scheduleRef(person.personRef):person.personType==='student'&&i.type==='class'&&person.classRef&&i.ref===scheduleRef(person.classRef));
+      const subjects=matching.length===1?await tx.selectDistinct({label:scheduleSlots.subjectLabel}).from(scheduleSlots).where(and(eq(scheduleSlots.institutionId,institutionId),eq(scheduleSlots.sourceVersionId,matching[0].version),eq(scheduleSlots.reviewStatus,'approved'),person.personType==='staff'?eq(scheduleSlots.teacherRef,matching[0].ref):eq(scheduleSlots.classRef,matching[0].ref))).limit(40):[];
       detail={person,attributes,relations:related,subjects:subjects.map(s=>s.label)};
     }
     return {schema:1,refreshedAt:now.toISOString(),revision:directory.id,sources,totals:crossDataTotals(people),people:filtered.slice(page*25,page*25+25),total:filtered.length,page,pageSize:25,detail};

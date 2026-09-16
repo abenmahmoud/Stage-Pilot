@@ -33,8 +33,8 @@ try{
   for(const [key,value] of [['ent_identifier','prof.test2'],['ent_activation_state','active'],['secret_custom','DO-NOT-DISCLOSE']]){const rowId=randomUUID();await insert('personAttributeRows',{id:rowId,institutionId:school,importId:attrs,personRef:'prof.test2',attributeKey:key,validFrom:'2026-09-01',source:'ENT fictif',...encryptPersonAttributeValue({value,institutionId:school,importId:attrs,rowId,personRef:'prof.test2',attributeKey:key})});}
   await insert('codeVaultAssignments',{id:randomUUID(),institutionId:school,personRef:'prof.test2',service:'koxo',schoolYear:'2026-2027',createdAt:now});
   await insert('scheduleSourceVersions',{id:schedule,institutionId:school,status:'active',schoolYear:'2026-2027',sourceKind:'teachers',originalName:'EDT fictif.ics',effectiveFrom:'2026-09-01',freshUntil:new Date('2026-09-20T23:59:59Z'),activatedAt:now});
-  await insert('schedulePageIndexes',{id:randomUUID(),institutionId:school,sourceVersionId:schedule,subjectType:'teacher',subjectRef:'prof.test2',reviewStatus:'verified'});
-  await insert('scheduleSlots',[{id:randomUUID(),institutionId:school,sourceVersionId:schedule,teacherRef:'prof.test2',subjectLabel:'Mathématiques',reviewStatus:'approved'},{id:randomUUID(),institutionId:school,sourceVersionId:schedule,teacherRef:'prof.test2',subjectLabel:'Brouillon interdit',reviewStatus:'pending'}]);
+  await insert('schedulePageIndexes',{id:randomUUID(),institutionId:school,sourceVersionId:schedule,subjectType:'teacher',subjectRef:'PROF.TEST2',reviewStatus:'verified'});
+  await insert('scheduleSlots',[{id:randomUUID(),institutionId:school,sourceVersionId:schedule,teacherRef:'PROF.TEST2',subjectLabel:'Mathématiques',reviewStatus:'approved'},{id:randomUUID(),institutionId:school,sourceVersionId:schedule,teacherRef:'PROF.TEST2',subjectLabel:'Brouillon interdit',reviewStatus:'pending'}]);
   const {readAdminCrossData}=await bundle('api/_shared/admin-cross-data-reader.ts');
   const {parseCrossDataQuery,filterCrossPeople}=await bundle('shared/admin-cross-data.ts');
   let result=await readAdminCrossData(school,parseCrossDataQuery({personRef:'prof.test2'}),now);
@@ -42,6 +42,9 @@ try{
   assert.equal(filterCrossPeople(result.people,parseCrossDataQuery({filter:'missing_phone'})).length,2);
   result=await readAdminCrossData(school,parseCrossDataQuery({personRef:'parent.test4'}),now);assert.equal(result.detail.relations[0].reference,'student.test3');assert.equal(result.detail.person.schedule,'not_applicable');
   result=await readAdminCrossData(school,parseCrossDataQuery({}),new Date('2026-09-21T12:00:00Z'));assert.equal(result.people.find(p=>p.personRef==='prof.test2').schedule,'stale');
+  await insert('identityDirectoryRows',person('PROF.TEST2','staff'));
+  result=await readAdminCrossData(school,parseCrossDataQuery({personRef:'prof.test2'}),now);assert.equal(result.detail.person.conflict,true);assert.deepEqual(result.detail.subjects,[],'case collision must not select a timetable');
+  await database.delete(schema.identityDirectoryRows).where(eq(schema.identityDirectoryRows.personRef,'PROF.TEST2'));
   await insert('identityDirectoryRows',person('prof.test2','staff'));
   await assert.rejects(()=>readAdminCrossData(school,parseCrossDataQuery({personRef:'prof.test2'}),now),e=>e.status===409);
   result=await readAdminCrossData(school,parseCrossDataQuery({filter:'conflict'}),now);assert.equal(result.total,1);assert.equal(result.people[0].conflict,true);

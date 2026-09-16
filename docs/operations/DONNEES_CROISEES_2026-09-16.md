@@ -3,12 +3,13 @@
 ## Demande et périmètre
 Adel demande la liste des enseignants sans code KOXO, avec matière et coordonnées utiles, sans mots de passe ; il souhaite un onglet personnel superadmin qui rapproche les données au fil des imports. Le nouvel export SIECLE reste attendu.
 
-Liste Excel privée hors Git : 24 enseignants sans accès dans le pack fourni et 9 enseignants dont les accès ont été retenus parce que leur présence dans le dernier export ENT doit être confirmée. 16 disciplines non renseignées sur les 33 fiches ; aucune matière inventée. Aucun de ces 33 identifiants n’a de cours professeur approuvé dans les versions EDT actives au contrôle. Le fichier ne contient ni mot de passe KOXO ni code ENT.
+Liste Excel privée hors Git : 24 enseignants sans accès dans le pack fourni et 9 enseignants dont les accès ont été retenus parce que leur présence dans le dernier export ENT doit être confirmée. 16 disciplines non renseignées sur les 33 fiches ; aucune matière inventée. Sept fiches disposent de cours professeur approuvés dans les versions EDT actives, ajoutés dans une colonne distincte du classeur. Le fichier ne contient ni mot de passe KOXO ni code ENT.
 
 ## Implémentation
 - `/gestion/donnees`, menu Superadministration, contrôle de rôle superadmin côté route et API ; contrôle renforcé du répertoire maintenu.
 - Lecture cohérente dans une transaction PostgreSQL repeatable read, read only. Annuaire actif et lignes valides à la date de consultation ; attributs actifs liés à cet annuaire ; métadonnées du coffre pour l’année scolaire ; index EDT vérifiés des versions actives.
 - Identifiants exacts conservés, y compris suffixes. Pas de jointure floue ni réécriture des données.
+- Les seules références EDT utilisent la forme canonique NFKC/majuscules de l’import et du lecteur existant. La recette réelle a révélé cet écart avec les références ENT minuscules. Correction et test des collisions de casse : aucune matière fournie si plusieurs personnes convergent vers la même référence EDT.
 - Compteurs par population, recherche par référence ENT/classe, filtres de données manquantes, pagination 25 lignes. Coordonnées : présence seulement. La recherche nominative sécurisée existante par contact ouvre la fiche croisée.
 - Fiche : attributs ENT autorisés, éventuelle discipline déclarée, matières issues des cours approuvés, relations familiales/pédagogiques. Aucun déchiffrement des codes du coffre. Champs d’attributs en liste blanche ; valeurs ambiguës bloquées.
 - Actualisation après activation d’un import, lecture toutes les minutes lorsque visible. Pas de cache local ni de donnée personnelle dans les URLs. Effacement lorsque l’onglet passe en arrière-plan ou hors connexion. Export CSV limité à la page affichée, valeurs neutralisées contre les formules.
