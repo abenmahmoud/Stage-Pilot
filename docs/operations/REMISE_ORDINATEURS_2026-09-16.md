@@ -2,7 +2,7 @@
 
 ## Source et périmètre
 
-Le document remis pour la « liste des absents » (`doc03277120260916123544.pdf`) contient 31 pages d'anciennes impressions remises par l'administration. Adel a précisé que les « A » non effacés indiquent les absents, à rapprocher du nom et de la classe de chaque page. La précédente conclusion fondée sur les dates et les cases de signature était erronée ; elle ne doit plus être utilisée. Les 31 pages ont été relues visuellement le 16 septembre : 45 « A » lisibles et deux mentions « Absent » non effacées ont été retenus ; les marques raturées ont été exclues. Les 47 lignes correspondantes ont été ajoutées au suivi privé comme PC à remettre, sans les marquer remis. La transcription avec références de pages et le fichier de réimport sont conservés uniquement dans le Dépôt Lycée privé, dossier `07-Suivi-ordinateurs`.
+Le document remis pour la « liste des absents » (`doc03277120260916123544.pdf`) contient 31 pages d'anciennes impressions remises par l'administration. Adel a précisé que les « A » non effacés indiquent les absents, à rapprocher du nom et de la classe de chaque page. La précédente conclusion fondée sur les dates et les cases de signature était erronée ; elle ne doit plus être utilisée. Les 31 pages ont été relues visuellement le 16 septembre : 45 « A » lisibles et deux mentions « Absent » non effacées ont été retenues ; les marques raturées ont été exclues. Les 47 lignes correspondantes ont été ajoutées au suivi privé comme PC à remettre, sans les marquer remis. Adel estime qu'il pourrait y avoir 49 élèves : les deux lignes éventuelles ne sont pas encore établies et ne doivent pas être inventées ou convoquées. La transcription avec références de pages et le fichier de réimport sont conservés uniquement dans le Dépôt Lycée privé, dossier `07-Suivi-ordinateurs`.
 
 Le suivi est manuel et privé, dans `/gestion/remise-ordinateurs`. L'ajout unitaire ou par lot (texte/CSV `Nom Prénom ; Classe`, 100 lignes maximum) ne s'active qu'après contrôle des « A » non effacés, des noms et des classes. La saisie est relue à l'écran ; le fichier choisi reste dans le navigateur jusqu'à l'envoi volontaire des lignes. Aucune diffusion aux familles, aucun email ou push n'est déclenché.
 
@@ -10,10 +10,11 @@ Le suivi est manuel et privé, dans `/gestion/remise-ordinateurs`. L'ajout unita
 
 1. Connectez-vous en superadministrateur avec la double vérification.
 2. Ajoutez les élèves confirmés en attente. Une même combinaison de nom et classe est ignorée lors d'un second ajout ; le bilan affiche les doublons.
-3. À la venue de l'élève, vérifiez son identité et recherchez sa ligne. Une fois le PC effectivement remis, cliquez sur « Marquer remis ».
-4. La date et le compte qui a validé la remise sont conservés. « Corriger » réouvre une remise enregistrée par erreur. Une ligne en attente ajoutée par erreur peut être retirée.
+3. Avant de convoquer les absents, confirmez avec la Région ou La Poste la méthode d'affectation du Chromebook lors d'une remise différée : le livret régional 2026 documente le scan du QR code MonOrdi IdF par les agents de La Poste pendant la distribution et la conservation au lycée des colis nominatifs des absents, mais ne désigne pas la personne ni l'outil qui réalise le scan après leur départ.
+4. À la venue de l'élève, vérifiez son identité et le colis nominatif, puis appliquez la procédure d'affectation confirmée. Une fois le PC effectivement remis, cliquez sur « Marquer remis » dans le suivi interne.
+5. La date et le compte qui a validé la remise sont conservés. « Corriger » réouvre une remise enregistrée par erreur. Une ligne en attente ajoutée par erreur peut être retirée.
 
-Le registre ne contient ni numéro de série, ni code de session, ni motif d'absence. Les actions `created`, `delivered`, `reopened` et `removed` restent dans une table d'audit privée. Les tables sont sous RLS forcée ; seuls le service serveur et le superadmin habilité accèdent à l'API, avec contrôle d'établissement et AAL2. Le PDF source et les noms des élèves ne sont pas dans Git.
+Le registre ne contient ni numéro de série, ni code de session, ni motif d'absence. Il ne réalise aucune affectation dans le système régional. Les actions `created`, `delivered`, `reopened` et `removed` restent dans une table d'audit privée. Les tables sont sous RLS forcée ; seuls le service serveur et le superadmin habilité accèdent à l'API, avec contrôle d'établissement et AAL2. Le PDF source et les noms des élèves ne sont pas dans Git.
 
 ## Validation
 

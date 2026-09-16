@@ -96,13 +96,18 @@ export default function RegionalDeviceHandoffsPage() {
       <div>
         <p className="mb-2 flex items-center gap-2 text-sm font-semibold text-emerald-700"><Laptop2 className="h-4 w-4" />Suivi privé · Région Île-de-France</p>
         <h1 className="text-3xl font-bold text-slate-950">Remise des ordinateurs</h1>
-        <p className="mt-2 max-w-2xl text-slate-600">Retrouvez les élèves qui doivent encore récupérer leur PC. Vérifiez l’identité avant de confirmer chaque remise.</p>
+        <p className="mt-2 max-w-2xl text-slate-600">Retrouvez les élèves qui doivent encore récupérer leur PC. Vérifiez l’identité et le colis nominatif avant de confirmer chaque remise.</p>
       </div>
       <button type="button" onClick={() => void load()} disabled={busy} className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-800 disabled:opacity-50"><RefreshCw className={`h-4 w-4 ${busy ? "animate-spin" : ""}`} />Actualiser</button>
     </header>
 
     {error && <div role="alert" className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-800">{error}{error.toLowerCase().includes("vérification") && <> <Link to="/security" className="font-semibold underline">Ouvrir la sécurité du compte</Link></>}</div>}
     {notice && <p role="status" className="rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-sm font-medium text-emerald-900">{notice}</p>}
+
+    <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-950 sm:p-5">
+      <p className="font-semibold">Remise au lycée et affectation régionale</p>
+      <p className="mt-1">Ce suivi privé enregistre uniquement la remise physique. Il ne scanne pas le QR code MonOrdi IdF et n’affecte pas l’ordinateur dans le système de la Région. Pour les élèves absents, vérifiez la procédure de remise différée avec la Région ou La Poste avant de les convoquer.</p>
+    </div>
 
     <div className="grid grid-cols-2 gap-3">
       <button onClick={() => setFilter("pending")} className={`rounded-2xl border p-4 text-left ${filter === "pending" ? "border-blue-400 bg-blue-50" : "border-slate-200 bg-white"}`}><span className="block text-3xl font-bold text-slate-950">{pending}</span><span className="text-sm font-medium text-slate-600">À remettre</span></button>
@@ -111,7 +116,7 @@ export default function RegionalDeviceHandoffsPage() {
 
     <section className="rounded-2xl border border-slate-200 bg-white p-4 sm:p-6">
       <div className="flex items-center gap-2"><Plus className="h-5 w-5 text-blue-700" /><h2 className="text-lg font-bold text-slate-950">Ajouter un élève</h2></div>
-      <p className="mt-1 text-sm text-slate-600">Sur les feuilles remises par l’administration, vérifiez le « A » non effacé, le nom et la classe avant d’ajouter un élève. Contrôlez la remise effective avant de cocher « Marquer remis ».</p>
+      <p className="mt-1 text-sm text-slate-600">Sur les feuilles remises par l’administration, retenez les « A » non effacés et les mentions « Absent » lisibles. Vérifiez le nom, la classe et le colis conservé au lycée avant d’ajouter un élève.</p>
       <form className="mt-4 grid gap-3 sm:grid-cols-[1fr_140px_auto]" onSubmit={event => { event.preventDefault(); void add([{ studentName: name, className }]); }}>
         <label className="text-sm font-medium text-slate-700">Nom et prénom<input className="field mt-1" autoComplete="off" value={name} maxLength={160} onChange={event => setName(event.target.value)} required placeholder="Nom Prénom" /></label>
         <label className="text-sm font-medium text-slate-700">Classe<input className="field mt-1" autoComplete="off" value={className} maxLength={60} onChange={event => setClassName(event.target.value)} required placeholder="Ex. 2GT1" /></label>
