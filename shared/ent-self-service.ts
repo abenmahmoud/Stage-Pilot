@@ -22,21 +22,29 @@ export function asksHowToOpenPronote(messages: readonly AssistantConversationMes
   const latest = plainAccessText(messages.findLast(m => m.role === 'requester')?.content ?? '');
   return /\bpronote\b/.test(latest)
     && /\b(comment|ou|acces|acceder|ouvrir|trouver|connexion|connecter)\b/.test(latest)
-    && !/\b(code|codes|identifiant|identifiants|mot de passe|perdu|oublie|bloque|impossible|n arrive|ne peux|reinitialis\w*)\b/.test(latest);
+    && !/\b(code|codes|identifiant|identifiants|mot de passe|perdu|oublie|bloqu\w*|impossible|n arrive|ne peux|ne marche|ne fonctionne|reinitialis\w*)\b/.test(latest);
 }
 
 export function requestsEntAccess(messages: readonly AssistantConversationMessage[]): boolean {
   const plain = plainAccessText;
   const latest = plain(messages.findLast(m => m.role === 'requester')?.content ?? '');
-  if (/\b(koxo|cantine|emploi|horaire|salle|certificat|pc|windows|session|reseau)\b/.test(latest)) return false;
+  if (/^(?:merci(?: beaucoup)?|c est bon|ca marche|au revoir|bonne journee)[.! ]*$/.test(latest)) return false;
+  const namedEnt = /\b(ent|monlycee|mon lycee|pronote)\b/.test(latest);
+  const otherCode = /\b(?:code|codes|identifiant|identifiants|mot de passe)\s+(?:(?:de|du|pour|d|mon|ma)\s+)?(?:cantine|koxo|session|pc|windows|reseau)\b/.test(latest);
+  if (otherCode || (/\b(koxo|cantine|certificat|windows|session|reseau)\b/.test(latest)
+    && !namedEnt)) return false;
   if (asksHowToOpenPronote(messages)) return false;
-  const pronoteCredentials = /\bpronote\b/.test(latest)
-    && /\b(code|codes|identifiant|identifiants|mot de passe|perdu|oublie|bloque|impossible|n arrive|ne peux|reinitialis\w*|mon compte|ma connexion)\b/.test(latest);
+  const accessTrouble = /\b(bloqu\w*|impossible|n arrive|ne peux|ne marche|ne fonctionne|perdu|oublie|reinitialis\w*|probleme de connexion)\b/.test(latest);
+  const personalCredential = /\b(code|codes|identifiant|identifiants|mot de passe|activer|activation|mon compte|ma connexion)\b/.test(latest);
+  // A login failure can coexist with an urgent timetable need or mention the
+  // device used. Resolve access first; a plain timetable question goes to EDT.
+  if (namedEnt && (accessTrouble || personalCredential)) return true;
+  if (/\b(emplois?|horaires?|salles?|cours|edt|planning|pcs?)\b/.test(latest)) return false;
+  if (/\b(koxo|cantine|certificat|windows|session|reseau)\b/.test(latest)) return false;
   const recentService = [...messages].reverse().find(m => m.role === 'requester'
     && /\b(ent|monlycee|mon lycee|pronote|koxo|cantine|messagerie|academique)\b/.test(plain(m.content)));
   const entContext = recentService ? /\b(ent|monlycee|mon lycee|pronote)\b/.test(plain(recentService.content)) : false;
-  return pronoteCredentials || /\b(ent|monlycee|mon lycee)\b/.test(latest)
-    || (entContext && /\b(code|codes|identifiant|identifiants|activer|activation|connecter|connexion|acces|compte|mot de passe|reinitialis\w*|oublie|perdu|deja essaye|deja fait)\b/.test(latest));
+  return /\b(ent|monlycee|mon lycee)\b/.test(latest) || entContext;
 }
 
 export type EntAccount = { identifier: string; activationState: 'active' | 'inactive' };

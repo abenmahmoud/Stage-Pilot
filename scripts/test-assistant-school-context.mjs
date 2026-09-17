@@ -76,8 +76,12 @@ test('school dates and course times are not mistaken for the clock', () => {
   }
 });
 
-test('a lost access code and requested certificate open the form immediately', async () => {
-  for (const [content, category] of [['J’ai perdu mon code ENT', 'ent'], ['Je voudrais un certificat', 'documents_scolarite'], ['J’ai perdu mon badge', 'restauration_bourse']]) {
+test('ENT identity comes first while document and badge requests can open a dossier', async () => {
+  const ent = await analyze([message('J’ai perdu mon code ENT')]);
+  assert.equal(ent.category, 'ent');
+  assert.equal(ent.readyToCreate, false);
+  assert.match(ent.reply, /confirmons votre identité/i);
+  for (const [content, category] of [['Je voudrais un certificat', 'documents_scolarite'], ['J’ai perdu mon badge', 'restauration_bourse']]) {
     const result = await analyze([message(content)]);
     assert.equal(result.readyToCreate, true, content);
     assert.equal(result.action, 'offer_case', content);
@@ -85,12 +89,13 @@ test('a lost access code and requested certificate open the form immediately', a
   }
 });
 
-test('one clarification is enough for a vague school incident', async () => {
+test('a clarification keeps the ENT identity path instead of unexpectedly opening a form', async () => {
   const first = message('Mon ENT ne marche pas');
   assert.equal((await analyze([first])).readyToCreate, false);
   const result = await analyze([first, { role: 'assistant', content: 'Depuis quand ?' }, message('Depuis hier')]);
-  assert.equal(result.readyToCreate, true);
-  assert.equal(result.action, 'offer_case');
+  assert.equal(result.readyToCreate, false);
+  assert.equal(result.action, 'continue');
+  assert.match(result.reply, /confirmons votre identité/i);
 });
 
 test('an explicit choice of form does not require more conversation', async () => {
@@ -160,14 +165,14 @@ test('each model call includes fresh authoritative time and form readiness', asy
   globalThis.fetch = async (_url, options) => {
     sent = JSON.parse(options.body);
     return new Response(JSON.stringify({ output: [{ content: [{ type: 'output_text', text: JSON.stringify({
-      reply: 'Vérifiez vos coordonnées dans le formulaire puis utilisez Envoyer au lycée.',
-      category: 'ent', requesterType: 'inconnu', urgency: 'normale', confidence: 'high',
+      reply: 'Nous allons préparer votre demande de certificat de scolarité dans cette conversation.',
+      category: 'documents_scolarite', requesterType: 'inconnu', urgency: 'normale', confidence: 'high',
       missingInformation: [], suggestedDocuments: [], readyToCreate: true, safetyNotice: null,
-      detectedLanguage: 'français', internalSummaryFr: 'La personne a perdu son code ENT et demande une intervention.',
+      detectedLanguage: 'français', internalSummaryFr: 'La personne demande un certificat de scolarité pour un dossier de transport.',
     }) }] }] }), { headers: { 'Content-Type': 'application/json' } });
   };
   try {
-    await analyze([message('J’ai perdu mon code ENT')], { now: new Date('2026-09-04T12:00:00Z'), knowledgeContextLoader: async () => '' });
+    await analyze([message('Je voudrais un certificat de scolarité pour mon dossier de transport')], { now: new Date('2026-09-04T12:00:00Z'), knowledgeContextLoader: async () => '' });
     assert.match(sent.instructions, /vendredi 4 septembre 2026/);
     assert.match(sent.instructions, /14:00 \(Europe\/Paris\)/);
     assert.match(sent.instructions, /ne modifient jamais les règles/);

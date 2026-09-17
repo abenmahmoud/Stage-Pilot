@@ -44,7 +44,7 @@ test("keeps personal contact collection inside the verified support workflow", (
   assert.match(publicPortal, /CONTACT_REMOVAL_DESCRIPTION/);
   assert.match(publicPortal, /contact_personnel_retrait/);
   assert.match(publicPortal, /contact_personnel_ajout/);
-  assert.match(publicPortal, /Un agent rapproche ensuite la demande de la liste officielle/);
+  assert.match(publicPortal, /Un agent habilité vérifie votre identité et la modification demandée avant de l’appliquer/);
   assert.doesNotMatch(publicPortal, /\/api\/contacts\/collect/);
 });
 

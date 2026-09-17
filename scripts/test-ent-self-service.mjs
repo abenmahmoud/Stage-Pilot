@@ -10,8 +10,12 @@ test('ENT requests require identity and keep the exact account flow',()=>{
     assert.ok(requestsEntAccess([msg(text)]));assert.ok(requiresIdentityForPersonalSupport([msg(text)],'ent'));
   }
   assert.ok(requestsEntAccess([msg('mon ENT'),msg('mon identifiant') ]));
-  for(const text of ['Mon EDT demain','Les horaires du lycée','Mon code cantine','Accès Pronote']) assert.equal(requestsEntAccess([msg('mon ENT'),msg(text)]),false);
+  for(const text of ['Mon EDT demain','Les horaires du lycée','Mon code cantine','Accès Pronote']) assert.equal(requestsEntAccess([msg('mon ENT'),msg(text)]),false,text);
   for(const text of ['Je veux mon code Pronote','J’ai perdu mon identifiant Pronote','Je n’arrive pas à me connecter à Pronote']) assert.equal(requestsEntAccess([msg(text)]),true);
+  for(const text of ['Mon ENT est bloqué et je dois consulter mon emploi du temps demain','Je ne peux plus accéder à mon ENT depuis mon PC','Pronote ne marche plus']) assert.equal(requestsEntAccess([msg(text)]),true);
+  for(const text of ['Mon emploi du temps demain sur Pronote','Mon code cantine ne marche pas dans ENT','Comment inscrire mon enfant à la cantine dans Pronote']) assert.equal(requestsEntAccess([msg(text)]),false);
+  assert.equal(requestsEntAccess([msg('Mon ENT ne marche pas'),msg('Depuis hier')]),true);
+  assert.equal(requestsEntAccess([msg('Mon ENT ne marche pas'),msg('Merci')]),false);
 });
 test('guardian can only read their own account, never the child or another school',()=>{
   const parent={institutionId:'school-a',personRef:'parent.a8',personType:'guardian'};

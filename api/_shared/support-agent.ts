@@ -341,7 +341,7 @@ function claimsUnconfirmedActionSuccess(value: string): boolean {
     .replace(/[’`]/g, "'")
     .toLowerCase();
   const completedAction =
-    "(?:reinitialise|debloque|modifie|supprime|active|cree|enregistre|envoye|transmis|signale|alerte|contacte|appele)";
+    "(?:reinitialise|debloque|modifie|supprime|active|cree|genere|publie|enregistre|envoye|transmis|signale|alerte|contacte|appele)";
 
   return new RegExp(
     `\\b(?:j[' ]ai|nous avons|le lycee a|un agent a)\\b.{0,90}\\b${completedAction}\\b|` +
