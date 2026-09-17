@@ -60,7 +60,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       .select({
         successes24h: sql<number>`count(*) filter (where ${supportJobRuns.status} = 'success')`.mapWith(Number),
         failures24h: sql<number>`count(*) filter (where ${supportJobRuns.status} = 'failure')`.mapWith(Number),
-        lastSuccessAt: sql<Date | null>`max(${supportJobRuns.createdAt}) filter (where ${supportJobRuns.status} = 'success')`,
+        lastSuccessAt: sql<Date | null>`max(${supportJobRuns.createdAt}) filter (where ${supportJobRuns.status} = 'success')`.mapWith(supportJobRuns.createdAt),
       })
       .from(supportJobRuns)
       .innerJoin(supportRequests, eq(supportRequests.id, supportJobRuns.requestId))
