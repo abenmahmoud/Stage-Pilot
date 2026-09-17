@@ -1,6 +1,6 @@
 import { encodeBudgetedAiRequest } from "../../shared/budgeted-ai-request.js";
 import { accessGuidanceKind, requestsOwnClass, type OwnClassReadResult } from "../../shared/support-service-intent.js";
-import { requestsEntAccess, entIdentityPrompt } from '../../shared/ent-self-service.js';
+import { asksHowToOpenPronote, requestsEntAccess, entIdentityPrompt, ENT_LOGIN_URL } from '../../shared/ent-self-service.js';
 import { requestsPcSessionAccess, pcSessionIdentityPrompt, pcSessionRecoveryFailed } from '../../shared/pc-session-self-service.js';
 import { familySchoolIntent, type FamilySchoolIntent, type SchoolTargetChoices } from "../../shared/family-school-chat.js";
 import { familySchoolAnswer } from "./family-school-chat-answer.js";
@@ -550,6 +550,13 @@ export async function analyzeSupportConversation(input: {
       await recordRuntime("deterministic", false, false);
       return { ...fallback, ...answer };
     }
+  }
+  if (asksHowToOpenPronote(input.messages)) {
+    await recordRuntime('deterministic', false, false);
+    return { ...fallback, category: 'ent', scope: 'school_support', confidence: 'high', usedAi: false,
+      reply: `Pour accéder à PRONOTE au lycée, connectez-vous d’abord à [Monlycée.net](${ENT_LOGIN_URL}) avec votre compte ENT personnel, puis ouvrez l’application PRONOTE depuis l’ENT. Si vous avez perdu votre identifiant ou votre mot de passe ENT, dites-le-moi : je vous guiderai selon l’état de votre compte.`,
+      readyToCreate: false, action: 'continue', missingInformation: [], suggestedDocuments: [],
+      safetyNotice: null, internalSummaryFr: null, sourceReferences: [] };
   }
   if (input.ownClassReader && requestsOwnClass(input.messages)) {
     let result: OwnClassReadResult;

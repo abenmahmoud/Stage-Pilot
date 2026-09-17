@@ -11,17 +11,31 @@ export const ENT_RESET_STEPS = [
 ] as const;
 
 export function entIdentityPrompt(): string {
-  return `Vous pouvez vous connecter sur [monlycée.net](${ENT_LOGIN_URL}). Si vous connaissez votre identifiant mais avez oublié votre mot de passe, choisissez « Mot de passe oublié ? », saisissez cet identifiant, puis cliquez sur « Valider » pour recevoir un lien de réinitialisation.\n\nPour retrouver votre identifiant exact ou votre code de première activation ici, confirmons votre identité par SMS ou email sur un contact connu du lycée. Si vous êtes parent, indiquez votre propre nom et prénom : vous utilisez votre compte personnel de parent.`;
+  return `Vous pouvez vous connecter sur [monlycée.net](${ENT_LOGIN_URL}) ; PRONOTE s’ouvre ensuite depuis l’ENT du lycée. Si vous connaissez votre identifiant ENT mais avez oublié votre mot de passe, choisissez « Mot de passe oublié ? », saisissez cet identifiant, puis cliquez sur « Valider » pour recevoir un lien de réinitialisation.\n\nPour retrouver votre identifiant exact ou votre code de première activation ici, confirmons votre identité par SMS ou email sur un contact connu du lycée. Si vous êtes parent, indiquez votre propre nom et prénom : vous utilisez votre compte personnel de parent.`;
+}
+
+function plainAccessText(value: string): string {
+  return value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[’']/g, ' ');
+}
+
+export function asksHowToOpenPronote(messages: readonly AssistantConversationMessage[]): boolean {
+  const latest = plainAccessText(messages.findLast(m => m.role === 'requester')?.content ?? '');
+  return /\bpronote\b/.test(latest)
+    && /\b(comment|ou|acces|acceder|ouvrir|trouver|connexion|connecter)\b/.test(latest)
+    && !/\b(code|codes|identifiant|identifiants|mot de passe|perdu|oublie|bloque|impossible|n arrive|ne peux|reinitialis\w*)\b/.test(latest);
 }
 
 export function requestsEntAccess(messages: readonly AssistantConversationMessage[]): boolean {
-  const plain = (v: string) => v.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[’']/g, ' ');
+  const plain = plainAccessText;
   const latest = plain(messages.findLast(m => m.role === 'requester')?.content ?? '');
-  if (/\b(pronote|koxo|cantine|emploi|horaire|salle|certificat|pc|windows|session|reseau)\b/.test(latest)) return false;
+  if (/\b(koxo|cantine|emploi|horaire|salle|certificat|pc|windows|session|reseau)\b/.test(latest)) return false;
+  if (asksHowToOpenPronote(messages)) return false;
+  const pronoteCredentials = /\bpronote\b/.test(latest)
+    && /\b(code|codes|identifiant|identifiants|mot de passe|perdu|oublie|bloque|impossible|n arrive|ne peux|reinitialis\w*|mon compte|ma connexion)\b/.test(latest);
   const recentService = [...messages].reverse().find(m => m.role === 'requester'
     && /\b(ent|monlycee|mon lycee|pronote|koxo|cantine|messagerie|academique)\b/.test(plain(m.content)));
-  const entContext = recentService ? /\b(ent|monlycee|mon lycee)\b/.test(plain(recentService.content)) : false;
-  return /\b(ent|monlycee|mon lycee)\b/.test(latest)
+  const entContext = recentService ? /\b(ent|monlycee|mon lycee|pronote)\b/.test(plain(recentService.content)) : false;
+  return pronoteCredentials || /\b(ent|monlycee|mon lycee)\b/.test(latest)
     || (entContext && /\b(code|codes|identifiant|identifiants|activer|activation|connecter|connexion|acces|compte|mot de passe|reinitialis\w*|oublie|perdu|deja essaye|deja fait)\b/.test(latest));
 }
 

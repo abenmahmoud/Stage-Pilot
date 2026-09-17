@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { ENT_LOGIN_URL,requestsEntAccess,ownEntAccessAllowed,codeFromEntVault,validEntAccessPayload } from '../shared/ent-self-service.ts';
+import { ENT_LOGIN_URL,asksHowToOpenPronote,requestsEntAccess,ownEntAccessAllowed,codeFromEntVault,validEntAccessPayload } from '../shared/ent-self-service.ts';
 import { requiresIdentityForPersonalSupport } from '../shared/support-service-intent.ts';
 import { analyzeSupportConversation } from '../api/_shared/support-agent.ts';
 process.env.OPENAI_API_KEY='';
@@ -11,6 +11,7 @@ test('ENT requests require identity and keep the exact account flow',()=>{
   }
   assert.ok(requestsEntAccess([msg('mon ENT'),msg('mon identifiant') ]));
   for(const text of ['Mon EDT demain','Les horaires du lycée','Mon code cantine','Accès Pronote']) assert.equal(requestsEntAccess([msg('mon ENT'),msg(text)]),false);
+  for(const text of ['Je veux mon code Pronote','J’ai perdu mon identifiant Pronote','Je n’arrive pas à me connecter à Pronote']) assert.equal(requestsEntAccess([msg(text)]),true);
 });
 test('guardian can only read their own account, never the child or another school',()=>{
   const parent={institutionId:'school-a',personRef:'parent.a8',personType:'guardian'};
@@ -46,7 +47,20 @@ test('reset and forgotten identifier keep the ENT context without stealing anoth
     assert.match(answer.reply,/identifiant exact/);
   }
   assert.equal(requestsEntAccess([msg('Mon ENT'),msg('Ma messagerie académique'),msg('Identifiant oublié')]),false);
-  assert.equal(requestsEntAccess([msg('Mon ENT'),msg('Mon compte Pronote'),msg('Comment réinitialiser ?')]),false);
+  assert.equal(requestsEntAccess([msg('Mon ENT'),msg('Mon compte Pronote'),msg('Comment réinitialiser ?')]),true);
+});
+
+test('PRONOTE opens from Monlycée.net without a separate login promise',async()=>{
+  const messages=[msg('Comment accéder à Pronote ?')];
+  assert.equal(asksHowToOpenPronote(messages),true);
+  assert.equal(requiresIdentityForPersonalSupport(messages,'ent'),false);
+  const answer=await analyzeSupportConversation({messages,attachments:[],safetyIdentifier:'synthetic-pronote-test',identityVerified:false});
+  assert.equal(answer.category,'ent');assert.equal(answer.action,'continue');assert.equal(answer.usedAi,false);
+  assert.match(answer.reply,/PRONOTE depuis l’ENT/);assert.ok(answer.reply.includes(ENT_LOGIN_URL));
+  const own=[msg('Je suis parent, je veux mon code Pronote')];
+  const personal=await analyzeSupportConversation({messages:own,attachments:[],safetyIdentifier:'synthetic-pronote-parent',identityVerified:false});
+  assert.equal(personal.category,'ent');assert.equal(personal.readyToCreate,false);assert.equal(personal.usedAi,false);
+  assert.match(personal.reply,/confirmons votre identité/);assert.doesNotMatch(personal.reply,/Code :/);
 });
 
 test('anonymous parent gets the public procedure, never credentials based on a child name',async()=>{
