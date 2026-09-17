@@ -1,5 +1,5 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { and, desc, eq, gte, isNull, sql } from "drizzle-orm";
+import { and, desc, eq, gte, isNull, lt, sql } from "drizzle-orm";
 import { db } from "../../../../db/index.js";
 import {
   supportAttachments,
@@ -75,7 +75,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       .where(
         and(
           eq(supportWebhookReceipts.institutionId, context.institutionId),
-          sql`${supportWebhookReceipts.createdAt} >= ${since} and ${supportWebhookReceipts.status} in ('error', 'rejected')`
+          gte(supportWebhookReceipts.createdAt, since),
+          sql`${supportWebhookReceipts.status} in ('error', 'rejected')`
         )
       );
 
@@ -86,7 +87,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       .where(
         and(
           eq(supportRequests.institutionId, context.institutionId),
-          sql`${supportMessages.createdAt} >= ${since} and ${supportMessages.deliveryStatus} in ('soft_bounce', 'hard_bounce', 'blocked', 'spam', 'invalid')`
+          gte(supportMessages.createdAt, since),
+          sql`${supportMessages.deliveryStatus} in ('soft_bounce', 'hard_bounce', 'blocked', 'spam', 'invalid')`
         )
       );
 
@@ -97,7 +99,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       .where(
         and(
           eq(supportRequests.institutionId, context.institutionId),
-          sql`${supportAttachments.createdAt} < ${waitingSince} and ${supportAttachments.scanStatus} = 'quarantine'`
+          lt(supportAttachments.createdAt, waitingSince),
+          eq(supportAttachments.scanStatus, 'quarantine')
         )
       );
 
