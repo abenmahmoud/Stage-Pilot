@@ -2449,6 +2449,9 @@ function ConnectedRequestsView({ ticketCode, onBack, accessLinkError }: { ticket
   const [detailLoading, setDetailLoading] = useState(false);
   const [detailError, setDetailError] = useState<string | null>(null);
   const [reply, setReply] = useState("");
+  const [entHelpOpen, setEntHelpOpen] = useState(false);
+  const [entIdentityVerified, setEntIdentityVerified] = useState(false);
+  const [entHelpMessage, setEntHelpMessage] = useState<string | null>(null);
   const [replying, setReplying] = useState(false);
   const [forgettingDevice, setForgettingDevice] = useState(false);
   const [notificationsEnabled, setNotificationsEnabled] = useState(false);
@@ -2601,6 +2604,9 @@ function ConnectedRequestsView({ ticketCode, onBack, accessLinkError }: { ticket
 
   useEffect(() => {
     selectedCodeRef.current = selectedCode;
+    setEntHelpOpen(false);
+    setEntIdentityVerified(false);
+    setEntHelpMessage(null);
     requesterReplySubmissionRef.current = null;
     requesterAttachmentRemovalSubmissionRef.current = null;
     setRequesterDeletingAttachmentId(null);
@@ -2995,6 +3001,19 @@ function ConnectedRequestsView({ ticketCode, onBack, accessLinkError }: { ticket
                 <BadgeCheck aria-hidden="true" />
                 <span><strong>{identityStatusLabels[detail.request.identityStatus]}</strong><small>{detail.request.identityStatus === "identite_confirmee" ? "Le lycée a confirmé votre identité à partir de ses informations officielles." : detail.request.identityStatus === "contact_verifie" ? detail.request.identityMethod === "phone_callback" ? "Un agent a vérifié le numéro de téléphone par rappel, sans confirmer encore l’identité scolaire." : "L’accès sécurisé confirme le contrôle de l’adresse email, sans confirmer encore l’identité scolaire." : "La demande est enregistrée. Les codes d’accès et documents personnels nécessitent une vérification d’identité."}</small></span>
               </section>
+              {IDENTITY_DEVICE_ACCESS_ENABLED && detail.request.category === 'ent' ? (
+                <section className="lycee-ticket-ent-help" aria-label="Aide pour mon accès ENT">
+                  <div><KeyRound aria-hidden="true" /><span><strong>Votre accès ENT, dans ce dossier</strong><small>Retrouvez votre propre identifiant et, si votre compte n’est pas activé, votre code disponible après vérification. Aucune nouvelle demande n’est créée.</small></span></div>
+                  {!entHelpOpen ? <button type="button" onClick={() => setEntHelpOpen(true)}>Retrouver mon accès ENT</button> : null}
+                  {entHelpOpen ? <>
+                    <IdentityDeviceAccessPanel key={detail.request.publicCode} onVerified={() => setEntIdentityVerified(true)} onVerificationChange={setEntIdentityVerified}
+                      onContactUpdate={() => { setEntHelpMessage('Si les coordonnées connues du lycée sont incorrectes, décrivez la correction souhaitée dans ce dossier. Un agent la vérifiera.'); document.getElementById('lycee-followup-message')?.focus(); }}
+                      onSkip={() => setEntHelpOpen(false)} skipLabel="Revenir à ma demande" />
+                    {entIdentityVerified ? <EntAccessChatCard onHelp={() => { setEntHelpMessage('Précisez ici ce qui bloque ou quelles coordonnées doivent être corrigées ; le référent numérique reprendra ce même dossier.'); document.getElementById('lycee-followup-message')?.focus(); }} /> : null}
+                    {entHelpMessage ? <p role="status">{entHelpMessage}</p> : null}
+                  </> : null}
+                </section>
+              ) : null}
               {initialRequesterMessage ? (
                 <section className="lycee-request-summary" aria-label="Votre demande">
                   <MessageCircleMore aria-hidden="true" />

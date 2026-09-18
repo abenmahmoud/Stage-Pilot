@@ -1,5 +1,16 @@
 # Memoire durable - Portail numerique du Lycee Blaise Cendrars
 
+## File des demandes ENT — 18 septembre
+
+Constat de la console connectée : 47 demandes sur 30 jours, 46 ouvertes, dont
+24 ENT/PRONOTE. Les anciennes demandes examinées ne portent pas de lien
+d'identité exploitable ; la suggestion renvoyait vers un nouveau chat, pouvant
+créer un doublon. Le nouvel export ENT du 17 septembre est déjà actif et ne
+rattache pas rétroactivement ces demandes. Correction du parcours : accès ENT
+personnel par OTP depuis « Mes demandes » dans le dossier existant, suggestion
+agent réécrite pour ce parcours. Aucune réponse de masse ni clôture automatique.
+Preuve et limites : `docs/operations/FILE_DEMANDES_ENT_2026-09-18.md`.
+
 **Derniere mise a jour** : 16 septembre 2026
 **Branche de travail** : `codex/lycee-connect-prototype`
 **Depot** : `abenmahmoud/Stage-Pilot`

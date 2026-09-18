@@ -11,7 +11,7 @@ import {
 function messages() {
   return [
     { role: "assistant", content: "Bonjour" },
-    { role: "requester", content: "Mon accès ENT reste bloqué depuis hier et je souhaite ouvrir une demande." },
+    { role: "requester", content: "Je suis élève et j’ai besoin d’un certificat de scolarité pour mon dossier de transport avant vendredi." },
   ];
 }
 

@@ -641,6 +641,15 @@
 .lycee-identity-status[data-status="contact_verifie"] > svg { color: var(--lc-blue); }
 .lycee-identity-status[data-status="identite_confirmee"] { border-color: #bde3d8; background: #edf9f5; }
 .lycee-identity-status[data-status="identite_confirmee"] > svg { color: var(--lc-green); }
+.lycee-ticket-ent-help { display: grid; gap: 12px; margin: 14px 0; padding: 16px; border: 1px solid #c8d8f0; border-radius: 12px; background: #f5f8fe; }
+.lycee-ticket-ent-help > div:first-child { display: flex; align-items: flex-start; gap: 10px; }
+.lycee-ticket-ent-help > div:first-child > svg { width: 19px; height: 19px; flex: 0 0 auto; color: var(--lc-blue); }
+.lycee-ticket-ent-help > div:first-child > span { display: grid; gap: 4px; }
+.lycee-ticket-ent-help strong { color: var(--lc-ink); font-size: 13px; }
+.lycee-ticket-ent-help small, .lycee-ticket-ent-help > p { color: var(--lc-muted); font-size: 12px; line-height: 1.5; }
+.lycee-ticket-ent-help > button { justify-self: start; border: 0; border-radius: 8px; padding: 10px 14px; background: var(--lc-blue); color: #fff; font: inherit; font-size: 12px; font-weight: 700; cursor: pointer; }
+.lycee-ticket-ent-help > button:focus-visible { outline: 3px solid #a8c7ff; outline-offset: 2px; }
+.lycee-ticket-ent-help .lycee-identity-device, .lycee-ticket-ent-help .lycee-ent-access { margin: 0; min-width: 0; }
 .lycee-request-summary { display: grid; grid-template-columns: 32px minmax(0,1fr); gap: 10px; margin: 10px 0 4px; padding: 13px; border: 1px solid #b9ccee; border-radius: 7px; background: #f2f6ff; }
 .lycee-request-summary > svg { width: 18px; color: var(--lc-blue); }
 .lycee-request-summary > span { min-width: 0; }

@@ -14,13 +14,13 @@ export type SupportReplySuggestion = {
   sources: string[];
   checkedAt: string;
 };
-export const SCHOOL_HELP_URL = 'https://lycee-blaise-cendrars-sevran.fr/?view=help';
+export const SCHOOL_REQUESTS_URL = 'https://lycee-blaise-cendrars-sevran.fr/?view=requests';
 
 /** A reviewed draft, never a credential delivery or an identity grant. */
 export function suggestEntReply(evidence: SupportSuggestionEvidence, recoveryFailed: boolean) {
   const facts: string[] = [];
   let instruction: string;
-  const entry = `Ouvrez l’assistant du lycée : ${SCHOOL_HELP_URL}\nÉcrivez « Je souhaite retrouver mon accès ENT ». Si le site vous le demande, confirmez votre identité avec le code reçu par SMS ou email sur un contact connu du lycée. Votre identifiant exact s’affichera dans votre espace sécurisé.`;
+  const entry = `Retrouvez cette demande dans « Mes demandes » : ${SCHOOL_REQUESTS_URL}\nDans ce dossier, choisissez « Retrouver mon accès ENT ». Confirmez votre identité avec le code reçu par SMS ou email sur un contact connu du lycée. Votre identifiant exact s’affichera dans un espace sécurisé, sans créer une nouvelle demande.`;
   if (evidence.state === 'unlinked') {
     facts.push('Ce dossier n’a pas de lien d’identité exploitable avec l’annuaire actuel.');
     instruction = `${entry}\n\nSi vous connaissez déjà votre identifiant, rendez-vous sur ${ENT_LOGIN_URL} : le bouton « Mot de passe oublié ? » permet de demander un lien de réinitialisation.`;

@@ -284,13 +284,14 @@ test("the actual assistant handler signs its result once, independently of tool 
     assert.ok(Object.hasOwn(imports, name), `Unexpected import ${name}`); return imports[name];
   } });
   const req = { method: "POST", body: { sessionId: "fixture-session-123456", messages, attachments: [] } };
-  const response = await exports.default(req, {});
+  const res = { setHeader() {} };
+  const response = await exports.default(req, res);
   assert.equal(analyses, 1);
   assert.equal(response.routingReceipt, null);
   assert.equal(response.requestActionAuthorized, false);
   assert.equal(verify({ receipt: response.normalizationReceipt }).normalizationStatus, "assistant_signe_a_verifier");
   usedAi = false;
-  const fallback = await exports.default(req, {});
+  const fallback = await exports.default(req, res);
   assert.equal(analyses, 2);
   assert.equal(fallback.normalizationReceipt, null);
   assert.equal(fallback.normalizationReceiptExpiresAt, null);

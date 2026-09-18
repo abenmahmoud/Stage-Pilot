@@ -25,6 +25,9 @@ test('old or unbound requests do not invent a matching person', () => {
   const r = suggestEntReply({ ...evidence, state: 'unlinked' }, false);
   assert.match(r.facts[0], /n’a pas de lien/);
   assert.doesNotMatch(r.sources.join(' '), /import ENT|Attributions/);
+  assert.match(r.draft, /Dans ce dossier, choisissez « Retrouver mon accès ENT »/);
+  assert.match(r.draft, /sans créer une nouvelle demande/);
+  assert.doesNotMatch(r.draft, /Écrivez « Je souhaite retrouver mon accès ENT »/);
 });
 test('a failed attempt avoids repeating the same recovery instructions', () => {
   for (const state of ['active', 'inactive', 'unlinked', 'unavailable']) {
