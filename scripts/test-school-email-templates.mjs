@@ -35,6 +35,17 @@ test("confirmation and recovery keep the request beyond the temporary access", (
   }
 });
 
+test("one ENT confirmation points to self-service in the same case without disclosing school credentials", () => {
+  const ent = buildSupportRequesterEmail({ ...input, kind: "created", requestCategory: "ent" });
+  assert.match(ent.textContent, /Retrouver mon accès ENT/);
+  assert.match(ent.textContent, /dans ce même dossier/);
+  assert.doesNotMatch(ent.textContent, /Identifiant ENT :|Code d’activation :/);
+  const catering = buildSupportRequesterEmail({ ...input, kind: "created", requestCategory: "restauration_bourse" });
+  assert.doesNotMatch(catering.textContent, /Retrouver mon accès ENT/);
+  const reply = buildSupportRequesterEmail({ ...input, kind: "reply", requestCategory: "ent", bodyText: "Réponse du lycée" });
+  assert.doesNotMatch(reply.textContent, /Retrouver mon accès ENT/);
+});
+
 test("reply preserves the human text and points to protected documents", () => {
   const email = buildSupportRequesterEmail({ ...input, kind: "reply", bodyText: 'Voici votre réponse.\nPièce <confidentielle> & originale.', attachmentCount: 2 });
   assert.match(email.textContent, /Pièce <confidentielle> & originale\./);

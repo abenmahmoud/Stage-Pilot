@@ -57,6 +57,13 @@ les clôt pas. La reprise collective nécessitera un message ciblé et validé
 avant tout envoi réel, puis un contrôle des retours et des cas qui exigent une
 intervention humaine.
 
+Pour les **nouveaux** dossiers ENT, l'email de confirmation existant mentionne
+maintenant le bouton de récupération sécurisé dans le dossier et la possibilité
+de confirmer sa résolution. Cela n'ajoute aucun second envoi. Les demandes de
+classe/emploi du temps disposent du même lecteur personnel après OTP dans leur
+dossier, avec choix de l'enfant pour un parent autorisé. Le mail de confirmation
+des autres catégories reste générique.
+
 ## Recette et suivi
 
 - Contrôler `npm run test:support-reply-suggestion`, `npm run test:agent-ai-budget`,

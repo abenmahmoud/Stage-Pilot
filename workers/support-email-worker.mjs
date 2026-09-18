@@ -150,7 +150,7 @@ async function deliver(job, institutionId) {
     return sendEmail({
       to: { email: context.email, name: requesterName },
       ...buildSupportRequesterEmail({ kind: "created", publicCode: request.public_code, requesterName,
-        requestSubject: request.subject, trackingUrl: link, accessCode }),
+        requestSubject: request.subject, requestCategory: request.category, trackingUrl: link, accessCode }),
       idempotencyKey: job.job_id,
       replyTo: { email: requesterReplyAddress(request.public_code), name: senderName },
       tags: ["lyceegest-support", "demande-recue"],

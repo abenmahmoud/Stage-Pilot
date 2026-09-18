@@ -61,18 +61,22 @@ export function buildIdentityVerificationEmail({ firstName, code }) {
   });
 }
 
-export function buildSupportRequesterEmail({ kind, publicCode, requesterName, requestSubject, trackingUrl, accessCode, bodyText, attachmentCount = 0 }) {
+export function buildSupportRequesterEmail({ kind, publicCode, requesterName, requestSubject, requestCategory, trackingUrl, accessCode, bodyText, attachmentCount = 0 }) {
   validateReference(publicCode);
   if (accessCode !== null) validateCode(accessCode);
   secureUrl(trackingUrl);
   const hello = greeting(requesterName);
   let title, intro, actionLabel, suffix;
+  let selfService = "";
   let note = "Le code et le lien sont à usage unique et expirent après 30 minutes. Votre demande reste enregistrée. Si cet accès a expiré, ouvrez « Mes demandes » sur le site du lycée pour demander un nouveau lien. Ne transférez pas cet email.";
   if (kind === "created") {
     title = "Votre demande est enregistrée";
     suffix = "Votre demande a été reçue";
     intro = `Votre demande « ${line(requestSubject)} » a bien été reçue. Vous pouvez consulter son avancement et les réponses du lycée dans « Mes demandes ».`;
     actionLabel = "Suivre ma demande";
+    if (requestCategory === "ent") {
+      selfService = "Vous pouvez aussi retrouver votre accès ENT directement dans ce dossier : choisissez « Retrouver mon accès ENT » et confirmez votre identité sur un contact déjà connu du lycée. Si votre problème est réglé, indiquez-le dans le suivi ; sinon, répondez dans ce même dossier.";
+    }
   } else if (kind === "reply") {
     title = "Le lycée vous a répondu";
     suffix = "Réponse du lycée";
@@ -92,8 +96,8 @@ export function buildSupportRequesterEmail({ kind, publicCode, requesterName, re
   return renderEmail({
     subject: `${publicCode} - ${suffix}`, title,
     preview: `${suffix}. Référence : ${publicCode}.`,
-    text: [hello, reference, intro, documents, codeText].filter(Boolean).join("\n\n"),
-    body: paragraph(hello) + paragraph(reference) + paragraph(intro) + (documents ? paragraph(documents) : "")
+    text: [hello, reference, intro, selfService, documents, codeText].filter(Boolean).join("\n\n"),
+    body: paragraph(hello) + paragraph(reference) + paragraph(intro) + (selfService ? paragraph(selfService) : "") + (documents ? paragraph(documents) : "")
       + (accessCode ? paragraph("Code à usage unique :") + codeBlock(accessCode) + paragraph("Saisissez-le avec le numéro de demande dans « Mes demandes », ou utilisez le bouton ci-dessous.") : ""),
     action: { label: actionLabel, url: trackingUrl }, note,
   });

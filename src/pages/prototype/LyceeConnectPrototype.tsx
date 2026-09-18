@@ -3031,16 +3031,16 @@ function ConnectedRequestsView({ ticketCode, onBack, accessLinkError }: { ticket
                 <BadgeCheck aria-hidden="true" />
                 <span><strong>{identityStatusLabels[detail.request.identityStatus]}</strong><small>{detail.request.identityStatus === "identite_confirmee" ? "Le lycée a confirmé votre identité à partir de ses informations officielles." : detail.request.identityStatus === "contact_verifie" ? detail.request.identityMethod === "phone_callback" ? "Un agent a vérifié le numéro de téléphone par rappel, sans confirmer encore l’identité scolaire." : "L’accès sécurisé confirme le contrôle de l’adresse email, sans confirmer encore l’identité scolaire." : "La demande est enregistrée. Les codes d’accès et documents personnels nécessitent une vérification d’identité."}</small></span>
               </section>
-              {IDENTITY_DEVICE_ACCESS_ENABLED && detail.request.category === 'ent' ? (
-                <section className="lycee-ticket-ent-help" aria-label="Aide pour mon accès ENT">
-                  <div><KeyRound aria-hidden="true" /><span><strong>Votre accès ENT, dans ce dossier</strong><small>Retrouvez votre propre identifiant et, si votre compte n’est pas activé, votre code disponible après vérification. Aucune nouvelle demande n’est créée.</small></span></div>
-                  {!entHelpOpen ? <button type="button" onClick={() => setEntHelpOpen(true)}>Retrouver mon accès ENT</button> : null}
+              {IDENTITY_DEVICE_ACCESS_ENABLED && (detail.request.category === 'ent' || detail.request.category === 'affectation_classe') ? (
+                <section className="lycee-ticket-ent-help" aria-label={detail.request.category === 'ent' ? 'Aide pour mon accès ENT' : 'Consulter mon emploi du temps'}>
+                  <div><KeyRound aria-hidden="true" /><span><strong>{detail.request.category === 'ent' ? 'Votre accès ENT, dans ce dossier' : 'Votre emploi du temps, dans ce dossier'}</strong><small>{detail.request.category === 'ent' ? 'Retrouvez votre propre identifiant et, si votre compte n’est pas activé, votre code disponible après vérification. Aucune nouvelle demande n’est créée.' : 'Consultez vos cours et salles après vérification de votre identité. Si des données manquent, continuez dans ce même dossier.'}</small></span></div>
+                  {!entHelpOpen ? <button type="button" onClick={() => setEntHelpOpen(true)}>{detail.request.category === 'ent' ? 'Retrouver mon accès ENT' : 'Voir mon emploi du temps'}</button> : null}
                   {entHelpOpen ? <>
                     <IdentityDeviceAccessPanel key={detail.request.publicCode} onVerified={() => setEntIdentityVerified(true)} onVerificationChange={setEntIdentityVerified}
                       onContactUpdate={() => { setEntHelpMessage('Si les coordonnées connues du lycée sont incorrectes, décrivez la correction souhaitée dans ce dossier. Un agent la vérifiera.'); document.getElementById('lycee-followup-message')?.focus(); }}
                       onSkip={() => setEntHelpOpen(false)} skipLabel="Revenir à ma demande" />
                     {entIdentityVerified ? <>
-                      <EntAccessChatCard onHelp={() => { setEntHelpMessage('Précisez ici ce qui bloque ou quelles coordonnées doivent être corrigées ; le référent numérique reprendra ce même dossier.'); document.getElementById('lycee-followup-message')?.focus(); }} />
+                      {detail.request.category === 'ent' ? <EntAccessChatCard onHelp={() => { setEntHelpMessage('Précisez ici ce qui bloque ou quelles coordonnées doivent être corrigées ; le référent numérique reprendra ce même dossier.'); document.getElementById('lycee-followup-message')?.focus(); }} /> : null}
                       <TicketScheduleSelfService />
                     </> : null}
                     {entHelpMessage ? <p role="status">{entHelpMessage}</p> : null}
