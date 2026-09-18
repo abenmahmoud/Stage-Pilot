@@ -723,6 +723,30 @@
 .lycee-request-resolution button svg { width: 16px; height: 16px; }
 .lycee-request-resolution button:focus-visible { outline: 3px solid #a1d4bf; outline-offset: 2px; }
 .lycee-request-resolution button:disabled { opacity: .6; cursor: wait; }
+.lycee-ticket-assistant { display: grid; gap: 12px; margin: 16px 0; padding: 16px; border: 1px solid #c8d8f0; border-radius: 12px; background: #f7faff; }
+.lycee-ticket-assistant-head { display: flex; align-items: flex-start; gap: 10px; }
+.lycee-ticket-assistant-head > svg { width: 20px; height: 20px; flex: 0 0 auto; color: var(--lc-blue); }
+.lycee-ticket-assistant-head > span { display: grid; gap: 4px; }
+.lycee-ticket-assistant strong, .lycee-ticket-assistant label { color: var(--lc-ink); font-size: 13px; font-weight: 700; }
+.lycee-ticket-assistant small { color: var(--lc-muted); font-size: 12px; line-height: 1.5; }
+.lycee-ticket-assistant-start, .lycee-ticket-assistant form button { justify-self: start; min-height: 40px; padding: 9px 13px; border: 0; border-radius: 8px; background: var(--lc-blue); color: #fff; font: inherit; font-size: 12px; font-weight: 700; cursor: pointer; }
+.lycee-ticket-assistant button:disabled { opacity: .6; cursor: wait; }
+.lycee-ticket-assistant button:focus-visible, .lycee-ticket-assistant input:focus-visible { outline: 3px solid #a8c7ff; outline-offset: 2px; }
+.lycee-ticket-assistant-messages { display: grid; gap: 9px; max-height: 440px; overflow: auto; }
+.lycee-ticket-assistant-messages > div { min-width: 0; padding: 11px 12px; border: 1px solid var(--lc-line); border-radius: 10px; background: #fff; font-size: 13px; line-height: 1.5; overflow-wrap: anywhere; }
+.lycee-ticket-assistant-messages > div[data-speaker="requester"] { margin-left: min(12%, 60px); background: #eaf1ff; }
+.lycee-ticket-assistant-messages > div > strong { display: block; margin-bottom: 5px; }
+.lycee-ticket-assistant-messages p { margin: 0 0 8px; }
+.lycee-ticket-assistant-messages p:last-child { margin-bottom: 0; }
+.lycee-ticket-assistant form { display: grid; gap: 6px; }
+.lycee-ticket-assistant form > div { display: flex; gap: 8px; }
+.lycee-ticket-assistant input { min-width: 0; flex: 1; padding: 10px 11px; border: 1px solid #cbd5e1; border-radius: 8px; background: #fff; color: var(--lc-ink); font: inherit; font-size: 13px; }
+.lycee-ticket-assistant > p { margin: 0; color: #8a2c22; font-size: 12px; }
+.lycee-ticket-assistant-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.lycee-ticket-assistant-actions button { display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 38px; padding: 8px 11px; border: 1px solid #c8d8f0; border-radius: 8px; background: #fff; color: var(--lc-ink); font: inherit; font-size: 12px; font-weight: 700; cursor: pointer; }
+.lycee-ticket-assistant-actions button:first-child { border-color: #a1d4bf; color: #075e43; }
+.lycee-ticket-assistant-actions svg { width: 16px; height: 16px; }
+@media (max-width: 520px) { .lycee-ticket-assistant form > div { flex-direction: column; } .lycee-ticket-assistant form button { width: 100%; } }
 .lycee-followup-form label { display: grid; gap: 6px; }
 .lycee-followup-form label > span { color: #4c5c70; font-size: 10px; font-weight: 800; }
 .lycee-followup-form textarea { width: 100%; resize: vertical; padding: 10px 11px; border: 1px solid #cbd5e1; border-radius: 7px; outline: 0; color: var(--lc-ink); font: inherit; font-size: 12px; line-height: 1.45; }

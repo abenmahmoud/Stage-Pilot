@@ -82,6 +82,23 @@ L'ancien programme a été conservé pour retour arrière sous
 `/opt/lycee-support-preview/support-email-worker.before-1ace62e.mjs`.
 Aucun envoi collectif aux dossiers historiques n'a été lancé.
 
+## Réponse immédiate dans les anciens dossiers
+
+Pour les dossiers ENT et emploi du temps déjà créés, « Mes demandes » propose
+désormais « Répondre à ma demande maintenant ». Blaise reprend le texte de la
+demande dans **ce même dossier** et peut répondre directement depuis les sources
+validées ou les lecteurs personnels autorisés par une session d'identité OTP.
+La personne peut aussi poser une autre question dans ce module. Une réponse qui
+nécessite une décision humaine renvoie vers « Ajouter un message » du dossier
+actuel, sans créer un second dossier. Le code ENT reste dans la carte sécurisée,
+pas dans la transcription de l'assistant. Les réponses personnelles temporaires
+sont effacées lorsque la page est masquée ou que la session d'identité change ;
+les messages envoyés au lycée restent conservés dans le suivi habituel.
+Recette locale du module de production avec les fonctions de guichet simulées :
+sur écran de 390 px, un ancien dossier ENT reçoit une réponse de Blaise en un
+appel, sans création d'un nouveau dossier ; aucune vraie donnée ni aucun email
+n'ont été utilisés pour cet essai.
+
 ## Recette et suivi
 
 - Contrôler `npm run test:support-reply-suggestion`, `npm run test:agent-ai-budget`,

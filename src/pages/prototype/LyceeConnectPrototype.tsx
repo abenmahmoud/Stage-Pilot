@@ -4,7 +4,7 @@ import { legacyAgentDestination } from "../../../shared/management-navigation";
 import { SchoolParentsMeeting } from "../../components/SchoolParentsMeeting";
 import SchoolCalendarPage, { HomeCalendarPreview } from "./SchoolCalendarPage";
 import PersonalHome from "./PersonalHome";
-import { notifyIdentitySessionChanged } from "../../lib/identity-session-events";
+import { listenForIdentitySessionChanges, notifyIdentitySessionChanged } from "../../lib/identity-session-events";
 import { ChromebookNotice } from "../../components/ChromebookNotice";
 import { chromebookQuestion } from "../../../shared/chromebook-information";
 import { chromebookReferenceAnswer } from "../../../shared/chromebook-assistant";
@@ -2457,6 +2457,13 @@ function ConnectedRequestsView({ ticketCode, onBack, accessLinkError }: { ticket
   const [replying, setReplying] = useState(false);
   const [resolving, setResolving] = useState(false);
   const [resolutionMessage, setResolutionMessage] = useState<string | null>(null);
+  const [ticketAssistantMessages, setTicketAssistantMessages] = useState<AssistantChatMessage[]>([]);
+  const [ticketAssistantInput, setTicketAssistantInput] = useState("");
+  const [ticketAssistantBusy, setTicketAssistantBusy] = useState(false);
+  const [ticketAssistantError, setTicketAssistantError] = useState<string | null>(null);
+  const [ticketAssistantLimitReached, setTicketAssistantLimitReached] = useState(false);
+  const [ticketAssistantSessionId] = useState(supportAssistantSessionId);
+  const ticketAssistantAbortRef = useRef<AbortController | null>(null);
   const [forgettingDevice, setForgettingDevice] = useState(false);
   const [notificationsEnabled, setNotificationsEnabled] = useState(false);
   const [notificationPermission, setNotificationPermission] = useState<NotificationPermission | "unsupported">(
@@ -2608,6 +2615,13 @@ function ConnectedRequestsView({ ticketCode, onBack, accessLinkError }: { ticket
 
   useEffect(() => {
     selectedCodeRef.current = selectedCode;
+    ticketAssistantAbortRef.current?.abort();
+    ticketAssistantAbortRef.current = null;
+    setTicketAssistantMessages([]);
+    setTicketAssistantInput("");
+    setTicketAssistantBusy(false);
+    setTicketAssistantError(null);
+    setTicketAssistantLimitReached(false);
     setEntHelpOpen(false);
     setEntIdentityVerified(false);
     setEntHelpMessage(null);
@@ -2629,6 +2643,27 @@ function ConnectedRequestsView({ ticketCode, onBack, accessLinkError }: { ticket
     }, 12_000);
     return () => window.clearInterval(timer);
   }, [selectedCode]);
+
+  useEffect(() => {
+    const clearPrivateAnswer = () => {
+      ticketAssistantAbortRef.current?.abort();
+      ticketAssistantAbortRef.current = null;
+      setTicketAssistantMessages([]);
+      setTicketAssistantBusy(false);
+      setTicketAssistantError(null);
+      setTicketAssistantLimitReached(false);
+    };
+    const onHidden = () => { if (document.hidden) clearPrivateAnswer(); };
+    const stopIdentityListener = listenForIdentitySessionChanges(clearPrivateAnswer);
+    document.addEventListener("visibilitychange", onHidden);
+    window.addEventListener("pagehide", clearPrivateAnswer);
+    return () => {
+      stopIdentityListener();
+      document.removeEventListener("visibilitychange", onHidden);
+      window.removeEventListener("pagehide", clearPrivateAnswer);
+      ticketAssistantAbortRef.current?.abort();
+    };
+  }, []);
 
   async function toggleActiveNotifications() {
     if (!("Notification" in window) || !("serviceWorker" in navigator)) return;
@@ -2849,6 +2884,62 @@ function ConnectedRequestsView({ ticketCode, onBack, accessLinkError }: { ticket
     }
   }
 
+  async function askBlaiseInTicket(question: string) {
+    const code = selectedCode;
+    const text = question.trim();
+    if (!code || !text || text.length > 1500 || ticketAssistantBusy || ticketAssistantLimitReached || !AI_ASSISTANT_ENABLED) return;
+    const previous = ticketAssistantMessages;
+    const nextMessages: AssistantChatMessage[] = [
+      ...previous,
+      { id: crypto.randomUUID(), role: "requester", content: text },
+    ];
+    const controller = new AbortController();
+    ticketAssistantAbortRef.current?.abort();
+    ticketAssistantAbortRef.current = controller;
+    setTicketAssistantBusy(true);
+    setTicketAssistantError(null);
+    try {
+      const result = await apiFetch<unknown>("support/assistant", {
+        method: "POST",
+        signal: controller.signal,
+        headers: { "X-Support-Device": ticketAssistantSessionId },
+        body: JSON.stringify({
+          sessionId: ticketAssistantSessionId,
+          messages: schoolChatTranscript(nextMessages.slice(-21)),
+          attachments: [],
+        }),
+      });
+      if (!isAssistantApiResult(result)) throw new Error("La réponse de Blaise est invalide.");
+      if (controller.signal.aborted || selectedCodeRef.current !== code) return;
+      const needsHuman = result.action === "offer_case" || result.action === "human_transfer";
+      const answer = result.schoolTargets
+        ? "Votre identité est confirmée. Choisissez la personne concernée dans le bloc « Mon emploi du temps » de ce dossier."
+        : needsHuman
+          ? "Je ne peux pas confirmer une réponse automatique avec les données disponibles. Votre dossier est déjà ouvert : ajoutez les précisions ci-dessous et l’équipe du lycée le reprendra ici."
+          : result.reply;
+      setTicketAssistantMessages([
+        ...nextMessages,
+        {
+          id: crypto.randomUUID(),
+          role: "assistant",
+          content: answer,
+          schedule: needsHuman || result.schoolTargets ? undefined : result.schedule,
+          privateSchoolReply: Boolean(result.schedule || result.schoolTargets || result.category === "affectation_classe"),
+        },
+      ]);
+      setTicketAssistantLimitReached(result.limitReached);
+      setTicketAssistantInput("");
+    } catch (assistantError) {
+      if (controller.signal.aborted || selectedCodeRef.current !== code) return;
+      setTicketAssistantError(assistantError instanceof Error ? assistantError.message : "Blaise est momentanément indisponible. Votre dossier reste ouvert.");
+    } finally {
+      if (ticketAssistantAbortRef.current === controller) {
+        ticketAssistantAbortRef.current = null;
+        setTicketAssistantBusy(false);
+      }
+    }
+  }
+
   async function openPublicAttachment(id: string) {
     if (!selectedCode) return;
     const popup = window.open("about:blank", "_blank");
@@ -3051,6 +3142,17 @@ function ConnectedRequestsView({ ticketCode, onBack, accessLinkError }: { ticket
                 <section className="lycee-request-summary" aria-label="Votre demande">
                   <MessageCircleMore aria-hidden="true" />
                   <span><strong>Votre demande</strong><p>{initialRequesterMessage.bodyText}</p></span>
+                </section>
+              ) : null}
+              {AI_ASSISTANT_ENABLED && (detail.request.category === "ent" || detail.request.category === "affectation_classe") ? (
+                <section className="lycee-ticket-assistant" aria-label="Réponse immédiate de Blaise">
+                  <div className="lycee-ticket-assistant-head"><Bot aria-hidden="true" /><span><strong>Demander à Blaise, dans ce dossier</strong><small>Il répond avec les informations disponibles. Une réponse personnelle exige une identité confirmée. Cette conversation temporaire n’ouvre pas d’autre demande.</small></span></div>
+                  {initialRequesterMessage && initialRequesterMessage.bodyText.length <= 1500 && ticketAssistantMessages.length === 0 ? <button type="button" className="lycee-ticket-assistant-start" disabled={ticketAssistantBusy} onClick={() => void askBlaiseInTicket(initialRequesterMessage.bodyText)}>{ticketAssistantBusy ? "Recherche d’une réponse…" : "Répondre à ma demande maintenant"}</button> : null}
+                  {ticketAssistantMessages.length > 0 ? <div className="lycee-ticket-assistant-messages" role="log" aria-label="Échange temporaire avec Blaise">{ticketAssistantMessages.map(message => <div key={message.id} data-speaker={message.role}><strong>{message.role === "assistant" ? "Blaise" : "Vous"}</strong>{message.schedule ? <ScheduleChatCard value={message.schedule} /> : <PublicContentMarkdown>{message.content}</PublicContentMarkdown>}</div>)}</div> : null}
+                  {!ticketAssistantLimitReached ? <form onSubmit={event => { event.preventDefault(); void askBlaiseInTicket(ticketAssistantInput); }}><label htmlFor="lycee-ticket-assistant-question">Une autre question ?</label><div><input id="lycee-ticket-assistant-question" value={ticketAssistantInput} onChange={event => setTicketAssistantInput(event.target.value)} placeholder="Posez votre question à Blaise" maxLength={1000} /><button type="submit" disabled={ticketAssistantBusy || !ticketAssistantInput.trim()}>{ticketAssistantBusy ? "Réponse…" : "Demander"}</button></div></form> : <p>Pour continuer, écrivez au lycée dans ce dossier avec le champ ci-dessous.</p>}
+                  {ticketAssistantError ? <p role="alert">{ticketAssistantError}</p> : null}
+                  {ticketAssistantMessages.some(message => message.role === "assistant") ? <div className="lycee-ticket-assistant-actions">{canRequesterResolve(detail.request.status) ? <button type="button" disabled={resolving} onClick={() => void resolveRequest()}><CheckCircle2 aria-hidden="true" />{resolving ? "Confirmation…" : "C’est réglé"}</button> : null}<button type="button" onClick={() => document.getElementById("lycee-followup-message")?.focus()}>J’ai encore besoin d’aide</button></div> : null}
+                  <small>Pour transmettre une précision à l’équipe du lycée, utilisez « Ajouter un message » plus bas. Les réponses personnelles de Blaise sont masquées lorsque vous quittez la page.</small>
                 </section>
               ) : null}
               <div className="lycee-conversation" role="log" aria-label="Conversation">
