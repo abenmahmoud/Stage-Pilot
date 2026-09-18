@@ -64,6 +64,24 @@ classe/emploi du temps disposent du même lecteur personnel après OTP dans leur
 dossier, avec choix de l'enfant pour un parent autorisé. Le mail de confirmation
 des autres catégories reste générique.
 
+## Publication vérifiée
+
+Commits fonctionnels `827b732` et `1ace62e`, branche
+`codex/lycee-connect-prototype`. Déploiement Web
+`dpl_EaGBw8poifMuSAa6A4PzNKEtHEU9` READY ; l'alias officiel
+`lycee-blaise-cendrars-sevran.fr` et l'URL immuable servent le même module.
+La route de résolution répond 405 à GET et 401 à POST sans accès au dossier.
+Le module public contient les actions « Oui, c’est réglé » et « Voir mon emploi
+du temps » dans le dossier. Build, gate sécurité complet, tests de résolution,
+de suggestions, de page personnelle et d'email réussis.
+
+Le worker VPS installé depuis `1ace62e` a l'empreinte SHA-256
+`32f17cbc5b1ccad68d72700dc32ce78b408ae59527b26076bd486d3e2db9f68d`.
+Son exécution contrôlée réussit (`ExecMainStatus=0`) et le timer reste actif.
+L'ancien programme a été conservé pour retour arrière sous
+`/opt/lycee-support-preview/support-email-worker.before-1ace62e.mjs`.
+Aucun envoi collectif aux dossiers historiques n'a été lancé.
+
 ## Recette et suivi
 
 - Contrôler `npm run test:support-reply-suggestion`, `npm run test:agent-ai-budget`,
