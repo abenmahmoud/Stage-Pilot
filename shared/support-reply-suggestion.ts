@@ -16,6 +16,25 @@ export type SupportReplySuggestion = {
 };
 export const SCHOOL_REQUESTS_URL = 'https://lycee-blaise-cendrars-sevran.fr/?view=requests';
 
+/** Public navigation only: the personal schedule is read after identity verification in the portal. */
+export function suggestScheduleReply() {
+  return {
+    title: 'Emploi du temps : consultation personnelle',
+    draft: `Bonjour,\n\nPour consulter votre emploi du temps, ouvrez le site du lycée, puis « Pour moi, aujourd’hui » ou l’assistant. Confirmez votre identité avec un code envoyé à un contact déjà connu du lycée. Vous pourrez ensuite consulter vos cours et les salles disponibles pour votre profil.\n\nSi votre emploi du temps ne s’affiche pas ou semble incomplet, répondez dans ce même dossier en précisant le jour et la classe concernés. Nous vérifierons les données publiées, sans vous demander de créer une nouvelle demande.\n\nL’équipe du lycée Blaise Cendrars`,
+    facts: ['Le dossier ne prouve pas à lui seul l’identité ni la disponibilité de l’emploi du temps. Aucun horaire ou salle personnels ne sont insérés dans ce brouillon.'],
+    sources: ['Parcours de consultation personnelle du portail du lycée'],
+  };
+}
+
+export function suggestPronoteReply() {
+  return {
+    title: 'Accès à PRONOTE depuis l’ENT',
+    draft: `Bonjour,\n\nAu lycée, l’accès à PRONOTE passe par votre compte personnel monlycée.net. Connectez-vous sur ${ENT_LOGIN_URL}, puis ouvrez l’application PRONOTE depuis l’ENT.\n\nSi vous avez perdu votre identifiant ou ne pouvez plus vous connecter, répondez dans ce dossier : nous vous guiderons sans créer une seconde demande.\n\nL’équipe du lycée Blaise Cendrars`,
+    facts: ['Procédure publique ; aucun identifiant ni code personnel dans le brouillon.'],
+    sources: ['Procédure de connexion monlycée.net du lycée'],
+  };
+}
+
 /** A reviewed draft, never a credential delivery or an identity grant. */
 export function suggestEntReply(evidence: SupportSuggestionEvidence, recoveryFailed: boolean) {
   const facts: string[] = [];

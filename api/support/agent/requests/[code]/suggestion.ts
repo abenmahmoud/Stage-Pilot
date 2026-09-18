@@ -9,10 +9,12 @@ import { enforceSupportRateLimit, personalHash } from '../../../../_shared/suppo
 import { readSupportEntEvidence } from '../../../../_shared/support-reply-evidence.js';
 import { formatSupportRevision } from '../../../../../shared/support-concurrency.js';
 import { singleSupportAgentRouteValue } from '../../../../../shared/support-agent-mutation-input-policy.js';
-import { suggestEntReply, type SupportReplySuggestion } from '../../../../../shared/support-reply-suggestion.js';
+import { suggestEntReply, suggestPronoteReply, suggestScheduleReply, type SupportReplySuggestion } from '../../../../../shared/support-reply-suggestion.js';
+import { asksHowToOpenPronote } from '../../../../../shared/ent-self-service.js';
 import { schoolReferenceAnswer } from '../../../../../shared/school-reference-answers.js';
 import { chromebookReferenceAnswer } from '../../../../../shared/chromebook-assistant.js';
 import { decideVaultAccess } from '../../../../../shared/code-vault-policy.js';
+import { isCateringSupportTopic } from '../../../../../shared/support-topic-context.js';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== 'GET') return methodNotAllowed(res, ['GET']);
@@ -29,10 +31,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const messages = await db.select({ text: supportMessages.bodyText }).from(supportMessages)
       .where(and(eq(supportMessages.requestId, request.id), eq(supportMessages.direction, 'inbound'))).orderBy(desc(supportMessages.createdAt)).limit(4);
     const latest = messages[0]?.text ?? request.description;
-    const text = `${request.subject} ${latest}`.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
-    const ent = /\b(ent|monlycee|mon lycee)\b/.test(text) && !/\b(koxo|session windows|badge cantine)\b/.test(text);
+    const text = `${request.subject} ${request.description} ${messages.map(message => message.text).join(' ')}`.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+    const ent = !isCateringSupportTopic(text) && !/\b(koxo|session windows|badge cantine)\b/.test(text)
+      && (request.category === 'ent' || /\b(ent|monlycee|mon lycee|pronote)\b/.test(text));
     let proposal: Pick<SupportReplySuggestion, 'draft' | 'facts' | 'sources' | 'title'>;
-    if (ent) {
+    if (ent && asksHowToOpenPronote([{ role: 'requester', content: latest }])) {
+      proposal = suggestPronoteReply();
+    } else if (ent) {
       const canReadEnt = decideVaultAccess({ actor: access.role === 'superadmin' ? { profile: 'superadmin' }
         : { profile: 'service', institutionId, grantedServices: access.serviceCodes },
         target: { service: 'ent', institutionId, subjectKind: 'institution_wide', subjectPersonRef: null, subjectClassRef: null } }).allowed;
@@ -47,6 +52,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         proposal.title = 'Accès ENT personnel du parent';
         proposal.facts.unshift('Compte du parent lié à la demande ; les codes de l’enfant ne sont pas consultés.');
       }
+    } else if (request.category === 'affectation_classe' && /\b(emploi du temps|edt|planning|cours|salle)\b/.test(text)) {
+      proposal = suggestScheduleReply();
     } else {
       const conversation = [{ role: 'requester' as const, content: latest }];
       const answer = schoolReferenceAnswer(conversation, now) ?? chromebookReferenceAnswer(conversation, now);

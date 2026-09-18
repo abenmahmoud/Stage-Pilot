@@ -111,6 +111,7 @@ import { verifySupportAgentReplyConfirmation } from "../../../shared/support-age
 import { requiresIdentityForPersonalSupport } from "../../../shared/support-service-intent";
 import { verifySupportInternalNoteConfirmation } from "../../../shared/support-internal-note-confirmation";
 import { verifySupportCallbackConfirmation } from "../../../shared/support-callback-confirmation";
+import { canRequesterResolve } from "../../../shared/support-requester-resolution";
 import { verifySupportAttachmentRemovalConfirmation } from "../../../shared/support-attachment-removal-confirmation";
 import { normalizeSupportPersonName } from "../../../shared/support-contact-input";
 import {
@@ -2454,6 +2455,8 @@ function ConnectedRequestsView({ ticketCode, onBack, accessLinkError }: { ticket
   const [entIdentityVerified, setEntIdentityVerified] = useState(false);
   const [entHelpMessage, setEntHelpMessage] = useState<string | null>(null);
   const [replying, setReplying] = useState(false);
+  const [resolving, setResolving] = useState(false);
+  const [resolutionMessage, setResolutionMessage] = useState<string | null>(null);
   const [forgettingDevice, setForgettingDevice] = useState(false);
   const [notificationsEnabled, setNotificationsEnabled] = useState(false);
   const [notificationPermission, setNotificationPermission] = useState<NotificationPermission | "unsupported">(
@@ -2608,6 +2611,7 @@ function ConnectedRequestsView({ ticketCode, onBack, accessLinkError }: { ticket
     setEntHelpOpen(false);
     setEntIdentityVerified(false);
     setEntHelpMessage(null);
+    setResolutionMessage(null);
     requesterReplySubmissionRef.current = null;
     requesterAttachmentRemovalSubmissionRef.current = null;
     setRequesterDeletingAttachmentId(null);
@@ -2817,6 +2821,31 @@ function ConnectedRequestsView({ ticketCode, onBack, accessLinkError }: { ticket
       setError(replyError instanceof Error ? replyError.message : "Le message n'a pas été envoyé");
     } finally {
       setReplying(false);
+    }
+  }
+
+  async function resolveRequest() {
+    if (!selectedCode || !detail || !canRequesterResolve(detail.request.status) || resolving) return;
+    const code = selectedCode;
+    setResolving(true);
+    setResolutionMessage(null);
+    setError(null);
+    try {
+      const payload = await readApiResponse<unknown>(await fetch(`/api/support/requests/${code}/resolve`, {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ resolved: true }),
+      }));
+      if (!payload || typeof payload !== "object" || (payload as { status?: unknown }).status !== "resolu") {
+        throw new Error("La résolution du dossier n’a pas été confirmée.");
+      }
+      await Promise.all([loadDetail(code), loadRequests()]);
+      setResolutionMessage("Votre dossier est marqué comme résolu. Si le problème revient, écrivez dans cette conversation : il sera rouvert.");
+    } catch (resolveError) {
+      setError(resolveError instanceof Error ? resolveError.message : "Impossible de confirmer la résolution du dossier.");
+    } finally {
+      setResolving(false);
     }
   }
 
@@ -3039,6 +3068,14 @@ function ConnectedRequestsView({ ticketCode, onBack, accessLinkError }: { ticket
                   ))}
                 </div>
               ) : null}
+              <div className="lycee-request-resolution">
+                {canRequesterResolve(detail.request.status)
+                  ? <><span><strong>Votre problème est réglé ?</strong><small>Confirmez-le pour retirer ce dossier de la file des demandes en cours.</small></span><button type="button" disabled={resolving || replying} onClick={() => void resolveRequest()}><CheckCircle2 aria-hidden="true" />{resolving ? "Confirmation…" : "Oui, c’est réglé"}</button></>
+                  : detail.request.status === "resolu"
+                    ? <span><strong>Demande résolue</strong><small>Le problème revient ? Envoyez un message ci-dessous pour rouvrir le même dossier.</small></span>
+                    : null}
+              </div>
+              {resolutionMessage ? <p role="status">{resolutionMessage}</p> : null}
               <form className="lycee-followup-form" onSubmit={sendReply}>
                 <label><span>Ajouter un message</span><textarea id="lycee-followup-message" name="followupMessage" rows={3} value={reply} onChange={(event) => setReply(event.target.value)} placeholder="Précisez votre demande ou répondez à l’agent." maxLength={5000} /></label>
                 <input id="lycee-followup-files" name="followupFiles" aria-label="Documents à ajouter au suivi" ref={followupFileInputRef} className="lycee-file-input" type="file" multiple accept={SUPPORT_FILE_TYPES.join(",")} onChange={(event) => void selectFollowupFiles(event)} />

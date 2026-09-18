@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { and, desc, eq, sql } from "drizzle-orm";
+import { and, desc, eq, inArray, sql } from "drizzle-orm";
 import { db } from "../../../../db/index.js";
 import { supportEvents, supportMessages, supportRequests } from "../../../../db/schema.js";
 import { HttpError } from "../../../_shared/auth.js";
@@ -14,6 +14,7 @@ import {
   sha256,
 } from "../../../_shared/support.js";
 import { SUPPORT_RATE_LIMIT_POLICIES } from "../../../../shared/support-rate-limit-policy.js";
+import { REQUESTER_MESSAGE_REOPEN_STATUSES } from "../../../../shared/support-requester-resolution.js";
 import { createSupportRequesterMessageConfirmation } from "../../../../shared/support-requester-message-confirmation.js";
 import { verifySupportRequesterMessageMutationPayload } from "../../../../shared/support-public-mutation-payload-policy.js";
 import {
@@ -104,12 +105,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
       const [reopened] = await tx
         .update(supportRequests)
-        .set({ status: "en_cours" })
+        .set({ status: "en_cours", resolvedAt: null, updatedAt: new Date() })
         .where(
           and(
             eq(supportRequests.institutionId, access.institutionId),
             eq(supportRequests.id, access.requestId),
-            eq(supportRequests.status, "attente_demandeur")
+            inArray(supportRequests.status, [...REQUESTER_MESSAGE_REOPEN_STATUSES])
           )
         )
         .returning({ id: supportRequests.id });

@@ -714,6 +714,15 @@
 .lycee-tracked-files .lycee-requester-file-remove:hover { border-color: #fecdd3; background: #fff1f2; }
 .lycee-tracked-files .lycee-requester-file-remove:disabled { cursor: wait; opacity: .5; }
 .lycee-followup-form { display: grid; gap: 9px; padding-top: 14px; border-top: 1px solid var(--lc-line); }
+.lycee-request-resolution { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; padding: 14px; border: 1px solid #c7e8db; border-radius: 12px; background: #f3fbf7; }
+.lycee-request-resolution:empty { display: none; }
+.lycee-request-resolution > span { display: grid; gap: 3px; }
+.lycee-request-resolution strong { color: var(--lc-ink); font-size: 13px; }
+.lycee-request-resolution small { color: var(--lc-muted); font-size: 12px; line-height: 1.4; }
+.lycee-request-resolution button { display: inline-flex; align-items: center; justify-content: center; gap: 7px; min-height: 40px; padding: 8px 12px; border: 1px solid #a1d4bf; border-radius: 8px; background: #fff; color: #075e43; font: inherit; font-size: 12px; font-weight: 700; cursor: pointer; }
+.lycee-request-resolution button svg { width: 16px; height: 16px; }
+.lycee-request-resolution button:focus-visible { outline: 3px solid #a1d4bf; outline-offset: 2px; }
+.lycee-request-resolution button:disabled { opacity: .6; cursor: wait; }
 .lycee-followup-form label { display: grid; gap: 6px; }
 .lycee-followup-form label > span { color: #4c5c70; font-size: 10px; font-weight: 800; }
 .lycee-followup-form textarea { width: 100%; resize: vertical; padding: 10px 11px; border: 1px solid #cbd5e1; border-radius: 7px; outline: 0; color: var(--lc-ink); font: inherit; font-size: 12px; line-height: 1.45; }

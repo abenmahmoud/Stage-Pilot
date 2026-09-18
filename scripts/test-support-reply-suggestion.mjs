@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { suggestEntReply, isSupportReplySuggestion } from '../shared/support-reply-suggestion.ts';
+import { suggestEntReply, suggestPronoteReply, suggestScheduleReply, isSupportReplySuggestion } from '../shared/support-reply-suggestion.ts';
 const evidence = { state: 'inactive', code: 'available', checkedAt: '2026-09-15T12:00:00.000Z' };
 test('inactive account with an assignment guides secure self-service', () => {
   const r = suggestEntReply(evidence, false);
@@ -44,4 +44,14 @@ test('public payload includes no arbitrary private fields and binds request revi
   }
   assert.equal(isSupportReplySuggestion(valid, 'BC-2026-000102', valid.revision), false);
   assert.equal(isSupportReplySuggestion(valid, valid.publicCode, '2026-09-15T13:00:00.000Z'), false);
+});
+test('schedule and Pronote drafts guide without inventing a personal timetable or identifier', () => {
+  const schedule = suggestScheduleReply();
+  assert.match(schedule.draft, /Confirmez votre identité/);
+  assert.match(schedule.draft, /même dossier/);
+  assert.doesNotMatch(schedule.draft, /Votre cours est|salle [A-Z0-9]/);
+  const pronote = suggestPronoteReply();
+  assert.match(pronote.draft, /PRONOTE passe par votre compte personnel monlycée.net/);
+  assert.match(pronote.draft, /même dossier|ce dossier/);
+  assert.doesNotMatch(pronote.draft, /Identifiant :|Code :/);
 });

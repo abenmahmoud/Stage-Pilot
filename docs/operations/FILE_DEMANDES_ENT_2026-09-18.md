@@ -36,6 +36,27 @@ export ENT est utile seulement si des comptes/coordonnées/états d'activation o
 changé depuis le 17 septembre ; il ne résout pas à lui seul l'absence de lien
 d'identité sur les anciennes demandes.
 
+## Suite du 18 septembre — résolution par le demandeur
+
+Une personne qui ouvre **son propre dossier** peut désormais confirmer « Oui,
+c’est réglé ». Cette action journalisée retire le dossier de la file ouverte,
+sans prétendre que la simple consultation du code ou de l'emploi du temps a
+résolu le problème. Si elle écrit ensuite dans le même fil, le dossier résolu
+repasse en cours et la notification agent reprend. Aucune donnée du coffre n'est
+mise dans un email ou dans le journal de résolution.
+
+La proposition de réponse dans la gestion reconnaît maintenant la catégorie ENT
+même lorsque le dernier message ne répète pas « ENT ». Les demandes d'emploi du
+temps et d'accès à PRONOTE ont des brouillons dédiés, limités aux procédures
+publiques et au parcours personnel après vérification. La cantine reste
+exclue du brouillon ENT. Ces textes doivent encore être relus et envoyés par
+un agent ; ils ne déclenchent pas de campagne vers les 47 demandeurs.
+
+Les dossiers historiques restent ouverts tant que le demandeur ou l'équipe ne
+les clôt pas. La reprise collective nécessitera un message ciblé et validé
+avant tout envoi réel, puis un contrôle des retours et des cas qui exigent une
+intervention humaine.
+
 ## Recette et suivi
 
 - Contrôler `npm run test:support-reply-suggestion`, `npm run test:agent-ai-budget`,
