@@ -184,6 +184,7 @@ import "./lycee-connect.css";
 import ScheduleChatCard from './ScheduleChatCard';
 import EntAccessChatCard from './EntAccessChatCard';
 import PcSessionChatCard from './PcSessionChatCard';
+import TicketScheduleSelfService from './TicketScheduleSelfService';
 import { requestsPcSessionAccess, pcSessionIdentityPrompt } from '../../../shared/pc-session-self-service';
 import { IdentityContactChoices } from './IdentityContactChoices';
 import { SupportReplySuggestion } from './SupportReplySuggestion';
@@ -3009,7 +3010,10 @@ function ConnectedRequestsView({ ticketCode, onBack, accessLinkError }: { ticket
                     <IdentityDeviceAccessPanel key={detail.request.publicCode} onVerified={() => setEntIdentityVerified(true)} onVerificationChange={setEntIdentityVerified}
                       onContactUpdate={() => { setEntHelpMessage('Si les coordonnées connues du lycée sont incorrectes, décrivez la correction souhaitée dans ce dossier. Un agent la vérifiera.'); document.getElementById('lycee-followup-message')?.focus(); }}
                       onSkip={() => setEntHelpOpen(false)} skipLabel="Revenir à ma demande" />
-                    {entIdentityVerified ? <EntAccessChatCard onHelp={() => { setEntHelpMessage('Précisez ici ce qui bloque ou quelles coordonnées doivent être corrigées ; le référent numérique reprendra ce même dossier.'); document.getElementById('lycee-followup-message')?.focus(); }} /> : null}
+                    {entIdentityVerified ? <>
+                      <EntAccessChatCard onHelp={() => { setEntHelpMessage('Précisez ici ce qui bloque ou quelles coordonnées doivent être corrigées ; le référent numérique reprendra ce même dossier.'); document.getElementById('lycee-followup-message')?.focus(); }} />
+                      <TicketScheduleSelfService />
+                    </> : null}
                     {entHelpMessage ? <p role="status">{entHelpMessage}</p> : null}
                   </> : null}
                 </section>

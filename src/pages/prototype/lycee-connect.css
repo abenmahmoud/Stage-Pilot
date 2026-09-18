@@ -641,7 +641,7 @@
 .lycee-identity-status[data-status="contact_verifie"] > svg { color: var(--lc-blue); }
 .lycee-identity-status[data-status="identite_confirmee"] { border-color: #bde3d8; background: #edf9f5; }
 .lycee-identity-status[data-status="identite_confirmee"] > svg { color: var(--lc-green); }
-.lycee-ticket-ent-help { display: grid; gap: 12px; margin: 14px 0; padding: 16px; border: 1px solid #c8d8f0; border-radius: 12px; background: #f5f8fe; }
+.lycee-ticket-ent-help { display: grid; min-width: 0; gap: 12px; margin: 14px 0; padding: 16px; border: 1px solid #c8d8f0; border-radius: 12px; background: #f5f8fe; }
 .lycee-ticket-ent-help > div:first-child { display: flex; align-items: flex-start; gap: 10px; }
 .lycee-ticket-ent-help > div:first-child > svg { width: 19px; height: 19px; flex: 0 0 auto; color: var(--lc-blue); }
 .lycee-ticket-ent-help > div:first-child > span { display: grid; gap: 4px; }
@@ -650,6 +650,26 @@
 .lycee-ticket-ent-help > button { justify-self: start; border: 0; border-radius: 8px; padding: 10px 14px; background: var(--lc-blue); color: #fff; font: inherit; font-size: 12px; font-weight: 700; cursor: pointer; }
 .lycee-ticket-ent-help > button:focus-visible { outline: 3px solid #a8c7ff; outline-offset: 2px; }
 .lycee-ticket-ent-help .lycee-identity-device, .lycee-ticket-ent-help .lycee-ent-access { margin: 0; min-width: 0; }
+.lycee-ticket-ent-help .lycee-identity-device { width: 100%; grid-template-columns: 30px minmax(0, 1fr); align-items: start; }
+.lycee-ticket-ent-help .lycee-identity-device > svg { margin-top: 4px; }
+.lycee-ticket-ent-help .lycee-identity-device form,
+.lycee-ticket-ent-help .lycee-identity-device-progress,
+.lycee-ticket-ent-help .lycee-identity-device-actions,
+.lycee-ticket-ent-help .lycee-identity-device.is-verified > button { grid-column: 1 / -1; width: 100%; }
+.lycee-ticket-ent-help .lycee-identity-device form { grid-template-columns: repeat(auto-fit, minmax(min(100%, 160px), 1fr)); }
+.lycee-ticket-ent-help .lycee-identity-device form > span,
+.lycee-ticket-ent-help .lycee-identity-device label { max-width: none; white-space: normal; }
+.lycee-ticket-ent-help .lycee-identity-device input[inputmode="numeric"] { width: 100%; min-width: 0; }
+.lycee-ticket-ent-help .lycee-identity-device-actions { flex-wrap: wrap; justify-content: flex-start; }
+.lycee-ticket-self-schedule { display: grid; min-width: 0; gap: 10px; padding: 14px; border: 1px solid #c8d8f0; border-radius: 10px; background: #fff; }
+.lycee-ticket-self-schedule > strong { font-size: 14px; }
+.lycee-ticket-self-schedule > p { margin: 0; color: var(--lc-muted); font-size: 12px; line-height: 1.5; }
+.lycee-ticket-self-schedule > small { color: var(--lc-muted); }
+.lycee-ticket-self-schedule label { display: grid; gap: 6px; color: var(--lc-muted); font-size: 12px; }
+.lycee-ticket-self-schedule select { max-width: 100%; min-height: 40px; border: 1px solid #b8cbe0; border-radius: 7px; background: #fff; padding: 0 10px; font: inherit; }
+.lycee-ticket-self-schedule button { min-height: 40px; border: 1px solid #b8cbe0; border-radius: 7px; background: #fff; padding: 0 12px; color: var(--lc-ink); font: inherit; font-size: 12px; font-weight: 700; cursor: pointer; }
+.lycee-ticket-self-schedule-days { display: flex; flex-wrap: wrap; gap: 8px; }
+.lycee-ticket-self-schedule-days button[aria-pressed="true"] { border-color: var(--lc-blue); background: var(--lc-blue); color: #fff; }
 .lycee-request-summary { display: grid; grid-template-columns: 32px minmax(0,1fr); gap: 10px; margin: 10px 0 4px; padding: 13px; border: 1px solid #b9ccee; border-radius: 7px; background: #f2f6ff; }
 .lycee-request-summary > svg { width: 18px; color: var(--lc-blue); }
 .lycee-request-summary > span { min-width: 0; }
