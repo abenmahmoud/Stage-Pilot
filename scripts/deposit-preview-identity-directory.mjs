@@ -4,7 +4,6 @@ import { basename, extname } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { createClient } from "@supabase/supabase-js";
 import postgres from "postgres";
-import WebSocket from "ws";
 
 const defaultParserPath = fileURLToPath(
   new URL("../workers/identity-directory-parser.mjs", import.meta.url)
@@ -27,6 +26,10 @@ const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const contactPepper = process.env.IDENTITY_CONTACT_PEPPER;
 const inputPath = process.argv[2];
 const reportPath = process.argv[3];
+const importTitle = process.env.IDENTITY_DIRECTORY_IMPORT_TITLE?.trim()
+  || `Annuaire vérifié — ${basename(inputPath || "annuaire.csv")}`;
+const purposeDescription = process.env.IDENTITY_DIRECTORY_IMPORT_PURPOSE?.trim()
+  || "Annuaire officiel 2026-2027 destiné uniquement à la vérification d’identité, aux liens responsables-élèves et à l’accès aux services autorisés du lycée.";
 
 function assert(condition, message) {
   if (!condition) throw new Error(message);
@@ -42,6 +45,8 @@ assert(
 assert(serviceRoleKey, "SUPABASE_SERVICE_ROLE_KEY is required");
 assert(contactPepper?.length >= 32, "IDENTITY_CONTACT_PEPPER is required");
 assert(inputPath && reportPath, "Directory file and verification report paths are required");
+assert(importTitle.length >= 5 && importTitle.length <= 160, "Import title is invalid");
+assert(purposeDescription.length >= 20 && purposeDescription.length <= 1_000, "Import purpose is invalid");
 
 const bytes = await readFile(inputPath);
 const reportBytes = await readFile(reportPath);
@@ -62,9 +67,12 @@ assert(parsed.summary.detectedCodeCount === 0, "Directory contains a forbidden a
 assert(parsed.summary.forbiddenColumnCount === 0, "Directory contains a forbidden column");
 
 const sql = postgres(databaseUrl, { prepare: false, max: 2, idle_timeout: 20 });
+const realtimeOptions = typeof globalThis.WebSocket === "function"
+  ? {}
+  : { realtime: { transport: (await import("ws")).default } };
 const storage = createClient(supabaseUrl, serviceRoleKey, {
   auth: { autoRefreshToken: false, persistSession: false },
-  realtime: { transport: WebSocket },
+  ...realtimeOptions,
 }).storage;
 const bucket = "identity-ingest";
 const importId = randomUUID();
@@ -154,8 +162,8 @@ try {
           status, uploaded_by, uploaded_at, validation_summary
         ) values (
           ${importId}, ${actor.institution_id},
-          'Annuaire ENT + SIECLE — 9 septembre 2026',
-          'Annuaire officiel 2026-2027 destiné uniquement à la vérification d’identité, aux liens responsables-élèves et à l’accès aux services autorisés du lycée.',
+          ${importTitle},
+          ${purposeDescription},
           'official_export', ${basename(inputPath)}, ${contentType}, ${bytes.length},
           ${bucket}, ${directoryStoragePath}, 'quarantined', ${actor.user_id}, now(),
           ${transaction.json({ antivirus: "pending", verificationReport })}
