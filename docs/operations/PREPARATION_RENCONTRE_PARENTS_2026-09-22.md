@@ -14,7 +14,7 @@
 - Annuaire actif du 17 septembre : 6 980 lignes valides, aucune ligne rejetée.
 - Contenu actif : 4 550 personnes et 2 430 relations, dont les liens familiaux utilisés pour proposer les enfants autorisés.
 - Coffre : 1 306 attributions ENT et 98 attributions KOXO disponibles. Les valeurs restent hors du modèle et ne peuvent être remises qu’après vérification d’identité et contrôle des droits.
-- Vérification d’identité sur les sept derniers jours : 13 parcours vérifiés, 4 codes envoyés encore non consommés, 22 échecs et 67 recherches restées en file. Ce dernier volume impose un contrôle avant la démonstration.
+- Vérification d’identité sur les sept derniers jours : 13 parcours vérifiés. Les autres essais sont expirés : 35 personnes non trouvées, une recherche ambiguë, 31 recherches abandonnées ou expirées avant le choix du contact, 22 échecs et 4 codes non saisis à temps. Il ne s’agit pas d’une file active bloquée ; le nouvel export doit surtout réduire les cas « non trouvé ».
 - Messagerie des demandes : 69 envois enregistrés comme réussis et aucun job définitivement échoué non repris.
 - File de traitement : 50 dossiers ouverts, dont 47 depuis plus de 48 heures. Le portail réduit les nouvelles demandes lorsqu’il peut répondre dans le chat, mais les dossiers déjà enregistrés nécessitent encore une reprise par le demandeur ou un traitement humain.
 
@@ -49,4 +49,3 @@ Ce chemin pointe vers le dépôt privé hors Git. Avant activation, contrôler l
 - Tests du contexte établissement et du corpus Chromebook : réussis.
 - Build de production : réussi.
 - API publique : les trois actualités de l’hebdo sont visibles et datées.
-
