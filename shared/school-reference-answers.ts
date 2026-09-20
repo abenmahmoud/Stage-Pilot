@@ -12,8 +12,9 @@ export function schoolReferenceAnswer(messages: readonly Message[], now: Date) {
   let source = "Livret d’accueil 2026-2027, p. 1";
   let updatedAt = "2026-09-09T00:00:00.000Z";
   if (/\b(rencontre|reunion)\b/.test(text) && /\b(parents|familles|seconde|rentree)\b/.test(text) && showParentsMeeting(now)) {
-    reply = `${SECOND_YEAR_PARENTS_MEETING.title} : ${SECOND_YEAR_PARENTS_MEETING.dateLabel.toLowerCase()}, au lycée Blaise Cendrars. L’horaire est en cours de confirmation.`;
-    source = "Information confirmée par le lycée — rentrée 2026";
+    reply = `${SECOND_YEAR_PARENTS_MEETING.title} : ${SECOND_YEAR_PARENTS_MEETING.dateLabel.toLowerCase()}. Accueil en salle polyvalente de 17 h 50 à 18 h 10, puis rencontre avec les professeurs principaux de 18 h 10 à 19 h, dans les salles indiquées par le planning du lycée.`;
+    source = "Hebdo du lycée du 21 au 25 septembre 2026, p. 1";
+    updatedAt = "2026-09-18T14:23:14.000Z";
   } else if (/\b(horaires?|horraires?|heures?|ouvert|ouverture|ouvre|fermeture|ferme|rendez[ -]vous|rdv)\b/.test(text)
     && /\b(accueil|lycee|parents|visiteur|vous|intendance|secretariat|administration|referent numerique)\b/.test(text)
     && !/\b(cours|emploi du temps|edt)\b/.test(text)) {

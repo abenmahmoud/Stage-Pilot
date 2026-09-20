@@ -18,6 +18,8 @@ test('only approved current public reference facts are answered', () => {
   assert.match(query('Quels sont les horaires du lycée ?').reply,/rendez-vous/);
   assert.match(query('Comment justifier une absence ?').reply,/48 heures/);
   assert.match(query('Quelle date pour la réunion des parents ?').reply,/22 septembre/);
+  assert.match(query('Quelle date pour la réunion des parents ?').reply,/17 h 50/);
+  assert.match(query('Quelle date pour la réunion des parents ?').reply,/18 h 10 à 19 h/);
   assert.doesNotMatch(query('Quelle date pour la réunion des parents ?').reply,/17 ?h ?30/);
   assert.equal(query('Qui est absent demain dans les personnels ?'),null);
   assert.equal(query('Quelle date pour la réunion des parents ?','2026-10-01'),null);

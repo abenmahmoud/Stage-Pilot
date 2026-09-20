@@ -16,9 +16,9 @@ export const SECOND_YEAR_PARENTS_MEETING = {
   title: "Rencontre des parents de seconde",
   date: "2026-09-22",
   dateLabel: "Mardi 22 septembre 2026",
-  location: "Au lycée Blaise Cendrars",
-  description: "Présentation du fonctionnement du lycée et des accès à l’ENT pour les familles des élèves de seconde.",
-  timeNotice: "L’horaire n’est pas encore communiqué.",
+  location: "Lycée Blaise Cendrars · salle polyvalente puis salles des classes",
+  description: "Accueil en plénière des parents d’élèves de seconde, puis rencontre avec les professeurs principaux de chaque classe.",
+  timeNotice: "Accueil en salle polyvalente de 17 h 50 à 18 h 10, puis rencontre avec les professeurs principaux de 18 h 10 à 19 h.",
   // Midnight in Paris after the event, not an invented meeting time.
   expiresAt: "2026-09-22T22:00:00Z",
 } as const;
