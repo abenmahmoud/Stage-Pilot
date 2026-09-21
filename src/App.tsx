@@ -27,6 +27,7 @@ const PublicContentPage = lazy(() => import("./pages/prototype/PublicContentPage
 const ChromebookPage = lazy(() => import("./pages/prototype/ChromebookPage"));
 const RegionalDeviceSavPage = lazy(() => import("./pages/prototype/RegionalDeviceSavPage"));
 const EquipmentSupportPage = lazy(() => import("./pages/prototype/EquipmentSupportPage"));
+const EquipmentExternalPortalPage = lazy(() => import("./pages/prototype/EquipmentExternalPortalPage"));
 const LoginPage = lazy(() => import("./pages/LoginPage"));
 const MfaSecurityPage = lazy(() => import("./pages/MfaSecurityPage"));
 const ResetPasswordPage = lazy(() => import("./pages/ResetPasswordPage"));
@@ -199,6 +200,7 @@ export default function App() {
         <Route path="/chromebook" element={<ChromebookPage />} />
         <Route path="/assistance-numerique" element={<RegionalDeviceSavPage />} />
         <Route path="/materiel" element={<EquipmentSupportPage />} />
+        <Route path="/intervention-spie/:grantId" element={<EquipmentExternalPortalPage />} />
         <Route path="/site/chromebook" element={<Navigate to="/chromebook" replace />} />
         <Route path="/site/:slug" element={<PublicContentPage />} />
         <Route path="/login" element={<LoginPage />} />

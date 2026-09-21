@@ -5,6 +5,7 @@ import { institutionMemberships, institutions } from "../../db/schema.js";
 import type { AuthUser } from "./auth.js";
 import { HttpError, requireRole } from "./auth.js";
 import {
+  canAccessSupportRequest,
   canAccessSupportService,
   canTransferSupportRequest,
   resolvePersistedSupportAgentAccess,
@@ -68,9 +69,10 @@ export async function requireSupportAgent(
 
 export function assertSupportRequestAccess(
   access: SupportAgentAccess,
-  assignedTeam: string | null
+  assignedTeam: string | null,
+  category: string | null = null
 ): void {
-  if (!canAccessSupportService(access, assignedTeam)) {
+  if (!canAccessSupportRequest(access, assignedTeam, category)) {
     throw new HttpError(403, "Cette demande appartient à un autre service");
   }
 }

@@ -69,6 +69,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         storagePath: supportAttachments.storagePath,
         scanStatus: supportAttachments.scanStatus,
         assignedTeam: supportRequests.assignedTeam,
+        category: supportRequests.category,
       })
       .from(supportAttachments)
       .innerJoin(supportRequests, eq(supportRequests.id, supportAttachments.requestId))
@@ -80,7 +81,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       ))
       .limit(1);
     if (!attachment) throw new HttpError(404, "Pièce jointe introuvable");
-    assertSupportRequestAccess(access, attachment.assignedTeam);
+    assertSupportRequestAccess(access, attachment.assignedTeam, attachment.category);
     if (attachment.scanStatus !== "awaiting_upload") {
       if (attachment.scanStatus !== "quarantine" && attachment.scanStatus !== "clean") {
         throw new HttpError(422, "Le contenu du fichier n'est pas accepté");

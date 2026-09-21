@@ -1623,6 +1623,89 @@ export const equipmentServiceVisitEvents = pgTable(
   ]
 );
 
+export const equipmentServiceVisitRequests = pgTable(
+  "equipment_service_visit_requests",
+  {
+    institutionId: uuid("institution_id")
+      .notNull()
+      .references(() => institutions.id, { onDelete: "cascade" }),
+    visitId: uuid("visit_id")
+      .notNull()
+      .references(() => equipmentServiceVisits.id, { onDelete: "cascade" }),
+    requestId: uuid("request_id")
+      .notNull()
+      .references(() => supportRequests.id, { onDelete: "cascade" }),
+    assignedBy: uuid("assigned_by").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    primaryKey({
+      name: "equipment_service_visit_requests_pkey",
+      columns: [table.visitId, table.requestId],
+    }),
+    index("equipment_service_visit_requests_scope_idx").on(table.institutionId, table.visitId),
+    index("equipment_service_visit_requests_request_idx").on(table.requestId),
+  ]
+);
+
+export const equipmentExternalAccessGrants = pgTable(
+  "equipment_external_access_grants",
+  {
+    id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+    institutionId: uuid("institution_id")
+      .notNull()
+      .references(() => institutions.id, { onDelete: "cascade" }),
+    visitId: uuid("visit_id")
+      .notNull()
+      .references(() => equipmentServiceVisits.id, { onDelete: "cascade" }),
+    label: text("label").notNull(),
+    codeHash: text("code_hash").notNull(),
+    expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+    attemptCount: integer("attempt_count").notNull().default(0),
+    lockedAt: timestamp("locked_at", { withTimezone: true }),
+    revokedAt: timestamp("revoked_at", { withTimezone: true }),
+    lastUsedAt: timestamp("last_used_at", { withTimezone: true }),
+    createdBy: uuid("created_by").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    index("equipment_external_access_grants_scope_idx").on(table.institutionId, table.visitId),
+    index("equipment_external_access_grants_visit_idx").on(table.visitId),
+    index("equipment_external_access_grants_expiry_idx").on(table.expiresAt),
+  ]
+);
+
+export const equipmentExternalUpdates = pgTable(
+  "equipment_external_updates",
+  {
+    id: bigint("id", { mode: "number" }).primaryKey().generatedAlwaysAsIdentity(),
+    institutionId: uuid("institution_id")
+      .notNull()
+      .references(() => institutions.id, { onDelete: "cascade" }),
+    grantId: uuid("grant_id")
+      .notNull()
+      .references(() => equipmentExternalAccessGrants.id, { onDelete: "restrict" }),
+    visitId: uuid("visit_id")
+      .notNull()
+      .references(() => equipmentServiceVisits.id, { onDelete: "cascade" }),
+    requestId: uuid("request_id")
+      .notNull()
+      .references(() => supportRequests.id, { onDelete: "cascade" }),
+    clientIdempotencyKeyHash: text("client_idempotency_key_hash").notNull(),
+    outcome: text("outcome").notNull(),
+    note: text("note"),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    index("equipment_external_updates_visit_idx").on(table.institutionId, table.visitId, table.createdAt),
+    index("equipment_external_updates_visit_fk_idx").on(table.visitId),
+    index("equipment_external_updates_grant_idx").on(table.grantId),
+    index("equipment_external_updates_request_idx").on(table.requestId, table.createdAt),
+    uniqueIndex("equipment_external_updates_idempotency_key").on(table.grantId, table.clientIdempotencyKeyHash),
+  ]
+);
+
 export const supportAssistantRoutingReviews = pgTable(
   "support_assistant_routing_reviews",
   {

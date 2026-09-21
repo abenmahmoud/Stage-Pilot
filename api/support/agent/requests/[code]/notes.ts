@@ -46,7 +46,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     assertNoForbiddenSupportSecret(note);
 
     const [request] = await db
-      .select({ id: supportRequests.id, assignedTeam: supportRequests.assignedTeam })
+      .select({
+        id: supportRequests.id,
+        assignedTeam: supportRequests.assignedTeam,
+        category: supportRequests.category,
+      })
       .from(supportRequests)
       .where(and(
         eq(supportRequests.institutionId, institutionId),
@@ -54,7 +58,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       ))
       .limit(1);
     if (!request) throw new HttpError(404, "Demande introuvable");
-    assertSupportRequestAccess(access, request.assignedTeam);
+    assertSupportRequestAccess(access, request.assignedTeam, request.category);
     await enforceAgentWriteRateLimit(user.id);
 
     const idempotencyHash = sha256(idempotencyKey(req));

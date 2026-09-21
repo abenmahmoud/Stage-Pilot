@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import {
   canAccessSupportService,
+  canAccessSupportRequest,
   canTransferSupportRequest,
   resolvePersistedSupportAgentAccess,
   resolveSupportAgentAccess,
@@ -24,6 +25,9 @@ test("limits a DDFPT agent to the declared service", () => {
   assert.equal(canAccessSupportService(access, "vie_scolaire"), false);
   assert.equal(canAccessSupportService(access, null), false);
   assert.equal(canTransferSupportRequest(access, "ddfpt", "vie_scolaire"), false);
+  assert.equal(canAccessSupportRequest(access, "referent_numerique", "ordinateur"), true);
+  assert.equal(canAccessSupportRequest(access, "referent_numerique", "ent"), false);
+  assert.equal(canAccessSupportRequest(access, "administration", "ordinateur"), false);
 });
 
 test("limits a school-life agent to school-life requests", () => {

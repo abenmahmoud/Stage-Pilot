@@ -7,8 +7,9 @@ export async function requireEquipmentCoordinator(req: VercelRequest) {
   if (
     !context.access.canViewAll
     && !context.access.serviceCodes.includes("referent_numerique")
+    && !context.access.serviceCodes.includes("ddfpt")
   ) {
-    throw new HttpError(403, "Cet espace est réservé à la coordination numérique du lycée");
+    throw new HttpError(403, "Cet espace est réservé à la coordination du matériel du lycée");
   }
   return context;
 }

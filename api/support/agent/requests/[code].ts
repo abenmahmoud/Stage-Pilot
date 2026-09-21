@@ -106,7 +106,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       ))
       .limit(1);
     if (!request) throw new HttpError(404, "Demande introuvable");
-    assertSupportRequestAccess(access, request.assignedTeam);
+    assertSupportRequestAccess(access, request.assignedTeam, request.category);
 
     if (req.method === "PATCH") {
       await enforceAgentWriteRateLimit(user.id);
@@ -263,7 +263,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       }
       if (duplicateDecision && duplicateReview) {
         const [candidate] = await db
-          .select({ assignedTeam: supportRequests.assignedTeam })
+          .select({
+            assignedTeam: supportRequests.assignedTeam,
+            category: supportRequests.category,
+          })
           .from(supportRequests)
           .where(and(
             eq(supportRequests.institutionId, institutionId),
@@ -271,7 +274,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           ))
           .limit(1);
         if (!candidate) throw new HttpError(409, "Le dossier rapproché n’existe plus");
-        assertSupportRequestAccess(access, candidate.assignedTeam);
+        assertSupportRequestAccess(access, candidate.assignedTeam, candidate.category);
       }
       const teamChanged = nextAssignedTeam !== request.assignedTeam;
       if (routingDecision === "confirmed" && teamChanged) {

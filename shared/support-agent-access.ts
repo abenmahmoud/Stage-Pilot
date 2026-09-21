@@ -153,6 +153,22 @@ export function canAccessSupportService(
   return service !== null && access.serviceCodes.includes(service as SupportService);
 }
 
+/**
+ * Le DDFPT collabore avec le référent numérique uniquement sur les incidents
+ * matériels. Cette exception ne lui ouvre ni les dossiers ENT, ni les codes,
+ * ni les autres demandes de la file numérique.
+ */
+export function canAccessSupportRequest(
+  access: SupportAgentAccess,
+  service: string | null,
+  category: string | null
+): boolean {
+  if (canAccessSupportService(access, service)) return true;
+  return category === "ordinateur"
+    && service === "referent_numerique"
+    && access.serviceCodes.includes("ddfpt");
+}
+
 export function canTransferSupportRequest(
   access: SupportAgentAccess,
   currentService: string | null,

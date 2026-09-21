@@ -67,7 +67,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       ))
       .limit(1);
     if (!request) throw new HttpError(404, "Demande introuvable");
-    assertSupportRequestAccess(access, request.assignedTeam);
+    assertSupportRequestAccess(access, request.assignedTeam, request.category);
 
     const context = (request.subjectContext ?? {}) as Record<string, unknown>;
     const targetLanguage = supportTranslationTargetLanguage(context.detectedLanguage);

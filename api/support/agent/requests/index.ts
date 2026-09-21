@@ -127,10 +127,23 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const overdueOnly = overdue === "true";
     const service = queryValue(req.query.service);
     const category = queryValue(req.query.category);
+    if (category && !VALID_CATEGORIES.has(category)) {
+      throw new HttpError(400, "Catégorie invalide");
+    }
+    const ddfptEquipmentCollaboration = category === "ordinateur"
+      && access.serviceCodes.includes("ddfpt");
     const filters: SQL[] = [eq(supportRequests.institutionId, institutionId)];
     const accessFilter = access.canViewAll
       ? undefined
-      : inArray(supportRequests.assignedTeam, access.serviceCodes);
+      : ddfptEquipmentCollaboration
+        ? or(
+            inArray(supportRequests.assignedTeam, access.serviceCodes),
+            and(
+              eq(supportRequests.category, "ordinateur"),
+              eq(supportRequests.assignedTeam, "referent_numerique")
+            )
+          )
+        : inArray(supportRequests.assignedTeam, access.serviceCodes);
     if (accessFilter) filters.push(accessFilter);
     if (service && !VALID_SERVICES.has(service) && service !== UNASSIGNED_SERVICE_FILTER) {
       throw new HttpError(400, "Service invalide");
@@ -138,7 +151,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (
       service &&
       !access.canViewAll &&
-      (service === UNASSIGNED_SERVICE_FILTER || !access.serviceCodes.includes(service as SupportService))
+      (
+        service === UNASSIGNED_SERVICE_FILTER
+        || (
+          !access.serviceCodes.includes(service as SupportService)
+          && !(ddfptEquipmentCollaboration && service === "referent_numerique")
+        )
+      )
     ) {
       throw new HttpError(403, "Ce service n'appartient pas à votre périmètre");
     }
@@ -168,9 +187,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       filters.push(sql`${supportRequests.slaDueAt} < now() and ${supportRequests.status} not in ('resolu', 'clos', 'indesirable')`);
     }
     if (serviceFilter) filters.push(serviceFilter);
-    if (category && !VALID_CATEGORIES.has(category)) {
-      throw new HttpError(400, "Catégorie invalide");
-    }
     if (category) filters.push(eq(supportRequests.category, category));
 
     const where = filters.length > 0 ? and(...filters) : undefined;

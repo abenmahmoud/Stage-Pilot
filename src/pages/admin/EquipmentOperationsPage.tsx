@@ -3,13 +3,16 @@ import {
   AlertTriangle,
   CalendarDays,
   CheckCircle2,
+  Copy,
   Clock3,
   ExternalLink,
   MapPin,
+  KeyRound,
   Plus,
   RefreshCw,
   ShieldCheck,
   TicketCheck,
+  UserRoundCog,
   Wrench,
   XCircle,
 } from "lucide-react";
@@ -49,6 +52,9 @@ type Incident = {
 
 type QueuePayload = { requests: Incident[]; pagination: { total: number } };
 type VisitPayload = { visits: Visit[] };
+type Assignment = { visitId: string; publicCode: string };
+type ExternalGrant = { id: string; visitId: string; label: string; expiresAt: string; lockedAt: string | null; revokedAt: string | null; lastUsedAt: string | null; createdAt: string };
+type AccessResult = { grant: ExternalGrant; code: string; linkPath: string };
 
 const STATUS_LABELS: Record<EquipmentVisitStatus, string> = {
   draft: "Brouillon",
@@ -96,18 +102,29 @@ export default function EquipmentOperationsPage() {
   const [publicNote, setPublicNote] = useState("");
   const [internalNote, setInternalNote] = useState("");
   const [publishNow, setPublishNow] = useState(false);
+  const [assignments, setAssignments] = useState<Assignment[]>([]);
+  const [grants, setGrants] = useState<ExternalGrant[]>([]);
+  const [selectedVisitId, setSelectedVisitId] = useState("");
+  const [selectedCodes, setSelectedCodes] = useState<Set<string>>(new Set());
+  const [accessLabel, setAccessLabel] = useState("Intervenant SPIE");
+  const [accessExpiry, setAccessExpiry] = useState("");
+  const [accessResult, setAccessResult] = useState<AccessResult | null>(null);
 
   const load = useCallback(async () => {
     setBusy(true);
     setError("");
     try {
-      const [visitPayload, queuePayload] = await Promise.all([
+      const [visitPayload, queuePayload, assignmentPayload, grantPayload] = await Promise.all([
         apiFetch<VisitPayload>("equipment/admin/visits"),
         apiFetch<QueuePayload>("support/agent/requests?category=ordinateur&service=referent_numerique&pageSize=50"),
+        apiFetch<{ assignments: Assignment[] }>("equipment/admin/visit-requests"),
+        apiFetch<{ grants: ExternalGrant[] }>("equipment/admin/external-access"),
       ]);
       setVisits(visitPayload.visits);
       setIncidents(queuePayload.requests.filter(request => request.subjectContext?.equipmentReportVersion === "1"));
       setTotal(queuePayload.pagination.total);
+      setAssignments(assignmentPayload.assignments);
+      setGrants(grantPayload.grants);
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : "L’espace matériel ne peut pas être chargé.");
     } finally {
@@ -116,6 +133,24 @@ export default function EquipmentOperationsPage() {
   }, []);
 
   useEffect(() => { void load(); }, [load]);
+
+  useEffect(() => {
+    if (!selectedVisitId && visits.length) {
+      const preferred = visits.find(visit => !["completed", "cancelled"].includes(visit.status)) ?? visits[0];
+      setSelectedVisitId(preferred.id);
+    }
+  }, [selectedVisitId, visits]);
+
+  useEffect(() => {
+    if (!selectedVisitId) return;
+    setSelectedCodes(new Set(assignments.filter(item => item.visitId === selectedVisitId).map(item => item.publicCode)));
+    const visit = visits.find(item => item.id === selectedVisitId);
+    if (visit) {
+      const expiry = new Date(Math.max(Date.parse(visit.endsAt) + 24 * 60 * 60_000, Date.now() + 60 * 60_000));
+      setAccessExpiry(localDateTime(expiry.toISOString()));
+    }
+    setAccessResult(null);
+  }, [assignments, selectedVisitId, visits]);
 
   const openIncidents = useMemo(() => incidents.filter(item => !["resolu", "clos", "indesirable"].includes(item.status)), [incidents]);
   const riskCount = openIncidents.filter(item => item.subjectContext.safetyRisk === "yes").length;
@@ -173,6 +208,55 @@ export default function EquipmentOperationsPage() {
     } finally { setSaving(false); }
   }
 
+  function toggleIncident(code: string) {
+    setSelectedCodes(current => {
+      const next = new Set(current);
+      if (next.has(code)) next.delete(code); else next.add(code);
+      return next;
+    });
+    setAccessResult(null);
+  }
+
+  async function saveAssignments() {
+    if (!selectedVisitId) return;
+    setSaving(true); setError(""); setNotice("");
+    try {
+      await apiFetch("equipment/admin/visit-requests", { method: "PUT", body: JSON.stringify({ visitId: selectedVisitId, publicCodes: [...selectedCodes] }) });
+      setNotice(`${selectedCodes.size} dossier${selectedCodes.size > 1 ? "s" : ""} préparé${selectedCodes.size > 1 ? "s" : ""} pour ce passage.`);
+      await load();
+    } catch (cause) { setError(cause instanceof Error ? cause.message : "L’affectation n’a pas pu être enregistrée."); }
+    finally { setSaving(false); }
+  }
+
+  async function createExternalAccess() {
+    if (!selectedVisitId || !accessExpiry) return;
+    setSaving(true); setError(""); setNotice(""); setAccessResult(null);
+    try {
+      await apiFetch("equipment/admin/visit-requests", { method: "PUT", body: JSON.stringify({ visitId: selectedVisitId, publicCodes: [...selectedCodes] }) });
+      const result = await apiFetch<AccessResult>("equipment/admin/external-access", { method: "POST", body: JSON.stringify({ visitId: selectedVisitId, label: accessLabel, expiresAt: new Date(accessExpiry).toISOString() }) });
+      setAccessResult(result);
+      setNotice("L’accès SPIE est prêt. Le code n’est affiché qu’une seule fois : copiez-le maintenant.");
+      await load();
+      setAccessResult(result);
+    } catch (cause) { setError(cause instanceof Error ? cause.message : "L’accès SPIE n’a pas pu être créé."); }
+    finally { setSaving(false); }
+  }
+
+  async function revokeGrant(id: string) {
+    setSaving(true); setError("");
+    try {
+      await apiFetch("equipment/admin/external-access", { method: "PATCH", body: JSON.stringify({ id }) });
+      setNotice("L’accès SPIE a été désactivé immédiatement.");
+      await load();
+    } catch (cause) { setError(cause instanceof Error ? cause.message : "L’accès n’a pas pu être désactivé."); }
+    finally { setSaving(false); }
+  }
+
+  async function copyValue(value: string, label: string) {
+    await navigator.clipboard.writeText(value);
+    setNotice(`${label} copié.`);
+  }
+
   return <div className="mx-auto max-w-7xl space-y-6 pb-14">
     <header className="flex flex-wrap items-start justify-between gap-4">
       <div>
@@ -197,9 +281,31 @@ export default function EquipmentOperationsPage() {
       <p className="font-bold">Votre rôle reste la coordination.</p><p className="mt-1">Vous vérifiez la salle, l’impact et les essais déjà réalisés, puis vous préparez les dossiers pour le prestataire. Le diagnostic, l’ouverture du matériel et la réparation relèvent du technicien habilité.</p>
     </section>
 
+    <section className="overflow-hidden rounded-3xl border border-violet-200 bg-white shadow-sm">
+      <div className="flex flex-wrap items-start justify-between gap-4 border-b border-violet-100 bg-violet-50 p-5 sm:p-6"><div><p className="flex items-center gap-2 text-sm font-bold text-violet-700"><UserRoundCog className="h-4 w-4" />Accès intervenant</p><h2 className="mt-1 text-2xl font-bold text-slate-950">Préparer le passage SPIE</h2><p className="mt-1 max-w-3xl text-sm text-slate-600">Sélectionnez le passage et les seuls dossiers visibles par le technicien. Le lien et le code expirent automatiquement et peuvent être désactivés.</p></div><span className="rounded-full bg-white px-3 py-1 text-xs font-bold text-violet-700">Aucune identité transmise</span></div>
+      <div className="grid gap-6 p-5 sm:p-6 xl:grid-cols-[.8fr_1.2fr]">
+        <div className="space-y-4">
+          <label className="block text-sm font-bold text-slate-800">Passage<select className="field mt-2" value={selectedVisitId} onChange={event => setSelectedVisitId(event.target.value)}><option value="">Choisir un passage</option>{visits.filter(visit => visit.status !== "cancelled").map(visit => <option key={visit.id} value={visit.id}>{formatDateTime(visit.startsAt)} · {STATUS_LABELS[visit.status]}</option>)}</select></label>
+          <label className="block text-sm font-bold text-slate-800">Nom affiché<input className="field mt-2" value={accessLabel} onChange={event => setAccessLabel(event.target.value)} maxLength={120} /></label>
+          <label className="block text-sm font-bold text-slate-800">Expiration de l’accès<input type="datetime-local" className="field mt-2" value={accessExpiry} onChange={event => setAccessExpiry(event.target.value)} /></label>
+          <button type="button" disabled={saving || !selectedVisitId || selectedCodes.size === 0} onClick={() => void createExternalAccess()} className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-xl bg-violet-700 px-5 text-sm font-bold text-white disabled:opacity-50"><KeyRound className="h-5 w-5" />Créer le lien et le code</button>
+          <p className="text-xs leading-5 text-slate-500">La création d’un nouvel accès désactive l’ancien accès encore actif pour ce passage.</p>
+        </div>
+        <div>
+          <div className="flex flex-wrap items-center justify-between gap-3"><div><h3 className="font-bold text-slate-950">Dossiers confiés</h3><p className="text-sm text-slate-600">{selectedCodes.size} sélectionné{selectedCodes.size > 1 ? "s" : ""}</p></div><button type="button" disabled={saving || !selectedVisitId} onClick={() => void saveAssignments()} className="min-h-10 rounded-xl border border-violet-200 px-4 text-sm font-bold text-violet-800 disabled:opacity-50">Enregistrer la sélection</button></div>
+          <div className="mt-3 max-h-72 space-y-2 overflow-y-auto rounded-2xl border border-slate-200 p-2">
+            {openIncidents.length === 0 && <p className="p-4 text-sm text-slate-500">Aucun incident matériel ouvert.</p>}
+            {openIncidents.map(incident => <label key={incident.publicCode} className="flex cursor-pointer items-start gap-3 rounded-xl p-3 hover:bg-slate-50"><input type="checkbox" className="mt-1 h-5 w-5" checked={selectedCodes.has(incident.publicCode)} onChange={() => toggleIncident(incident.publicCode)} /><span className="min-w-0"><strong className="block text-sm text-slate-950">{incident.publicCode} · {incident.subjectContext.roomCode || "Lieu à préciser"}</strong><span className="line-clamp-2 text-xs leading-5 text-slate-600">{incident.subjectContext.symptomSummary || incident.subject}</span></span></label>)}
+          </div>
+        </div>
+      </div>
+      {accessResult && <div className="border-t border-emerald-200 bg-emerald-50 p-5 sm:p-6"><p className="flex items-center gap-2 font-bold text-emerald-950"><CheckCircle2 className="h-5 w-5" />Accès prêt à transmettre à SPIE</p><p className="mt-1 text-sm text-emerald-900">Copiez séparément le lien et le code. Le code ne sera plus consultable après avoir quitté cette page.</p><div className="mt-4 grid gap-3 md:grid-cols-[1fr_auto]"><div className="overflow-hidden rounded-xl border border-emerald-200 bg-white p-3 text-sm font-medium text-slate-800">{window.location.origin}{accessResult.linkPath}</div><button type="button" onClick={() => void copyValue(`${window.location.origin}${accessResult.linkPath}`, "Lien")} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-emerald-300 bg-white px-4 text-sm font-bold text-emerald-900"><Copy className="h-4 w-4" />Copier le lien</button><div className="rounded-xl border border-emerald-200 bg-white p-3 text-center text-2xl font-bold tracking-[.25em] text-slate-950">{accessResult.code}</div><button type="button" onClick={() => void copyValue(accessResult.code, "Code")} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-emerald-300 bg-white px-4 text-sm font-bold text-emerald-900"><Copy className="h-4 w-4" />Copier le code</button></div></div>}
+      {grants.some(grant => grant.visitId === selectedVisitId) && <div className="border-t border-slate-100 p-5 sm:p-6"><h3 className="font-bold text-slate-950">Historique des accès de ce passage</h3><div className="mt-3 space-y-2">{grants.filter(grant => grant.visitId === selectedVisitId).map(grant => { const active = !grant.revokedAt && !grant.lockedAt && Date.parse(grant.expiresAt) > Date.now(); return <div key={grant.id} className="flex flex-wrap items-center justify-between gap-3 rounded-xl bg-slate-50 p-3 text-sm"><span><strong className="block text-slate-900">{grant.label}</strong><span className="text-xs text-slate-500">Expire le {new Date(grant.expiresAt).toLocaleString("fr-FR")} · {active ? "actif" : grant.lockedAt ? "verrouillé" : "inactif"}</span></span>{active && <button type="button" disabled={saving} onClick={() => void revokeGrant(grant.id)} className="min-h-10 rounded-lg border border-red-200 px-3 text-xs font-bold text-red-700">Désactiver</button>}</div>; })}</div></div>}
+    </section>
+
     <div className="grid items-start gap-6 xl:grid-cols-[1.35fr_.8fr]">
       <section className="rounded-2xl border border-slate-200 bg-white">
-        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 p-5"><div><h2 className="text-xl font-bold text-slate-950">Incidents à préparer</h2><p className="mt-1 text-sm text-slate-600">Les réponses, pièces jointes, affectations et statuts restent dans la file unique des demandes.</p></div><Link to="/gestion/demandes?service=referent_numerique" className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-blue-600 px-4 text-sm font-semibold text-white">Ouvrir la file numérique <ExternalLink className="h-4 w-4" /></Link></div>
+        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 p-5"><div><h2 className="text-xl font-bold text-slate-950">Incidents à préparer</h2><p className="mt-1 text-sm text-slate-600">Les réponses, pièces jointes, affectations et statuts restent dans la file unique des demandes.</p></div><Link to="/gestion/demandes?service=referent_numerique&category=ordinateur" className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-blue-600 px-4 text-sm font-semibold text-white">Traiter les signalements <ExternalLink className="h-4 w-4" /></Link></div>
         <div className="divide-y divide-slate-100">
           {busy && incidents.length === 0 && <p className="p-8 text-center text-sm text-slate-500">Chargement…</p>}
           {!busy && openIncidents.length === 0 && <p className="p-8 text-center text-sm text-slate-500">Aucun signalement matériel structuré en attente.</p>}

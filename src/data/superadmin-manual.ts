@@ -31,7 +31,7 @@ export const MANUAL_ARTICLES: ManualArticle[] = [
   {
     id: "materiel-spie", group: "quotidien", title: "Coordonner le matériel et les passages SPIE",
     summary: "Recevoir les incidents des professeurs, préparer l’intervention et publier les dates confirmées.",
-    access: "Le signalement et le suivi sont ouverts aux professeurs. La coordination est réservée au référent numérique, à la direction et au superadmin selon leur périmètre.",
+    access: "Le signalement et le suivi sont ouverts aux professeurs. La coordination est accessible au référent numérique, au DDFPT, à la direction et au superadmin selon leur périmètre. SPIE utilise uniquement un lien temporaire préparé pour un passage.",
     prerequisite: "Un professeur indique la salle, le matériel, le symptôme et l’impact. La date du technicien doit être confirmée avant publication.",
     steps: [
       "Le professeur ouvre Matériel du lycée depuis Mes services, complète la fiche guidée puis conserve le numéro de dossier.",
@@ -40,9 +40,12 @@ export const MANUAL_ARTICLES: ManualArticle[] = [
       "Regroupez les dossiers à préparer pour SPIE. Le référent qualifie et coordonne ; l’ouverture du matériel, le diagnostic et la réparation relèvent du technicien habilité.",
       "Ajoutez le début, la fin, le lieu et la consigne du passage. Enregistrez en brouillon tant que la date n’est pas confirmée.",
       "Cochez Publier ce créneau lorsque la date est confirmée. Marquez ensuite le passage terminé ou annulez-le : l’espace professeur est mis à jour.",
+      "Choisissez le passage, cochez uniquement les dossiers confiés au technicien, puis enregistrez la sélection.",
+      "Créez l’accès SPIE, copiez le lien et le code à 8 chiffres immédiatement, puis transmettez-les séparément. Le code n’est jamais conservé en clair et n’est affiché qu’une fois.",
+      "Après le passage, relisez les comptes rendus SPIE dans chaque dossier avant de répondre au professeur ou de clôturer. Désactivez le lien dès qu’il n’est plus nécessaire.",
     ],
     result: "Une file de demandes unique, des incidents préparés pour le prestataire et un calendrier SPIE lisible par les professeurs.",
-    check: "La note interne n’est jamais publiée. Une date visible n’est pas une promesse de réparation immédiate : le technicien décide de la suite après diagnostic.",
+    check: "La note interne n’est jamais publiée. Le portail SPIE ne montre ni l’identité ni les coordonnées du demandeur. Une date visible n’est pas une promesse de réparation immédiate : le technicien décide de la suite après diagnostic.",
     links: [{ label: "Coordination Matériel & SPIE", to: "/gestion/materiel" }, { label: "Espace professeur", to: "/materiel" }, { label: "File des demandes", to: "/gestion/demandes?service=referent_numerique" }],
   },
   {

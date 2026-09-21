@@ -24,7 +24,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (!code || !/^BC-\d{4}-\d{6}$/.test(code) || Object.keys(req.query).some(key => key !== 'code')) throw new HttpError(400, 'Numéro de demande invalide.');
     const [request] = await db.select().from(supportRequests).where(and(eq(supportRequests.institutionId, institutionId), eq(supportRequests.publicCode, code))).limit(1);
     if (!request) throw new HttpError(404, 'Demande introuvable.');
-    assertSupportRequestAccess(access, request.assignedTeam);
+    assertSupportRequestAccess(access, request.assignedTeam, request.category);
     if (request.retentionUntil <= new Date()) throw new HttpError(410, 'Ce dossier n’est plus disponible.');
     await enforceSupportRateLimit({ scope: 'assistant_session', keyHash: personalHash(`agent-reply-suggestion:${institutionId}:${user.id}`), limit: 30, windowSeconds: 60 });
     const now = new Date();

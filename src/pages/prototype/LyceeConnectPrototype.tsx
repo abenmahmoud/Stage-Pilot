@@ -3895,6 +3895,10 @@ function ConnectedAgentView({ onBack }: { onBack: () => void }) {
     const service = new URLSearchParams(window.location.search).get("service") ?? "";
     return supportTeams.some(team => team.value === service) ? service : "";
   });
+  const [categoryFilter] = useState(() => {
+    const category = new URLSearchParams(window.location.search).get("category") ?? "";
+    return category === "ordinateur" ? category : "";
+  });
   const [page, setPage] = useState(1);
   const [selectedCode, setSelectedCode] = useState<string | null>(null);
   const [detail, setDetail] = useState<AgentRequestDetail | null>(null);
@@ -3966,6 +3970,7 @@ function ConnectedAgentView({ onBack }: { onBack: () => void }) {
       if (queueMode === "callbacks") params.set("callback", "pending");
       if (queueMode === "duplicates") params.set("duplicate", "pending");
       if (serviceFilter) params.set("service", serviceFilter);
+      if (categoryFilter) params.set("category", categoryFilter);
       const payload = await apiFetch<unknown>(`support/agent/requests?${params}`);
       if (!isAgentQueuePayload(payload)) {
         throw new Error("Réponse invalide du service de demandes");
@@ -3979,7 +3984,8 @@ function ConnectedAgentView({ onBack }: { onBack: () => void }) {
       if (
         serviceFilter &&
         !payload.access.canViewAll &&
-        !payload.access.serviceCodes.includes(serviceFilter)
+        !payload.access.serviceCodes.includes(serviceFilter) &&
+        !(categoryFilter === "ordinateur" && serviceFilter === "referent_numerique" && payload.access.serviceCodes.includes("ddfpt"))
       ) {
         setServiceFilter("");
       }
@@ -4055,7 +4061,7 @@ function ConnectedAgentView({ onBack }: { onBack: () => void }) {
     if (!sessionReady) return;
     const timer = window.setTimeout(() => void loadQueue(), 250);
     return () => window.clearTimeout(timer);
-  }, [page, query, queueMode, serviceFilter, sessionReady]);
+  }, [page, query, queueMode, serviceFilter, categoryFilter, sessionReady]);
   useEffect(() => {
     selectedCodeRef.current = selectedCode;
     if (!selectedCode) {
@@ -4675,9 +4681,10 @@ function ConnectedAgentView({ onBack }: { onBack: () => void }) {
   const visibleTemplates = selected
     ? templates.filter((template) => template.category === "all" || template.category === selected.category)
     : templates;
+  const equipmentCollaboration = categoryFilter === "ordinateur" && access?.serviceCodes.includes("ddfpt");
   const availableTeams = access?.canViewAll
     ? supportTeams
-    : supportTeams.filter((team) => access?.serviceCodes.includes(team.value));
+    : supportTeams.filter((team) => access?.serviceCodes.includes(team.value) || (equipmentCollaboration && team.value === "referent_numerique"));
   const hasQueueFilters = query.trim().length > 0 || queueMode !== "all" || serviceFilter !== "";
   const orderedServiceStats = [
     serviceStats.find((item) => item.service === null),

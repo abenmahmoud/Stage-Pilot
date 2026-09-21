@@ -469,6 +469,10 @@ Le support continue à fonctionner si l'IA est coupée.
 - [ ] **T055A** Activer le lot Matériel & SPIE sur le domaine principal après
   recette du compte référent, saisir les premiers créneaux confirmés avec SPIE
   et vérifier un dossier réel de professeur jusqu’à sa résolution.
+  Le portail prestataire est prêt : dossiers affectés explicitement, lien et
+  code temporaire révocables, projection sans identité, compte rendu interne
+  audité. Le DDFPT peut coordonner les seuls incidents matériel du service
+  numérique. Restent le premier créneau réel et la recette de bout en bout.
 
 ## Jeux de tests obligatoires
 

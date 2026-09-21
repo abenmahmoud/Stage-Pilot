@@ -67,6 +67,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           removed: sql<string | null>`${supportEvents.toValue}->>'removed'`,
           publicCode: supportRequests.publicCode,
           assignedTeam: supportRequests.assignedTeam,
+          category: supportRequests.category,
           createdAt: supportEvents.createdAt,
           correlationId: supportEvents.correlationId,
         })
@@ -87,7 +88,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         ) {
           throw new HttpError(409, "Cette clé de retrait a déjà été utilisée pour une autre action");
         }
-        assertSupportRequestAccess(access, operationEvent.assignedTeam);
+        assertSupportRequestAccess(access, operationEvent.assignedTeam, operationEvent.category);
         return {
           confirmation: createSupportAttachmentRemovalConfirmation({
             publicCode: operationEvent.publicCode,
@@ -106,6 +107,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             requestId: supportAttachments.requestId,
             publicCode: supportRequests.publicCode,
             assignedTeam: supportRequests.assignedTeam,
+            category: supportRequests.category,
           })
           .from(supportAttachments)
           .innerJoin(supportRequests, eq(supportRequests.id, supportAttachments.requestId))
@@ -115,7 +117,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           ))
           .limit(1);
         if (!candidate) throw new HttpError(404, "Pièce jointe introuvable");
-        assertSupportRequestAccess(access, candidate.assignedTeam);
+        assertSupportRequestAccess(access, candidate.assignedTeam, candidate.category);
 
         await tx.execute(sql`
           select pg_advisory_xact_lock(hashtextextended(${candidate.requestId}::text, 0))
@@ -347,6 +349,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         storagePath: supportAttachments.storagePath,
         scanStatus: supportAttachments.scanStatus,
         assignedTeam: supportRequests.assignedTeam,
+        category: supportRequests.category,
       })
       .from(supportAttachments)
       .innerJoin(supportRequests, eq(supportRequests.id, supportAttachments.requestId))
@@ -356,7 +359,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       ))
       .limit(1);
     if (!attachment) throw new HttpError(404, "Pièce jointe introuvable");
-    assertSupportRequestAccess(access, attachment.assignedTeam);
+    assertSupportRequestAccess(access, attachment.assignedTeam, attachment.category);
     if (attachment.scanStatus !== "clean") {
       throw new HttpError(423, "Le fichier n'est pas encore disponible");
     }

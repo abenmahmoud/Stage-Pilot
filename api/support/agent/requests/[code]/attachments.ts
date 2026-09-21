@@ -98,6 +98,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         id: supportRequests.id,
         status: supportRequests.status,
         assignedTeam: supportRequests.assignedTeam,
+        category: supportRequests.category,
       })
       .from(supportRequests)
       .where(and(
@@ -106,7 +107,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       ))
       .limit(1);
     if (!request) throw new HttpError(404, "Demande introuvable");
-    assertSupportRequestAccess(access, request.assignedTeam);
+    assertSupportRequestAccess(access, request.assignedTeam, request.category);
     if (request.status === "clos") throw new HttpError(409, "Ce dossier est fermé");
 
     const originalName = requiredText(body.fileName, "Nom du fichier", 180);

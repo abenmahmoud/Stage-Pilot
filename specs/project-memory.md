@@ -6729,3 +6729,14 @@ réel, notification ou dossier distant créé. T055 est terminé ; T055A reste
 ouvert pour la livraison sur le domaine principal, la recette du compte réel et
 le premier passage confirmé. Compte rendu :
 `docs/operations/MATERIEL_SPIE_2026-09-21.md`.
+
+Complément du même jour : le DDFPT participe maintenant à la coordination des
+incidents `ordinateur` du service numérique sans extension de cette exception
+aux demandes ENT ou aux codes. Le coordinateur affecte les dossiers à un
+passage puis génère un lien et un code SPIE temporaires. Le prestataire ne voit
+que le lieu, le type de matériel, l’inventaire, le constat, l’impact, le risque
+et la disponibilité ; aucune identité ni coordonnée. Son compte rendu est une
+note interne auditée que le lycée valide avant clôture. Trois tables privées
+RLS forcée ont été ajoutées sur la preview. Le compte DDFPT existant de
+Christophe Pourchet est actif et possède déjà les services nécessaires. Aucun
+créneau ou accès réel n’a été créé pendant le développement.
