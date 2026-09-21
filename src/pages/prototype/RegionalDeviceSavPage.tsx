@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { Link } from "react-router-dom";
-import { ArrowLeft, ArrowRight, ArrowUpRight, CircleHelp, ExternalLink, Laptop, MessageCircleMore, ShieldCheck } from "lucide-react";
+import { ArrowLeft, ArrowRight, ArrowUpRight, CircleHelp, ExternalLink, Laptop, MessageCircleMore, ShieldCheck, Wrench } from "lucide-react";
 import { PublicPortalShell } from "../../components/PublicPortalShell";
 import { REGIONAL_DEVICE_SAV, REGIONAL_DEVICE_SAV_UPDATED_AT } from "../../../shared/regional-device-sav";
 import "./lycee-connect.css";
@@ -41,6 +41,12 @@ export default function RegionalDeviceSavPage() {
       <section className="sav-help" aria-labelledby="sav-help-title">
         <div><span className="sav-help-icon"><MessageCircleMore aria-hidden="true" /></span><p className="cb-eyebrow">Une aide adaptée</p><h2 id="sav-help-title">Une étape vous bloque ?</h2><p>Expliquez le modèle et ce qui ne fonctionne pas dans le chat. Blaise vous guide. Si une action du lycée est nécessaire, il prépare une demande que vous confirmez, avec les vérifications déjà faites.</p><Link className="cb-primary" to="/?view=help">Demander de l’aide <ArrowUpRight aria-hidden="true" /></Link></div>
         <div className="sav-help-secondary"><CircleHelp aria-hidden="true" /><h3>Si vous ne pouvez pas accéder à l’ENT</h3><p>Indiquez ce qui vous bloque, sans communiquer votre mot de passe ni un code reçu. Le lycée pourra examiner votre accès et vous répondre dans votre dossier.</p></div>
+      </section>
+
+      <section className="sav-panel" aria-labelledby="school-equipment-title">
+        <div className="sav-panel-head"><div><p className="cb-eyebrow">Professeurs · Équipements des salles</p><h2 id="school-equipment-title">Un vidéoprojecteur, un poste ou une imprimante du lycée ?</h2></div><span className="sav-panel-index"><Wrench aria-hidden="true" /></span></div>
+        <p className="sav-panel-lead">Utilisez l’espace Matériel du lycée pour créer un dossier, joindre une photo, suivre la réponse et consulter les prochains passages SPIE.</p>
+        <div className="sav-actions"><Link className="cb-primary" to="/materiel">Ouvrir l’espace matériel <ArrowRight aria-hidden="true" /></Link></div>
       </section>
 
       <section className="sav-roles" aria-labelledby="sav-roles-title"><p className="cb-eyebrow">Qui fait quoi ?</p><h2 id="sav-roles-title">Un circuit clair, du début à la fin</h2><div className="sav-role-grid">

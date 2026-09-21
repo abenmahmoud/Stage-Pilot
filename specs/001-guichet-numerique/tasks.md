@@ -454,6 +454,21 @@ Le support continue à fonctionner si l'IA est coupée.
   sans interrompre le site actuel.
 - [ ] **T054** Ajouter SSO ou rapprochement ENT lorsqu'une intégration officielle
   devient disponible.
+- [x] **T055** Créer l’espace Matériel du lycée pour les professeurs et la
+  coordination numérique. Le signalement guidé réutilise le dossier de demande,
+  son suivi, ses réponses et ses pièces jointes ; il enregistre la salle, le
+  matériel, l’inventaire facultatif, le symptôme, l’impact, le risque et les
+  disponibilités. Les incidents restent dans la file `referent_numerique` et un
+  risque matériel explicite reçoit la priorité P1 sans être confondu avec un
+  signalement de vie scolaire. L’écran `/gestion/materiel` agrège la préparation
+  et le calendrier SPIE ; le référent qualifie et coordonne, le prestataire
+  diagnostique et répare. Les créneaux sont privés en brouillon puis publics
+  seulement après confirmation. RLS forcée, retraits de privilèges publics,
+  audit append-only et projection publique minimale vérifiés sur la branche
+  Supabase de preview. Aucun passage réel n’a été inventé ni publié.
+- [ ] **T055A** Activer le lot Matériel & SPIE sur le domaine principal après
+  recette du compte référent, saisir les premiers créneaux confirmés avec SPIE
+  et vérifier un dossier réel de professeur jusqu’à sa résolution.
 
 ## Jeux de tests obligatoires
 

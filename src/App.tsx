@@ -26,6 +26,7 @@ const LyceeConnectPrototype = lazy(() => import("./pages/prototype/LyceeConnectP
 const PublicContentPage = lazy(() => import("./pages/prototype/PublicContentPage"));
 const ChromebookPage = lazy(() => import("./pages/prototype/ChromebookPage"));
 const RegionalDeviceSavPage = lazy(() => import("./pages/prototype/RegionalDeviceSavPage"));
+const EquipmentSupportPage = lazy(() => import("./pages/prototype/EquipmentSupportPage"));
 const LoginPage = lazy(() => import("./pages/LoginPage"));
 const MfaSecurityPage = lazy(() => import("./pages/MfaSecurityPage"));
 const ResetPasswordPage = lazy(() => import("./pages/ResetPasswordPage"));
@@ -42,6 +43,7 @@ const AiBudgetPage = lazy(() => import("./pages/admin/AiBudgetPage"));
 const SuperadminManualPage = lazy(() => import("./pages/admin/SuperadminManualPage"));
 const CrossDataPage = lazy(() => import("./pages/admin/CrossDataPage"));
 const RegionalDeviceHandoffsPage = lazy(() => import("./pages/admin/RegionalDeviceHandoffsPage"));
+const EquipmentOperationsPage = lazy(() => import("./pages/admin/EquipmentOperationsPage"));
 const AgentManagementRequests = lazy(() => import("./pages/prototype/LyceeConnectPrototype").then(module => ({ default: module.AgentManagementRequests })));
 const AdminDashboard = lazy(() => import("./pages/admin/AdminDashboard"));
 const ImportPage = lazy(() => import("./pages/admin/ImportPage"));
@@ -196,6 +198,7 @@ export default function App() {
         />
         <Route path="/chromebook" element={<ChromebookPage />} />
         <Route path="/assistance-numerique" element={<RegionalDeviceSavPage />} />
+        <Route path="/materiel" element={<EquipmentSupportPage />} />
         <Route path="/site/chromebook" element={<Navigate to="/chromebook" replace />} />
         <Route path="/site/:slug" element={<PublicContentPage />} />
         <Route path="/login" element={<LoginPage />} />
@@ -230,6 +233,7 @@ export default function App() {
           <Route path="gestion/budget-ia" element={<RoleRoute allowedRoles={AI_BUDGET_ROLES}><AiBudgetPage /></RoleRoute>} />
           <Route path="gestion/donnees" element={<RoleRoute allowedRoles={["superadmin"]}><CrossDataPage /></RoleRoute>} />
           <Route path="gestion/remise-ordinateurs" element={<RoleRoute allowedRoles={["superadmin"]}><RegionalDeviceHandoffsPage /></RoleRoute>} />
+          <Route path="gestion/materiel" element={<RoleRoute allowedRoles={SCHOOL_MANAGEMENT_ROLES}><EquipmentOperationsPage /></RoleRoute>} />
           <Route path="gestion/manuel" element={<RoleRoute allowedRoles={["superadmin"]}><SuperadminManualPage /></RoleRoute>} />
           <Route path="dashboard" element={<DashboardRedirect />} />
           <Route path="stages" element={<StagesDashboard />} />

@@ -22,6 +22,11 @@ const VALID_STATUSES = new Set([
   "indesirable",
 ]);
 const VALID_SERVICES = new Set<string>(SUPPORT_SERVICES);
+const VALID_CATEGORIES = new Set([
+  "inscription", "affectation_classe", "documents_scolarite", "ent",
+  "email_academique", "ordinateur", "logiciel", "restauration_bourse",
+  "orientation_formation", "vie_scolaire", "autre",
+]);
 const UNASSIGNED_SERVICE_FILTER = "unassigned";
 
 // Les sous-requetes correlees ci-dessous alias(ent) explicitement leur table et
@@ -121,6 +126,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const duplicateOnly = duplicate === "pending";
     const overdueOnly = overdue === "true";
     const service = queryValue(req.query.service);
+    const category = queryValue(req.query.category);
     const filters: SQL[] = [eq(supportRequests.institutionId, institutionId)];
     const accessFilter = access.canViewAll
       ? undefined
@@ -162,6 +168,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       filters.push(sql`${supportRequests.slaDueAt} < now() and ${supportRequests.status} not in ('resolu', 'clos', 'indesirable')`);
     }
     if (serviceFilter) filters.push(serviceFilter);
+    if (category && !VALID_CATEGORIES.has(category)) {
+      throw new HttpError(400, "Catégorie invalide");
+    }
+    if (category) filters.push(eq(supportRequests.category, category));
 
     const where = filters.length > 0 ? and(...filters) : undefined;
     const requestQuery = db
@@ -205,6 +215,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       eq(supportRequests.institutionId, institutionId),
       accessFilter,
       serviceFilter,
+      category ? eq(supportRequests.category, category) : undefined,
     ].filter((value): value is SQL => Boolean(value));
     const statsQuery = db.select({
       total: sql<number>`count(*)::int`,

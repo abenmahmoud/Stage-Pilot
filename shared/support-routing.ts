@@ -74,6 +74,19 @@ export function routeSupportRequest(input: {
   const identity = requiredIdentity(input.category, text);
 
   if (
+    input.category === "ordinateur"
+    && /\b(risque materiel|fumee|etincelle|odeur de brule|brule|surchauffe|electrique|eau|liquide)\b/.test(text)
+  ) {
+    return {
+      service: "referent_numerique",
+      confidence: "high",
+      reason: "risque_materiel_a_securiser",
+      requiredIdentity: "I0",
+      priority: "p1",
+    };
+  }
+
+  if (
     /\b(harcelement|violence|danger|menace|discrimination|decrochage|mal etre|suicide)\b/.test(text)
   ) {
     return {

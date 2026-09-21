@@ -1568,6 +1568,61 @@ export const supportRequests = pgTable(
   ]
 );
 
+/**
+ * Passages du prestataire chargé du matériel du lycée.
+ * Les visiteurs publics ne lisent jamais cette table directement : l'API
+ * publique ne restitue que les passages confirmés et les notes publiques.
+ */
+export const equipmentServiceVisits = pgTable(
+  "equipment_service_visits",
+  {
+    id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+    institutionId: uuid("institution_id")
+      .notNull()
+      .references(() => institutions.id, { onDelete: "cascade" }),
+    provider: text("provider").notNull().default("SPIE"),
+    startsAt: timestamp("starts_at", { withTimezone: true }).notNull(),
+    endsAt: timestamp("ends_at", { withTimezone: true }).notNull(),
+    status: text("status").notNull().default("draft"),
+    location: text("location"),
+    publicNote: text("public_note"),
+    internalNote: text("internal_note"),
+    createdBy: uuid("created_by").notNull(),
+    updatedBy: uuid("updated_by").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    index("equipment_service_visits_public_idx").on(
+      table.institutionId,
+      table.status,
+      table.startsAt
+    ),
+  ]
+);
+
+export const equipmentServiceVisitEvents = pgTable(
+  "equipment_service_visit_events",
+  {
+    id: bigint("id", { mode: "number" }).primaryKey().generatedAlwaysAsIdentity(),
+    institutionId: uuid("institution_id")
+      .notNull()
+      .references(() => institutions.id, { onDelete: "cascade" }),
+    visitId: uuid("visit_id")
+      .notNull()
+      .references(() => equipmentServiceVisits.id, { onDelete: "cascade" }),
+    eventType: text("event_type").notNull(),
+    actorId: uuid("actor_id").notNull(),
+    previousValue: jsonb("previous_value"),
+    nextValue: jsonb("next_value"),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    index("equipment_service_visit_events_history_idx").on(table.visitId, table.createdAt),
+    index("equipment_service_visit_events_institution_idx").on(table.institutionId),
+  ]
+);
+
 export const supportAssistantRoutingReviews = pgTable(
   "support_assistant_routing_reviews",
   {

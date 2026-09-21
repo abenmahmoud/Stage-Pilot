@@ -364,3 +364,27 @@ déplie à la demande. Aucun nouveau canal d’envoi ni droit supplémentaire.
 - WhatsApp bidirectionnel contenant des données scolaires.
 - Application mobile native séparée de la PWA.
 - CRM généraliste ou centre d'appel complet.
+
+## 13. Matériel du lycée et passages du prestataire
+
+- Les professeurs disposent d’un accès direct depuis Mes services, distinct du
+  SAV des ordinateurs individuels de la Région.
+- Le signalement demande seulement les données opérationnelles utiles : salle,
+  type de matériel, numéro d’inventaire s’il est visible, symptôme, impact sur
+  le cours, risque matériel et créneaux d’accès.
+- Le dossier est une demande ordinaire de catégorie `ordinateur`. Il conserve
+  le même numéro, le même historique, les mêmes pièces jointes et le même suivi
+  que les autres demandes ; aucune boîte de tickets parallèle n’est créée.
+- Une fumée, des étincelles, une odeur de brûlé, une forte surchauffe ou un
+  liquide déclenche une priorité matérielle P1 et une consigne de mise en
+  sécurité. Le portail ne demande jamais au professeur de démonter ou réparer.
+- La coordination numérique vérifie, regroupe et prépare les dossiers. Elle ne
+  se substitue pas au technicien habilité pour le diagnostic et la réparation.
+- Les passages SPIE commencent en brouillon. Seuls le prestataire, le créneau,
+  le lieu et la note publique d’un passage confirmé sortent par l’API publique.
+  Les notes internes, les acteurs et l’audit restent côté serveur.
+- Un membre sans périmètre `referent_numerique` et sans droit global ne peut ni
+  lire la coordination matérielle ni modifier le calendrier.
+- L’annulation retire immédiatement le passage de l’espace public. Marquer un
+  passage terminé ne ferme pas automatiquement les dossiers : chaque incident
+  garde sa propre preuve de résolution.

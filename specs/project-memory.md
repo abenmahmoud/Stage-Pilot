@@ -6711,3 +6711,21 @@ Adel autorise la mise en ligne de l’hebdo du 21 au 25 septembre et prépare un
 Le nouvel export ENT `export_users_20260920_174759.csv` est contrôlé puis activé : 7 083 lignes utilisables, 4 604 personnes, 2 479 relations et zéro rejet. Les cinq doublons source sont stricts ; les absents du seul export ne sont pas supprimés et seuls les liens responsables–élèves réciproques sont ajoutés. La version du 17 septembre est remplacée.
 
 Les 10 266 attributs chiffrés sont actifs et liés exactement à ce nouvel annuaire. Le lot de 1 266 codes ENT chiffrés ajoute 45 attributions et conserve 1 221 valeurs déjà présentes sans écrasement. État du coffre : 1 351 ENT et 98 KOXO disponibles avec valeur chiffrée. Les sessions liées à un ancien annuaire deviennent inutilisables par le contrôle de version active et devront repasser par OTP. Aucun message, OTP ou dossier n'a été envoyé pendant l'opération. Détails : `docs/operations/ENT_IMPORT_2026-09-20.md`.
+
+## 21 septembre 2026 — Matériel du lycée et passages SPIE (001/T055)
+
+Adel précise que le référent numérique n’a pas à toucher ni réparer le matériel
+et qu’un technicien SPIE passe à des dates déterminées. Nouvel espace
+`/materiel` pour les professeurs : signalement structuré, dossier existant,
+photos dans le suivi et dates confirmées. Coordination privée
+`/gestion/materiel` : incidents, préparation, brouillons et publication du
+calendrier SPIE. Le professeur signale, le référent qualifie et coordonne, SPIE
+diagnostique et répare. Le SAV Région reste séparé.
+
+Branche Supabase preview migrée avec deux tables serveur fermées, RLS forcée,
+audit et projection publique minimale ; transaction fictive annulée et zéro
+résidu. Build, tests ciblés et recette Chromium 1440/390 réussis. Aucun créneau
+réel, notification ou dossier distant créé. T055 est terminé ; T055A reste
+ouvert pour la livraison sur le domaine principal, la recette du compte réel et
+le premier passage confirmé. Compte rendu :
+`docs/operations/MATERIEL_SPIE_2026-09-21.md`.

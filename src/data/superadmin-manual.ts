@@ -2,7 +2,7 @@
  * Instructions générales uniquement : ni annuaire, ni secret, ni état opérationnel en temps réel.
  * Mettre à jour la fiche concernée lorsqu'un parcours ou une limite change.
  */
-export const MANUAL_REVIEW_DATE = "16 septembre 2026";
+export const MANUAL_REVIEW_DATE = "21 septembre 2026";
 
 export const MANUAL_GROUPS = [
   { id: "quotidien", label: "Demandes et accueil" },
@@ -28,6 +28,23 @@ export type ManualArticle = {
 };
 
 export const MANUAL_ARTICLES: ManualArticle[] = [
+  {
+    id: "materiel-spie", group: "quotidien", title: "Coordonner le matériel et les passages SPIE",
+    summary: "Recevoir les incidents des professeurs, préparer l’intervention et publier les dates confirmées.",
+    access: "Le signalement et le suivi sont ouverts aux professeurs. La coordination est réservée au référent numérique, à la direction et au superadmin selon leur périmètre.",
+    prerequisite: "Un professeur indique la salle, le matériel, le symptôme et l’impact. La date du technicien doit être confirmée avant publication.",
+    steps: [
+      "Le professeur ouvre Matériel du lycée depuis Mes services, complète la fiche guidée puis conserve le numéro de dossier.",
+      "Dans Matériel & SPIE, contrôlez les incidents structurés. Les risques matériels signalés apparaissent en priorité ; demandez de mettre l’appareil à l’écart sans le démonter.",
+      "Ouvrez la file numérique et recherchez le numéro du dossier pour répondre, demander une photo, attribuer ou modifier le statut.",
+      "Regroupez les dossiers à préparer pour SPIE. Le référent qualifie et coordonne ; l’ouverture du matériel, le diagnostic et la réparation relèvent du technicien habilité.",
+      "Ajoutez le début, la fin, le lieu et la consigne du passage. Enregistrez en brouillon tant que la date n’est pas confirmée.",
+      "Cochez Publier ce créneau lorsque la date est confirmée. Marquez ensuite le passage terminé ou annulez-le : l’espace professeur est mis à jour.",
+    ],
+    result: "Une file de demandes unique, des incidents préparés pour le prestataire et un calendrier SPIE lisible par les professeurs.",
+    check: "La note interne n’est jamais publiée. Une date visible n’est pas une promesse de réparation immédiate : le technicien décide de la suite après diagnostic.",
+    links: [{ label: "Coordination Matériel & SPIE", to: "/gestion/materiel" }, { label: "Espace professeur", to: "/materiel" }, { label: "File des demandes", to: "/gestion/demandes?service=referent_numerique" }],
+  },
   {
     id: "remise-ordinateurs", group: "pilotage", title: "Suivre la remise des ordinateurs",
     summary: "Retrouver les élèves encore en attente d’un PC et confirmer chaque remise.",

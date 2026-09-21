@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { NavLink } from "react-router-dom";
-import { Activity, BadgeCheck, BookOpen, BookOpenCheck, CalendarDays, Coins, IdCard, Inbox, Laptop2, LayoutDashboard, MessagesSquare, Newspaper, ShieldCheck, UsersRound, WandSparkles, Zap } from "lucide-react";
+import { Activity, BadgeCheck, BookOpen, BookOpenCheck, CalendarDays, Coins, IdCard, Inbox, Laptop2, LayoutDashboard, MessagesSquare, Newspaper, ShieldCheck, UsersRound, WandSparkles, Wrench, Zap } from "lucide-react";
 import type { UserRole } from "../lib/types";
 import { apiFetch } from "../lib/api";
 import { isValidFlashValidationScreenAccessPayload } from "../../shared/flash-payload-policy";
@@ -8,6 +8,7 @@ import { COMMUNICATIONS_UI_ENABLED, FLASH_INFO_UI_ENABLED, FLASH_VALIDATION_UI_E
 
 export function useManagementLinks(role: UserRole, userId: string) {
   const [validation, setValidation] = useState<{ userId: string; allowed: boolean } | null>(null);
+  const [equipment, setEquipment] = useState<{ userId: string; allowed: boolean } | null>(null);
   useEffect(() => {
     if (!FLASH_VALIDATION_UI_ENABLED) return;
     let active = true;
@@ -16,12 +17,21 @@ export function useManagementLinks(role: UserRole, userId: string) {
     }).catch(() => { if (active) setValidation({ userId, allowed: false }); });
     return () => { active = false; };
   }, [userId, role]);
+  useEffect(() => {
+    if (!["superadmin", "administration", "agent", "proviseur"].includes(role)) return;
+    let active = true;
+    apiFetch<{ allowed?: boolean }>("equipment/admin/access").then(value => {
+      if (active) setEquipment({ userId, allowed: value.allowed === true });
+    }).catch(() => { if (active) setEquipment({ userId, allowed: false }); });
+    return () => { active = false; };
+  }, [userId, role]);
   const support = ["superadmin", "administration", "agent", "proviseur"].includes(role);
   const editor = ["superadmin", "administration", "proviseur"].includes(role);
   const direction = ["superadmin", "proviseur"].includes(role);
   return [
     { to: "/gestion", label: "Vue d’ensemble", icon: LayoutDashboard, group: "Au quotidien", show: support },
     { to: "/gestion/demandes", label: "Demandes", icon: Inbox, group: "Au quotidien", show: support },
+    { to: "/gestion/materiel", label: "Matériel & SPIE", icon: Wrench, group: "Au quotidien", show: equipment?.userId === userId && equipment.allowed },
     { to: "/admin/validations-agent", label: "Validations des demandes", icon: BadgeCheck, group: "Au quotidien", show: support },
     { to: "/admin/contenus", label: "Contenus du site", icon: Newspaper, group: "Publications", show: editor },
     { to: "/admin/hebdo", label: "Préparer l’hebdo", icon: WandSparkles, group: "Publications", show: editor && WEEKLY_BRIEF_UI_ENABLED },

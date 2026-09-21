@@ -37,6 +37,15 @@ const PUBLIC_CONTEXT_KEYS = [
   "schoolTrack",
   "languagePreference",
   "communicationSupport",
+  "equipmentReportVersion",
+  "equipmentType",
+  "roomCode",
+  "inventoryNumber",
+  "symptomSummary",
+  "impact",
+  "safetyRisk",
+  "availability",
+  "preferredVisitId",
 ] as const;
 const PUBLIC_CONTEXT_KEY_SET = new Set<string>(PUBLIC_CONTEXT_KEYS);
 

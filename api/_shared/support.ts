@@ -25,6 +25,10 @@ import {
 import type { SupportRateLimitScope } from "../../shared/support-rate-limit-policy.js";
 import { normalizeSupportPersonName } from "../../shared/support-contact-input.js";
 import { requireConfiguredInstitution } from "./institution-context.js";
+import {
+  EQUIPMENT_IMPACTS,
+  EQUIPMENT_TYPES,
+} from "../../shared/equipment-support.js";
 
 export const SUPPORT_COOKIE = "bc_support_session";
 export const SUPPORT_SESSION_DAYS = 30;
@@ -58,6 +62,9 @@ const categories = new Set([
   "autre",
 ]);
 const channels = new Set(["email", "phone", "web"]);
+const equipmentTypes = new Set<string>(EQUIPMENT_TYPES);
+const equipmentImpacts = new Set<string>(EQUIPMENT_IMPACTS);
+const yesNo = new Set(["yes", "no"]);
 
 export type SupportRequestInput = {
   requesterType: string;
@@ -237,6 +244,32 @@ export function parseSupportRequest(body: unknown): SupportRequestInput {
     throw new HttpError(400, "Indiquez la personne concernée par la demande");
   }
 
+  const equipmentReportVersion = optionalText(
+    input.equipmentReportVersion,
+    "Version du signalement matériel",
+    10
+  );
+  if (equipmentReportVersion && (category !== "ordinateur" || equipmentReportVersion !== "1")) {
+    throw new HttpError(400, "Le signalement matériel est invalide");
+  }
+  const equipmentContext = equipmentReportVersion
+    ? {
+        equipmentReportVersion,
+        equipmentType: selected(input.equipmentType, equipmentTypes, "Type de matériel"),
+        roomCode: cleanText(input.roomCode, "Salle ou lieu", 120),
+        inventoryNumber: optionalText(input.inventoryNumber, "Numéro d’inventaire", 120) ?? undefined,
+        symptomSummary: cleanText(input.symptomSummary, "Problème constaté", 700),
+        impact: selected(input.impact, equipmentImpacts, "Impact"),
+        safetyRisk: selected(input.safetyRisk ?? "no", yesNo, "Risque matériel"),
+        availability: optionalText(input.availability, "Disponibilités", 300) ?? undefined,
+        preferredVisitId:
+          typeof input.preferredVisitId === "string"
+          && /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(input.preferredVisitId)
+            ? input.preferredVisitId
+            : undefined,
+      }
+    : {};
+
   const subjectContext = Object.fromEntries(
     Object.entries({
       className: contextValue(input.className, "Classe"),
@@ -254,6 +287,7 @@ export function parseSupportRequest(body: unknown): SupportRequestInput {
       routingReason: routing.reason,
       requiredIdentity: routing.requiredIdentity,
       routingPriority: routing.priority,
+      ...equipmentContext,
     }).filter((entry): entry is [string, string] => Boolean(entry[1]))
   );
 
