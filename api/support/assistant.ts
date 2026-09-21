@@ -173,6 +173,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const payload = {
       ...(result.schoolTargets ? { schoolTargets: result.schoolTargets } : {}),
       ...(result.schedule ? { schedule: result.schedule } : {}),
+      ...(result.siteAction ? { siteAction: result.siteAction } : {}),
       reply: result.reply,
       category: result.category,
       requesterType: result.requesterType,

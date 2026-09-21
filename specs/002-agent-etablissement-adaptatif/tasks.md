@@ -1484,6 +1484,17 @@
   formulaires et les informations flash : langue automatique corrigeable,
   segments de deux minutes, reprise manuelle et aucune conservation audio.
 
+- [x] T076 Donner à l’agent une carte publique unique du portail et des actions
+  visuelles sûres : actualités, calendrier, services, aide, suivi, vie du lycée,
+  Chromebook, SAV, matériel, webmail et confidentialité. Les réponses de
+  navigation sont déterministes et sans appel IA ; le modèle reçoit la même
+  carte pour ses réponses générales. Les liens internes `/admin`, `/gestion`,
+  `/app` et les accès SPIE ne sont jamais proposés au public. Les lecteurs
+  personnels et leurs vérifications d’identité restent inchangés. Vérifié le
+  21 septembre 2026 par 41 tests ciblés, compilation de production et parcours
+  Playwright fictif en 1440 px et 390 px, sans erreur de console. Rapport :
+  `docs/operations/AGENT_PORTAIL_V2_2026-09-21.md`.
+
 - [x] T073 Publier le guide Chromebook annuel et ses réponses directes dans le chat depuis un corpus public commun et sourcé. Encadrer les dates locales, le SAV, les sources internes et les changements de sujet. Preuves : docs/operations/CHROMEBOOK_2026-09-10.md. Build, security gate, 29 FAQ et contrats API, Chromium ordinateur/mobile et conversations réelles sur le domaine principal vérifiés le 10 septembre 2026. Commit fonctionnel 4f333c4 ; aucun envoi de communication.
 - [x] T073A Publier une page SAV numérique distinguant PC UNOWHY et Chromebook ASUS, relier les réponses du chat et la file du service numérique, documenter le rôle de la coordination et préparer un email aux personnels. Preuves : `docs/operations/SAV_NUMERIQUE_2026-09-16.md`. Page et chat en ligne, tests ciblés et recette mobile réussis le 16 septembre 2026. L’envoi du message et la désignation locale de la personne chargée des retours restent distincts.
 - [x] T074 Harmoniser le portail autour de l’accueil : cadre public commun, guide Chromebook, articles, services, demandes et identité des espaces de connexion. Charte : docs/design/CHARTE_GRAPHIQUE_LYCEE.md. Build et gate réussis, 44 contrôles locaux sur quatre tailles, parcours publics et chat vérifiés sur URL immuable puis domaine principal le 10 septembre 2026. Commit fonctionnel c131561. Preuves et limites : docs/operations/HARMONISATION_2026-09-10.md.

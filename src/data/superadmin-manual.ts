@@ -29,6 +29,23 @@ export type ManualArticle = {
 
 export const MANUAL_ARTICLES: ManualArticle[] = [
   {
+    id: "assistant-portail", group: "donnees", title: "Maintenir Blaise et les parcours du portail",
+    summary: "Distinguer les liens du site, les connaissances publiées et les services personnels protégés.",
+    access: "Le chat est public. La gestion des connaissances et les sources restent réservées aux comptes habilités ; les données personnelles exigent une identité confirmée.",
+    prerequisite: "Une information publique validée et datée, ou une source personnelle déjà reliée au lecteur sécurisé concerné.",
+    steps: [
+      "Testez d’abord la question dans Aide et demandes. Blaise doit répondre brièvement et proposer la bonne action sans envoyer vers un espace interne.",
+      "Pour une page du portail, contrôlez le lien public : actualités, calendrier, services, suivi, vie du lycée, Chromebook, SAV numérique, matériel ou webmail.",
+      "Pour une information de fond, ouvrez Connaissances de l’IA, ajoutez ou corrigez la source, puis faites-la valider et publier selon le circuit prévu.",
+      "Pour une information personnelle, vérifiez que le lecteur spécialisé existe et que l’identité est confirmée. Le modèle ne doit jamais lire directement l’annuaire, les codes ou l’emploi du temps.",
+      "Si Blaise n’a ni source ni outil confirmé, il pose une question utile ou prépare une demande. Il ne doit jamais inventer une procédure ou annoncer une action exécutée.",
+      "Après une modification, contrôlez au minimum la réponse sur ordinateur et téléphone, le lien proposé et l’absence d’accès vers /admin ou /gestion.",
+    ],
+    result: "Un assistant qui conduit vers la bonne rubrique, répond depuis une source validée et conserve un recours humain clair.",
+    check: "La carte des pages ne remplace pas les connaissances du lycée. Un lien valide ne prouve ni l’identité, ni la disponibilité d’une donnée personnelle, ni l’exécution d’une action.",
+    links: [{ label: "Tester Blaise", to: "/?view=help" }, { label: "Connaissances de l’IA", to: "/admin/connaissances-agent" }, { label: "Suivi du fonctionnement", to: "/admin/sante-demandes" }],
+  },
+  {
     id: "materiel-spie", group: "quotidien", title: "Coordonner le matériel et les passages SPIE",
     summary: "Recevoir les incidents des professeurs, préparer l’intervention et publier les dates confirmées.",
     access: "Le signalement et le suivi sont ouverts aux professeurs. La coordination est accessible au référent numérique, au DDFPT, à la direction et au superadmin selon leur périmètre. SPIE utilise uniquement un lien temporaire préparé pour un passage.",

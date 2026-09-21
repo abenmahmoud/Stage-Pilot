@@ -1,5 +1,18 @@
 # Memoire durable - Portail numerique du Lycee Blaise Cendrars
 
+## Blaise maîtrise les parcours du portail — 21 septembre
+
+La navigation publique de l’agent repose désormais sur une carte unique et
+fermée : actualités, calendrier, services, aide, suivi, vie du lycée,
+Chromebook, SAV numérique, matériel, webmail et confidentialité. Une demande
+explicite reçoit une réponse immédiate avec une carte d’action, sans appel IA.
+Les chemins internes restent refusés et les lecteurs personnels continuent
+d’exiger leur preuve d’identité propre. L’accueil propose trois exemples
+concrets pour démarrer. Build, 41 tests ciblés et parcours fictif bureau/mobile
+réussis sans erreur de console. Une affiche A3 avec QR code vérifié a été créée
+hors Git dans `outputs/affiche-site-2026-09-21`. Preuves et limites :
+`docs/operations/AGENT_PORTAIL_V2_2026-09-21.md`.
+
 ## File des demandes ENT — 18 septembre
 
 Constat de la console connectée : 47 demandes sur 30 jours, 46 ouvertes, dont

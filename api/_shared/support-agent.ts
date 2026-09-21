@@ -46,6 +46,11 @@ import {
   scheduleAssistantAnswer,
   scheduleAssistantDayAnswer,
 } from "../../shared/schedule-assistant.js";
+import {
+  SITE_ASSISTANT_INSTRUCTIONS,
+  siteNavigationAnswer,
+  type SiteAssistantAction,
+} from "../../shared/assistant-site-guide.js";
 
 export type SupportAgentMessage = {
   role: "assistant" | "requester";
@@ -83,6 +88,7 @@ type RuntimeKnowledgeContext = {
 export type SupportAgentResult = {
   schoolTargets?: SchoolTargetChoices;
   schedule?: SchedulePresentation;
+  siteAction?: SiteAssistantAction;
   reply: string;
   category:
     | "inscription"
@@ -119,7 +125,7 @@ export type SupportAgentResult = {
 
 type SupportAgentModelResult = Omit<
   SupportAgentResult,
-  "scope" | "action" | "turnCount" | "remainingTurns" | "limitReached" | "sourceReferences" | "schedule" | "schoolTargets"
+  "scope" | "action" | "turnCount" | "remainingTurns" | "limitReached" | "sourceReferences" | "schedule" | "schoolTargets" | "siteAction"
 >;
 
 const CATEGORY_LABELS: Record<SupportAgentResult["category"], string> = {
@@ -517,10 +523,11 @@ export async function analyzeSupportConversation(input: {
     return { ...fallback, ...chromebookAnswer };
   }
   const informationIntent = schoolInformationIntent(input.messages);
+  const navigationAnswer = siteNavigationAnswer(input.messages);
   const referenceAnswer = schoolReferenceAnswer(input.messages, now);
   if (referenceAnswer) {
     await recordRuntime("deterministic", false, false);
-    return { ...fallback, ...referenceAnswer, category: "autre", scope: "school_support", action: "continue",
+    return { ...fallback, ...referenceAnswer, ...(navigationAnswer ? { siteAction: navigationAnswer.action } : {}), category: "autre", scope: "school_support", action: "continue",
       readyToCreate: false, confidence: "high", missingInformation: [], suggestedDocuments: [],
       urgency: "faible", usedAi: false };
   }
@@ -533,6 +540,23 @@ export async function analyzeSupportConversation(input: {
       category: "autre", scope: "school_support", action: "continue",
       readyToCreate: false, confidence: "high", missingInformation: [], suggestedDocuments: [],
       urgency: "faible", usedAi: false,
+    };
+  }
+  if (navigationAnswer) {
+    await recordRuntime("deterministic", false, false);
+    return {
+      ...fallback,
+      reply: navigationAnswer.reply,
+      siteAction: navigationAnswer.action,
+      category: "autre",
+      scope: "school_support",
+      action: "continue",
+      readyToCreate: false,
+      confidence: "high",
+      missingInformation: [],
+      suggestedDocuments: [],
+      urgency: "faible",
+      usedAi: false,
     };
   }
   const requestedScheduleDayOffset = requestedOwnCoursesDayOffset(input.messages);
@@ -760,7 +784,7 @@ export async function analyzeSupportConversation(input: {
         reasoning: { effort: "low" },
         max_output_tokens: 450,
         safety_identifier: input.safetyIdentifier,
-        instructions: `${INSTRUCTIONS}\n\n${CHROMEBOOK_MODULE_INSTRUCTIONS}\n\n${publicKnowledgeContext.instructions}\n\n${schoolRuntimeInstructions(now)}`,
+        instructions: `${INSTRUCTIONS}\n\n${SITE_ASSISTANT_INSTRUCTIONS}\n\n${CHROMEBOOK_MODULE_INSTRUCTIONS}\n\n${publicKnowledgeContext.instructions}\n\n${schoolRuntimeInstructions(now)}`,
         input: JSON.stringify({
           // Le modele voit la meme fenetre que celle acceptee par l'interface,
           // besoin initial conserve : une conversation de vingt messages ne

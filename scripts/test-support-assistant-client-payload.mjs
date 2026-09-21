@@ -67,6 +67,25 @@ test("accepts one exact, bounded and coherent assistant payload", () => {
   assert.equal(isValidSupportAssistantPayload(validPayload, nowMs), true);
 });
 
+test("accepts only an official public site action", () => {
+  assert.equal(isValidSupportAssistantPayload({
+    ...validPayload,
+    siteAction: {
+      label: "Retrouver mes demandes",
+      description: "Réponses et état d’avancement au même endroit",
+      href: "/?view=requests",
+    },
+  }, nowMs), true);
+  assert.equal(isValidSupportAssistantPayload({
+    ...validPayload,
+    siteAction: {
+      label: "Administration",
+      description: "Espace interne",
+      href: "/admin/contenus",
+    },
+  }, nowMs), false);
+});
+
 test("accepts the closed SafeScol redirect state", () => {
   assert.equal(isValidSupportAssistantPayload({
     ...validPayload,
@@ -181,4 +200,5 @@ test("projects and validates the server payload before returning it", () => {
   assert.ok(validation < returned);
   assert.doesNotMatch(route, /\.\.\.result/);
   assert.match(route, /sourceReferences: result\.sourceReferences\.map\(\(\{ title, updatedAt \}\) => \(\{ title, updatedAt \}\)\)/);
+  assert.match(route, /result\.siteAction \? \{ siteAction: result\.siteAction \} : \{\}/);
 });

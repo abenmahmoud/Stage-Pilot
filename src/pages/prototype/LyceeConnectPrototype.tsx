@@ -738,7 +738,7 @@ export default function LyceeConnectPrototype() {
               </div>
               <span className="lycee-ai-status"><Sparkles aria-hidden="true" /> Assistant numérique</span>
             </div>
-            <p>Une question ou une démarche ? Écrivez ici pour commencer la conversation.</p>
+            <p>Une question ou une démarche ? Blaise connaît les rubriques du site, les informations publiées et les services personnels disponibles après vérification.</p>
             {hasHelpDraft ? <button className="lycee-resume-conversation" type="button" onClick={() => startHelp()}><MessageCircleMore aria-hidden="true" /><span><strong>Reprendre ma conversation</strong><small>Retrouver ma demande en cours</small></span><ChevronRight aria-hidden="true" /></button> : null}
             {SAFESCOL_ACCESS_ENABLED && SAFESCOL_URL ? (
               <a className="lycee-safescol-home-link" href={SAFESCOL_URL} target="_blank" rel="noreferrer">
@@ -764,6 +764,11 @@ export default function LyceeConnectPrototype() {
                 <Send aria-hidden="true" />
                 <span>Envoyer ma question</span>
               </button>
+            </div>
+            <div className="lycee-assistant-examples" aria-label="Exemples de demandes">
+              <button type="button" onClick={() => startHelp("Je veux consulter mon emploi du temps")}>Mon emploi du temps</button>
+              <button type="button" onClick={() => startHelp("Je veux retrouver mon accès ENT personnel")}>Mon accès ENT</button>
+              <button type="button" onClick={() => startHelp("Je veux suivre ma demande")}>Suivre ma demande</button>
             </div>
             <button className="lycee-form-shortcut" type="button" onClick={() => startHelp("", "form")}><FileText aria-hidden="true" /> Je préfère remplir un formulaire</button>
             <div className="lycee-trust-row">
@@ -1145,6 +1150,7 @@ type AssistantChatMessage = {
   schoolTargets?: SchoolTargetChoices;
   privateSchoolReply?: boolean;
   schedule?: import('../../../shared/schedule-presentation').SchedulePresentation;
+  siteAction?: import('../../../shared/assistant-site-guide').SiteAssistantAction;
   id: string;
   role: "assistant" | "requester";
   content: string;
@@ -1159,6 +1165,7 @@ type AssistantSourceReference = {
 type AssistantInsight = {
   schoolTargets?: SchoolTargetChoices;
   schedule?: import('../../../shared/schedule-presentation').SchedulePresentation;
+  siteAction?: import('../../../shared/assistant-site-guide').SiteAssistantAction;
   reply: string;
   category: SupportCategory;
   requesterType: "eleve" | "parent" | "professeur" | "personnel" | "autre" | "inconnu";
@@ -1599,7 +1606,7 @@ function HelpDeskView({
   const welcomeMessage: AssistantChatMessage = {
     id: "welcome",
     role: "assistant",
-    content: "Bonjour, je suis Blaise, l’assistant du lycée. Comment puis-je vous aider ? Vous pouvez écrire dans la langue de votre choix et joindre un document utile. Gardez vos mots de passe confidentiels ; saisissez les codes uniquement dans le champ prévu.",
+    content: "Bonjour, je suis Blaise, l’assistant du lycée. Je peux vous guider dans le site, répondre depuis les informations publiées, retrouver vos services personnels après vérification ou préparer une demande. Écrivez dans la langue de votre choix. Gardez vos mots de passe confidentiels ; saisissez les codes uniquement dans le champ prévu.",
   };
   const [chatMessages, setChatMessages] = useState<AssistantChatMessage[]>(() => [
     welcomeMessage,
@@ -1854,6 +1861,7 @@ function HelpDeskView({
         sourceReferences: result.sourceReferences,
         schedule: result.schedule,
         schoolTargets: result.schoolTargets,
+        siteAction: result.siteAction,
         privateSchoolReply: !!(result.schedule || result.schoolTargets || ((identityVerified || identityJustVerified) && result.scope === 'school_support' && familySchoolIntent(requestMessages))),
       },
     ));
@@ -2185,6 +2193,7 @@ function HelpDeskView({
               {message.role === "assistant" ? <span><Bot aria-hidden="true" /></span> : null}
               <div className="lycee-chat-message-body">
                 {message.schedule ? <ScheduleChatCard value={message.schedule} /> : message.role === "assistant" ? <div className="lycee-chat-markdown"><PublicContentMarkdown>{message.content}</PublicContentMarkdown></div> : <p>{message.content}</p>}
+                {message.siteAction ? <a className="lycee-chat-site-action" href={message.siteAction.href} target={message.siteAction.href.startsWith("https://") ? "_blank" : undefined} rel={message.siteAction.href.startsWith("https://") ? "noreferrer noopener" : undefined}><span><strong>{message.siteAction.label}</strong><small>{message.siteAction.description}</small></span><ChevronRight aria-hidden="true" /></a> : null}
                 {message.schoolTargets && message.id === chatMessages.at(-1)?.id && identityVerified ? <SchoolTargetChoiceButtons
                   choices={message.schoolTargets} busy={assistantBusy}
                   onSelect={(key, expiresAt) => void askAssistant(chatMessages, false, { key, expiresAt })}

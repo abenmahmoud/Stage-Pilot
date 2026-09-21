@@ -1,5 +1,6 @@
 import { isSchedulePresentation } from './schedule-presentation.js';
 import { isSchoolTargetChoices } from './family-school-chat.js';
+import { isSiteAssistantAction } from './assistant-site-guide.js';
 
 const CATEGORIES = [
   "inscription",
@@ -140,7 +141,8 @@ function hasValidNormalizationReceipt(value: Record<string, unknown>, nowMs: num
 
 export function isValidSupportAssistantPayload(value: unknown, nowMs = Date.now()): boolean {
   if (!isRecord(value)
-    || !hasOnlyKeys(value, new Set([...PAYLOAD_FIELDS, ...('schedule' in value ? ['schedule'] : []), ...('schoolTargets' in value ? ['schoolTargets'] : [])]))
+    || !hasOnlyKeys(value, new Set([...PAYLOAD_FIELDS, ...('schedule' in value ? ['schedule'] : []), ...('schoolTargets' in value ? ['schoolTargets'] : []), ...('siteAction' in value ? ['siteAction'] : [])]))
+    || ('siteAction' in value && !isSiteAssistantAction(value.siteAction))
     || ('schoolTargets' in value && (!isSchoolTargetChoices(value.schoolTargets, nowMs) || 'schedule' in value || value.usedAi !== false || value.category !== 'affectation_classe' || value.readyToCreate !== false || value.action !== 'continue'))
     || ('schedule' in value && (!isSchedulePresentation(value.schedule) || value.usedAi !== false || value.category !== 'affectation_classe' || value.readyToCreate !== false || value.action !== 'continue'))
     || !Number.isFinite(nowMs)
