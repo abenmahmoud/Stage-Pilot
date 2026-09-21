@@ -429,14 +429,14 @@ export const MANUAL_ARTICLES: ManualArticle[] = [
     access: "Superadmin et direction habilitée pour consulter les accès des services.",
     prerequisite: "Le nom du collègue, son email professionnel et les services explicitement autorisés.",
     steps: [
-      "Ouvrez Équipes et services pour voir les services et le nombre de comptes habilités.",
+      "Ouvrez Équipes et services pour voir les comptes actifs, leurs rôles et les services réellement attribués. Un même compte peut apparaître dans plusieurs compteurs.",
       "Définissez le rôle du collègue et son périmètre. Un intitulé de poste ou un domaine email ne donne pas automatiquement des droits.",
       "Faites créer ou affecter son compte individuel dans la gestion sécurisée des accès. Cette page est une vue des services, pas un formulaire de création de compte.",
       "Invitez le collègue à se connecter à la gestion, à ouvrir les demandes de son service et à tester une prise en charge.",
       "Accompagnez l’activation des notifications sur son appareil. Vérifiez qu’il ne voit que les dossiers et actions autorisés.",
     ],
     result: "Chaque collègue utilise son propre compte et partage l’historique des dossiers de son service.",
-    check: "Le mode de connexion temporaire pendant les essais, s’il est actif, affiche une date de fin. Il ne faut pas supposer que la double authentification est désactivée pour tous les comptes.",
+    check: "Un compte couvrant plusieurs services peut lire plusieurs files de demandes : vérifiez chaque attribution avant de confier l’accès. Le mode de connexion temporaire pendant les essais, s’il est actif, affiche une date de fin ; la double authentification peut rester obligatoire pour d’autres rôles.",
     links: [{ label: "Voir les équipes et services", to: "/admin/services" }, { label: "Sécurité du compte", to: "/security" }],
   },
   {

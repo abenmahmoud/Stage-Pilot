@@ -495,3 +495,7 @@ Le support continue à fonctionner si l'IA est coupée.
 ## Complément du 9 septembre 2026
 
 T013 : la collecte guidée et l'identité rejoignent la conversation ; reprise OTP corrigée et pièces jointes disponibles avant confirmation. T032 : écran hors connexion autonome et cache limité aux ressources publiques statiques. T033 reste ouverte pour la réception sur un téléphone réel ; la chaîne push serveur, le cloisonnement et la déduplication ont une recette PostgreSQL isolée réussie. L'espace `/admin/services` et le pilote temporaire sans MFA obligatoire pour les comptes agents/administration sont documentés dans `docs/operations/CHAT_PWA_SERVICES_2026-09-09.md`.
+
+## Complément du 22 septembre 2026
+
+La vue `/admin/services` distingue les comptes uniques des attributions par service et affiche les périmètres réellement actifs. L'API de lecture vérifie l'adhésion à l'établissement avant de renvoyer les adresses de connexion. La base pilote contient deux comptes actifs, dont un agent attribué aux sept services ; aucune modification d'habilitation n'est incluse dans ce lot. Voir `docs/operations/COMPTES_SERVICES_2026-09-22.md`.

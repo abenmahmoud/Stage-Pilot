@@ -1,5 +1,15 @@
 # Memoire durable - Portail numerique du Lycee Blaise Cendrars
 
+## Comptes de gestion visibles — 22 septembre
+
+La page privée « Équipes et services » prépare l'affichage des comptes actifs
+uniques, de leurs rôles et des services attribués. La base pilote contient deux
+adhésions actives : le superadmin global et un agent responsable des sept
+services. Les sept compteurs à un ne représentent pas sept collègues. Aucune
+habilitation n'a été modifiée. L'API exige désormais une adhésion active au
+lycée en plus du rôle direction/superadmin et de la vérification applicable.
+Preuves et limites : `docs/operations/COMPTES_SERVICES_2026-09-22.md`.
+
 ## Blaise maîtrise les parcours du portail — 21 septembre
 
 La navigation publique de l’agent repose désormais sur une carte unique et
