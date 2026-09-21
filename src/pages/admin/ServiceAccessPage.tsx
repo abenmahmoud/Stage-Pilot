@@ -67,13 +67,6 @@ export default function ServiceAccessPage() {
     {!overview && !error ? <p role="status">Chargement des services…</p> : null}
     {overview ? <p className="text-sm text-slate-600">{overview.accounts.length} compte{overview.accounts.length > 1 ? "s" : ""} actif{overview.accounts.length > 1 ? "s" : ""} au total. Un même compte peut être habilité pour plusieurs services ; les compteurs ci-dessous ne représentent pas forcément des personnes différentes.</p> : null}
 
-    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">{overview?.services.map(service => <article key={service.code} className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-      <UsersRound className="mb-4 h-6 w-6 text-blue-600" aria-hidden="true" />
-      <h2 className="text-lg font-semibold text-slate-900">{service.label}</h2>
-      <p className="my-3 text-sm text-slate-600">{service.activeAccounts > 0 ? `${service.activeAccounts} compte${service.activeAccounts > 1 ? "s" : ""} habilité${service.activeAccounts > 1 ? "s" : ""}` : "Aucun compte affecté pour le moment"}</p>
-      <Link className="inline-flex min-h-11 items-center gap-2 font-semibold text-blue-700" to={`/?view=agent&service=${service.code}`}>Ouvrir les demandes<ArrowUpRight className="h-4 w-4" aria-hidden="true" /></Link>
-    </article>)}</div>
-
     {overview ? <section aria-labelledby="active-accounts-heading" className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
       <h2 id="active-accounts-heading" className="text-lg font-bold text-slate-950">Comptes et périmètres réellement actifs</h2>
       <p className="mt-1 text-sm text-slate-600">Cette liste permet de vérifier qui peut traiter les dossiers du lycée. Elle n’affiche aucun mot de passe ni code d’accès.</p>
@@ -88,6 +81,13 @@ export default function ServiceAccessPage() {
         </div>)}
       </div>
     </section> : null}
+
+    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">{overview?.services.map(service => <article key={service.code} className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+      <UsersRound className="mb-4 h-6 w-6 text-blue-600" aria-hidden="true" />
+      <h2 className="text-lg font-semibold text-slate-900">{service.label}</h2>
+      <p className="my-3 text-sm text-slate-600">{service.activeAccounts > 0 ? `${service.activeAccounts} compte${service.activeAccounts > 1 ? "s" : ""} habilité${service.activeAccounts > 1 ? "s" : ""}` : "Aucun compte affecté pour le moment"}</p>
+      <Link className="inline-flex min-h-11 items-center gap-2 font-semibold text-blue-700" to={`/?view=agent&service=${service.code}`}>Ouvrir les demandes<ArrowUpRight className="h-4 w-4" aria-hidden="true" /></Link>
+    </article>)}</div>
 
     <div className="rounded-2xl bg-slate-50 p-5 text-sm text-slate-600">
       <h2 className="mb-2 font-semibold text-slate-900">Préparer l’arrivée d’un collègue</h2>
