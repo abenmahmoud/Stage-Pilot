@@ -16,7 +16,8 @@ test("uses the official ministry information page for Scolarité Services", () =
 });
 
 test("routes PRONOTE through the known ENT instead of inventing a school URL", () => {
-  assert.match(page, /const ENT_URL = "https:\/\/ent\.iledefrance\.fr\/auth\/login"/);
+  assert.match(page, /import \{ ENT_LOGIN_URL,[^\n]+from '\.\.\/\.\.\/\.\.\/shared\/ent-self-service'/);
+  assert.match(page, /const ENT_URL = ENT_LOGIN_URL/);
   assert.match(page, /title: "PRONOTE via l’ENT"[\s\S]{0,360}href: ENT_URL/);
   assert.doesNotMatch(page, /https:\/\/[^"\s]*pronote/i);
 });

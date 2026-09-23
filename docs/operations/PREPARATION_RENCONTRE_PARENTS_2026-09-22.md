@@ -5,6 +5,7 @@
 ## Informations publiées
 
 - L’hebdo du 21 au 25 septembre 2026 a produit trois actualités publiées après validation explicite d’Adel : rencontre des parents, certificats de scolarité et vacances d’automne.
+- Le bouton « ENT Monlycée.net » de l’accueil utilise désormais la même adresse officielle que les parcours d’aide et la fiche remise aux familles : `https://auth.monlycee.net/`. L’ancienne adresse régionale n’est plus présentée sur le portail.
 - La rencontre des parents de seconde est annoncée le mardi 22 septembre 2026 : accueil en salle polyvalente de 17 h 50 à 18 h 10, puis rencontre avec les professeurs principaux de 18 h 10 à 19 h.
 - L’ancien brouillon indiquant 17 h 30 a été archivé avec une trace d’audit.
 - La réponse de Blaise et le bloc de l’accueil utilisent la même source et les mêmes horaires. Aucune notification, aucun email et aucun SMS n’ont été envoyés pendant cette publication.

@@ -6,7 +6,7 @@
 
 - [Site officiel du lycée](https://lycee-blaise-cendrars-sevran.fr/)
 - [Webmail du lycée](https://mail.lycee-blaise-cendrars-sevran.fr/)
-- [ENT Monlycée.net](https://ent.iledefrance.fr/auth/login)
+- [ENT Monlycée.net](https://auth.monlycee.net/)
 - `/prototype` : accueil, formations, informations et assistant du lycée.
 - `/prototype?view=help` : aide guidée et création d'une demande.
 - `/prototype?view=requests` : suivi sécurisé des demandes autorisées sur l'appareil.

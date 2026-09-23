@@ -191,7 +191,7 @@ import { requestsPcSessionAccess, pcSessionIdentityPrompt } from '../../../share
 import { IdentityContactChoices } from './IdentityContactChoices';
 import { SupportReplySuggestion } from './SupportReplySuggestion';
 import './support-workspace.css';
-import { requestsEntAccess, entIdentityPrompt } from '../../../shared/ent-self-service';
+import { ENT_LOGIN_URL, requestsEntAccess, entIdentityPrompt } from '../../../shared/ent-self-service';
 import { resolveAssistantConversationTransition } from '../../../shared/assistant-conversation-state';
 
 type RequesterProfile = "eleve" | "parent" | "professeur" | "personnel" | "autre" | "";
@@ -205,7 +205,7 @@ const AI_ASSISTANT_ENABLED = import.meta.env.VITE_AI_ASSISTANT_ENABLED !== "fals
 const IDENTITY_DEVICE_ACCESS_ENABLED =
   SUPPORT_API_ENABLED && import.meta.env.VITE_IDENTITY_DEVICE_ACCESS_ENABLED === "true";
 const LYCEEGEST_URL = "/login";
-const ENT_URL = "https://ent.iledefrance.fr/auth/login";
+const ENT_URL = ENT_LOGIN_URL;
 const SCOLARITE_SERVICES_URL = "https://www.education.gouv.fr/scolarite-services-un-acces-unique-pour-toutes-les-demarches-scolaires-326158";
 const WEBMAIL_URL = "https://mail.lycee-blaise-cendrars-sevran.fr/";
 const WEBMAIL_ADMIN_URL = `${WEBMAIL_URL}admin`;

@@ -1,5 +1,13 @@
 # Memoire durable - Portail numerique du Lycee Blaise Cendrars
 
+## Accès ENT cohérent pour les familles — 23 septembre
+
+Le bouton ENT de l’accueil, les parcours personnels et la fiche distribuée aux
+parents utilisent la même page de connexion officielle Monlycée.net :
+`https://auth.monlycee.net/`. L’ancienne adresse régionale encore présente dans
+l’accueil public et `llms.txt` a été retirée. PRONOTE reste présenté comme une
+application accessible depuis l’ENT, sans adresse directe inventée.
+
 ## Comptes de gestion visibles — 22 septembre
 
 La page privée « Équipes et services » prépare l'affichage des comptes actifs
