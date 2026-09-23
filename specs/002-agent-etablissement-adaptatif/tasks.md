@@ -950,6 +950,12 @@
   les outils secondaires, avec saisie libre, action désactivée à vide et
   formulaire alternatif. Six tests de non-régression, le build et la barrière
   de sécurité passent ; T048 reste ouverte pour le lecteur d'écran humain.
+- [x] T048J Simplifier la file réelle de traitement : filtre visible par type de
+  demande, séparation ENT/codes PC/matériel/intendance, libellé « sans agent »,
+  réponse proposée compacte, correction de service en une action et brouillon
+  dédié aux codes de session PC après OTP. Aucun dossier historique n'est
+  transféré ou répondu automatiquement. Preuves :
+  `docs/operations/TRAITEMENT_DEMANDES_2026-09-23.md`.
 - [ ] T049 Exécuter une revue de sécurité et de protection des données.
 - [x] T049A Créer et exécuter une porte de sécurité reproductible pour la
   preview : en-têtes navigateur, cache API, source maps, secrets, limites,

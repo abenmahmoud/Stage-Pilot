@@ -9,12 +9,13 @@ import { enforceSupportRateLimit, personalHash } from '../../../../_shared/suppo
 import { readSupportEntEvidence } from '../../../../_shared/support-reply-evidence.js';
 import { formatSupportRevision } from '../../../../../shared/support-concurrency.js';
 import { singleSupportAgentRouteValue } from '../../../../../shared/support-agent-mutation-input-policy.js';
-import { suggestEntReply, suggestPronoteReply, suggestScheduleReply, type SupportReplySuggestion } from '../../../../../shared/support-reply-suggestion.js';
+import { suggestEntReply, suggestPcSessionReply, suggestPronoteReply, suggestScheduleReply, type SupportReplySuggestion } from '../../../../../shared/support-reply-suggestion.js';
 import { asksHowToOpenPronote } from '../../../../../shared/ent-self-service.js';
 import { schoolReferenceAnswer } from '../../../../../shared/school-reference-answers.js';
 import { chromebookReferenceAnswer } from '../../../../../shared/chromebook-assistant.js';
 import { decideVaultAccess } from '../../../../../shared/code-vault-policy.js';
 import { isCateringSupportTopic } from '../../../../../shared/support-topic-context.js';
+import { requestsPcSessionAccess } from '../../../../../shared/pc-session-self-service.js';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== 'GET') return methodNotAllowed(res, ['GET']);
@@ -35,7 +36,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const ent = !isCateringSupportTopic(text) && !/\b(koxo|session windows|badge cantine)\b/.test(text)
       && (request.category === 'ent' || /\b(ent|monlycee|mon lycee|pronote)\b/.test(text));
     let proposal: Pick<SupportReplySuggestion, 'draft' | 'facts' | 'sources' | 'title'>;
-    if (ent && asksHowToOpenPronote([{ role: 'requester', content: latest }])) {
+    const latestConversation = [{ role: 'requester' as const, content: latest }];
+    if (requestsPcSessionAccess(latestConversation)) {
+      proposal = suggestPcSessionReply();
+    } else if (ent && asksHowToOpenPronote(latestConversation)) {
       proposal = suggestPronoteReply();
     } else if (ent) {
       const canReadEnt = decideVaultAccess({ actor: access.role === 'superadmin' ? { profile: 'superadmin' }
@@ -55,8 +59,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     } else if (request.category === 'affectation_classe' && /\b(emploi du temps|edt|planning|cours|salle)\b/.test(text)) {
       proposal = suggestScheduleReply();
     } else {
-      const conversation = [{ role: 'requester' as const, content: latest }];
-      const answer = schoolReferenceAnswer(conversation, now) ?? chromebookReferenceAnswer(conversation, now);
+      const answer = schoolReferenceAnswer(latestConversation, now) ?? chromebookReferenceAnswer(latestConversation, now);
       proposal = answer ? { title: 'Réponse issue des informations du lycée', draft: `Bonjour,\n\n${answer.reply}\n\nVous pouvez répondre dans ce dossier si vous avez besoin d’une précision.\n\nL’équipe du lycée Blaise Cendrars`, facts: ['Réponse fondée sur une procédure publique validée.'], sources: answer.sourceReferences.map(s => s.title) }
         : { title: 'Complément à demander — à adapter au dossier', draft: 'Bonjour,\n\nPour vous apporter une réponse précise, pouvez-vous indiquer ce qui vous bloque et la démarche déjà essayée ? Si un message d’erreur apparaît, vous pouvez joindre une capture en masquant les codes et mots de passe.\n\nVous pouvez répondre directement dans ce dossier.\n\nL’équipe du lycée Blaise Cendrars', facts: ['Aucune procédure suffisamment précise n’a été trouvée dans les sources consultées. Ce texte demande un complément ; il ne résout pas encore la demande.'], sources: ['Dernier message du dossier'] };
     }

@@ -20,10 +20,11 @@ test("a closed sensitive case first points to its closure, never a new reply", (
   assert.equal(supportRequestFocus({ ...base, status: "clos", needsIdentity: true }).section, "notes");
 });
 
-test("identity remains ahead of assignment, duplicate review and phone callbacks", () => {
+test("a sensitive request first leads to a safe general reply", () => {
   const action = supportRequestFocus({ ...base, needsIdentity: true, assigned: false, duplicatePending: true, callbackPending: true });
-  assert.equal(action.title, "Identité à vérifier");
-  assert.equal(action.section, "management");
+  assert.equal(action.title, "Accès personnel protégé");
+  assert.equal(action.section, "reply");
+  assert.match(action.detail, /avant tout code/);
 });
 
 test("waiting status never asserts that the latest question has been answered", () => {

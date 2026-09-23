@@ -15,6 +15,7 @@ export type SupportReplySuggestion = {
   checkedAt: string;
 };
 export const SCHOOL_REQUESTS_URL = 'https://lycee-blaise-cendrars-sevran.fr/?view=requests';
+export const SCHOOL_HELP_URL = 'https://lycee-blaise-cendrars-sevran.fr/?view=help';
 
 /** Public navigation only: the personal schedule is read after identity verification in the portal. */
 export function suggestScheduleReply() {
@@ -32,6 +33,16 @@ export function suggestPronoteReply() {
     draft: `Bonjour,\n\nAu lycée, l’accès à PRONOTE passe par votre compte personnel monlycée.net. Connectez-vous sur ${ENT_LOGIN_URL}, puis ouvrez l’application PRONOTE depuis l’ENT.\n\nSi vous avez perdu votre identifiant ou ne pouvez plus vous connecter, répondez dans ce dossier : nous vous guiderons sans créer une seconde demande.\n\nL’équipe du lycée Blaise Cendrars`,
     facts: ['Procédure publique ; aucun identifiant ni code personnel dans le brouillon.'],
     sources: ['Procédure de connexion monlycée.net du lycée'],
+  };
+}
+
+/** Public guidance only. The personal identifier and code remain in the OTP-protected display. */
+export function suggestPcSessionReply() {
+  return {
+    title: 'Code de session PC : accès personnel sécurisé',
+    draft: `Bonjour,\n\nPour retrouver votre identifiant et votre code personnels sur les ordinateurs du lycée, ouvrez ${SCHOOL_HELP_URL}, puis écrivez « Je veux mes codes de session PC ». Indiquez votre identité et choisissez l’envoi du code de vérification par SMS ou par email sur un contact déjà connu du lycée.\n\nAprès la vérification, la rubrique « Ma session PC » affiche temporairement votre identifiant exact et votre code s’ils sont disponibles. Ne transmettez jamais ce code dans le chat ni à une autre personne.\n\nSi la rubrique indique que les accès ne sont pas disponibles ou s’ils ne fonctionnent pas, répondez dans ce même dossier : le référent numérique vérifiera l’attribution sans vous demander de créer une nouvelle demande.\n\nL’équipe du lycée Blaise Cendrars`,
+    facts: ['La consultation du code de session PC exige une identité confirmée et reste limitée dans le temps.', 'Aucun identifiant ni code personnel n’est inséré dans ce brouillon.'],
+    sources: ['Parcours sécurisé « Ma session PC » du portail du lycée'],
   };
 }
 

@@ -25,7 +25,7 @@ export function SupportRequestOverview({ message, messageDate, service, benefici
       {message.length > 480 ? <button type="button" aria-expanded={expanded} onClick={() => setExpanded(value => !value)}>{expanded ? "Réduire le message" : "Lire le message entier"}</button> : null}
       <button type="button" onClick={() => onOpen("history")}>Relire les échanges et les réponses</button>
     </div>
-    {action.section !== 'reply' ? <div className="lycee-agent-focus-next" data-attention={focus.needsIdentity || focus.duplicatePending}>
+    {action.section !== 'reply' || focus.needsIdentity ? <div className="lycee-agent-focus-next" data-attention={focus.needsIdentity || focus.duplicatePending}>
       <div><strong>{action.title}</strong><p>{action.detail}</p></div>
       <button type="button" onClick={() => onOpen(action.section)}>{action.label}<ArrowRight aria-hidden="true" /></button>
     </div> : null}

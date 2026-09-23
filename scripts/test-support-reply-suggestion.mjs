@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { suggestEntReply, suggestPronoteReply, suggestScheduleReply, isSupportReplySuggestion } from '../shared/support-reply-suggestion.ts';
+import { suggestEntReply, suggestPcSessionReply, suggestPronoteReply, suggestScheduleReply, isSupportReplySuggestion } from '../shared/support-reply-suggestion.ts';
 const evidence = { state: 'inactive', code: 'available', checkedAt: '2026-09-15T12:00:00.000Z' };
 test('inactive account with an assignment guides secure self-service', () => {
   const r = suggestEntReply(evidence, false);
@@ -54,4 +54,12 @@ test('schedule and Pronote drafts guide without inventing a personal timetable o
   assert.match(pronote.draft, /PRONOTE passe par votre compte personnel monlycée.net/);
   assert.match(pronote.draft, /même dossier|ce dossier/);
   assert.doesNotMatch(pronote.draft, /Identifiant :|Code :/);
+});
+
+test('PC session draft uses OTP self-service without exposing credentials', () => {
+  const pc = suggestPcSessionReply();
+  assert.match(pc.draft, /Je veux mes codes de session PC/);
+  assert.match(pc.draft, /SMS ou par email/);
+  assert.match(pc.draft, /même dossier/);
+  assert.doesNotMatch(pc.draft, /Identifiant\s*:\s*\S+|Code\s*:\s*\S+/);
 });

@@ -22,8 +22,8 @@ export function supportRequestFocus(input: {
     label: "Voir la clôture", section: "notes",
   };
   if (input.needsIdentity) return {
-    title: "Identité à vérifier", detail: "Confirmez l’identité scolaire avant de transmettre une information ou un document personnel.",
-    label: "Vérifier l’identité", section: "management",
+    title: "Accès personnel protégé", detail: "Envoyez d’abord la démarche générale proposée. L’identité devra être confirmée avant tout code, document ou information personnelle.",
+    label: "Préparer la réponse", section: "reply",
   };
   if (input.duplicatePending) return {
     title: "Deux demandes à comparer", detail: "Un rapprochement est proposé. Vérifiez les deux dossiers avant de décider s’il s’agit du même besoin.",

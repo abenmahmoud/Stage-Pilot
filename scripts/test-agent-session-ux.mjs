@@ -14,7 +14,7 @@ const loginSource = await readFile(
 test("refreshes the staff session before loading the agent queue", () => {
   assert.match(source, /supabase\.auth\.refreshSession\(\)/);
   assert.match(source, /if \(!sessionReady\) return;/);
-  assert.match(source, /serviceFilter, sessionReady/);
+  assert.match(source, /serviceFilter, categoryFilter, sessionReady/);
 });
 
 test("opens contact collection as soon as the assistant request is actionable", () => {

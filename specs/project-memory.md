@@ -6771,3 +6771,22 @@ note interne auditée que le lycée valide avant clôture. Trois tables privées
 RLS forcée ont été ajoutées sur la preview. Le compte DDFPT existant de
 Christophe Pourchet est actif et possède déjà les services nécessaires. Aucun
 créneau ou accès réel n’a été créé pendant le développement.
+
+## 23 septembre 2026 — file de traitement simplifiée (002/T048J)
+
+Audit réel en lecture seule : 59 dossiers, 2 urgents, 18 en attente, 37 sans
+agent nominatif et 10 doublons possibles ; aucun 5xx Vercel sur 24 heures. Le
+problème principal était l'interface : les catégories existaient côté serveur
+mais restaient masquées dans la file générale. Les agents peuvent maintenant
+séparer ENT/PRONOTE, codes de session PC, matériel/SPIE, intendance et autres
+besoins, puis corriger un ancien service incohérent en une action. « Sans
+agent » remplace « à attribuer » puisque la première réponse prend déjà le
+dossier.
+
+La proposition de réponse est compacte et modifiable. Les demandes de codes de
+session PC reçoivent une démarche dédiée vers l'OTP et l'affichage temporaire
+« Ma session PC » ; aucun secret n'entre dans l'email ou le dossier. Le
+matériel reste dans le suivi Matériel & SPIE. Aucun ancien dossier n'a été
+muté, répondu ou fermé pendant l'audit. Build et 40 tests ciblés réussis ;
+publication et recette distante à consigner dans
+`docs/operations/TRAITEMENT_DEMANDES_2026-09-23.md`.
