@@ -2,9 +2,10 @@ import type { AssistantConversationMessage } from './assistant-conversation-stat
 import { decideVaultAccess } from './code-vault-policy.js';
 
 const plain = (text: string) => text.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[’']/g, ' ');
-const pcService = /\b(koxo|session(?:s)? (?:pc|windows|reseau|ordinateur)|(?:pc|ordinateur)s? (?:du |au )?lycee)\b/;
+const pcService = /\b(koxo|session(?:s)? (?:pc|windows|reseau|ordinateur)|(?:code|codes|identifiant|identifiants|mot de passe) (?:(?:de|du|pour|sur) )?(?:la )?(?:session|pc|windows|ordinateur|reseau))\b/;
 const otherService = /\b(ent|monlycee|pronote|cantine|chromebook|messagerie|emploi|horaire|certificat)\b/;
-const isPcService = (text: string) => pcService.test(text) || (!otherService.test(text)
+const equipmentIssue = /\b(internet|wifi|wi-fi|prise|cable|ecran|clavier|souris|materiel|inventaire|panne|casse|ne (?:s allume|demarre))\b/;
+const isPcService = (text: string) => pcService.test(text) || (!otherService.test(text) && !equipmentIssue.test(text)
   && /\b(code|codes|identifiant|identifiants|mot de passe|connexion|connecter|acces)\b/.test(text)
   && /\b(pc|windows|ordinateur|session|reseau)\b/.test(text));
 

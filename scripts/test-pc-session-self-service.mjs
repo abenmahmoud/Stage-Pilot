@@ -18,6 +18,11 @@ test('PC credentials follow a dedicated journey, including after ENT', () => {
   for (const text of ['Mon code ENT', 'Accès Pronote', 'Mon emploi de demain', 'Les horaires', 'Mon code cantine', 'Mon Chromebook']) {
     assert.equal(requestsPcSessionAccess([msg('Mon code KOXO'), msg(text)]), false, text);
   }
+  for (const text of [
+    "Le PC dont j'ai indiqué la référence n'a pas d'accès à Internet.",
+    "La prise réseau du PC ne fonctionne pas.",
+    "Panne de matériel : l'ordinateur ne démarre pas.",
+  ]) assert.equal(requestsPcSessionAccess([msg(text)]), false, text);
 });
 test('teachers and students have only their own PC access; no child or other institution', () => {
   const target = { personRef: 'teacher.exemple28', institutionId: 'lycee-a' };
