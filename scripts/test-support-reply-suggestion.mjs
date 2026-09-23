@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { suggestEntReply, suggestPcSessionReply, suggestPronoteReply, suggestScheduleReply, isSupportReplySuggestion } from '../shared/support-reply-suggestion.ts';
+import { suggestEntReply, suggestEquipmentReply, suggestPcSessionReply, suggestPronoteReply, suggestScheduleReply, isSupportReplySuggestion } from '../shared/support-reply-suggestion.ts';
 const evidence = { state: 'inactive', code: 'available', checkedAt: '2026-09-15T12:00:00.000Z' };
 test('inactive account with an assignment guides secure self-service', () => {
   const r = suggestEntReply(evidence, false);
@@ -62,4 +62,11 @@ test('PC session draft uses OTP self-service without exposing credentials', () =
   assert.match(pc.draft, /SMS ou par email/);
   assert.match(pc.draft, /même dossier/);
   assert.doesNotMatch(pc.draft, /Identifiant\s*:\s*\S+|Code\s*:\s*\S+/);
+});
+
+test('equipment draft keeps the case in Matériel & SPIE without inventing a repair date', () => {
+  const equipment = suggestEquipmentReply();
+  assert.match(equipment.draft, /Matériel & SPIE|intervenant SPIE/);
+  assert.match(equipment.draft, /pas besoin de créer une nouvelle demande/);
+  assert.doesNotMatch(equipment.draft, /Chromebook|Wi-Fi|réparé le|passera le/);
 });

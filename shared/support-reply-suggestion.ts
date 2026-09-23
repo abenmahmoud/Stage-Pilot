@@ -46,6 +46,16 @@ export function suggestPcSessionReply() {
   };
 }
 
+/** Equipment incidents stay in their original case and are handled through the Matériel & SPIE workflow. */
+export function suggestEquipmentReply() {
+  return {
+    title: 'Matériel : prise en charge dans le suivi SPIE',
+    draft: `Bonjour,\n\nVotre signalement matériel a bien été enregistré. Le lieu, le numéro d’inventaire et le constat indiqués dans ce dossier seront conservés pour le diagnostic. Le référent numérique qualifie le signalement, puis l’intervenant SPIE prend en charge le diagnostic et la réparation selon le suivi du lycée.\n\nVous n’avez pas besoin de créer une nouvelle demande. Si vous disposez d’une précision ou d’une photo utile, ajoutez-la directement dans ce dossier, sans faire apparaître de mot de passe ni de code personnel.\n\nL’équipe du lycée Blaise Cendrars`,
+    facts: ['Le signalement reste dans le suivi « Matériel & SPIE » et conserve les informations déjà fournies.', 'La réponse ne promet ni date de passage ni résolution avant le diagnostic.'],
+    sources: ['Procédure interne « Matériel & SPIE » du lycée'],
+  };
+}
+
 /** A reviewed draft, never a credential delivery or an identity grant. */
 export function suggestEntReply(evidence: SupportSuggestionEvidence, recoveryFailed: boolean) {
   const facts: string[] = [];

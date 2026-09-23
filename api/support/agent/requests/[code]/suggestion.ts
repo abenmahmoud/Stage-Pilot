@@ -9,7 +9,7 @@ import { enforceSupportRateLimit, personalHash } from '../../../../_shared/suppo
 import { readSupportEntEvidence } from '../../../../_shared/support-reply-evidence.js';
 import { formatSupportRevision } from '../../../../../shared/support-concurrency.js';
 import { singleSupportAgentRouteValue } from '../../../../../shared/support-agent-mutation-input-policy.js';
-import { suggestEntReply, suggestPcSessionReply, suggestPronoteReply, suggestScheduleReply, type SupportReplySuggestion } from '../../../../../shared/support-reply-suggestion.js';
+import { suggestEntReply, suggestEquipmentReply, suggestPcSessionReply, suggestPronoteReply, suggestScheduleReply, type SupportReplySuggestion } from '../../../../../shared/support-reply-suggestion.js';
 import { asksHowToOpenPronote } from '../../../../../shared/ent-self-service.js';
 import { schoolReferenceAnswer } from '../../../../../shared/school-reference-answers.js';
 import { chromebookReferenceAnswer } from '../../../../../shared/chromebook-assistant.js';
@@ -58,6 +58,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       }
     } else if (request.category === 'affectation_classe' && /\b(emploi du temps|edt|planning|cours|salle)\b/.test(text)) {
       proposal = suggestScheduleReply();
+    } else if (request.category === 'ordinateur') {
+      proposal = suggestEquipmentReply();
     } else {
       const answer = schoolReferenceAnswer(latestConversation, now) ?? chromebookReferenceAnswer(latestConversation, now);
       proposal = answer ? { title: 'Réponse issue des informations du lycée', draft: `Bonjour,\n\n${answer.reply}\n\nVous pouvez répondre dans ce dossier si vous avez besoin d’une précision.\n\nL’équipe du lycée Blaise Cendrars`, facts: ['Réponse fondée sur une procédure publique validée.'], sources: answer.sourceReferences.map(s => s.title) }
