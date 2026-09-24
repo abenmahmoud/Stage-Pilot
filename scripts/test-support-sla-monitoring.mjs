@@ -12,11 +12,12 @@ test("does not invent a 24-hour SLA when a request is created", () => {
 });
 
 test("filters only open requests whose recorded deadline has passed", () => {
-  assert.match(queueRoute, /queryValue\(req\.query\.overdue\) === "true"/);
+  assert.match(queueRoute, /const overdue = queryValue\(req\.query\.overdue\)/);
+  assert.match(queueRoute, /const overdueOnly = overdue === "true"/);
   assert.match(queueRoute, /slaDueAt\} < now\(\).*status\} not in \('resolu', 'clos', 'indesirable'\)/s);
 });
 
 test("exposes the overdue queue as an explicit agent filter", () => {
   assert.match(agentUi, /queueMode === "overdue"\) params\.set\("overdue", "true"\)/);
-  assert.match(agentUi, />En retard <span>\{stats\.overdue\}<\/span>/);
+  assert.match(agentUi, /<option value="overdue">En retard \(\{stats\.overdue\}\)<\/option>/);
 });

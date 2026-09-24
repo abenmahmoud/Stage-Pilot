@@ -278,7 +278,7 @@ const agentCategoryLabels: Record<SupportCategory, string> = {
   documents_scolarite: "Documents scolaires",
   ent: "Accès ENT et PRONOTE",
   email_academique: "Messagerie académique",
-  ordinateur: "Matériel et réseau · SPIE",
+  ordinateur: "Ordinateur et accès numériques (hors SPIE)",
   logiciel: "Codes session PC et logiciels",
   restauration_bourse: "Cantine et intendance",
   orientation_formation: "Orientation et formations",
@@ -3612,7 +3612,7 @@ type AgentRequestDetail = {
   access: AgentAccess;
 };
 
-type AgentQueueStats = { total: number; new: number; qualify: number; urgent: number; active: number; waitingRequester: number; waitingInternal: number; unassigned: number; overdue: number; callbacks: number; duplicates: number };
+type AgentQueueStats = { total: number; open: number; completed: number; new: number; qualify: number; urgent: number; active: number; waitingRequester: number; waitingInternal: number; unassigned: number; overdue: number; callbacks: number; duplicates: number };
 type AgentQueuePagination = { page: number; pageSize: number; total: number; totalPages: number };
 type AgentServiceStats = { service: string | null; open: number; urgent: number; overdue: number; unassigned: number };
 type AgentAccess = {
@@ -3831,7 +3831,7 @@ function isAgentQueueRequest(value: unknown): value is AgentQueueRequest {
 
 function isAgentQueueStats(value: unknown): value is AgentQueueStats {
   if (!isRecord(value)) return false;
-  return ["total", "new", "qualify", "urgent", "active", "waitingRequester", "waitingInternal", "unassigned", "overdue", "callbacks", "duplicates"]
+  return ["total", "open", "completed", "new", "qualify", "urgent", "active", "waitingRequester", "waitingInternal", "unassigned", "overdue", "callbacks", "duplicates"]
     .every((field) => isNonNegativeInteger(value[field]));
 }
 
@@ -3910,17 +3910,19 @@ function AgentView({ onBack }: { onBack: () => void }) {
 
 function ConnectedAgentView({ onBack }: { onBack: () => void }) {
   const [requests, setRequests] = useState<AgentQueueRequest[]>([]);
-  const [stats, setStats] = useState<AgentQueueStats>({ total: 0, new: 0, qualify: 0, urgent: 0, active: 0, waitingRequester: 0, waitingInternal: 0, unassigned: 0, overdue: 0, callbacks: 0, duplicates: 0 });
+  const [stats, setStats] = useState<AgentQueueStats>({ total: 0, open: 0, completed: 0, new: 0, qualify: 0, urgent: 0, active: 0, waitingRequester: 0, waitingInternal: 0, unassigned: 0, overdue: 0, callbacks: 0, duplicates: 0 });
   const [serviceStats, setServiceStats] = useState<AgentServiceStats[]>([]);
   const [pagination, setPagination] = useState<AgentQueuePagination>({ page: 1, pageSize: 30, total: 0, totalPages: 1 });
   const [access, setAccess] = useState<AgentAccess | null>(null);
-  const [queueMode, setQueueMode] = useState<"all" | "qualify" | "urgent" | "overdue" | "waiting" | "internal" | "unassigned" | "callbacks" | "duplicates" | "mine">("all");
+  const [queueMode, setQueueMode] = useState<"open" | "active" | "completed" | "all" | "qualify" | "urgent" | "overdue" | "waiting" | "internal" | "unassigned" | "callbacks" | "duplicates" | "mine">("open");
   const [serviceFilter, setServiceFilter] = useState(() => {
     const service = new URLSearchParams(window.location.search).get("service") ?? "";
     return supportTeams.some(team => team.value === service) ? service : "";
   });
   const [categoryFilter, setCategoryFilter] = useState(() => {
     const category = new URLSearchParams(window.location.search).get("category") ?? "";
+    const scope = new URLSearchParams(window.location.search).get("scope") ?? "";
+    if (scope === "equipment") return "materiel_spie";
     return supportCategories.some((item) => item.value === category) ? category : "";
   });
   const [page, setPage] = useState(1);
@@ -3984,6 +3986,9 @@ function ConnectedAgentView({ onBack }: { onBack: () => void }) {
     try {
       const params = new URLSearchParams({ page: String(page), pageSize: "30" });
       if (query.trim()) params.set("q", query.trim());
+      if (queueMode === "open") params.set("state", "open");
+      if (queueMode === "active") params.set("state", "active");
+      if (queueMode === "completed") params.set("state", "completed");
       if (queueMode === "urgent") params.set("urgent", "true");
       if (queueMode === "overdue") params.set("overdue", "true");
       if (queueMode === "qualify") params.set("status", "a_qualifier");
@@ -3994,7 +3999,9 @@ function ConnectedAgentView({ onBack }: { onBack: () => void }) {
       if (queueMode === "callbacks") params.set("callback", "pending");
       if (queueMode === "duplicates") params.set("duplicate", "pending");
       if (serviceFilter) params.set("service", serviceFilter);
-      if (categoryFilter) params.set("category", categoryFilter);
+      if (categoryFilter === "materiel_spie") params.set("scope", "equipment");
+      else if (categoryFilter === "ordinateur") params.set("scope", "digital");
+      else if (categoryFilter) params.set("category", categoryFilter);
       const payload = await apiFetch<unknown>(`support/agent/requests?${params}`);
       if (!isAgentQueuePayload(payload)) {
         throw new Error("Réponse invalide du service de demandes");
@@ -4009,7 +4016,7 @@ function ConnectedAgentView({ onBack }: { onBack: () => void }) {
         serviceFilter &&
         !payload.access.canViewAll &&
         !payload.access.serviceCodes.includes(serviceFilter) &&
-        !(categoryFilter === "ordinateur" && serviceFilter === "referent_numerique" && payload.access.serviceCodes.includes("ddfpt"))
+        !(categoryFilter === "materiel_spie" && serviceFilter === "referent_numerique" && payload.access.serviceCodes.includes("ddfpt"))
       ) {
         setServiceFilter("");
       }
@@ -4031,7 +4038,7 @@ function ConnectedAgentView({ onBack }: { onBack: () => void }) {
 
   function resetQueueFilters() {
     setQuery("");
-    setQueueMode("all");
+    setQueueMode("open");
     setServiceFilter("");
     setCategoryFilter("");
     setPage(1);
@@ -4706,11 +4713,12 @@ function ConnectedAgentView({ onBack }: { onBack: () => void }) {
   const visibleTemplates = selected
     ? templates.filter((template) => template.category === "all" || template.category === selected.category)
     : templates;
-  const equipmentCollaboration = categoryFilter === "ordinateur" && access?.serviceCodes.includes("ddfpt");
+  const equipmentCollaboration = categoryFilter === "materiel_spie" && access?.serviceCodes.includes("ddfpt");
   const availableTeams = access?.canViewAll
     ? supportTeams
     : supportTeams.filter((team) => access?.serviceCodes.includes(team.value) || (equipmentCollaboration && team.value === "referent_numerique"));
-  const hasQueueFilters = query.trim().length > 0 || queueMode !== "all" || serviceFilter !== "" || categoryFilter !== "";
+  const hasQueueFilters = query.trim().length > 0 || queueMode !== "open" || serviceFilter !== "" || categoryFilter !== "";
+  const advancedQueueMode = ["all", "qualify", "urgent", "overdue", "internal", "unassigned", "callbacks", "duplicates", "mine"].includes(queueMode) ? queueMode : "";
   const orderedServiceStats = [
     serviceStats.find((item) => item.service === null),
     ...supportTeams.map((team) => serviceStats.find((item) => item.service === team.value)),
@@ -4729,7 +4737,7 @@ function ConnectedAgentView({ onBack }: { onBack: () => void }) {
   const agentDraftAttachments = detail?.attachments.filter(
     (attachment) => attachment.direction === "agent" && attachment.messageId === null
   ) ?? [];
-  const nextQueueAction = resolveSupportQueueNextAction(stats);
+  const nextQueueAction = resolveSupportQueueNextAction({ ...stats, total: stats.open });
   const queueNavigation = resolveSupportQueueNavigation(requests, selectedCode);
   const queueNavigationDisabled = saving || detailLoading || agentUploading || translating;
   const agentError = queueLoadError ?? detailLoadError ?? error;
@@ -4755,7 +4763,7 @@ function ConnectedAgentView({ onBack }: { onBack: () => void }) {
       <PageIntro eyebrow="Espace agent" title="Demandes du lycée" description="Choisissez le type de demande, préparez la réponse proposée puis envoyez. L’envoi vous attribue automatiquement le dossier." onBack={onBack} />
       {agentError ? <div className="lycee-form-error" role="alert"><CircleAlert aria-hidden="true" /><span>{agentError}</span>{needsAgentSecurity ? <a href="/security?returnTo=%2Fgestion%2Fdemandes">Sécuriser le compte</a> : needsAgentLogin ? <a href="/login?returnTo=%2Fgestion%2Fdemandes&mode=staff">Se connecter</a> : queueLoadError ? <button type="button" disabled={queueLoading} onClick={() => void loadQueue()}>{queueLoading ? "Nouvel essai…" : "Réessayer"}</button> : detailLoadError && selectedCode ? <button type="button" disabled={detailLoading} onClick={() => void loadDetail(selectedCode)}>{detailLoading ? "Nouvel essai…" : "Recharger le dossier"}</button> : null}</div> : null}
       {access ? <details className="lycee-agent-dashboard lycee-agent-panel">
-        <summary><strong>Vue d’ensemble et notifications</strong><span>{stats.total} demandes · {stats.urgent} urgentes · {stats.unassigned} sans agent</span></summary>
+        <summary><strong>Vue d’ensemble et notifications</strong><span>{stats.open} à traiter · {stats.active} en cours · {stats.completed} terminées</span></summary>
         <div className="lycee-agent-panel-content">
       {access ? <section className="lycee-agent-scope"><ShieldCheck aria-hidden="true" /><span><small>Votre périmètre</small><strong>{access.label}</strong><p>{access.canViewAll ? "Toutes les demandes et tous les transferts." : availableTeams.map((team) => team.label).join(" · ")}</p></span><b>{access.canViewAll ? "Vue complète" : "Vue limitée"}</b></section> : null}
       <div className="lycee-agent-stats">
@@ -4779,8 +4787,8 @@ function ConnectedAgentView({ onBack }: { onBack: () => void }) {
       </details> : null}
       <div className={`lycee-agent-workspace ${selectedCode ? 'has-selection' : ''}`}>
         <section className="lycee-agent-queue" aria-label="File des demandes">
-          <div className="lycee-agent-toolbar"><label><Search aria-hidden="true" /><input aria-label="Rechercher une demande" maxLength={80} value={query} onChange={(event) => { setQuery(event.target.value); setPage(1); }} placeholder="Nom, numéro ou objet" /></label><button className={queueMode === "mine" ? "is-active" : ""} type="button" aria-label="Afficher mes demandes" aria-pressed={queueMode === "mine"} title="Afficher mes demandes" onClick={() => { setQueueMode((current) => current === "mine" ? "all" : "mine"); setPage(1); }}><Filter aria-hidden="true" /></button><button type="button" aria-label="Réinitialiser les filtres" title="Réinitialiser les filtres" disabled={!hasQueueFilters} onClick={resetQueueFilters}><RotateCcw aria-hidden="true" /></button><select aria-label="Filtrer par type de demande" value={categoryFilter} onChange={(event) => { setCategoryFilter(event.target.value); setPage(1); setSelectedCode(null); }}><option value="">Tous les types de demandes</option>{supportCategories.map((category) => <option value={category.value} key={category.value}>{agentCategoryLabels[category.value]}</option>)}</select><select aria-label="Filtrer par service" value={serviceFilter} onChange={(event) => { setServiceFilter(event.target.value); setPage(1); setSelectedCode(null); }}><option value="">{access?.canViewAll ? "Tous les services" : "Mon périmètre"}</option>{access?.canViewAll ? <option value="unassigned">À orienter</option> : null}{availableTeams.map((team) => <option value={team.value} key={team.value}>{team.label}</option>)}</select></div>
-          <div className="lycee-agent-tabs" aria-label="Filtrer les demandes"><button aria-pressed={queueMode === "all"} className={queueMode === "all" ? "is-active" : ""} type="button" onClick={() => { setQueueMode("all"); setPage(1); }}>Toutes <span>{stats.total}</span></button><button aria-pressed={queueMode === "qualify"} className={queueMode === "qualify" ? "is-active" : ""} type="button" onClick={() => { setQueueMode("qualify"); setPage(1); }}>À classer <span>{stats.qualify}</span></button><button aria-pressed={queueMode === "urgent"} className={queueMode === "urgent" ? "is-active" : ""} type="button" onClick={() => { setQueueMode("urgent"); setPage(1); }}>Urgentes <span>{stats.urgent}</span></button><button aria-pressed={queueMode === "overdue"} className={queueMode === "overdue" ? "is-active" : ""} type="button" onClick={() => { setQueueMode("overdue"); setPage(1); }}>En retard <span>{stats.overdue}</span></button><button aria-pressed={queueMode === "waiting"} className={queueMode === "waiting" ? "is-active" : ""} type="button" onClick={() => { setQueueMode("waiting"); setPage(1); }}>En attente <span>{stats.waitingRequester}</span></button><button aria-pressed={queueMode === "internal"} className={queueMode === "internal" ? "is-active" : ""} type="button" onClick={() => { setQueueMode("internal"); setPage(1); }}>À vérifier <span>{stats.waitingInternal}</span></button><button aria-pressed={queueMode === "unassigned"} className={queueMode === "unassigned" ? "is-active" : ""} type="button" onClick={() => { setQueueMode("unassigned"); setPage(1); }}>Sans agent <span>{stats.unassigned}</span></button><button aria-pressed={queueMode === "callbacks"} className={queueMode === "callbacks" ? "is-active" : ""} type="button" onClick={() => { setQueueMode("callbacks"); setPage(1); }}>Rappels <span>{stats.callbacks}</span></button><button aria-pressed={queueMode === "duplicates"} className={queueMode === "duplicates" ? "is-active" : ""} type="button" onClick={() => { setQueueMode("duplicates"); setPage(1); }}>Doublons <span>{stats.duplicates}</span></button></div>
+          <div className="lycee-agent-toolbar"><label><Search aria-hidden="true" /><input aria-label="Rechercher une demande" maxLength={80} value={query} onChange={(event) => { setQuery(event.target.value); setPage(1); }} placeholder="Nom, numéro ou objet" /></label><button className={queueMode === "mine" ? "is-active" : ""} type="button" aria-label="Afficher mes demandes" aria-pressed={queueMode === "mine"} title="Afficher mes demandes" onClick={() => { setQueueMode((current) => current === "mine" ? "open" : "mine"); setPage(1); }}><Filter aria-hidden="true" /></button><button type="button" aria-label="Réinitialiser les filtres" title="Réinitialiser les filtres" disabled={!hasQueueFilters} onClick={resetQueueFilters}><RotateCcw aria-hidden="true" /></button><select aria-label="Filtrer par type de demande" value={categoryFilter} onChange={(event) => { setCategoryFilter(event.target.value); setPage(1); setSelectedCode(null); }}><option value="">Tous les types de demandes</option><option value="materiel_spie">Matériel du lycée · SPIE</option>{supportCategories.map((category) => <option value={category.value} key={category.value}>{agentCategoryLabels[category.value]}</option>)}</select><select aria-label="Filtrer par service" value={serviceFilter} onChange={(event) => { setServiceFilter(event.target.value); setPage(1); setSelectedCode(null); }}><option value="">{access?.canViewAll ? "Tous les services" : "Mon périmètre"}</option>{access?.canViewAll ? <option value="unassigned">À orienter</option> : null}{availableTeams.map((team) => <option value={team.value} key={team.value}>{team.label}</option>)}</select><select aria-label="Filtres supplémentaires" value={advancedQueueMode} onChange={(event) => { if (event.target.value) setQueueMode(event.target.value as typeof queueMode); setPage(1); setSelectedCode(null); }}><option value="">Priorité et suivi</option><option value="urgent">Urgentes ({stats.urgent})</option><option value="qualify">À classer ({stats.qualify})</option><option value="overdue">En retard ({stats.overdue})</option><option value="internal">À vérifier ({stats.waitingInternal})</option><option value="unassigned">Sans agent ({stats.unassigned})</option><option value="callbacks">Rappels ({stats.callbacks})</option><option value="duplicates">Doublons ({stats.duplicates})</option><option value="mine">Mes dossiers</option><option value="all">Toutes, y compris archivées ({stats.total})</option></select></div>
+          <div className="lycee-agent-tabs" aria-label="Filtrer les demandes"><button aria-pressed={queueMode === "open"} className={queueMode === "open" ? "is-active" : ""} type="button" onClick={() => { setQueueMode("open"); setPage(1); }}>À traiter <span>{stats.open}</span></button><button aria-pressed={queueMode === "active"} className={queueMode === "active" ? "is-active" : ""} type="button" onClick={() => { setQueueMode("active"); setPage(1); }}>En cours <span>{stats.active}</span></button><button aria-pressed={queueMode === "waiting"} className={queueMode === "waiting" ? "is-active" : ""} type="button" onClick={() => { setQueueMode("waiting"); setPage(1); }}>En attente <span>{stats.waitingRequester}</span></button><button aria-pressed={queueMode === "completed"} className={queueMode === "completed" ? "is-active" : ""} type="button" onClick={() => { setQueueMode("completed"); setPage(1); }}>Terminées <span>{stats.completed}</span></button></div>
           <div className="lycee-agent-list" aria-busy={queueLoading}>
             {queueLoading ? <div className="lycee-agent-list-loading" role="status" aria-live="polite"><Clock3 aria-hidden="true" /> Mise à jour…</div> : null}
             <ul aria-label="Demandes affichées">

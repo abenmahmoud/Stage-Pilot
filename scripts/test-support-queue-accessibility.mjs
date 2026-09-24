@@ -9,15 +9,16 @@ test("names the support queue filter group", () => {
 });
 
 test("announces the selected state of every queue filter", () => {
-  for (const mode of ["all", "qualify", "urgent", "overdue", "waiting", "internal", "unassigned", "callbacks", "duplicates"]) {
+  for (const mode of ["open", "active", "waiting", "completed"]) {
     assert.match(page, new RegExp(`aria-pressed=\\{queueMode === "${mode}"\\}`));
   }
+  assert.match(page, /aria-label="Filtres supplémentaires"/);
 });
 
 test("keeps every filter as a native keyboard-operable button", () => {
   const group = page.match(/<div className="lycee-agent-tabs"[\s\S]*?<\/div>/)?.[0] ?? "";
-  assert.equal((group.match(/<button /g) ?? []).length, 9);
-  assert.equal((group.match(/type="button"/g) ?? []).length, 9);
+  assert.equal((group.match(/<button /g) ?? []).length, 4);
+  assert.equal((group.match(/type="button"/g) ?? []).length, 4);
 });
 
 test("names the search and announces the current service and dossier", () => {

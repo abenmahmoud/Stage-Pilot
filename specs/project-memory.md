@@ -6790,3 +6790,18 @@ matériel reste dans le suivi Matériel & SPIE. Aucun ancien dossier n'a été
 muté, répondu ou fermé pendant l'audit. Build et 40 tests ciblés réussis ;
 publication et recette distante à consigner dans
 `docs/operations/TRAITEMENT_DEMANDES_2026-09-23.md`.
+
+## 25 septembre 2026 — séparation SPIE et lecture de la file
+
+La base pilote contient quatre signalements `materiel_lycee` ouverts et une
+autre demande de catégorie `ordinateur` : l'ancien filtre mélangeait donc deux
+circuits. La file dispose désormais de périmètres serveur distincts pour le
+matériel SPIE et les demandes numériques hors SPIE. L'affectation à un passage
+SPIE refuse une demande qui n'est pas explicitement `materiel_lycee`.
+
+La vue s'ouvre sur les dossiers à traiter et expose clairement « En cours »,
+« En attente » et « Terminées ». Les filtres opérationnels secondaires sont
+regroupés dans « Priorité et suivi » ; urgences et dossiers sans agent excluent
+les éléments terminés. Aucun dossier existant n'a été modifié. Build et tests
+ciblés réussis. Détails :
+`docs/operations/FILE_DEMANDES_SPIE_2026-09-25.md`.

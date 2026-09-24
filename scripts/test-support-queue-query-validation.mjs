@@ -31,7 +31,7 @@ test("rejects an unknown assignment filter", () => {
 test("keeps the two documented assignment values", () => {
   assert.match(route, /assigned !== "me" && assigned !== "none"/);
   assert.match(route, /if \(mineOnly\) filters\.push\(eq\(supportRequests\.assignedTo, user\.id\)\)/);
-  assert.match(route, /if \(unassignedOnly\) filters\.push\(isNull\(supportRequests\.assignedTo\)\)/);
+  assert.match(route, /if \(unassignedOnly\) filters\.push\(sql`\$\{supportRequests\.assignedTo\} is null/);
 });
 
 test("rejects unknown operational flag values", () => {
@@ -43,6 +43,21 @@ test("rejects unknown operational flag values", () => {
   assert.match(route, /throw new HttpError\(400, "Filtre de rappel invalide"\)/);
   assert.match(route, /throw new HttpError\(400, "Filtre de doublon invalide"\)/);
   assert.match(route, /throw new HttpError\(400, "Filtre d'échéance invalide"\)/);
+});
+
+test("validates grouped queue states and separated request scopes", () => {
+  assert.match(route, /const VALID_QUEUE_STATES = new Set\(\["open", "active", "completed"\]\)/);
+  assert.match(route, /const VALID_REQUEST_SCOPES = new Set\(\["equipment", "digital"\]\)/);
+  assert.match(route, /throw new HttpError\(400, "État de file invalide"\)/);
+  assert.match(route, /throw new HttpError\(400, "Périmètre de demande invalide"\)/);
+  assert.match(route, /throw new HttpError\(400, "Les filtres de type de demande sont incompatibles"\)/);
+  assert.match(route, /eq\(supportRequests\.subcategory, "materiel_lycee"\)/);
+  assert.match(route, /ne\(supportRequests\.subcategory, "materiel_lycee"\)/);
+});
+
+test("keeps urgent and unassigned views limited to open requests", () => {
+  assert.match(route, /if \(urgentOnly\).*status\} not in \('resolu', 'clos', 'indesirable'\)/);
+  assert.match(route, /if \(unassignedOnly\).*status\} not in \('resolu', 'clos', 'indesirable'\)/);
 });
 
 test("rejects repeated query parameters instead of choosing one", () => {

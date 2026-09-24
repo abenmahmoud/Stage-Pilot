@@ -6,11 +6,11 @@ const page = readFileSync(new URL("../src/pages/prototype/LyceeConnectPrototype.
 const css = readFileSync(new URL("../src/pages/prototype/lycee-connect.css", import.meta.url), "utf8");
 
 test("resets search, queue, service and pagination together", () => {
-  assert.match(page, /function resetQueueFilters\(\) \{[\s\S]*setQuery\(""\);[\s\S]*setQueueMode\("all"\);[\s\S]*setServiceFilter\(""\);[\s\S]*setPage\(1\);[\s\S]*\}/);
+  assert.match(page, /function resetQueueFilters\(\) \{[\s\S]*setQuery\(""\);[\s\S]*setQueueMode\("open"\);[\s\S]*setServiceFilter\(""\);[\s\S]*setPage\(1\);[\s\S]*\}/);
 });
 
 test("disables the reset button when the default view is already active", () => {
-  assert.match(page, /const hasQueueFilters = query\.trim\(\)\.length > 0 \|\| queueMode !== "all" \|\| serviceFilter !== ""/);
+  assert.match(page, /const hasQueueFilters = query\.trim\(\)\.length > 0 \|\| queueMode !== "open" \|\| serviceFilter !== ""/);
   assert.match(page, /aria-label="Réinitialiser les filtres"[\s\S]*disabled=\{!hasQueueFilters\}[\s\S]*onClick=\{resetQueueFilters\}/);
 });
 

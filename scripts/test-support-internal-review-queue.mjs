@@ -7,7 +7,7 @@ const queueRoute = readFileSync(new URL("../api/support/agent/requests/index.ts"
 
 test("offers a dedicated internal-review queue", () => {
   assert.match(page, /queueMode === "internal"\) params\.set\("status", "attente_interne"\)/);
-  assert.match(page, />À vérifier <span>\{stats\.waitingInternal\}<\/span>/);
+  assert.match(page, /<option value="internal">À vérifier \(\{stats\.waitingInternal\}\)<\/option>/);
 });
 
 test("counts internal reviews inside the authorized server perimeter", () => {

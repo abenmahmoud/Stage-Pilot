@@ -63,6 +63,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       }).from(supportRequests).where(and(
         eq(supportRequests.institutionId, context.institutionId),
         eq(supportRequests.category, "ordinateur"),
+        eq(supportRequests.subcategory, "materiel_lycee"),
         inArray(supportRequests.publicCode, codes)
       ));
       if (requests.length !== codes.length) throw new HttpError(409, "Une demande sélectionnée n’est plus disponible dans la file matériel");

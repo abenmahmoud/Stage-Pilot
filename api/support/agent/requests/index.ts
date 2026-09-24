@@ -1,5 +1,5 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { and, asc, eq, ilike, inArray, isNull, or, sql, type SQL } from "drizzle-orm";
+import { and, asc, eq, ilike, inArray, isNull, ne, notInArray, or, sql, type SQL } from "drizzle-orm";
 import { db } from "../../../../db/index.js";
 import { supportCallbackTasks, supportEvents, supportRequests } from "../../../../db/schema.js";
 import { HttpError } from "../../../_shared/auth.js";
@@ -28,6 +28,36 @@ const VALID_CATEGORIES = new Set([
   "orientation_formation", "vie_scolaire", "autre",
 ]);
 const UNASSIGNED_SERVICE_FILTER = "unassigned";
+const CLOSED_STATUSES = ["resolu", "clos", "indesirable"];
+const ACTIVE_STATUSES = ["assigne", "en_cours", "attente_interne"];
+const VALID_QUEUE_STATES = new Set(["open", "active", "completed"]);
+const VALID_REQUEST_SCOPES = new Set(["equipment", "digital"]);
+
+function queueStateFilter(state: string): SQL | undefined {
+  if (state === "open") return notInArray(supportRequests.status, CLOSED_STATUSES);
+  if (state === "active") return inArray(supportRequests.status, ACTIVE_STATUSES);
+  if (state === "completed") return inArray(supportRequests.status, CLOSED_STATUSES);
+  return undefined;
+}
+
+function requestScopeFilter(scope: string): SQL | undefined {
+  if (scope === "equipment") {
+    return and(
+      eq(supportRequests.category, "ordinateur"),
+      eq(supportRequests.subcategory, "materiel_lycee")
+    );
+  }
+  if (scope === "digital") {
+    return and(
+      eq(supportRequests.category, "ordinateur"),
+      or(
+        isNull(supportRequests.subcategory),
+        ne(supportRequests.subcategory, "materiel_lycee")
+      )
+    );
+  }
+  return undefined;
+}
 
 // Les sous-requetes correlees ci-dessous alias(ent) explicitement leur table et
 // qualifient la reference vers la demande englobante. Sans cela, la colonne
@@ -127,10 +157,21 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const overdueOnly = overdue === "true";
     const service = queryValue(req.query.service);
     const category = queryValue(req.query.category);
+    const state = queryValue(req.query.state);
+    const scope = queryValue(req.query.scope);
+    if (state && !VALID_QUEUE_STATES.has(state)) {
+      throw new HttpError(400, "État de file invalide");
+    }
+    if (scope && !VALID_REQUEST_SCOPES.has(scope)) {
+      throw new HttpError(400, "Périmètre de demande invalide");
+    }
+    if (scope && category) {
+      throw new HttpError(400, "Les filtres de type de demande sont incompatibles");
+    }
     if (category && !VALID_CATEGORIES.has(category)) {
       throw new HttpError(400, "Catégorie invalide");
     }
-    const ddfptEquipmentCollaboration = category === "ordinateur"
+    const ddfptEquipmentCollaboration = (category === "ordinateur" || scope === "equipment")
       && access.serviceCodes.includes("ddfpt");
     const filters: SQL[] = [eq(supportRequests.institutionId, institutionId)];
     const accessFilter = access.canViewAll
@@ -166,6 +207,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       : VALID_SERVICES.has(service)
         ? eq(supportRequests.assignedTeam, service)
         : undefined;
+    const stateFilter = queueStateFilter(state);
+    const scopeFilter = requestScopeFilter(scope);
 
     if (search) {
       const pattern = `%${search.replace(/[%_]/g, "\\$&")}%`;
@@ -178,9 +221,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       if (searchFilter) filters.push(searchFilter);
     }
     if (VALID_STATUSES.has(status)) filters.push(eq(supportRequests.status, status));
-    if (urgentOnly) filters.push(sql`${supportRequests.priority} in ('p1', 'p2')`);
+    if (stateFilter) filters.push(stateFilter);
+    if (urgentOnly) filters.push(sql`${supportRequests.priority} in ('p1', 'p2') and ${supportRequests.status} not in ('resolu', 'clos', 'indesirable')`);
     if (mineOnly) filters.push(eq(supportRequests.assignedTo, user.id));
-    if (unassignedOnly) filters.push(isNull(supportRequests.assignedTo));
+    if (unassignedOnly) filters.push(sql`${supportRequests.assignedTo} is null and ${supportRequests.status} not in ('resolu', 'clos', 'indesirable')`);
     if (callbackOnly) filters.push(hasPendingCallback());
     if (duplicateOnly) filters.push(hasPendingDuplicateReview());
     if (overdueOnly) {
@@ -188,6 +232,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
     if (serviceFilter) filters.push(serviceFilter);
     if (category) filters.push(eq(supportRequests.category, category));
+    if (scopeFilter) filters.push(scopeFilter);
 
     const where = filters.length > 0 ? and(...filters) : undefined;
     const requestQuery = db
@@ -232,9 +277,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       accessFilter,
       serviceFilter,
       category ? eq(supportRequests.category, category) : undefined,
+      scopeFilter,
     ].filter((value): value is SQL => Boolean(value));
     const statsQuery = db.select({
       total: sql<number>`count(*)::int`,
+      open: sql<number>`count(*) filter (where ${supportRequests.status} not in ('resolu', 'clos', 'indesirable'))::int`,
+      completed: sql<number>`count(*) filter (where ${supportRequests.status} in ('resolu', 'clos', 'indesirable'))::int`,
       new: sql<number>`count(*) filter (where ${supportRequests.status} in ('nouveau', 'a_qualifier'))::int`,
       qualify: sql<number>`count(*) filter (where ${supportRequests.status} = 'a_qualifier')::int`,
       urgent: sql<number>`count(*) filter (where ${supportRequests.priority} in ('p1', 'p2') and ${supportRequests.status} not in ('resolu', 'clos', 'indesirable'))::int`,
@@ -272,7 +320,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       requests,
       access,
       serviceStats,
-      stats: statsRow ?? { total: 0, new: 0, qualify: 0, urgent: 0, active: 0, waitingRequester: 0, waitingInternal: 0, unassigned: 0, overdue: 0, callbacks: 0, duplicates: 0 },
+      stats: statsRow ?? { total: 0, open: 0, completed: 0, new: 0, qualify: 0, urgent: 0, active: 0, waitingRequester: 0, waitingInternal: 0, unassigned: 0, overdue: 0, callbacks: 0, duplicates: 0 },
       pagination: { page, pageSize, total, totalPages: Math.max(1, Math.ceil(total / pageSize)) },
     };
   });

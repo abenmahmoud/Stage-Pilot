@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import {
   isPublicEquipmentVisit,
   isPublicEquipmentVisitsPayload,
@@ -72,5 +73,11 @@ assert.equal(parsed.routing.service, "referent_numerique");
 assert.equal(parsed.routing.priority, "p1");
 assert.equal(parsed.subjectContext.roomCode, "B204");
 assert.equal(parsed.subjectContext.safetyRisk, "yes");
+
+const equipmentAdmin = readFileSync(new URL("../src/pages/admin/EquipmentOperationsPage.tsx", import.meta.url), "utf8");
+const assignmentRoute = readFileSync(new URL("../api/equipment/admin/visit-requests.ts", import.meta.url), "utf8");
+assert.match(equipmentAdmin, /support\/agent\/requests\?scope=equipment&state=open&service=referent_numerique/);
+assert.match(equipmentAdmin, /gestion\/demandes\?service=referent_numerique&scope=equipment/);
+assert.match(assignmentRoute, /eq\(supportRequests\.subcategory, "materiel_lycee"\)/);
 
 console.log("equipment support policy: ok");

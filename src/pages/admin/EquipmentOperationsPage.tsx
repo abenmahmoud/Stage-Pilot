@@ -116,7 +116,7 @@ export default function EquipmentOperationsPage() {
     try {
       const [visitPayload, queuePayload, assignmentPayload, grantPayload] = await Promise.all([
         apiFetch<VisitPayload>("equipment/admin/visits"),
-        apiFetch<QueuePayload>("support/agent/requests?category=ordinateur&service=referent_numerique&pageSize=50"),
+        apiFetch<QueuePayload>("support/agent/requests?scope=equipment&state=open&service=referent_numerique&pageSize=50"),
         apiFetch<{ assignments: Assignment[] }>("equipment/admin/visit-requests"),
         apiFetch<{ grants: ExternalGrant[] }>("equipment/admin/external-access"),
       ]);
@@ -305,7 +305,7 @@ export default function EquipmentOperationsPage() {
 
     <div className="grid items-start gap-6 xl:grid-cols-[1.35fr_.8fr]">
       <section className="rounded-2xl border border-slate-200 bg-white">
-        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 p-5"><div><h2 className="text-xl font-bold text-slate-950">Incidents à préparer</h2><p className="mt-1 text-sm text-slate-600">Les réponses, pièces jointes, affectations et statuts restent dans la file unique des demandes.</p></div><Link to="/gestion/demandes?service=referent_numerique&category=ordinateur" className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-blue-600 px-4 text-sm font-semibold text-white">Traiter les signalements <ExternalLink className="h-4 w-4" /></Link></div>
+        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 p-5"><div><h2 className="text-xl font-bold text-slate-950">Incidents à préparer</h2><p className="mt-1 text-sm text-slate-600">Les réponses, pièces jointes, affectations et statuts restent dans la file unique des demandes.</p></div><Link to="/gestion/demandes?service=referent_numerique&scope=equipment" className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-blue-600 px-4 text-sm font-semibold text-white">Traiter les signalements <ExternalLink className="h-4 w-4" /></Link></div>
         <div className="divide-y divide-slate-100">
           {busy && incidents.length === 0 && <p className="p-8 text-center text-sm text-slate-500">Chargement…</p>}
           {!busy && openIncidents.length === 0 && <p className="p-8 text-center text-sm text-slate-500">Aucun signalement matériel structuré en attente.</p>}
