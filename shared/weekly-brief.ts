@@ -1,5 +1,6 @@
 import { detectForbiddenSupportSecret } from "./support-secret-policy.js";
 import { parseSchoolCalendarDates, type SchoolCalendarDate } from "./school-calendar.js";
+import { assertProfessionalPublicWording } from "./public-editorial-language.js";
 export const WEEKLY_BRIEF_IMPORTANCE_LEVELS = ["normale", "importante", "urgente"] as const;
 export const WEEKLY_BRIEF_CHANNELS = ["push", "email", "sms"] as const;
 export const WEEKLY_BRIEF_CATEGORIES = ["Rentrée", "Vie du lycée", "Événement", "Orientation"] as const;
@@ -197,11 +198,15 @@ function parseCard(value: unknown): WeeklyBriefCard {
   const eventDate = isoDate(card.eventDate, "event_date_invalid");
   const expiresAt = isoTimestamp(card.expiresAt, "expires_at_invalid");
   if (Date.parse(expiresAt) <= Date.parse(`${eventDate}T00:00:00Z`)) throw new Error("expires_at_invalid");
+  const title = text(card.title, "title_invalid", 2, 180);
+  const summary = text(card.summary, "summary_invalid", 1, 600);
+  const bodyMarkdown = text(card.bodyMarkdown, "body_invalid", 1, 8_000);
+  assertProfessionalPublicWording(title, summary, bodyMarkdown);
   return {
     key,
-    title: text(card.title, "title_invalid", 2, 180),
-    summary: text(card.summary, "summary_invalid", 1, 600),
-    bodyMarkdown: text(card.bodyMarkdown, "body_invalid", 1, 8_000),
+    title,
+    summary,
+    bodyMarkdown,
     category: enumValue(card.category, WEEKLY_BRIEF_CATEGORIES, "category_invalid"),
     audience: enumValue(card.audience, WEEKLY_BRIEF_AUDIENCES, "audience_invalid"),
     importance,

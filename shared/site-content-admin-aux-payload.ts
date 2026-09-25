@@ -14,6 +14,7 @@ import {
 } from "./site-content-admin-payload.js";
 import { isAllowedPublicContentSignedUrlForOrigin } from "./public-content-signed-url.js";
 import { detectForbiddenSupportSecret } from "./support-secret-policy.js";
+import { hasInternalEditorialWording } from "./public-editorial-language.js";
 
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const UUID_FRAGMENT = UUID_PATTERN.source.slice(1, -1);
@@ -360,6 +361,7 @@ export function parseSiteContentAssistPayload(value: unknown): SiteContentAssist
     || metaDescription === null
     || !suggestedTitles
     || !reviewNotes
+    || hasInternalEditorialWording([title, summary, bodyMarkdown, metaTitle, metaDescription, ...suggestedTitles].join("\n"))
     || detectForbiddenSupportSecret([
       title, summary, bodyMarkdown, metaTitle, metaDescription, ...suggestedTitles, ...reviewNotes,
     ].join("\n"))

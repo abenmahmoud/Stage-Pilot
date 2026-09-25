@@ -6805,3 +6805,8 @@ regroupés dans « Priorité et suivi » ; urgences et dossiers sans agent exclu
 les éléments terminés. Aucun dossier existant n'a été modifié. Build et tests
 ciblés réussis. Détails :
 `docs/operations/FILE_DEMANDES_SPIE_2026-09-25.md`.
+## 25 septembre 2026 — ton éditorial public et limites internes
+
+- Les titres, résumés et corps publics restent positifs, directs et professionnels. Ils ne citent jamais l'hebdo, la source, une information manquante, « non communiquée », « non précisée », « à vérifier » ou « à confirmer ».
+- Quand un détail validé doit encore arriver, le texte public annonce sobrement que les précisions pratiques seront publiées ou transmises prochainement. Aucune donnée n'est inventée.
+- Les manques, contradictions, questions de relecture et références de source restent exclusivement dans les notes internes de l'administration. Les assistants éditoriaux et le parseur hebdomadaire appliquent désormais cette séparation.

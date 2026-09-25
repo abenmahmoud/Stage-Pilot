@@ -77,6 +77,8 @@ Règles absolues :
 - Toutes les cartes sont destinées au site public. audience désigne uniquement les personnes à notifier : tous, élèves ou parents.
 - Crée au maximum 8 cartes et au maximum 3 cartes à la une. Regroupe les informations qui parlent du même événement.
 - Écris un français simple et professionnel. Le corps utilise du Markdown simple, sans HTML.
+- Le texte public reste positif et tourné vers la suite. Il ne cite jamais l'hebdo, la source, un manque d'information ou une donnée « non communiquée », « non précisée », « à vérifier » ou « à confirmer ».
+- Lorsqu'un détail utile manque, annonce seulement que les précisions pratiques seront publiées ou transmises prochainement, sans inventer lesquelles. Place le détail manquant uniquement dans openQuestions et reviewNotes, invisibles du public.
 - sourceExcerpt doit être un extrait court réellement présent dans le texte fourni.
 - Si une information utile manque ou paraît contradictoire, écris-la dans openQuestions et reviewNotes. Ne la complète pas.
 - eventDate est la première date explicitement associée à l'événement. Si aucune date exploitable n'est fournie, ne crée pas la carte.

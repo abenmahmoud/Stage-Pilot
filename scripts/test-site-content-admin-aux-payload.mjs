@@ -198,7 +198,13 @@ test("validates and bounds every editorial AI field", () => {
     suggestion({ bodyMarkdown: "x".repeat(30_001) }),
     suggestion({ suggestedTitles: ["Même titre", "Même titre"] }),
     suggestion({ reviewNotes: ["mot de passe: secret123"] }),
+    suggestion({ bodyMarkdown: "L’hebdo ne précise pas les modalités." }),
+    suggestion({ summary: "Horaire non communiqué." }),
   ]) assert.equal(parseSiteContentAssistPayload(payload), null);
+  assert.deepEqual(
+    parseSiteContentAssistPayload(suggestion({ bodyMarkdown: "Les précisions pratiques seront publiées prochainement." })),
+    suggestion({ bodyMarkdown: "Les précisions pratiques seront publiées prochainement." }),
+  );
 });
 
 test("returns only aggregated and coherent legacy import progress", () => {

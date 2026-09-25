@@ -66,6 +66,19 @@ assert.throws(() => parseWeeklyBriefSuggestion({
   ...suggestion,
   cards: [{ ...suggestion.cards[0], audience: "personnels" }],
 }));
+for (const publicText of [
+  "L’hebdo ne précise pas la salle.",
+  "L’horaire n’est pas encore communiqué.",
+  "Les modalités ne figurent pas dans le document.",
+  "Public à confirmer.",
+]) assert.throws(() => parseWeeklyBriefSuggestion({
+  ...suggestion,
+  cards: [{ ...suggestion.cards[0], bodyMarkdown: publicText }],
+}), /public_editorial_language_invalid/);
+assert.doesNotThrow(() => parseWeeklyBriefSuggestion({
+  ...suggestion,
+  cards: [{ ...suggestion.cards[0], bodyMarkdown: "Les précisions pratiques seront publiées prochainement." }],
+}));
 
 const payload = parseWeeklyBriefAssistPayload({
   suggestion,
@@ -82,6 +95,7 @@ const [apiSource, pageSource, pdfSource] = await Promise.all([
 assert.match(apiSource, /requireSiteEditor\(req\)/);
 assert.match(apiSource, /store:\s*false/);
 assert.match(apiSource, /parseWeeklyBriefAssistInput/);
+assert.match(apiSource, /Le texte public reste positif et tourné vers la suite/);
 assert.match(pageSource, /sanitizeWeeklySourceText\(extracted\.text\)/);
 assert.match(pageSource, /Aucun envoi ni aucune publication n’a lieu depuis cet écran/);
 assert.match(pageSource, /Créer les brouillons et notifications/);
