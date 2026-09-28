@@ -56,10 +56,14 @@ test('unknown models are clarified and the legacy SAV is kept separate', async (
   assert.match(second.reply, /assistance-numerique#unowhy/);
   assert.doesNotMatch(second.reply, /déposez.*FNAC/);
   const poste = await analyze([user('Comment faire le SAV La Poste ?')]);
-  assert.match(poste.reply, /Mes outils pédagogiques.*La Poste SAV/s);
+  assert.match(poste.reply, /Mes outils pédagogiques.*La Poste\s*\|?\s*SAV/s);
   assert.equal(poste.readyToCreate, false);
   const asus = await analyze([user('Mon ordinateur est cassé'), answer(first.reply), user('Un Chromebook')]);
   assert.match(asus.reply, /accord de retour RMA/);
+  assert.match(asus.reply, /magasin FNAC partenaire choisi/);
+  assert.match(asus.reply, /avec son chargeur/);
+  assert.match(asus.reply, /sans la pochette/);
+  assert.match(asus.reply, /SMS ou email/);
 });
 
 test('an event expires in Paris while the annual help remains available', () => {

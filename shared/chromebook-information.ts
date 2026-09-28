@@ -2,7 +2,7 @@
  * Both the public page and the assistant read these reviewed answers.
  * Provenance and editorial decisions: docs/operations/CHROMEBOOK_2026-09-10.md.
  */
-import { UNOWHY_CHAT_ANSWER } from "./regional-device-sav.js";
+import { REGIONAL_DEVICE_SAV, UNOWHY_CHAT_ANSWER } from "./regional-device-sav.js";
 export const CHROMEBOOK_PATH = "/chromebook";
 export const CHROMEBOOK_UPDATED_AT = "2026-09-16T08:00:00.000Z";
 export const CHROMEBOOK_PORTAL = "https://monordi-iledefrance.fr/";
@@ -103,7 +103,7 @@ export function chromebookAnswers(now = new Date()): ChromebookAnswer[] {
       answer: "ChromeOS propose des réglages d’accessibilité, notamment la **loupe, la lecture à voix haute et la saisie vocale**. Retrouvez-les dans les paramètres de l’appareil. Si vous avez besoin d’un aménagement particulier, faites-le préciser par l’équipe du lycée ; le chat ne décide pas d’un aménagement individuel.",
       keywords: ["accessibilite", "handicap", "loupe", "dictee", "vocale", "lecture voix"], source: `${faq}, p. 9-10` },
     { id: "sav", section: "depanner", question: "Mon Chromebook est en panne ou cassé : que faire ?",
-      answer: "Commencez sur **[monordi-iledefrance.fr](https://monordi-iledefrance.fr/)** avec l’assistance ASUS. Après le diagnostic, si un retour est nécessaire, suivez le formulaire avec le numéro de série et les informations demandées. **Attendez l’accord de retour RMA avant le dépôt** dans un magasin FNAC partenaire. Apportez l’ordinateur et son chargeur, **sans la pochette**. Sauvegardez vos fichiers si c’est encore possible. Le lycée peut vous orienter, mais n’effectue pas la réparation.",
+      answer: `Commencez sur **[l’assistance Mon Ordi](${REGIONAL_DEVICE_SAV.asus.portalUrl})** et lancez le diagnostic. Pour une panne matérielle, remplissez le formulaire transmis avec le numéro de série et les coordonnées demandées. **Attendez l’accord de retour RMA avant de vous déplacer.** Déposez ensuite le Chromebook dans le magasin FNAC partenaire choisi, avec son chargeur, propre et **sans la pochette**. Le suivi et la disponibilité pour le retrait dans ce même magasin sont communiqués par SMS ou email. Pour un problème de compte, d’application ou de logiciel qui persiste après le diagnostic, demandez l’aide du lycée.`,
       keywords: ["sav", "panne", "casse", "cassee", "reparer", "reparation", "ecran noir", "allume plus", "ne demarre", "fonctionne plus", "ne marche plus", "asus", "fnac", "charge plus", "fissure", "tombe"], source: sav },
     { id: "delai-sav", section: "depanner", question: "Que signifie le délai de 48 heures ouvrées ?",
       answer: "Les **48 heures ouvrées** annoncées concernent **l’examen du dossier SAV après l’envoi du formulaire**, pas la durée de réparation. L’accord de retour RMA est transmis par email après validation. Le suivi de la réparation est ensuite communiqué par SMS selon la procédure régionale.",
