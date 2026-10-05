@@ -94,8 +94,56 @@
 .lycee-flash-bulletin-body { margin-top: 2px; color: var(--lc-muted); font-size: 12px; line-height: 1.5; }
 .lycee-flash-bulletin-body p { margin: 0; }
 
+.school-continuity-banner { display: grid; grid-template-columns: 44px minmax(0,1fr) auto; align-items: center; gap: 14px; padding: 14px 32px; border-bottom: 1px solid #efc56f; background: linear-gradient(100deg,#fff8e8,#fffdf7); color: #382600; }
+.school-continuity-banner-icon { width: 42px; height: 42px; display: grid; place-items: center; border-radius: 12px; background: #f4a900; color: #fff; }
+.school-continuity-banner-icon svg { width: 23px; height: 23px; }
+.school-continuity-banner > div:nth-child(2) > span { display: block; margin-bottom: 2px; color: #8a5a00; font-size: 10px; font-weight: 850; letter-spacing: .04em; text-transform: uppercase; }
+.school-continuity-banner h2 { margin: 0; font-size: 17px; line-height: 1.2; }
+.school-continuity-banner p { margin: 4px 0 0; max-width: 850px; color: #5f4a22; font-size: 12px; line-height: 1.45; }
+.school-continuity-banner-actions { display: flex; align-items: center; gap: 8px; }
+.school-continuity-banner-actions button, .school-continuity-banner-actions a { min-height: 40px; display: inline-flex; align-items: center; justify-content: center; gap: 7px; padding: 0 13px; border: 1px solid #b77a00; border-radius: 8px; background: #8a5a00; color: #fff; font-size: 11px; font-weight: 850; text-decoration: none; white-space: nowrap; }
+.school-continuity-banner-actions a { background: #fff; color: #704900; }
+.school-continuity-banner-actions svg { width: 15px; height: 15px; }
+
+.school-continuity-page { display: grid; gap: 20px; }
+.school-continuity-lead { display: grid; grid-template-columns: 52px minmax(0,1fr); gap: 16px; padding: 24px; border: 1px solid #efc56f; border-radius: 12px; background: linear-gradient(115deg,#fff7df,#fff); }
+.school-continuity-lead > span { width: 50px; height: 50px; display: grid; place-items: center; border-radius: 14px; background: #f4a900; color: #fff; }
+.school-continuity-lead > span svg { width: 26px; }
+.school-continuity-lead small { color: #8a5a00; font-weight: 800; }
+.school-continuity-lead h2 { margin: 3px 0 8px; font-size: clamp(22px,3vw,34px); }
+.school-continuity-lead p { margin: 0; color: var(--lc-muted); line-height: 1.6; }
+.school-continuity-steps { padding: 24px; border: 1px solid var(--lc-line); border-radius: 12px; background: #fff; }
+.school-continuity-steps ol { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 12px; margin: 18px 0 0; padding: 0; list-style: none; }
+.school-continuity-steps li { display: grid; grid-template-columns: 34px minmax(0,1fr); align-content: start; gap: 10px; padding: 18px; border: 1px solid var(--lc-line); border-radius: 10px; background: #f8fafc; }
+.school-continuity-steps li > span { width: 32px; height: 32px; display: grid; place-items: center; border-radius: 50%; background: var(--lc-blue); color: #fff; font-weight: 900; }
+.school-continuity-steps strong { display: block; font-size: 14px; }
+.school-continuity-steps p { margin: 7px 0 12px; color: var(--lc-muted); font-size: 12px; line-height: 1.55; }
+.school-continuity-steps a, .school-continuity-steps button { display: inline-flex; align-items: center; gap: 6px; min-height: 36px; padding: 0; border: 0; background: transparent; color: var(--lc-blue); font-size: 11px; font-weight: 850; text-decoration: none; }
+.school-continuity-steps svg { width: 14px; }
+.school-continuity-grid { display: grid; grid-template-columns: repeat(auto-fit,minmax(260px,1fr)); gap: 12px; }
+.school-continuity-grid article { display: grid; grid-template-columns: 44px minmax(0,1fr); gap: 13px; padding: 20px; border: 1px solid var(--lc-line); border-radius: 12px; background: #fff; }
+.school-continuity-grid article > span { width: 42px; height: 42px; display: grid; place-items: center; border-radius: 11px; background: #edf4ff; color: var(--lc-blue); }
+.school-continuity-grid h2 { margin: 0; font-size: 16px; }
+.school-continuity-grid p { margin: 7px 0 10px; color: var(--lc-muted); font-size: 12px; line-height: 1.55; }
+.school-continuity-grid a, .school-continuity-grid button { display: inline-flex; align-items: center; gap: 6px; min-height: 32px; padding: 0; border: 0; background: transparent; color: var(--lc-blue); font-size: 11px; font-weight: 850; text-decoration: none; }
+.school-continuity-grid a svg, .school-continuity-grid button svg { width: 14px; }
+.school-continuity-source { display: flex; align-items: center; justify-content: space-between; gap: 18px; padding: 18px 20px; border-left: 4px solid var(--lc-green); background: #edf8f5; }
+.school-continuity-source div { display: grid; gap: 3px; }
+.school-continuity-source small { color: #27675b; font-weight: 800; text-transform: uppercase; }
+.school-continuity-source p { margin: 0; color: #365f57; font-size: 11px; }
+.school-continuity-source a { display: inline-flex; align-items: center; gap: 6px; color: #126c5a; font-size: 11px; font-weight: 850; text-decoration: none; white-space: nowrap; }
+.school-continuity-source svg { width: 14px; }
+
 @media (max-width: 720px) {
   .lycee-flash-bulletin { padding: 8px 14px; }
+  .school-continuity-banner { grid-template-columns: 38px minmax(0,1fr); padding: 12px 14px; }
+  .school-continuity-banner-icon { width: 38px; height: 38px; }
+  .school-continuity-banner h2 { font-size: 15px; }
+  .school-continuity-banner p { font-size: 11px; }
+  .school-continuity-banner-actions { grid-column: 1 / -1; display: grid; grid-template-columns: 1fr 1fr; }
+  .school-continuity-steps ol, .school-continuity-grid { grid-template-columns: 1fr; }
+  .school-continuity-lead, .school-continuity-steps { padding: 18px; }
+  .school-continuity-source { align-items: flex-start; flex-direction: column; }
 }
 
 .lycee-hero { position: relative; min-height: 360px; display: flex; align-items: flex-end; overflow: hidden; background: #0a1728; }

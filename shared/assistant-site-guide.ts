@@ -1,3 +1,5 @@
+import { SCHOOL_CONTINUITY, SCHOOL_CONTINUITY_REPLY } from "./school-continuity.js";
+
 export type SiteAssistantAction = {
   label: string;
   description: string;
@@ -10,6 +12,13 @@ type SiteDestination = SiteAssistantAction & {
 };
 
 const DESTINATIONS: readonly SiteDestination[] = [
+  {
+    id: "continuity",
+    label: "Consulter les consignes de continuité",
+    description: "ENT, PRONOTE, classes virtuelles et aide pendant la fermeture",
+    href: "/?view=continuity",
+    keywords: ["lycee ferme", "lycee est ferme", "lycee est il ouvert", "est ce que le lycee est ouvert", "lycee ouvert aujourd hui", "peut on venir au lycee", "fermeture du lycee", "fermeture exceptionnelle", "continuite pedagogique", "cours a distance", "classe virtuelle", "classes virtuelles"],
+  },
   {
     id: "news",
     label: "Voir les informations à la une",
@@ -135,12 +144,15 @@ export function siteNavigationAnswer(
     candidate.keywords.some((keyword) => text.includes(keyword))
   );
   if (!destination) return null;
+  if (destination.id === "continuity" && !SCHOOL_CONTINUITY.active) return null;
 
-  const alwaysActionable = ["requests", "equipment", "device-sav", "webmail"].includes(destination.id);
+  const alwaysActionable = ["continuity", "requests", "equipment", "device-sav", "webmail"].includes(destination.id);
   if (!alwaysActionable && !directlyAsksForDestination(text)) return null;
 
   const intro = destination.id === "requests"
     ? "Vous pouvez reprendre une demande existante sans recommencer votre démarche."
+    : destination.id === "continuity"
+      ? SCHOOL_CONTINUITY_REPLY
     : destination.id === "equipment"
       ? "Les professeurs et personnels peuvent signaler un matériel du lycée, suivre le dossier et consulter les passages SPIE."
       : `Cette rubrique est disponible directement sur le portail du lycée.`;
@@ -164,6 +176,7 @@ export function isSiteAssistantAction(value: unknown): value is SiteAssistantAct
 }
 
 export const SITE_ASSISTANT_INSTRUCTIONS = `Carte officielle du portail du lycée :
+- Fermeture et continuité pédagogique : /?view=continuity
 - Actualités et hebdo publiés : /?view=news
 - Calendrier public : /?view=calendar
 - Services et liens utiles : /?view=services
@@ -175,4 +188,4 @@ export const SITE_ASSISTANT_INSTRUCTIONS = `Carte officielle du portail du lycé
 - SAV des ordinateurs Région : /assistance-numerique
 - Signalement du matériel du lycée et passages SPIE : /materiel
 - Webmail professionnel : https://mail.lycee-blaise-cendrars-sevran.fr/
-Utilise uniquement ces adresses publiques. Ne donne jamais une adresse /admin, /gestion, /app ou /intervention-spie à un visiteur. Quand la bonne rubrique suffit, donne une réponse courte avec son lien. Le suivi d’un dossier existant doit conduire à « Mes demandes » et ne doit pas créer un doublon.`;
+Pendant la fermeture exceptionnelle, indique d’abord MonLycée.net puis PRONOTE depuis l’ENT pour les consignes de la classe. Les classes virtuelles Île-de-France 2D sont une ressource pédagogique ; ne promets jamais qu’une classe précise est ouverte sans consigne du professeur. Utilise uniquement ces adresses publiques. Ne donne jamais une adresse /admin, /gestion, /app ou /intervention-spie à un visiteur. Quand la bonne rubrique suffit, donne une réponse courte avec son lien. Le suivi d’un dossier existant doit conduire à « Mes demandes » et ne doit pas créer un doublon.`;

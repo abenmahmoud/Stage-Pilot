@@ -4,6 +4,7 @@ import { BarChart3, CalendarDays, ChevronRight, Download, ExternalLink, Graduati
 import { PublicPortalFooter } from "./PublicPortalFooter";
 import { FlashPublicBulletin } from "./FlashPublicBulletin";
 import { EssufRadioControls } from "./EssufRadioControls";
+import { SchoolContinuityBanner } from "./SchoolContinuityBanner";
 import type { PublicPortalView as View } from "../../shared/public-portal-navigation";
 import "../pages/prototype/lycee-connect.css";
 import "../styles/portal-charter.css";
@@ -192,6 +193,7 @@ export function PublicPortalShell({view, onNavigate, children, className = ""}: 
           </div>
         ) : null}
 
+        {view !== "agent" ? <SchoolContinuityBanner onOpen={() => changeView("continuity")} /> : null}
         {view !== "agent" ? <FlashPublicBulletin /> : null}
 
 
