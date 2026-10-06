@@ -1,3 +1,5 @@
+import { SCHOOL_CONTINUITY } from "./school-continuity.js";
+
 export const PUBLIC_PORTAL_VIEWS = [
   "home", "services", "help", "collect", "requests", "school", "news", "calendar", "continuity", "agent", "trust",
 ] as const;
@@ -6,6 +8,7 @@ export type PublicPortalView = (typeof PUBLIC_PORTAL_VIEWS)[number];
 
 export function publicPortalView(search: string): PublicPortalView {
   const requested = new URLSearchParams(search).get("view");
+  if (requested === "continuity" && !SCHOOL_CONTINUITY.active) return "home";
   return PUBLIC_PORTAL_VIEWS.includes(requested as PublicPortalView)
     ? requested as PublicPortalView
     : "home";
