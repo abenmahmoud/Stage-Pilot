@@ -1,5 +1,5 @@
 export const SCHOOL_CONTINUITY = {
-  active: false,
+  active: true,
   status: "Cours à distance — mardi 6 octobre",
   title: "Les cours sont assurés à distance ce mardi 6 octobre",
   summary: "Ce mardi 6 octobre, le lycée est fermé aux élèves pour des raisons de sécurité. Consultez MonLycée.net, puis PRONOTE depuis l’ENT, pour suivre les messages, le travail et les consignes de votre classe.",
