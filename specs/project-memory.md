@@ -1,5 +1,18 @@
 # Memoire durable - Portail numerique du Lycee Blaise Cendrars
 
+## Outils du distanciel et secours ENT — 7 octobre 2026
+
+Parcours élèves/parents et professeurs mis en place sur la page de continuité,
+avec aide selon la connexion : habituelle, ENT inaccessible ou débit limité.
+Guides officiels Classe Virtuelle, Nuage (lecture seule et dépôt séparé), Tubes
+et option PRONOTE réservée à l’administration. L’assistant guide directement
+les questions de panne ENT. Aucun lien privé ni accès externe n’est créé.
+Build et contrôles des parcours à 390 et 1440 px réussis. Les liens réels des
+enseignants restent à créer et tester en classe pilote. La préparation locale
+précédente est remplacée par cette mise en place ; preuve de publication
+conservée hors Git dans les sorties de la livraison.
+Voir `docs/operations/OUTILS_DISTANCIEL_2026-10-07.md`.
+
 ## Accès ENT cohérent pour les familles — 23 septembre
 
 Le bouton ENT de l’accueil, les parcours personnels et la fiche distribuée aux

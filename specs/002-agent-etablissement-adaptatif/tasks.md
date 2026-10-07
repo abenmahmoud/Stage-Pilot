@@ -1,5 +1,13 @@
 # Tâches - Agent d'établissement adaptatif V2
 
+## Livraison distanciel — 7 octobre 2026
+
+- [x] Ajouter les parcours familles et professeurs et les guides institutionnels.
+- [x] Distinguer panne de l’ENT, connexion limitée et récupération individuelle.
+- [x] Vérifier le build, la navigation et les vues téléphone/ordinateur.
+- [ ] Tester une classe pilote avec les liens réels de séance, support et dépôt.
+- [ ] Décider et configurer l’accès direct PRONOTE si l’administration le retient.
+
 ## Phase 0 - Décisions institutionnelles
 
 - [ ] T001 Nommer un responsable métier pour secrétariat, vie scolaire, intendance, direction et numérique.

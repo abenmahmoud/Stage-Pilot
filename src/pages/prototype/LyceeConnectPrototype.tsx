@@ -13,6 +13,7 @@ import { ChatRequestIntake } from "../../components/ChatRequestIntake";
 import { SCHOOL_PUBLIC_INFORMATION } from "../../../shared/school-public-information";
 import { PublicPortalShell } from "../../components/PublicPortalShell";
 import { SCHOOL_CONTINUITY } from "../../../shared/school-continuity";
+import { SchoolContinuityResources } from "../../components/SchoolContinuityResources";
 import { publicPortalView, PUBLIC_PORTAL_TITLES, type PublicPortalView as View } from "../../../shared/public-portal-navigation";
 import { MISSING_OPENING_HOURS_REPLY, schoolInformationIntent, supportFormReady } from "../../../shared/assistant-school-context";
 import { applyAssistantReply, compactAssistantReplies } from "../../../shared/assistant-transcript";
@@ -3837,38 +3838,18 @@ function ContinuityView({ onBack, onHelp }: { onBack: () => void; onHelp: (promp
       <PageIntro
         eyebrow={SCHOOL_CONTINUITY.status}
         title="Continuité pédagogique"
-        description="Les accès essentiels et la démarche à suivre pendant la fermeture du lycée."
+        description="Les outils et les repères pour suivre les cours à distance."
         onBack={onBack}
       />
-
       <section className="school-continuity-lead" aria-labelledby="school-continuity-lead-title">
         <span><CircleAlert aria-hidden="true" /></span>
         <div>
           <small>{SCHOOL_CONTINUITY.updatedLabel}</small>
           <h2 id="school-continuity-lead-title">{SCHOOL_CONTINUITY.title}</h2>
-          <p>Le lycée est fermé au public. Les cours, messages et consignes propres à chaque classe sont transmis par les canaux numériques habituels.</p>
+          <p>{SCHOOL_CONTINUITY.summary}</p>
         </div>
       </section>
-
-      <section className="school-continuity-steps" aria-labelledby="school-continuity-steps-title">
-        <div className="lycee-section-title"><div><span className="lycee-eyebrow">Élèves et familles</span><h2 id="school-continuity-steps-title">Trois étapes simples</h2></div></div>
-        <ol>
-          <li><span>1</span><div><strong>Ouvrir MonLycée.net</strong><p>Connectez-vous avec votre compte ENT personnel. Un parent utilise son propre compte.</p><a href={SCHOOL_CONTINUITY.entUrl} target="_blank" rel="noreferrer">Accéder à l’ENT <ExternalLink aria-hidden="true" /></a></div></li>
-          <li><span>2</span><div><strong>Consulter PRONOTE depuis l’ENT</strong><p>Vérifiez les messages, le travail demandé et les consignes de votre classe. PRONOTE est accessible dans les applications de MonLycée.net.</p></div></li>
-          <li><span>3</span><div><strong>Demander de l’aide si un accès bloque</strong><p>Expliquez ce qui ne fonctionne pas à Blaise. Le portail reste disponible pour l’assistance et le suivi des demandes.</p><button type="button" onClick={() => onHelp("Je n’arrive pas à accéder à l’ENT pendant la fermeture du lycée.")}>Obtenir de l’aide <ChevronRight aria-hidden="true" /></button></div></li>
-        </ol>
-      </section>
-
-      <section className="school-continuity-grid" aria-label="Ressources de continuité">
-        <article><span><UsersRound aria-hidden="true" /></span><div><h2>Pour les personnels</h2><p>Consultez MonLycée.net pour suivre les messages de l’établissement et transmettre à vos classes les consignes, ressources et liens utiles. En cas d’accès bloqué, l’assistance du portail reste disponible.</p><button type="button" onClick={() => onHelp("Je suis membre du personnel et je n’arrive pas à accéder à l’ENT pendant la fermeture du lycée.")}>Demander de l’aide <ChevronRight aria-hidden="true" /></button></div></article>
-        <article><span><BookOpenCheck aria-hidden="true" /></span><div><h2>Classes virtuelles Île-de-France 2D</h2><p>Les enseignants peuvent utiliser le service régional. Les élèves rejoignent uniquement une classe virtuelle communiquée par leur professeur.</p><a href={SCHOOL_CONTINUITY.virtualClassUrl} target="_blank" rel="noreferrer">Ouvrir le service <ExternalLink aria-hidden="true" /></a></div></article>
-        <article><span><ShieldCheck aria-hidden="true" /></span><div><h2>Rester vigilant</h2><p>Ne communiquez jamais votre mot de passe ni un code de vérification dans le chat. Pour une information personnelle, le portail demande une vérification d’identité.</p></div></article>
-      </section>
-
-      <section className="school-continuity-source">
-        <div><small>Source institutionnelle</small><strong>{SCHOOL_CONTINUITY.draneTitle}</strong><p>Ressources et repères de la DRANE Île-de-France, actualisés le 5 octobre 2026.</p></div>
-        <a href={SCHOOL_CONTINUITY.draneUrl} target="_blank" rel="noreferrer">Consulter la DRANE <ExternalLink aria-hidden="true" /></a>
-      </section>
+      <SchoolContinuityResources onHelp={onHelp} />
     </div>
   );
 }

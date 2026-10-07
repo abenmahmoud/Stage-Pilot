@@ -1,4 +1,4 @@
-import { SCHOOL_CONTINUITY, SCHOOL_CONTINUITY_REPLY } from "./school-continuity.js";
+import { SCHOOL_CONTINUITY, SCHOOL_CONTINUITY_OUTAGE_REPLY, SCHOOL_CONTINUITY_REPLY } from "./school-continuity.js";
 
 export type SiteAssistantAction = {
   label: string;
@@ -126,6 +126,17 @@ export function siteNavigationAnswer(
 ): { reply: string; action: SiteAssistantAction } | null {
   const text = latestRequesterText(messages);
   if (!text) return null;
+
+  const continuityOutage = SCHOOL_CONTINUITY.active
+    && (/\b(?:ent|monlycee(?:\.net)?) (?:est |ne )?(?:en panne|indisponible|inaccessible|bloque|fonctionne (?:pas|plus))\b/.test(text)
+      || /\b(?:panne (?:de l |d )?ent|sans (?:l )?ent)\b/.test(text));
+  if (continuityOutage) {
+    const continuity = DESTINATIONS.find((candidate) => candidate.id === "continuity")!;
+    return {
+      reply: SCHOOL_CONTINUITY_OUTAGE_REPLY,
+      action: { label: "Poursuivre les cours et retrouver mon accès", description: "Consignes, liens de cours, supports et aide pour l’ENT", href: continuity.href },
+    };
+  }
 
   const installQuestion = /\b(installer|installation|ajouter)\b/.test(text)
     && /\b(application|appli|site|ecran d accueil|telephone|smartphone)\b/.test(text);

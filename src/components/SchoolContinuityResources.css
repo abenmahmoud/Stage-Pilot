@@ -1,0 +1,31 @@
+.continuity-resources{display:grid;gap:20px;min-width:0}
+.continuity-choice{display:flex;flex-wrap:wrap;gap:8px}
+.continuity-choice button{min-height:46px;padding:10px 16px;border:1px solid var(--lc-line);border-radius:10px;background:#fff;color:var(--lc-ink);font:inherit;font-size:14px;font-weight:750;cursor:pointer}
+.continuity-choice button[aria-pressed=true]{background:var(--lc-navy,#18374f);border-color:var(--lc-navy,#18374f);color:#fff}
+.continuity-choice-secondary{margin:16px 0}
+.continuity-choice-secondary button[aria-pressed=true]{background:#edf4ff;color:var(--lc-blue);border-color:var(--lc-blue)}
+.continuity-access,.continuity-faq,.continuity-teacher-guides{min-width:0;padding:24px;border:1px solid var(--lc-line);border-radius:14px;background:#fff}
+.continuity-access h2,.continuity-faq h2{margin:0 0 12px;font-size:22px}
+.continuity-access-content{padding:20px;border:1px solid #cce9de;border-radius:12px;background:#f0faf6}
+.continuity-access h3{margin:0 0 10px;font-size:18px}
+.continuity-access p,.continuity-faq p,.continuity-teacher-guides p{margin:8px 0 14px;color:var(--lc-muted);line-height:1.65;font-size:14px}
+.continuity-access .continuity-note{margin-bottom:0;font-size:12px}
+.continuity-access a,.continuity-access button,.continuity-faq button,.continuity-teacher-guides a,.continuity-references a{display:inline-flex;align-items:center;gap:6px;min-height:44px;color:var(--lc-blue);font-size:14px;font-weight:750;text-decoration:none;border:0;background:transparent;cursor:pointer}
+.continuity-access a svg,.continuity-access button svg,.continuity-faq button svg,.continuity-teacher-guides a svg,.continuity-references a svg{width:16px;height:16px;flex-shrink:0}
+.continuity-service-links{display:flex;flex-wrap:wrap;gap:8px 24px}
+.continuity-faq details,.continuity-teacher-guides details{padding:16px 0;border-bottom:1px solid var(--lc-line)}
+.continuity-faq details:last-child,.continuity-teacher-guides details:last-child{border-bottom:0}
+.continuity-faq summary,.continuity-teacher-guides summary{cursor:pointer;font-size:15px;font-weight:750;line-height:1.5}
+.continuity-teacher-guides ol,.continuity-teacher-guides ul{margin:16px 0;padding-left:24px;color:var(--lc-muted);font-size:14px;line-height:1.7}
+.continuity-teacher-guides li{margin-bottom:8px}
+.continuity-teacher-guides a{margin-right:20px}
+.continuity-safety{display:grid;grid-template-columns:28px minmax(0,1fr) auto;align-items:center;gap:12px;padding:18px;border:1px solid var(--lc-line);border-radius:12px;background:#edf4ff}
+.continuity-safety>svg{width:24px;color:var(--lc-blue)}
+.continuity-safety p{margin:0;font-size:13px;line-height:1.6;color:var(--lc-muted)}
+.continuity-safety button{display:flex;align-items:center;gap:7px;min-height:44px;padding:10px 12px;border:0;border-radius:8px;background:#fff;color:var(--lc-blue);font-size:13px;font-weight:750;cursor:pointer}
+.continuity-safety button svg{width:16px}
+.continuity-references{display:flex;flex-wrap:wrap;align-items:center;gap:6px 20px;font-size:12px;color:var(--lc-muted)}
+.continuity-references a{font-size:12px}
+.continuity-resources button:focus-visible,.continuity-resources a:focus-visible,.continuity-resources summary:focus-visible{outline:3px solid #edae37;outline-offset:3px}
+.continuity-resources a:hover{text-decoration:underline}
+@media(max-width:720px){.continuity-access,.continuity-faq,.continuity-teacher-guides{padding:18px}.continuity-choice button{flex:1}.continuity-choice-secondary button{flex:1 1 auto;font-size:13px;padding:10px 12px}.continuity-access-content{padding:16px}.continuity-safety{grid-template-columns:24px minmax(0,1fr)}.continuity-safety button{grid-column:1/-1;justify-content:center}.continuity-service-links{display:grid;gap:4px}.continuity-teacher-guides a{display:flex;margin-right:0}}
