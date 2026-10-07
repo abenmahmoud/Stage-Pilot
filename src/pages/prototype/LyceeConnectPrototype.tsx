@@ -3842,9 +3842,9 @@ function ContinuityView({ onBack, onHelp }: { onBack: () => void; onHelp: (promp
         onBack={onBack}
       />
       <section className="school-continuity-lead" aria-labelledby="school-continuity-lead-title">
-        <span><CircleAlert aria-hidden="true" /></span>
+        <span><BookOpenCheck aria-hidden="true" /></span>
         <div>
-          <small>{SCHOOL_CONTINUITY.updatedLabel}</small>
+          <small>{SCHOOL_CONTINUITY.status}</small>
           <h2 id="school-continuity-lead-title">{SCHOOL_CONTINUITY.title}</h2>
           <p>{SCHOOL_CONTINUITY.summary}</p>
         </div>

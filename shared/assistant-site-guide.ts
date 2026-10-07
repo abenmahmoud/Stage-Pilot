@@ -14,10 +14,10 @@ type SiteDestination = SiteAssistantAction & {
 const DESTINATIONS: readonly SiteDestination[] = [
   {
     id: "continuity",
-    label: "Consulter les consignes de continuité",
-    description: "ENT, PRONOTE, classes virtuelles et aide pendant la fermeture",
+    label: "Consulter les outils pour apprendre à distance",
+    description: "ENT, PRONOTE, classes virtuelles, supports et aide en cas de besoin",
     href: "/?view=continuity",
-    keywords: ["lycee ferme", "lycee est ferme", "lycee est il ouvert", "est ce que le lycee est ouvert", "lycee ouvert aujourd hui", "peut on venir au lycee", "fermeture du lycee", "fermeture exceptionnelle", "continuite pedagogique", "cours a distance", "classe virtuelle", "classes virtuelles"],
+    keywords: ["continuite pedagogique", "cours a distance", "classe virtuelle", "classes virtuelles", "outils pour apprendre a distance"],
   },
   {
     id: "news",
@@ -187,7 +187,7 @@ export function isSiteAssistantAction(value: unknown): value is SiteAssistantAct
 }
 
 export const SITE_ASSISTANT_INSTRUCTIONS = `Carte officielle du portail du lycée :
-- Fermeture et continuité pédagogique : /?view=continuity
+- Outils pour apprendre à distance, en cas de besoin : /?view=continuity
 - Actualités et hebdo publiés : /?view=news
 - Calendrier public : /?view=calendar
 - Services et liens utiles : /?view=services
@@ -199,4 +199,4 @@ export const SITE_ASSISTANT_INSTRUCTIONS = `Carte officielle du portail du lycé
 - SAV des ordinateurs Région : /assistance-numerique
 - Signalement du matériel du lycée et passages SPIE : /materiel
 - Webmail professionnel : https://mail.lycee-blaise-cendrars-sevran.fr/
-Pendant la fermeture exceptionnelle, indique d’abord MonLycée.net puis PRONOTE depuis l’ENT pour les consignes de la classe. Les classes virtuelles Île-de-France 2D sont une ressource pédagogique ; ne promets jamais qu’une classe précise est ouverte sans consigne du professeur. Utilise uniquement ces adresses publiques. Ne donne jamais une adresse /admin, /gestion, /app ou /intervention-spie à un visiteur. Quand la bonne rubrique suffit, donne une réponse courte avec son lien. Le suivi d’un dossier existant doit conduire à « Mes demandes » et ne doit pas créer un doublon.`;
+Pour les outils d’apprentissage à distance, indique MonLycée.net puis PRONOTE depuis l’ENT pour les consignes de la classe. La page de continuité est un guide permanent en cas de besoin : elle ne constitue pas une annonce de fermeture ni de bascule datée en distanciel. Les classes virtuelles Île-de-France 2D sont une ressource pédagogique ; ne promets jamais qu’une classe précise est ouverte sans consigne du professeur. Utilise uniquement ces adresses publiques. Ne donne jamais une adresse /admin, /gestion, /app ou /intervention-spie à un visiteur. Quand la bonne rubrique suffit, donne une réponse courte avec son lien. Le suivi d’un dossier existant doit conduire à « Mes demandes » et ne doit pas créer un doublon.`;

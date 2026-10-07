@@ -2,10 +2,12 @@
 
 ## Mise en place
 
-La page `/?view=continuity` conserve la consigne validée : cours à distance à
-partir du jeudi 8 octobre. Deux parcours présentent les outils aux élèves et
-parents, puis aux professeurs. Les familles choisissent entre connexion
-habituelle, ENT inaccessible et connexion limitée.
+La page `/?view=continuity` est un guide permanent « En cas de besoin », sans
+annonce de fermeture du lycée ni date de bascule en distanciel. Cette
+formulation validée par Adel remplace la précédente annonce datée. Deux
+parcours présentent les outils aux élèves et parents, puis aux professeurs.
+Les familles choisissent entre connexion habituelle, ENT inaccessible et
+connexion limitée. Le bandeau bleu présente les outils sans signal d’alerte.
 
 Les professeurs disposent des guides officiels Classe Virtuelle, Nuage pour
 partager les supports en lecture seule et recevoir des devoirs séparément,

@@ -1,8 +1,8 @@
 export const SCHOOL_CONTINUITY = {
   active: true,
-  status: "Cours à distance à partir du jeudi 8 octobre",
-  title: "Les cours sont assurés à distance à partir du jeudi 8 octobre",
-  summary: "À partir du jeudi 8 octobre, le lycée reste fermé aux élèves et les cours sont assurés à distance. Consultez MonLycée.net, puis PRONOTE depuis l’ENT, pour suivre les messages, le travail et les consignes de votre classe.",
+  status: "En cas de besoin",
+  title: "Les outils pour apprendre à distance",
+  summary: "Retrouvez les outils et les conseils pour rejoindre un cours, consulter les supports et rendre votre travail. Suivez les consignes de vos professeurs sur MonLycée.net, puis PRONOTE depuis l’ENT.",
   updatedAt: "2026-10-07",
   updatedLabel: "Mise à jour le 7 octobre 2026",
   entUrl: "https://auth.monlycee.net/",
@@ -11,7 +11,7 @@ export const SCHOOL_CONTINUITY = {
   draneTitle: "Assurer la continuité pédagogique au lycée",
 } as const;
 
-export const SCHOOL_CONTINUITY_REPLY = `À partir du jeudi 8 octobre, le lycée reste fermé aux élèves et les cours sont assurés à distance. Consultez MonLycée.net, puis PRONOTE depuis l’ENT, pour suivre les messages, le travail et les consignes de votre classe. Le portail du lycée reste disponible pour obtenir de l’aide et suivre une demande. Ne communiquez jamais votre mot de passe ni votre code de vérification dans le chat.`;
+export const SCHOOL_CONTINUITY_REPLY = "En cas de besoin, le guide du lycée présente les outils pour rejoindre un cours à distance, consulter les supports et rendre votre travail. Consultez MonLycée.net, puis PRONOTE depuis l’ENT, et utilisez les liens transmis par vos professeurs. Le portail reste disponible pour obtenir de l’aide et suivre une demande. Ne communiquez jamais votre mot de passe ni votre code de vérification dans le chat.";
 
 export const SCHOOL_CONTINUITY_TOOLS = {
   apps: "https://portail.apps.education.fr",

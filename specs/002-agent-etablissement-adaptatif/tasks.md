@@ -1,5 +1,10 @@
 # Tâches - Agent d'établissement adaptatif V2
 
+## Ajustement du guide permanent — 7 octobre 2026
+
+- [x] Présenter les outils en cas de besoin sans annoncer fermeture ou date.
+- [x] Retirer la formulation datée des réponses et de la carte de l’assistant.
+
 ## Livraison distanciel — 7 octobre 2026
 
 - [x] Ajouter les parcours familles et professeurs et les guides institutionnels.

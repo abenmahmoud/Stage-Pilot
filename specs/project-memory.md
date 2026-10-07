@@ -1,5 +1,13 @@
 # Memoire durable - Portail numerique du Lycee Blaise Cendrars
 
+## Guide permanent en cas de besoin — 7 octobre 2026
+
+À la demande d’Adel, les outils d’apprentissage à distance restent disponibles
+sans annonce de fermeture du lycée ni date de bascule. Le bandeau et la page
+présentent un guide permanent, avec les mêmes parcours et outils. Le chatbot
+ne présente plus le guide comme la preuve d’une fermeture ou d’un calendrier.
+Cette décision remplace la formulation datée de la livraison précédente.
+
 ## Outils du distanciel et secours ENT — 7 octobre 2026
 
 Parcours élèves/parents et professeurs mis en place sur la page de continuité,
