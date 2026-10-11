@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { isOfficeArchived } from "../../../shared/support-office-archive";
 import { Link, Navigate, useLocation, useNavigate } from "react-router-dom";
 import { legacyAgentDestination } from "../../../shared/management-navigation";
 import { SchoolParentsMeeting } from "../../components/SchoolParentsMeeting";
@@ -3939,7 +3940,7 @@ function ConnectedAgentView({ onBack }: { onBack: () => void }) {
   const [serviceStats, setServiceStats] = useState<AgentServiceStats[]>([]);
   const [pagination, setPagination] = useState<AgentQueuePagination>({ page: 1, pageSize: 30, total: 0, totalPages: 1 });
   const [access, setAccess] = useState<AgentAccess | null>(null);
-  const [queueMode, setQueueMode] = useState<"open" | "active" | "completed" | "all" | "qualify" | "urgent" | "overdue" | "waiting" | "internal" | "unassigned" | "callbacks" | "duplicates" | "mine">("open");
+  const [queueMode, setQueueMode] = useState<"open" | "active" | "completed" | "all" | "archives" | "qualify" | "urgent" | "overdue" | "waiting" | "internal" | "unassigned" | "callbacks" | "duplicates" | "mine">("open");
   const [serviceFilter, setServiceFilter] = useState(() => {
     const service = new URLSearchParams(window.location.search).get("service") ?? "";
     return supportTeams.some(team => team.value === service) ? service : "";
@@ -4014,6 +4015,8 @@ function ConnectedAgentView({ onBack }: { onBack: () => void }) {
       if (queueMode === "open") params.set("state", "open");
       if (queueMode === "active") params.set("state", "active");
       if (queueMode === "completed") params.set("state", "completed");
+      if (queueMode === "archives") params.set("archived", "only");
+      if (queueMode === "all") params.set("archived", "include");
       if (queueMode === "urgent") params.set("urgent", "true");
       if (queueMode === "overdue") params.set("overdue", "true");
       if (queueMode === "qualify") params.set("status", "a_qualifier");
@@ -4207,6 +4210,29 @@ function ConnectedAgentView({ onBack }: { onBack: () => void }) {
       })
       .catch(() => setTemplates(DEFAULT_SUPPORT_REPLY_TEMPLATES));
   }, []);
+
+  async function archiveRequest(archived: boolean) {
+    if (!detail || !selectedCode || saving) return;
+    setSaving(true);
+    setError(null);
+    try {
+      const result = await apiFetch<{ publicCode: string; archived: boolean; updatedAt: string; eventId: number }>("support/agent/archive", {
+        method: "POST",
+        body: JSON.stringify({ publicCode: selectedCode, archived, expectedUpdatedAt: detail.request.updatedAt }),
+      });
+      if (result.publicCode !== selectedCode || result.archived !== archived || !Number.isSafeInteger(result.eventId) || result.eventId <= 0) {
+        throw new Error("L’archivage n’a pas été confirmé. Actualisez le dossier.");
+      }
+      const refreshed = await fetchAgentRequestDetail(selectedCode);
+      if (refreshed.request.updatedAt !== result.updatedAt || isOfficeArchived(refreshed.request.subjectContext, refreshed.messages) !== archived) {
+        throw new Error("Ce dossier a changé après l’archivage. Actualisez la file.");
+      }
+      setDetail(refreshed);
+      await loadQueue();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Archivage impossible");
+    } finally { setSaving(false); }
+  }
 
   async function updateRequest(changes: { status?: string; priority?: string; identityStatus?: IdentityStatus; identityMethod?: string; assignToMe?: boolean; assignedTeam?: string | null; closureReason?: string; duplicateDecision?: "confirmed" | "dismissed"; routingDecision?: "confirmed" }) {
     if (!selectedCode || !detail?.request.updatedAt) return;
@@ -4743,7 +4769,7 @@ function ConnectedAgentView({ onBack }: { onBack: () => void }) {
     ? supportTeams
     : supportTeams.filter((team) => access?.serviceCodes.includes(team.value) || (equipmentCollaboration && team.value === "referent_numerique"));
   const hasQueueFilters = query.trim().length > 0 || queueMode !== "open" || serviceFilter !== "" || categoryFilter !== "";
-  const advancedQueueMode = ["all", "qualify", "urgent", "overdue", "internal", "unassigned", "callbacks", "duplicates", "mine"].includes(queueMode) ? queueMode : "";
+  const advancedQueueMode = ["all", "archives", "qualify", "urgent", "overdue", "internal", "unassigned", "callbacks", "duplicates", "mine"].includes(queueMode) ? queueMode : "";
   const orderedServiceStats = [
     serviceStats.find((item) => item.service === null),
     ...supportTeams.map((team) => serviceStats.find((item) => item.service === team.value)),
@@ -4812,8 +4838,8 @@ function ConnectedAgentView({ onBack }: { onBack: () => void }) {
       </details> : null}
       <div className={`lycee-agent-workspace ${selectedCode ? 'has-selection' : ''}`}>
         <section className="lycee-agent-queue" aria-label="File des demandes">
-          <div className="lycee-agent-toolbar"><label><Search aria-hidden="true" /><input aria-label="Rechercher une demande" maxLength={80} value={query} onChange={(event) => { setQuery(event.target.value); setPage(1); }} placeholder="Nom, numéro ou objet" /></label><button className={queueMode === "mine" ? "is-active" : ""} type="button" aria-label="Afficher mes demandes" aria-pressed={queueMode === "mine"} title="Afficher mes demandes" onClick={() => { setQueueMode((current) => current === "mine" ? "open" : "mine"); setPage(1); }}><Filter aria-hidden="true" /></button><button type="button" aria-label="Réinitialiser les filtres" title="Réinitialiser les filtres" disabled={!hasQueueFilters} onClick={resetQueueFilters}><RotateCcw aria-hidden="true" /></button><select aria-label="Filtrer par type de demande" value={categoryFilter} onChange={(event) => { setCategoryFilter(event.target.value); setPage(1); setSelectedCode(null); }}><option value="">Tous les types de demandes</option><option value="materiel_spie">Matériel du lycée · SPIE</option>{supportCategories.map((category) => <option value={category.value} key={category.value}>{agentCategoryLabels[category.value]}</option>)}</select><select aria-label="Filtrer par service" value={serviceFilter} onChange={(event) => { setServiceFilter(event.target.value); setPage(1); setSelectedCode(null); }}><option value="">{access?.canViewAll ? "Tous les services" : "Mon périmètre"}</option>{access?.canViewAll ? <option value="unassigned">À orienter</option> : null}{availableTeams.map((team) => <option value={team.value} key={team.value}>{team.label}</option>)}</select><select aria-label="Filtres supplémentaires" value={advancedQueueMode} onChange={(event) => { if (event.target.value) setQueueMode(event.target.value as typeof queueMode); setPage(1); setSelectedCode(null); }}><option value="">Priorité et suivi</option><option value="urgent">Urgentes ({stats.urgent})</option><option value="qualify">À classer ({stats.qualify})</option><option value="overdue">En retard ({stats.overdue})</option><option value="internal">À vérifier ({stats.waitingInternal})</option><option value="unassigned">Sans agent ({stats.unassigned})</option><option value="callbacks">Rappels ({stats.callbacks})</option><option value="duplicates">Doublons ({stats.duplicates})</option><option value="mine">Mes dossiers</option><option value="all">Toutes, y compris archivées ({stats.total})</option></select></div>
-          <div className="lycee-agent-tabs" aria-label="Filtrer les demandes"><button aria-pressed={queueMode === "open"} className={queueMode === "open" ? "is-active" : ""} type="button" onClick={() => { setQueueMode("open"); setPage(1); }}>À traiter <span>{stats.open}</span></button><button aria-pressed={queueMode === "active"} className={queueMode === "active" ? "is-active" : ""} type="button" onClick={() => { setQueueMode("active"); setPage(1); }}>En cours <span>{stats.active}</span></button><button aria-pressed={queueMode === "waiting"} className={queueMode === "waiting" ? "is-active" : ""} type="button" onClick={() => { setQueueMode("waiting"); setPage(1); }}>En attente <span>{stats.waitingRequester}</span></button><button aria-pressed={queueMode === "completed"} className={queueMode === "completed" ? "is-active" : ""} type="button" onClick={() => { setQueueMode("completed"); setPage(1); }}>Terminées <span>{stats.completed}</span></button></div>
+          <div className="lycee-agent-toolbar"><label><Search aria-hidden="true" /><input aria-label="Rechercher une demande" maxLength={80} value={query} onChange={(event) => { setQuery(event.target.value); setPage(1); }} placeholder="Nom, numéro ou objet" /></label><button className={queueMode === "mine" ? "is-active" : ""} type="button" aria-label="Afficher mes demandes" aria-pressed={queueMode === "mine"} title="Afficher mes demandes" onClick={() => { setQueueMode((current) => current === "mine" ? "open" : "mine"); setPage(1); }}><Filter aria-hidden="true" /></button><button type="button" aria-label="Réinitialiser les filtres" title="Réinitialiser les filtres" disabled={!hasQueueFilters} onClick={resetQueueFilters}><RotateCcw aria-hidden="true" /></button><select aria-label="Filtrer par type de demande" value={categoryFilter} onChange={(event) => { setCategoryFilter(event.target.value); setPage(1); setSelectedCode(null); }}><option value="">Demandes hors matériel / SPIE</option><option value="materiel_spie">Matériel du lycée · SPIE</option>{supportCategories.map((category) => <option value={category.value} key={category.value}>{agentCategoryLabels[category.value]}</option>)}</select><select aria-label="Filtrer par service" value={serviceFilter} onChange={(event) => { setServiceFilter(event.target.value); setPage(1); setSelectedCode(null); }}><option value="">{access?.canViewAll ? "Tous les services" : "Mon périmètre"}</option>{access?.canViewAll ? <option value="unassigned">À orienter</option> : null}{availableTeams.map((team) => <option value={team.value} key={team.value}>{team.label}</option>)}</select><select aria-label="Filtres supplémentaires" value={advancedQueueMode} onChange={(event) => { if (event.target.value) setQueueMode(event.target.value as typeof queueMode); setPage(1); setSelectedCode(null); }}><option value="">Priorité et suivi</option><option value="urgent">Urgentes ({stats.urgent})</option><option value="qualify">À classer ({stats.qualify})</option><option value="overdue">En retard ({stats.overdue})</option><option value="internal">À vérifier ({stats.waitingInternal})</option><option value="unassigned">Sans agent ({stats.unassigned})</option><option value="callbacks">Rappels ({stats.callbacks})</option><option value="duplicates">Doublons ({stats.duplicates})</option><option value="mine">Mes dossiers</option><option value="archives">Archives</option><option value="all">Toutes, avec les archives</option></select></div>
+          <div className="lycee-agent-tabs" aria-label="Filtrer les demandes"><button aria-pressed={queueMode === "open"} className={queueMode === "open" ? "is-active" : ""} type="button" onClick={() => { setQueueMode("open"); setPage(1); }}>À traiter <span>{stats.open}</span></button><button aria-pressed={queueMode === "active"} className={queueMode === "active" ? "is-active" : ""} type="button" onClick={() => { setQueueMode("active"); setPage(1); }}>En cours <span>{stats.active}</span></button><button aria-pressed={queueMode === "waiting"} className={queueMode === "waiting" ? "is-active" : ""} type="button" onClick={() => { setQueueMode("waiting"); setPage(1); }}>En attente <span>{stats.waitingRequester}</span></button><button aria-pressed={queueMode === "completed"} className={queueMode === "completed" ? "is-active" : ""} type="button" onClick={() => { setQueueMode("completed"); setPage(1); }}>Terminées <span>{stats.completed}</span></button><button aria-pressed={queueMode === "archives"} className={queueMode === "archives" ? "is-active" : ""} type="button" onClick={() => { setQueueMode("archives"); setPage(1); setSelectedCode(null); }}><Archive aria-hidden="true" /> Archives</button></div>
           <div className="lycee-agent-list" aria-busy={queueLoading}>
             {queueLoading ? <div className="lycee-agent-list-loading" role="status" aria-live="polite"><Clock3 aria-hidden="true" /> Mise à jour…</div> : null}
             <ul aria-label="Demandes affichées">
@@ -4836,6 +4862,7 @@ function ConnectedAgentView({ onBack }: { onBack: () => void }) {
           {detailLoading ? <div className="lycee-loading-state" role="status" aria-live="polite"><Clock3 aria-hidden="true" /> Chargement du dossier…</div> : selected && detail ? (
             <>
               <div className="lycee-agent-detail-head"><div><span>{selected.publicCode}</span><h2>{selected.subject}</h2><p>{selected.requesterFirstName} {selected.requesterLastName} · {requesterProfileLabels[selected.requesterType] ?? selected.requesterType}</p></div><div className="lycee-agent-detail-tools"><nav className="lycee-agent-record-navigation" aria-label="Parcourir la page de demandes"><button type="button" aria-label="Dossier précédent dans la page" title="Dossier précédent" disabled={queueNavigationDisabled || !queueNavigation.previousCode} onClick={() => queueNavigation.previousCode && setSelectedCode(queueNavigation.previousCode)}><ChevronLeft aria-hidden="true" /></button><span aria-live="polite">{queueNavigation.position} sur {queueNavigation.total}<small>dans cette page</small></span><button type="button" aria-label="Dossier suivant dans la page" title="Dossier suivant" disabled={queueNavigationDisabled || !queueNavigation.nextCode} onClick={() => queueNavigation.nextCode && setSelectedCode(queueNavigation.nextCode)}><ChevronRight aria-hidden="true" /></button></nav><div className="lycee-agent-controls"><select aria-label="Priorité" value={selected.priority} disabled={saving} onChange={(event) => void updateRequest({ priority: event.target.value })}><option value="p1">Critique</option><option value="p2">Urgente</option><option value="p3">Normale</option><option value="p4">Faible</option></select><select aria-label="Statut" value={selected.status} disabled={saving || selected.status === "clos"} onChange={(event) => void updateRequest({ status: event.target.value })}><option value="nouveau">Nouvelle demande</option><option value="a_qualifier">À classer</option><option value="assigne">Assignée</option><option value="en_cours">En cours</option><option value="attente_demandeur">En attente de l’utilisateur</option><option value="attente_interne">Vérification interne</option><option value="resolu">Résolue</option>{selected.status === "clos" ? <option value="clos">Fermée</option> : null}</select></div></div></div>
+              <section className="lycee-agent-routing"><Archive aria-hidden="true" /><span><strong>{isOfficeArchived(selected.subjectContext, detail.messages) ? "Dossier archivé" : "Suivi du dossier"}</strong><small>{isOfficeArchived(selected.subjectContext, detail.messages) ? "Messages et pièces conservés. Vous pouvez remettre ce dossier dans la file." : "L’archivage retire le dossier de la file et conserve son historique."}</small></span><button type="button" disabled={saving} onClick={() => void archiveRequest(!isOfficeArchived(selected.subjectContext, detail.messages))}>{isOfficeArchived(selected.subjectContext, detail.messages) ? "Sortir des archives" : "Archiver"}</button></section>
               <SupportRequestOverview
                 key={selected.publicCode}
                 message={latestMessage?.bodyText ?? selected.description}

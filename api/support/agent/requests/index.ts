@@ -5,6 +5,7 @@ import { supportCallbackTasks, supportEvents, supportRequests } from "../../../.
 import { HttpError } from "../../../_shared/auth.js";
 import { handleApi, methodNotAllowed } from "../../../_shared/response.js";
 import { requireSupportAgent } from "../../../_shared/support-agent-access.js";
+import { officeArchiveFilter, officeRequestScopeFilter } from "../../../_shared/support-office-archive.js";
 import {
   SUPPORT_SERVICES,
   type SupportService,
@@ -159,6 +160,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const category = queryValue(req.query.category);
     const state = queryValue(req.query.state);
     const scope = queryValue(req.query.scope);
+    const archive = queryValue(req.query.archived);
+    if (archive && !["only", "include"].includes(archive)) throw new HttpError(400, "Filtre d’archives invalide");
+    const archiveFilter = officeArchiveFilter(archive);
+    const officeScopeFilter = officeRequestScopeFilter(scope, category);
     if (state && !VALID_QUEUE_STATES.has(state)) {
       throw new HttpError(400, "État de file invalide");
     }
@@ -174,6 +179,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const ddfptEquipmentCollaboration = (category === "ordinateur" || scope === "equipment")
       && access.serviceCodes.includes("ddfpt");
     const filters: SQL[] = [eq(supportRequests.institutionId, institutionId)];
+    if (archiveFilter) filters.push(archiveFilter);
+    if (officeScopeFilter) filters.push(officeScopeFilter);
     const accessFilter = access.canViewAll
       ? undefined
       : ddfptEquipmentCollaboration
@@ -274,6 +281,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     const statsWhere = [
       eq(supportRequests.institutionId, institutionId),
+      archiveFilter,
+      officeScopeFilter,
       accessFilter,
       serviceFilter,
       category ? eq(supportRequests.category, category) : undefined,
@@ -304,7 +313,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         unassigned: sql<number>`count(*) filter (where ${supportRequests.assignedTo} is null and ${supportRequests.status} not in ('resolu', 'clos', 'indesirable'))::int`,
       })
       .from(supportRequests)
-      .where(and(eq(supportRequests.institutionId, institutionId), accessFilter))
+      .where(and(eq(supportRequests.institutionId, institutionId), accessFilter, archiveFilter, officeScopeFilter, scopeFilter))
       .groupBy(supportRequests.assignedTeam);
 
     // The serverless database client intentionally owns one connection. Running

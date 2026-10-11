@@ -6831,3 +6831,8 @@ ciblés réussis. Détails :
 - Les titres, résumés et corps publics restent positifs, directs et professionnels. Ils ne citent jamais l'hebdo, la source, une information manquante, « non communiquée », « non précisée », « à vérifier » ou « à confirmer ».
 - Quand un détail validé doit encore arriver, le texte public annonce sobrement que les précisions pratiques seront publiées ou transmises prochainement. Aucune donnée n'est inventée.
 - Les manques, contradictions, questions de relecture et références de source restent exclusivement dans les notes internes de l'administration. Les assistants éditoriaux et le parseur hebdomadaire appliquent désormais cette séparation.
+
+## 11 octobre 2026 — archivage administratif réversible
+
+La file de demandes dispose d’archives réversibles, distinctes des statuts de traitement, et exclut par défaut le matériel SPIE. Les dossiers et contrôles d’identité sont conservés ; un nouveau message entrant réintègre le dossier. Route authentifiée, contrôle de révision, transaction et audit. Détails : docs/operations/ARCHIVES_DEMANDES_2026-10-11.md. Le lot demandé par Adel conserve la semaine du 5 au 11 octobre ; ses preuves restent hors Git.
+
