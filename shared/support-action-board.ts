@@ -33,6 +33,15 @@ export function boardExcerpt(value: string, max = 360): string {
   return text.length > max ? text.slice(0, max - 1).trimEnd() + '…' : text;
 }
 
+export function boardProblem(description: string, latestInbound: string | null): string {
+  const original = description.trim();
+  const latest = latestInbound?.trim() || '';
+  if (!original) return boardExcerpt(latest);
+  // A reply such as a school year or “merci” must not replace the original need.
+  if (!latest || original.includes(latest)) return boardExcerpt(original);
+  return boardExcerpt(`${boardExcerpt(original, 230)} Dernier message : ${boardExcerpt(latest, 100)}`);
+}
+
 export function suggestedTeamAction(input: { category: string; subcategory?: string | null; status: string; subject: string; problem: string; callbackPending: boolean }): string {
   if (['resolu', 'clos', 'indesirable'].includes(input.status)) return 'Aucune action en cours. Consulter l’historique si nécessaire.';
   if (input.callbackPending) return 'Effectuer le rappel demandé, puis consigner le résultat dans le dossier.';

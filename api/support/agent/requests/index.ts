@@ -6,7 +6,7 @@ import { HttpError } from "../../../_shared/auth.js";
 import { handleApi, methodNotAllowed } from "../../../_shared/response.js";
 import { requireSupportAgent } from "../../../_shared/support-agent-access.js";
 import { officeArchiveFilter, officeRequestScopeFilter } from "../../../_shared/support-office-archive.js";
-import { boardExcerpt, suggestedTeamAction, TEAM_INSTRUCTION_PREFIX } from "../../../../shared/support-action-board.js";
+import { boardExcerpt, boardProblem, suggestedTeamAction, TEAM_INSTRUCTION_PREFIX } from "../../../../shared/support-action-board.js";
 import {
   SUPPORT_SERVICES,
   type SupportService,
@@ -272,7 +272,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           const instruction = row.instruction ? boardExcerpt(row.instruction.slice(TEAM_INSTRUCTION_PREFIX.length), 1000) || null : null;
           return {
             publicCode: row.publicCode, person: boardExcerpt(`${row.personFirst} ${row.personLast}`, 220),
-            subject: boardExcerpt(row.subject, 180), problem: boardExcerpt(row.latestInbound || row.description),
+            subject: boardExcerpt(row.subject, 180), problem: boardProblem(row.description, row.latestInbound),
             service: row.service, status: row.status, urgent: ['p1', 'p2'].includes(row.priority),
             createdAt: row.createdAt.toISOString(), updatedAt: row.updatedAt.toISOString(),
             callbackPending: row.callbackPending, instruction, instructionAt: instruction && row.instructionAt ? new Date(row.instructionAt).toISOString() : null,

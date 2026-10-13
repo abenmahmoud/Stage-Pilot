@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { boardExcerpt, suggestedTeamAction, isActionBoardPayload } from '../shared/support-action-board.ts';
+import { boardExcerpt, boardProblem, suggestedTeamAction, isActionBoardPayload } from '../shared/support-action-board.ts';
 import { resolveSupportAgentAccess, canAccessSupportRequest } from '../shared/support-agent-access.ts';
 const base = { category: 'ent', status: 'attente_interne', subject: 'Accès ENT', problem: 'Je ne peux pas activer mon compte', callbackPending: false };
 assert.match(suggestedTeamAction(base), /identité.*sécurisé/);
@@ -12,6 +12,9 @@ assert.equal(boardExcerpt('Mon mot de passe est Fictif_123456'), 'Consulter le d
 const safe = boardExcerpt('Me joindre sur famille@example.test au 06 12 34 56 78 et https://exemple.test/?token=fictif');
 assert.ok(!safe.includes('famille@') && !safe.includes('06 12') && !safe.includes('token=fictif'));
 assert.equal(boardExcerpt('A'.repeat(1000)).length, 360);
+assert.match(boardProblem('Je souhaite une inscription en première.', '2026-2027'), /inscription en première.*2026-2027/);
+assert.equal(boardProblem('Je souhaite un certificat.', 'Je souhaite un certificat.'), 'Je souhaite un certificat.');
+assert.equal(boardProblem('Je souhaite un certificat.', 'Mon mot de passe est Fictif_123456').includes('Fictif_123456'), false);
 const row = { publicCode: 'BC-2026-000001', person: 'Personne fictive', subject: 'Accès ENT', problem: 'Connexion', service: 'referent_numerique', status: 'attente_interne', createdAt: '2026-10-13T08:00:00.000Z', updatedAt: '2026-10-13T08:00:00.000Z', urgent: false, action: 'Vérifier', instruction: null, instructionAt: null, callbackPending: false };
 const payload = { rows: [row], access: resolveSupportAgentAccess('superadmin'), generatedAt: row.createdAt, pagination: { page: 1, pageSize: 50, total: 1, totalPages: 1 } };
 assert.ok(isActionBoardPayload(payload));
