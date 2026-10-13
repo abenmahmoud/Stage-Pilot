@@ -6836,3 +6836,18 @@ ciblés réussis. Détails :
 
 La file de demandes dispose d’archives réversibles, distinctes des statuts de traitement, et exclut par défaut le matériel SPIE. Les dossiers et contrôles d’identité sont conservés ; un nouveau message entrant réintègre le dossier. Route authentifiée, contrôle de révision, transaction et audit. Détails : docs/operations/ARCHIVES_DEMANDES_2026-10-11.md. Le lot demandé par Adel conserve la semaine du 5 au 11 octobre ; ses preuves restent hors Git.
 
+
+## 13 octobre 2026 — ENT actualisé et huit demandes traitées
+
+Huit réponses générales enregistrées via la session superadmin : sept emails
+marqués sent et un rappel téléphonique requis, sans code ni clôture artificielle.
+L’annuaire du 13 octobre est actif : 7 150 lignes, 4 640 personnes, 2 510 relations,
+zéro rejet ; références exactes conservées, nouveaux liens familiaux réciproques.
+Les 9 957 attributs ENT chiffrés sont actifs et liés à cette version. La provenance
+est correctement datée du 13 octobre après remplacement audité du premier lot.
+Le coffre a ajouté 32 accès ENT et conservé 1 160 existants ; 1 383 ENT et 98 KOXO
+sont disponibles avec valeur chiffrée. Les sept dossiers reconnus ont leurs fiches
+et attributs, mais aucune remise de code ni recette OTP réelle n’est déclarée.
+Aucun renvoi des réponses déjà envoyées, aucun nouveau SMS, email ou push pendant
+l’import. Deux récapitulatifs de services restent préparés sans destinataire fixé.
+Détails : docs/operations/ENT_IMPORT_2026-10-13.md. Preuves privées hors Git.
