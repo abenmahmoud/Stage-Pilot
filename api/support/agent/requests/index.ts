@@ -217,7 +217,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       : VALID_SERVICES.has(service)
         ? eq(supportRequests.assignedTeam, service)
         : undefined;
-    const stateFilter = queueStateFilter(state);
+    const stateFilter = view === "actions" && state === "active"
+      ? or(queueStateFilter(state), and(notInArray(supportRequests.status, CLOSED_STATUSES), hasPendingCallback()))
+      : queueStateFilter(state);
     const scopeFilter = requestScopeFilter(scope);
 
     if (search) {
@@ -274,7 +276,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             service: row.service, status: row.status, urgent: ['p1', 'p2'].includes(row.priority),
             createdAt: row.createdAt.toISOString(), updatedAt: row.updatedAt.toISOString(),
             callbackPending: row.callbackPending, instruction, instructionAt: instruction && row.instructionAt ? new Date(row.instructionAt).toISOString() : null,
-            action: instruction || suggestedTeamAction({ ...row, problem: row.latestInbound || row.description }),
+            action: CLOSED_STATUSES.includes(row.status)
+              ? suggestedTeamAction({ ...row, problem: row.latestInbound || row.description })
+              : instruction || suggestedTeamAction({ ...row, problem: row.latestInbound || row.description }),
           };
         }), access, generatedAt: new Date().toISOString(),
         pagination: { page, pageSize, total, totalPages: Math.max(1, Math.ceil(total / pageSize)) },
