@@ -3935,6 +3935,10 @@ function AgentView({ onBack }: { onBack: () => void }) {
 }
 
 function ConnectedAgentView({ onBack }: { onBack: () => void }) {
+  const initialDossierRef = useRef<string | null>((() => {
+    const code = new URLSearchParams(window.location.search).get("dossier") ?? "";
+    return /^BC-\d{4}-\d{6}$/.test(code) ? code : null;
+  })());
   const [requests, setRequests] = useState<AgentQueueRequest[]>([]);
   const [stats, setStats] = useState<AgentQueueStats>({ total: 0, open: 0, completed: 0, new: 0, qualify: 0, urgent: 0, active: 0, waitingRequester: 0, waitingInternal: 0, unassigned: 0, overdue: 0, callbacks: 0, duplicates: 0 });
   const [serviceStats, setServiceStats] = useState<AgentServiceStats[]>([]);
@@ -4049,9 +4053,10 @@ function ConnectedAgentView({ onBack }: { onBack: () => void }) {
         setServiceFilter("");
       }
       const currentCode = selectedCodeRef.current;
-      const nextCode = payload.requests.some((request) => request.publicCode === currentCode)
+      const nextCode = initialDossierRef.current ?? (payload.requests.some((request) => request.publicCode === currentCode)
         ? currentCode
-        : payload.requests[0]?.publicCode ?? null;
+        : payload.requests[0]?.publicCode ?? null);
+      initialDossierRef.current = null;
       selectedCodeRef.current = nextCode;
       setSelectedCode(nextCode);
       if (!nextCode) setDetail(null);

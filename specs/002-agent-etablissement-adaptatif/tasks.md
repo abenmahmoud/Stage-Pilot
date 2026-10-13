@@ -1531,4 +1531,5 @@
 - [x] T074F Ajouter le manuel du superadmin `/gestion/manuel` : 27 fiches avec démarches, prérequis, limites, recherche, filtres et liens directs. Compilation, 17 contrôles de sécurité/navigation et dix parcours fictifs 1440/390/320 px réussis. Publié `d6f3f5e`, domaine principal et URL immuable vérifiés, accès visiteur refusé. Rapport MANUEL_SUPERADMIN_2026-09-12.
 
 - [x] T048K Ajouter les archives administratives réversibles, conserver le statut et l’historique, séparer par défaut SPIE, réintégrer un dossier sur nouveau message entrant. Build et tests ciblés réussis ; preuves : docs/operations/ARCHIVES_DEMANDES_2026-10-11.md.
+- [ ] T048L Ajouter le tableau des actions pour les équipes : date, numéro, problème et prochaine action, consignes internes journalisées, filtres de service et SPIE, lien privé et impression explicite. Spécification : tableau-actions-equipes.md. Recette et publication à consigner.
 

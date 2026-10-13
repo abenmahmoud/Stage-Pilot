@@ -1,5 +1,15 @@
 # Memoire durable - Portail numerique du Lycee Blaise Cendrars
 
+## 13 octobre 2026 — tableau des actions pour les équipes
+
+Adel veut déléguer sans imposer la console complète à chaque collègue. Route
+privée `/gestion/actions` : date, numéro, besoin, service, statut et prochaine
+action ; consigne humaine interne et journalisée, filtres par équipe et suivi,
+SPIE séparé, lien privé et impression paginée. Les droits existants restent
+appliqués côté serveur ; aucun accès anonyme, envoi ou clôture automatique.
+Développé et recetté localement avec données fictives sur bureau et mobile.
+La publication reste à confirmer. Voir TABLEAU_ACTIONS_EQUIPES_2026-10-13.md.
+
 ## Guide permanent en cas de besoin — 7 octobre 2026
 
 À la demande d’Adel, les outils d’apprentissage à distance restent disponibles

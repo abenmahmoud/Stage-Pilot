@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { NavLink } from "react-router-dom";
-import { Activity, BadgeCheck, BookOpen, BookOpenCheck, CalendarDays, Coins, IdCard, Inbox, Laptop2, LayoutDashboard, MessagesSquare, Newspaper, ShieldCheck, UsersRound, WandSparkles, Wrench, Zap } from "lucide-react";
+import { Activity, BadgeCheck, BookOpen, BookOpenCheck, CalendarDays, ClipboardList, Coins, IdCard, Inbox, Laptop2, LayoutDashboard, MessagesSquare, Newspaper, ShieldCheck, UsersRound, WandSparkles, Wrench, Zap } from "lucide-react";
 import type { UserRole } from "../lib/types";
 import { apiFetch } from "../lib/api";
 import { isValidFlashValidationScreenAccessPayload } from "../../shared/flash-payload-policy";
@@ -30,6 +30,7 @@ export function useManagementLinks(role: UserRole, userId: string) {
   const direction = ["superadmin", "proviseur"].includes(role);
   return [
     { to: "/gestion", label: "Vue d’ensemble", icon: LayoutDashboard, group: "Au quotidien", show: support },
+    { to: "/gestion/actions", label: "Tableau des actions", icon: ClipboardList, group: "Au quotidien", show: support },
     { to: "/gestion/demandes", label: "Demandes", icon: Inbox, group: "Au quotidien", show: support },
     { to: "/gestion/materiel", label: "Matériel & SPIE", icon: Wrench, group: "Au quotidien", show: equipment?.userId === userId && equipment.allowed },
     { to: "/admin/validations-agent", label: "Validations des demandes", icon: BadgeCheck, group: "Au quotidien", show: support },

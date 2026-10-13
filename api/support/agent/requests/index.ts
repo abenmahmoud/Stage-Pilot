@@ -6,6 +6,7 @@ import { HttpError } from "../../../_shared/auth.js";
 import { handleApi, methodNotAllowed } from "../../../_shared/response.js";
 import { requireSupportAgent } from "../../../_shared/support-agent-access.js";
 import { officeArchiveFilter, officeRequestScopeFilter } from "../../../_shared/support-office-archive.js";
+import { boardExcerpt, suggestedTeamAction, TEAM_INSTRUCTION_PREFIX } from "../../../../shared/support-action-board.js";
 import {
   SUPPORT_SERVICES,
   type SupportService,
@@ -161,6 +162,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const state = queryValue(req.query.state);
     const scope = queryValue(req.query.scope);
     const archive = queryValue(req.query.archived);
+    const view = queryValue(req.query.view);
+    if (view && view !== "actions") throw new HttpError(400, "Vue de demandes invalide");
     if (archive && !["only", "include"].includes(archive)) throw new HttpError(400, "Filtre d’archives invalide");
     const archiveFilter = officeArchiveFilter(archive);
     const officeScopeFilter = officeRequestScopeFilter(scope, category);
@@ -242,6 +245,41 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (scopeFilter) filters.push(scopeFilter);
 
     const where = filters.length > 0 ? and(...filters) : undefined;
+    // Same institution, service, archive and SPIE restrictions as the full queue.
+    // The team view deliberately excludes contacts, attachments, secrets and full history.
+    if (view === "actions") {
+      const rows = await db.select({
+        publicCode: supportRequests.publicCode,
+        personFirst: supportRequests.requesterFirstName, personLast: supportRequests.requesterLastName,
+        subject: supportRequests.subject, description: supportRequests.description,
+        category: supportRequests.category, subcategory: supportRequests.subcategory,
+        status: supportRequests.status, priority: supportRequests.priority,
+        service: supportRequests.assignedTeam,
+        createdAt: supportRequests.createdAt, updatedAt: supportRequests.updatedAt,
+        callbackPending: hasPendingCallback(),
+        latestInbound: sql<string | null>`(select m.body_text from support_messages m where m.request_id = "support_requests"."id" and m.direction = 'inbound' order by m.created_at desc, m.id desc limit 1)`,
+        instruction: sql<string | null>`(select m.body_text from support_messages m where m.request_id = "support_requests"."id" and m.direction = 'internal' and m.body_text like ${TEAM_INSTRUCTION_PREFIX + '%'} order by m.created_at desc, m.id desc limit 1)`,
+        instructionAt: sql<string | null>`(select m.created_at::text from support_messages m where m.request_id = "support_requests"."id" and m.direction = 'internal' and m.body_text like ${TEAM_INSTRUCTION_PREFIX + '%'} order by m.created_at desc, m.id desc limit 1)`,
+      }).from(supportRequests).where(where)
+        .orderBy(sql`case ${supportRequests.priority} when 'p1' then 1 when 'p2' then 2 else 3 end`, asc(supportRequests.createdAt))
+        .limit(pageSize).offset((page - 1) * pageSize);
+      const [totalRow] = await db.select({ count: sql<number>`count(*)::int` }).from(supportRequests).where(where);
+      const total = totalRow?.count ?? 0;
+      return {
+        rows: rows.map(row => {
+          const instruction = row.instruction ? boardExcerpt(row.instruction.slice(TEAM_INSTRUCTION_PREFIX.length), 1000) || null : null;
+          return {
+            publicCode: row.publicCode, person: boardExcerpt(`${row.personFirst} ${row.personLast}`, 220),
+            subject: boardExcerpt(row.subject, 180), problem: boardExcerpt(row.latestInbound || row.description),
+            service: row.service, status: row.status, urgent: ['p1', 'p2'].includes(row.priority),
+            createdAt: row.createdAt.toISOString(), updatedAt: row.updatedAt.toISOString(),
+            callbackPending: row.callbackPending, instruction, instructionAt: instruction && row.instructionAt ? new Date(row.instructionAt).toISOString() : null,
+            action: instruction || suggestedTeamAction({ ...row, problem: row.latestInbound || row.description }),
+          };
+        }), access, generatedAt: new Date().toISOString(),
+        pagination: { page, pageSize, total, totalPages: Math.max(1, Math.ceil(total / pageSize)) },
+      };
+    }
     const requestQuery = db
       .select({
         publicCode: supportRequests.publicCode,

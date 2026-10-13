@@ -46,6 +46,7 @@ const CrossDataPage = lazy(() => import("./pages/admin/CrossDataPage"));
 const RegionalDeviceHandoffsPage = lazy(() => import("./pages/admin/RegionalDeviceHandoffsPage"));
 const EquipmentOperationsPage = lazy(() => import("./pages/admin/EquipmentOperationsPage"));
 const AgentManagementRequests = lazy(() => import("./pages/prototype/LyceeConnectPrototype").then(module => ({ default: module.AgentManagementRequests })));
+const TeamActionBoard = lazy(() => import("./pages/admin/TeamActionBoard"));
 const AdminDashboard = lazy(() => import("./pages/admin/AdminDashboard"));
 const ImportPage = lazy(() => import("./pages/admin/ImportPage"));
 const ServiceAccessPage = lazy(() => import("./pages/admin/ServiceAccessPage"));
@@ -232,6 +233,7 @@ export default function App() {
         >
           <Route path="gestion" element={<RoleRoute allowedRoles={SCHOOL_MANAGEMENT_ROLES}><ManagementHomePage /></RoleRoute>} />
           <Route path="gestion/demandes" element={<RoleRoute allowedRoles={SCHOOL_MANAGEMENT_ROLES}><AgentManagementRequests /></RoleRoute>} />
+          <Route path="gestion/actions" element={<RoleRoute allowedRoles={SCHOOL_MANAGEMENT_ROLES}><TeamActionBoard /></RoleRoute>} />
           <Route path="gestion/budget-ia" element={<RoleRoute allowedRoles={AI_BUDGET_ROLES}><AiBudgetPage /></RoleRoute>} />
           <Route path="gestion/donnees" element={<RoleRoute allowedRoles={["superadmin"]}><CrossDataPage /></RoleRoute>} />
           <Route path="gestion/remise-ordinateurs" element={<RoleRoute allowedRoles={["superadmin"]}><RegionalDeviceHandoffsPage /></RoleRoute>} />

@@ -29,6 +29,16 @@ export type ManualArticle = {
 
 export const MANUAL_ARTICLES: ManualArticle[] = [
   {
+    id: 'tableau-actions-equipes', group: 'quotidien', title: 'Partager le travail avec les équipes',
+    summary: 'Un tableau simple : date, numéro, problème, équipe et prochaine action.',
+    access: 'Agents habilités dans leur périmètre ; direction et superadmin selon leurs droits.',
+    prerequisite: 'Chaque collègue utilise son compte personnel et un service actif.',
+    steps: ['Ouvrir Tableau des actions dans le menu de gestion.', 'Choisir l’équipe et le suivi. Matériel & SPIE dispose d’une vue séparée.', 'Adapter Quoi faire avec le bouton Consigne : cette note reste interne et est journalisée.', 'Copier le lien filtré pour les collègues. Leur connexion et leurs droits restent nécessaires.', 'Imprimer ou enregistrer en PDF la page affichée ; les noms sont exclus par défaut.', 'Ouvrir le dossier pour répondre officiellement et vérifier sa résolution.'],
+    result: 'L’équipe retrouve une liste commune actualisée depuis les demandes, sans ressaisie.',
+    check: 'Vérifier le service sélectionné et la page avant de partager un PDF. Enregistrer une consigne ne répond pas au demandeur et ne clôture pas sa demande.',
+    links: [{ label: 'Tableau des actions', to: '/gestion/actions' }, { label: 'Demandes', to: '/gestion/demandes' }],
+  },
+  {
     id: "assistant-portail", group: "donnees", title: "Maintenir Blaise et les parcours du portail",
     summary: "Distinguer les liens du site, les connaissances publiées et les services personnels protégés.",
     access: "Le chat est public. La gestion des connaissances et les sources restent réservées aux comptes habilités ; les données personnelles exigent une identité confirmée.",
